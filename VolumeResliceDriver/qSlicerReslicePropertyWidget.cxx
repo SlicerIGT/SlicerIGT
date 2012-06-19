@@ -14,6 +14,8 @@
 // MRML includes
 #include "vtkMRMLSliceNode.h"
 #include "vtkMRMLViewNode.h"
+#include "vtkMRMLLinearTransformNode.h"
+#include "vtkMRMLScalarVolumeNode.h"
 
 // MRMLLogic includes
 #include "vtkMRMLLayoutLogic.h"
@@ -21,6 +23,7 @@
 // VTK includes
 #include <vtkCollection.h>
 #include <vtkSmartPointer.h>
+#include <vtkMatrix4x4.h>
 
 
 class qSlicerReslicePropertyWidgetPrivate;
@@ -38,6 +41,7 @@ protected:
 public:
   qSlicerReslicePropertyWidgetPrivate(qSlicerReslicePropertyWidget& object);
   void init();
+  void updateSlice(vtkMatrix4x4* transform);
 
   QButtonGroup statusButtonGroup;
   QButtonGroup methodButtonGrouop;
@@ -103,11 +107,66 @@ void qSlicerReslicePropertyWidgetPrivate::init()
   this->orientationButtonGroup.addButton(this->transverseRadioButton, ORIENTATION_TRANSVERSE);
   this->inPlaneRadioButton->setChecked(true);
   
-  QObject::connect(this->driverNodeSelector, SIGNAL(currentNodeChanged(vtkMRMLNode)),
-                   q, SLOT(setDriverNode()));
+  QObject::connect(this->driverNodeSelector, SIGNAL(currentNodeChanged(vtkMRMLNode*)),
+                   q, SLOT(setDriverNode(vtkMRMLNode*)));
   
 
 }
+
+//------------------------------------------------------------------------------
+void qSlicerReslicePropertyWidgetPrivate::updateSlice(vtkMatrix4x4 * transform)
+{
+  Q_Q(qSlicerReslicePropertyWidget);
+
+  float tx = transform->Element[0][0];
+  float ty = transform->Element[1][0];
+  float tz = transform->Element[2][0];
+  float nx = transform->Element[0][2];
+  float ny = transform->Element[1][2];
+  float nz = transform->Element[2][2];
+  float px = transform->Element[0][3];
+  float py = transform->Element[1][3];
+  float pz = transform->Element[2][3];
+
+  if (orientationButtonGroup.checkedId() == ORIENTATION_INPLANE)
+    {
+    if (this->methodButtonGrouop.checkedId() == METHOD_ORIENTATION)
+      {
+      this->sliceNode->SetSliceToRASByNTP(nx, ny, nz, tx, ty, tz, px, py, pz, 0);
+      }
+    else
+      {
+      this->sliceNode->SetOrientationToAxial();
+      this->sliceNode->JumpSlice(px, py, pz);
+      }
+    }
+  else if (orientationButtonGroup.checkedId() == ORIENTATION_INPLANE90)
+    {
+    if (this->methodButtonGrouop.checkedId() == METHOD_ORIENTATION)
+      {
+      this->sliceNode->SetSliceToRASByNTP(nx, ny, nz, tx, ty, tz, px, py, pz, 1);
+      }
+    else
+      {
+      this->sliceNode->SetOrientationToSagittal();
+      this->sliceNode->JumpSlice(px, py, pz);
+      }
+    }
+  else if (orientationButtonGroup.checkedId() == ORIENTATION_TRANSVERSE)
+    {
+    if (this->methodButtonGrouop.checkedId() == METHOD_ORIENTATION) 
+      {
+      this->sliceNode->SetSliceToRASByNTP(nx, ny, nz, tx, ty, tz, px, py, pz, 2);
+      }
+    else
+      {
+      this->sliceNode->SetOrientationToCoronal();
+      this->sliceNode->JumpSlice(px, py, pz);
+      }
+    }
+  this->sliceNode->UpdateMatrices();
+}
+
 
 //------------------------------------------------------------------------------
 qSlicerReslicePropertyWidget::qSlicerReslicePropertyWidget(QWidget *_parent)
@@ -165,20 +224,22 @@ void qSlicerReslicePropertyWidget::setDriverNode(vtkMRMLNode * newNode)
 
   if (d->driverNode != newNode)
     {
+    vtkMRMLLinearTransformNode * tnode = vtkMRMLLinearTransformNode::SafeDownCast(newNode);
+    if (tnode)
+      {
+      // reconnect current event listener
+      qvtkReconnect(d->driverNode, newNode,
+                    vtkMRMLTransformableNode::TransformModifiedEvent,
+                    this, SLOT(onMRMLNodeModified()));
+      }
 
-    // reconnect current event listener
-    //foreach(int evendId, QList<int>()
-    //        << vtkCommand::ModifiedEvent
-    //        << vtkMRMLIGTLConnectorNode::ActivatedEvent
-    //        << vtkMRMLIGTLConnectorNode::ConnectedEvent
-    //        << vtkMRMLIGTLConnectorNode::DisconnectedEvent
-    //        << vtkMRMLIGTLConnectorNode::DeactivatedEvent)
-    //  {
-    //  qvtkReconnect(d->IGTLConnectorNode, connectorNode, evendId,
-    //                this, SLOT(onMRMLNodeModified()));
-    //  }
-
-    // add new event listener
+    vtkMRMLScalarVolumeNode * inode = vtkMRMLScalarVolumeNode::SafeDownCast(newNode);
+    if (inode)
+      {
+      //qvtkReconnect(d->driverNode, newNode,
+      //              vtkMRMLTransformableNode::TransformModifiedEvent,
+      //              this, SLOT(onMRMLNodeModified()));
+      }
     d->driverNode = newNode;
     }
 }
@@ -192,31 +253,23 @@ void qSlicerReslicePropertyWidget::onMRMLNodeModified()
     {
     return;
     }
-  //d->ConnectorNameEdit->setText(d->IGTLConnectorNode->GetName());
-  //d->ConnectorHostNameEdit->setText(d->IGTLConnectorNode->GetServerHostname());
-  //d->ConnectorPortEdit->setText(QString("%1").arg(d->IGTLConnectorNode->GetServerPort()));
-  //int type = d->IGTLConnectorNode->GetType();
-  //d->ConnectorNotDefinedRadioButton->setChecked(type == vtkMRMLIGTLConnectorNode::TYPE_NOT_DEFINED);
-  //d->ConnectorServerRadioButton->setChecked(type == vtkMRMLIGTLConnectorNode::TYPE_SERVER);
-  //d->ConnectorClientRadioButton->setChecked(type == vtkMRMLIGTLConnectorNode::TYPE_CLIENT);
-  //
-  //setStateEnabled(d, type != vtkMRMLIGTLConnectorNode::TYPE_NOT_DEFINED);
-  //
-  //bool deactivated = d->IGTLConnectorNode->GetState() == vtkMRMLIGTLConnectorNode::STATE_OFF;
-  //if (deactivated)
-  //  {
-  //  setNameEnabled(d, true);
-  //  setTypeEnabled(d, true);
-  //  setHostnameEnabled(d, type == vtkMRMLIGTLConnectorNode::TYPE_CLIENT);
-  //  setPortEnabled(d, type != vtkMRMLIGTLConnectorNode::TYPE_NOT_DEFINED);
-  //  }
-  //else
-  //  {
-  //  setNameEnabled(d, false);
-  //  setTypeEnabled(d, false);
-  //  setHostnameEnabled(d, false);
-  //  setPortEnabled(d, false);
-  //  }
-  //d->ConnectorStateCheckBox->setChecked(!deactivated);
+  if (d->sliceNode)
+    {
+    vtkSmartPointer<vtkMatrix4x4> transform = vtkMatrix4x4::New();
+    vtkMRMLLinearTransformNode* transNode =
+      vtkMRMLLinearTransformNode::SafeDownCast(d->driverNode);
+    if (transNode)
+      {
+      if (transform)
+        {
+        transform->Identity();
+        int getTransf = transNode->GetMatrixTransformToWorld(transform);
+        if(getTransf != 0)
+          {
+          d->updateSlice(transform);
+          }
+        }
+      }
+    }
 }
 
