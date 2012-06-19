@@ -126,7 +126,7 @@ void qSlicerReslicePropertyWidgetPrivate::updateSlice(vtkMatrix4x4 * transform)
     {
     if (this->methodButtonGrouop.checkedId() == METHOD_ORIENTATION)
       {
-      this->sliceNode->SetSliceToRASByNTP(nx, ny, nz, tx, ty, tz, px, py, pz, 0);
+      this->sliceNode->SetSliceToRASByNTP(nx, ny, nz, tx, ty, tz, px, py, pz, 1);
       }
     else
       {
@@ -138,7 +138,7 @@ void qSlicerReslicePropertyWidgetPrivate::updateSlice(vtkMatrix4x4 * transform)
     {
     if (this->methodButtonGrouop.checkedId() == METHOD_ORIENTATION)
       {
-      this->sliceNode->SetSliceToRASByNTP(nx, ny, nz, tx, ty, tz, px, py, pz, 1);
+      this->sliceNode->SetSliceToRASByNTP(nx, ny, nz, tx, ty, tz, px, py, pz, 2);
       }
     else
       {
@@ -150,7 +150,7 @@ void qSlicerReslicePropertyWidgetPrivate::updateSlice(vtkMatrix4x4 * transform)
     {
     if (this->methodButtonGrouop.checkedId() == METHOD_ORIENTATION) 
       {
-      this->sliceNode->SetSliceToRASByNTP(nx, ny, nz, tx, ty, tz, px, py, pz, 2);
+      this->sliceNode->SetSliceToRASByNTP(nx, ny, nz, tx, ty, tz, px, py, pz, 0);
       }
     else
       {
