@@ -22,17 +22,21 @@ set(qt_module_SRCS
   qSlicerRealTimeImagingModule.h
   qSlicerRealTimeImagingModuleWidget.cxx
   qSlicerRealTimeImagingModuleWidget.h
+  qSlicerReslicePropertyWidget.cxx
+  qSlicerReslicePropertyWidget.h
   )
 
 # Headers that should run through moc
 set(qt_module_MOC_SRCS
   qSlicerRealTimeImagingModule.h
   qSlicerRealTimeImagingModuleWidget.h
+  qSlicerReslicePropertyWidget.h
   )
 
 # UI files
 set(qt_module_UI_SRCS
   Resources/UI/qSlicerRealTimeImagingModule.ui
+  Resources/UI/qSlicerReslicePropertyWidget.ui
   )
 
 # Additional Target libraries

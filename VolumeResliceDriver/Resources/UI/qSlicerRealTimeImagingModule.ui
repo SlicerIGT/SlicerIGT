@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>527</width>
-    <height>510</height>
+    <width>505</width>
+    <height>366</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -15,7 +15,7 @@
   </property>
   <layout class="QGridLayout" name="gridLayout">
    <item row="0" column="0" colspan="2">
-    <widget class="ctkCollapsibleButton" name="CTKCollapsibleButton">
+    <widget class="ctkCollapsibleButton" name="resliceCollapsibleButton">
      <property name="text">
       <string>Reslicing Driver</string>
      </property>
@@ -24,111 +24,7 @@
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_3">
       <item>
-       <layout class="QVBoxLayout" name="verticalLayout">
-        <item>
-         <widget class="QGroupBox" name="gpRed">
-          <property name="title">
-           <string>Red</string>
-          </property>
-          <layout class="QVBoxLayout" name="gp">
-           <item>
-            <layout class="QHBoxLayout" name="hlMain">
-             <item>
-              <layout class="QFormLayout" name="flMain">
-               <property name="fieldGrowthPolicy">
-                <enum>QFormLayout::FieldsStayAtSizeHint</enum>
-               </property>
-               <item row="0" column="0">
-                <widget class="QLabel" name="lbDriver">
-                 <property name="text">
-                  <string>Driver:</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="0" column="1">
-                <widget class="qMRMLNodeComboBox" name="widget" native="true"/>
-               </item>
-               <item row="1" column="0">
-                <widget class="QLabel" name="lbMethod">
-                 <property name="text">
-                  <string>Method:</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="1" column="1">
-                <layout class="QHBoxLayout" name="hlMethod">
-                 <item>
-                  <widget class="QRadioButton" name="rbMethodPosition">
-                   <property name="text">
-                    <string>Position</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QRadioButton" name="rbMethodOrientation">
-                   <property name="text">
-                    <string>Posiion and Orientation</string>
-                   </property>
-                  </widget>
-                 </item>
-                </layout>
-               </item>
-               <item row="2" column="0">
-                <widget class="QLabel" name="lbOrientation">
-                 <property name="text">
-                  <string>Orientation</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="2" column="1">
-                <layout class="QHBoxLayout" name="hlOrientation">
-                 <item>
-                  <widget class="QRadioButton" name="rbInPlane">
-                   <property name="text">
-                    <string>In-plane</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QRadioButton" name="rbInPlane90">
-                   <property name="text">
-                    <string>In-plane 90</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QRadioButton" name="rbTransverse">
-                   <property name="text">
-                    <string>Transverse</string>
-                   </property>
-                  </widget>
-                 </item>
-                </layout>
-               </item>
-              </layout>
-             </item>
-            </layout>
-           </item>
-          </layout>
-         </widget>
-        </item>
-        <item>
-         <widget class="QGroupBox" name="gpYellow">
-          <property name="title">
-           <string>Yellow</string>
-          </property>
-          <layout class="QVBoxLayout" name="verticalLayout_5"/>
-         </widget>
-        </item>
-        <item>
-         <widget class="QGroupBox" name="gpGreen">
-          <property name="title">
-           <string>Green</string>
-          </property>
-          <layout class="QVBoxLayout" name="verticalLayout_2"/>
-         </widget>
-        </item>
-       </layout>
+       <layout class="QVBoxLayout" name="resliceLayout"/>
       </item>
      </layout>
     </widget>
@@ -147,11 +43,6 @@
    <extends>QWidget</extends>
    <header>qSlicerWidget.h</header>
    <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>qMRMLNodeComboBox</class>
-   <extends>QWidget</extends>
-   <header>qMRMLNodeComboBox.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

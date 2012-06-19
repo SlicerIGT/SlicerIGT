@@ -39,7 +39,10 @@ public:
   virtual ~qSlicerRealTimeImagingModuleWidget();
 
 public slots:
-
+  virtual void setMRMLScene(vtkMRMLScene *newScene);
+  void onNodeAddedEvent(vtkObject* scene, vtkObject* node);
+  void onNodeRemovedEvent(vtkObject* scene, vtkObject* node);
+  void onLayoutChanged(int);
 
 protected:
   QScopedPointer<qSlicerRealTimeImagingModuleWidgetPrivate> d_ptr;

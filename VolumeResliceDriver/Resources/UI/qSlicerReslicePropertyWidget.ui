@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>qSlicerReslicePropertyWidget</class>
+ <widget class="QGroupBox" name="qSlicerReslicePropertyWidget">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>422</width>
+    <height>131</height>
+   </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>0</width>
+    <height>0</height>
+   </size>
+  </property>
+  <property name="windowTitle">
+   <string>GroupBox</string>
+  </property>
+  <property name="title">
+   <string>GroupBox</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <layout class="QFormLayout" name="mainFormLayout">
+     <property name="fieldGrowthPolicy">
+      <enum>QFormLayout::FieldsStayAtSizeHint</enum>
+     </property>
+     <item row="0" column="0">
+      <widget class="QLabel" name="driverLabel">
+       <property name="text">
+        <string>Driver:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <widget class="qMRMLNodeComboBox" name="widget" native="true"/>
+     </item>
+     <item row="1" column="0">
+      <widget class="QLabel" name="mehodLabel">
+       <property name="text">
+        <string>Method:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <layout class="QHBoxLayout" name="methodLayout">
+       <item>
+        <widget class="QRadioButton" name="positionRadioButton">
+         <property name="text">
+          <string>Position</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QRadioButton" name="orientationRadioButton">
+         <property name="text">
+          <string>Posiion and Orientation</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item row="2" column="0">
+      <widget class="QLabel" name="orientationLabel">
+       <property name="text">
+        <string>Orientation</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="1">
+      <layout class="QHBoxLayout" name="orientationLayout">
+       <item>
+        <widget class="QRadioButton" name="inPlaneRadioButton">
+         <property name="text">
+          <string>In-plane</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QRadioButton" name="inPlane90RadioButton">
+         <property name="text">
+          <string>In-plane 90</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QRadioButton" name="transverseRadioButton">
+         <property name="text">
+          <string>Transverse</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>qMRMLNodeComboBox</class>
+   <extends>QWidget</extends>
+   <header>qMRMLNodeComboBox.h</header>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>
