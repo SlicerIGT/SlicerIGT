@@ -39,8 +39,14 @@ public:
   qSlicerReslicePropertyWidgetPrivate(qSlicerReslicePropertyWidget& object);
   void init();
 
+  QButtonGroup statusButtonGroup;
   QButtonGroup methodButtonGrouop;
   QButtonGroup orientationButtonGroup;
+
+  enum {
+    STATUS_OFF,
+    STATUS_ON,
+  };
 
   enum {
     METHOD_POSITION,
@@ -53,13 +59,19 @@ public:
     ORIENTATION_TRANSVERSE,
   };
 
+  vtkMRMLScene * scene;
+  vtkMRMLSliceNode * sliceNode;
+  vtkMRMLNode  * driverNode;
+
 };
 
 //------------------------------------------------------------------------------
 qSlicerReslicePropertyWidgetPrivate::qSlicerReslicePropertyWidgetPrivate(qSlicerReslicePropertyWidget& object)
   : q_ptr(&object)
 {
-  //this->IGTLConnectorNode = 0;
+  scene = NULL;
+  sliceNode = NULL;
+  driverNode = NULL;
 }
 
 //------------------------------------------------------------------------------
@@ -79,7 +91,10 @@ void qSlicerReslicePropertyWidgetPrivate::init()
   //QObject::connect(&this->ConnectorTypeButtonGroup, SIGNAL(buttonClicked(int)),
   //                 q, SLOT(updateIGTLConnectorNode()));
   //
-  
+
+  this->statusButtonGroup.addButton(this->offRadioButton, STATUS_OFF);
+  this->statusButtonGroup.addButton(this->onRadioButton, STATUS_ON);
+  this->offRadioButton->setChecked(true);
   this->methodButtonGrouop.addButton(this->positionRadioButton, METHOD_POSITION);
   this->methodButtonGrouop.addButton(this->orientationRadioButton, METHOD_ORIENTATION);
   this->positionRadioButton->setChecked(true);
@@ -87,6 +102,11 @@ void qSlicerReslicePropertyWidgetPrivate::init()
   this->orientationButtonGroup.addButton(this->inPlane90RadioButton, ORIENTATION_INPLANE90);
   this->orientationButtonGroup.addButton(this->transverseRadioButton, ORIENTATION_TRANSVERSE);
   this->inPlaneRadioButton->setChecked(true);
+  
+  QObject::connect(this->driverNodeSelector, SIGNAL(currentNodeChanged(vtkMRMLNode)),
+                   q, SLOT(setDriverNode()));
+  
+
 }
 
 //------------------------------------------------------------------------------
@@ -109,15 +129,69 @@ void qSlicerReslicePropertyWidget::setSliceViewName(const QString& newSliceViewN
   this->setTitle(newSliceViewName);
 }
 
+//------------------------------------------------------------------------------
+void qSlicerReslicePropertyWidget::setMRMLSliceNode(vtkMRMLSliceNode* newSliceNode)
+{
+  Q_D(qSlicerReslicePropertyWidget);
+
+  //d->SliceLogic->SetSliceNode(newSliceNode);
+  d->sliceNode = newSliceNode;
+  if (newSliceNode && newSliceNode->GetScene())
+    {
+    this->setMRMLScene(newSliceNode->GetScene());
+    }
+}
+
+//----------------------------------------------------------------------------
+void qSlicerReslicePropertyWidget::setMRMLScene(vtkMRMLScene * newScene)
+{
+  Q_D(qSlicerReslicePropertyWidget);
+
+  if (d->scene != newScene)
+    {
+    d->scene = newScene;
+    if (d->driverNodeSelector)
+      {
+      d->driverNodeSelector->setMRMLScene(newScene);
+      }
+    }
+}
+
+
+//------------------------------------------------------------------------------
+void qSlicerReslicePropertyWidget::setDriverNode(vtkMRMLNode * newNode)
+{
+  Q_D(qSlicerReslicePropertyWidget);
+
+  if (d->driverNode != newNode)
+    {
+
+    // reconnect current event listener
+    //foreach(int evendId, QList<int>()
+    //        << vtkCommand::ModifiedEvent
+    //        << vtkMRMLIGTLConnectorNode::ActivatedEvent
+    //        << vtkMRMLIGTLConnectorNode::ConnectedEvent
+    //        << vtkMRMLIGTLConnectorNode::DisconnectedEvent
+    //        << vtkMRMLIGTLConnectorNode::DeactivatedEvent)
+    //  {
+    //  qvtkReconnect(d->IGTLConnectorNode, connectorNode, evendId,
+    //                this, SLOT(onMRMLNodeModified()));
+    //  }
+
+    // add new event listener
+    d->driverNode = newNode;
+    }
+}
+
 
 //------------------------------------------------------------------------------
 void qSlicerReslicePropertyWidget::onMRMLNodeModified()
 {
   Q_D(qSlicerReslicePropertyWidget);
-  //if (!d->IGTLConnectorNode)
-  //  {
-  //  return;
-  //  }
+  if (!d->driverNode)
+    {
+    return;
+    }
   //d->ConnectorNameEdit->setText(d->IGTLConnectorNode->GetName());
   //d->ConnectorHostNameEdit->setText(d->IGTLConnectorNode->GetServerHostname());
   //d->ConnectorPortEdit->setText(QString("%1").arg(d->IGTLConnectorNode->GetServerPort()));
@@ -146,33 +220,3 @@ void qSlicerReslicePropertyWidget::onMRMLNodeModified()
   //d->ConnectorStateCheckBox->setChecked(!deactivated);
 }
 
-////------------------------------------------------------------------------------
-//void qSlicerReslicePropertyWidget::startCurrentIGTLConnector(bool value)
-//{
-//  Q_D(qSlicerReslicePropertyWidget);
-//  Q_ASSERT(d->IGTLConnectorNode);
-//  if (value)
-//    {
-//    d->IGTLConnectorNode->Start();
-//    }
-//  else
-//    {
-//    d->IGTLConnectorNode->Stop();
-//    }
-//}
-//
-////------------------------------------------------------------------------------
-//void qSlicerReslicePropertyWidget::updateIGTLConnectorNode()
-//{
-//  Q_D(qSlicerReslicePropertyWidget);
-//
-//  d->IGTLConnectorNode->DisableModifiedEventOn();
-//
-//  d->IGTLConnectorNode->SetName(d->ConnectorNameEdit->text().toLatin1());
-//  d->IGTLConnectorNode->SetType(d->ConnectorTypeButtonGroup.checkedId());
-//  d->IGTLConnectorNode->SetServerHostname(d->ConnectorHostNameEdit->text().toStdString());
-//  d->IGTLConnectorNode->SetServerPort(d->ConnectorPortEdit->text().toInt());
-//
-//  d->IGTLConnectorNode->DisableModifiedEventOff();
-//  d->IGTLConnectorNode->InvokePendingModifiedEvent();
-//}

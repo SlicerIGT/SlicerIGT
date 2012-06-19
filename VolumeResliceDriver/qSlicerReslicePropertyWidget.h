@@ -31,7 +31,9 @@
 #include "qSlicerRealTimeImagingModuleExport.h"
 
 class qSlicerReslicePropertyWidgetPrivate;
+class vtkMRMLScene;
 class vtkMRMLNode;
+class vtkMRMLSliceNode;
 class vtkObject;
 
 /// \ingroup Slicer_QtModules_OpenIGTLinkIF
@@ -53,6 +55,14 @@ public slots:
   ///// the type
   //void setMRMLIGTLConnectorNode(vtkMRMLNode* node);
   void setSliceViewName(const QString& newSliceViewName);
+  void setMRMLSliceNode(vtkMRMLSliceNode* newSliceNode);
+
+  /// Return a reference to the current MRML scene
+  //vtkMRMLScene * getMRMLScene()const;
+  /// Set and observe the MRMLScene
+  void setMRMLScene(vtkMRMLScene * newScene);
+
+  void setDriverNode(vtkMRMLNode * newNode);
 
 protected slots:
   /// Internal function to update the widgets based on the IGTLConnector node

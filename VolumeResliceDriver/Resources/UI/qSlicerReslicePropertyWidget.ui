@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>422</width>
-    <height>131</height>
+    <width>423</width>
+    <height>167</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -34,24 +34,40 @@
      <property name="fieldGrowthPolicy">
       <enum>QFormLayout::FieldsStayAtSizeHint</enum>
      </property>
-     <item row="0" column="0">
+     <item row="2" column="0">
       <widget class="QLabel" name="driverLabel">
        <property name="text">
         <string>Driver:</string>
        </property>
       </widget>
      </item>
-     <item row="0" column="1">
-      <widget class="qMRMLNodeComboBox" name="widget" native="true"/>
+     <item row="2" column="1">
+      <widget class="qMRMLNodeComboBox" name="driverNodeSelector" native="true">
+       <property name="nodeTypes" stdset="0">
+        <stringlist>
+         <string>vtkMRMLLinearTransformNode</string>
+         <string>vtkMRMLScalarVolumeNode</string>
+        </stringlist>
+       </property>
+       <property name="selectNodeUponCreation" stdset="0">
+        <bool>true</bool>
+       </property>
+       <property name="addEnabled" stdset="0">
+        <bool>false</bool>
+       </property>
+       <property name="removeEnabled" stdset="0">
+        <bool>false</bool>
+       </property>
+      </widget>
      </item>
-     <item row="1" column="0">
+     <item row="3" column="0">
       <widget class="QLabel" name="mehodLabel">
        <property name="text">
         <string>Method:</string>
        </property>
       </widget>
      </item>
-     <item row="1" column="1">
+     <item row="3" column="1">
       <layout class="QHBoxLayout" name="methodLayout">
        <item>
         <widget class="QRadioButton" name="positionRadioButton">
@@ -69,14 +85,14 @@
        </item>
       </layout>
      </item>
-     <item row="2" column="0">
+     <item row="4" column="0">
       <widget class="QLabel" name="orientationLabel">
        <property name="text">
         <string>Orientation</string>
        </property>
       </widget>
      </item>
-     <item row="2" column="1">
+     <item row="4" column="1">
       <layout class="QHBoxLayout" name="orientationLayout">
        <item>
         <widget class="QRadioButton" name="inPlaneRadioButton">
@@ -96,6 +112,31 @@
         <widget class="QRadioButton" name="transverseRadioButton">
          <property name="text">
           <string>Transverse</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item row="1" column="0">
+      <widget class="QLabel" name="statusLabel">
+       <property name="text">
+        <string>Status:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <layout class="QHBoxLayout" name="horizontalLayout">
+       <item>
+        <widget class="QRadioButton" name="offRadioButton">
+         <property name="text">
+          <string>OFF</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QRadioButton" name="onRadioButton">
+         <property name="text">
+          <string>ON</string>
          </property>
         </widget>
        </item>

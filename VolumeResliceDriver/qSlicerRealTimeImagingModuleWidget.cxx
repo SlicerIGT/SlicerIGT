@@ -96,6 +96,7 @@ qSlicerRealTimeImagingModuleWidgetPrivate::createController(vtkMRMLNode *n, qSli
     qSlicerReslicePropertyWidget *widget =
       new qSlicerReslicePropertyWidget(this->resliceCollapsibleButton);
     widget->setSliceViewName( sn->GetName() ); // call before setting slice node
+    widget->setMRMLSliceNode( sn );
     resliceLayout->addWidget(widget);
 
 
