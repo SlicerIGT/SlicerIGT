@@ -52,6 +52,7 @@ public slots:
   ///// It's useful to connect to vtkMRMLNode* signals when you are sure of
   ///// the type
   //void setMRMLIGTLConnectorNode(vtkMRMLNode* node);
+  void setSliceViewName(const QString& newSliceViewName);
 
 protected slots:
   /// Internal function to update the widgets based on the IGTLConnector node

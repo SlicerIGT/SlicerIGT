@@ -42,6 +42,17 @@ public:
   QButtonGroup methodButtonGrouop;
   QButtonGroup orientationButtonGroup;
 
+  enum {
+    METHOD_POSITION,
+    METHOD_ORIENTATION,
+  };
+  
+  enum {
+    ORIENTATION_INPLANE,
+    ORIENTATION_INPLANE90,
+    ORIENTATION_TRANSVERSE,
+  };
+
 };
 
 //------------------------------------------------------------------------------
@@ -69,12 +80,13 @@ void qSlicerReslicePropertyWidgetPrivate::init()
   //                 q, SLOT(updateIGTLConnectorNode()));
   //
   
-  this->methodButtonGrouop.addButton(this->positionRadioButton);
-  this->methodButtonGrouop.addButton(this->orientationRadioButton);
-  this->orientationButtonGroup.addButton(this->inPlaneRadioButton);
-  this->orientationButtonGroup.addButton(this->inPlane90RadioButton);
-  this->orientationButtonGroup.addButton(this->transverseRadioButton);
-
+  this->methodButtonGrouop.addButton(this->positionRadioButton, METHOD_POSITION);
+  this->methodButtonGrouop.addButton(this->orientationRadioButton, METHOD_ORIENTATION);
+  this->positionRadioButton->setChecked(true);
+  this->orientationButtonGroup.addButton(this->inPlaneRadioButton, ORIENTATION_INPLANE);
+  this->orientationButtonGroup.addButton(this->inPlane90RadioButton, ORIENTATION_INPLANE90);
+  this->orientationButtonGroup.addButton(this->transverseRadioButton, ORIENTATION_TRANSVERSE);
+  this->inPlaneRadioButton->setChecked(true);
 }
 
 //------------------------------------------------------------------------------
@@ -90,6 +102,13 @@ qSlicerReslicePropertyWidget::qSlicerReslicePropertyWidget(QWidget *_parent)
 qSlicerReslicePropertyWidget::~qSlicerReslicePropertyWidget()
 {
 }
+
+//------------------------------------------------------------------------------
+void qSlicerReslicePropertyWidget::setSliceViewName(const QString& newSliceViewName)
+{
+  this->setTitle(newSliceViewName);
+}
+
 
 //------------------------------------------------------------------------------
 void qSlicerReslicePropertyWidget::onMRMLNodeModified()
