@@ -21,12 +21,28 @@
 #include "qSlicerIGTLRemoteModuleWidget.h"
 #include "ui_qSlicerIGTLRemoteModule.h"
 
+#include "qSlicerApplication.h"
+
+#include "vtkMRMLIGTLConnectorNode.h"
+
 //-----------------------------------------------------------------------------
 /// \ingroup Slicer_QtModules_IGTLRemote
 class qSlicerIGTLRemoteModuleWidgetPrivate: public Ui_qSlicerIGTLRemoteModule
 {
 public:
   qSlicerIGTLRemoteModuleWidgetPrivate();
+
+public:
+  QButtonGroup typeButtonGroup;
+  
+  enum {
+    TYPE_IMAGE,
+    TYPE_LABEL,
+    TYPE_ALL,
+  };
+
+  vtkMRMLIGTLConnectorNode * connectorNode;
+  
 };
 
 //-----------------------------------------------------------------------------
@@ -37,6 +53,7 @@ qSlicerIGTLRemoteModuleWidgetPrivate::qSlicerIGTLRemoteModuleWidgetPrivate()
 {
 }
 
+
 //-----------------------------------------------------------------------------
 // qSlicerIGTLRemoteModuleWidget methods
 
@@ -45,6 +62,7 @@ qSlicerIGTLRemoteModuleWidget::qSlicerIGTLRemoteModuleWidget(QWidget* _parent)
   : Superclass( _parent )
   , d_ptr( new qSlicerIGTLRemoteModuleWidgetPrivate )
 {
+  
 }
 
 //-----------------------------------------------------------------------------
@@ -58,5 +76,75 @@ void qSlicerIGTLRemoteModuleWidget::setup()
   Q_D(qSlicerIGTLRemoteModuleWidget);
   d->setupUi(this);
   this->Superclass::setup();
+
+  d->typeButtonGroup.addButton(d->typeImageRadioButton, qSlicerIGTLRemoteModuleWidgetPrivate::TYPE_IMAGE);
+  d->typeButtonGroup.addButton(d->typeLabelRadioButton, qSlicerIGTLRemoteModuleWidgetPrivate::TYPE_LABEL);
+  d->typeButtonGroup.addButton(d->typeAllRadioButton, qSlicerIGTLRemoteModuleWidgetPrivate::TYPE_ALL);
+
+  QObject::connect(d->connectorNodeSelector, SIGNAL(currentNodeChanged(vtkMRMLNode*)),
+                   this, SLOT(setConnectorNode(vtkMRMLNode*)));
+  
 }
+
+//-----------------------------------------------------------------------------
+void qSlicerIGTLRemoteModuleWidget::setMRMLScene(vtkMRMLScene *newScene)
+{
+  Q_D(qSlicerIGTLRemoteModuleWidget);
+
+  vtkMRMLScene* oldScene = this->mrmlScene();
+
+  this->Superclass::setMRMLScene(newScene);
+
+  qSlicerApplication * app = qSlicerApplication::application();
+  if (!app)
+    {
+    return;
+    }
+  
+  if (oldScene != newScene)
+    {
+    if (d->connectorNodeSelector)
+      {
+      d->connectorNodeSelector->setMRMLScene(newScene);
+      }
+    }
+
+
+  // Search the scene for the available view nodes and create a
+  // Controller and connect it up
+  newScene->InitTraversal();
+  //for (vtkMRMLNode *sn = NULL; (sn=newScene->GetNextNodeByClass("vtkMRMLSliceNode"));)
+  //  {
+  //  vtkMRMLSliceNode *snode = vtkMRMLSliceNode::SafeDownCast(sn);
+  //  if (snode)
+  //    {
+  //    d->createController(snode, layoutManager);
+  //    }
+  //  }
+  //
+  //// Need to listen for any new slice or view nodes being added
+  //this->qvtkReconnect(oldScene, newScene, vtkMRMLScene::NodeAddedEvent, 
+  //                    this, SLOT(onNodeAddedEvent(vtkObject*,vtkObject*)));
+  //
+  //// Need to listen for any slice or view nodes being removed
+  //this->qvtkReconnect(oldScene, newScene, vtkMRMLScene::NodeRemovedEvent, 
+  //                    this, SLOT(onNodeRemovedEvent(vtkObject*,vtkObject*)));
+  //
+
+}
+
+
+//-----------------------------------------------------------------------------
+void qSlicerIGTLRemoteModuleWidget::setConnectorNode(vtkMRMLNode* node)
+{
+  Q_D(qSlicerIGTLRemoteModuleWidget);
+
+  vtkMRMLIGTLConnectorNode* cnode =
+    vtkMRMLIGTLConnectorNode::SafeDownCast(node);
+  if (cnode)
+    {
+    d->connectorNode = cnode;
+    }
+}
+
 

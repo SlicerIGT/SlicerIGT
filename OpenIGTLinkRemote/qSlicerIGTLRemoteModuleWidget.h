@@ -39,6 +39,8 @@ public:
   virtual ~qSlicerIGTLRemoteModuleWidget();
 
 public slots:
+  virtual void setMRMLScene(vtkMRMLScene *newScene);
+  void setConnectorNode(vtkMRMLNode* node);
 
 
 protected:

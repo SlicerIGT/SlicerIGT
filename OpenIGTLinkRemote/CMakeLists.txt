@@ -1,7 +1,7 @@
 
 # Module name (usually identique to the directory name)
 set(qt_module_name "IGTLRemote")
-set(qt_module_title "Module Template")
+set(qt_module_title "OpenIGTLink Remote")
 
 # Build module sub libraries
 add_subdirectory(Logic)
@@ -14,7 +14,13 @@ set(qt_module_include_directories
   ${CMAKE_CURRENT_BINARY_DIR}/Widgets
   ${CMAKE_CURRENT_SOURCE_DIR}/Logic
   ${CMAKE_CURRENT_BINARY_DIR}/Logic
+  #${qSlicerOpenIGTLinkIFModuleWidgets_SOURCE_DIR}
+  #${qSlicerOpenIGTLinkIFModuleWidgets_BINARY_DIR}
+  ${vtkSlicerOpenIGTLinkIFModuleMRML_SOURCE_DIR}
+  ${vtkSlicerOpenIGTLinkIFModuleMRML_BINARY_DIR}
   )
+
+message ("-------- ${vtkSlicerOpenIGTLinkIFModuleMRML_SOURCE_DIR}")
 
 # Source files
 set(qt_module_SRCS
@@ -38,6 +44,8 @@ set(qt_module_UI_SRCS
 # Additional Target libraries
 set(qt_module_target_libraries
   vtkSlicerIGTLRemoteModuleLogic
+  #qSlicerOpenIGTLinkIFModuleWidgets
+  vtkSlicerOpenIGTLinkIFModuleMRML
   )
 
 # Resources
