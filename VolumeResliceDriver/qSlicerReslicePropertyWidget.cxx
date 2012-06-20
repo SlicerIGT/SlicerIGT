@@ -63,7 +63,7 @@ public:
   void updateSliceByTransformNode(vtkMRMLLinearTransformNode* tnode);
   void updateSliceByImageNode(vtkMRMLScalarVolumeNode* inode);
 
-  QButtonGroup methodButtonGrouop;
+  QButtonGroup methodButtonGroup;
   QButtonGroup orientationButtonGroup;
 
   enum {
@@ -111,8 +111,8 @@ void qSlicerReslicePropertyWidgetPrivate::setupPopupUi()
   this->PopupWidget->setAlignment(Qt::AlignBottom | Qt::AlignLeft);
   this->Ui_qSlicerReslicePropertyWidget::setupUi(this->PopupWidget);
 
-  this->methodButtonGrouop.addButton(this->positionRadioButton, METHOD_POSITION);
-  this->methodButtonGrouop.addButton(this->orientationRadioButton, METHOD_ORIENTATION);
+  this->methodButtonGroup.addButton(this->positionRadioButton, METHOD_POSITION);
+  this->methodButtonGroup.addButton(this->orientationRadioButton, METHOD_ORIENTATION);
   this->positionRadioButton->setChecked(true);
   this->orientationButtonGroup.addButton(this->inPlaneRadioButton, ORIENTATION_INPLANE);
   this->orientationButtonGroup.addButton(this->inPlane90RadioButton, ORIENTATION_INPLANE90);
@@ -122,6 +122,16 @@ void qSlicerReslicePropertyWidgetPrivate::setupPopupUi()
   QObject::connect(this->driverNodeSelector, SIGNAL(currentNodeChanged(vtkMRMLNode*)),
                    q, SLOT(setDriverNode(vtkMRMLNode*)));
 
+  QObject::connect(this->positionRadioButton, SIGNAL(clicked()),
+                   q, SLOT(onMRMLNodeModified()));
+  QObject::connect(this->orientationRadioButton, SIGNAL(clicked()),
+                   q, SLOT(onMRMLNodeModified()));
+  QObject::connect(this->inPlaneRadioButton, SIGNAL(clicked()),
+                   q, SLOT(onMRMLNodeModified()));
+  QObject::connect(this->inPlane90RadioButton, SIGNAL(clicked()),
+                   q, SLOT(onMRMLNodeModified()));
+  QObject::connect(this->transverseRadioButton, SIGNAL(clicked()),
+                   q, SLOT(onMRMLNodeModified()));
 
 }
 
@@ -153,7 +163,7 @@ void qSlicerReslicePropertyWidgetPrivate::updateSlice(vtkMatrix4x4 * transform)
 
   if (orientationButtonGroup.checkedId() == ORIENTATION_INPLANE)
     {
-    if (this->methodButtonGrouop.checkedId() == METHOD_ORIENTATION)
+    if (this->methodButtonGroup.checkedId() == METHOD_ORIENTATION)
       {
       this->sliceNode->SetSliceToRASByNTP(nx, ny, nz, tx, ty, tz, px, py, pz, 1);
       }
@@ -165,7 +175,7 @@ void qSlicerReslicePropertyWidgetPrivate::updateSlice(vtkMatrix4x4 * transform)
     }
   else if (orientationButtonGroup.checkedId() == ORIENTATION_INPLANE90)
     {
-    if (this->methodButtonGrouop.checkedId() == METHOD_ORIENTATION)
+    if (this->methodButtonGroup.checkedId() == METHOD_ORIENTATION)
       {
       this->sliceNode->SetSliceToRASByNTP(nx, ny, nz, tx, ty, tz, px, py, pz, 2);
       }
@@ -177,7 +187,7 @@ void qSlicerReslicePropertyWidgetPrivate::updateSlice(vtkMatrix4x4 * transform)
     }
   else if (orientationButtonGroup.checkedId() == ORIENTATION_TRANSVERSE)
     {
-    if (this->methodButtonGrouop.checkedId() == METHOD_ORIENTATION) 
+    if (this->methodButtonGroup.checkedId() == METHOD_ORIENTATION) 
       {
       this->sliceNode->SetSliceToRASByNTP(nx, ny, nz, tx, ty, tz, px, py, pz, 0);
       }
@@ -366,6 +376,7 @@ void qSlicerReslicePropertyWidget::setDriverNode(vtkMRMLNode * newNode)
 
   if (d->driverNode != newNode)
     {
+    bool update = false;
     vtkMRMLLinearTransformNode * tnode = vtkMRMLLinearTransformNode::SafeDownCast(newNode);
     if (tnode)
       {
@@ -373,6 +384,7 @@ void qSlicerReslicePropertyWidget::setDriverNode(vtkMRMLNode * newNode)
       qvtkReconnect(d->driverNode, newNode,
                     vtkMRMLTransformableNode::TransformModifiedEvent,
                     this, SLOT(onMRMLNodeModified()));
+      update = true;
       }
 
     vtkMRMLScalarVolumeNode * inode = vtkMRMLScalarVolumeNode::SafeDownCast(newNode);
@@ -381,8 +393,14 @@ void qSlicerReslicePropertyWidget::setDriverNode(vtkMRMLNode * newNode)
       qvtkReconnect(d->driverNode, newNode,
                     vtkMRMLVolumeNode::ImageDataModifiedEvent,
                     this, SLOT(onMRMLNodeModified()));
+      update = true;
       }
     d->driverNode = newNode;
+
+    if (update)
+      {
+      onMRMLNodeModified();
+      }
     }
 }
 
