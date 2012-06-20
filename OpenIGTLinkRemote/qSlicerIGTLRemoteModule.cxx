@@ -57,7 +57,7 @@ qSlicerIGTLRemoteModule::qSlicerIGTLRemoteModule(QObject* _parent)
 //-----------------------------------------------------------------------------
 QStringList qSlicerIGTLRemoteModule::categories()const
 {
-  return QStringList() << "Developer Tools";
+  return QStringList() << "IGT";
 }
 
 //-----------------------------------------------------------------------------
@@ -69,27 +69,24 @@ qSlicerIGTLRemoteModule::~qSlicerIGTLRemoteModule()
 QString qSlicerIGTLRemoteModule::helpText()const
 {
   QString help = 
-    "This template module is meant to be used with the"
-    "with the ModuleWizard.py script distributed with the"
-    "Slicer source code (starting with version 4)."
-    "Developers can generate their own source code using the"
-    "wizard and then customize it to fit their needs.";
+    "This module query a list of data available in the remote"
+    "software connected with the 3D Slicer through OpenIGTLink,"
+    "receives the list, and display in the table interface.";
   return help;
 }
 
 //-----------------------------------------------------------------------------
 QString qSlicerIGTLRemoteModule::acknowledgementText()const
 {
-  return "This work was supported by NAMIC, NAC, and the Slicer Community...";
+  return "This work was supported by NIH National Center for Image Guided Therapy, and "
+    "National Alliance for Medical Image Computing.";
 }
 
 //-----------------------------------------------------------------------------
 QStringList qSlicerIGTLRemoteModule::contributors()const
 {
   QStringList moduleContributors;
-  moduleContributors << QString("John Doe (Organization Inc.)");
-  // moduleContributors << QString("Richard Roe (Other organization Inc.)");
-  // ...
+  moduleContributors << QString("Junichi Tokuda (Brigham and Women's Hospital)");
   return moduleContributors;
 }
 
