@@ -9,7 +9,14 @@
 #include <qMRMLSliceWidget.h>
 #include <qMRMLSliceControllerWidget.h>
 #include <qMRMLThreeDWidget.h>
-#include <qMRMLThreeDViewControllerWidget.h>
+
+#include "qMRMLViewControllerBar_p.h"
+#include <qMRMLViewControllerBar.h>
+
+#include <QHBoxLayout>
+#include <QVBoxLayout>
+#include <QLabel>
+#include <QToolButton>
 
 // MRML includes
 #include "vtkMRMLSliceNode.h"
@@ -26,6 +33,10 @@
 #include <vtkMatrix4x4.h>
 #include <vtkImageData.h>
 
+#include "ctkPopupWidget.h"
+
+#include "qMRMLColors.h"
+
 
 class qSlicerReslicePropertyWidgetPrivate;
 class vtkMRMLNode;
@@ -34,14 +45,20 @@ class vtkObject;
 
 //------------------------------------------------------------------------------
 /// \ingroup Slicer_QtModules_OpenIGTLinkIF
-class qSlicerReslicePropertyWidgetPrivate : public Ui_qSlicerReslicePropertyWidget
+class qSlicerReslicePropertyWidgetPrivate :
+  public qMRMLViewControllerBarPrivate
+  , public Ui_qSlicerReslicePropertyWidget
 {
   Q_DECLARE_PUBLIC(qSlicerReslicePropertyWidget);
 protected:
-  qSlicerReslicePropertyWidget* const q_ptr;
+  //qSlicerReslicePropertyWidget* const q_ptr;
 public:
+  typedef qMRMLViewControllerBarPrivate Superclass;
+
   qSlicerReslicePropertyWidgetPrivate(qSlicerReslicePropertyWidget& object);
-  void init();
+  virtual ~qSlicerReslicePropertyWidgetPrivate() ;
+
+  virtual void init();
   void updateSlice(vtkMatrix4x4* transform);
   void updateSliceByTransformNode(vtkMRMLLinearTransformNode* tnode);
   void updateSliceByImageNode(vtkMRMLScalarVolumeNode* inode);
@@ -64,34 +81,35 @@ public:
   vtkMRMLSliceNode * sliceNode;
   vtkMRMLNode  * driverNode;
 
+protected:
+  virtual void setupPopupUi();
+
 };
 
 //------------------------------------------------------------------------------
 qSlicerReslicePropertyWidgetPrivate::qSlicerReslicePropertyWidgetPrivate(qSlicerReslicePropertyWidget& object)
-  : q_ptr(&object)
+  : Superclass(object)
 {
-  scene = NULL;
-  sliceNode = NULL;
-  driverNode = NULL;
+  this->scene = NULL;
+  this->sliceNode = NULL;
+  this->driverNode = NULL;
 }
 
+
 //------------------------------------------------------------------------------
-void qSlicerReslicePropertyWidgetPrivate::init()
+qSlicerReslicePropertyWidgetPrivate::~qSlicerReslicePropertyWidgetPrivate()
+{
+}
+
+
+//---------------------------------------------------------------------------
+void qSlicerReslicePropertyWidgetPrivate::setupPopupUi()
 {
   Q_Q(qSlicerReslicePropertyWidget);
-  this->setupUi(q);
 
-  //QObject::connect(this->ConnectorNameEdit, SIGNAL(editingFinished()),
-  //                 q, SLOT(updateIGTLConnectorNode()));
-  //QObject::connect(this->ConnectorStateCheckBox, SIGNAL(toggled(bool)),
-  //                 q, SLOT(startCurrentIGTLConnector(bool)));
-  //QObject::connect(this->ConnectorHostNameEdit, SIGNAL(editingFinished()),
-  //                 q, SLOT(updateIGTLConnectorNode()));
-  //QObject::connect(this->ConnectorPortEdit, SIGNAL(editingFinished()),
-  //                 q, SLOT(updateIGTLConnectorNode()));
-  //QObject::connect(&this->ConnectorTypeButtonGroup, SIGNAL(buttonClicked(int)),
-  //                 q, SLOT(updateIGTLConnectorNode()));
-  //
+  this->Superclass::setupPopupUi();
+  this->PopupWidget->setAlignment(Qt::AlignBottom | Qt::AlignLeft);
+  this->Ui_qSlicerReslicePropertyWidget::setupUi(this->PopupWidget);
 
   this->methodButtonGrouop.addButton(this->positionRadioButton, METHOD_POSITION);
   this->methodButtonGrouop.addButton(this->orientationRadioButton, METHOD_ORIENTATION);
@@ -103,8 +121,19 @@ void qSlicerReslicePropertyWidgetPrivate::init()
   
   QObject::connect(this->driverNodeSelector, SIGNAL(currentNodeChanged(vtkMRMLNode*)),
                    q, SLOT(setDriverNode(vtkMRMLNode*)));
-  
 
+
+}
+
+
+//------------------------------------------------------------------------------
+void qSlicerReslicePropertyWidgetPrivate::init()
+{
+  //Q_Q(qSlicerReslicePropertyWidget);
+  this->Superclass::init();
+  this->ViewLabel->setText(qSlicerReslicePropertyWidget::tr("1"));
+  this->BarLayout->addStretch(1);
+  this->setColor(qMRMLColors::threeDViewBlue());
 }
 
 //------------------------------------------------------------------------------
@@ -165,7 +194,7 @@ void qSlicerReslicePropertyWidgetPrivate::updateSlice(vtkMatrix4x4 * transform)
 //---------------------------------------------------------------------------
 void qSlicerReslicePropertyWidgetPrivate::updateSliceByTransformNode(vtkMRMLLinearTransformNode* tnode)
 {
-  Q_Q(qSlicerReslicePropertyWidget);
+  //Q_Q(qSlicerReslicePropertyWidget);
 
   if (!tnode)
     {
@@ -188,7 +217,7 @@ void qSlicerReslicePropertyWidgetPrivate::updateSliceByTransformNode(vtkMRMLLine
 //---------------------------------------------------------------------------
 void qSlicerReslicePropertyWidgetPrivate::updateSliceByImageNode(vtkMRMLScalarVolumeNode* inode)
 {
-  Q_Q(qSlicerReslicePropertyWidget);
+  //Q_Q(qSlicerReslicePropertyWidget);
 
   vtkMRMLVolumeNode* volumeNode = inode;
 
@@ -268,8 +297,7 @@ void qSlicerReslicePropertyWidgetPrivate::updateSliceByImageNode(vtkMRMLScalarVo
 
 //------------------------------------------------------------------------------
 qSlicerReslicePropertyWidget::qSlicerReslicePropertyWidget(QWidget *_parent)
-  : Superclass(_parent)
-  , d_ptr(new qSlicerReslicePropertyWidgetPrivate(*this))
+  : Superclass(new qSlicerReslicePropertyWidgetPrivate(*this), _parent)
 {
   Q_D(qSlicerReslicePropertyWidget);
   d->init();
@@ -283,7 +311,23 @@ qSlicerReslicePropertyWidget::~qSlicerReslicePropertyWidget()
 //------------------------------------------------------------------------------
 void qSlicerReslicePropertyWidget::setSliceViewName(const QString& newSliceViewName)
 {
-  this->setTitle(newSliceViewName);
+  Q_D(qSlicerReslicePropertyWidget);
+  
+  d->ViewLabel->setText(newSliceViewName);
+}
+
+//---------------------------------------------------------------------------
+void qSlicerReslicePropertyWidget::setSliceViewColor(const QColor& newSliceViewColor)
+{
+  Q_D(qSlicerReslicePropertyWidget);
+
+  //if (d->sliceNode)
+  //  {
+  //  qCritical() << "qMRMLSliceControllerWidget::setSliceViewColor should be called before setMRMLSliceNode !";
+  //  return;
+  //  }
+
+  d->setColor(newSliceViewColor);
 }
 
 //------------------------------------------------------------------------------

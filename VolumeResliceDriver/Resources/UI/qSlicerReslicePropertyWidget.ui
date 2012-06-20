@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>qSlicerReslicePropertyWidget</class>
- <widget class="QGroupBox" name="qSlicerReslicePropertyWidget">
+ <widget class="QWidget" name="qSlicerReslicePropertyWidget">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="sizePolicy">
-   <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+   <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
     <horstretch>0</horstretch>
     <verstretch>0</verstretch>
    </sizepolicy>
@@ -25,10 +25,13 @@
   <property name="windowTitle">
    <string>GroupBox</string>
   </property>
-  <property name="title">
+  <property name="title" stdset="0">
    <string>GroupBox</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="margin">
+    <number>0</number>
+   </property>
    <item>
     <layout class="QFormLayout" name="formLayout">
      <item row="0" column="0">
@@ -88,7 +91,7 @@
      <item row="2" column="0">
       <widget class="QLabel" name="orientationLabel">
        <property name="text">
-        <string>Orientation</string>
+        <string>Orientation:</string>
        </property>
       </widget>
      </item>

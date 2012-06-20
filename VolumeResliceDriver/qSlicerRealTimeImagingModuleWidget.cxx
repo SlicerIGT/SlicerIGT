@@ -74,29 +74,16 @@ qSlicerRealTimeImagingModuleWidgetPrivate::createController(vtkMRMLNode *n, qSli
   vtkMRMLSliceNode *sn = vtkMRMLSliceNode::SafeDownCast(n);
   if (sn)
     {
-    //qMRMLSliceControllerWidget *widget =
-    //  new qMRMLSliceControllerWidget(this->SliceControllersCollapsibleButton);
-    //widget->setSliceViewName( sn->GetName() ); // call before setting slice node
-    //widget->setSliceViewLabel( sn->GetLayoutLabel() );
-    //QColor layoutColor = QColor::fromRgbF(sn->GetLayoutColor()[0],
-    //                                      sn->GetLayoutColor()[1],
-    //                                      sn->GetLayoutColor()[2]);
-    //widget->setSliceViewColor( layoutColor );
-    //widget->setMRMLSliceNode( sn );
-    //widget->setLayoutBehavior( qMRMLViewControllerBar::Panel );
-    //
-    //// SliceControllerWidget needs to know the SliceLogic(s)
-    //qMRMLSliceWidget *sliceWidget = layoutManager->sliceWidget(sn->GetLayoutName());
-    //widget->setSliceLogics(layoutManager->mrmlSliceLogics());
-    //widget->setSliceLogic(sliceWidget->sliceController()->sliceLogic());
-    //
-    //// add the widget to the display
-    //SliceControllersLayout->addWidget(widget);
-
     qSlicerReslicePropertyWidget *widget =
       new qSlicerReslicePropertyWidget(this->resliceCollapsibleButton);
-    widget->setSliceViewName( sn->GetName() ); // call before setting slice node
+    //widget->setSliceViewName( sn->GetName() ); // call before setting slice node
+    widget->setSliceViewName( sn->GetLayoutLabel() );
     widget->setMRMLSliceNode( sn );
+    QColor layoutColor = QColor::fromRgbF(sn->GetLayoutColor()[0],
+                                          sn->GetLayoutColor()[1],
+                                          sn->GetLayoutColor()[2]);
+    widget->setSliceViewColor( layoutColor );
+    widget->setLayoutBehavior( qMRMLViewControllerBar::Panel );
     resliceLayout->addWidget(widget);
 
 
@@ -159,12 +146,6 @@ void qSlicerRealTimeImagingModuleWidget::setup()
   Q_D(qSlicerRealTimeImagingModuleWidget);
   d->setupUi(this);
   this->Superclass::setup();
-
-  //d->methodButtonGrouop.addButton(d->positionRadioButton);
-  //d->methodButtonGrouop.addButton(d->orientationRadioButton);
-  //d->orientationButtonGroup.addButton(d->inPlaneRadioButton);
-  //d->orientationButtonGroup.addButton(d->inPlane90RadioButton);
-  //d->orientationButtonGroup.addButton(d->transverseRadioButton);
 }
 
 

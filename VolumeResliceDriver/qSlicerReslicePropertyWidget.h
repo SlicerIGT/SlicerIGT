@@ -22,10 +22,13 @@
 #define __qSlicerReslicePropertyWidget_h
 
 // Qt includes
-#include <QGroupBox>
+//#include <QGroupBox>
+#include <QWidget>
 
 // CTK includes
 #include <ctkVTKObject.h>
+
+#include "qMRMLViewControllerBar.h"
 
 // OpenIGTLinkIF GUI includes
 #include "qSlicerRealTimeImagingModuleExport.h"
@@ -36,13 +39,14 @@ class vtkMRMLNode;
 class vtkMRMLSliceNode;
 class vtkObject;
 
+
 /// \ingroup Slicer_QtModules_OpenIGTLinkIF
-class Q_SLICER_QTMODULES_REALTIMEIMAGING_EXPORT qSlicerReslicePropertyWidget : public QGroupBox
+class Q_SLICER_QTMODULES_REALTIMEIMAGING_EXPORT qSlicerReslicePropertyWidget : public qMRMLViewControllerBar
 {
   Q_OBJECT
   QVTK_OBJECT
 public:
-  typedef QGroupBox Superclass;
+  typedef qMRMLViewControllerBar Superclass;
   qSlicerReslicePropertyWidget(QWidget *parent = 0);
   virtual ~qSlicerReslicePropertyWidget();
 
@@ -55,6 +59,9 @@ public slots:
   ///// the type
   //void setMRMLIGTLConnectorNode(vtkMRMLNode* node);
   void setSliceViewName(const QString& newSliceViewName);
+
+  void setSliceViewColor(const QColor& newSliceViewColor);
+
   void setMRMLSliceNode(vtkMRMLSliceNode* newSliceNode);
 
   /// Return a reference to the current MRML scene
@@ -73,8 +80,6 @@ protected slots:
   /// Internal function to update the IGTLConnector node based on the property widget
   //void updateIGTLConnectorNode();
 
-protected:
-  QScopedPointer<qSlicerReslicePropertyWidgetPrivate> d_ptr;
 
 private:
   Q_DECLARE_PRIVATE(qSlicerReslicePropertyWidget);
