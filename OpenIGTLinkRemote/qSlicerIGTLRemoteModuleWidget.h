@@ -41,7 +41,8 @@ public:
 public slots:
   virtual void setMRMLScene(vtkMRMLScene *newScene);
   void setConnectorNode(vtkMRMLNode* node);
-  void updateRemoteList();
+  void queryRemoteList();
+  void querySelectedItem();
   void onQueryResponseReceived();
 
 protected:

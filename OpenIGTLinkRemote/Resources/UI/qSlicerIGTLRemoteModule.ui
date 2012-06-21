@@ -132,19 +132,19 @@
             </property>
            </widget>
           </item>
-          <item>
-           <widget class="QRadioButton" name="typeAllRadioButton">
-            <property name="text">
-             <string>All</string>
-            </property>
-           </widget>
-          </item>
          </layout>
         </item>
        </layout>
       </item>
       <item>
        <widget class="QTableWidget" name="remoteDataListTable"/>
+      </item>
+      <item>
+       <widget class="QPushButton" name="getSelectedItemButton">
+        <property name="text">
+         <string>Get selected items</string>
+        </property>
+       </widget>
       </item>
      </layout>
     </widget>
