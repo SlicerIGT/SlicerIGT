@@ -15,8 +15,8 @@ set(module_logic_include_directories
 
 # Source files
 set(module_logic_SRCS
-  vtkSlicerRealTimeImagingLogic.cxx
-  vtkSlicerRealTimeImagingLogic.h
+  vtkSlicerVolumeResliceDriverLogic.cxx
+  vtkSlicerVolumeResliceDriverLogic.h
   )
 
 # Additional Target libraries
