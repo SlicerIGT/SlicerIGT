@@ -57,8 +57,7 @@ qSlicerCollectFiducialsModule::qSlicerCollectFiducialsModule(QObject* _parent)
 //-----------------------------------------------------------------------------
 QStringList qSlicerCollectFiducialsModule::categories()const
 {
-  // << "Developer Tools"
-  return QStringList() << "" << "IGT";
+  return QStringList() << "IGT";
 }
 
 //-----------------------------------------------------------------------------
