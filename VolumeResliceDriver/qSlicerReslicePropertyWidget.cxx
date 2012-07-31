@@ -1,4 +1,3 @@
-
 // Qt includes
 #include <QButtonGroup>
 
@@ -211,7 +210,7 @@ void qSlicerReslicePropertyWidgetPrivate::updateSliceByTransformNode(vtkMRMLLine
     return;
     }
 
-  vtkSmartPointer<vtkMatrix4x4> transform = vtkMatrix4x4::New();
+  vtkSmartPointer<vtkMatrix4x4> transform = vtkSmartPointer::<vtkMatrix4x4>::New();
   if (transform)
     {
     transform->Identity();
@@ -236,7 +235,7 @@ void qSlicerReslicePropertyWidgetPrivate::updateSliceByImageNode(vtkMRMLScalarVo
     return;
     }
 
-  vtkSmartPointer<vtkMatrix4x4> rtimgTransform = vtkMatrix4x4::New();
+  vtkSmartPointer<vtkMatrix4x4> rtimgTransform = vtkSmartPointer<vtkMatrix4x4>::New();
   volumeNode->GetIJKToRASMatrix(rtimgTransform);
 
   float tx = rtimgTransform->GetElement(0, 0);
