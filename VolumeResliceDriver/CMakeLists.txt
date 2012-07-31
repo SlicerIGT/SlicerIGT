@@ -1,7 +1,6 @@
-
 # Module name (usually identique to the directory name)
-set(qt_module_name "RealTimeImaging")
-set(qt_module_title "RealTime Imaging")
+set(qt_module_name "VolumeResliceDriver")
+set(qt_module_title "Volume Reslice Driver")
 
 # Build module sub libraries
 add_subdirectory(Logic)
@@ -18,35 +17,35 @@ set(qt_module_include_directories
 
 # Source files
 set(qt_module_SRCS
-  qSlicerRealTimeImagingModule.cxx
-  qSlicerRealTimeImagingModule.h
-  qSlicerRealTimeImagingModuleWidget.cxx
-  qSlicerRealTimeImagingModuleWidget.h
+  qSlicerVolumeResliceDriverModule.cxx
+  qSlicerVolumeResliceDriverModule.h
+  qSlicerVolumeResliceDriverModuleWidget.cxx
+  qSlicerVolumeResliceDriverModuleWidget.h
   qSlicerReslicePropertyWidget.cxx
   qSlicerReslicePropertyWidget.h
   )
 
 # Headers that should run through moc
 set(qt_module_MOC_SRCS
-  qSlicerRealTimeImagingModule.h
-  qSlicerRealTimeImagingModuleWidget.h
+  qSlicerVolumeResliceDriverModule.h
+  qSlicerVolumeResliceDriverModuleWidget.h
   qSlicerReslicePropertyWidget.h
   )
 
 # UI files
 set(qt_module_UI_SRCS
-  Resources/UI/qSlicerRealTimeImagingModule.ui
+  Resources/UI/qSlicerVolumeResliceDriverModule.ui
   Resources/UI/qSlicerReslicePropertyWidget.ui
   )
 
 # Additional Target libraries
 set(qt_module_target_libraries
-  vtkSlicerRealTimeImagingModuleLogic
+  vtkSlicerVolumeResliceDriverModuleLogic
   )
 
 # Resources
 set(qt_module_resources
-  Resources/qSlicerRealTimeImagingModule.qrc
+  Resources/qSlicerVolumeResliceDriverModule.qrc
   )
 
 slicerMacroBuildQtModule(
