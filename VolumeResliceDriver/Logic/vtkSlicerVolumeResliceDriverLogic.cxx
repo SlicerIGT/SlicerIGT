@@ -15,8 +15,8 @@
 
 ==============================================================================*/
 
-// RealTimeImaging includes
-#include "vtkSlicerRealTimeImagingLogic.h"
+// VolumeResliceDriver includes
+#include "vtkSlicerVolumeResliceDriverLogic.h"
 
 // MRML includes
 
@@ -27,26 +27,26 @@
 #include <cassert>
 
 //----------------------------------------------------------------------------
-vtkStandardNewMacro(vtkSlicerRealTimeImagingLogic);
+vtkStandardNewMacro(vtkSlicerVolumeResliceDriverLogic);
 
 //----------------------------------------------------------------------------
-vtkSlicerRealTimeImagingLogic::vtkSlicerRealTimeImagingLogic()
+vtkSlicerVolumeResliceDriverLogic::vtkSlicerVolumeResliceDriverLogic()
 {
 }
 
 //----------------------------------------------------------------------------
-vtkSlicerRealTimeImagingLogic::~vtkSlicerRealTimeImagingLogic()
+vtkSlicerVolumeResliceDriverLogic::~vtkSlicerVolumeResliceDriverLogic()
 {
 }
 
 //----------------------------------------------------------------------------
-void vtkSlicerRealTimeImagingLogic::PrintSelf(ostream& os, vtkIndent indent)
+void vtkSlicerVolumeResliceDriverLogic::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerRealTimeImagingLogic::SetMRMLSceneInternal(vtkMRMLScene * newScene)
+void vtkSlicerVolumeResliceDriverLogic::SetMRMLSceneInternal(vtkMRMLScene * newScene)
 {
   vtkNew<vtkIntArray> events;
   events->InsertNextValue(vtkMRMLScene::NodeAddedEvent);
@@ -56,25 +56,25 @@ void vtkSlicerRealTimeImagingLogic::SetMRMLSceneInternal(vtkMRMLScene * newScene
 }
 
 //-----------------------------------------------------------------------------
-void vtkSlicerRealTimeImagingLogic::RegisterNodes()
+void vtkSlicerVolumeResliceDriverLogic::RegisterNodes()
 {
   assert(this->GetMRMLScene() != 0);
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerRealTimeImagingLogic::UpdateFromMRMLScene()
+void vtkSlicerVolumeResliceDriverLogic::UpdateFromMRMLScene()
 {
   assert(this->GetMRMLScene() != 0);
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerRealTimeImagingLogic
+void vtkSlicerVolumeResliceDriverLogic
 ::OnMRMLSceneNodeAdded(vtkMRMLNode* vtkNotUsed(node))
 {
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerRealTimeImagingLogic
+void vtkSlicerVolumeResliceDriverLogic
 ::OnMRMLSceneNodeRemoved(vtkMRMLNode* vtkNotUsed(node))
 {
 }

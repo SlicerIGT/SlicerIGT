@@ -15,19 +15,19 @@
 
 ==============================================================================*/
 
-#ifndef __qSlicerRealTimeImagingModuleWidget_h
-#define __qSlicerRealTimeImagingModuleWidget_h
+#ifndef __qSlicerVolumeResliceDriverModuleWidget_h
+#define __qSlicerVolumeResliceDriverModuleWidget_h
 
 // SlicerQt includes
 #include "qSlicerAbstractModuleWidget.h"
 
-#include "qSlicerRealTimeImagingModuleExport.h"
+#include "qSlicerVolumeResliceDriverModuleExport.h"
 
-class qSlicerRealTimeImagingModuleWidgetPrivate;
+class qSlicerVolumeResliceDriverModuleWidgetPrivate;
 class vtkMRMLNode;
 
-/// \ingroup Slicer_QtModules_RealTimeImaging
-class Q_SLICER_QTMODULES_REALTIMEIMAGING_EXPORT qSlicerRealTimeImagingModuleWidget :
+/// \ingroup Slicer_QtModules_VolumeResliceDriver
+class Q_SLICER_QTMODULES_VOLUMERESLICEDRIVER_EXPORT qSlicerVolumeResliceDriverModuleWidget :
   public qSlicerAbstractModuleWidget
 {
   Q_OBJECT
@@ -35,8 +35,8 @@ class Q_SLICER_QTMODULES_REALTIMEIMAGING_EXPORT qSlicerRealTimeImagingModuleWidg
 public:
 
   typedef qSlicerAbstractModuleWidget Superclass;
-  qSlicerRealTimeImagingModuleWidget(QWidget *parent=0);
-  virtual ~qSlicerRealTimeImagingModuleWidget();
+  qSlicerVolumeResliceDriverModuleWidget(QWidget *parent=0);
+  virtual ~qSlicerVolumeResliceDriverModuleWidget();
 
 public slots:
   virtual void setMRMLScene(vtkMRMLScene *newScene);
@@ -45,13 +45,13 @@ public slots:
   void onLayoutChanged(int);
 
 protected:
-  QScopedPointer<qSlicerRealTimeImagingModuleWidgetPrivate> d_ptr;
+  QScopedPointer<qSlicerVolumeResliceDriverModuleWidgetPrivate> d_ptr;
   
   virtual void setup();
 
 private:
-  Q_DECLARE_PRIVATE(qSlicerRealTimeImagingModuleWidget);
-  Q_DISABLE_COPY(qSlicerRealTimeImagingModuleWidget);
+  Q_DECLARE_PRIVATE(qSlicerVolumeResliceDriverModuleWidget);
+  Q_DISABLE_COPY(qSlicerVolumeResliceDriverModuleWidget);
 };
 
 #endif

@@ -15,14 +15,14 @@
 
 ==============================================================================*/
 
-// .NAME vtkSlicerRealTimeImagingLogic - slicer logic class for volumes manipulation
+// .NAME vtkSlicerVolumeResliceDriverLogic - slicer logic class for volumes manipulation
 // .SECTION Description
 // This class manages the logic associated with reading, saving,
 // and changing propertied of the volumes
 
 
-#ifndef __vtkSlicerRealTimeImagingLogic_h
-#define __vtkSlicerRealTimeImagingLogic_h
+#ifndef __vtkSlicerVolumeResliceDriverLogic_h
+#define __vtkSlicerVolumeResliceDriverLogic_h
 
 // Slicer includes
 #include "vtkSlicerModuleLogic.h"
@@ -32,22 +32,22 @@
 // STD includes
 #include <cstdlib>
 
-#include "vtkSlicerRealTimeImagingModuleLogicExport.h"
+#include "vtkSlicerVolumeResliceDriverModuleLogicExport.h"
 
 
-/// \ingroup Slicer_QtModules_RealTimeImaging
-class VTK_SLICER_REALTIMEIMAGING_MODULE_LOGIC_EXPORT vtkSlicerRealTimeImagingLogic :
+/// \ingroup Slicer_QtModules_VolumeResliceDriver
+class VTK_SLICER_VOLUMERESLICEDRIVER_MODULE_LOGIC_EXPORT vtkSlicerVolumeResliceDriverLogic :
   public vtkSlicerModuleLogic
 {
 public:
   
-  static vtkSlicerRealTimeImagingLogic *New();
-  vtkTypeMacro(vtkSlicerRealTimeImagingLogic,vtkSlicerModuleLogic);
+  static vtkSlicerVolumeResliceDriverLogic *New();
+  vtkTypeMacro(vtkSlicerVolumeResliceDriverLogic,vtkSlicerModuleLogic);
   void PrintSelf(ostream& os, vtkIndent indent);
 
 protected:
-  vtkSlicerRealTimeImagingLogic();
-  virtual ~vtkSlicerRealTimeImagingLogic();
+  vtkSlicerVolumeResliceDriverLogic();
+  virtual ~vtkSlicerVolumeResliceDriverLogic();
 
   virtual void SetMRMLSceneInternal(vtkMRMLScene * newScene);
   /// Register MRML Node classes to Scene. Gets called automatically when the MRMLScene is attached to this logic class.
@@ -57,8 +57,8 @@ protected:
   virtual void OnMRMLSceneNodeRemoved(vtkMRMLNode* node);
 private:
 
-  vtkSlicerRealTimeImagingLogic(const vtkSlicerRealTimeImagingLogic&); // Not implemented
-  void operator=(const vtkSlicerRealTimeImagingLogic&);               // Not implemented
+  vtkSlicerVolumeResliceDriverLogic(const vtkSlicerVolumeResliceDriverLogic&); // Not implemented
+  void operator=(const vtkSlicerVolumeResliceDriverLogic&);               // Not implemented
 };
 
 #endif

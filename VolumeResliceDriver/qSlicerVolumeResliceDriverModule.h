@@ -15,18 +15,18 @@
 
 ==============================================================================*/
 
-#ifndef __qSlicerRealTimeImagingModule_h
-#define __qSlicerRealTimeImagingModule_h
+#ifndef __qSlicerVolumeResliceDriverModule_h
+#define __qSlicerVolumeResliceDriverModule_h
 
 // SlicerQt includes
 #include "qSlicerLoadableModule.h"
 
-#include "qSlicerRealTimeImagingModuleExport.h"
+#include "qSlicerVolumeResliceDriverModuleExport.h"
 
-class qSlicerRealTimeImagingModulePrivate;
+class qSlicerVolumeResliceDriverModulePrivate;
 
-/// \ingroup Slicer_QtModules_RealTimeImaging
-class Q_SLICER_QTMODULES_REALTIMEIMAGING_EXPORT qSlicerRealTimeImagingModule :
+/// \ingroup Slicer_QtModules_VolumeResliceDriver
+class Q_SLICER_QTMODULES_VOLUMERESLICEDRIVER_EXPORT qSlicerVolumeResliceDriverModule :
   public qSlicerLoadableModule
 {
   Q_OBJECT
@@ -35,8 +35,8 @@ class Q_SLICER_QTMODULES_REALTIMEIMAGING_EXPORT qSlicerRealTimeImagingModule :
 public:
 
   typedef qSlicerLoadableModule Superclass;
-  explicit qSlicerRealTimeImagingModule(QObject *parent=0);
-  virtual ~qSlicerRealTimeImagingModule();
+  explicit qSlicerVolumeResliceDriverModule(QObject *parent=0);
+  virtual ~qSlicerVolumeResliceDriverModule();
 
   qSlicerGetTitleMacro(QTMODULE_TITLE);
   
@@ -67,11 +67,11 @@ protected:
   virtual vtkMRMLAbstractLogic* createLogic();
 
 protected:
-  QScopedPointer<qSlicerRealTimeImagingModulePrivate> d_ptr;
+  QScopedPointer<qSlicerVolumeResliceDriverModulePrivate> d_ptr;
 
 private:
-  Q_DECLARE_PRIVATE(qSlicerRealTimeImagingModule);
-  Q_DISABLE_COPY(qSlicerRealTimeImagingModule);
+  Q_DECLARE_PRIVATE(qSlicerVolumeResliceDriverModule);
+  Q_DISABLE_COPY(qSlicerVolumeResliceDriverModule);
 
 };
 

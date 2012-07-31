@@ -31,7 +31,7 @@
 #include "qMRMLViewControllerBar.h"
 
 // OpenIGTLinkIF GUI includes
-#include "qSlicerRealTimeImagingModuleExport.h"
+#include "qSlicerVolumeResliceDriverModuleExport.h"
 
 class qSlicerReslicePropertyWidgetPrivate;
 class vtkMRMLScene;
@@ -41,7 +41,7 @@ class vtkObject;
 
 
 /// \ingroup Slicer_QtModules_OpenIGTLinkIF
-class Q_SLICER_QTMODULES_REALTIMEIMAGING_EXPORT qSlicerReslicePropertyWidget : public qMRMLViewControllerBar
+class Q_SLICER_QTMODULES_VOLUMERESLICEDRIVER_EXPORT qSlicerReslicePropertyWidget : public qMRMLViewControllerBar
 {
   Q_OBJECT
   QVTK_OBJECT

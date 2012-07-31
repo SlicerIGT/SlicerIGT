@@ -18,8 +18,8 @@
 // Qt includes
 
 // SlicerQt includes
-#include "qSlicerRealTimeImagingModuleWidget.h"
-#include "ui_qSlicerRealTimeImagingModule.h"
+#include "qSlicerVolumeResliceDriverModuleWidget.h"
+#include "ui_qSlicerVolumeResliceDriverModule.h"
 #include "qSlicerReslicePropertyWidget.h"
 #include "qSlicerApplication.h"
 #include "qSlicerLayoutManager.h"
@@ -41,11 +41,11 @@
 #include <QDebug>
 
 //-----------------------------------------------------------------------------
-/// \ingroup Slicer_QtModules_RealTimeImaging
-class qSlicerRealTimeImagingModuleWidgetPrivate: public Ui_qSlicerRealTimeImagingModule
+/// \ingroup Slicer_QtModules_VolumeResliceDriver
+class qSlicerVolumeResliceDriverModuleWidgetPrivate: public Ui_qSlicerVolumeResliceDriverModule
 {
 public:
-  qSlicerRealTimeImagingModuleWidgetPrivate();
+  qSlicerVolumeResliceDriverModuleWidgetPrivate();
 
   /// Create a Controller for a Node and pack in the widget
   void createController(vtkMRMLNode *n, qSlicerLayoutManager *lm);
@@ -58,15 +58,15 @@ public:
 };
 
 //-----------------------------------------------------------------------------
-// qSlicerRealTimeImagingModuleWidgetPrivate methods
+// qSlicerVolumeResliceDriverModuleWidgetPrivate methods
 
 //-----------------------------------------------------------------------------
 void 
-qSlicerRealTimeImagingModuleWidgetPrivate::createController(vtkMRMLNode *n, qSlicerLayoutManager *layoutManager)
+qSlicerVolumeResliceDriverModuleWidgetPrivate::createController(vtkMRMLNode *n, qSlicerLayoutManager *layoutManager)
 {
   if (this->WidgetMap.find(n) != this->WidgetMap.end())
     {
-    qDebug() << "qSlicerRealTimeImagingModuleWidgetPrivate::createController - Node already added to module";
+    qDebug() << "qSlicerVolumeResliceDriverModuleWidgetPrivate::createController - Node already added to module";
     return;
     }
 
@@ -95,13 +95,13 @@ qSlicerRealTimeImagingModuleWidgetPrivate::createController(vtkMRMLNode *n, qSli
 
 //-----------------------------------------------------------------------------
 void 
-qSlicerRealTimeImagingModuleWidgetPrivate::removeController(vtkMRMLNode *n)
+qSlicerVolumeResliceDriverModuleWidgetPrivate::removeController(vtkMRMLNode *n)
 {
   // find the widget for the SliceNode
   WidgetMapType::iterator cit = this->WidgetMap.find(n);
   if (cit == this->WidgetMap.end())
     {
-    qDebug() << "qSlicerRealTimeImagingModuleWidgetPrivate::removeController - Node has no Controller managed by this module.";
+    qDebug() << "qSlicerVolumeResliceDriverModuleWidgetPrivate::removeController - Node has no Controller managed by this module.";
     return;
     }
 
@@ -121,38 +121,38 @@ qSlicerRealTimeImagingModuleWidgetPrivate::removeController(vtkMRMLNode *n)
 
 
 //-----------------------------------------------------------------------------
-qSlicerRealTimeImagingModuleWidgetPrivate::qSlicerRealTimeImagingModuleWidgetPrivate()
+qSlicerVolumeResliceDriverModuleWidgetPrivate::qSlicerVolumeResliceDriverModuleWidgetPrivate()
 {
 }
 
 //-----------------------------------------------------------------------------
-// qSlicerRealTimeImagingModuleWidget methods
+// qSlicerVolumeResliceDriverModuleWidget methods
 
 //-----------------------------------------------------------------------------
-qSlicerRealTimeImagingModuleWidget::qSlicerRealTimeImagingModuleWidget(QWidget* _parent)
+qSlicerVolumeResliceDriverModuleWidget::qSlicerVolumeResliceDriverModuleWidget(QWidget* _parent)
   : Superclass( _parent )
-  , d_ptr( new qSlicerRealTimeImagingModuleWidgetPrivate )
+  , d_ptr( new qSlicerVolumeResliceDriverModuleWidgetPrivate )
 {
 }
 
 //-----------------------------------------------------------------------------
-qSlicerRealTimeImagingModuleWidget::~qSlicerRealTimeImagingModuleWidget()
+qSlicerVolumeResliceDriverModuleWidget::~qSlicerVolumeResliceDriverModuleWidget()
 {
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerRealTimeImagingModuleWidget::setup()
+void qSlicerVolumeResliceDriverModuleWidget::setup()
 {
-  Q_D(qSlicerRealTimeImagingModuleWidget);
+  Q_D(qSlicerVolumeResliceDriverModuleWidget);
   d->setupUi(this);
   this->Superclass::setup();
 }
 
 
 //-----------------------------------------------------------------------------
-void qSlicerRealTimeImagingModuleWidget::setMRMLScene(vtkMRMLScene *newScene)
+void qSlicerVolumeResliceDriverModuleWidget::setMRMLScene(vtkMRMLScene *newScene)
 {
-  Q_D(qSlicerRealTimeImagingModuleWidget);
+  Q_D(qSlicerVolumeResliceDriverModuleWidget);
 
   vtkMRMLScene* oldScene = this->mrmlScene();
 
@@ -198,9 +198,9 @@ void qSlicerRealTimeImagingModuleWidget::setMRMLScene(vtkMRMLScene *newScene)
 
 
 // --------------------------------------------------------------------------
-void qSlicerRealTimeImagingModuleWidget::onNodeAddedEvent(vtkObject*, vtkObject* node)
+void qSlicerVolumeResliceDriverModuleWidget::onNodeAddedEvent(vtkObject*, vtkObject* node)
 {
-  Q_D(qSlicerRealTimeImagingModuleWidget);
+  Q_D(qSlicerVolumeResliceDriverModuleWidget);
 
   if (!this->mrmlScene() || this->mrmlScene()->IsBatchProcessing())
     {
@@ -222,7 +222,7 @@ void qSlicerRealTimeImagingModuleWidget::onNodeAddedEvent(vtkObject*, vtkObject*
   if (sliceNode)
     {
     QString layoutName = sliceNode->GetLayoutName();
-    qDebug() << "qSlicerRealTimeImagingModuleWidget::onNodeAddedEvent - layoutName:" << layoutName;
+    qDebug() << "qSlicerVolumeResliceDriverModuleWidget::onNodeAddedEvent - layoutName:" << layoutName;
 
     // create the slice controller
     d->createController(sliceNode, layoutManager);
@@ -231,9 +231,9 @@ void qSlicerRealTimeImagingModuleWidget::onNodeAddedEvent(vtkObject*, vtkObject*
 }
 
 // --------------------------------------------------------------------------
-void qSlicerRealTimeImagingModuleWidget::onNodeRemovedEvent(vtkObject*, vtkObject* node)
+void qSlicerVolumeResliceDriverModuleWidget::onNodeRemovedEvent(vtkObject*, vtkObject* node)
 {
-  Q_D(qSlicerRealTimeImagingModuleWidget);
+  Q_D(qSlicerVolumeResliceDriverModuleWidget);
 
   if (!this->mrmlScene() || this->mrmlScene()->IsBatchProcessing())
     {
@@ -244,7 +244,7 @@ void qSlicerRealTimeImagingModuleWidget::onNodeRemovedEvent(vtkObject*, vtkObjec
   if (sliceNode)
     {
     QString layoutName = sliceNode->GetLayoutName();
-    qDebug() << "qSlicerRealTimeImagingModuleWidget::onNodeRemovedEvent - layoutName:" << layoutName;
+    qDebug() << "qSlicerVolumeResliceDriverModuleWidget::onNodeRemovedEvent - layoutName:" << layoutName;
                                              
     // destroy the slice controller
     d->removeController(sliceNode);
@@ -253,16 +253,16 @@ void qSlicerRealTimeImagingModuleWidget::onNodeRemovedEvent(vtkObject*, vtkObjec
 }
 
 // --------------------------------------------------------------------------
-void qSlicerRealTimeImagingModuleWidget::onLayoutChanged(int)
+void qSlicerVolumeResliceDriverModuleWidget::onLayoutChanged(int)
 {
-  Q_D(qSlicerRealTimeImagingModuleWidget);
+  Q_D(qSlicerVolumeResliceDriverModuleWidget);
 
   if (!this->mrmlScene() || this->mrmlScene()->IsBatchProcessing())
     {
     return;
     }
 
-  qDebug() << "qSlicerRealTimeImagingModuleWidget::onLayoutChanged";
+  qDebug() << "qSlicerVolumeResliceDriverModuleWidget::onLayoutChanged";
 
   // add the controllers for any newly visible SliceNodes and remove
   // the controllers for any SliceNodes no longer visible
@@ -284,7 +284,7 @@ void qSlicerRealTimeImagingModuleWidget::onLayoutChanged(int)
 
   // hide Controllers for Nodes not currently visible in
   // the layout
-  qSlicerRealTimeImagingModuleWidgetPrivate::WidgetMapType::iterator cit;
+  qSlicerVolumeResliceDriverModuleWidgetPrivate::WidgetMapType::iterator cit;
   for (cit = d->WidgetMap.begin(); cit != d->WidgetMap.end(); ++cit)
     {
     // is mananaged Node not currently displayed in the layout?
@@ -303,7 +303,7 @@ void qSlicerRealTimeImagingModuleWidget::onLayoutChanged(int)
     if (vn)
       {
       // find the controller
-      qSlicerRealTimeImagingModuleWidgetPrivate::WidgetMapType::iterator cit = d->WidgetMap.find(vn);
+      qSlicerVolumeResliceDriverModuleWidgetPrivate::WidgetMapType::iterator cit = d->WidgetMap.find(vn);
       if (cit != d->WidgetMap.end())
         {
         // show it

@@ -18,6 +18,7 @@
 #include <QToolButton>
 
 // MRML includes
+#include "vtkSmartPointer.h"
 #include "vtkMRMLSliceNode.h"
 #include "vtkMRMLViewNode.h"
 #include "vtkMRMLLinearTransformNode.h"
@@ -210,7 +211,7 @@ void qSlicerReslicePropertyWidgetPrivate::updateSliceByTransformNode(vtkMRMLLine
     return;
     }
 
-  vtkSmartPointer<vtkMatrix4x4> transform = vtkSmartPointer::<vtkMatrix4x4>::New();
+  vtkSmartPointer<vtkMatrix4x4> transform = vtkSmartPointer<vtkMatrix4x4>::New();
   if (transform)
     {
     transform->Identity();

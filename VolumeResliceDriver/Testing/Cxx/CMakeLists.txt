@@ -1,4 +1,4 @@
-set(KIT RealTimeImaging)
+set(KIT VolumeResliceDriver)
 
 set(KIT_TEST_SRCS)
 set(KIT_TEST_NAMES)

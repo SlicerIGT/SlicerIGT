@@ -18,55 +18,55 @@
 // Qt includes
 #include <QtPlugin>
 
-// RealTimeImaging Logic includes
-#include <vtkSlicerRealTimeImagingLogic.h>
+// VolumeResliceDriver Logic includes
+#include <vtkSlicerVolumeResliceDriverLogic.h>
 
-// RealTimeImaging includes
-#include "qSlicerRealTimeImagingModule.h"
-#include "qSlicerRealTimeImagingModuleWidget.h"
-
-//-----------------------------------------------------------------------------
-Q_EXPORT_PLUGIN2(qSlicerRealTimeImagingModule, qSlicerRealTimeImagingModule);
+// VolumeResliceDriver includes
+#include "qSlicerVolumeResliceDriverModule.h"
+#include "qSlicerVolumeResliceDriverModuleWidget.h"
 
 //-----------------------------------------------------------------------------
-/// \ingroup Slicer_QtModules_RealTimeImaging
-class qSlicerRealTimeImagingModulePrivate
+Q_EXPORT_PLUGIN2(qSlicerVolumeResliceDriverModule, qSlicerVolumeResliceDriverModule);
+
+//-----------------------------------------------------------------------------
+/// \ingroup Slicer_QtModules_VolumeResliceDriver
+class qSlicerVolumeResliceDriverModulePrivate
 {
 public:
-  qSlicerRealTimeImagingModulePrivate();
+  qSlicerVolumeResliceDriverModulePrivate();
 };
 
 //-----------------------------------------------------------------------------
-// qSlicerRealTimeImagingModulePrivate methods
+// qSlicerVolumeResliceDriverModulePrivate methods
 
 //-----------------------------------------------------------------------------
-qSlicerRealTimeImagingModulePrivate::qSlicerRealTimeImagingModulePrivate()
+qSlicerVolumeResliceDriverModulePrivate::qSlicerVolumeResliceDriverModulePrivate()
 {
 }
 
 //-----------------------------------------------------------------------------
-// qSlicerRealTimeImagingModule methods
+// qSlicerVolumeResliceDriverModule methods
 
 //-----------------------------------------------------------------------------
-qSlicerRealTimeImagingModule::qSlicerRealTimeImagingModule(QObject* _parent)
+qSlicerVolumeResliceDriverModule::qSlicerVolumeResliceDriverModule(QObject* _parent)
   : Superclass(_parent)
-  , d_ptr(new qSlicerRealTimeImagingModulePrivate)
+  , d_ptr(new qSlicerVolumeResliceDriverModulePrivate)
 {
 }
 
 //-----------------------------------------------------------------------------
-QStringList qSlicerRealTimeImagingModule::categories()const
+QStringList qSlicerVolumeResliceDriverModule::categories()const
 {
   return QStringList() << "IGT";
 }
 
 //-----------------------------------------------------------------------------
-qSlicerRealTimeImagingModule::~qSlicerRealTimeImagingModule()
+qSlicerVolumeResliceDriverModule::~qSlicerVolumeResliceDriverModule()
 {
 }
 
 //-----------------------------------------------------------------------------
-QString qSlicerRealTimeImagingModule::helpText()const
+QString qSlicerVolumeResliceDriverModule::helpText()const
 {
   QString help = 
     "This module allows to set reslicing planes by using linear transforms nodes"
@@ -75,14 +75,14 @@ QString qSlicerRealTimeImagingModule::helpText()const
 }
 
 //-----------------------------------------------------------------------------
-QString qSlicerRealTimeImagingModule::acknowledgementText()const
+QString qSlicerVolumeResliceDriverModule::acknowledgementText()const
 {
   return "This work was supported by NIH National Center for Image Guided Therapy, and "
     "National Alliance for Medical Image Computing.";
 }
 
 //-----------------------------------------------------------------------------
-QStringList qSlicerRealTimeImagingModule::contributors()const
+QStringList qSlicerVolumeResliceDriverModule::contributors()const
 {
   QStringList moduleContributors;
   moduleContributors << QString("Junichi Tokuda (Brigham and Women's Hospital)");
@@ -92,25 +92,25 @@ QStringList qSlicerRealTimeImagingModule::contributors()const
 }
 
 //-----------------------------------------------------------------------------
-QIcon qSlicerRealTimeImagingModule::icon()const
+QIcon qSlicerVolumeResliceDriverModule::icon()const
 {
-  return QIcon(":/Icons/RealTimeImaging.png");
+  return QIcon(":/Icons/VolumeResliceDriver.png");
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerRealTimeImagingModule::setup()
+void qSlicerVolumeResliceDriverModule::setup()
 {
   this->Superclass::setup();
 }
 
 //-----------------------------------------------------------------------------
-qSlicerAbstractModuleRepresentation * qSlicerRealTimeImagingModule::createWidgetRepresentation()
+qSlicerAbstractModuleRepresentation * qSlicerVolumeResliceDriverModule::createWidgetRepresentation()
 {
-  return new qSlicerRealTimeImagingModuleWidget;
+  return new qSlicerVolumeResliceDriverModuleWidget;
 }
 
 //-----------------------------------------------------------------------------
-vtkMRMLAbstractLogic* qSlicerRealTimeImagingModule::createLogic()
+vtkMRMLAbstractLogic* qSlicerVolumeResliceDriverModule::createLogic()
 {
-  return vtkSlicerRealTimeImagingLogic::New();
+  return vtkSlicerVolumeResliceDriverLogic::New();
 }

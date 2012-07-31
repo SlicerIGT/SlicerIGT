@@ -5,7 +5,7 @@ set(qt_module_title "Volume Reslice Driver")
 # Build module sub libraries
 add_subdirectory(Logic)
 
-set(qt_module_export_directive "Q_SLICER_QTMODULES_REALTIMEIMAGING_EXPORT")
+set(qt_module_export_directive "Q_SLICER_QTMODULES_VOLUMERESLICEDRIVER_EXPORT")
 
 # Additional includes - Current_{source,binary} and Slicer_{Libs,Base} already included
 set(qt_module_include_directories
@@ -34,7 +34,7 @@ set(qt_module_MOC_SRCS
 
 # UI files
 set(qt_module_UI_SRCS
-  Resources/UI/qSlicerRealTimeImagingModule.ui
+  Resources/UI/qSlicerVolumeResliceDriverModule.ui
   Resources/UI/qSlicerReslicePropertyWidget.ui
   )
 
@@ -62,5 +62,5 @@ slicerMacroBuildQtModule(
 
 
 if(BUILD_TESTING)
-  add_subdirectory(Testing)
+#  add_subdirectory(Testing)
 endif()
