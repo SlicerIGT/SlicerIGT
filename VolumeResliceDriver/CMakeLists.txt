@@ -34,7 +34,7 @@ set(qt_module_MOC_SRCS
 
 # UI files
 set(qt_module_UI_SRCS
-  Resources/UI/qSlicerVolumeResliceDriverModule.ui
+  Resources/UI/qSlicerRealTimeImagingModule.ui
   Resources/UI/qSlicerReslicePropertyWidget.ui
   )
 
