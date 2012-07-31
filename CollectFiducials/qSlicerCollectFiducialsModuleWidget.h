@@ -27,7 +27,7 @@ class qSlicerCollectFiducialsModuleWidgetPrivate;
 class vtkMRMLNode;
 
 /// \ingroup Slicer_QtModules_CollectFiducials
-class Q_SLICER_QTMODULES_CollectFiducials_EXPORT qSlicerCollectFiducialsModuleWidget :
+class Q_SLICER_QTMODULES_COLLECTFIDUCIALS_EXPORT qSlicerCollectFiducialsModuleWidget :
   public qSlicerAbstractModuleWidget
 {
   Q_OBJECT

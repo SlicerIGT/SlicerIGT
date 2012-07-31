@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>qSlicerIGTProbeModule</class>
- <widget class="qSlicerWidget" name="qSlicerIGTProbeModule">
+ <class>qSlicerCollectFiducialsModule</class>
+ <widget class="qSlicerWidget" name="qSlicerCollectFiducialsModule">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -104,7 +104,7 @@
  <resources/>
  <connections>
   <connection>
-   <sender>qSlicerIGTProbeModule</sender>
+   <sender>qSlicerCollectFiducialsModule</sender>
    <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
    <receiver>ProbeTransformComboBox</receiver>
    <slot>setMRMLScene(vtkMRMLScene*)</slot>

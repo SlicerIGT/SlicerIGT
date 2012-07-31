@@ -26,7 +26,7 @@
 class qSlicerCollectFiducialsModulePrivate;
 
 /// \ingroup Slicer_QtModules_CollectFiducials
-class Q_SLICER_QTMODULES_CollectFiducials_EXPORT qSlicerCollectFiducialsModule :
+class Q_SLICER_QTMODULES_COLLECTFIDUCIALS_EXPORT qSlicerCollectFiducialsModule :
   public qSlicerLoadableModule
 {
   Q_OBJECT

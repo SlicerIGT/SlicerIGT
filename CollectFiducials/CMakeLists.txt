@@ -1,7 +1,7 @@
 
 #-----------------------------------------------------------------------------
 set(MODULE_NAME "CollectFiducials") # Do not use 'project()'
-set(MODULE_TITLE "IGT Probe")
+set(MODULE_TITLE "Collect Fiducials")
 
 string(TOUPPER ${MODULE_NAME} MODULE_NAME_UPPER)
 

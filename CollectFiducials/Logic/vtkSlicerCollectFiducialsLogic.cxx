@@ -15,8 +15,8 @@
 
 ==============================================================================*/
 
-// IGTProbe includes
-#include "vtkSlicerIGTProbeLogic.h"
+// CollectFiducials includes
+#include "vtkSlicerCollectFiducialsLogic.h"
 
 
 // MRML includes
@@ -35,11 +35,11 @@
 
 
 
-vtkStandardNewMacro(vtkSlicerIGTProbeLogic);
+vtkStandardNewMacro(vtkSlicerCollectFiducialsLogic);
 
 
 
-vtkSlicerIGTProbeLogic::vtkSlicerIGTProbeLogic()
+vtkSlicerCollectFiducialsLogic::vtkSlicerCollectFiducialsLogic()
 {
   this->ProbeTransformNode = NULL;
   this->AnnotationHierarchyNode = NULL;
@@ -47,7 +47,7 @@ vtkSlicerIGTProbeLogic::vtkSlicerIGTProbeLogic()
 
 
 
-vtkSlicerIGTProbeLogic::~vtkSlicerIGTProbeLogic()
+vtkSlicerCollectFiducialsLogic::~vtkSlicerCollectFiducialsLogic()
 {
   if ( this->ProbeTransformNode != NULL )
   {
@@ -64,7 +64,7 @@ vtkSlicerIGTProbeLogic::~vtkSlicerIGTProbeLogic()
 
 
 
-void vtkSlicerIGTProbeLogic::PrintSelf(ostream& os, vtkIndent indent)
+void vtkSlicerCollectFiducialsLogic::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
   
@@ -74,7 +74,7 @@ void vtkSlicerIGTProbeLogic::PrintSelf(ostream& os, vtkIndent indent)
 
 
 
-void vtkSlicerIGTProbeLogic
+void vtkSlicerCollectFiducialsLogic
 ::AddFiducial()
 {
   if (     this->ProbeTransformNode == NULL
@@ -106,7 +106,7 @@ void vtkSlicerIGTProbeLogic
 
 
 
-void vtkSlicerIGTProbeLogic
+void vtkSlicerCollectFiducialsLogic
 ::SetProbeTransformNode( vtkMRMLLinearTransformNode *node )
 {
   vtkSetMRMLNodeMacro( this->ProbeTransformNode, node );
@@ -115,7 +115,7 @@ void vtkSlicerIGTProbeLogic
 
 
 
-void vtkSlicerIGTProbeLogic
+void vtkSlicerCollectFiducialsLogic
 ::SetAnnotationHierarchyNode( vtkMRMLAnnotationHierarchyNode *node )
 {
   vtkSetMRMLNodeMacro( this->AnnotationHierarchyNode, node );
@@ -124,7 +124,7 @@ void vtkSlicerIGTProbeLogic
 
 
 
-void vtkSlicerIGTProbeLogic::SetMRMLSceneInternal(vtkMRMLScene * newScene)
+void vtkSlicerCollectFiducialsLogic::SetMRMLSceneInternal(vtkMRMLScene * newScene)
 {
   vtkNew<vtkIntArray> events;
   events->InsertNextValue(vtkMRMLScene::NodeAddedEvent);
@@ -135,28 +135,28 @@ void vtkSlicerIGTProbeLogic::SetMRMLSceneInternal(vtkMRMLScene * newScene)
 
 
 
-void vtkSlicerIGTProbeLogic::RegisterNodes()
+void vtkSlicerCollectFiducialsLogic::RegisterNodes()
 {
   assert(this->GetMRMLScene() != 0);
 }
 
 
 
-void vtkSlicerIGTProbeLogic::UpdateFromMRMLScene()
+void vtkSlicerCollectFiducialsLogic::UpdateFromMRMLScene()
 {
   assert(this->GetMRMLScene() != 0);
 }
 
 
 
-void vtkSlicerIGTProbeLogic
+void vtkSlicerCollectFiducialsLogic
 ::OnMRMLSceneNodeAdded(vtkMRMLNode* vtkNotUsed(node))
 {
 }
 
 
 
-void vtkSlicerIGTProbeLogic
+void vtkSlicerCollectFiducialsLogic
 ::OnMRMLSceneNodeRemoved(vtkMRMLNode* vtkNotUsed(node))
 {
 }

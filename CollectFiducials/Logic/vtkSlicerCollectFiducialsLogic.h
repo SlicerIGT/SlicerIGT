@@ -15,14 +15,14 @@
 
 ==============================================================================*/
 
-// .NAME vtkSlicerIGTProbeLogic - slicer logic class for volumes manipulation
+// .NAME vtkSlicerCollectFiducialsLogic - slicer logic class for volumes manipulation
 // .SECTION Description
 // This class manages the logic associated with reading, saving,
 // and changing propertied of the volumes
 
 
-#ifndef __vtkSlicerIGTProbeLogic_h
-#define __vtkSlicerIGTProbeLogic_h
+#ifndef __vtkSlicerCollectFiducialsLogic_h
+#define __vtkSlicerCollectFiducialsLogic_h
 
 // Slicer includes
 #include "vtkSlicerModuleLogic.h"
@@ -39,19 +39,19 @@ class vtkMRMLAnnotationHierarchyNode;
 // STD includes
 #include <cstdlib>
 
-#include "vtkSlicerIGTProbeModuleLogicExport.h"
+#include "vtkSlicerCollectFiducialsModuleLogicExport.h"
 
 
 
 
-/// \ingroup Slicer_QtModules_IGTProbe
-class VTK_SLICER_IGTPROBE_MODULE_LOGIC_EXPORT vtkSlicerIGTProbeLogic :
+/// \ingroup Slicer_QtModules_CollectFiducials
+class VTK_SLICER_COLLECTFIDUCIALS_MODULE_LOGIC_EXPORT vtkSlicerCollectFiducialsLogic :
   public vtkSlicerModuleLogic
 {
 public:
   
-  static vtkSlicerIGTProbeLogic *New();
-  vtkTypeMacro(vtkSlicerIGTProbeLogic,vtkSlicerModuleLogic);
+  static vtkSlicerCollectFiducialsLogic *New();
+  vtkTypeMacro(vtkSlicerCollectFiducialsLogic,vtkSlicerModuleLogic);
   void PrintSelf(ostream& os, vtkIndent indent);
   
   void AddFiducial();
@@ -76,8 +76,8 @@ private:
   
   
 protected:
-  vtkSlicerIGTProbeLogic();
-  virtual ~vtkSlicerIGTProbeLogic();
+  vtkSlicerCollectFiducialsLogic();
+  virtual ~vtkSlicerCollectFiducialsLogic();
 
   virtual void SetMRMLSceneInternal(vtkMRMLScene * newScene);
   /// Register MRML Node classes to Scene. Gets called automatically when the MRMLScene is attached to this logic class.
@@ -87,8 +87,8 @@ protected:
   virtual void OnMRMLSceneNodeRemoved(vtkMRMLNode* node);
 private:
 
-  vtkSlicerIGTProbeLogic(const vtkSlicerIGTProbeLogic&); // Not implemented
-  void operator=(const vtkSlicerIGTProbeLogic&);               // Not implemented
+  vtkSlicerCollectFiducialsLogic(const vtkSlicerCollectFiducialsLogic&); // Not implemented
+  void operator=(const vtkSlicerCollectFiducialsLogic&);               // Not implemented
 };
 
 #endif
