@@ -15,6 +15,12 @@ endif()
 set(qt_module_name "IGTLRemote")
 set(qt_module_title "OpenIGTLink Remote")
 
+#-----------------------------------------------------------------------------
+if(NOT Slicer_SOURCE_DIR) 
+  find_package(Slicer REQUIRED)
+  include(${Slicer_USE_FILE})
+endif()
+
 # Build module sub libraries
 add_subdirectory(Logic)
 
