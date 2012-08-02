@@ -1,4 +1,16 @@
+cmake_minimum_required(VERSION 2.8.8)
 
+#-----------------------------------------------------------------------------
+if(NOT Slicer_SOURCE_DIR)
+  set(EXTENSION_NAME MyExtension)
+  set(EXTENSION_HOMEPAGE "http://www.slicer.org/slicerWiki/index.php/Documentation/4.1/Extensions/${EXTENSION_NAME}")
+  set(EXTENSION_CATEGORY "IGT")
+  set(EXTENSION_CONTRIBUTORS "Junichi Tokuda (BWH)")
+  set(EXTENSION_DESCRIPTION "This is a loadable module for OpenIGTLink remote image interface.")
+  set(EXTENSION_ICONURL "http://viewvc.slicer.org/viewvc.cgi/Slicer4/trunk/Extensions/Testing/LoadableExtensionTemplate/Resources/Icons/LoadableExtensionTemplate.png?revision=19437&view=co")
+endif()
+
+#-----------------------------------------------------------------------------
 # Module name (usually identique to the directory name)
 set(qt_module_name "IGTLRemote")
 set(qt_module_title "OpenIGTLink Remote")
@@ -65,7 +77,12 @@ slicerMacroBuildQtModule(
   RESOURCES ${qt_module_resources}
   )
 
-
 if(BUILD_TESTING)
   #add_subdirectory(Testing)
+endif()
+
+
+#-----------------------------------------------------------------------------
+if(NOT Slicer_SOURCE_DIR)
+  include(${Slicer_EXTENSION_CPACK})
 endif()
