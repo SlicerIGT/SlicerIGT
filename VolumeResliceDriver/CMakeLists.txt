@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8.8)
 
 #-----------------------------------------------------------------------------
 if(NOT Slicer_SOURCE_DIR)
-  set(EXTENSION_NAME MyExtension)
+  set(EXTENSION_NAME VolumeResliceDriver)
   set(EXTENSION_HOMEPAGE "http://www.slicer.org/slicerWiki/index.php/Documentation/4.1/Extensions/${EXTENSION_NAME}")
   set(EXTENSION_CATEGORY "IGT")
   set(EXTENSION_CONTRIBUTORS "Junichi Tokuda (BWH)")
