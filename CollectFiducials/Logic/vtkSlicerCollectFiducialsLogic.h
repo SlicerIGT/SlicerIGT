@@ -24,6 +24,9 @@
 #ifndef __vtkSlicerCollectFiducialsLogic_h
 #define __vtkSlicerCollectFiducialsLogic_h
 
+
+#include <string>
+
 // Slicer includes
 #include "vtkSlicerModuleLogic.h"
 
@@ -54,7 +57,7 @@ public:
   vtkTypeMacro(vtkSlicerCollectFiducialsLogic,vtkSlicerModuleLogic);
   void PrintSelf(ostream& os, vtkIndent indent);
   
-  void AddFiducial();
+  void AddFiducial( std::string NameBase = "", double glyphScale = 3.0 );
   
 
   // Reference to the probe transform.
@@ -89,6 +92,11 @@ private:
 
   vtkSlicerCollectFiducialsLogic(const vtkSlicerCollectFiducialsLogic&); // Not implemented
   void operator=(const vtkSlicerCollectFiducialsLogic&);               // Not implemented
+  
+protected:
+
+  int Counter;
+  
 };
 
 #endif

@@ -18,20 +18,19 @@
 // CollectFiducials includes
 #include "vtkSlicerCollectFiducialsLogic.h"
 
-
 // MRML includes
 #include "vtkMRMLLinearTransformNode.h"
 #include "vtkMRMLAnnotationHierarchyNode.h"
 #include "vtkMRMLAnnotationFiducialNode.h"
-
+#include "vtkMRMLAnnotationPointDisplayNode.h"
 
 // VTK includes
 #include <vtkMatrix4x4.h>
 #include <vtkNew.h>
 
-
 // STD includes
 #include <cassert>
+#include <sstream>
 
 
 
@@ -43,6 +42,8 @@ vtkSlicerCollectFiducialsLogic::vtkSlicerCollectFiducialsLogic()
 {
   this->ProbeTransformNode = NULL;
   this->AnnotationHierarchyNode = NULL;
+  
+  this->Counter = 0;
 }
 
 
@@ -75,7 +76,7 @@ void vtkSlicerCollectFiducialsLogic::PrintSelf(ostream& os, vtkIndent indent)
 
 
 void vtkSlicerCollectFiducialsLogic
-::AddFiducial()
+::AddFiducial( std::string NameBase, double glyphScale )
 {
   if (     this->ProbeTransformNode == NULL
       // ||  this->AnnotationHierarchyNode == NULL
@@ -94,11 +95,25 @@ void vtkSlicerCollectFiducialsLogic
   // fnode->AddControlPoint(coord, sel, vis); 
   
   double coord[ 3 ] = { transformToWorld->GetElement( 0, 3 ), transformToWorld->GetElement( 1, 3 ), transformToWorld->GetElement( 2, 3 ) };
-  fnode->SetFiducialCoordinates( coord[ 0 ], coord[ 1 ], coord[ 2 ] );
   
-  // fnode->SetControlPoint( 0, coord );
+  if ( NameBase.size() > 0 )
+  {
+    std::stringstream ss;
+    ss << NameBase << "_" << this->Counter;
+    fnode->SetName( ss.str().c_str() );
+  }
+  this->Counter ++;
+  fnode->SetFiducialCoordinates( coord[ 0 ], coord[ 1 ], coord[ 2 ] );
+  // fnode->SetControlPoint( coord, 1, 1 );
+  fnode->SetSelected( 0 );
+  fnode->SetVisible( 1 );
+  fnode->SetLocked( 0 );
   
   this->GetMRMLScene()->AddNode( fnode );
+  
+  fnode->CreateAnnotationTextDisplayNode();
+  fnode->CreateAnnotationPointDisplayNode();
+  fnode->GetAnnotationPointDisplayNode()->SetGlyphScale( glyphScale );
   
   fnode->Delete();
   transformToWorld->Delete();

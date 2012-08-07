@@ -123,7 +123,7 @@ void qSlicerCollectFiducialsModuleWidget
 {
   Q_D( qSlicerCollectFiducialsModuleWidget );
   
-  d->logic()->AddFiducial();
+  d->logic()->AddFiducial( d->NameBaseLineEdit->text().toStdString(), d->GlyphSizeSpinBox->value() );
 }
 
 
