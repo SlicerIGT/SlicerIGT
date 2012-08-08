@@ -409,6 +409,9 @@ void qSlicerReslicePropertyWidget::setDriverNode(vtkMRMLNode * newNode)
       qvtkReconnect(d->driverNode, newNode,
                     vtkMRMLVolumeNode::ImageDataModifiedEvent,
                     this, SLOT(onMRMLNodeModified()));
+      qvtkReconnect(d->driverNode, newNode,
+                    vtkMRMLTransformableNode::TransformModifiedEvent,
+                    this, SLOT(onMRMLNodeModified()));
       update = true;
       }
     d->driverNode = newNode;
