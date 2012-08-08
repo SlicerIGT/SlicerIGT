@@ -299,6 +299,22 @@ void qSlicerReslicePropertyWidgetPrivate::updateSliceByImageNode(vtkMRMLScalarVo
   rtimgTransform->SetElement(1, 3, py + cy);
   rtimgTransform->SetElement(2, 3, pz + cz);
 
+  vtkMRMLLinearTransformNode* parentNode =
+    vtkMRMLLinearTransformNode::SafeDownCast(volumeNode->GetParentTransformNode());
+  if (parentNode)
+    {
+    vtkSmartPointer<vtkMatrix4x4> parentTransform = vtkSmartPointer<vtkMatrix4x4>::New();
+    parentTransform->Identity();
+    int r = parentNode->GetMatrixTransformToWorld(parentTransform);
+    if (r)
+      {
+      vtkSmartPointer<vtkMatrix4x4> transform = vtkSmartPointer<vtkMatrix4x4>::New();
+      vtkMatrix4x4::Multiply4x4(parentTransform, rtimgTransform,  transform);
+      updateSlice(transform);
+      return;
+      }
+    }
+
   updateSlice(rtimgTransform);
 
 }
