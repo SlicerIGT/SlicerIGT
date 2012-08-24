@@ -90,7 +90,9 @@ void
 qSlicerUltrasoundSnapshotsModuleWidget
 ::OnClearSnapshotsClicked()
 {
+  Q_D(qSlicerUltrasoundSnapshotsModuleWidget);
   
+  d->logic()->ClearSnapshots();
 }
 
 
@@ -104,6 +106,6 @@ qSlicerUltrasoundSnapshotsModuleWidget
   this->Superclass::setup();
   
   connect( d->AddSnapshotButton, SIGNAL( clicked() ), this, SLOT( OnAddSnapshotClicked() ) );
-  connect( d->ClearSnapshotsButton, SIGNAL( clicked() ), this, SLOT( OnClearSnapshotsClicked() ) );
+  // connect( d->ClearSnapshotsButton, SIGNAL( clicked() ), this, SLOT( OnClearSnapshotsClicked() ) );
 }
 

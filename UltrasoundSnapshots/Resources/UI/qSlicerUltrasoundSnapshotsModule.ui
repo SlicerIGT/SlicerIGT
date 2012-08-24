@@ -73,13 +73,6 @@
              </property>
             </widget>
            </item>
-           <item>
-            <widget class="QPushButton" name="ClearSnapshotsButton">
-             <property name="text">
-              <string>Clear snapshots</string>
-             </property>
-            </widget>
-           </item>
           </layout>
          </item>
         </layout>

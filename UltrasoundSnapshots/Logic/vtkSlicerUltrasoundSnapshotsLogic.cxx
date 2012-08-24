@@ -8,6 +8,7 @@
 #include "vtkMRMLTransformNode.h"
 
 // VTK includes
+#include <vtkCollection.h>
 #include <vtkImageData.h>
 #include <vtkNew.h>
 #include <vtkPlaneSource.h>
@@ -152,7 +153,28 @@ void
 vtkSlicerUltrasoundSnapshotsLogic
 ::ClearSnapshots()
 {
+  // TODO: Using this function causes a crash in Slicer that I could debug. So it's not used now.
   
+  vtkCollection* collection = this->GetMRMLScene()->GetNodesByName( "Snapshot" );
+  
+  vtkMRMLModelNode* ModelNode = NULL;
+  for ( int i = 0; i < collection->GetNumberOfItems(); ++ i )
+  {
+    ModelNode = vtkMRMLModelNode::SafeDownCast( collection->GetItemAsObject( i ) );
+    if ( ModelNode != NULL )
+    {
+      vtkMRMLDisplayNode* ModelDisplayNode = ModelNode->GetDisplayNode();
+      this->GetMRMLScene()->RemoveNode( ModelDisplayNode );
+      this->GetMRMLScene()->RemoveNode( ModelNode );
+      // ModelDisplayNode->RemoveAllObservers();
+      // ModelNode->RemoveAllObservers();
+      // ModelDisplayNode->Delete();
+      // ModelNode->Delete();
+      ModelNode = NULL;
+    }
+  }
+  
+  collection->Delete();  
 }
 
 
