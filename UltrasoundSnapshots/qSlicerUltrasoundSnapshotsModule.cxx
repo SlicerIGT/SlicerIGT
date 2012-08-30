@@ -62,20 +62,20 @@ qSlicerUltrasoundSnapshotsModule::~qSlicerUltrasoundSnapshotsModule()
 //-----------------------------------------------------------------------------
 QString qSlicerUltrasoundSnapshotsModule::helpText()const
 {
-  return "This is a loadable module bundled in an extension";
+  return "For help on how to use this module visit: <a href='https://www.assembla.com/spaces/slicerigt'>SlicerIGT</a>";
 }
 
 //-----------------------------------------------------------------------------
 QString qSlicerUltrasoundSnapshotsModule::acknowledgementText()const
 {
-  return "This work was was partially funded by NIH grant 3P41RR013218-12S1";
+  return "This work was was funded by Cancer Care Ontario and the Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO)";
 }
 
 //-----------------------------------------------------------------------------
 QStringList qSlicerUltrasoundSnapshotsModule::contributors()const
 {
   QStringList moduleContributors;
-  moduleContributors << QString("Tamas Ungi");
+  moduleContributors << QString( "Tamas Ungi (Queen's University)" );
   return moduleContributors;
 }
 
