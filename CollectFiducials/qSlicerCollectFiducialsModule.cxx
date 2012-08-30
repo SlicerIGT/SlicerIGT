@@ -68,26 +68,20 @@ qSlicerCollectFiducialsModule::~qSlicerCollectFiducialsModule()
 //-----------------------------------------------------------------------------
 QString qSlicerCollectFiducialsModule::helpText()const
 {
-  QString help = 
-    "This template module is meant to be used with the"
-    "with the ModuleWizard.py script distributed with the"
-    "Slicer source code (starting with version 4)."
-    "Developers can generate their own source code using the"
-    "wizard and then customize it to fit their needs.";
-  return help;
+  return "For help on how to use this module visit: <a href='https://www.assembla.com/spaces/slicerigt'>SlicerIGT</a>";
 }
 
 //-----------------------------------------------------------------------------
 QString qSlicerCollectFiducialsModule::acknowledgementText()const
 {
-  return "This work was supported by NAMIC, NAC, and the Slicer Community...";
+  return "This work was was funded by Cancer Care Ontario and the Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO)";
 }
 
 //-----------------------------------------------------------------------------
 QStringList qSlicerCollectFiducialsModule::contributors()const
 {
   QStringList moduleContributors;
-  moduleContributors << QString("John Doe (Organization)");
+  moduleContributors << QString("Tamas Ungi (Queen's University)");
   // moduleContributors << QString("Richard Roe (Organization2)");
   // ...
   return moduleContributors;
