@@ -62,20 +62,20 @@ qSlicerCreateModelsModule::~qSlicerCreateModelsModule()
 //-----------------------------------------------------------------------------
 QString qSlicerCreateModelsModule::helpText()const
 {
-  return "This is a loadable module bundled in an extension";
+  return "For help on how to use this module visit: <a href='https://www.assembla.com/spaces/slicerigt'>SlicerIGT</a>";
 }
 
 //-----------------------------------------------------------------------------
 QString qSlicerCreateModelsModule::acknowledgementText()const
 {
-  return "This work was was partially funded by NIH grant 3P41RR013218-12S1";
+  return "This work was was funded by Cancer Care Ontario and the Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO)";
 }
 
 //-----------------------------------------------------------------------------
 QStringList qSlicerCreateModelsModule::contributors()const
 {
   QStringList moduleContributors;
-  moduleContributors << QString("Jean-Christophe Fillion-Robin (Kitware)");
+  moduleContributors << QString( "Tamas Ungi (Queen's University)" );
   return moduleContributors;
 }
 
