@@ -206,7 +206,6 @@ vtkSlicerCreateModelsLogic
   this->GetMRMLScene()->AddNode( needleDisplayNode );
     
   needleModelNode->SetAndObserveDisplayNodeID( needleDisplayNode->GetID() );
-  needleDisplayNode->SetPolyData( needleModelNode->GetPolyData() );
   needleDisplayNode->SetScalarVisibility( 1 );
   needleDisplayNode->SetAmbient( 0.2 );
     
@@ -241,7 +240,6 @@ vtkSlicerCreateModelsLogic
   this->GetMRMLScene()->AddNode( displayNode );
   
   modelNode->SetAndObserveDisplayNodeID( displayNode->GetID() );
-  displayNode->SetPolyData( cube->GetOutput() );
   
   this->GetMRMLScene()->AddNode( modelNode );
 }
@@ -271,7 +269,6 @@ vtkSlicerCreateModelsLogic
   this->GetMRMLScene()->AddNode( displayNode );
   
   modelNode->SetAndObserveDisplayNodeID( displayNode->GetID() );
-  displayNode->SetPolyData( cube->GetOutput() );
   
   this->GetMRMLScene()->AddNode( modelNode );
 }

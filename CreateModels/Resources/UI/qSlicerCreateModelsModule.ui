@@ -27,7 +27,7 @@
           <property name="title">
            <string>Needle model</string>
           </property>
-          <layout class="QGridLayout" name="gridLayout">
+          <layout class="QGridLayout" name="gridLayout" columnstretch="1,2,1,2">
            <item row="0" column="1">
             <widget class="QDoubleSpinBox" name="NeedleLength">
              <property name="maximum">
@@ -82,7 +82,7 @@
              </property>
             </widget>
            </item>
-           <item row="2" column="2">
+           <item row="1" column="3">
             <widget class="QPushButton" name="CreateNeedleButton">
              <property name="text">
               <string>Create needle</string>
@@ -97,7 +97,7 @@
           <property name="title">
            <string>Cube model</string>
           </property>
-          <layout class="QGridLayout" name="gridLayout_2">
+          <layout class="QGridLayout" name="gridLayout_2" columnstretch="1,2,1,2">
            <item row="0" column="0">
             <widget class="QLabel" name="label_5">
              <property name="text">
@@ -170,7 +170,7 @@
              </property>
             </widget>
            </item>
-           <item row="3" column="2">
+           <item row="2" column="3">
             <widget class="QPushButton" name="CreateCubeButton">
              <property name="text">
               <string>Create cube</string>
@@ -185,7 +185,7 @@
           <property name="title">
            <string>Cylinder model</string>
           </property>
-          <layout class="QGridLayout" name="gridLayout_3">
+          <layout class="QGridLayout" name="gridLayout_3" columnstretch="1,2,1,2">
            <item row="0" column="0">
             <widget class="QLabel" name="label_11">
              <property name="text">
@@ -234,7 +234,7 @@
              </property>
             </widget>
            </item>
-           <item row="2" column="2">
+           <item row="1" column="3">
             <widget class="QPushButton" name="CreateCylinderButton">
              <property name="text">
               <string>Create cylinder</string>
