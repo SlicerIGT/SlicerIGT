@@ -64,6 +64,6 @@ if(BUILD_TESTING)
 endif()
 
 #-----------------------------------------------------------------------------
-if(NOT Slicer_SOURCE_DIR)
-  include(${Slicer_EXTENSION_CPACK})
-endif()
+#if(NOT Slicer_SOURCE_DIR)
+#  include(${Slicer_EXTENSION_CPACK})
+#endif()
