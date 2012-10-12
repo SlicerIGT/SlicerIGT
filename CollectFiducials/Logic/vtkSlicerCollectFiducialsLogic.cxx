@@ -106,7 +106,6 @@ void vtkSlicerCollectFiducialsLogic
   fnode->SetFiducialCoordinates( coord[ 0 ], coord[ 1 ], coord[ 2 ] );
   // fnode->SetControlPoint( coord, 1, 1 );
   fnode->SetSelected( 0 );
-  fnode->SetVisible( 1 );
   fnode->SetLocked( 0 );
   
   this->GetMRMLScene()->AddNode( fnode );
