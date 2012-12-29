@@ -35,6 +35,8 @@
 #include "vtkMRMLLayoutLogic.h"
 
 
+#include "vtkSlicerVolumeResliceDriverLogic.h"
+
 
 #include <map>
 
@@ -44,9 +46,16 @@
 /// \ingroup Slicer_QtModules_VolumeResliceDriver
 class qSlicerVolumeResliceDriverModuleWidgetPrivate: public Ui_qSlicerVolumeResliceDriverModule
 {
-public:
-  qSlicerVolumeResliceDriverModuleWidgetPrivate();
+  Q_DECLARE_PUBLIC( qSlicerVolumeResliceDriverModuleWidget ); 
 
+protected:
+  qSlicerVolumeResliceDriverModuleWidget* const q_ptr;
+  
+public:
+  qSlicerVolumeResliceDriverModuleWidgetPrivate( qSlicerVolumeResliceDriverModuleWidget& object );
+  ~qSlicerVolumeResliceDriverModuleWidgetPrivate();
+  vtkSlicerVolumeResliceDriverLogic* logic() const;
+  
   /// Create a Controller for a Node and pack in the widget
   void createController(vtkMRMLNode *n, qSlicerLayoutManager *lm);
 
@@ -57,40 +66,57 @@ public:
   WidgetMapType WidgetMap;
 };
 
+
 //-----------------------------------------------------------------------------
 // qSlicerVolumeResliceDriverModuleWidgetPrivate methods
 
-//-----------------------------------------------------------------------------
-void 
-qSlicerVolumeResliceDriverModuleWidgetPrivate::createController(vtkMRMLNode *n, qSlicerLayoutManager *layoutManager)
+
+qSlicerVolumeResliceDriverModuleWidgetPrivate
+::qSlicerVolumeResliceDriverModuleWidgetPrivate( qSlicerVolumeResliceDriverModuleWidget& object )
+ : q_ptr(&object)
+{
+}
+
+
+qSlicerVolumeResliceDriverModuleWidgetPrivate
+::~qSlicerVolumeResliceDriverModuleWidgetPrivate()
+{
+}
+
+
+vtkSlicerVolumeResliceDriverLogic* qSlicerVolumeResliceDriverModuleWidgetPrivate
+::logic() const
+{
+  Q_Q( const qSlicerVolumeResliceDriverModuleWidget );
+  return vtkSlicerVolumeResliceDriverLogic::SafeDownCast( q->logic() );
+}
+
+
+void qSlicerVolumeResliceDriverModuleWidgetPrivate
+::createController( vtkMRMLNode *n, qSlicerLayoutManager *layoutManager )
 {
   if (this->WidgetMap.find(n) != this->WidgetMap.end())
-    {
+  {
     qDebug() << "qSlicerVolumeResliceDriverModuleWidgetPrivate::createController - Node already added to module";
     return;
-    }
+  }
 
   // create the ControllerWidget and wire it to the appropriate node
   vtkMRMLSliceNode *sn = vtkMRMLSliceNode::SafeDownCast(n);
   if (sn)
-    {
-    qSlicerReslicePropertyWidget *widget =
-      new qSlicerReslicePropertyWidget(this->resliceCollapsibleButton);
+  {
+    qSlicerReslicePropertyWidget *widget = new qSlicerReslicePropertyWidget( this->logic(), this->resliceCollapsibleButton );
     //widget->setSliceViewName( sn->GetName() ); // call before setting slice node
     widget->setSliceViewName( sn->GetLayoutLabel() );
     widget->setMRMLSliceNode( sn );
-    QColor layoutColor = QColor::fromRgbF(sn->GetLayoutColor()[0],
-                                          sn->GetLayoutColor()[1],
-                                          sn->GetLayoutColor()[2]);
+    QColor layoutColor = QColor::fromRgbF(sn->GetLayoutColor()[0], sn->GetLayoutColor()[1], sn->GetLayoutColor()[2]);
     widget->setSliceViewColor( layoutColor );
     widget->setLayoutBehavior( qMRMLViewControllerBar::Panel );
     resliceLayout->addWidget(widget);
 
 
     this->WidgetMap[n] = widget;
-    }
-
-  // cache the widget. we'll clean this up on the NodeRemovedEvent
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -120,10 +146,6 @@ qSlicerVolumeResliceDriverModuleWidgetPrivate::removeController(vtkMRMLNode *n)
 }
 
 
-//-----------------------------------------------------------------------------
-qSlicerVolumeResliceDriverModuleWidgetPrivate::qSlicerVolumeResliceDriverModuleWidgetPrivate()
-{
-}
 
 //-----------------------------------------------------------------------------
 // qSlicerVolumeResliceDriverModuleWidget methods
@@ -131,7 +153,7 @@ qSlicerVolumeResliceDriverModuleWidgetPrivate::qSlicerVolumeResliceDriverModuleW
 //-----------------------------------------------------------------------------
 qSlicerVolumeResliceDriverModuleWidget::qSlicerVolumeResliceDriverModuleWidget(QWidget* _parent)
   : Superclass( _parent )
-  , d_ptr( new qSlicerVolumeResliceDriverModuleWidgetPrivate )
+  , d_ptr( new qSlicerVolumeResliceDriverModuleWidgetPrivate( *this ) )
 {
 }
 
@@ -311,5 +333,7 @@ void qSlicerVolumeResliceDriverModuleWidget::onLayoutChanged(int)
         }
       }
     }
+  
+  visibleViews->Delete();
 }
 

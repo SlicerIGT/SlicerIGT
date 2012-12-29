@@ -58,13 +58,22 @@ void vtkSlicerVolumeResliceDriverLogic::PrintSelf(ostream& os, vtkIndent indent)
 void vtkSlicerVolumeResliceDriverLogic
 ::SetDriverForSlice( std::string nodeID, vtkMRMLSliceNode* sliceNode )
 {
-  if ( nodeID.size() < 1 )
+  vtkMRMLNode* node = this->GetMRMLScene()->GetNodeByID( nodeID );
+  if ( node == NULL )
+  {
+    sliceNode->RemoveAttribute( VOLUMERESLICEDRIVER_DRIVER_ATTRIBUTE );
+    return;
+  }
+  
+  vtkMRMLTransformableNode* tnode = vtkMRMLTransformableNode::SafeDownCast( node );
+  if ( tnode == NULL )
   {
     sliceNode->RemoveAttribute( VOLUMERESLICEDRIVER_DRIVER_ATTRIBUTE );
     return;
   }
   
   sliceNode->SetAttribute( VOLUMERESLICEDRIVER_DRIVER_ATTRIBUTE, nodeID.c_str() );
+  this->AddObservedNode( tnode );
 }
 
 
@@ -217,6 +226,7 @@ void vtkSlicerVolumeResliceDriverLogic
       SlicesToDrive.push_back( sliceNode );
     }
   }
+  sliceNodes->Delete();
   
   for ( unsigned int i = 0; i < SlicesToDrive.size(); ++ i )
   {

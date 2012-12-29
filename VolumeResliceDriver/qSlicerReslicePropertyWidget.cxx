@@ -78,8 +78,9 @@ protected:
 };
 
 //------------------------------------------------------------------------------
-qSlicerReslicePropertyWidgetPrivate::qSlicerReslicePropertyWidgetPrivate(qSlicerReslicePropertyWidget& object)
-  : Superclass(object)
+qSlicerReslicePropertyWidgetPrivate
+::qSlicerReslicePropertyWidgetPrivate( qSlicerReslicePropertyWidget& object )
+ : Superclass(object)
 {
   this->scene = NULL;
   this->sliceNode = NULL;
@@ -110,19 +111,13 @@ void qSlicerReslicePropertyWidgetPrivate::setupPopupUi()
   this->orientationButtonGroup.addButton(this->transverseRadioButton, vtkSlicerVolumeResliceDriverLogic::ORIENTATION_TRANSVERSE);
   this->inPlaneRadioButton->setChecked(true);
   
-  QObject::connect(this->driverNodeSelector, SIGNAL(currentNodeChanged(vtkMRMLNode*)),
-                   q, SLOT(setDriverNode(vtkMRMLNode*)));
+  QObject::connect(this->driverNodeSelector, SIGNAL(currentNodeChanged(vtkMRMLNode*)), q, SLOT(setDriverNode(vtkMRMLNode*)));
 
-  QObject::connect(this->positionRadioButton, SIGNAL(clicked()),
-                   q, SLOT(onMRMLNodeModified()));
-  QObject::connect(this->orientationRadioButton, SIGNAL(clicked()),
-                   q, SLOT(onMRMLNodeModified()));
-  QObject::connect(this->inPlaneRadioButton, SIGNAL(clicked()),
-                   q, SLOT(onMRMLNodeModified()));
-  QObject::connect(this->inPlane90RadioButton, SIGNAL(clicked()),
-                   q, SLOT(onMRMLNodeModified()));
-  QObject::connect(this->transverseRadioButton, SIGNAL(clicked()),
-                   q, SLOT(onMRMLNodeModified()));
+  QObject::connect(this->positionRadioButton, SIGNAL(clicked()), q, SLOT(onMethodChanged()));
+  QObject::connect(this->orientationRadioButton, SIGNAL(clicked()), q, SLOT(onMethodChanged()));
+  QObject::connect(this->inPlaneRadioButton, SIGNAL(clicked()), q, SLOT(onOrientationChanged()));
+  QObject::connect(this->inPlane90RadioButton, SIGNAL(clicked()), q, SLOT(onOrientationChanged()));
+  QObject::connect(this->transverseRadioButton, SIGNAL(clicked()), q, SLOT(onOrientationChanged()));
 
 }
 
@@ -313,19 +308,36 @@ void qSlicerReslicePropertyWidgetPrivate::updateSliceByImageNode(vtkMRMLScalarVo
 
 
 //------------------------------------------------------------------------------
-qSlicerReslicePropertyWidget::qSlicerReslicePropertyWidget(QWidget *_parent)
-  : Superclass(new qSlicerReslicePropertyWidgetPrivate(*this), _parent)
+qSlicerReslicePropertyWidget
+::qSlicerReslicePropertyWidget( vtkSlicerVolumeResliceDriverLogic* logic, QWidget *_parent )
+  : Superclass( new qSlicerReslicePropertyWidgetPrivate( *this ), _parent )
 {
   Q_D(qSlicerReslicePropertyWidget);
   d->init();
+  this->Logic = logic;
 }
 
-//------------------------------------------------------------------------------
-qSlicerReslicePropertyWidget::~qSlicerReslicePropertyWidget()
+
+
+qSlicerReslicePropertyWidget
+::~qSlicerReslicePropertyWidget()
 {
+  if ( this->Logic != NULL )
+  {
+    this->Logic = NULL;
+  }
 }
 
-//------------------------------------------------------------------------------
+
+
+void qSlicerReslicePropertyWidget
+::SetLogic( vtkSlicerVolumeResliceDriverLogic* logic )
+{
+  this->Logic = logic;
+}
+
+
+
 void qSlicerReslicePropertyWidget::setSliceViewName(const QString& newSliceViewName)
 {
   Q_D(qSlicerReslicePropertyWidget);
@@ -376,67 +388,72 @@ void qSlicerReslicePropertyWidget::setMRMLScene(vtkMRMLScene * newScene)
 }
 
 
-//------------------------------------------------------------------------------
-void qSlicerReslicePropertyWidget::setDriverNode(vtkMRMLNode * newNode)
+
+void qSlicerReslicePropertyWidget
+::setDriverNode( vtkMRMLNode* newNode )
 {
   Q_D(qSlicerReslicePropertyWidget);
-
-  if (d->driverNode != newNode)
-    {
-    bool update = false;
-    vtkMRMLLinearTransformNode * tnode = vtkMRMLLinearTransformNode::SafeDownCast(newNode);
-    if (tnode)
-      {
-      // reconnect current event listener
-      qvtkReconnect(d->driverNode, newNode,
-                    vtkMRMLTransformableNode::TransformModifiedEvent,
-                    this, SLOT(onMRMLNodeModified()));
-      update = true;
-      }
-
-    vtkMRMLScalarVolumeNode * inode = vtkMRMLScalarVolumeNode::SafeDownCast(newNode);
-    if (inode)
-      {
-      qvtkReconnect(d->driverNode, newNode,
-                    vtkMRMLVolumeNode::ImageDataModifiedEvent,
-                    this, SLOT(onMRMLNodeModified()));
-      qvtkReconnect(d->driverNode, newNode,
-                    vtkMRMLTransformableNode::TransformModifiedEvent,
-                    this, SLOT(onMRMLNodeModified()));
-      update = true;
-      }
-    d->driverNode = newNode;
-
-    if (update)
-      {
-      onMRMLNodeModified();
-      }
-    }
+  
+  if ( d->sliceNode == NULL )
+  {
+    return;
+  }
+  
+  if ( newNode == NULL )
+  {
+    this->Logic->SetDriverForSlice( "", d->sliceNode );
+  }
+  else
+  {
+    this->Logic->SetDriverForSlice( newNode->GetID(), d->sliceNode );
+  }
 }
 
 
-//------------------------------------------------------------------------------
-void qSlicerReslicePropertyWidget::onMRMLNodeModified()
+
+void qSlicerReslicePropertyWidget
+::onMRMLNodeModified()
 {
   Q_D(qSlicerReslicePropertyWidget);
+  
+  /*
   if (!d->driverNode)
     {
     return;
     }
   if (d->sliceNode)
     {
-    vtkMRMLLinearTransformNode* transNode =
-      vtkMRMLLinearTransformNode::SafeDownCast(d->driverNode);
+    vtkMRMLLinearTransformNode* transNode = vtkMRMLLinearTransformNode::SafeDownCast(d->driverNode);
     if (transNode)
       {
       d->updateSliceByTransformNode(transNode);
       }
-    vtkMRMLScalarVolumeNode* imageNode = 
-      vtkMRMLScalarVolumeNode::SafeDownCast(d->driverNode);
+    vtkMRMLScalarVolumeNode* imageNode = vtkMRMLScalarVolumeNode::SafeDownCast(d->driverNode);
     if (imageNode)
       {
       d->updateSliceByImageNode(imageNode);
       }
     }
+  */
+  
 }
 
+
+
+void qSlicerReslicePropertyWidget
+::onMethodChanged()
+{
+  Q_D(qSlicerReslicePropertyWidget);
+  
+  this->Logic->SetMethodForSlice( d->methodButtonGroup.checkedId(), d->sliceNode );
+}
+
+
+
+void qSlicerReslicePropertyWidget
+::onOrientationChanged()
+{
+  Q_D(qSlicerReslicePropertyWidget);
+  
+  this->Logic->SetOrientationForSlice( d->orientationButtonGroup.checkedId(), d->sliceNode );
+}

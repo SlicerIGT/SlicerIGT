@@ -34,6 +34,7 @@
 #include "qSlicerVolumeResliceDriverModuleExport.h"
 
 class qSlicerReslicePropertyWidgetPrivate;
+class vtkSlicerVolumeResliceDriverLogic;
 class vtkMRMLScene;
 class vtkMRMLNode;
 class vtkMRMLSliceNode;
@@ -47,25 +48,17 @@ class Q_SLICER_QTMODULES_VOLUMERESLICEDRIVER_EXPORT qSlicerReslicePropertyWidget
   QVTK_OBJECT
 public:
   typedef qMRMLViewControllerBar Superclass;
-  qSlicerReslicePropertyWidget(QWidget *parent = 0);
+  qSlicerReslicePropertyWidget( vtkSlicerVolumeResliceDriverLogic* logic, QWidget *parent = 0);
   virtual ~qSlicerReslicePropertyWidget();
+  
+  void SetLogic( vtkSlicerVolumeResliceDriverLogic* logic );
+  
 
 public slots:
-  ///// Set the MRML node of interest
-  //void setMRMLIGTLConnectorNode(vtkMRMLIGTLConnectorNode * connectorNode);
-  //
-  ///// Utility function that calls setMRMLIGTLConnectorNode(vtkMRMLIGTLConnectorNode*)
-  ///// It's useful to connect to vtkMRMLNode* signals when you are sure of
-  ///// the type
-  //void setMRMLIGTLConnectorNode(vtkMRMLNode* node);
   void setSliceViewName(const QString& newSliceViewName);
-
   void setSliceViewColor(const QColor& newSliceViewColor);
-
   void setMRMLSliceNode(vtkMRMLSliceNode* newSliceNode);
 
-  /// Return a reference to the current MRML scene
-  //vtkMRMLScene * getMRMLScene()const;
   /// Set and observe the MRMLScene
   void setMRMLScene(vtkMRMLScene * newScene);
 
@@ -74,16 +67,14 @@ public slots:
 protected slots:
   /// Internal function to update the widgets based on the IGTLConnector node
   void onMRMLNodeModified();
-
-  //void startCurrentIGTLConnector(bool enabled);
-
-  /// Internal function to update the IGTLConnector node based on the property widget
-  //void updateIGTLConnectorNode();
-
-
+  void onMethodChanged();
+  void onOrientationChanged();
+  
 private:
   Q_DECLARE_PRIVATE(qSlicerReslicePropertyWidget);
   Q_DISABLE_COPY(qSlicerReslicePropertyWidget);
+  
+  vtkSlicerVolumeResliceDriverLogic* Logic;
 };
 
 #endif

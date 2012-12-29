@@ -73,12 +73,13 @@ public:
   void SetDriverForSlice( std::string nodeID, vtkMRMLSliceNode* sliceNode );
   void SetMethodForSlice( int method, vtkMRMLSliceNode* sliceNode );
   void SetOrientationForSlice( int orientation, vtkMRMLSliceNode* sliceNode );
-
-  void AddObservedNode( vtkMRMLTransformableNode* node );
-  void ClearObservedNodes();
   
   
 protected:
+  
+  void AddObservedNode( vtkMRMLTransformableNode* node );
+  void ClearObservedNodes();
+  
   vtkSlicerVolumeResliceDriverLogic();
   virtual ~vtkSlicerVolumeResliceDriverLogic();
 
