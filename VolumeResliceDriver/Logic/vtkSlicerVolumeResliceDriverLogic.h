@@ -28,11 +28,18 @@
 #include "vtkSlicerModuleLogic.h"
 
 // MRML includes
+#include "vtkMRMLTransformableNode.h"
 
 // STD includes
 #include <cstdlib>
 
 #include "vtkSlicerVolumeResliceDriverModuleLogicExport.h"
+
+class vtkMRMLSliceNode;
+
+#define VOLUMERESLICEDRIVER_DRIVER_ATTRIBUTE "VolumeResliceDriver.Driver"
+#define VOLUMERESLICEDRIVER_METHOD_ATTRIBUTE "VolumeResliceDriver.Method"
+#define VOLUMERESLICEDRIVER_ORIENTATION_ATTRIBUTE "VolumeResliceDriver.Orientation"
 
 
 /// \ingroup Slicer_QtModules_VolumeResliceDriver
@@ -44,7 +51,30 @@ public:
   static vtkSlicerVolumeResliceDriverLogic *New();
   vtkTypeMacro(vtkSlicerVolumeResliceDriverLogic,vtkSlicerModuleLogic);
   void PrintSelf(ostream& os, vtkIndent indent);
+  
+  enum {
+    METHOD_DEFAULT,
+    METHOD_POSITION,
+    METHOD_ORIENTATION,
+  };
+    
+  enum {
+    ORIENTATION_DEFAULT,
+    ORIENTATION_INPLANE,
+    ORIENTATION_INPLANE90,
+    ORIENTATION_TRANSVERSE,
+  };
+  
+  
+  /// Set attributes of MRML slice nodes to define reslice driver.
+  void SetDriverForSlice( std::string nodeID, vtkMRMLSliceNode* sliceNode );
+  void SetMethodForSlice( int method, vtkMRMLSliceNode* sliceNode );
+  void SetOrientationForSlice( int orientation, vtkMRMLSliceNode* sliceNode );
 
+  void AddObservedNode( vtkMRMLTransformableNode* node );
+  void ClearObservedNodes();
+  
+  
 protected:
   vtkSlicerVolumeResliceDriverLogic();
   virtual ~vtkSlicerVolumeResliceDriverLogic();
@@ -55,6 +85,12 @@ protected:
   virtual void UpdateFromMRMLScene();
   virtual void OnMRMLSceneNodeAdded(vtkMRMLNode* node);
   virtual void OnMRMLSceneNodeRemoved(vtkMRMLNode* node);
+  virtual void OnMRMLNodeModified( vtkMRMLNode* node );
+  
+  virtual void ProcessMRMLNodesEvents(vtkObject* caller, unsigned long event, void * callData);
+  
+  std::vector< vtkMRMLTransformableNode* > ObservedNodes;
+  
 private:
 
   vtkSlicerVolumeResliceDriverLogic(const vtkSlicerVolumeResliceDriverLogic&); // Not implemented

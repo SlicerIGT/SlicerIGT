@@ -27,6 +27,8 @@
 // MRMLLogic includes
 #include "vtkMRMLLayoutLogic.h"
 
+#include "vtkSlicerVolumeResliceDriverLogic.h"
+
 // VTK includes
 #include <vtkCollection.h>
 #include <vtkSmartPointer.h>
@@ -66,17 +68,6 @@ public:
   QButtonGroup methodButtonGroup;
   QButtonGroup orientationButtonGroup;
 
-  enum {
-    METHOD_POSITION,
-    METHOD_ORIENTATION,
-  };
-  
-  enum {
-    ORIENTATION_INPLANE,
-    ORIENTATION_INPLANE90,
-    ORIENTATION_TRANSVERSE,
-  };
-
   vtkMRMLScene * scene;
   vtkMRMLSliceNode * sliceNode;
   vtkMRMLNode  * driverNode;
@@ -111,12 +102,12 @@ void qSlicerReslicePropertyWidgetPrivate::setupPopupUi()
   this->PopupWidget->setAlignment(Qt::AlignBottom | Qt::AlignLeft);
   this->Ui_qSlicerReslicePropertyWidget::setupUi(this->PopupWidget);
 
-  this->methodButtonGroup.addButton(this->positionRadioButton, METHOD_POSITION);
-  this->methodButtonGroup.addButton(this->orientationRadioButton, METHOD_ORIENTATION);
+  this->methodButtonGroup.addButton(this->positionRadioButton, vtkSlicerVolumeResliceDriverLogic::METHOD_POSITION);
+  this->methodButtonGroup.addButton(this->orientationRadioButton, vtkSlicerVolumeResliceDriverLogic::METHOD_ORIENTATION);
   this->positionRadioButton->setChecked(true);
-  this->orientationButtonGroup.addButton(this->inPlaneRadioButton, ORIENTATION_INPLANE);
-  this->orientationButtonGroup.addButton(this->inPlane90RadioButton, ORIENTATION_INPLANE90);
-  this->orientationButtonGroup.addButton(this->transverseRadioButton, ORIENTATION_TRANSVERSE);
+  this->orientationButtonGroup.addButton(this->inPlaneRadioButton, vtkSlicerVolumeResliceDriverLogic::ORIENTATION_INPLANE);
+  this->orientationButtonGroup.addButton(this->inPlane90RadioButton, vtkSlicerVolumeResliceDriverLogic::ORIENTATION_INPLANE90);
+  this->orientationButtonGroup.addButton(this->transverseRadioButton, vtkSlicerVolumeResliceDriverLogic::ORIENTATION_TRANSVERSE);
   this->inPlaneRadioButton->setChecked(true);
   
   QObject::connect(this->driverNodeSelector, SIGNAL(currentNodeChanged(vtkMRMLNode*)),
@@ -161,9 +152,9 @@ void qSlicerReslicePropertyWidgetPrivate::updateSlice(vtkMatrix4x4 * transform)
   float py = transform->Element[1][3];
   float pz = transform->Element[2][3];
 
-  if (orientationButtonGroup.checkedId() == ORIENTATION_INPLANE)
+  if (orientationButtonGroup.checkedId() == vtkSlicerVolumeResliceDriverLogic::ORIENTATION_INPLANE)
     {
-    if (this->methodButtonGroup.checkedId() == METHOD_ORIENTATION)
+    if (this->methodButtonGroup.checkedId() == vtkSlicerVolumeResliceDriverLogic::METHOD_ORIENTATION)
       {
       this->sliceNode->SetSliceToRASByNTP(nx, ny, nz, tx, ty, tz, px, py, pz, 1);
       }
@@ -173,9 +164,9 @@ void qSlicerReslicePropertyWidgetPrivate::updateSlice(vtkMatrix4x4 * transform)
       this->sliceNode->JumpSlice(px, py, pz);
       }
     }
-  else if (orientationButtonGroup.checkedId() == ORIENTATION_INPLANE90)
+  else if (orientationButtonGroup.checkedId() == vtkSlicerVolumeResliceDriverLogic::ORIENTATION_INPLANE90)
     {
-    if (this->methodButtonGroup.checkedId() == METHOD_ORIENTATION)
+    if (this->methodButtonGroup.checkedId() == vtkSlicerVolumeResliceDriverLogic::METHOD_ORIENTATION)
       {
       this->sliceNode->SetSliceToRASByNTP(nx, ny, nz, tx, ty, tz, px, py, pz, 2);
       }
@@ -185,9 +176,9 @@ void qSlicerReslicePropertyWidgetPrivate::updateSlice(vtkMatrix4x4 * transform)
       this->sliceNode->JumpSlice(px, py, pz);
       }
     }
-  else if (orientationButtonGroup.checkedId() == ORIENTATION_TRANSVERSE)
+  else if (orientationButtonGroup.checkedId() == vtkSlicerVolumeResliceDriverLogic::ORIENTATION_TRANSVERSE)
     {
-    if (this->methodButtonGroup.checkedId() == METHOD_ORIENTATION) 
+    if (this->methodButtonGroup.checkedId() == vtkSlicerVolumeResliceDriverLogic::METHOD_ORIENTATION) 
       {
       this->sliceNode->SetSliceToRASByNTP(nx, ny, nz, tx, ty, tz, px, py, pz, 0);
       }
