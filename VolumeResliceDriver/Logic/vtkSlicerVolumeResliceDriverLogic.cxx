@@ -162,10 +162,44 @@ void vtkSlicerVolumeResliceDriverLogic::RegisterNodes()
   assert(this->GetMRMLScene() != 0);
 }
 
-//---------------------------------------------------------------------------
-void vtkSlicerVolumeResliceDriverLogic::UpdateFromMRMLScene()
+
+
+/// This method is called by Slicer after each significant MRML scene event (import, load, etc.)
+void vtkSlicerVolumeResliceDriverLogic
+::UpdateFromMRMLScene()
 {
   assert(this->GetMRMLScene() != 0);
+  
+  // Check if any of the slice nodes contain driver transoforms that need to be observed.
+  
+  vtkCollection* sliceNodes = this->GetMRMLScene()->GetNodesByClass( "vtkMRMLSliceNode" );
+  vtkSmartPointer< vtkCollectionIterator > sliceIt = vtkSmartPointer< vtkCollectionIterator >::New();
+  sliceIt->SetCollection( sliceNodes );
+  for ( sliceIt->InitTraversal(); ! sliceIt->IsDoneWithTraversal(); sliceIt->GoToNextItem() )
+  {
+    vtkMRMLSliceNode* slice = vtkMRMLSliceNode::SafeDownCast( sliceIt->GetCurrentObject() );
+    if ( slice == NULL )
+    {
+      continue;
+    }
+    const char* driverCC = slice->GetAttribute( VOLUMERESLICEDRIVER_DRIVER_ATTRIBUTE );
+    if ( driverCC == NULL )
+    {
+      continue;
+    }
+    vtkMRMLNode* driverNode = this->GetMRMLScene()->GetNodeByID( driverCC );
+    if ( driverNode == NULL )
+    {
+      continue;
+    }
+    vtkMRMLTransformableNode* driverTransformable = vtkMRMLTransformableNode::SafeDownCast( driverNode );
+    if ( driverTransformable == NULL )
+    {
+      continue;
+    }
+    this->AddObservedNode( driverTransformable );
+  }
+  sliceNodes->Delete();
 }
 
 //---------------------------------------------------------------------------
