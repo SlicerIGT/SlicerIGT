@@ -33,24 +33,41 @@
 // STD includes
 #include <cassert>
 
-//----------------------------------------------------------------------------
+
+
 vtkStandardNewMacro(vtkSlicerVolumeResliceDriverLogic);
 
-//----------------------------------------------------------------------------
-vtkSlicerVolumeResliceDriverLogic::vtkSlicerVolumeResliceDriverLogic()
+
+
+vtkSlicerVolumeResliceDriverLogic
+::vtkSlicerVolumeResliceDriverLogic()
 {
 }
 
-//----------------------------------------------------------------------------
-vtkSlicerVolumeResliceDriverLogic::~vtkSlicerVolumeResliceDriverLogic()
+
+
+vtkSlicerVolumeResliceDriverLogic
+::~vtkSlicerVolumeResliceDriverLogic()
 {
   this->ClearObservedNodes();
 }
 
-//----------------------------------------------------------------------------
-void vtkSlicerVolumeResliceDriverLogic::PrintSelf(ostream& os, vtkIndent indent)
+
+
+void vtkSlicerVolumeResliceDriverLogic
+::PrintSelf( ostream& os, vtkIndent indent )
 {
   this->Superclass::PrintSelf(os, indent);
+  
+  os << indent << "Number of observed nodes: " << this->ObservedNodes.size() << std::endl;
+  os << indent << "Observed nodes:";
+  
+  for ( unsigned int i = 0; i < this->ObservedNodes.size(); ++ i )
+  {
+    os << " " << this->ObservedNodes[ i ]->GetID();
+  }
+  
+  os << std::endl;
 }
 
 

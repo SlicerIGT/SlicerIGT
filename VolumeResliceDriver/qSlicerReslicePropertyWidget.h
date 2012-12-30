@@ -46,31 +46,32 @@ class Q_SLICER_QTMODULES_VOLUMERESLICEDRIVER_EXPORT qSlicerReslicePropertyWidget
 {
   Q_OBJECT
   QVTK_OBJECT
+  
 public:
+  
   typedef qMRMLViewControllerBar Superclass;
+  
   qSlicerReslicePropertyWidget( vtkSlicerVolumeResliceDriverLogic* logic, QWidget *parent = 0);
   virtual ~qSlicerReslicePropertyWidget();
   
-  void SetLogic( vtkSlicerVolumeResliceDriverLogic* logic );
   
-
 public slots:
+  
   void setSliceViewName(const QString& newSliceViewName);
   void setSliceViewColor(const QColor& newSliceViewColor);
   void setMRMLSliceNode(vtkMRMLSliceNode* newSliceNode);
 
-  /// Set and observe the MRMLScene
   void setMRMLScene(vtkMRMLScene * newScene);
-
-  void setDriverNode(vtkMRMLNode * newNode);
-
+  
 protected slots:
-  /// Internal function to update the widgets based on the IGTLConnector node
-  void onMRMLNodeModified();
+  
+  void setDriverNode(vtkMRMLNode * newNode);
   void onMethodChanged();
   void onOrientationChanged();
   
+  
 private:
+  
   Q_DECLARE_PRIVATE(qSlicerReslicePropertyWidget);
   Q_DISABLE_COPY(qSlicerReslicePropertyWidget);
   

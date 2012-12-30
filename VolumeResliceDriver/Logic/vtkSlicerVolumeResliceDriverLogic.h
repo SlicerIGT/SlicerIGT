@@ -45,6 +45,7 @@ class vtkMRMLSliceNode;
 #define VOLUMERESLICEDRIVER_ORIENTATION_ATTRIBUTE "VolumeResliceDriver.Orientation"
 
 
+
 /// \ingroup Slicer_QtModules_VolumeResliceDriver
 class VTK_SLICER_VOLUMERESLICEDRIVER_MODULE_LOGIC_EXPORT vtkSlicerVolumeResliceDriverLogic :
   public vtkSlicerModuleLogic
