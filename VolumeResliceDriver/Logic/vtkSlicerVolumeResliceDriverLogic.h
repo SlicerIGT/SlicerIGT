@@ -47,8 +47,8 @@ class vtkMRMLSliceNode;
 
 
 /// \ingroup Slicer_QtModules_VolumeResliceDriver
-class VTK_SLICER_VOLUMERESLICEDRIVER_MODULE_LOGIC_EXPORT vtkSlicerVolumeResliceDriverLogic :
-  public vtkSlicerModuleLogic
+class VTK_SLICER_VOLUMERESLICEDRIVER_MODULE_LOGIC_EXPORT vtkSlicerVolumeResliceDriverLogic
+  : public vtkSlicerModuleLogic
 {
 public:
   
@@ -98,6 +98,7 @@ protected:
   void UpdateSliceByTransformNode( vtkMRMLLinearTransformNode* tnode, vtkMRMLSliceNode* sliceNode );
   void UpdateSliceByImageNode( vtkMRMLScalarVolumeNode* inode, vtkMRMLSliceNode* sliceNode );
   void UpdateSlice( vtkMatrix4x4* transform, vtkMRMLSliceNode* sliceNode );
+  void UpdateSliceIfObserved( vtkMRMLSliceNode* sliceNode );
   
   std::vector< vtkMRMLTransformableNode* > ObservedNodes;
   

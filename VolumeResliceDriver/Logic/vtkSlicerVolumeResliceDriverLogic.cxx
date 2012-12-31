@@ -91,6 +91,8 @@ void vtkSlicerVolumeResliceDriverLogic
   
   sliceNode->SetAttribute( VOLUMERESLICEDRIVER_DRIVER_ATTRIBUTE, nodeID.c_str() );
   this->AddObservedNode( tnode );
+  
+  this->UpdateSliceIfObserved( sliceNode );
 }
 
 
@@ -98,6 +100,11 @@ void vtkSlicerVolumeResliceDriverLogic
 void vtkSlicerVolumeResliceDriverLogic
 ::SetMethodForSlice( int method, vtkMRMLSliceNode* sliceNode )
 {
+  if ( sliceNode == NULL )
+  {
+    return;
+  }
+  
   if ( method == this->METHOD_DEFAULT )
   {
     method = this->METHOD_POSITION;
@@ -106,6 +113,8 @@ void vtkSlicerVolumeResliceDriverLogic
   std::stringstream methodSS;
   methodSS << method;
   sliceNode->SetAttribute( VOLUMERESLICEDRIVER_METHOD_ATTRIBUTE, methodSS.str().c_str() );
+  
+  this->UpdateSliceIfObserved( sliceNode );
 }
 
 
@@ -113,6 +122,11 @@ void vtkSlicerVolumeResliceDriverLogic
 void vtkSlicerVolumeResliceDriverLogic
 ::SetOrientationForSlice( int orientation, vtkMRMLSliceNode* sliceNode )
 {
+  if ( sliceNode == NULL )
+  {
+    return;
+  }
+  
   if ( orientation == this->ORIENTATION_DEFAULT )
   {
     orientation = this->ORIENTATION_INPLANE;
@@ -121,6 +135,8 @@ void vtkSlicerVolumeResliceDriverLogic
   std::stringstream orientationSS;
   orientationSS << orientation;
   sliceNode->SetAttribute( VOLUMERESLICEDRIVER_ORIENTATION_ATTRIBUTE, orientationSS.str().c_str() );
+  
+  this->UpdateSliceIfObserved( sliceNode );
 }
 
 
@@ -483,5 +499,26 @@ void vtkSlicerVolumeResliceDriverLogic
       }
     }
   sliceNode->UpdateMatrices();
+}
+
+
+void vtkSlicerVolumeResliceDriverLogic
+::UpdateSliceIfObserved( vtkMRMLSliceNode* sliceNode )
+{
+  if ( sliceNode == NULL )
+  {
+    return;
+  }
+  
+  const char* driverCC = sliceNode->GetAttribute( VOLUMERESLICEDRIVER_DRIVER_ATTRIBUTE );
+  if ( driverCC == NULL )
+  {
+    return;
+  }
+  
+  vtkMRMLNode* node = this->GetMRMLScene()->GetNodeByID( driverCC );
+  
+  sliceNode->Modified();
+  node->InvokeEvent( vtkMRMLTransformableNode::TransformModifiedEvent );
 }
 
