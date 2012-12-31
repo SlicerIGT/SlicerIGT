@@ -58,6 +58,9 @@ public:
   virtual ~qSlicerReslicePropertyWidgetPrivate() ;
 
   virtual void init();
+  void SetDriverNodeSelection( const char* nodeID );
+  void SetMethodSelection( int method );
+  void SetOrientationSelection( int orientation );
   
   QButtonGroup methodButtonGroup;
   QButtonGroup orientationButtonGroup;
@@ -108,7 +111,6 @@ void qSlicerReslicePropertyWidgetPrivate
   this->inPlaneRadioButton->setChecked(true);
   
   QObject::connect(this->driverNodeSelector, SIGNAL(currentNodeChanged(vtkMRMLNode*)), q, SLOT(setDriverNode(vtkMRMLNode*)));
-
   QObject::connect(this->positionRadioButton, SIGNAL(clicked()), q, SLOT(onMethodChanged()));
   QObject::connect(this->orientationRadioButton, SIGNAL(clicked()), q, SLOT(onMethodChanged()));
   QObject::connect(this->inPlaneRadioButton, SIGNAL(clicked()), q, SLOT(onOrientationChanged()));
@@ -121,10 +123,38 @@ void qSlicerReslicePropertyWidgetPrivate
 void qSlicerReslicePropertyWidgetPrivate
 ::init()
 {
+  Q_Q(qSlicerReslicePropertyWidget);
+  
   this->Superclass::init();
   this->ViewLabel->setText(qSlicerReslicePropertyWidget::tr("1"));
   this->BarLayout->addStretch(1);
   this->setColor(qMRMLColors::threeDViewBlue());
+  
+  q->onLogicModified();
+}
+
+
+
+void qSlicerReslicePropertyWidgetPrivate
+::SetDriverNodeSelection( const char* nodeID )
+{
+  this->driverNodeSelector->setCurrentNode( nodeID );
+}
+
+
+
+void qSlicerReslicePropertyWidgetPrivate
+::SetMethodSelection( int method )
+{
+  this->methodButtonGroup.button( method )->setChecked( true );
+}
+
+
+
+void qSlicerReslicePropertyWidgetPrivate
+::SetOrientationSelection( int orientation )
+{
+  this->methodButtonGroup.button( orientation )->setChecked( true );
 }
 
 
@@ -136,6 +166,7 @@ qSlicerReslicePropertyWidget
   Q_D(qSlicerReslicePropertyWidget);
   d->init();
   this->Logic = logic;
+  qvtkConnect( this->Logic, vtkCommand::ModifiedEvent, this, SLOT( onLogicModified() ) );
 }
 
 
@@ -175,11 +206,22 @@ void qSlicerReslicePropertyWidget
 ::setMRMLSliceNode( vtkMRMLSliceNode* newSliceNode )
 {
   Q_D(qSlicerReslicePropertyWidget);
-
+  
+  if ( newSliceNode == NULL )
+  {
+    return;
+  }
+  
+  // TODO: why the content of driverCC is lost during this function??
+  // const char* driverCC = newSliceNode->GetAttribute( VOLUMERESLICEDRIVER_DRIVER_ATTRIBUTE );
+  // std::string driverS( driverCC );
+  
   d->sliceNode = newSliceNode;
-  if (newSliceNode && newSliceNode->GetScene())
+  
+  if ( newSliceNode->GetScene() )
     {
-    this->setMRMLScene(newSliceNode->GetScene());
+    this->setMRMLScene( newSliceNode->GetScene() );
+    // d->SetDriverNodeSelection( driverS.c_str() ); //TODO: Driver slice selection lost here. How to restore it???
     }
 }
 
@@ -190,6 +232,7 @@ void qSlicerReslicePropertyWidget
 {
   Q_D(qSlicerReslicePropertyWidget);
 
+  
   if (d->scene != newScene)
     {
     d->scene = newScene;
@@ -240,4 +283,47 @@ void qSlicerReslicePropertyWidget
   Q_D(qSlicerReslicePropertyWidget);
   
   this->Logic->SetOrientationForSlice( d->orientationButtonGroup.checkedId(), d->sliceNode );
+}
+
+
+
+void qSlicerReslicePropertyWidget
+::onLogicModified()
+{
+  Q_D(qSlicerReslicePropertyWidget);
+  
+  if ( d->sliceNode == NULL )
+  {
+    d->SetDriverNodeSelection( NULL );
+    return;
+  }
+  
+  const char* driverCC = d->sliceNode->GetAttribute( VOLUMERESLICEDRIVER_DRIVER_ATTRIBUTE );
+  d->SetDriverNodeSelection( driverCC );
+  
+  const char* methodCC = d->sliceNode->GetAttribute( VOLUMERESLICEDRIVER_METHOD_ATTRIBUTE );
+  if ( methodCC == NULL )
+  {
+    d->SetMethodSelection( this->Logic->METHOD_POSITION );
+  }
+  else
+  {
+    std::stringstream methodSS( methodCC );
+    int method = this->Logic->METHOD_POSITION;
+    methodSS >> method;
+    d->SetMethodSelection( method );
+  }
+  
+  const char* orientationCC = d->sliceNode->GetAttribute( VOLUMERESLICEDRIVER_ORIENTATION_ATTRIBUTE );
+  if ( orientationCC == NULL )
+  {
+    d->SetOrientationSelection( this->Logic->ORIENTATION_INPLANE );
+  }  
+  else
+  {
+    std::stringstream orientationSS( orientationCC );
+    int orientation = this->Logic->ORIENTATION_INPLANE;
+    orientationSS >> orientation;
+    d->SetOrientationSelection( orientation );
+  }
 }

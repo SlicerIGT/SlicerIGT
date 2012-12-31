@@ -172,6 +172,7 @@ void vtkSlicerVolumeResliceDriverLogic
 {
   for ( unsigned int i = 0; i < this->ObservedNodes.size(); ++ i )
   {
+    // this->ObservedNodes[ 1 ]->RemoveAllObservers();
     vtkSetAndObserveMRMLNodeMacro( this->ObservedNodes[ i ], 0 );
   }
   
@@ -233,6 +234,8 @@ void vtkSlicerVolumeResliceDriverLogic
     this->AddObservedNode( driverTransformable );
   }
   sliceNodes->Delete();
+  
+  this->Modified();
 }
 
 //---------------------------------------------------------------------------
