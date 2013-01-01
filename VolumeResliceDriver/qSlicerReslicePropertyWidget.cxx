@@ -109,13 +109,6 @@ void qSlicerReslicePropertyWidgetPrivate
   this->orientationButtonGroup.addButton(this->inPlane90RadioButton, vtkSlicerVolumeResliceDriverLogic::ORIENTATION_INPLANE90);
   this->orientationButtonGroup.addButton(this->transverseRadioButton, vtkSlicerVolumeResliceDriverLogic::ORIENTATION_TRANSVERSE);
   this->inPlaneRadioButton->setChecked(true);
-  
-  QObject::connect(this->driverNodeSelector, SIGNAL(currentNodeChanged(vtkMRMLNode*)), q, SLOT(setDriverNode(vtkMRMLNode*)));
-  QObject::connect(this->positionRadioButton, SIGNAL(clicked()), q, SLOT(onMethodChanged()));
-  QObject::connect(this->orientationRadioButton, SIGNAL(clicked()), q, SLOT(onMethodChanged()));
-  QObject::connect(this->inPlaneRadioButton, SIGNAL(clicked()), q, SLOT(onOrientationChanged()));
-  QObject::connect(this->inPlane90RadioButton, SIGNAL(clicked()), q, SLOT(onOrientationChanged()));
-  QObject::connect(this->transverseRadioButton, SIGNAL(clicked()), q, SLOT(onOrientationChanged()));
 }
 
 
@@ -129,8 +122,6 @@ void qSlicerReslicePropertyWidgetPrivate
   this->ViewLabel->setText(qSlicerReslicePropertyWidget::tr("1"));
   this->BarLayout->addStretch(1);
   this->setColor(qMRMLColors::threeDViewBlue());
-  
-  q->onLogicModified();
 }
 
 
@@ -154,7 +145,7 @@ void qSlicerReslicePropertyWidgetPrivate
 void qSlicerReslicePropertyWidgetPrivate
 ::SetOrientationSelection( int orientation )
 {
-  this->methodButtonGroup.button( orientation )->setChecked( true );
+  this->orientationButtonGroup.button( orientation )->setChecked( true );
 }
 
 
@@ -212,17 +203,27 @@ void qSlicerReslicePropertyWidget
     return;
   }
   
-  // TODO: why the content of driverCC is lost during this function??
-  // const char* driverCC = newSliceNode->GetAttribute( VOLUMERESLICEDRIVER_DRIVER_ATTRIBUTE );
-  // std::string driverS( driverCC );
+  
+  QObject::disconnect(d->driverNodeSelector, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(setDriverNode(vtkMRMLNode*)));
+  QObject::disconnect(d->positionRadioButton, SIGNAL(clicked()), this, SLOT(onMethodChanged()));
+  QObject::disconnect(d->orientationRadioButton, SIGNAL(clicked()), this, SLOT(onMethodChanged()));
+  QObject::disconnect(d->inPlaneRadioButton, SIGNAL(clicked()), this, SLOT(onOrientationChanged()));
+  QObject::disconnect(d->inPlane90RadioButton, SIGNAL(clicked()), this, SLOT(onOrientationChanged()));
+  QObject::disconnect(d->transverseRadioButton, SIGNAL(clicked()), this, SLOT(onOrientationChanged()));
   
   d->sliceNode = newSliceNode;
   
   if ( newSliceNode->GetScene() )
-    {
+  {
     this->setMRMLScene( newSliceNode->GetScene() );
-    // d->SetDriverNodeSelection( driverS.c_str() ); //TODO: Driver slice selection lost here. How to restore it???
-    }
+  }
+  
+  QObject::connect(d->driverNodeSelector, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(setDriverNode(vtkMRMLNode*)));
+  QObject::connect(d->positionRadioButton, SIGNAL(clicked()), this, SLOT(onMethodChanged()));
+  QObject::connect(d->orientationRadioButton, SIGNAL(clicked()), this, SLOT(onMethodChanged()));
+  QObject::connect(d->inPlaneRadioButton, SIGNAL(clicked()), this, SLOT(onOrientationChanged()));
+  QObject::connect(d->inPlane90RadioButton, SIGNAL(clicked()), this, SLOT(onOrientationChanged()));
+  QObject::connect(d->transverseRadioButton, SIGNAL(clicked()), this, SLOT(onOrientationChanged()));
 }
 
 
@@ -234,13 +235,13 @@ void qSlicerReslicePropertyWidget
 
   
   if (d->scene != newScene)
-    {
+  {
     d->scene = newScene;
     if (d->driverNodeSelector)
-      {
+    {
       d->driverNodeSelector->setMRMLScene(newScene);
-      }
     }
+  }
 }
 
 

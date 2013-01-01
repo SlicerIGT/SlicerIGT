@@ -113,9 +113,9 @@ void qSlicerVolumeResliceDriverModuleWidgetPrivate
     widget->setSliceViewColor( layoutColor );
     widget->setLayoutBehavior( qMRMLViewControllerBar::Panel );
     resliceLayout->addWidget(widget);
-
-
     this->WidgetMap[n] = widget;
+    
+    this->logic()->InvokeEvent( vtkCommand::ModifiedEvent );
   }
 }
 

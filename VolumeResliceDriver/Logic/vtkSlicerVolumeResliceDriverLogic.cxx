@@ -207,7 +207,7 @@ void vtkSlicerVolumeResliceDriverLogic
   // Check if any of the slice nodes contain driver transoforms that need to be observed.
   
   vtkCollection* sliceNodes = this->GetMRMLScene()->GetNodesByClass( "vtkMRMLSliceNode" );
-  vtkSmartPointer< vtkCollectionIterator > sliceIt = vtkSmartPointer< vtkCollectionIterator >::New();
+  vtkCollectionIterator* sliceIt = vtkCollectionIterator::New();
   sliceIt->SetCollection( sliceNodes );
   for ( sliceIt->InitTraversal(); ! sliceIt->IsDoneWithTraversal(); sliceIt->GoToNextItem() )
   {
@@ -233,6 +233,7 @@ void vtkSlicerVolumeResliceDriverLogic
     }
     this->AddObservedNode( driverTransformable );
   }
+  sliceIt->Delete();
   sliceNodes->Delete();
   
   this->Modified();
@@ -281,7 +282,7 @@ void vtkSlicerVolumeResliceDriverLogic
   std::vector< vtkMRMLSliceNode* > SlicesToDrive;
   
   vtkCollection* sliceNodes = this->GetMRMLScene()->GetNodesByClass( "vtkMRMLSliceNode" );
-  vtkSmartPointer< vtkCollectionIterator > sliceIt = vtkSmartPointer< vtkCollectionIterator >::New();
+  vtkCollectionIterator* sliceIt = vtkCollectionIterator::New();
   sliceIt->SetCollection( sliceNodes );
   sliceIt->InitTraversal();
   for ( unsigned int i = 0; i < sliceNodes->GetNumberOfItems(); ++ i )
@@ -296,6 +297,7 @@ void vtkSlicerVolumeResliceDriverLogic
       SlicesToDrive.push_back( sliceNode );
     }
   }
+  sliceIt->Delete();
   sliceNodes->Delete();
   
   for ( unsigned int i = 0; i < SlicesToDrive.size(); ++ i )
