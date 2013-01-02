@@ -49,6 +49,7 @@ protected:
   
   virtual void setup();
 
+
 private:
   Q_DECLARE_PRIVATE(qSlicerVolumeResliceDriverModuleWidget);
   Q_DISABLE_COPY(qSlicerVolumeResliceDriverModuleWidget);

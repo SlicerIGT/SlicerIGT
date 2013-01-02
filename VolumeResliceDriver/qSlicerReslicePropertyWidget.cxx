@@ -27,8 +27,9 @@
 // MRMLLogic includes
 #include "vtkMRMLLayoutLogic.h"
 
+#include "vtkSlicerVolumeResliceDriverLogic.h"
+
 // VTK includes
-#include <vtkCollection.h>
 #include <vtkSmartPointer.h>
 #include <vtkMatrix4x4.h>
 #include <vtkImageData.h>
@@ -45,13 +46,11 @@ class vtkObject;
 
 //------------------------------------------------------------------------------
 /// \ingroup Slicer_QtModules_OpenIGTLinkIF
-class qSlicerReslicePropertyWidgetPrivate :
-  public qMRMLViewControllerBarPrivate
-  , public Ui_qSlicerReslicePropertyWidget
+class qSlicerReslicePropertyWidgetPrivate
+  : public qMRMLViewControllerBarPrivate, public Ui_qSlicerReslicePropertyWidget
 {
   Q_DECLARE_PUBLIC(qSlicerReslicePropertyWidget);
-protected:
-  //qSlicerReslicePropertyWidget* const q_ptr;
+  
 public:
   typedef qMRMLViewControllerBarPrivate Superclass;
 
@@ -59,23 +58,12 @@ public:
   virtual ~qSlicerReslicePropertyWidgetPrivate() ;
 
   virtual void init();
-  void updateSlice(vtkMatrix4x4* transform);
-  void updateSliceByTransformNode(vtkMRMLLinearTransformNode* tnode);
-  void updateSliceByImageNode(vtkMRMLScalarVolumeNode* inode);
-
+  void SetDriverNodeSelection( const char* nodeID );
+  void SetMethodSelection( int method );
+  void SetOrientationSelection( int orientation );
+  
   QButtonGroup methodButtonGroup;
   QButtonGroup orientationButtonGroup;
-
-  enum {
-    METHOD_POSITION,
-    METHOD_ORIENTATION,
-  };
-  
-  enum {
-    ORIENTATION_INPLANE,
-    ORIENTATION_INPLANE90,
-    ORIENTATION_TRANSVERSE,
-  };
 
   vtkMRMLScene * scene;
   vtkMRMLSliceNode * sliceNode;
@@ -83,11 +71,12 @@ public:
 
 protected:
   virtual void setupPopupUi();
-
 };
 
-//------------------------------------------------------------------------------
-qSlicerReslicePropertyWidgetPrivate::qSlicerReslicePropertyWidgetPrivate(qSlicerReslicePropertyWidget& object)
+
+
+qSlicerReslicePropertyWidgetPrivate
+::qSlicerReslicePropertyWidgetPrivate( qSlicerReslicePropertyWidget& object )
   : Superclass(object)
 {
   this->scene = NULL;
@@ -96,14 +85,16 @@ qSlicerReslicePropertyWidgetPrivate::qSlicerReslicePropertyWidgetPrivate(qSlicer
 }
 
 
-//------------------------------------------------------------------------------
-qSlicerReslicePropertyWidgetPrivate::~qSlicerReslicePropertyWidgetPrivate()
+
+qSlicerReslicePropertyWidgetPrivate
+::~qSlicerReslicePropertyWidgetPrivate()
 {
 }
 
 
-//---------------------------------------------------------------------------
-void qSlicerReslicePropertyWidgetPrivate::setupPopupUi()
+
+void qSlicerReslicePropertyWidgetPrivate
+::setupPopupUi()
 {
   Q_Q(qSlicerReslicePropertyWidget);
 
@@ -111,341 +102,229 @@ void qSlicerReslicePropertyWidgetPrivate::setupPopupUi()
   this->PopupWidget->setAlignment(Qt::AlignBottom | Qt::AlignLeft);
   this->Ui_qSlicerReslicePropertyWidget::setupUi(this->PopupWidget);
 
-  this->methodButtonGroup.addButton(this->positionRadioButton, METHOD_POSITION);
-  this->methodButtonGroup.addButton(this->orientationRadioButton, METHOD_ORIENTATION);
+  this->methodButtonGroup.addButton(this->positionRadioButton, vtkSlicerVolumeResliceDriverLogic::METHOD_POSITION);
+  this->methodButtonGroup.addButton(this->orientationRadioButton, vtkSlicerVolumeResliceDriverLogic::METHOD_ORIENTATION);
   this->positionRadioButton->setChecked(true);
-  this->orientationButtonGroup.addButton(this->inPlaneRadioButton, ORIENTATION_INPLANE);
-  this->orientationButtonGroup.addButton(this->inPlane90RadioButton, ORIENTATION_INPLANE90);
-  this->orientationButtonGroup.addButton(this->transverseRadioButton, ORIENTATION_TRANSVERSE);
+  this->orientationButtonGroup.addButton(this->inPlaneRadioButton, vtkSlicerVolumeResliceDriverLogic::ORIENTATION_INPLANE);
+  this->orientationButtonGroup.addButton(this->inPlane90RadioButton, vtkSlicerVolumeResliceDriverLogic::ORIENTATION_INPLANE90);
+  this->orientationButtonGroup.addButton(this->transverseRadioButton, vtkSlicerVolumeResliceDriverLogic::ORIENTATION_TRANSVERSE);
   this->inPlaneRadioButton->setChecked(true);
-  
-  QObject::connect(this->driverNodeSelector, SIGNAL(currentNodeChanged(vtkMRMLNode*)),
-                   q, SLOT(setDriverNode(vtkMRMLNode*)));
-
-  QObject::connect(this->positionRadioButton, SIGNAL(clicked()),
-                   q, SLOT(onMRMLNodeModified()));
-  QObject::connect(this->orientationRadioButton, SIGNAL(clicked()),
-                   q, SLOT(onMRMLNodeModified()));
-  QObject::connect(this->inPlaneRadioButton, SIGNAL(clicked()),
-                   q, SLOT(onMRMLNodeModified()));
-  QObject::connect(this->inPlane90RadioButton, SIGNAL(clicked()),
-                   q, SLOT(onMRMLNodeModified()));
-  QObject::connect(this->transverseRadioButton, SIGNAL(clicked()),
-                   q, SLOT(onMRMLNodeModified()));
-
 }
 
 
-//------------------------------------------------------------------------------
-void qSlicerReslicePropertyWidgetPrivate::init()
+
+void qSlicerReslicePropertyWidgetPrivate
+::init()
 {
-  //Q_Q(qSlicerReslicePropertyWidget);
+  Q_Q(qSlicerReslicePropertyWidget);
+  
   this->Superclass::init();
   this->ViewLabel->setText(qSlicerReslicePropertyWidget::tr("1"));
   this->BarLayout->addStretch(1);
   this->setColor(qMRMLColors::threeDViewBlue());
 }
 
-//------------------------------------------------------------------------------
-void qSlicerReslicePropertyWidgetPrivate::updateSlice(vtkMatrix4x4 * transform)
+
+
+void qSlicerReslicePropertyWidgetPrivate
+::SetDriverNodeSelection( const char* nodeID )
 {
-  //Q_Q(qSlicerReslicePropertyWidget);
-
-  float tx = transform->Element[0][0];
-  float ty = transform->Element[1][0];
-  float tz = transform->Element[2][0];
-  float nx = transform->Element[0][2];
-  float ny = transform->Element[1][2];
-  float nz = transform->Element[2][2];
-  float px = transform->Element[0][3];
-  float py = transform->Element[1][3];
-  float pz = transform->Element[2][3];
-
-  if (orientationButtonGroup.checkedId() == ORIENTATION_INPLANE)
-    {
-    if (this->methodButtonGroup.checkedId() == METHOD_ORIENTATION)
-      {
-      this->sliceNode->SetSliceToRASByNTP(nx, ny, nz, tx, ty, tz, px, py, pz, 1);
-      }
-    else
-      {
-      this->sliceNode->SetOrientationToAxial();
-      this->sliceNode->JumpSlice(px, py, pz);
-      }
-    }
-  else if (orientationButtonGroup.checkedId() == ORIENTATION_INPLANE90)
-    {
-    if (this->methodButtonGroup.checkedId() == METHOD_ORIENTATION)
-      {
-      this->sliceNode->SetSliceToRASByNTP(nx, ny, nz, tx, ty, tz, px, py, pz, 2);
-      }
-    else
-      {
-      this->sliceNode->SetOrientationToSagittal();
-      this->sliceNode->JumpSlice(px, py, pz);
-      }
-    }
-  else if (orientationButtonGroup.checkedId() == ORIENTATION_TRANSVERSE)
-    {
-    if (this->methodButtonGroup.checkedId() == METHOD_ORIENTATION) 
-      {
-      this->sliceNode->SetSliceToRASByNTP(nx, ny, nz, tx, ty, tz, px, py, pz, 0);
-      }
-    else
-      {
-      this->sliceNode->SetOrientationToCoronal();
-      this->sliceNode->JumpSlice(px, py, pz);
-      }
-    }
-  this->sliceNode->UpdateMatrices();
-}
-
-
-//---------------------------------------------------------------------------
-void qSlicerReslicePropertyWidgetPrivate::updateSliceByTransformNode(vtkMRMLLinearTransformNode* tnode)
-{
-  //Q_Q(qSlicerReslicePropertyWidget);
-
-  if (!tnode)
-    {
-    return;
-    }
-
-  vtkSmartPointer<vtkMatrix4x4> transform = vtkSmartPointer<vtkMatrix4x4>::New();
-  if (transform)
-    {
-    transform->Identity();
-    int getTransf = tnode->GetMatrixTransformToWorld(transform);
-    if(getTransf != 0)
-      {
-      this->updateSlice(transform);
-      }
-    }
-}
-
-
-//---------------------------------------------------------------------------
-void qSlicerReslicePropertyWidgetPrivate::updateSliceByImageNode(vtkMRMLScalarVolumeNode* inode)
-{
-  //Q_Q(qSlicerReslicePropertyWidget);
-
-  vtkMRMLVolumeNode* volumeNode = inode;
-
-  if (volumeNode == NULL)
-    {
-    return;
-    }
-
-  vtkSmartPointer<vtkMatrix4x4> rtimgTransform = vtkSmartPointer<vtkMatrix4x4>::New();
-  volumeNode->GetIJKToRASMatrix(rtimgTransform);
-
-  float tx = rtimgTransform->GetElement(0, 0);
-  float ty = rtimgTransform->GetElement(1, 0);
-  float tz = rtimgTransform->GetElement(2, 0);
-  float sx = rtimgTransform->GetElement(0, 1);
-  float sy = rtimgTransform->GetElement(1, 1);
-  float sz = rtimgTransform->GetElement(2, 1);
-  float nx = rtimgTransform->GetElement(0, 2);
-  float ny = rtimgTransform->GetElement(1, 2);
-  float nz = rtimgTransform->GetElement(2, 2);
-  float px = rtimgTransform->GetElement(0, 3);
-  float py = rtimgTransform->GetElement(1, 3);
-  float pz = rtimgTransform->GetElement(2, 3);
-
-  vtkImageData* imageData;
-  imageData = volumeNode->GetImageData();
-  int size[3];
-  imageData->GetDimensions(size);
-
-  // normalize
-  float psi = sqrt(tx*tx + ty*ty + tz*tz);
-  float psj = sqrt(sx*sx + sy*sy + sz*sz);
-  float psk = sqrt(nx*nx + ny*ny + nz*nz);
-  float ntx = tx / psi;
-  float nty = ty / psi;
-  float ntz = tz / psi;
-  float nsx = sx / psj;
-  float nsy = sy / psj;
-  float nsz = sz / psj;
-  float nnx = nx / psk;
-  float nny = ny / psk;
-  float nnz = nz / psk;
-
-  // Shift the center
-  // NOTE: The center of the image should be shifted due to different
-  // definitions of image origin between VTK (Slicer) and OpenIGTLink;
-  // OpenIGTLink image has its origin at the center, while VTK image
-  // has one at the corner.
-
-  float hfovi = psi * size[0] / 2.0;
-  float hfovj = psj * size[1] / 2.0;
-  //float hfovk = psk * imgheader->size[2] / 2.0;
-  float hfovk = 0;
-
-  float cx = ntx * hfovi + nsx * hfovj + nnx * hfovk;
-  float cy = nty * hfovi + nsy * hfovj + nny * hfovk;
-  float cz = ntz * hfovi + nsz * hfovj + nnz * hfovk;
-
-  rtimgTransform->SetElement(0, 0, ntx);
-  rtimgTransform->SetElement(1, 0, nty);
-  rtimgTransform->SetElement(2, 0, ntz);
-  rtimgTransform->SetElement(0, 1, nsx);
-  rtimgTransform->SetElement(1, 1, nsy);
-  rtimgTransform->SetElement(2, 1, nsz);
-  rtimgTransform->SetElement(0, 2, nnx);
-  rtimgTransform->SetElement(1, 2, nny);
-  rtimgTransform->SetElement(2, 2, nnz);
-  rtimgTransform->SetElement(0, 3, px + cx);
-  rtimgTransform->SetElement(1, 3, py + cy);
-  rtimgTransform->SetElement(2, 3, pz + cz);
-
-  vtkMRMLLinearTransformNode* parentNode =
-    vtkMRMLLinearTransformNode::SafeDownCast(volumeNode->GetParentTransformNode());
-  if (parentNode)
-    {
-    vtkSmartPointer<vtkMatrix4x4> parentTransform = vtkSmartPointer<vtkMatrix4x4>::New();
-    parentTransform->Identity();
-    int r = parentNode->GetMatrixTransformToWorld(parentTransform);
-    if (r)
-      {
-      vtkSmartPointer<vtkMatrix4x4> transform = vtkSmartPointer<vtkMatrix4x4>::New();
-      vtkMatrix4x4::Multiply4x4(parentTransform, rtimgTransform,  transform);
-      updateSlice(transform);
-      return;
-      }
-    }
-
-  updateSlice(rtimgTransform);
-
+  this->driverNodeSelector->setCurrentNode( nodeID );
 }
 
 
 
-//------------------------------------------------------------------------------
-qSlicerReslicePropertyWidget::qSlicerReslicePropertyWidget(QWidget *_parent)
-  : Superclass(new qSlicerReslicePropertyWidgetPrivate(*this), _parent)
+void qSlicerReslicePropertyWidgetPrivate
+::SetMethodSelection( int method )
+{
+  this->methodButtonGroup.button( method )->setChecked( true );
+}
+
+
+
+void qSlicerReslicePropertyWidgetPrivate
+::SetOrientationSelection( int orientation )
+{
+  this->orientationButtonGroup.button( orientation )->setChecked( true );
+}
+
+
+
+qSlicerReslicePropertyWidget
+::qSlicerReslicePropertyWidget( vtkSlicerVolumeResliceDriverLogic* logic, QWidget *_parent )
+  : Superclass( new qSlicerReslicePropertyWidgetPrivate( *this ), _parent )
 {
   Q_D(qSlicerReslicePropertyWidget);
   d->init();
+  this->Logic = logic;
+  qvtkConnect( this->Logic, vtkCommand::ModifiedEvent, this, SLOT( onLogicModified() ) );
 }
 
-//------------------------------------------------------------------------------
-qSlicerReslicePropertyWidget::~qSlicerReslicePropertyWidget()
+
+
+qSlicerReslicePropertyWidget
+::~qSlicerReslicePropertyWidget()
 {
+  if ( this->Logic != NULL )
+  {
+    this->Logic = NULL;
+  }
 }
 
-//------------------------------------------------------------------------------
-void qSlicerReslicePropertyWidget::setSliceViewName(const QString& newSliceViewName)
+
+
+void qSlicerReslicePropertyWidget
+::setSliceViewName( const QString& newSliceViewName )
 {
   Q_D(qSlicerReslicePropertyWidget);
   
   d->ViewLabel->setText(newSliceViewName);
 }
 
-//---------------------------------------------------------------------------
-void qSlicerReslicePropertyWidget::setSliceViewColor(const QColor& newSliceViewColor)
+
+
+void qSlicerReslicePropertyWidget
+::setSliceViewColor( const QColor& newSliceViewColor )
 {
   Q_D(qSlicerReslicePropertyWidget);
-
-  //if (d->sliceNode)
-  //  {
-  //  qCritical() << "qMRMLSliceControllerWidget::setSliceViewColor should be called before setMRMLSliceNode !";
-  //  return;
-  //  }
-
-  d->setColor(newSliceViewColor);
+  
+  d->setColor( newSliceViewColor );
 }
 
-//------------------------------------------------------------------------------
-void qSlicerReslicePropertyWidget::setMRMLSliceNode(vtkMRMLSliceNode* newSliceNode)
+
+
+void qSlicerReslicePropertyWidget
+::setMRMLSliceNode( vtkMRMLSliceNode* newSliceNode )
 {
   Q_D(qSlicerReslicePropertyWidget);
-
-  //d->SliceLogic->SetSliceNode(newSliceNode);
+  
+  if ( newSliceNode == NULL )
+  {
+    return;
+  }
+  
+  
+  QObject::disconnect(d->driverNodeSelector, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(setDriverNode(vtkMRMLNode*)));
+  QObject::disconnect(d->positionRadioButton, SIGNAL(clicked()), this, SLOT(onMethodChanged()));
+  QObject::disconnect(d->orientationRadioButton, SIGNAL(clicked()), this, SLOT(onMethodChanged()));
+  QObject::disconnect(d->inPlaneRadioButton, SIGNAL(clicked()), this, SLOT(onOrientationChanged()));
+  QObject::disconnect(d->inPlane90RadioButton, SIGNAL(clicked()), this, SLOT(onOrientationChanged()));
+  QObject::disconnect(d->transverseRadioButton, SIGNAL(clicked()), this, SLOT(onOrientationChanged()));
+  
   d->sliceNode = newSliceNode;
-  if (newSliceNode && newSliceNode->GetScene())
-    {
-    this->setMRMLScene(newSliceNode->GetScene());
-    }
+  
+  if ( newSliceNode->GetScene() )
+  {
+    this->setMRMLScene( newSliceNode->GetScene() );
+  }
+  
+  QObject::connect(d->driverNodeSelector, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(setDriverNode(vtkMRMLNode*)));
+  QObject::connect(d->positionRadioButton, SIGNAL(clicked()), this, SLOT(onMethodChanged()));
+  QObject::connect(d->orientationRadioButton, SIGNAL(clicked()), this, SLOT(onMethodChanged()));
+  QObject::connect(d->inPlaneRadioButton, SIGNAL(clicked()), this, SLOT(onOrientationChanged()));
+  QObject::connect(d->inPlane90RadioButton, SIGNAL(clicked()), this, SLOT(onOrientationChanged()));
+  QObject::connect(d->transverseRadioButton, SIGNAL(clicked()), this, SLOT(onOrientationChanged()));
 }
 
-//----------------------------------------------------------------------------
-void qSlicerReslicePropertyWidget::setMRMLScene(vtkMRMLScene * newScene)
+
+
+void qSlicerReslicePropertyWidget
+::setMRMLScene( vtkMRMLScene* newScene )
 {
   Q_D(qSlicerReslicePropertyWidget);
 
+  
   if (d->scene != newScene)
-    {
+  {
     d->scene = newScene;
     if (d->driverNodeSelector)
-      {
+    {
       d->driverNodeSelector->setMRMLScene(newScene);
-      }
     }
+  }
 }
 
 
-//------------------------------------------------------------------------------
-void qSlicerReslicePropertyWidget::setDriverNode(vtkMRMLNode * newNode)
+
+void qSlicerReslicePropertyWidget
+::setDriverNode( vtkMRMLNode* newNode )
 {
   Q_D(qSlicerReslicePropertyWidget);
-
-  if (d->driverNode != newNode)
-    {
-    bool update = false;
-    vtkMRMLLinearTransformNode * tnode = vtkMRMLLinearTransformNode::SafeDownCast(newNode);
-    if (tnode)
-      {
-      // reconnect current event listener
-      qvtkReconnect(d->driverNode, newNode,
-                    vtkMRMLTransformableNode::TransformModifiedEvent,
-                    this, SLOT(onMRMLNodeModified()));
-      update = true;
-      }
-
-    vtkMRMLScalarVolumeNode * inode = vtkMRMLScalarVolumeNode::SafeDownCast(newNode);
-    if (inode)
-      {
-      qvtkReconnect(d->driverNode, newNode,
-                    vtkMRMLVolumeNode::ImageDataModifiedEvent,
-                    this, SLOT(onMRMLNodeModified()));
-      qvtkReconnect(d->driverNode, newNode,
-                    vtkMRMLTransformableNode::TransformModifiedEvent,
-                    this, SLOT(onMRMLNodeModified()));
-      update = true;
-      }
-    d->driverNode = newNode;
-
-    if (update)
-      {
-      onMRMLNodeModified();
-      }
-    }
-}
-
-
-//------------------------------------------------------------------------------
-void qSlicerReslicePropertyWidget::onMRMLNodeModified()
-{
-  Q_D(qSlicerReslicePropertyWidget);
-  if (!d->driverNode)
-    {
+  
+  if ( d->sliceNode == NULL )
+  {
     return;
-    }
-  if (d->sliceNode)
-    {
-    vtkMRMLLinearTransformNode* transNode =
-      vtkMRMLLinearTransformNode::SafeDownCast(d->driverNode);
-    if (transNode)
-      {
-      d->updateSliceByTransformNode(transNode);
-      }
-    vtkMRMLScalarVolumeNode* imageNode = 
-      vtkMRMLScalarVolumeNode::SafeDownCast(d->driverNode);
-    if (imageNode)
-      {
-      d->updateSliceByImageNode(imageNode);
-      }
-    }
+  }
+  
+  if ( newNode == NULL )
+  {
+    this->Logic->SetDriverForSlice( "", d->sliceNode );
+  }
+  else
+  {
+    this->Logic->SetDriverForSlice( newNode->GetID(), d->sliceNode );
+  }
 }
 
+
+
+void qSlicerReslicePropertyWidget
+::onMethodChanged()
+{
+  Q_D(qSlicerReslicePropertyWidget);
+  
+  this->Logic->SetMethodForSlice( d->methodButtonGroup.checkedId(), d->sliceNode );
+}
+
+
+
+void qSlicerReslicePropertyWidget
+::onOrientationChanged()
+{
+  Q_D(qSlicerReslicePropertyWidget);
+  
+  this->Logic->SetOrientationForSlice( d->orientationButtonGroup.checkedId(), d->sliceNode );
+}
+
+
+
+void qSlicerReslicePropertyWidget
+::onLogicModified()
+{
+  Q_D(qSlicerReslicePropertyWidget);
+  
+  if ( d->sliceNode == NULL )
+  {
+    d->SetDriverNodeSelection( NULL );
+    return;
+  }
+  
+  const char* driverCC = d->sliceNode->GetAttribute( VOLUMERESLICEDRIVER_DRIVER_ATTRIBUTE );
+  d->SetDriverNodeSelection( driverCC );
+  
+  const char* methodCC = d->sliceNode->GetAttribute( VOLUMERESLICEDRIVER_METHOD_ATTRIBUTE );
+  if ( methodCC == NULL )
+  {
+    d->SetMethodSelection( this->Logic->METHOD_POSITION );
+  }
+  else
+  {
+    std::stringstream methodSS( methodCC );
+    int method = this->Logic->METHOD_POSITION;
+    methodSS >> method;
+    d->SetMethodSelection( method );
+  }
+  
+  const char* orientationCC = d->sliceNode->GetAttribute( VOLUMERESLICEDRIVER_ORIENTATION_ATTRIBUTE );
+  if ( orientationCC == NULL )
+  {
+    d->SetOrientationSelection( this->Logic->ORIENTATION_INPLANE );
+  }  
+  else
+  {
+    std::stringstream orientationSS( orientationCC );
+    int orientation = this->Logic->ORIENTATION_INPLANE;
+    orientationSS >> orientation;
+    d->SetOrientationSelection( orientation );
+  }
+}
