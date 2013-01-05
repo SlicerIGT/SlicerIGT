@@ -159,6 +159,7 @@ void vtkSlicerVolumeResliceDriverLogic
   vtkSmartPointer< vtkIntArray > events = vtkSmartPointer< vtkIntArray >::New();
   events->InsertNextValue( vtkMRMLTransformableNode::TransformModifiedEvent );
   events->InsertNextValue( vtkCommand::ModifiedEvent );
+  events->InsertNextValue( vtkMRMLVolumeNode::ImageDataModifiedEvent );
   vtkSetAndObserveMRMLNodeEventsMacro( newNode, node, events );
   this->ObservedNodes.push_back( newNode );
   
@@ -172,7 +173,6 @@ void vtkSlicerVolumeResliceDriverLogic
 {
   for ( unsigned int i = 0; i < this->ObservedNodes.size(); ++ i )
   {
-    // this->ObservedNodes[ 1 ]->RemoveAllObservers();
     vtkSetAndObserveMRMLNodeMacro( this->ObservedNodes[ i ], 0 );
   }
   
@@ -264,11 +264,16 @@ void vtkSlicerVolumeResliceDriverLogic
 void vtkSlicerVolumeResliceDriverLogic
 ::ProcessMRMLNodesEvents( vtkObject* caller, unsigned long event, void * callData )
 {
+  if ( caller == NULL )
+  {
+    return;
+  }
   
-  if ( event != vtkMRMLTransformableNode::TransformModifiedEvent )
+  if (    event != vtkMRMLTransformableNode::TransformModifiedEvent
+       && event != vtkCommand::ModifiedEvent
+       && event != vtkMRMLVolumeNode::ImageDataModifiedEvent )
   {
     this->Superclass::ProcessMRMLNodesEvents( caller, event, callData );
-    return;
   }
   
   vtkMRMLTransformableNode* callerNode = vtkMRMLTransformableNode::SafeDownCast( caller );
@@ -276,6 +281,7 @@ void vtkSlicerVolumeResliceDriverLogic
   {
     return;
   }
+  
   std::string callerNodeID( callerNode->GetID() );
   
   vtkMRMLNode* node = 0;
