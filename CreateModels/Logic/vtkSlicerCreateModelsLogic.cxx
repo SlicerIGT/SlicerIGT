@@ -333,3 +333,9 @@ void vtkSlicerCreateModelsLogic
 {
 }
 
+//---------------------------------------------------------------------------
+void vtkSlicerCreateModelsLogic::IHaveNoIdeaWhatImDoing( double haha )
+{
+  haha += 1;
+}
+
