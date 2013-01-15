@@ -332,10 +332,3 @@ void vtkSlicerCreateModelsLogic
 ::OnMRMLSceneNodeRemoved(vtkMRMLNode* vtkNotUsed(node))
 {
 }
-
-//---------------------------------------------------------------------------
-void vtkSlicerCreateModelsLogic::IHaveNoIdeaWhatImDoing( double haha )
-{
-  haha += 1;
-}
-
