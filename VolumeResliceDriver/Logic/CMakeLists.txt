@@ -1,34 +1,35 @@
-project(vtkSlicer${qt_module_name}ModuleLogic)
+project(vtkSlicer${MODULE_NAME}ModuleLogic)
 
 #
 # See CMake/SlicerMacroBuildModuleLogic.cmake for details
 #
 
-set(module_logic_name "${PROJECT_NAME}")
+set(KIT ${PROJECT_NAME})
 
 # The header '${module_logic_name}Export.h' will be automatically configured.
-set(module_logic_export_directive "VTK_SLICER_VOLUMERESLICEDRIVER_MODULE_LOGIC_EXPORT")
+set(${KIT}_EXPORT_DIRECTIVE "VTK_SLICER_${MODULE_NAME_UPPER}_MODULE_LOGIC_EXPORT")
 
 # Additional directories to include
-set(module_logic_include_directories
+set(${KIT}_INCLUDE_DIRECTORIES
   )
 
 # Source files
-set(module_logic_SRCS
-  vtkSlicerVolumeResliceDriverLogic.cxx
-  vtkSlicerVolumeResliceDriverLogic.h
+set(${KIT}_SRCS
+  vtkSlicer${MODULE_NAME}Logic.cxx
+  vtkSlicer${MODULE_NAME}Logic.h
   )
 
-# Additional Target libraries
-set(module_logic_target_libraries
+  # Additional Target libraries
+set(${KIT}_TARGET_LIBRARIES
   ${ITK_LIBRARIES}
   )
 
 
+#-----------------------------------------------------------------------------
 SlicerMacroBuildModuleLogic(
-  NAME ${module_logic_name}
-  EXPORT_DIRECTIVE ${module_logic_export_directive}
-  INCLUDE_DIRECTORIES ${module_logic_include_directories}
-  SRCS ${module_logic_SRCS}
-  TARGET_LIBRARIES ${module_logic_target_libraries}
+  NAME ${KIT}
+  EXPORT_DIRECTIVE ${${KIT}_EXPORT_DIRECTIVE}
+  INCLUDE_DIRECTORIES ${${KIT}_INCLUDE_DIRECTORIES}
+  SRCS ${${KIT}_SRCS}
+  TARGET_LIBRARIES ${${KIT}_TARGET_LIBRARIES}
   )
