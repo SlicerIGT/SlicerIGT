@@ -11,11 +11,11 @@ cmake_minimum_required(VERSION 2.8.7)
 set(EXTENSION_NAME SlicerIGT)
 
 #-----------------------------------------------------------------------------
-set(EXTENSION_HOMEPAGE "https://www.assembla.com/spaces/slicerigt")
+set(EXTENSION_HOMEPAGE "http://slicerigt.github.com/")
 set(EXTENSION_CATEGORY "IGT")
-set(EXTENSION_CONTRIBUTORS "Tamas Ungi (Queen's University), Adam Rankin (Queen's University), Junichi Tokuda (Brighams and Women's Hospital)")
+set(EXTENSION_CONTRIBUTORS "Tamas Ungi (Queen's University), Junichi Tokuda (Brigham and Women's Hospital), Adam Rankin (Queen's University)")
 set(EXTENSION_DESCRIPTION "Extensions for image-guided interventions")
-set(EXTENSION_ICONURL "http://wiki.slicer.org/slicerWiki/images/2/2f/PerkNavLogo.png")
+set(EXTENSION_ICONURL "http://www.slicer.org/slicerWiki/images/2/2b/SlicerIGTLogo.png")
 set(EXTENSION_SCREENSHOTURLS "http://wiki.slicer.org/slicerWiki/images/b/bf/PerkNavScreenshot.png")
 set(EXTENSION_DEPENDS "NA") # Specified as a space separated list or 'NA' if any
 
@@ -24,16 +24,16 @@ find_package(Slicer REQUIRED)
 include(${Slicer_USE_FILE})
 
 #-----------------------------------------------------------------------------
-option(MODULE_COLLECT_FIDUCIALS_ENABLE "Enable the building of the CollectFiducials module." OFF)
-option(MODULE_CREATE_MODELS_ENABLE "Enable the building of the CreateModels module." OFF)
+option(MODULE_COLLECT_FIDUCIALS_ENABLE "Enable the building of the CollectFiducials module." ON)
+option(MODULE_CREATE_MODELS_ENABLE "Enable the building of the CreateModels module." ON)
 option(MODULE_PERK_EVALUATOR_ENABLE "Enable the building of the PerkEvaluator module." OFF)
 option(MODULE_TRANSFORM_RECORDER_ENABLE "Enable the building of the TransformRecorder module." OFF)
-option(MODULE_ULTRASOUND_SNAPSHOTS_ENABLE "Enable the building of the UltrasoundSnapshots module." OFF)
+option(MODULE_ULTRASOUND_SNAPSHOTS_ENABLE "Enable the building of the UltrasoundSnapshots module." ON)
 option(MODULE_TARGET_FIDUCIALS_ENABLE "Enable the building of the TargetFiducials module." OFF)
 option(MODULE_WORKFLOW_SEGMENTATION_ENABLE "Enable the building of the WorkflowSegmentation module." OFF)
 option(MODULE_SUPPLEMENTAL_DATA_ENABLE "Download the supplemental data (models, test data, etc..)" OFF)
 option(MODULE_DOCUMENTATION_ENABLE "Download the documentation associated with the projec." OFF)
-option(MODULE_VOLUME_RESLICE_DRIVER_ENABLE "Enable the building of the VolumeResliceDriver module." OFF)
+option(MODULE_VOLUME_RESLICE_DRIVER_ENABLE "Enable the building of the VolumeResliceDriver module." ON)
 
 #-----------------------------------------------------------------------------
 IF( MODULE_COLLECT_FIDUCIALS_ENABLE )
