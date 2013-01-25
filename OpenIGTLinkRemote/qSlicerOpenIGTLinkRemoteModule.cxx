@@ -64,7 +64,7 @@ qSlicerOpenIGTLinkRemoteModule::~qSlicerOpenIGTLinkRemoteModule()
 //-----------------------------------------------------------------------------
 QString qSlicerOpenIGTLinkRemoteModule::helpText()const
 {
-  return "This is a loadable module bundled in an extension";
+  return "Use this module to control another program through OpenIGTLink messages.";
 }
 
 //-----------------------------------------------------------------------------
@@ -77,7 +77,7 @@ QString qSlicerOpenIGTLinkRemoteModule::acknowledgementText()const
 QStringList qSlicerOpenIGTLinkRemoteModule::contributors()const
 {
   QStringList moduleContributors;
-  moduleContributors << QString("Jean-Christophe Fillion-Robin (Kitware)");
+  moduleContributors << QString("Perk Lab (Queen's University)");
   return moduleContributors;
 }
 
@@ -90,7 +90,7 @@ QIcon qSlicerOpenIGTLinkRemoteModule::icon()const
 //-----------------------------------------------------------------------------
 QStringList qSlicerOpenIGTLinkRemoteModule::categories() const
 {
-  return QStringList() << "Examples";
+  return QStringList() << "IGT";
 }
 
 //-----------------------------------------------------------------------------
