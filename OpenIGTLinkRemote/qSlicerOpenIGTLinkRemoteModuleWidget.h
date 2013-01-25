@@ -38,7 +38,10 @@ public:
   qSlicerOpenIGTLinkRemoteModuleWidget(QWidget *parent=0);
   virtual ~qSlicerOpenIGTLinkRemoteModuleWidget();
 
-public slots:
+
+protected slots:
+  
+  void OnSendCommandClicked();
 
 
 protected:

@@ -30,34 +30,63 @@ public:
   qSlicerOpenIGTLinkRemoteModuleWidgetPrivate();
 };
 
+
+
 //-----------------------------------------------------------------------------
 // qSlicerOpenIGTLinkRemoteModuleWidgetPrivate methods
 
-//-----------------------------------------------------------------------------
+
+
 qSlicerOpenIGTLinkRemoteModuleWidgetPrivate::qSlicerOpenIGTLinkRemoteModuleWidgetPrivate()
 {
 }
 
+
+
 //-----------------------------------------------------------------------------
 // qSlicerOpenIGTLinkRemoteModuleWidget methods
 
-//-----------------------------------------------------------------------------
+
+
 qSlicerOpenIGTLinkRemoteModuleWidget::qSlicerOpenIGTLinkRemoteModuleWidget(QWidget* _parent)
   : Superclass( _parent )
   , d_ptr( new qSlicerOpenIGTLinkRemoteModuleWidgetPrivate )
 {
 }
 
-//-----------------------------------------------------------------------------
+
+
 qSlicerOpenIGTLinkRemoteModuleWidget::~qSlicerOpenIGTLinkRemoteModuleWidget()
 {
 }
 
-//-----------------------------------------------------------------------------
+
+
 void qSlicerOpenIGTLinkRemoteModuleWidget::setup()
 {
   Q_D(qSlicerOpenIGTLinkRemoteModuleWidget);
   d->setupUi(this);
   this->Superclass::setup();
+  
+  connect( d->SendCommandButton, SIGNAL( clicked() ), this, SLOT( OnSendCommandClicked() ) );
 }
 
+
+void qSlicerOpenIGTLinkRemoteModuleWidget
+::OnSendCommandClicked()
+{
+  Q_D(qSlicerOpenIGTLinkRemoteModuleWidget);
+  
+  vtkMRMLNode* node = d->ConnectorComboBox->currentNode();
+  if ( node == NULL )
+  {
+    d->ReplyTextEdit->setPlainText( "Connector node not selected!" );
+    return;
+  }
+  
+  d->CommandTextEdit->setPlainText( "" );
+  d->ReplyTextEdit->setPlainText( "" );
+  
+  // TODO: Call logic here.
+ 
+}

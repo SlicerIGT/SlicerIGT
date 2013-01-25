@@ -70,7 +70,7 @@ QString qSlicerOpenIGTLinkRemoteModule::helpText()const
 //-----------------------------------------------------------------------------
 QString qSlicerOpenIGTLinkRemoteModule::acknowledgementText()const
 {
-  return "This work was was partially funded by NIH grant 3P41RR013218-12S1";
+  return "<p>This work is part of SparKit, a project funded by an Applied Cancer Research Unit of Cancer Care Ontario with funds provided by the Ministry of Health and Long-Term Care and the Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO) to provide free, open-source toolset for radiotherapy and related image-guided interventions.</p><p>This work was was partially funded by NIH grant 3P41RR013218-12S1</p>";
 }
 
 //-----------------------------------------------------------------------------
