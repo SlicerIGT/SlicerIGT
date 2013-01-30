@@ -1,24 +1,11 @@
-/*==============================================================================
-
-  Program: 3D Slicer
-
-  Portions (c) Copyright Brigham and Women's Hospital (BWH) All Rights Reserved.
-
-  See COPYRIGHT.txt
-  or http://www.slicer.org/copyright/copyright.txt for details.
-
-  Unless required by applicable law or agreed to in writing, software
-  distributed under the License is distributed on an "AS IS" BASIS,
-  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  See the License for the specific language governing permissions and
-  limitations under the License.
-
-==============================================================================*/
 
 // OpenIGTLinkRemote Logic includes
 #include "vtkSlicerOpenIGTLinkRemoteLogic.h"
 
+#include "vtkSlicerOpenIGTLinkIFLogic.h"
+
 // MRML includes
+#include "vtkMRMLRemoteExecNode.h"
 
 // VTK includes
 #include <vtkNew.h>
@@ -29,24 +16,32 @@
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSlicerOpenIGTLinkRemoteLogic);
 
-//----------------------------------------------------------------------------
-vtkSlicerOpenIGTLinkRemoteLogic::vtkSlicerOpenIGTLinkRemoteLogic()
+
+
+vtkSlicerOpenIGTLinkRemoteLogic
+::vtkSlicerOpenIGTLinkRemoteLogic()
 {
 }
 
-//----------------------------------------------------------------------------
-vtkSlicerOpenIGTLinkRemoteLogic::~vtkSlicerOpenIGTLinkRemoteLogic()
+
+
+vtkSlicerOpenIGTLinkRemoteLogic
+::~vtkSlicerOpenIGTLinkRemoteLogic()
 {
 }
 
-//----------------------------------------------------------------------------
-void vtkSlicerOpenIGTLinkRemoteLogic::PrintSelf(ostream& os, vtkIndent indent)
+
+
+void vtkSlicerOpenIGTLinkRemoteLogic
+::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
 }
 
-//---------------------------------------------------------------------------
-void vtkSlicerOpenIGTLinkRemoteLogic::SetMRMLSceneInternal(vtkMRMLScene * newScene)
+
+
+void vtkSlicerOpenIGTLinkRemoteLogic
+::SetMRMLSceneInternal(vtkMRMLScene * newScene)
 {
   vtkNew<vtkIntArray> events;
   events->InsertNextValue(vtkMRMLScene::NodeAddedEvent);
@@ -55,14 +50,25 @@ void vtkSlicerOpenIGTLinkRemoteLogic::SetMRMLSceneInternal(vtkMRMLScene * newSce
   this->SetAndObserveMRMLSceneEventsInternal(newScene, events.GetPointer());
 }
 
-//-----------------------------------------------------------------------------
-void vtkSlicerOpenIGTLinkRemoteLogic::RegisterNodes()
+
+
+void vtkSlicerOpenIGTLinkRemoteLogic
+::RegisterNodes()
 {
   assert(this->GetMRMLScene() != 0);
+  
+  vtkMRMLRemoteExecNode* node = vtkMRMLRemoteExecNode::New();
+  this->GetMRMLScene()->RegisterNodeClass( node );
+  node->Delete();
+  
+  // Register message converters.
+  // qSlicerCoreApplication::
 }
 
-//---------------------------------------------------------------------------
-void vtkSlicerOpenIGTLinkRemoteLogic::UpdateFromMRMLScene()
+
+
+void vtkSlicerOpenIGTLinkRemoteLogic
+::UpdateFromMRMLScene()
 {
   assert(this->GetMRMLScene() != 0);
 }

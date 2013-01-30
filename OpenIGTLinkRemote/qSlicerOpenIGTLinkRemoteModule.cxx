@@ -21,9 +21,18 @@
 // OpenIGTLinkRemote Logic includes
 #include <vtkSlicerOpenIGTLinkRemoteLogic.h>
 
+#include "vtkSlicerOpenIGTLinkIFLogic.h"
+
+
 // OpenIGTLinkRemote includes
 #include "qSlicerOpenIGTLinkRemoteModule.h"
 #include "qSlicerOpenIGTLinkRemoteModuleWidget.h"
+
+#include "qSlicerAbstractCoreModule.h"
+#include "qSlicerCoreApplication.h"
+#include "qSlicerModuleManager.h"
+
+
 
 //-----------------------------------------------------------------------------
 Q_EXPORT_PLUGIN2(qSlicerOpenIGTLinkRemoteModule, qSlicerOpenIGTLinkRemoteModule);
@@ -77,7 +86,7 @@ QString qSlicerOpenIGTLinkRemoteModule::acknowledgementText()const
 QStringList qSlicerOpenIGTLinkRemoteModule::contributors()const
 {
   QStringList moduleContributors;
-  moduleContributors << QString("Perk Lab (Queen's University)");
+  moduleContributors << QString("Tamas Ungi (Queen's University)");
   return moduleContributors;
 }
 
@@ -96,13 +105,21 @@ QStringList qSlicerOpenIGTLinkRemoteModule::categories() const
 //-----------------------------------------------------------------------------
 QStringList qSlicerOpenIGTLinkRemoteModule::dependencies() const
 {
-  return QStringList();
+  return QStringList() << "OpenIGTLinkIF";
 }
 
 //-----------------------------------------------------------------------------
 void qSlicerOpenIGTLinkRemoteModule::setup()
 {
   this->Superclass::setup();
+  
+  vtkSlicerOpenIGTLinkRemoteLogic* moduleLogic = vtkSlicerOpenIGTLinkRemoteLogic::SafeDownCast( this->logic() );
+  qSlicerAbstractCoreModule* IFModule = qSlicerCoreApplication::application()->moduleManager()->module( "OpenIGTLinkIF" );
+  if ( IFModule )
+  {
+    vtkSlicerOpenIGTLinkIFLogic* IFLogic = vtkSlicerOpenIGTLinkIFLogic::SafeDownCast( IFModule->logic() );
+    // todo: moduleLogic->SetIFLogic( IFLogic );
+  }
 }
 
 //-----------------------------------------------------------------------------
