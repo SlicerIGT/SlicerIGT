@@ -50,7 +50,7 @@ public:
   void PrintSelf(ostream& os, vtkIndent indent);
   
   void SetIFLogic( vtkSlicerOpenIGTLinkIFLogic* ifLogic );
-  void SendCommand( std::string strCommand, vtkMRMLNode* node );
+  void SendCommand( std::string strCommand, const char* connectorNodeId );
   
   
 protected:

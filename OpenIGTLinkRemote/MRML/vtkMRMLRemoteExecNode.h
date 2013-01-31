@@ -12,6 +12,23 @@
 
 class vtkCallbackCommand;
 
+//BTX
+struct RemoteExecCommand
+{
+  enum StatusType {
+    WAIT_FOR_SENDING = 0,
+    WAIT_FOR_COMPLETION = 1,
+    COMPLETED = 2,
+    WAIT_FOR_DELETE = 3
+  };
+
+  std::string  CommandString;
+  std::string  ReplyString;
+  int          Id;
+  StatusType   Status;
+};
+//ETX
+
 
 class VTK_SLICER_OPENIGTLINKREMOTE_MODULE_MRML_EXPORT vtkMRMLRemoteExecNode : public vtkMRMLNode
 {
@@ -30,7 +47,10 @@ class VTK_SLICER_OPENIGTLINKREMOTE_MODULE_MRML_EXPORT vtkMRMLRemoteExecNode : pu
   // Description:
   // Get node XML tag name (like Volume, Model)
   virtual const char* GetNodeTagName() {return "RemoteExec";};
-
+  
+  int GetNextCommandWaitForSending();
+  
+  
  protected:
   vtkMRMLRemoteExecNode();
   ~vtkMRMLRemoteExecNode(){};
@@ -40,19 +60,18 @@ class VTK_SLICER_OPENIGTLINKREMOTE_MODULE_MRML_EXPORT vtkMRMLRemoteExecNode : pu
 
  public:
   
-  void PushOutgoingCommand(const char* name);
-  const char* PopOutgoingCommand();
-  void PushIncomingCommand(const char* name);
-  const char* PopIncomingCommand();
-
+  int PushOutgoingCommand( const char* name );
+  void SetCommandReply( int commandId, const char* reply );
+  
  protected:
+ 
+  RemoteExecCommand* GetCommandById( int id );
+  
   //BTX
-  std::queue<std::string> InCommandQueue;
-  std::queue<std::string> OutCommandQueue;
-  std::string InCommand;
-  std::string OutCommand;
+  std::deque< RemoteExecCommand > CommandQueue;
   //ETX
-
+  
+  int LastCommandId;
 };
 
 #endif

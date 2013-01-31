@@ -52,7 +52,7 @@ vtkMRMLNode* vtkMRMLRemoteExecNode
 vtkMRMLRemoteExecNode
 ::vtkMRMLRemoteExecNode()
 {
-  
+  this->LastCommandId = 0;
 }
 
 
@@ -67,33 +67,69 @@ void vtkMRMLRemoteExecNode
 
 
 
-void vtkMRMLRemoteExecNode
+/**
+ * @returns Id of the first command that is waiting to be sent. 0 if none found.
+ */
+int vtkMRMLRemoteExecNode
+::GetNextCommandWaitForSending()
+{
+  for ( std::deque< RemoteExecCommand >::iterator cIt = this->CommandQueue.begin(); cIt != this->CommandQueue.end(); ++ cIt )
+  {
+    if ( (*cIt).Status == RemoteExecCommand::WAIT_FOR_SENDING )
+    {
+      return (*cIt).Id;
+    }
+  }
+  
+  return 0;
+}
+
+
+
+/**
+ * @returns Id of the command for later follow-up.
+ */
+int vtkMRMLRemoteExecNode
 ::PushOutgoingCommand( const char* name )
 {
-  this->OutCommand = name;
-}
-
-
-
-const char* vtkMRMLRemoteExecNode
-::PopOutgoingCommand()
-{
-  return this->OutCommand.c_str();
+  RemoteExecCommand cmd;
+  cmd.Status = RemoteExecCommand::WAIT_FOR_SENDING;
+  cmd.CommandString = std::string( name );
+  ++ this->LastCommandId; // Generate a unique Id for each command.
+  cmd.Id = this->LastCommandId;
+  this->CommandQueue.push_back( cmd );
+  return this->LastCommandId;
 }
 
 
 
 void vtkMRMLRemoteExecNode
-::PushIncomingCommand( const char* name )
+::SetCommandReply( int commandId, const char* reply )
 {
-  this->InCommand = name;
+  RemoteExecCommand* cmd = this->GetCommandById( commandId );
+  
+  if ( cmd == NULL )
+  {
+    vtkErrorMacro( "Failed to find command: " << commandId );
+    return;
+  }
+  
+  cmd->ReplyString = std::string( reply );
+  cmd->Status = RemoteExecCommand::COMPLETED;
 }
 
 
 
-const char* vtkMRMLRemoteExecNode
-::PopIncomingCommand()
+RemoteExecCommand* vtkMRMLRemoteExecNode
+::GetCommandById( int id )
 {
-  return this->InCommand.c_str();
+  for ( std::deque< RemoteExecCommand >::iterator cIt = this->CommandQueue.begin(); cIt != this->CommandQueue.end(); ++ cIt )
+  {
+    if ( (*cIt).Status == RemoteExecCommand::WAIT_FOR_SENDING )
+    {
+      return &(*cIt);
+    }
+  }
+  
+  return 0;
 }
-

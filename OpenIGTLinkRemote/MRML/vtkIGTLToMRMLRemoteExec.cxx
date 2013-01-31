@@ -85,6 +85,7 @@ int vtkIGTLToMRMLRemoteExec
     return 0;
   }
   
+  /*
   std::string command = remoteExecNode->PopOutgoingCommand();
   if ( command.size() > 0 )
   {
@@ -110,5 +111,8 @@ int vtkIGTLToMRMLRemoteExec
   {
     return 0;
   }
+  */
+  
+  return 0;
 }
 

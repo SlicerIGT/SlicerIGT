@@ -77,14 +77,23 @@ void vtkSlicerOpenIGTLinkRemoteLogic
 
 
 void vtkSlicerOpenIGTLinkRemoteLogic
-::SendCommand( std::string strCommand, vtkMRMLNode* node )
+::SendCommand( std::string strCommand, const char* connectorNodeId )
 {
-  vtkMRMLIGTLConnectorNode* connectorNode = vtkMRMLIGTLConnectorNode::SafeDownCast( node );
-  if ( connectorNode == NULL )
+  if ( this->GetMRMLScene() == NULL )
   {
+    vtkErrorMacro( "MRML Scene is invalid" );
     return;
   }
   
+  vtkMRMLIGTLConnectorNode* connectorNode = vtkMRMLIGTLConnectorNode::SafeDownCast( this->GetMRMLScene()->GetNodeByID( connectorNodeId ) );
+  if ( connectorNode == NULL )
+  {
+    vtkErrorMacro( "SendCommand could not cast MRML node to IGTLConnectorNode." );
+    return;
+  }
+  
+  // get RemoteExecNode from scene for connectorNode
+  // create if not found, but not observe.
   
 }
 

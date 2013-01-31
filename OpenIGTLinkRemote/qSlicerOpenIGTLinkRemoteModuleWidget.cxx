@@ -8,6 +8,7 @@
 
 #include "vtkSlicerOpenIGTLinkRemoteLogic.h"
 
+#include "vtkMRMLNode.h"
 
 
 //-----------------------------------------------------------------------------
@@ -91,7 +92,7 @@ void qSlicerOpenIGTLinkRemoteModuleWidget
   
   
   // Logic sends command message.
-  d->logic()->SendCommand( d->CommandTextEdit->toPlainText().toStdString(), node );
+  d->logic()->SendCommand( d->CommandTextEdit->toPlainText().toStdString(), node->GetID() );
   
   d->CommandTextEdit->setPlainText( "" );
   d->ReplyTextEdit->setPlainText( "" );
