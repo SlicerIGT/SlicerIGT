@@ -6,6 +6,7 @@
 
 // MRML includes
 #include "vtkMRMLRemoteExecNode.h"
+#include "vtkIGTLToMRMLRemoteExec.h"
 
 // VTK includes
 #include <vtkNew.h>
@@ -38,6 +39,7 @@ vtkSlicerOpenIGTLinkRemoteLogic
 ::vtkSlicerOpenIGTLinkRemoteLogic()
 {
   this->Internal = new vtkInternal;
+  this->CommandConverter = vtkIGTLToMRMLRemoteExec::New();
 }
 
 
@@ -46,6 +48,12 @@ vtkSlicerOpenIGTLinkRemoteLogic
 ::~vtkSlicerOpenIGTLinkRemoteLogic()
 {
   delete this->Internal;
+  
+  if ( this->CommandConverter != NULL )
+  {
+    this->CommandConverter->Delete();
+    this->CommandConverter = NULL;
+  }
 }
 
 
@@ -86,8 +94,8 @@ void vtkSlicerOpenIGTLinkRemoteLogic
   this->GetMRMLScene()->RegisterNodeClass( node );
   node->Delete();
   
-  // Register message converters.
-  // qSlicerCoreApplication::
+  // Register IGTL message converter.
+  this->Internal->IFLogic->RegisterMessageConverter( this->CommandConverter );
 }
 
 

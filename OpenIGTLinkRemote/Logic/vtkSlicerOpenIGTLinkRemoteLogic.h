@@ -35,6 +35,7 @@
 #include "vtkSlicerOpenIGTLinkRemoteModuleLogicExport.h"
 
 class vtkSlicerOpenIGTLinkIFLogic;
+class vtkIGTLToMRMLRemoteExec;
 
 
 
@@ -68,6 +69,8 @@ private:
   
   class vtkInternal;
   vtkInternal* Internal;
+  
+  vtkIGTLToMRMLRemoteExec* CommandConverter;
 };
 
 #endif
