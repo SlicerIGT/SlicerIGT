@@ -256,3 +256,5 @@ ENDIF( MODULE_VOLUME_RESLICE_DRIVER_ENABLE )
 
 #-----------------------------------------------------------------------------
 include(${Slicer_EXTENSION_CPACK})
+
+set(CPACK_INSTALL_CMAKE_PROJECTS "${CPACK_INSTALL_CMAKE_PROJECTS};${CMAKE_BINARY_DIR};${EXTENSION_NAME};ALL;/")
