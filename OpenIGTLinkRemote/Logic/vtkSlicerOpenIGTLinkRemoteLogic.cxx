@@ -8,6 +8,8 @@
 #include "vtkMRMLRemoteExecNode.h"
 #include "vtkIGTLToMRMLRemoteExec.h"
 
+#include "vtkMRMLIGTLConnectorNode.h"
+
 // VTK includes
 #include <vtkNew.h>
 
@@ -71,6 +73,21 @@ void vtkSlicerOpenIGTLinkRemoteLogic
 {
   this->Internal->IFLogic = ifLogic;
 }
+
+
+
+void vtkSlicerOpenIGTLinkRemoteLogic
+::SendCommand( std::string strCommand, vtkMRMLNode* node )
+{
+  vtkMRMLIGTLConnectorNode* connectorNode = vtkMRMLIGTLConnectorNode::SafeDownCast( node );
+  if ( connectorNode == NULL )
+  {
+    return;
+  }
+  
+  
+}
+
 
 
 void vtkSlicerOpenIGTLinkRemoteLogic
