@@ -90,26 +90,34 @@ QStringList qSlicerOpenIGTLinkRemoteModule::contributors()const
   return moduleContributors;
 }
 
-//-----------------------------------------------------------------------------
-QIcon qSlicerOpenIGTLinkRemoteModule::icon()const
+
+
+QIcon qSlicerOpenIGTLinkRemoteModule
+::icon()const
 {
   return QIcon(":/Icons/OpenIGTLinkRemote.png");
 }
 
-//-----------------------------------------------------------------------------
-QStringList qSlicerOpenIGTLinkRemoteModule::categories() const
+
+
+QStringList qSlicerOpenIGTLinkRemoteModule
+::categories() const
 {
   return QStringList() << "IGT";
 }
 
-//-----------------------------------------------------------------------------
-QStringList qSlicerOpenIGTLinkRemoteModule::dependencies() const
+
+
+QStringList qSlicerOpenIGTLinkRemoteModule
+::dependencies() const
 {
   return QStringList() << "OpenIGTLinkIF";
 }
 
-//-----------------------------------------------------------------------------
-void qSlicerOpenIGTLinkRemoteModule::setup()
+
+
+void qSlicerOpenIGTLinkRemoteModule
+::setup()
 {
   this->Superclass::setup();
   
@@ -118,11 +126,12 @@ void qSlicerOpenIGTLinkRemoteModule::setup()
   if ( IFModule )
   {
     vtkSlicerOpenIGTLinkIFLogic* IFLogic = vtkSlicerOpenIGTLinkIFLogic::SafeDownCast( IFModule->logic() );
-    // todo: moduleLogic->SetIFLogic( IFLogic );
+    moduleLogic->SetIFLogic( IFLogic );
   }
 }
 
-//-----------------------------------------------------------------------------
+
+
 qSlicerAbstractModuleRepresentation * qSlicerOpenIGTLinkRemoteModule
 ::createWidgetRepresentation()
 {

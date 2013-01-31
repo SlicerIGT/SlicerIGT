@@ -13,7 +13,23 @@
 // STD includes
 #include <cassert>
 
-//----------------------------------------------------------------------------
+
+
+class vtkSlicerOpenIGTLinkRemoteLogic::vtkInternal
+{
+public:
+  vtkInternal();
+  
+  vtkSlicerOpenIGTLinkIFLogic* IFLogic;
+};
+
+vtkSlicerOpenIGTLinkRemoteLogic::vtkInternal::vtkInternal()
+{
+  this->IFLogic = 0;
+}
+
+
+
 vtkStandardNewMacro(vtkSlicerOpenIGTLinkRemoteLogic);
 
 
@@ -21,6 +37,7 @@ vtkStandardNewMacro(vtkSlicerOpenIGTLinkRemoteLogic);
 vtkSlicerOpenIGTLinkRemoteLogic
 ::vtkSlicerOpenIGTLinkRemoteLogic()
 {
+  this->Internal = new vtkInternal;
 }
 
 
@@ -28,6 +45,7 @@ vtkSlicerOpenIGTLinkRemoteLogic
 vtkSlicerOpenIGTLinkRemoteLogic
 ::~vtkSlicerOpenIGTLinkRemoteLogic()
 {
+  delete this->Internal;
 }
 
 
@@ -38,6 +56,13 @@ void vtkSlicerOpenIGTLinkRemoteLogic
   this->Superclass::PrintSelf(os, indent);
 }
 
+
+
+void vtkSlicerOpenIGTLinkRemoteLogic
+::SetIFLogic( vtkSlicerOpenIGTLinkIFLogic* ifLogic )
+{
+  this->Internal->IFLogic = ifLogic;
+}
 
 
 void vtkSlicerOpenIGTLinkRemoteLogic

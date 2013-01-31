@@ -34,6 +34,9 @@
 
 #include "vtkSlicerOpenIGTLinkRemoteModuleLogicExport.h"
 
+class vtkSlicerOpenIGTLinkIFLogic;
+
+
 
 /// \ingroup Slicer_QtModules_ExtensionTemplate
 class VTK_SLICER_OPENIGTLINKREMOTE_MODULE_LOGIC_EXPORT vtkSlicerOpenIGTLinkRemoteLogic :
@@ -44,7 +47,10 @@ public:
   static vtkSlicerOpenIGTLinkRemoteLogic *New();
   vtkTypeMacro(vtkSlicerOpenIGTLinkRemoteLogic, vtkSlicerModuleLogic);
   void PrintSelf(ostream& os, vtkIndent indent);
-
+  
+  void SetIFLogic( vtkSlicerOpenIGTLinkIFLogic* ifLogic );
+  
+  
 protected:
   vtkSlicerOpenIGTLinkRemoteLogic();
   virtual ~vtkSlicerOpenIGTLinkRemoteLogic();
@@ -59,6 +65,9 @@ private:
 
   vtkSlicerOpenIGTLinkRemoteLogic(const vtkSlicerOpenIGTLinkRemoteLogic&); // Not implemented
   void operator=(const vtkSlicerOpenIGTLinkRemoteLogic&);               // Not implemented
+  
+  class vtkInternal;
+  vtkInternal* Internal;
 };
 
 #endif
