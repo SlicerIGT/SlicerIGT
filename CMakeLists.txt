@@ -37,169 +37,123 @@ option(MODULE_VOLUME_RESLICE_DRIVER_ENABLE "Enable the building of the VolumeRes
 
 #-----------------------------------------------------------------------------
 IF( MODULE_COLLECT_FIDUCIALS_ENABLE )
-  SET (MODULE_COLLECT_FIDUCIALS_REPOSITORY "https://github.com/SlicerIGT/CollectFiducials.git" CACHE STRING "URL for the CollectFiducials repository")
-  SET (COLLECT_FIDUCIALS_SRC_DIR "${CMAKE_BINARY_DIR}/CollectFiducials")
-  SET (COLLECT_FIDUCIALS_DIR "${CMAKE_BINARY_DIR}/CollectFiducials-bin" CACHE INTERNAL "Path to store CollectFiducials binaries")
+  set (MODULE_COLLECT_FIDUCIALS_REPOSITORY "https://github.com/SlicerIGT/CollectFiducials.git" CACHE STRING "URL for the CollectFiducials repository")
+  set (COLLECT_FIDUCIALS_SRC_DIR "${CMAKE_BINARY_DIR}/CollectFiducials")
+  set (COLLECT_FIDUCIALS_DIR "${CMAKE_BINARY_DIR}/CollectFiducials-bin" CACHE INTERNAL "Path to store CollectFiducials binaries")
   ExternalProject_Add( CollectFiducials
     SOURCE_DIR "${COLLECT_FIDUCIALS_SRC_DIR}"
     BINARY_DIR "${COLLECT_FIDUCIALS_DIR}"
-    INSTALL_DIR "${CMAKE_BINARY_DIR}"
-    #--Download step--------------
     GIT_REPOSITORY "${MODULE_COLLECT_FIDUCIALS_REPOSITORY}"
-    #--Configure step-------------
-    CMAKE_ARGS 
-        -DBUILD_SHARED_LIBS:BOOL=${CMAKE_BINARY_DIR} 
-        -DCMAKE_CXX_FLAGS:STRING=${ep_common_cxx_flags}
-        -DCMAKE_C_FLAGS:STRING=${ep_common_c_flags}
-        -DCMAKE_INSTALL_PREFIX:STRING=${CMAKE_BINARY_DIR}
-        -DSlicer_DIR:STRING=${Slicer_DIR}
-    #--Build step-----------------
-    #--Install step-----------------
+    CONFIGURE_COMMAND ""
+    BUILD_COMMAND ""
+    INSTALL_COMMAND "" 
     )
+  add_subdirectory( ${COLLECT_FIDUCIALS_SRC_DIR} ${COLLECT_FIDUCIALS_DIR} )
 ENDIF( MODULE_COLLECT_FIDUCIALS_ENABLE )
 
-#-----------------------------------------------------------------------------
+
+
 IF( MODULE_CREATE_MODELS_ENABLE )
-  SET (MODULE_CREATE_MODELS_REPOSITORY "https://github.com/SlicerIGT/CreateModels.git" CACHE STRING "URL for the CreateModels repository")
-  SET (CREATE_MODELS_SRC_DIR "${CMAKE_BINARY_DIR}/CreateModels")
-  SET (CREATE_MODELS_DIR "${CMAKE_BINARY_DIR}/CreateModels-bin" CACHE INTERNAL "Path to store CreateModels binaries")
+  set (MODULE_CREATE_MODELS_REPOSITORY "https://github.com/SlicerIGT/CreateModels.git" CACHE STRING "URL for the CreateModels repository")
+  set (CREATE_MODELS_SRC_DIR "${CMAKE_BINARY_DIR}/CreateModels")
+  set (CREATE_MODELS_DIR "${CMAKE_BINARY_DIR}/CreateModels-bin" CACHE INTERNAL "Path to store CreateModels binaries")
   ExternalProject_Add( CreateModels
     SOURCE_DIR "${CREATE_MODELS_SRC_DIR}"
     BINARY_DIR "${CREATE_MODELS_DIR}"
-    INSTALL_DIR "${CMAKE_BINARY_DIR}"
-    #--Download step--------------
     GIT_REPOSITORY "${MODULE_CREATE_MODELS_REPOSITORY}"
-    #--Configure step-------------
-    CMAKE_ARGS 
-        -DBUILD_SHARED_LIBS:BOOL=${CMAKE_BINARY_DIR} 
-        -DCMAKE_CXX_FLAGS:STRING=${ep_common_cxx_flags}
-        -DCMAKE_C_FLAGS:STRING=${ep_common_c_flags}
-        -DCMAKE_INSTALL_PREFIX:STRING=${CMAKE_BINARY_DIR}
-        -DSlicer_DIR:STRING=${Slicer_DIR}
-    #--Build step-----------------
-    #--Install step-----------------
+    CONFIGURE_COMMAND ""
+    BUILD_COMMAND ""
+    INSTALL_COMMAND "" 
     )
+  add_subdirectory( ${CREATE_MODELS_SRC_DIR} ${CREATE_MODELS_DIR} )
 ENDIF( MODULE_CREATE_MODELS_ENABLE )
 
-#-----------------------------------------------------------------------------
+
+
 IF( MODULE_PERK_EVALUATOR_ENABLE )
-  SET (MODULE_PERK_EVALUATOR_REPOSITORY "https://github.com/SlicerIGT/PerkEvaluator.git" CACHE STRING "URL for the PerkEvaluator repository")
-  SET (PERK_EVALUATOR_SRC_DIR "${CMAKE_BINARY_DIR}/PerkEvaluator")
-  SET (PERK_EVALUATOR_DIR "${CMAKE_BINARY_DIR}/PerkEvaluator-bin" CACHE INTERNAL "Path to store PerkEvaluator binaries")
+  set (MODULE_PERK_EVALUATOR_REPOSITORY "https://github.com/SlicerIGT/PerkEvaluator.git" CACHE STRING "URL for the PerkEvaluator repository")
+  set (PERK_EVALUATOR_SRC_DIR "${CMAKE_BINARY_DIR}/PerkEvaluator")
+  set (PERK_EVALUATOR_DIR "${CMAKE_BINARY_DIR}/PerkEvaluator-bin" CACHE INTERNAL "Path to store PerkEvaluator binaries")
   ExternalProject_Add( PerkEvaluator
     SOURCE_DIR "${PERK_EVALUATOR_SRC_DIR}"
     BINARY_DIR "${PERK_EVALUATOR_DIR}"
-    INSTALL_DIR "${CMAKE_BINARY_DIR}"
-    #--Download step--------------
     GIT_REPOSITORY "${MODULE_PERK_EVALUATOR_REPOSITORY}"
-    #--Configure step-------------
-    CMAKE_ARGS 
-        -DBUILD_SHARED_LIBS:BOOL=${CMAKE_BINARY_DIR} 
-        -DCMAKE_CXX_FLAGS:STRING=${ep_common_cxx_flags}
-        -DCMAKE_C_FLAGS:STRING=${ep_common_c_flags}
-        -DCMAKE_INSTALL_PREFIX:STRING=${CMAKE_BINARY_DIR}
-        -DSlicer_DIR:STRING=${Slicer_DIR}
-    #--Build step-----------------
-    #--Install step-----------------
+    CONFIGURE_COMMAND ""
+	  BUILD_COMMAND ""
+    INSTALL_COMMAND ""
     )
+  add_subdirectory( ${PERK_EVALUATOR_SRC_DIR} ${PERK_EVALUATOR_DIR} )
 ENDIF( MODULE_PERK_EVALUATOR_ENABLE )
 
 #-----------------------------------------------------------------------------
 IF( MODULE_TRANSFORM_RECORDER_ENABLE )
-  SET (MODULE_TRANSFORM_RECORDER_REPOSITORY "https://github.com/SlicerIGT/TransformRecorder.git" CACHE STRING "URL for the TransformRecorder repository")
-  SET (TRANSFORM_RECORDER_SRC_DIR "${CMAKE_BINARY_DIR}/TransformRecorder")
-  SET (TRANSFORM_RECORDER_DIR "${CMAKE_BINARY_DIR}/TransformRecorder-bin" CACHE INTERNAL "Path to store TransformRecorder binaries")
+  set (MODULE_TRANSFORM_RECORDER_REPOSITORY "https://github.com/SlicerIGT/TransformRecorder.git" CACHE STRING "URL for the TransformRecorder repository")
+  set (TRANSFORM_RECORDER_SRC_DIR "${CMAKE_BINARY_DIR}/TransformRecorder")
+  set (TRANSFORM_RECORDER_DIR "${CMAKE_BINARY_DIR}/TransformRecorder-bin" CACHE INTERNAL "Path to store TransformRecorder binaries")
   ExternalProject_Add( TransformRecorder
     SOURCE_DIR "${TRANSFORM_RECORDER_SRC_DIR}"
     BINARY_DIR "${TRANSFORM_RECORDER_DIR}"
-    INSTALL_DIR "${CMAKE_BINARY_DIR}"
-    #--Download step--------------
     GIT_REPOSITORY "${MODULE_TRANSFORM_RECORDER_REPOSITORY}"
-    #--Configure step-------------
-    CMAKE_ARGS 
-        -DBUILD_SHARED_LIBS:BOOL=${CMAKE_BINARY_DIR} 
-        -DCMAKE_CXX_FLAGS:STRING=${ep_common_cxx_flags}
-        -DCMAKE_C_FLAGS:STRING=${ep_common_c_flags}
-        -DCMAKE_INSTALL_PREFIX:STRING=${CMAKE_BINARY_DIR}
-        -DSlicer_DIR:STRING=${Slicer_DIR}
-    #--Build step-----------------
-    #--Install step-----------------
+    CONFIGURE_COMMAND ""
+	  BUILD_COMMAND ""
+    INSTALL_COMMAND ""
     )
+  add_subdirectory( ${TRANSFORM_RECORDER_SRC_DIR} ${TRANSFORM_RECORDER_DIR} )
 ENDIF( MODULE_TRANSFORM_RECORDER_ENABLE )
 
 #-----------------------------------------------------------------------------
 IF( MODULE_ULTRASOUND_SNAPSHOTS_ENABLE )
-  SET (MODULE_ULTRASOUND_SNAPSHOTS_REPOSITORY "https://github.com/SlicerIGT/UltrasoundSnapshots.git" CACHE STRING "URL for the UltrasoundSnapshots repository")
-  SET (ULTRASOUND_SNAPSHOTS_SRC_DIR "${CMAKE_BINARY_DIR}/UltrasoundSnapshots")
-  SET (ULTRASOUND_SNAPSHOTS_DIR "${CMAKE_BINARY_DIR}/UltrasoundSnapshots-bin" CACHE INTERNAL "Path to store UltrasoundSnapshots binaries")
+  set (MODULE_ULTRASOUND_SNAPSHOTS_REPOSITORY "https://github.com/SlicerIGT/UltrasoundSnapshots.git" CACHE STRING "URL for the UltrasoundSnapshots repository")
+  set (ULTRASOUND_SNAPSHOTS_SRC_DIR "${CMAKE_BINARY_DIR}/UltrasoundSnapshots")
+  set (ULTRASOUND_SNAPSHOTS_DIR "${CMAKE_BINARY_DIR}/UltrasoundSnapshots-bin" CACHE INTERNAL "Path to store UltrasoundSnapshots binaries")
   ExternalProject_Add( UltrasoundSnapshots
     SOURCE_DIR "${ULTRASOUND_SNAPSHOTS_SRC_DIR}"
     BINARY_DIR "${ULTRASOUND_SNAPSHOTS_DIR}"
     INSTALL_DIR "${CMAKE_BINARY_DIR}"
-    #--Download step--------------
     GIT_REPOSITORY "${MODULE_ULTRASOUND_SNAPSHOTS_REPOSITORY}"
-    #--Configure step-------------
-    CMAKE_ARGS 
-        -DBUILD_SHARED_LIBS:BOOL=${CMAKE_BINARY_DIR} 
-        -DCMAKE_CXX_FLAGS:STRING=${ep_common_cxx_flags}
-        -DCMAKE_C_FLAGS:STRING=${ep_common_c_flags}
-        -DCMAKE_INSTALL_PREFIX:STRING=${CMAKE_BINARY_DIR}
-        -DSlicer_DIR:STRING=${Slicer_DIR}
-    #--Build step-----------------
-    #--Install step-----------------
+    CONFIGURE_COMMAND ""
+	  BUILD_COMMAND ""
+    INSTALL_COMMAND ""
     )
+  add_subdirectory( ${ULTRASOUND_SNAPSHOTS_SRC_DIR} ${ULTRASOUND_SNAPSHOTS_DIR} )
 ENDIF( MODULE_ULTRASOUND_SNAPSHOTS_ENABLE )
 
 #-----------------------------------------------------------------------------
 IF( MODULE_TARGET_FIDUCIALS_ENABLE )
-  SET (MODULE_TARGET_FIDUCIALS_REPOSITORY "https://github.com/SlicerIGT/TargetFiducials.git" CACHE STRING "URL for the TargetFiducials repository")
-  SET (TARGET_FIDUCIALS_SRC_DIR "${CMAKE_BINARY_DIR}/TargetFiducials")
-  SET (TARGET_FIDUCIALS_DIR "${CMAKE_BINARY_DIR}/TargetFiducials-bin" CACHE INTERNAL "Path to store TargetFiducials binaries")
+  set (MODULE_TARGET_FIDUCIALS_REPOSITORY "https://github.com/SlicerIGT/TargetFiducials.git" CACHE STRING "URL for the TargetFiducials repository")
+  set (TARGET_FIDUCIALS_SRC_DIR "${CMAKE_BINARY_DIR}/TargetFiducials")
+  set (TARGET_FIDUCIALS_DIR "${CMAKE_BINARY_DIR}/TargetFiducials-bin" CACHE INTERNAL "Path to store TargetFiducials binaries")
   ExternalProject_Add( TargetFiducials
     SOURCE_DIR "${TARGET_FIDUCIALS_SRC_DIR}"
     BINARY_DIR "${TARGET_FIDUCIALS_DIR}"
-    INSTALL_DIR "${CMAKE_BINARY_DIR}"
-    #--Download step--------------
     GIT_REPOSITORY "${MODULE_TARGET_FIDUCIALS_REPOSITORY}"
-    #--Configure step-------------
-    CMAKE_ARGS 
-        -DBUILD_SHARED_LIBS:BOOL=${CMAKE_BINARY_DIR} 
-        -DCMAKE_CXX_FLAGS:STRING=${ep_common_cxx_flags}
-        -DCMAKE_C_FLAGS:STRING=${ep_common_c_flags}
-        -DCMAKE_INSTALL_PREFIX:STRING=${CMAKE_BINARY_DIR}
-        -DSlicer_DIR:STRING=${Slicer_DIR}
-    #--Build step-----------------
-    #--Install step-----------------
-    )
+    CONFIGURE_COMMAND ""
+	  BUILD_COMMAND ""
+    INSTALL_COMMAND ""
+	  )
+  add_subdirectory( ${TARGET_FIDUCIALS_SRC_DIR} ${TARGET_FIDUCIALS_DIR} )
 ENDIF( MODULE_TARGET_FIDUCIALS_ENABLE )
 
 #-----------------------------------------------------------------------------
 IF( MODULE_WORKFLOW_SEGMENTATION_ENABLE )
-  SET (MODULE_WORKFLOW_SEGMENTATION_REPOSITORY "https://github.com/SlicerIGT/WorkflowSegmentation.git" CACHE STRING "URL for the WorkflowSegmentation repository")
-  SET (WORKFLOW_SEGMENTATION_SRC_DIR "${CMAKE_BINARY_DIR}/WorkflowSegmentation")
-  SET (WORKFLOW_SEGMENTATION_DIR "${CMAKE_BINARY_DIR}/WorkflowSegmentation-bin" CACHE INTERNAL "Path to store WorkflowSegmentation binaries")
+  set (MODULE_WORKFLOW_SEGMENTATION_REPOSITORY "https://github.com/SlicerIGT/WorkflowSegmentation.git" CACHE STRING "URL for the WorkflowSegmentation repository")
+  set (WORKFLOW_SEGMENTATION_SRC_DIR "${CMAKE_BINARY_DIR}/WorkflowSegmentation")
+  set (WORKFLOW_SEGMENTATION_DIR "${CMAKE_BINARY_DIR}/WorkflowSegmentation-bin" CACHE INTERNAL "Path to store WorkflowSegmentation binaries")
   ExternalProject_Add( WorkflowSegmentation
     SOURCE_DIR "${WORKFLOW_SEGMENTATION_SRC_DIR}"
     BINARY_DIR "${WORKFLOW_SEGMENTATION_DIR}"
-    INSTALL_DIR "${CMAKE_BINARY_DIR}"
-    #--Download step--------------
     GIT_REPOSITORY "${MODULE_WORKFLOW_SEGMENTATION_REPOSITORY}"
-    #--Configure step-------------
-    CMAKE_ARGS 
-        -DBUILD_SHARED_LIBS:BOOL=${CMAKE_BINARY_DIR} 
-        -DCMAKE_CXX_FLAGS:STRING=${ep_common_cxx_flags}
-        -DCMAKE_C_FLAGS:STRING=${ep_common_c_flags}
-        -DCMAKE_INSTALL_PREFIX:STRING=${CMAKE_BINARY_DIR}
-        -DSlicer_DIR:STRING=${Slicer_DIR}
-    #--Build step-----------------
-    #--Install step-----------------
-    )
+    CONFIGURE_COMMAND ""
+	  BUILD_COMMAND ""
+    INSTALL_COMMAND ""
+	  )
+  add_subdirectory( ${WORKFLOW_SEGMENTATION_SRC_DIR} ${WORKFLOW_SEGMENTATION_DIR} )
 ENDIF( MODULE_WORKFLOW_SEGMENTATION_ENABLE )
 
 #-----------------------------------------------------------------------------
 IF( MODULE_SUPPLEMENTAL_DATA_ENABLE )
-  SET (MODULE_SUPPLEMENTAL_DATA_REPOSITORY "https://github.com/SlicerIGT/SupplementalData.git" CACHE STRING "URL for the SupplementalData repository")
-  SET (SUPPLEMENTAL_DATA_SRC_DIR "${CMAKE_BINARY_DIR}/SupplementalData")
+  set (MODULE_SUPPLEMENTAL_DATA_REPOSITORY "https://github.com/SlicerIGT/SupplementalData.git" CACHE STRING "URL for the SupplementalData repository")
+  set (SUPPLEMENTAL_DATA_SRC_DIR "${CMAKE_BINARY_DIR}/SupplementalData")
   ExternalProject_Add( SupplementalData
     SOURCE_DIR "${SUPPLEMENTAL_DATA_SRC_DIR}"
     BINARY_DIR ""
@@ -215,8 +169,8 @@ IF( MODULE_SUPPLEMENTAL_DATA_ENABLE )
 ENDIF( MODULE_SUPPLEMENTAL_DATA_ENABLE )
 
 IF( MODULE_DOCUMENTATION_ENABLE )
-  SET (MODULE_DOCUMENTATION_REPOSITORY "https://github.com/SlicerIGT/Documentation.git" CACHE STRING "URL for the Documentation repository")
-  SET (DOCUMENTATION_DATA_SRC_DIR "${CMAKE_BINARY_DIR}/Documentation")
+  set (MODULE_DOCUMENTATION_REPOSITORY "https://github.com/SlicerIGT/Documentation.git" CACHE STRING "URL for the Documentation repository")
+  set (DOCUMENTATION_DATA_SRC_DIR "${CMAKE_BINARY_DIR}/Documentation")
   ExternalProject_Add( Documentation
     SOURCE_DIR "${DOCUMENTATION_DATA_SRC_DIR}"
     BINARY_DIR ""
@@ -233,25 +187,20 @@ ENDIF( MODULE_DOCUMENTATION_ENABLE )
 
 #-----------------------------------------------------------------------------
 IF( MODULE_VOLUME_RESLICE_DRIVER_ENABLE )
-  SET (MODULE_VOLUME_RESLICE_DRIVER_REPOSITORY "https://github.com/SlicerIGT/VolumeResliceDriver.git" CACHE STRING "URL for the VolumeResliceDriver repository")
-  SET (VOLUME_RESLICE_DRIVER_SRC_DIR "${CMAKE_BINARY_DIR}/VolumeResliceDriver")
-  SET (VOLUME_RESLICE_DRIVER_DIR "${CMAKE_BINARY_DIR}/VolumeResliceDriver-bin" CACHE INTERNAL "Path to store VolumeResliceDriver binaries")
+  set (MODULE_VOLUME_RESLICE_DRIVER_REPOSITORY "https://github.com/SlicerIGT/VolumeResliceDriver.git" CACHE STRING "URL for the VolumeResliceDriver repository")
+  set (VOLUME_RESLICE_DRIVER_SRC_DIR "${CMAKE_BINARY_DIR}/VolumeResliceDriver")
+  set (VOLUME_RESLICE_DRIVER_DIR "${CMAKE_BINARY_DIR}/VolumeResliceDriver-bin" CACHE INTERNAL "Path to store VolumeResliceDriver binaries")
   ExternalProject_Add( VolumeResliceDriver
     SOURCE_DIR "${VOLUME_RESLICE_DRIVER_SRC_DIR}"
     BINARY_DIR "${VOLUME_RESLICE_DRIVER_DIR}"
     INSTALL_DIR "${CMAKE_BINARY_DIR}"
     #--Download step--------------
     GIT_REPOSITORY "${MODULE_VOLUME_RESLICE_DRIVER_REPOSITORY}"
-    #--Configure step-------------
-    CMAKE_ARGS 
-        -DBUILD_SHARED_LIBS:BOOL=${CMAKE_BINARY_DIR} 
-        -DCMAKE_CXX_FLAGS:STRING=${ep_common_cxx_flags}
-        -DCMAKE_C_FLAGS:STRING=${ep_common_c_flags}
-        -DCMAKE_INSTALL_PREFIX:STRING=${CMAKE_BINARY_DIR}
-        -DSlicer_DIR:STRING=${Slicer_DIR}
-    #--Build step-----------------
-    #--Install step-----------------
-    )
+    CONFIGURE_COMMAND ""
+	BUILD_COMMAND ""
+    INSTALL_COMMAND ""
+	)
+  add_subdirectory( ${VOLUME_RESLICE_DRIVER_SRC_DIR} ${VOLUME_RESLICE_DRIVER_DIR} )
 ENDIF( MODULE_VOLUME_RESLICE_DRIVER_ENABLE )
 
 #-----------------------------------------------------------------------------
