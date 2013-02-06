@@ -8,8 +8,10 @@ set(MODULE_TITLE "Volume Reslice Driver")
 string(TOUPPER ${MODULE_NAME} MODULE_NAME_UPPER)
 
 #-----------------------------------------------------------------------------
-find_package(Slicer REQUIRED)
-include(${Slicer_USE_FILE})
+if( NOT DEFINED SlicerIGT_SUPERBUILD )
+  find_package(Slicer REQUIRED)
+  include(${Slicer_USE_FILE})
+endif()
 
 #-----------------------------------------------------------------------------
 add_subdirectory(Logic)
