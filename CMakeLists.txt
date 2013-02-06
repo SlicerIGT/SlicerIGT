@@ -24,6 +24,8 @@ if(${EXTENSION_NAME}_SUPERBUILD)
   return()
 endif()
 
+message( STATUS "2222 * * * * * * * * * Slicer_DIR=${Slicer_DIR}" )
+
 set( MODULE_NAME ${EXTENSION_NAME} )
 set( MODULE_TITLE ${MODULE_NAME} )
 string( TOUPPER ${MODULE_NAME} MODULE_NAME_UPPER )

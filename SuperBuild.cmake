@@ -51,6 +51,7 @@ endforeach( proj )
 
 #SlicerMacroCheckExternalProjectDependency(inner)
 
+
 set(proj inner)
 ExternalProject_Add( ${proj}
   DOWNLOAD_COMMAND ""
@@ -77,8 +78,13 @@ ExternalProject_Add( ${proj}
     -DUltrasoundSnapshots_BINARY_DIR:PATH=${UltrasoundSnapshots_BINARY_DIR}      
     -DVolumeResliceDriver_SOURCE_DIR:PATH=${VolumeResliceDriver_SOURCE_DIR}
     -DVolumeResliceDriver_BINARY_DIR:PATH=${VolumeResliceDriver_BINARY_DIR}      
-    # Slicer
     -DSlicer_DIR:PATH=${Slicer_DIR}
+    -DCTK_DIR:PATH=${CTK_DIR}
+    -DQtTesting_DIR:PATH=${QtTesting_DIR}
+    -DITK_DIR:PATH=${ITK_DIR}
+    -DOpenIGTLink_DIR:PATH=${OpenIGTLink_DIR}
+    -DPYTHON_EXECUTABLE:PATH=${PYTHON_EXECUTABLE}
+    -DPYTHON_INCLUDE_DIR:PATH=${PYTHON_INCLUDE_DIR}
     -DMIDAS_PACKAGE_EMAIL:STRING=${MIDAS_PACKAGE_EMAIL}
     -DMIDAS_PACKAGE_API_KEY:STRING=${MIDAS_PACKAGE_API_KEY}    
     ${ep_cmake_args}
