@@ -21,26 +21,32 @@ OPTION(SLICERIGT_ENABLE_EXPERIMENTAL_MODULES "Enable the building of work-in-pro
 # Project dependencies
 #-----------------------------------------------------------------------------
 
-
-set(ep_cmake_args)
-foreach(dep ${EXTENSION_DEPENDS})
-  list(APPEND ep_cmake_args -D${dep}_DIR:PATH=${${dep}_DIR})
-endforeach()
-
-
+set(inner_DEPENDENCIES "CollectFiducialsDownload")
 
 set( proj CollectFiducials )
 
-set( ${proj}_DEPENDENCIES "" )
 set( ${proj}_SOURCE_DIR ${CMAKE_BINARY_DIR}/${proj} )
 set( ${proj}_BINARY_DIR ${${proj}_SOURCE_DIR}-build )
 
 ExternalProject_Add(
-  ${proj}
+  ${proj}Download
   GIT_REPOSITORY "https://github.com/SlicerIGT/CollectFiducials.git"
+  CONFIGURE_COMMAND ""
+  BUILD_COMMAND ""
+  TEST_COMMAND ""
   INSTALL_COMMAND ""
   SOURCE_DIR ${${proj}_SOURCE_DIR}
   BINARY_DIR ${${proj}_BINARY_DIR}
+  )
+
+#SlicerMacroCheckExternalProjectDependency(inner)
+
+set(proj inner)
+ExternalProject_Add(${proj}
+  DOWNLOAD_COMMAND ""
+  INSTALL_COMMAND ""
+  SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}
+  BINARY_DIR ${EXTENSION_BUILD_SUBDIRECTORY}
   CMAKE_GENERATOR ${gen}
   CMAKE_ARGS
     -DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}
@@ -52,12 +58,14 @@ ExternalProject_Add(
     -DADDITIONAL_CXX_FLAGS:STRING=${ADDITIONAL_CXX_FLAGS}
     -D${EXTENSION_NAME}_SUPERBUILD:BOOL=OFF
     -DEXTENSION_SUPERBUILD_BINARY_DIR:PATH=${${EXTENSION_NAME}_BINARY_DIR}
-    -DSLICERIGT_ENABLE_EXPERIMENTAL_MODULES:BOOL=${SLICERIGT_ENABLE_EXPERIMENTAL_MODULES} 
+    -DSLICERRT_ENABLE_EXPERIMENTAL_MODULES:BOOL=${SLICERRT_ENABLE_EXPERIMENTAL_MODULES} 
+    -DCollectFiducials_SOURCE_DIR:PATH=${CollectFiducials_SOURCE_DIR}
+    -DCollectFiducials_BINARY_DIR:PATH=${CollectFiducials_BINARY_DIR}     
     # Slicer
     -DSlicer_DIR:PATH=${Slicer_DIR}
     -DMIDAS_PACKAGE_EMAIL:STRING=${MIDAS_PACKAGE_EMAIL}
     -DMIDAS_PACKAGE_API_KEY:STRING=${MIDAS_PACKAGE_API_KEY}    
     ${ep_cmake_args}
-  DEPENDS ${${proj}_DEPENDENCIES}
+  DEPENDS
+    ${${proj}_DEPENDENCIES}
   )
-

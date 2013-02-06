@@ -1,6 +1,3 @@
-include( ExternalProject )
-set( ep_base "${CMAKE_BINARY_DIR}" )
-
 cmake_minimum_required( VERSION 2.8.7 )
 
 set( EXTENSION_NAME SlicerIGT )
@@ -31,7 +28,7 @@ set( MODULE_NAME ${EXTENSION_NAME} )
 set( MODULE_TITLE ${MODULE_NAME} )
 string( TOUPPER ${MODULE_NAME} MODULE_NAME_UPPER )
 
-add_subdirectory( ${CollectFiducials_SOURCE_DIR} ${CollectFiducials_BINARY_DIR} )
+add_subdirectory( ${CollectFiducials_SOURCE_DIR} ${CollectFiducials_BINARY_DIR})
 
 set(CPACK_INSTALL_CMAKE_PROJECTS "${CPACK_INSTALL_CMAKE_PROJECTS};${CMAKE_BINARY_DIR};${EXTENSION_NAME};ALL;/")
 
