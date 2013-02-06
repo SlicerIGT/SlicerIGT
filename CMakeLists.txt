@@ -28,7 +28,10 @@ set( MODULE_NAME ${EXTENSION_NAME} )
 set( MODULE_TITLE ${MODULE_NAME} )
 string( TOUPPER ${MODULE_NAME} MODULE_NAME_UPPER )
 
-add_subdirectory( ${CollectFiducials_SOURCE_DIR} ${CollectFiducials_BINARY_DIR})
+add_subdirectory( ${CollectFiducials_SOURCE_DIR} ${CollectFiducials_BINARY_DIR} )
+add_subdirectory( ${CreateModels_SOURCE_DIR} ${CreateModels_BINARY_DIR} )
+add_subdirectory( ${UltrasoundSnapshots_SOURCE_DIR} ${UltrasoundSnapshots_BINARY_DIR} )
+add_subdirectory( ${VolumeResliceDriver_SOURCE_DIR} ${VolumeResliceDriver_BINARY_DIR} )
 
 set(CPACK_INSTALL_CMAKE_PROJECTS "${CPACK_INSTALL_CMAKE_PROJECTS};${CMAKE_BINARY_DIR};${EXTENSION_NAME};ALL;/")
 
