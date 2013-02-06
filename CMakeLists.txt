@@ -10,7 +10,7 @@ set( EXTENSION_CATEGORY "IGT" )
 set( EXTENSION_CONTRIBUTORS "Tamas Ungi (Queen's University), Junichi Tokuda (Brigham and Women's Hospital), Adam Rankin (Queen's University)" )
 set( EXTENSION_DESCRIPTION "Extensions for image-guided interventions" )
 set( EXTENSION_ICONURL "http://www.slicer.org/slicerWiki/images/2/2b/SlicerIGTLogo.png" )
-set( EXTENSION_SCREENSHOTURLS "http://wiki.slicer.org/slicerWiki/images/b/bf/PerkNavScreenshot.png" )
+set( EXTENSION_SCREENSHOTURLS "http://www.slicer.org/slicerWiki/images/7/78/SlicerIGTScreenshot.png" )
 set( EXTENSION_DEPENDS "NA") # Specified as a space separated list or 'NA' if any
 set( EXTENSION_BUILD_SUBDIRECTORY inner-build )
 
