@@ -21,8 +21,6 @@
 #include "vtkSmartPointer.h"
 #include "vtkMRMLSliceNode.h"
 #include "vtkMRMLViewNode.h"
-#include "vtkMRMLLinearTransformNode.h"
-#include "vtkMRMLScalarVolumeNode.h"
 
 // MRMLLogic includes
 #include "vtkMRMLLayoutLogic.h"
