@@ -59,8 +59,7 @@ public:
 
   virtual void init();
   void SetDriverNodeSelection( const char* nodeID );
-  void SetMethodSelection( int method );
-  void SetOrientationSelection( int orientation );
+  void SetModeSelection( int mode );
   
   QButtonGroup methodButtonGroup;
   QButtonGroup orientationButtonGroup;
@@ -96,34 +95,25 @@ qSlicerReslicePropertyWidgetPrivate
 void qSlicerReslicePropertyWidgetPrivate
 ::setupPopupUi()
 {
-  Q_Q(qSlicerReslicePropertyWidget);
+  //Q_Q(qSlicerReslicePropertyWidget);
 
   this->Superclass::setupPopupUi();
   this->PopupWidget->setAlignment(Qt::AlignBottom | Qt::AlignLeft);
   this->Ui_qSlicerReslicePropertyWidget::setupUi(this->PopupWidget);
 
-  this->methodButtonGroup.addButton(this->positionRadioButton, vtkSlicerVolumeResliceDriverLogic::METHOD_POSITION);
-  this->methodButtonGroup.addButton(this->orientationRadioButton, vtkSlicerVolumeResliceDriverLogic::METHOD_ORIENTATION);
-  this->positionRadioButton->setChecked(true);
-  this->orientationButtonGroup.addButton(this->inPlaneRadioButton, vtkSlicerVolumeResliceDriverLogic::ORIENTATION_INPLANE);
-  this->orientationButtonGroup.addButton(this->inPlane90RadioButton, vtkSlicerVolumeResliceDriverLogic::ORIENTATION_INPLANE90);
-  this->orientationButtonGroup.addButton(this->transverseRadioButton, vtkSlicerVolumeResliceDriverLogic::ORIENTATION_TRANSVERSE);
-  this->inPlaneRadioButton->setChecked(true);
 }
-
 
 
 void qSlicerReslicePropertyWidgetPrivate
 ::init()
 {
-  Q_Q(qSlicerReslicePropertyWidget);
+  //Q_Q(qSlicerReslicePropertyWidget);
   
   this->Superclass::init();
   this->ViewLabel->setText(qSlicerReslicePropertyWidget::tr("1"));
   this->BarLayout->addStretch(1);
   this->setColor(qMRMLColors::threeDViewBlue());
 }
-
 
 
 void qSlicerReslicePropertyWidgetPrivate
@@ -133,21 +123,11 @@ void qSlicerReslicePropertyWidgetPrivate
 }
 
 
-
 void qSlicerReslicePropertyWidgetPrivate
-::SetMethodSelection( int method )
+::SetModeSelection( int mode )
 {
-  this->methodButtonGroup.button( method )->setChecked( true );
+  this->modeComboBox->setCurrentIndex( mode );
 }
-
-
-
-void qSlicerReslicePropertyWidgetPrivate
-::SetOrientationSelection( int orientation )
-{
-  this->orientationButtonGroup.button( orientation )->setChecked( true );
-}
-
 
 
 qSlicerReslicePropertyWidget
@@ -161,16 +141,14 @@ qSlicerReslicePropertyWidget
 }
 
 
-
 qSlicerReslicePropertyWidget
 ::~qSlicerReslicePropertyWidget()
 {
   if ( this->Logic != NULL )
-  {
+    {
     this->Logic = NULL;
-  }
+    }
 }
-
 
 
 void qSlicerReslicePropertyWidget
@@ -180,7 +158,6 @@ void qSlicerReslicePropertyWidget
   
   d->ViewLabel->setText(newSliceViewName);
 }
-
 
 
 void qSlicerReslicePropertyWidget
@@ -199,33 +176,23 @@ void qSlicerReslicePropertyWidget
   Q_D(qSlicerReslicePropertyWidget);
   
   if ( newSliceNode == NULL )
-  {
+    {
     return;
-  }
-  
+    }
   
   QObject::disconnect(d->driverNodeSelector, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(setDriverNode(vtkMRMLNode*)));
-  QObject::disconnect(d->positionRadioButton, SIGNAL(clicked()), this, SLOT(onMethodChanged()));
-  QObject::disconnect(d->orientationRadioButton, SIGNAL(clicked()), this, SLOT(onMethodChanged()));
-  QObject::disconnect(d->inPlaneRadioButton, SIGNAL(clicked()), this, SLOT(onOrientationChanged()));
-  QObject::disconnect(d->inPlane90RadioButton, SIGNAL(clicked()), this, SLOT(onOrientationChanged()));
-  QObject::disconnect(d->transverseRadioButton, SIGNAL(clicked()), this, SLOT(onOrientationChanged()));
+  QObject::disconnect(d->modeComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(onModeChanged(int)));
   
   d->sliceNode = newSliceNode;
   
   if ( newSliceNode->GetScene() )
-  {
+    {
     this->setMRMLScene( newSliceNode->GetScene() );
-  }
+    }
   
   QObject::connect(d->driverNodeSelector, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(setDriverNode(vtkMRMLNode*)));
-  QObject::connect(d->positionRadioButton, SIGNAL(clicked()), this, SLOT(onMethodChanged()));
-  QObject::connect(d->orientationRadioButton, SIGNAL(clicked()), this, SLOT(onMethodChanged()));
-  QObject::connect(d->inPlaneRadioButton, SIGNAL(clicked()), this, SLOT(onOrientationChanged()));
-  QObject::connect(d->inPlane90RadioButton, SIGNAL(clicked()), this, SLOT(onOrientationChanged()));
-  QObject::connect(d->transverseRadioButton, SIGNAL(clicked()), this, SLOT(onOrientationChanged()));
+  QObject::connect(d->modeComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(onModeChanged(int)));
 }
-
 
 
 void qSlicerReslicePropertyWidget
@@ -235,15 +202,14 @@ void qSlicerReslicePropertyWidget
 
   
   if (d->scene != newScene)
-  {
+    {
     d->scene = newScene;
     if (d->driverNodeSelector)
-    {
+      {
       d->driverNodeSelector->setMRMLScene(newScene);
+      }
     }
-  }
 }
-
 
 
 void qSlicerReslicePropertyWidget
@@ -252,40 +218,29 @@ void qSlicerReslicePropertyWidget
   Q_D(qSlicerReslicePropertyWidget);
   
   if ( d->sliceNode == NULL )
-  {
+    {
     return;
-  }
+    }
   
   if ( newNode == NULL )
-  {
+    {
     this->Logic->SetDriverForSlice( "", d->sliceNode );
-  }
+    }
   else
-  {
+    {
     this->Logic->SetDriverForSlice( newNode->GetID(), d->sliceNode );
-  }
+    }
 }
-
 
 
 void qSlicerReslicePropertyWidget
-::onMethodChanged()
+::onModeChanged(int m)
 {
   Q_D(qSlicerReslicePropertyWidget);
-  
-  this->Logic->SetMethodForSlice( d->methodButtonGroup.checkedId(), d->sliceNode );
+
+  this->Logic->SetModeForSlice( m, d->sliceNode );
+
 }
-
-
-
-void qSlicerReslicePropertyWidget
-::onOrientationChanged()
-{
-  Q_D(qSlicerReslicePropertyWidget);
-  
-  this->Logic->SetOrientationForSlice( d->orientationButtonGroup.checkedId(), d->sliceNode );
-}
-
 
 
 void qSlicerReslicePropertyWidget
@@ -294,37 +249,25 @@ void qSlicerReslicePropertyWidget
   Q_D(qSlicerReslicePropertyWidget);
   
   if ( d->sliceNode == NULL )
-  {
+    {
     d->SetDriverNodeSelection( NULL );
     return;
-  }
+    }
   
   const char* driverCC = d->sliceNode->GetAttribute( VOLUMERESLICEDRIVER_DRIVER_ATTRIBUTE );
   d->SetDriverNodeSelection( driverCC );
   
-  const char* methodCC = d->sliceNode->GetAttribute( VOLUMERESLICEDRIVER_METHOD_ATTRIBUTE );
-  if ( methodCC == NULL )
-  {
-    d->SetMethodSelection( this->Logic->METHOD_POSITION );
-  }
+  const char* modeCC = d->sliceNode->GetAttribute( VOLUMERESLICEDRIVER_MODE_ATTRIBUTE );
+  if ( modeCC == NULL )
+    {
+    d->SetModeSelection( this->Logic->MODE_NONE );
+    }
   else
-  {
-    std::stringstream methodSS( methodCC );
-    int method = this->Logic->METHOD_POSITION;
-    methodSS >> method;
-    d->SetMethodSelection( method );
-  }
-  
-  const char* orientationCC = d->sliceNode->GetAttribute( VOLUMERESLICEDRIVER_ORIENTATION_ATTRIBUTE );
-  if ( orientationCC == NULL )
-  {
-    d->SetOrientationSelection( this->Logic->ORIENTATION_INPLANE );
-  }  
-  else
-  {
-    std::stringstream orientationSS( orientationCC );
-    int orientation = this->Logic->ORIENTATION_INPLANE;
-    orientationSS >> orientation;
-    d->SetOrientationSelection( orientation );
-  }
+    {
+    std::stringstream modeSS( modeCC );
+    int mode = this->Logic->MODE_NONE;
+    modeSS >> mode;
+    d->SetModeSelection( mode );
+    }
+
 }

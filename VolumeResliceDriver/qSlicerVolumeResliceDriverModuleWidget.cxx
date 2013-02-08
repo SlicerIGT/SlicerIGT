@@ -96,15 +96,15 @@ void qSlicerVolumeResliceDriverModuleWidgetPrivate
 ::createController( vtkMRMLNode *n, qSlicerLayoutManager *layoutManager )
 {
   if (this->WidgetMap.find(n) != this->WidgetMap.end())
-  {
+    {
     qDebug() << "qSlicerVolumeResliceDriverModuleWidgetPrivate::createController - Node already added to module";
     return;
-  }
+    }
 
   // create the ControllerWidget and wire it to the appropriate node
   vtkMRMLSliceNode *sn = vtkMRMLSliceNode::SafeDownCast(n);
   if (sn)
-  {
+    {
     qSlicerReslicePropertyWidget *widget = new qSlicerReslicePropertyWidget( this->logic(), this->resliceCollapsibleButton );
     //widget->setSliceViewName( sn->GetName() ); // call before setting slice node
     widget->setSliceViewName( sn->GetLayoutLabel() );
@@ -116,7 +116,7 @@ void qSlicerVolumeResliceDriverModuleWidgetPrivate
     this->WidgetMap[n] = widget;
     
     this->logic()->InvokeEvent( vtkCommand::ModifiedEvent );
-  }
+    }
 }
 
 //-----------------------------------------------------------------------------
@@ -278,9 +278,9 @@ void qSlicerVolumeResliceDriverModuleWidget::onLayoutChanged(int)
   Q_D(qSlicerVolumeResliceDriverModuleWidget);
 
   if (!this->mrmlScene() || this->mrmlScene()->IsBatchProcessing())
-  {
+    {
     return;
-  }
+    }
 
   qDebug() << "qSlicerVolumeResliceDriverModuleWidget::onLayoutChanged";
 
@@ -289,14 +289,14 @@ void qSlicerVolumeResliceDriverModuleWidget::onLayoutChanged(int)
 
   qSlicerApplication * app = qSlicerApplication::application();
   if (!app)
-  {
+    {
     return;
-  }
+    }
   qSlicerLayoutManager * layoutManager = app->layoutManager();
   if (!layoutManager)
-  {
+    {
     return;
-  }
+    }
   
   vtkMRMLLayoutLogic *layoutLogic = layoutManager->layoutLogic();
   vtkCollection *visibleViews = layoutLogic->GetViewNodes();
@@ -305,32 +305,32 @@ void qSlicerVolumeResliceDriverModuleWidget::onLayoutChanged(int)
   // the layout
   qSlicerVolumeResliceDriverModuleWidgetPrivate::WidgetMapType::iterator cit;
   for (cit = d->WidgetMap.begin(); cit != d->WidgetMap.end(); ++cit)
-  {
+    {
     // is mananaged Node not currently displayed in the layout?
     if (!visibleViews->IsItemPresent((*cit).first))
-    {
+      {
       // hide it
       (*cit).second->hide();
+      }
     }
-  }
 
   // show Controllers for Nodes not currently being managed
   // by this widget
   vtkObject *v;
   for (visibleViews->InitTraversal(); (v = visibleViews->GetNextItemAsObject());)
-  {
+    {
     vtkMRMLNode *vn = vtkMRMLNode::SafeDownCast(v);
     if (vn)
-    {
+      {
       // find the controller
       qSlicerVolumeResliceDriverModuleWidgetPrivate::WidgetMapType::iterator cit = d->WidgetMap.find(vn);
       if (cit != d->WidgetMap.end())
-      {
+        {
         // show it
         (*cit).second->show();
+        }
       }
     }
-  }
   
   visibleViews->Delete();
 }

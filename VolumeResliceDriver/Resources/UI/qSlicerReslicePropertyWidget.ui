@@ -12,7 +12,7 @@
   </property>
   <property name="sizePolicy">
    <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
-    <horstretch>0</horstretch>
+    <horstretch>1</horstretch>
     <verstretch>0</verstretch>
    </sizepolicy>
   </property>
@@ -28,12 +28,24 @@
   <property name="title" stdset="0">
    <string>GroupBox</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout">
+  <layout class="QVBoxLayout" name="verticalLayout" stretch="0">
+   <property name="sizeConstraint">
+    <enum>QLayout::SetMaximumSize</enum>
+   </property>
    <property name="margin">
     <number>0</number>
    </property>
    <item>
     <layout class="QFormLayout" name="formLayout">
+     <property name="sizeConstraint">
+      <enum>QLayout::SetMaximumSize</enum>
+     </property>
+     <property name="fieldGrowthPolicy">
+      <enum>QFormLayout::ExpandingFieldsGrow</enum>
+     </property>
+     <property name="margin">
+      <number>5</number>
+     </property>
      <item row="0" column="0">
       <widget class="QLabel" name="driverLabel">
        <property name="text">
@@ -42,83 +54,78 @@
       </widget>
      </item>
      <item row="0" column="1">
-      <widget class="qMRMLNodeComboBox" name="driverNodeSelector" native="true">
-       <property name="nodeTypes" stdset="0">
+      <widget class="qMRMLNodeComboBox" name="driverNodeSelector">
+       <property name="nodeTypes">
         <stringlist>
          <string>vtkMRMLLinearTransformNode</string>
          <string>vtkMRMLScalarVolumeNode</string>
         </stringlist>
        </property>
-       <property name="selectNodeUponCreation" stdset="0">
+       <property name="selectNodeUponCreation">
         <bool>true</bool>
        </property>
-       <property name="addEnabled" stdset="0">
-        <bool>false</bool>
-       </property>
-       <property name="removeEnabled" stdset="0">
-        <bool>false</bool>
-       </property>
-       <property name="noneEnabled" stdset="0">
+       <property name="noneEnabled">
         <bool>true</bool>
+       </property>
+       <property name="addEnabled">
+        <bool>false</bool>
+       </property>
+       <property name="removeEnabled">
+        <bool>false</bool>
        </property>
       </widget>
      </item>
      <item row="1" column="0">
-      <widget class="QLabel" name="mehodLabel">
+      <widget class="QLabel" name="label">
        <property name="text">
-        <string>Method:</string>
+        <string>Mode:</string>
        </property>
       </widget>
      </item>
      <item row="1" column="1">
-      <layout class="QHBoxLayout" name="methodLayout">
-       <item>
-        <widget class="QRadioButton" name="positionRadioButton">
-         <property name="text">
-          <string>Position</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QRadioButton" name="orientationRadioButton">
-         <property name="text">
-          <string>Posiion and Orientation</string>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </item>
-     <item row="2" column="0">
-      <widget class="QLabel" name="orientationLabel">
-       <property name="text">
-        <string>Orientation:</string>
+      <widget class="QComboBox" name="modeComboBox">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
        </property>
+       <item>
+        <property name="text">
+         <string>Off</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Axial</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Sagittal</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Coronal</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Inplane</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Inplane 90</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Transverse</string>
+        </property>
+       </item>
       </widget>
-     </item>
-     <item row="2" column="1">
-      <layout class="QHBoxLayout" name="orientationLayout">
-       <item>
-        <widget class="QRadioButton" name="inPlaneRadioButton">
-         <property name="text">
-          <string>In-plane</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QRadioButton" name="inPlane90RadioButton">
-         <property name="text">
-          <string>In-plane 90</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QRadioButton" name="transverseRadioButton">
-         <property name="text">
-          <string>Transverse</string>
-         </property>
-        </widget>
-       </item>
-      </layout>
      </item>
     </layout>
    </item>
