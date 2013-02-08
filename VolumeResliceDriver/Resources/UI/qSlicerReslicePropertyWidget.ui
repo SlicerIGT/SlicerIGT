@@ -59,6 +59,7 @@
         <stringlist>
          <string>vtkMRMLLinearTransformNode</string>
          <string>vtkMRMLScalarVolumeNode</string>
+         <string>vtkMRMLAnnotationRulerNode</string>
         </stringlist>
        </property>
        <property name="selectNodeUponCreation">
