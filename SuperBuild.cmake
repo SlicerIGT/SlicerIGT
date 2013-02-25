@@ -28,6 +28,7 @@ set( SlicerIGT_Modules
   CreateModels
   UltrasoundSnapshots
   VolumeResliceDriver
+  OpenIGTLinkRemote
   )
 
   

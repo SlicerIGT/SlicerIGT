@@ -24,7 +24,8 @@ if(${EXTENSION_NAME}_SUPERBUILD)
   return()
 endif()
 
-message( STATUS "2222 * * * * * * * * * Slicer_DIR=${Slicer_DIR}" )
+message( STATUS "OpenIGTLink remote dirs: "${OpenIGTLinkRemote_SOURCE_DIR}" -- "${OpenIGTLinkRemote_BINARY_DIR} )
+message( STATUS "CreateModels remote dirs: "${CreateModels_SOURCE_DIR}" -- "${CreateModels_BINARY_DIR} )
 
 set( MODULE_NAME ${EXTENSION_NAME} )
 set( MODULE_TITLE ${MODULE_NAME} )
@@ -32,6 +33,7 @@ string( TOUPPER ${MODULE_NAME} MODULE_NAME_UPPER )
 
 add_subdirectory( ${CollectFiducials_SOURCE_DIR} ${CollectFiducials_BINARY_DIR} )
 add_subdirectory( ${CreateModels_SOURCE_DIR} ${CreateModels_BINARY_DIR} )
+add_subdirectory( ${OpenIGTLinkRemote_SOURCE_DIR} ${OpenIGTLinkRemote_BINARY_DIR} )
 add_subdirectory( ${UltrasoundSnapshots_SOURCE_DIR} ${UltrasoundSnapshots_BINARY_DIR} )
 add_subdirectory( ${VolumeResliceDriver_SOURCE_DIR} ${VolumeResliceDriver_BINARY_DIR} )
 
