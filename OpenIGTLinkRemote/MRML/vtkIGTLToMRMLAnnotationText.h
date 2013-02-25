@@ -1,6 +1,5 @@
-
-#ifndef __vtkIGTLToMRMLRemoteExec_h
-#define __vtkIGTLToMRMLRemoteExec_h
+#ifndef __vtkIGTLToMRMLAnnotationText_h
+#define __vtkIGTLToMRMLAnnotationText_h
 
 #include "vtkObject.h"
 #include "vtkMRMLNode.h"
@@ -11,12 +10,12 @@
 
 
 
-class VTK_SLICER_OPENIGTLINKREMOTE_MODULE_MRML_EXPORT vtkIGTLToMRMLRemoteExec : public vtkIGTLToMRMLBase
+class VTK_SLICER_OPENIGTLINKREMOTE_MODULE_MRML_EXPORT vtkIGTLToMRMLAnnotationText : public vtkIGTLToMRMLBase
 {
  public:
 
-  static vtkIGTLToMRMLRemoteExec *New();
-  vtkTypeRevisionMacro(vtkIGTLToMRMLRemoteExec,vtkObject);
+  static vtkIGTLToMRMLAnnotationText *New();
+  vtkTypeRevisionMacro(vtkIGTLToMRMLAnnotationText,vtkObject);
 
   void PrintSelf(ostream& os, vtkIndent indent);
 
@@ -37,8 +36,8 @@ class VTK_SLICER_OPENIGTLINKREMOTE_MODULE_MRML_EXPORT vtkIGTLToMRMLRemoteExec : 
 
  
  protected:
-  vtkIGTLToMRMLRemoteExec();
-  ~vtkIGTLToMRMLRemoteExec();
+  vtkIGTLToMRMLAnnotationText();
+  ~vtkIGTLToMRMLAnnotationText();
 
  protected:
   //BTX
