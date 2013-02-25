@@ -5,7 +5,7 @@ set( EXTENSION_NAME SlicerIGT )
 set( EXTENSION_HOMEPAGE "http://slicerigt.github.com/" )
 set( EXTENSION_CATEGORY "IGT" )
 set( EXTENSION_CONTRIBUTORS "Tamas Ungi, Andras Lasso, Adam Rankin (Queen's University), Junichi Tokuda (Brigham and Women's Hospital)" )
-set( EXTENSION_DESCRIPTION "Extensions for image-guided interventions" )
+set( EXTENSION_DESCRIPTION "This extension contains modules that enable rapid prototyping of applications for image-guided interventions. Intended users should have real-time imaging and/or tracking hardware (e.g. tracked ultrasound) connected to 3D Slicer through OpenIGTLink network. Specific modules allow patient registration to the navigation coordinate system in 3D Slicer, and real-time update of tracked models and images." )
 set( EXTENSION_ICONURL "http://www.slicer.org/slicerWiki/images/2/2b/SlicerIGTLogo.png" )
 set( EXTENSION_SCREENSHOTURLS "http://www.slicer.org/slicerWiki/images/7/78/SlicerIGTScreenshot.png" )
 set( EXTENSION_DEPENDS "NA") # Specified as a space separated list or 'NA' if any
@@ -23,9 +23,6 @@ if(${EXTENSION_NAME}_SUPERBUILD)
   include("${CMAKE_CURRENT_SOURCE_DIR}/SuperBuild.cmake")
   return()
 endif()
-
-message( STATUS "OpenIGTLink remote dirs: "${OpenIGTLinkRemote_SOURCE_DIR}" -- "${OpenIGTLinkRemote_BINARY_DIR} )
-message( STATUS "CreateModels remote dirs: "${CreateModels_SOURCE_DIR}" -- "${CreateModels_BINARY_DIR} )
 
 set( MODULE_NAME ${EXTENSION_NAME} )
 set( MODULE_TITLE ${MODULE_NAME} )
