@@ -5,8 +5,8 @@
 #include "vtkSlicerOpenIGTLinkIFLogic.h"
 
 // MRML includes
-#include "vtkMRMLRemoteExecNode.h"
-#include "vtkIGTLToMRMLRemoteExec.h"
+#include "vtkMRMLAnnotationTextNode.h"
+#include "vtkIGTLToMRMLAnnotationText.h"
 
 #include "vtkMRMLIGTLConnectorNode.h"
 
@@ -15,6 +15,8 @@
 
 // STD includes
 #include <cassert>
+#include <sstream>
+#include <string>
 
 
 
@@ -41,7 +43,8 @@ vtkSlicerOpenIGTLinkRemoteLogic
 ::vtkSlicerOpenIGTLinkRemoteLogic()
 {
   this->Internal = new vtkInternal;
-  this->CommandConverter = vtkIGTLToMRMLRemoteExec::New();
+  this->CommandConverter = vtkIGTLToMRMLAnnotationText::New();
+  this->CommandCounter = 0;
 }
 
 
@@ -92,9 +95,22 @@ void vtkSlicerOpenIGTLinkRemoteLogic
     return;
   }
   
-  // get RemoteExecNode from scene for connectorNode
-  // create if not found, but not observe.
+  // Create annotation text node for this command.
   
+  vtkSmartPointer< vtkMRMLAnnotationTextNode > newNode = vtkSmartPointer< vtkMRMLAnnotationTextNode >::New();
+  newNode->SetScene( this->GetMRMLScene() );
+  newNode->SetText( 0, strCommand.c_str(), 1, 0 );
+  
+  // Giving unique name to this new text node.
+  std::stringstream ss;
+  ss << "RC" << this->CommandCounter;
+  this->CommandCounter ++;
+  newNode->SetName( ss.str().c_str() );
+  
+  this->GetMRMLScene()->AddNode( newNode );
+  
+  connectorNode->RegisterOutgoingMRMLNode( newNode );
+  newNode->Modified();
 }
 
 
@@ -115,10 +131,6 @@ void vtkSlicerOpenIGTLinkRemoteLogic
 ::RegisterNodes()
 {
   assert(this->GetMRMLScene() != 0);
-  
-  vtkMRMLRemoteExecNode* node = vtkMRMLRemoteExecNode::New();
-  this->GetMRMLScene()->RegisterNodeClass( node );
-  node->Delete();
   
   // Register IGTL message converter.
   this->Internal->IFLogic->RegisterMessageConverter( this->CommandConverter );

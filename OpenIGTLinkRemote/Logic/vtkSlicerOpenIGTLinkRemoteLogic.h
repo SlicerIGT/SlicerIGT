@@ -35,7 +35,7 @@
 #include "vtkSlicerOpenIGTLinkRemoteModuleLogicExport.h"
 
 class vtkSlicerOpenIGTLinkIFLogic;
-class vtkIGTLToMRMLRemoteExec;
+class vtkIGTLToMRMLAnnotationText;
 
 
 
@@ -71,7 +71,9 @@ private:
   class vtkInternal;
   vtkInternal* Internal;
   
-  vtkIGTLToMRMLRemoteExec* CommandConverter;
+  vtkIGTLToMRMLAnnotationText* CommandConverter;
+  
+  int CommandCounter;
 };
 
 #endif

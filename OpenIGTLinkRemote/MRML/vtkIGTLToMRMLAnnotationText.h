@@ -21,7 +21,7 @@ class VTK_SLICER_OPENIGTLINKREMOTE_MODULE_MRML_EXPORT vtkIGTLToMRMLAnnotationTex
 
   virtual int          GetConverterType() { return TYPE_MULTI_IGTL_NAMES; };
   virtual const char*  GetIGTLName() { return "STRING"; };
-  virtual const char*  GetMRMLName() { return "RemoteExec"; };
+  virtual const char*  GetMRMLName() { return "AnnotationText"; };
   virtual vtkIntArray* GetNodeEvents();
   virtual vtkMRMLNode* CreateNewNode(vtkMRMLScene* scene, const char* name);
 
