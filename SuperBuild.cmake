@@ -36,7 +36,12 @@ foreach( proj ${SlicerIGT_Modules} )
   set( inner_DEPENDENCIES ${proj}Download ${inner_DEPENDENCIES} )
   set( ${proj}_SOURCE_DIR ${CMAKE_BINARY_DIR}/${proj} )
   set( ${proj}_BINARY_DIR ${${proj}_SOURCE_DIR}-build )
-  message( STATUS "Source: "${${proj}_SOURCE_DIR} )
+  
+  message( STATUS " *** " )
+  message( STATUS "Adding new module to superbulid:" )
+  message( STATUS ${proj}_SOURCE_DIR" = "${${proj}_SOURCE_DIR} )
+  message( STATUS ${proj}_BINARY_DIR" = "${${proj}_BINARY_DIR} )
+  
   ExternalProject_Add(
     ${proj}Download
     GIT_REPOSITORY "https://github.com/SlicerIGT/${proj}.git"
@@ -74,18 +79,14 @@ ExternalProject_Add( ${proj}
     -DCollectFiducials_SOURCE_DIR:PATH=${CollectFiducials_SOURCE_DIR}
     -DCollectFiducials_BINARY_DIR:PATH=${CollectFiducials_BINARY_DIR}
     -DCreateModels_SOURCE_DIR:PATH=${CreateModels_SOURCE_DIR}
-    -DCreateModels_BINARY_DIR:PATH=${CreateModels_BINARY_DIR}      
+    -DCreateModels_BINARY_DIR:PATH=${CreateModels_BINARY_DIR}
+    -DOpenIGTLinkRemote_SOURCE_DIR:PATH=${OpenIGTLinkRemote_SOURCE_DIR}
+    -DOpenIGTLinkRemote_BINARY_DIR:PATH=${OpenIGTLinkRemote_BINARY_DIR}      
     -DUltrasoundSnapshots_SOURCE_DIR:PATH=${UltrasoundSnapshots_SOURCE_DIR}
     -DUltrasoundSnapshots_BINARY_DIR:PATH=${UltrasoundSnapshots_BINARY_DIR}      
     -DVolumeResliceDriver_SOURCE_DIR:PATH=${VolumeResliceDriver_SOURCE_DIR}
     -DVolumeResliceDriver_BINARY_DIR:PATH=${VolumeResliceDriver_BINARY_DIR}      
     -DSlicer_DIR:PATH=${Slicer_DIR}
-    -DCTK_DIR:PATH=${CTK_DIR}
-    -DQtTesting_DIR:PATH=${QtTesting_DIR}
-    -DITK_DIR:PATH=${ITK_DIR}
-    -DOpenIGTLink_DIR:PATH=${OpenIGTLink_DIR}
-    -DPYTHON_EXECUTABLE:PATH=${PYTHON_EXECUTABLE}
-    -DPYTHON_INCLUDE_DIR:PATH=${PYTHON_INCLUDE_DIR}
     -DMIDAS_PACKAGE_EMAIL:STRING=${MIDAS_PACKAGE_EMAIL}
     -DMIDAS_PACKAGE_API_KEY:STRING=${MIDAS_PACKAGE_API_KEY}    
     ${ep_cmake_args}
