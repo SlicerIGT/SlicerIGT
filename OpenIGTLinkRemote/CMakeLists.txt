@@ -1,24 +1,13 @@
 cmake_minimum_required(VERSION 2.8.7)
 
 #-----------------------------------------------------------------------------
-if(NOT Slicer_SOURCE_DIR)
-  set(EXTENSION_NAME OpenIGTLinkRemote)
-  set(EXTENSION_HOMEPAGE "http://www.slicer.org/slicerWiki/index.php/Documentation/4.2/Extensions/OpenIGTLinkRemote")
-  set(EXTENSION_CATEGORY "Examples")
-  set(EXTENSION_CONTRIBUTORS "Jean-Christophe Fillion-Robin (Kitware)")
-  set(EXTENSION_DESCRIPTION "This is an example of extension bundling a loadable module")
-  set(EXTENSION_ICONURL "http://viewvc.slicer.org/viewvc.cgi/Slicer4/trunk/Extensions/Testing/OpenIGTLinkRemote/Resources/Icons/OpenIGTLinkRemote.png?revision=19437&view=co")
-  set(EXTENSION_SCREENSHOTURLS "http://wiki.slicer.org/slicerWiki/images/4/42/Slicer-r19441-OpenIGTLinkRemote-screenshot.png")
-endif()
-
-#-----------------------------------------------------------------------------
-set(MODULE_NAME OpenIGTLinkRemote)
-set(MODULE_TITLE ${MODULE_NAME})
+set(MODULE_NAME "OpenIGTLinkRemote" )
+set(MODULE_TITLE "OpenIGTLink Remote" )
 
 string(TOUPPER ${MODULE_NAME} MODULE_NAME_UPPER)
 
 #-----------------------------------------------------------------------------
-if(NOT Slicer_SOURCE_DIR)
+if( NOT DEFINED SlicerIGT_SUPERBUILD )
   find_package(Slicer REQUIRED)
   include(${Slicer_USE_FILE})
 endif()
@@ -85,6 +74,6 @@ if(BUILD_TESTING)
 endif()
 
 #-----------------------------------------------------------------------------
-if(NOT Slicer_SOURCE_DIR)
+if( NOT DEFINED SlicerIGT_SUPERBUILD )
   include(${Slicer_EXTENSION_CPACK})
 endif()
