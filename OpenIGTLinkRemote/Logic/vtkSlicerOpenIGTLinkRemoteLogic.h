@@ -50,6 +50,10 @@ public:
   void PrintSelf(ostream& os, vtkIndent indent);
   
   void SetIFLogic( vtkSlicerOpenIGTLinkIFLogic* ifLogic );
+  
+  int ExecuteCommand( const char* connectorNodeId, std::string commandName );
+  int GetCommandReply( int commandId );
+  
   void SendCommand( std::string strCommand, const char* connectorNodeId );
   
   

@@ -79,6 +79,26 @@ void vtkSlicerOpenIGTLinkRemoteLogic
 
 
 
+int vtkSlicerOpenIGTLinkRemoteLogic
+::ExecuteCommand( const char* connectorNodeId, std::string commandName )
+{
+  
+  return 0;
+}
+
+
+
+/**
+ * @returns status of the command reply
+ */
+int vtkSlicerOpenIGTLinkRemoteLogic
+::GetCommandReply( int commandId )
+{
+  
+  return 0;
+}
+
+
 void vtkSlicerOpenIGTLinkRemoteLogic
 ::SendCommand( std::string strCommand, const char* connectorNodeId )
 {

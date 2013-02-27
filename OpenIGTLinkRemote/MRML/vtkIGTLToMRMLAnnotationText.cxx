@@ -37,13 +37,11 @@ void vtkIGTLToMRMLAnnotationText::PrintSelf( ostream& os, vtkIndent indent )
 vtkMRMLNode* vtkIGTLToMRMLAnnotationText
 ::CreateNewNode( vtkMRMLScene* scene, const char* name )
 {
-  vtkMRMLAnnotationTextNode* annotationTextNode;
-
-  annotationTextNode = vtkMRMLAnnotationTextNode::New();
+  vtkSmartPointer< vtkMRMLAnnotationTextNode > annotationTextNode = vtkSmartPointer< vtkMRMLAnnotationTextNode >::New();
   annotationTextNode->SetName( name );
   annotationTextNode->SetDescription( "Created by OpenIGTLinkRemote module" );
-
-  scene->AddNode( annotationTextNode );  
+  
+  scene->AddNode( annotationTextNode );
 
   return annotationTextNode;
 }
@@ -66,6 +64,36 @@ vtkIntArray* vtkIGTLToMRMLAnnotationText
 int vtkIGTLToMRMLAnnotationText
 ::IGTLToMRML( igtl::MessageBase::Pointer buffer, vtkMRMLNode* node )
 {
+  vtkIGTLToMRMLBase::IGTLToMRML( buffer, node );
+  
+  if ( node == NULL )
+  {
+    return 0;
+  }
+  
+  // Create message buffer to receive data.
+  
+  igtl::StringMessage::Pointer stringMessage;
+  stringMessage = igtl::StringMessage::New();
+  stringMessage->Copy( buffer );
+  
+  int c = stringMessage->Unpack( this->CheckCRC );
+  
+  if ( ! ( c & igtl::MessageHeader::UNPACK_BODY ) )
+  {
+    vtkErrorMacro( "Incoming IGTL string message failed CRC check!" );
+    return 0;
+  }
+  
+  vtkMRMLAnnotationTextNode* textNode = vtkMRMLAnnotationTextNode::SafeDownCast( node );
+  if ( textNode == NULL )
+  {
+    vtkErrorMacro( "Could not convert node to AnnotationTextNode." );
+    return 0;
+  }
+  
+  textNode->SetText( 0, stringMessage->GetString(), 0, 0 );
+  
   return 1;
 }
 

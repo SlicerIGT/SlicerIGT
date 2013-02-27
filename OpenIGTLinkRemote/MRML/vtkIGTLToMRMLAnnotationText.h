@@ -19,7 +19,7 @@ class VTK_SLICER_OPENIGTLINKREMOTE_MODULE_MRML_EXPORT vtkIGTLToMRMLAnnotationTex
 
   void PrintSelf(ostream& os, vtkIndent indent);
 
-  virtual int          GetConverterType() { return TYPE_MULTI_IGTL_NAMES; };
+  virtual int          GetConverterType() { return TYPE_NORMAL; };
   virtual const char*  GetIGTLName() { return "STRING"; };
   virtual const char*  GetMRMLName() { return "AnnotationText"; };
   virtual vtkIntArray* GetNodeEvents();
