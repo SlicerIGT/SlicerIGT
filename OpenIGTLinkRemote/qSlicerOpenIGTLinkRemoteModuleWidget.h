@@ -23,8 +23,10 @@
 
 #include "qSlicerOpenIGTLinkRemoteModuleExport.h"
 
+class QTimer;
 class qSlicerOpenIGTLinkRemoteModuleWidgetPrivate;
 class vtkMRMLNode;
+
 
 /// \ingroup Slicer_QtModules_ExtensionTemplate
 class Q_SLICER_QTMODULES_OPENIGTLINKREMOTE_EXPORT qSlicerOpenIGTLinkRemoteModuleWidget :
@@ -42,6 +44,7 @@ public:
 protected slots:
   
   void OnSendCommandClicked();
+  void OnTimeout();
 
 
 protected:
@@ -52,6 +55,9 @@ protected:
 private:
   Q_DECLARE_PRIVATE(qSlicerOpenIGTLinkRemoteModuleWidget);
   Q_DISABLE_COPY(qSlicerOpenIGTLinkRemoteModuleWidget);
+  
+  QTimer* Timer;
+  int LastCommandId;  // Id of the last command sent from this widget.
 };
 
 #endif

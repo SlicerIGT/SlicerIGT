@@ -44,17 +44,25 @@ class VTK_SLICER_OPENIGTLINKREMOTE_MODULE_LOGIC_EXPORT vtkSlicerOpenIGTLinkRemot
   public vtkSlicerModuleLogic
 {
 public:
-
+  
+  enum
+  {
+    REPLY_SUCCESS,
+    REPLY_FAIL,
+    REPLY_WAITING
+  };
+  
   static vtkSlicerOpenIGTLinkRemoteLogic *New();
   vtkTypeMacro(vtkSlicerOpenIGTLinkRemoteLogic, vtkSlicerModuleLogic);
   void PrintSelf(ostream& os, vtkIndent indent);
   
   void SetIFLogic( vtkSlicerOpenIGTLinkIFLogic* ifLogic );
   
-  int ExecuteCommand( const char* connectorNodeId, std::string commandName );
-  int GetCommandReply( int commandId );
+  int ExecuteCommand( const char* connectorNodeId, std::string commandName, std::string parameters );
+  int GetCommandReply( int commandId, std::string &message );
+  void DiscardCommand( int commandId );
   
-  void SendCommand( std::string strCommand, const char* connectorNodeId );
+  int SendCommand( std::string strCommand, const char* connectorNodeId );
   
   
 protected:

@@ -1,6 +1,7 @@
 
 // Qt includes
 #include <QDebug>
+#include <QTimer>
 
 // SlicerQt includes
 #include "qSlicerOpenIGTLinkRemoteModuleWidget.h"
@@ -54,16 +55,21 @@ vtkSlicerOpenIGTLinkRemoteLogic * qSlicerOpenIGTLinkRemoteModuleWidgetPrivate
 
 
 
-qSlicerOpenIGTLinkRemoteModuleWidget::qSlicerOpenIGTLinkRemoteModuleWidget(QWidget* _parent)
+// Constructor
+qSlicerOpenIGTLinkRemoteModuleWidget
+::qSlicerOpenIGTLinkRemoteModuleWidget( QWidget* _parent )
   : Superclass( _parent )
   , d_ptr( new qSlicerOpenIGTLinkRemoteModuleWidgetPrivate( *this ) )
 {
+  this->Timer = new QTimer( this );
+  this->LastCommandId = 0;
 }
 
 
 
 qSlicerOpenIGTLinkRemoteModuleWidget::~qSlicerOpenIGTLinkRemoteModuleWidget()
 {
+  this->Timer->stop();
 }
 
 
@@ -75,6 +81,7 @@ void qSlicerOpenIGTLinkRemoteModuleWidget::setup()
   this->Superclass::setup();
   
   connect( d->SendCommandButton, SIGNAL( clicked() ), this, SLOT( OnSendCommandClicked() ) );
+  connect( this->Timer, SIGNAL( timeout() ), this, SLOT( OnTimeout() ) );
 }
 
 
@@ -87,13 +94,53 @@ void qSlicerOpenIGTLinkRemoteModuleWidget
   if ( node == NULL )
   {
     d->ReplyTextEdit->setPlainText( "Connector node not selected!" );
+    this->LastCommandId = 0;
     return;
   }
   
+  std::string commandString = d->CommandTextEdit->toPlainText().toStdString();
+  if ( commandString.size() < 1 )
+  {
+    d->ReplyTextEdit->setPlainText( "Please type command in the Command filed!" );
+    this->LastCommandId = 0;
+    return;
+  }
   
   // Logic sends command message.
-  d->logic()->SendCommand( d->CommandTextEdit->toPlainText().toStdString(), node->GetID() );
+  this->LastCommandId = d->logic()->SendCommand( d->CommandTextEdit->toPlainText().toStdString(), node->GetID() );
   
   d->CommandTextEdit->setPlainText( "" );
   d->ReplyTextEdit->setPlainText( "" );
+  
+  this->Timer->start( 100 );
+}
+
+
+
+void qSlicerOpenIGTLinkRemoteModuleWidget
+::OnTimeout()
+{
+  Q_D(qSlicerOpenIGTLinkRemoteModuleWidget);
+  
+  if ( this->LastCommandId == 0 )
+  {
+    return;
+  }
+  
+  std::string message;
+  int status = d->logic()->GetCommandReply( this->LastCommandId, message );
+  
+  if ( status == d->logic()->REPLY_WAITING )
+  {
+    d->ReplyTextEdit->setPlainText( "Waiting for reply..." );
+  }
+  else
+  {
+    d->ReplyTextEdit->setPlainText( QString( message.c_str() ) );
+  }
+  
+  if ( status != d->logic()->REPLY_WAITING )
+  {
+    d->logic()->DiscardCommand( this->LastCommandId );
+  }
 }
