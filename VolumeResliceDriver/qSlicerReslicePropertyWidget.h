@@ -66,8 +66,7 @@ public slots:
 protected slots:
   
   void setDriverNode(vtkMRMLNode * newNode);
-  void onMethodChanged();
-  void onOrientationChanged();
+  void onModeChanged(int);
   void onLogicModified();
   
   

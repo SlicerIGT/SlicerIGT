@@ -85,7 +85,7 @@ QString qSlicerVolumeResliceDriverModule::acknowledgementText()const
 QStringList qSlicerVolumeResliceDriverModule::contributors()const
 {
   QStringList moduleContributors;
-  moduleContributors << QString("Junichi Tokuda (Brigham and Women's Hospital)");
+  moduleContributors << QString("Junichi Tokuda (Brigham and Women's Hospital), Tamas Ungi (Queen's University)");
   // moduleContributors << QString("Richard Roe (Other organization Inc.)");
   // ...
   return moduleContributors;

@@ -22,6 +22,7 @@
 #include "vtkMRMLLinearTransformNode.h"
 #include "vtkMRMLScalarVolumeNode.h"
 #include "vtkMRMLSliceNode.h"
+#include "vtkMRMLAnnotationRulerNode.h"
 
 // VTK includes
 #include <vtkCollection.h>
@@ -77,17 +78,17 @@ void vtkSlicerVolumeResliceDriverLogic
 {
   vtkMRMLNode* node = this->GetMRMLScene()->GetNodeByID( nodeID );
   if ( node == NULL )
-  {
+    {
     sliceNode->RemoveAttribute( VOLUMERESLICEDRIVER_DRIVER_ATTRIBUTE );
     return;
-  }
+    }
   
   vtkMRMLTransformableNode* tnode = vtkMRMLTransformableNode::SafeDownCast( node );
   if ( tnode == NULL )
-  {
+    {
     sliceNode->RemoveAttribute( VOLUMERESLICEDRIVER_DRIVER_ATTRIBUTE );
     return;
-  }
+    }
   
   sliceNode->SetAttribute( VOLUMERESLICEDRIVER_DRIVER_ATTRIBUTE, nodeID.c_str() );
   this->AddObservedNode( tnode );
@@ -96,61 +97,32 @@ void vtkSlicerVolumeResliceDriverLogic
 }
 
 
-
 void vtkSlicerVolumeResliceDriverLogic
-::SetMethodForSlice( int method, vtkMRMLSliceNode* sliceNode )
+::SetModeForSlice( int mode, vtkMRMLSliceNode* sliceNode )
 {
   if ( sliceNode == NULL )
-  {
+    {
     return;
-  }
+    }
   
-  if ( method == this->METHOD_DEFAULT )
-  {
-    method = this->METHOD_POSITION;
-  }
-  
-  std::stringstream methodSS;
-  methodSS << method;
-  sliceNode->SetAttribute( VOLUMERESLICEDRIVER_METHOD_ATTRIBUTE, methodSS.str().c_str() );
+  std::stringstream modeSS;
+  modeSS << mode;
+  sliceNode->SetAttribute( VOLUMERESLICEDRIVER_MODE_ATTRIBUTE, modeSS.str().c_str() );
   
   this->UpdateSliceIfObserved( sliceNode );
 }
-
-
-
-void vtkSlicerVolumeResliceDriverLogic
-::SetOrientationForSlice( int orientation, vtkMRMLSliceNode* sliceNode )
-{
-  if ( sliceNode == NULL )
-  {
-    return;
-  }
-  
-  if ( orientation == this->ORIENTATION_DEFAULT )
-  {
-    orientation = this->ORIENTATION_INPLANE;
-  }
-  
-  std::stringstream orientationSS;
-  orientationSS << orientation;
-  sliceNode->SetAttribute( VOLUMERESLICEDRIVER_ORIENTATION_ATTRIBUTE, orientationSS.str().c_str() );
-  
-  this->UpdateSliceIfObserved( sliceNode );
-}
-
 
 
 void vtkSlicerVolumeResliceDriverLogic
 ::AddObservedNode( vtkMRMLTransformableNode* node )
 {
   for ( unsigned int i = 0; i < this->ObservedNodes.size(); ++ i )
-  {
-    if ( node == this->ObservedNodes[ i ] )
     {
+    if ( node == this->ObservedNodes[ i ] )
+      {
       return;
+      }
     }
-  }
   
   int wasModifying = this->StartModify();
   
@@ -172,9 +144,9 @@ void vtkSlicerVolumeResliceDriverLogic
 ::ClearObservedNodes()
 {
   for ( unsigned int i = 0; i < this->ObservedNodes.size(); ++ i )
-  {
+    {
     vtkSetAndObserveMRMLNodeMacro( this->ObservedNodes[ i ], 0 );
-  }
+    }
   
   this->ObservedNodes.clear();
 }
@@ -210,29 +182,29 @@ void vtkSlicerVolumeResliceDriverLogic
   vtkCollectionIterator* sliceIt = vtkCollectionIterator::New();
   sliceIt->SetCollection( sliceNodes );
   for ( sliceIt->InitTraversal(); ! sliceIt->IsDoneWithTraversal(); sliceIt->GoToNextItem() )
-  {
+    {
     vtkMRMLSliceNode* slice = vtkMRMLSliceNode::SafeDownCast( sliceIt->GetCurrentObject() );
     if ( slice == NULL )
-    {
+      {
       continue;
-    }
+      }
     const char* driverCC = slice->GetAttribute( VOLUMERESLICEDRIVER_DRIVER_ATTRIBUTE );
     if ( driverCC == NULL )
-    {
+      {
       continue;
-    }
+      }
     vtkMRMLNode* driverNode = this->GetMRMLScene()->GetNodeByID( driverCC );
     if ( driverNode == NULL )
-    {
+      {
       continue;
-    }
+      }
     vtkMRMLTransformableNode* driverTransformable = vtkMRMLTransformableNode::SafeDownCast( driverNode );
     if ( driverTransformable == NULL )
-    {
+      {
       continue;
-    }
+      }
     this->AddObservedNode( driverTransformable );
-  }
+    }
   sliceIt->Delete();
   sliceNodes->Delete();
   
@@ -254,7 +226,7 @@ void vtkSlicerVolumeResliceDriverLogic
 
 
 void vtkSlicerVolumeResliceDriverLogic
-::OnMRMLNodeModified( vtkMRMLNode* node )
+::OnMRMLNodeModified( vtkMRMLNode* vtkNotUsed(node) )
 {
   std::cout << "Observed node modified." << std::endl;
 }
@@ -265,51 +237,51 @@ void vtkSlicerVolumeResliceDriverLogic
 ::ProcessMRMLNodesEvents( vtkObject* caller, unsigned long event, void * callData )
 {
   if ( caller == NULL )
-  {
+    {
     return;
-  }
+    }
   
   if (    event != vtkMRMLTransformableNode::TransformModifiedEvent
        && event != vtkCommand::ModifiedEvent
        && event != vtkMRMLVolumeNode::ImageDataModifiedEvent )
-  {
+    {
     this->Superclass::ProcessMRMLNodesEvents( caller, event, callData );
-  }
+    }
   
   vtkMRMLTransformableNode* callerNode = vtkMRMLTransformableNode::SafeDownCast( caller );
   if ( callerNode == NULL )
-  {
+    {
     return;
-  }
+    }
   
   std::string callerNodeID( callerNode->GetID() );
   
-  vtkMRMLNode* node = 0;
+  //vtkMRMLNode* node = 0;
   std::vector< vtkMRMLSliceNode* > SlicesToDrive;
   
   vtkCollection* sliceNodes = this->GetMRMLScene()->GetNodesByClass( "vtkMRMLSliceNode" );
   vtkCollectionIterator* sliceIt = vtkCollectionIterator::New();
   sliceIt->SetCollection( sliceNodes );
   sliceIt->InitTraversal();
-  for ( unsigned int i = 0; i < sliceNodes->GetNumberOfItems(); ++ i )
-  {
+  for ( int i = 0; i < sliceNodes->GetNumberOfItems(); ++ i )
+    {
     vtkMRMLSliceNode* sliceNode = vtkMRMLSliceNode::SafeDownCast( sliceIt->GetCurrentObject() );
     sliceIt->GoToNextItem();
     const char* driverCC = sliceNode->GetAttribute( VOLUMERESLICEDRIVER_DRIVER_ATTRIBUTE );
     if (    sliceNode != NULL
          && driverCC != NULL
          && callerNodeID.compare( std::string( driverCC ) ) == 0 )
-    {
+      {
       SlicesToDrive.push_back( sliceNode );
+      }
     }
-  }
   sliceIt->Delete();
   sliceNodes->Delete();
   
   for ( unsigned int i = 0; i < SlicesToDrive.size(); ++ i )
-  {
+    {
     this->UpdateSliceByTransformableNode( callerNode, SlicesToDrive[ i ] );
-  }
+    }
 }
 
 
@@ -319,15 +291,21 @@ void vtkSlicerVolumeResliceDriverLogic
 {
   vtkMRMLLinearTransformNode* transformNode = vtkMRMLLinearTransformNode::SafeDownCast( tnode );
   if ( transformNode != NULL )
-  {
+    {
     this->UpdateSliceByTransformNode( transformNode, sliceNode );
-  }
+    }
   
   vtkMRMLScalarVolumeNode* imageNode = vtkMRMLScalarVolumeNode::SafeDownCast( tnode );
   if ( imageNode != NULL )
-  {
+    {
     this->UpdateSliceByImageNode( imageNode, sliceNode );
-  }
+    }
+
+  vtkMRMLAnnotationRulerNode* rulerNode = vtkMRMLAnnotationRulerNode::SafeDownCast( tnode );
+  if ( rulerNode != NULL )
+    {
+    this->UpdateSliceByRulerNode( rulerNode, sliceNode );
+    }
 }
 
 
@@ -336,17 +314,17 @@ void vtkSlicerVolumeResliceDriverLogic
 ::UpdateSliceByTransformNode( vtkMRMLLinearTransformNode* tnode, vtkMRMLSliceNode* sliceNode )
 {
   if ( ! tnode)
-  {
+    {
     return;
-  }
-
+    }
+  
   vtkSmartPointer< vtkMatrix4x4 > transform = vtkSmartPointer< vtkMatrix4x4 >::New();
   transform->Identity();
   int getTransf = tnode->GetMatrixTransformToWorld( transform );
   if( getTransf != 0 )
-  {
+    {
     this->UpdateSlice( transform, sliceNode );
-  }
+    }
 }
 
 
@@ -444,25 +422,99 @@ void vtkSlicerVolumeResliceDriverLogic
 }
 
 
+void Cross(double *a, double *b, double *c)
+{
+    a[0] = b[1]*c[2] - c[1]*b[2];
+    a[1] = c[0]*b[2] - b[0]*c[2];
+    a[2] = b[0]*c[1] - c[0]*b[1];
+}
+
+void vtkSlicerVolumeResliceDriverLogic
+::UpdateSliceByRulerNode( vtkMRMLAnnotationRulerNode* rnode, vtkMRMLSliceNode* sliceNode )
+{
+
+  vtkSmartPointer<vtkMatrix4x4> rulerTransform = vtkSmartPointer<vtkMatrix4x4>::New();
+  double position1[4];
+  double position2[4];
+  double t[3];
+  double s[3];
+  double n[3];
+  double nlen;
+
+  rnode->GetPositionWorldCoordinates1(position1);
+  rnode->GetPositionWorldCoordinates2(position2);
+
+  // Calculate <n> and normalize it.
+  n[0] = position1[0]-position2[0];
+  n[1] = position1[1]-position2[1];
+  n[2] = position1[2]-position2[2];
+  nlen = sqrt(n[0]*n[0] + n[1]*n[1] + n[2]*n[2]);
+  n[0] /= nlen;
+  n[1] /= nlen;
+  n[2] /= nlen;
+
+  // Check if <n> is not parallel to <s>=(0.0, 1.0, 0.0)
+  if (n[1] < 1.0)
+    {
+    s[0] = 0.0;
+    s[1] = 1.0;
+    s[2] = 0.0;
+    Cross(t, s, n);
+    Cross(s, n, t);
+    }
+  else
+    {
+    t[0] = 1.0;
+    t[1] = 0.0;
+    t[2] = 0.0;
+    Cross(s, n, t);
+    Cross(t, s, n);
+    }
+
+  // normal vectors
+  double ntx = t[0];
+  double nty = t[1];
+  double ntz = t[2];
+  double nsx = s[0];
+  double nsy = s[1];
+  double nsz = s[2];
+  double nnx = n[0];
+  double nny = n[1];
+  double nnz = n[2];
+  double px = position1[0];
+  double py = position1[1];
+  double pz = position1[2];
+
+  rulerTransform->SetElement(0, 0, ntx);
+  rulerTransform->SetElement(1, 0, nty);
+  rulerTransform->SetElement(2, 0, ntz);
+  rulerTransform->SetElement(0, 1, nsx);
+  rulerTransform->SetElement(1, 1, nsy);
+  rulerTransform->SetElement(2, 1, nsz);
+  rulerTransform->SetElement(0, 2, nnx);
+  rulerTransform->SetElement(1, 2, nny);
+  rulerTransform->SetElement(2, 2, nnz);
+  rulerTransform->SetElement(0, 3, px);
+  rulerTransform->SetElement(1, 3, py);
+  rulerTransform->SetElement(2, 3, pz);
+
+  this->UpdateSlice( rulerTransform, sliceNode );
+
+}
+
+
 void vtkSlicerVolumeResliceDriverLogic
 ::UpdateSlice( vtkMatrix4x4* transform, vtkMRMLSliceNode* sliceNode )
 {
-  int method = METHOD_POSITION;
-  const char* methodCC = sliceNode->GetAttribute( VOLUMERESLICEDRIVER_METHOD_ATTRIBUTE );
-  if ( methodCC != NULL )
+  int mode= MODE_NONE;
+
+  const char* modeCC = sliceNode->GetAttribute( VOLUMERESLICEDRIVER_MODE_ATTRIBUTE );
+  if ( modeCC != NULL )
   {
-    std::stringstream methodSS( methodCC );
-    methodSS >> method;
+    std::stringstream modeSS( modeCC );
+    modeSS >> mode;
   }
-  
-  int orientation = ORIENTATION_INPLANE;
-  const char* orientationCC = sliceNode->GetAttribute( VOLUMERESLICEDRIVER_ORIENTATION_ATTRIBUTE );
-  if ( orientationCC != NULL )
-  {
-    std::stringstream orientationSS( orientationCC );
-    orientationSS >> orientation;
-  }
-  
+
   float tx = transform->Element[0][0];
   float ty = transform->Element[1][0];
   float tz = transform->Element[2][0];
@@ -473,42 +525,34 @@ void vtkSlicerVolumeResliceDriverLogic
   float py = transform->Element[1][3];
   float pz = transform->Element[2][3];
 
-  if ( orientation == vtkSlicerVolumeResliceDriverLogic::ORIENTATION_INPLANE)
+  switch (mode)
     {
-    if ( method == vtkSlicerVolumeResliceDriverLogic::METHOD_ORIENTATION)
-      {
-      sliceNode->SetSliceToRASByNTP(nx, ny, nz, tx, ty, tz, px, py, pz, 1);
-      }
-    else
-      {
+    case MODE_AXIAL:
       sliceNode->SetOrientationToAxial();
       sliceNode->JumpSlice(px, py, pz);
-      }
-    }
-  else if ( orientation == vtkSlicerVolumeResliceDriverLogic::ORIENTATION_INPLANE90 )
-    {
-    if ( method == vtkSlicerVolumeResliceDriverLogic::METHOD_ORIENTATION )
-      {
-      sliceNode->SetSliceToRASByNTP(nx, ny, nz, tx, ty, tz, px, py, pz, 2);
-      }
-    else
-      {
+      break;
+    case MODE_SAGITTAL:
       sliceNode->SetOrientationToSagittal();
       sliceNode->JumpSlice(px, py, pz);
-      }
-    }
-  else if ( orientation == vtkSlicerVolumeResliceDriverLogic::ORIENTATION_TRANSVERSE )
-    {
-    if ( method == vtkSlicerVolumeResliceDriverLogic::METHOD_ORIENTATION )
-      {
-      sliceNode->SetSliceToRASByNTP(nx, ny, nz, tx, ty, tz, px, py, pz, 0);
-      }
-    else
-      {
+      break;
+    case MODE_CORONAL:
       sliceNode->SetOrientationToCoronal();
       sliceNode->JumpSlice(px, py, pz);
-      }
-    }
+      break;
+    case MODE_INPLANE:
+      sliceNode->SetSliceToRASByNTP(nx, ny, nz, tx, ty, tz, px, py, pz, 1);
+      break;
+    case MODE_INPLANE90:
+      sliceNode->SetSliceToRASByNTP(nx, ny, nz, tx, ty, tz, px, py, pz, 2);
+      break;
+    case MODE_TRANSVERSE:
+      sliceNode->SetSliceToRASByNTP(nx, ny, nz, tx, ty, tz, px, py, pz, 0);
+      break;
+    default: //     case MODE_NONE:
+      return;
+      break;
+    };
+  
   sliceNode->UpdateMatrices();
 }
 
@@ -517,15 +561,15 @@ void vtkSlicerVolumeResliceDriverLogic
 ::UpdateSliceIfObserved( vtkMRMLSliceNode* sliceNode )
 {
   if ( sliceNode == NULL )
-  {
+    {
     return;
-  }
+    }
   
   const char* driverCC = sliceNode->GetAttribute( VOLUMERESLICEDRIVER_DRIVER_ATTRIBUTE );
   if ( driverCC == NULL )
-  {
+    {
     return;
-  }
+    }
   
   vtkMRMLNode* node = this->GetMRMLScene()->GetNodeByID( driverCC );
   
