@@ -548,6 +548,9 @@ void vtkSlicerVolumeResliceDriverLogic
     case MODE_TRANSVERSE:
       sliceNode->SetSliceToRASByNTP(nx, ny, nz, tx, ty, tz, px, py, pz, 0);
       break;
+    case MODE_TRANSVERSE180:
+      sliceNode->SetSliceToRASByNTP(nx, ny, nz, -tx, -ty, tz, px, py, pz, 0);
+      break;
     default: //     case MODE_NONE:
       return;
       break;

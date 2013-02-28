@@ -65,6 +65,7 @@ public:
     MODE_INPLANE,
     MODE_INPLANE90,
     MODE_TRANSVERSE,
+    MODE_TRANSVERSE180
   };
 
   /// Set attributes of MRML slice nodes to define reslice driver.
