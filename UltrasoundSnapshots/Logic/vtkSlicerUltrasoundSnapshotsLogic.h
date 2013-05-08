@@ -14,7 +14,7 @@
   limitations under the License.
 
 ==============================================================================*/
-
+ 
 // .NAME vtkSlicerUltrasoundSnapshotsLogic - slicer logic class for volumes manipulation
 // .SECTION Description
 // This class manages the logic associated with reading, saving,
