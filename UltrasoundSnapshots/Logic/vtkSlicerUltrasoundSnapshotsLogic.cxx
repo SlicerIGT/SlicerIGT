@@ -1,4 +1,4 @@
- 
+
 // UltrasoundSnapshots Logic includes
 #include "vtkSlicerUltrasoundSnapshotsLogic.h"
 
@@ -9,6 +9,7 @@
 
 // VTK includes
 #include <vtkCollection.h>
+#include <vtkCollectionIterator.h>
 #include <vtkImageData.h>
 #include <vtkNew.h>
 #include <vtkPlaneSource.h>
@@ -26,6 +27,7 @@ vtkStandardNewMacro(vtkSlicerUltrasoundSnapshotsLogic);
 //----------------------------------------------------------------------------
 vtkSlicerUltrasoundSnapshotsLogic::vtkSlicerUltrasoundSnapshotsLogic()
 {
+  this->snapshotCounter = 1;
 }
 
 //----------------------------------------------------------------------------
@@ -63,11 +65,12 @@ vtkSlicerUltrasoundSnapshotsLogic
   snapshotDisp->SetAmbient( 1.0 );
   snapshotDisp->SetBackfaceCulling( 0 );
   snapshotDisp->SetDiffuse( 0.0 );
-  snapshotDisp->SetSaveWithScene( 0 );
+  snapshotDisp->SetSaveWithScene( 1 );
   snapshotDisp->SetDisableModifiedEvent( 0 );
   
-  std::stringstream nameStream;  // Use stream because later we may add other info in the name, e.g. number.
-  nameStream << "Snapshot";
+  std::stringstream nameStream;
+  nameStream << "UltrasoundSnapshots_Snapshot_";
+  nameStream << this->snapshotCounter;
   
   vtkSmartPointer< vtkMRMLModelNode > snapshotModel = vtkSmartPointer< vtkMRMLModelNode >::New();
   this->GetMRMLScene()->AddNode( snapshotModel );
@@ -76,9 +79,8 @@ vtkSlicerUltrasoundSnapshotsLogic
   snapshotModel->SetScene( this->GetMRMLScene() );
   snapshotModel->SetAndObserveDisplayNodeID( snapshotDisp->GetID() );
   snapshotModel->SetHideFromEditors( 0 );
-  snapshotModel->SetSaveWithScene( 0 );
-  
-  
+  snapshotModel->SetSaveWithScene( 1 );
+    
   int dims[ 3 ] = { 0, 0, 0 };
   InputNode->GetImageData()->GetDimensions( dims );
   if ( dims[ 0 ] == 0  &&  dims[ 1 ] == 0  && dims[ 2 ] == 0 )
@@ -141,10 +143,21 @@ vtkSlicerUltrasoundSnapshotsLogic
   slicePoints->SetPoint( 3, point4RAS );
   
     // Add image texture.
-  
   vtkSmartPointer< vtkImageData > image = vtkSmartPointer< vtkImageData >::New();
-  image->DeepCopy( InputNode->GetImageData() );
-  snapshotModel->GetModelDisplayNode()->SetAndObserveTextureImageData( image );
+  image->DeepCopy(InputNode->GetImageData());
+
+  std::stringstream textureNameStream;
+  textureNameStream << "UltrasoundSnapshots_Texture_";
+  textureNameStream << this->snapshotCounter;
+  this->snapshotCounter++;
+  
+  vtkSmartPointer< vtkMRMLScalarVolumeNode > snapshotTexture = vtkSmartPointer< vtkMRMLScalarVolumeNode >::New();
+  this->GetMRMLScene()->AddNode( snapshotTexture );
+  snapshotTexture->SetName( textureNameStream.str().c_str() );
+  snapshotTexture->SetAndObserveImageData( image );
+  
+  snapshotModel->SetAttribute( "TextureNodeID", snapshotTexture->GetID() );
+  snapshotModel->GetModelDisplayNode()->SetAndObserveTextureImageData( snapshotTexture->GetImageData() ); 
 }
 
 
@@ -153,28 +166,33 @@ void
 vtkSlicerUltrasoundSnapshotsLogic
 ::ClearSnapshots()
 {
-  // TODO: Using this function causes a crash in Slicer that I could debug. So it's not used now.
+  vtkCollection* modelNodes = this->GetMRMLScene()->GetNodesByClass( "vtkMRMLModelNode" );
+  vtkCollectionIterator* modelIt = vtkCollectionIterator::New();
+  modelIt->SetCollection( modelNodes );
   
-  vtkCollection* collection = this->GetMRMLScene()->GetNodesByName( "Snapshot" );
-  
-  vtkMRMLModelNode* ModelNode = NULL;
-  for ( int i = 0; i < collection->GetNumberOfItems(); ++ i )
+  for ( modelIt->InitTraversal(); ! modelIt->IsDoneWithTraversal(); modelIt->GoToNextItem() )
   {
-    ModelNode = vtkMRMLModelNode::SafeDownCast( collection->GetItemAsObject( i ) );
-    if ( ModelNode != NULL )
+    vtkMRMLModelNode* snapshotModel = vtkMRMLModelNode::SafeDownCast( modelIt->GetCurrentObject() );
+    
+    if ( snapshotModel != NULL && std::string(snapshotModel->GetName()).find( "UltrasoundSnapshots_Snapshot_" ) != std::string::npos )
     {
-      vtkMRMLDisplayNode* ModelDisplayNode = ModelNode->GetDisplayNode();
-      this->GetMRMLScene()->RemoveNode( ModelDisplayNode );
-      this->GetMRMLScene()->RemoveNode( ModelNode );
-      // ModelDisplayNode->RemoveAllObservers();
-      // ModelNode->RemoveAllObservers();
-      // ModelDisplayNode->Delete();
-      // ModelNode->Delete();
-      ModelNode = NULL;
+      vtkMRMLScalarVolumeNode* snapshotTexture = vtkMRMLScalarVolumeNode::SafeDownCast( this->GetMRMLScene()->GetNodeByID( snapshotModel->GetAttribute("TextureNodeID") ) );    
+      if ( snapshotTexture != NULL )
+      {
+        this->GetMRMLScene()->RemoveNode( snapshotTexture );
+        snapshotTexture = NULL;
+        this->snapshotCounter--;
+      }
+      vtkMRMLDisplayNode* snapshotDisp = snapshotModel->GetDisplayNode();
+      this->GetMRMLScene()->RemoveNode( snapshotDisp );
+      this->GetMRMLScene()->RemoveNode( snapshotModel );
+      snapshotDisp = NULL;
+      snapshotModel = NULL;
     }
   }
   
-  collection->Delete();  
+  modelIt->Delete();
+  modelNodes->Delete();
 }
 
 
@@ -185,7 +203,9 @@ void vtkSlicerUltrasoundSnapshotsLogic::SetMRMLSceneInternal(vtkMRMLScene * newS
   vtkNew<vtkIntArray> events;
   events->InsertNextValue(vtkMRMLScene::NodeAddedEvent);
   events->InsertNextValue(vtkMRMLScene::NodeRemovedEvent);
+  events->InsertNextValue(vtkMRMLScene::EndImportEvent);
   events->InsertNextValue(vtkMRMLScene::EndBatchProcessEvent);
+  events->InsertNextValue(vtkMRMLScene::StartCloseEvent);
   this->SetAndObserveMRMLSceneEventsInternal(newScene, events.GetPointer());
 }
 
@@ -202,10 +222,62 @@ void vtkSlicerUltrasoundSnapshotsLogic::UpdateFromMRMLScene()
 }
 
 //---------------------------------------------------------------------------
+void vtkSlicerUltrasoundSnapshotsLogic::OnMRMLSceneEndImport()
+{
+  assert(this->GetMRMLScene() != 0);
+
+  vtkCollection* snapshotNodes = this->GetMRMLScene()->GetNodesByClass( "vtkMRMLModelNode" );
+  vtkCollectionIterator* snapshotIt = vtkCollectionIterator::New();
+  snapshotIt->SetCollection( snapshotNodes );
+  
+  for ( snapshotIt->InitTraversal(); ! snapshotIt->IsDoneWithTraversal(); snapshotIt->GoToNextItem() )
+  {
+    vtkMRMLModelNode* snapshotModel = vtkMRMLModelNode::SafeDownCast( snapshotIt->GetCurrentObject() );
+    if ( snapshotModel != NULL && std::string(snapshotModel->GetName()).find( "UltrasoundSnapshots_Snapshot_" ) != std::string::npos )
+    {
+      vtkMRMLScalarVolumeNode* snapshotTexture = vtkMRMLScalarVolumeNode::SafeDownCast( this->GetMRMLScene()->GetNodeByID( snapshotModel->GetAttribute("TextureNodeID") ) );
+      if ( snapshotTexture != NULL )
+      {
+        snapshotModel->GetModelDisplayNode()->SetAndObserveTextureImageData( snapshotTexture->GetImageData() );
+        this->snapshotCounter++;
+      }        
+    }
+  }
+  
+  snapshotIt->Delete();
+  snapshotNodes->Delete();
+  
+  this->Modified();
+}
+
+//---------------------------------------------------------------------------
+void vtkSlicerUltrasoundSnapshotsLogic::OnMRMLSceneStartClose()
+{
+  assert(this->GetMRMLScene() != 0);
+
+  vtkCollection* snapshotNodes = this->GetMRMLScene()->GetNodesByClass( "vtkMRMLModelNode" );
+  vtkCollectionIterator* snapshotIt = vtkCollectionIterator::New();
+  snapshotIt->SetCollection( snapshotNodes );
+  
+  for ( snapshotIt->InitTraversal(); ! snapshotIt->IsDoneWithTraversal(); snapshotIt->GoToNextItem() )
+  {
+    vtkMRMLModelNode* snapshotModel = vtkMRMLModelNode::SafeDownCast( snapshotIt->GetCurrentObject() );
+    if ( snapshotModel != NULL && std::string(snapshotModel->GetName()).find( "UltrasoundSnapshots_Snapshot_" ) != std::string::npos )
+    {
+      this->snapshotCounter--;
+    }
+  }
+  
+  snapshotIt->Delete();
+  snapshotNodes->Delete();
+  
+  this->Modified();
+}
+  
+//---------------------------------------------------------------------------
 void vtkSlicerUltrasoundSnapshotsLogic
 ::OnMRMLSceneNodeAdded(vtkMRMLNode* vtkNotUsed(node))
 {
-  
 }
 
 //---------------------------------------------------------------------------
