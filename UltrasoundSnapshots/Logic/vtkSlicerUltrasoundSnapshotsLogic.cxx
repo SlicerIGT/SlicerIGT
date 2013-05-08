@@ -1,4 +1,4 @@
-
+ 
 // UltrasoundSnapshots Logic includes
 #include "vtkSlicerUltrasoundSnapshotsLogic.h"
 
