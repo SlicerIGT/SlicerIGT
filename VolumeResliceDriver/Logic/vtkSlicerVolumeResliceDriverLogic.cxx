@@ -450,9 +450,18 @@ void vtkSlicerVolumeResliceDriverLogic
   n[1] = position2[1]-position1[1];
   n[2] = position2[2]-position1[2];
   nlen = sqrt(n[0]*n[0] + n[1]*n[1] + n[2]*n[2]);
-  n[0] /= nlen;
-  n[1] /= nlen;
-  n[2] /= nlen;
+  if (nlen > 0)
+    {
+    n[0] /= nlen;
+    n[1] /= nlen;
+    n[2] /= nlen;
+    }
+  else
+    {
+    n[0] = 1.0;
+    n[1] = 0.0;
+    n[2] = 0.0;
+    }
 
   // Check if <n> is not parallel to <s>=(0.0, 1.0, 0.0)
   if (n[1] < 1.0)
