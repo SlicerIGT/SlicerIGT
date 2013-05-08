@@ -1,10 +1,12 @@
 
 // Qt includes
 #include <QDebug>
+#include <QMessageBox>
 
 // SlicerQt includes
 #include "qSlicerUltrasoundSnapshotsModuleWidget.h"
 #include "ui_qSlicerUltrasoundSnapshotsModule.h"
+#include <qSlicerApplication.h>
 
 #include "vtkSlicerUltrasoundSnapshotsLogic.h"
 
@@ -92,7 +94,23 @@ qSlicerUltrasoundSnapshotsModuleWidget
 {
   Q_D(qSlicerUltrasoundSnapshotsModuleWidget);
   
-  d->logic()->ClearSnapshots();
+  QMessageBox *confirmBox =  new QMessageBox();
+  confirmBox->setText("This action will delete all snapshots.");
+  confirmBox->setInformativeText("Continue with this action?");
+  confirmBox->setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+  int confirmChoice = confirmBox->exec();
+  
+  switch (confirmChoice) {
+   case QMessageBox::Yes:
+       d->logic()->ClearSnapshots();
+       break;
+   case QMessageBox::No:
+       break;
+   default:
+       break;
+  }
+  
+  delete confirmBox;
 }
 
 
@@ -106,6 +124,6 @@ qSlicerUltrasoundSnapshotsModuleWidget
   this->Superclass::setup();
   
   connect( d->AddSnapshotButton, SIGNAL( clicked() ), this, SLOT( OnAddSnapshotClicked() ) );
-  // connect( d->ClearSnapshotsButton, SIGNAL( clicked() ), this, SLOT( OnClearSnapshotsClicked() ) );
+  connect( d->ClearSnapshotsButton, SIGNAL( clicked() ), this, SLOT( OnClearSnapshotsClicked() ) );
 }
 
