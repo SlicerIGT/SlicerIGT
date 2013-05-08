@@ -446,9 +446,9 @@ void vtkSlicerVolumeResliceDriverLogic
   rnode->GetPositionWorldCoordinates2(position2);
 
   // Calculate <n> and normalize it.
-  n[0] = position1[0]-position2[0];
-  n[1] = position1[1]-position2[1];
-  n[2] = position1[2]-position2[2];
+  n[0] = position2[0]-position1[0];
+  n[1] = position2[1]-position1[1];
+  n[2] = position2[2]-position1[2];
   nlen = sqrt(n[0]*n[0] + n[1]*n[1] + n[2]*n[2]);
   n[0] /= nlen;
   n[1] /= nlen;
@@ -482,9 +482,9 @@ void vtkSlicerVolumeResliceDriverLogic
   double nnx = n[0];
   double nny = n[1];
   double nnz = n[2];
-  double px = position1[0];
-  double py = position1[1];
-  double pz = position1[2];
+  double px = position2[0];
+  double py = position2[1];
+  double pz = position2[2];
 
   rulerTransform->SetElement(0, 0, ntx);
   rulerTransform->SetElement(1, 0, nty);
