@@ -155,6 +155,7 @@ vtkSlicerUltrasoundSnapshotsLogic
   this->GetMRMLScene()->AddNode( snapshotTexture );
   snapshotTexture->SetName( textureNameStream.str().c_str() );
   snapshotTexture->SetAndObserveImageData( image );
+  snapshotTexture->CopyOrientation( InputNode );
   
   snapshotModel->SetAttribute( "TextureNodeID", snapshotTexture->GetID() );
   snapshotModel->GetModelDisplayNode()->SetAndObserveTextureImageData( snapshotTexture->GetImageData() ); 
