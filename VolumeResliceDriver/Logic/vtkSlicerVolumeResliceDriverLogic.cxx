@@ -28,6 +28,7 @@
 #include <vtkCollection.h>
 #include <vtkCollectionIterator.h>
 #include <vtkImageData.h>
+#include <vtkMath.h>
 #include <vtkMatrix4x4.h>
 #include <vtkNew.h>
 #include <vtkTransform.h>
@@ -422,13 +423,14 @@ void vtkSlicerVolumeResliceDriverLogic
 
 }
 
-
+/*
 void Cross(double *a, double *b, double *c)
 {
     a[0] = b[1]*c[2] - c[1]*b[2];
     a[1] = c[0]*b[2] - b[0]*c[2];
     a[2] = b[0]*c[1] - c[0]*b[1];
 }
+*/
 
 void vtkSlicerVolumeResliceDriverLogic
 ::UpdateSliceByRulerNode( vtkMRMLAnnotationRulerNode* rnode, vtkMRMLSliceNode* sliceNode )
@@ -469,16 +471,16 @@ void vtkSlicerVolumeResliceDriverLogic
     s[0] = 0.0;
     s[1] = 1.0;
     s[2] = 0.0;
-    Cross(t, s, n);
-    Cross(s, n, t);
+    vtkMath::Cross(s, n, t);
+    vtkMath::Cross(n, t, s);
     }
   else
     {
     t[0] = 1.0;
     t[1] = 0.0;
     t[2] = 0.0;
-    Cross(s, n, t);
-    Cross(t, s, n);
+    vtkMath::Cross(n, t, s);
+    vtkMath::Cross(s, n, t);
     }
 
   // normal vectors
