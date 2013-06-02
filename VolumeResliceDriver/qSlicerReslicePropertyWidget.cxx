@@ -117,7 +117,7 @@ void qSlicerReslicePropertyWidgetPrivate
 void qSlicerReslicePropertyWidgetPrivate
 ::SetDriverNodeSelection( const char* nodeID )
 {
-  this->driverNodeSelector->setCurrentNode( nodeID );
+  this->driverNodeSelector->setCurrentNodeID( nodeID );
 }
 
 
