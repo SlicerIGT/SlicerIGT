@@ -11,6 +11,7 @@ set( EXTENSION_SCREENSHOTURLS "http://www.slicer.org/slicerWiki/images/7/78/Slic
 set( EXTENSION_DEPENDS "NA") # Specified as a space separated list or 'NA' if any
 set( EXTENSION_BUILD_SUBDIRECTORY inner-build )
 
+project( SlicerIGT )
 find_package( Slicer REQUIRED )
 include( ${Slicer_USE_FILE} )
 
