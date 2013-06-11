@@ -1,56 +1,42 @@
-
-// OpenIGTLinkRemote Logic includes
-#include "vtkSlicerOpenIGTLinkRemoteLogic.h"
-
-#include "vtkSlicerOpenIGTLinkIFLogic.h"
-
-// MRML includes
-#include "vtkMRMLAnnotationTextNode.h"
 #include "vtkIGTLToMRMLAnnotationText.h"
-
+#include "vtkMRMLAnnotationTextNode.h"
 #include "vtkMRMLIGTLConnectorNode.h"
-
-// VTK includes
-#include <vtkNew.h>
-
-// STD includes
+#include "vtkSlicerOpenIGTLinkIFLogic.h"
+#include "vtkSlicerOpenIGTLinkRemoteLogic.h"
 #include <cassert>
 #include <sstream>
 #include <string>
+#include <vtkNew.h>
 
-
+//----------------------------------------------------------------------------
 
 class vtkSlicerOpenIGTLinkRemoteLogic::vtkInternal
 {
 public:
   vtkInternal();
-  
+
   vtkSlicerOpenIGTLinkIFLogic* IFLogic;
 };
 
 vtkSlicerOpenIGTLinkRemoteLogic::vtkInternal::vtkInternal()
+: IFLogic(NULL)
 {
-  this->IFLogic = 0;
 }
 
-
-
+//----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSlicerOpenIGTLinkRemoteLogic);
+//----------------------------------------------------------------------------
 
-
-
-vtkSlicerOpenIGTLinkRemoteLogic
-::vtkSlicerOpenIGTLinkRemoteLogic()
+//----------------------------------------------------------------------------
+vtkSlicerOpenIGTLinkRemoteLogic::vtkSlicerOpenIGTLinkRemoteLogic()
 {
   this->Internal = new vtkInternal;
   this->CommandConverter = vtkIGTLToMRMLAnnotationText::New();
   this->CommandCounter = 0;
 }
 
-
-
-vtkSlicerOpenIGTLinkRemoteLogic
-::~vtkSlicerOpenIGTLinkRemoteLogic()
+//----------------------------------------------------------------------------
+vtkSlicerOpenIGTLinkRemoteLogic::~vtkSlicerOpenIGTLinkRemoteLogic()
 {
   delete this->Internal;
   
@@ -61,23 +47,17 @@ vtkSlicerOpenIGTLinkRemoteLogic
   }
 }
 
-
-
-void vtkSlicerOpenIGTLinkRemoteLogic
-::PrintSelf(ostream& os, vtkIndent indent)
+//----------------------------------------------------------------------------
+void vtkSlicerOpenIGTLinkRemoteLogic::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
 }
 
-
-
-void vtkSlicerOpenIGTLinkRemoteLogic
-::SetIFLogic( vtkSlicerOpenIGTLinkIFLogic* ifLogic )
+//----------------------------------------------------------------------------
+void vtkSlicerOpenIGTLinkRemoteLogic::SetIFLogic( vtkSlicerOpenIGTLinkIFLogic* ifLogic )
 {
   this->Internal->IFLogic = ifLogic;
 }
-
-
 
 /**
  * @param connectorNodeId Identifies the IGTL connector node that will send this command message.
@@ -85,24 +65,20 @@ void vtkSlicerOpenIGTLinkRemoteLogic
  * @param parameters A string in name1="value1" name2="value2" ... format. It will be placed in the Command XML element.
  * @returns CommandId number that identifies this command and its response. Returns 0 on error.
  */
-int vtkSlicerOpenIGTLinkRemoteLogic
-::ExecuteCommand( const char* connectorNodeId, std::string commandName, std::string parameters )
+int vtkSlicerOpenIGTLinkRemoteLogic::ExecuteCommand( const char* connectorNodeId, std::string commandName, std::string parameters )
 {
   std::string messageString = "<Command Name=\"" + commandName + "\" " + parameters + " />";
   return this->SendCommand( messageString, connectorNodeId );
 }
 
-
-
 /**
  * @returns status of the command reply
  */
-int vtkSlicerOpenIGTLinkRemoteLogic
-::GetCommandReply( int commandId, std::string &message )
+vtkSlicerOpenIGTLinkRemoteLogic::REPLY_RESULT vtkSlicerOpenIGTLinkRemoteLogic::GetCommandReply( int commandId, std::string &message )
 {
   if ( this->GetMRMLScene() == NULL )
   {
-    return 0;
+    return REPLY_FAIL;
   }
   
   std::stringstream ss;
@@ -113,7 +89,7 @@ int vtkSlicerOpenIGTLinkRemoteLogic
   if ( replyCount < 1 )
   {
     replyNodes->Delete();
-    return this->REPLY_WAITING;
+    return REPLY_WAITING;
   }
   
   vtkMRMLAnnotationTextNode* textNode = vtkMRMLAnnotationTextNode::SafeDownCast( replyNodes->GetItemAsObject( 0 ) );
@@ -121,32 +97,44 @@ int vtkSlicerOpenIGTLinkRemoteLogic
   {
     replyNodes->Delete();
     vtkErrorMacro( "Could not cast reply node to vtkMRMLAnnotationTextNode!" );
-    return this->REPLY_WAITING;
+    return REPLY_FAIL;
   }
   
-  message = std::string( textNode->GetText( 0 ).c_str() );
+  std::string reply = std::string( textNode->GetText( 0 ).c_str() );
+  REPLY_RESULT status = reply.find("SUCCESS::") != std::string::npos ? REPLY_SUCCESS : REPLY_FAIL;
+  message = reply.substr(reply.find("::")+2);
   
   replyNodes->Delete();
-  return this->REPLY_SUCCESS;
+  return status;
 }
 
-
-
-void vtkSlicerOpenIGTLinkRemoteLogic
-::DiscardCommand( int commandId )
+//----------------------------------------------------------------------------
+void vtkSlicerOpenIGTLinkRemoteLogic::DiscardCommand( int commandId )
 {
-  // TODO: delete command text node and reply text node if exists in scene.
+  std::stringstream ss;
+  ss << "RC" << commandId << "Reply";
+  vtkCollection* replyNodes = this->GetMRMLScene()->GetNodesByName( ss.str().c_str() );
+
+  for( int i = 0; i < replyNodes->GetNumberOfItems(); ++i )
+  {
+    vtkMRMLAnnotationTextNode* textNode = vtkMRMLAnnotationTextNode::SafeDownCast( replyNodes->GetItemAsObject(i) );
+    if ( textNode == NULL )
+    {
+      vtkErrorMacro( "Could not cast reply node to vtkMRMLAnnotationTextNode!" );
+      continue;
+    }
+    this->GetMRMLScene()->RemoveNode(textNode);
+  }
+
+  replyNodes->Delete();
 }
-
-
 
 /**
  * @param strCommand string that will be sent in the command IGTL message.
  * @param connectorNodeId Identifies the IGTL connector node that will send the command message to the server.
  * @returns CommandId that can be used later to get the response for the created. Returns 0 on error.
  */
-int vtkSlicerOpenIGTLinkRemoteLogic
-::SendCommand( std::string strCommand, const char* connectorNodeId )
+int vtkSlicerOpenIGTLinkRemoteLogic::SendCommand( std::string strCommand, const char* connectorNodeId )
 {
   if ( this->GetMRMLScene() == NULL )
   {
@@ -181,10 +169,8 @@ int vtkSlicerOpenIGTLinkRemoteLogic
   return this->CommandCounter;
 }
 
-
-
-void vtkSlicerOpenIGTLinkRemoteLogic
-::SetMRMLSceneInternal(vtkMRMLScene * newScene)
+//----------------------------------------------------------------------------
+void vtkSlicerOpenIGTLinkRemoteLogic::SetMRMLSceneInternal(vtkMRMLScene * newScene)
 {
   vtkNew<vtkIntArray> events;
   events->InsertNextValue(vtkMRMLScene::NodeAddedEvent);
@@ -193,10 +179,8 @@ void vtkSlicerOpenIGTLinkRemoteLogic
   this->SetAndObserveMRMLSceneEventsInternal(newScene, events.GetPointer());
 }
 
-
-
-void vtkSlicerOpenIGTLinkRemoteLogic
-::RegisterNodes()
+//----------------------------------------------------------------------------
+void vtkSlicerOpenIGTLinkRemoteLogic::RegisterNodes()
 {
   assert(this->GetMRMLScene() != 0);
   
@@ -204,23 +188,19 @@ void vtkSlicerOpenIGTLinkRemoteLogic
   this->Internal->IFLogic->RegisterMessageConverter( this->CommandConverter );
 }
 
-
-
-void vtkSlicerOpenIGTLinkRemoteLogic
-::UpdateFromMRMLScene()
+//----------------------------------------------------------------------------
+void vtkSlicerOpenIGTLinkRemoteLogic::UpdateFromMRMLScene()
 {
   assert(this->GetMRMLScene() != 0);
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerOpenIGTLinkRemoteLogic
-::OnMRMLSceneNodeAdded(vtkMRMLNode* vtkNotUsed(node))
+void vtkSlicerOpenIGTLinkRemoteLogic::OnMRMLSceneNodeAdded(vtkMRMLNode* vtkNotUsed(node))
 {
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerOpenIGTLinkRemoteLogic
-::OnMRMLSceneNodeRemoved(vtkMRMLNode* vtkNotUsed(node))
+void vtkSlicerOpenIGTLinkRemoteLogic::OnMRMLSceneNodeRemoved(vtkMRMLNode* vtkNotUsed(node))
 {
 }
 

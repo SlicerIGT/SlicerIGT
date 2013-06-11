@@ -15,37 +15,27 @@
 
 ==============================================================================*/
 
-// .NAME vtkSlicerOpenIGTLinkRemoteLogic - slicer logic class for volumes manipulation
+// .NAME vtkSlicerOpenIGTLinkRemoteLogic - slicer logic class for remote control of PLUS server
 // .SECTION Description
-// This class manages the logic associated with reading, saving,
-// and changing propertied of the volumes
+// This class managed the interactions with a PLUS server via an OpenIGTLinkIF connector
 
 
 #ifndef __vtkSlicerOpenIGTLinkRemoteLogic_h
 #define __vtkSlicerOpenIGTLinkRemoteLogic_h
 
-// Slicer includes
 #include "vtkSlicerModuleLogic.h"
-
-// MRML includes
-
-// STD includes
-#include <cstdlib>
-
 #include "vtkSlicerOpenIGTLinkRemoteModuleLogicExport.h"
+#include <cstdlib>
 
 class vtkSlicerOpenIGTLinkIFLogic;
 class vtkIGTLToMRMLAnnotationText;
-
-
 
 /// \ingroup Slicer_QtModules_ExtensionTemplate
 class VTK_SLICER_OPENIGTLINKREMOTE_MODULE_LOGIC_EXPORT vtkSlicerOpenIGTLinkRemoteLogic :
   public vtkSlicerModuleLogic
 {
 public:
-  
-  enum
+  enum REPLY_RESULT
   {
     REPLY_SUCCESS,
     REPLY_FAIL,
@@ -59,7 +49,7 @@ public:
   void SetIFLogic( vtkSlicerOpenIGTLinkIFLogic* ifLogic );
   
   int ExecuteCommand( const char* connectorNodeId, std::string commandName, std::string parameters );
-  int GetCommandReply( int commandId, std::string &message );
+  REPLY_RESULT GetCommandReply( int commandId, std::string &message );
   void DiscardCommand( int commandId );
   
   int SendCommand( std::string strCommand, const char* connectorNodeId );
