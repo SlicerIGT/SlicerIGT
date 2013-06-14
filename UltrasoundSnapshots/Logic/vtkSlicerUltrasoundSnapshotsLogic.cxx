@@ -5,6 +5,7 @@
 // MRML includes
 #include "vtkMRMLModelDisplayNode.h"
 #include "vtkMRMLModelNode.h"
+#include "vtkMRMLScalarVolumeDisplayNode.h"
 #include "vtkMRMLTransformNode.h"
 
 // VTK includes
@@ -149,16 +150,30 @@ vtkSlicerUltrasoundSnapshotsLogic
   std::stringstream textureNameStream;
   textureNameStream << "UltrasoundSnapshots_Texture_";
   textureNameStream << this->snapshotCounter;
-  this->snapshotCounter++;
   
   vtkSmartPointer< vtkMRMLScalarVolumeNode > snapshotTexture = vtkSmartPointer< vtkMRMLScalarVolumeNode >::New();
   this->GetMRMLScene()->AddNode( snapshotTexture );
   snapshotTexture->SetName( textureNameStream.str().c_str() );
+  snapshotTexture->SetDescription( "Live Ultrasound Snapshot Texture" );
   snapshotTexture->SetAndObserveImageData( image );
   snapshotTexture->CopyOrientation( InputNode );
   
+  std::stringstream textureDisplayNameStream;
+  textureDisplayNameStream << "UltrasoundSnapshots_TextureDisplay_";
+  textureDisplayNameStream << this->snapshotCounter;  
+  
+  vtkSmartPointer< vtkMRMLScalarVolumeDisplayNode > snapshotTextureDisplay = vtkSmartPointer< vtkMRMLScalarVolumeDisplayNode >::New();
+  this->GetMRMLScene()->AddNode( snapshotTextureDisplay );
+  snapshotTextureDisplay->SetName( textureDisplayNameStream.str().c_str() );
+  snapshotTextureDisplay->Copy( InputNode->GetScalarVolumeDisplayNode() );
+  snapshotTextureDisplay->SetDefaultColorMap();
+  
+  snapshotTexture->AddAndObserveDisplayNodeID( snapshotTextureDisplay->GetID() );
+  
   snapshotModel->SetAttribute( "TextureNodeID", snapshotTexture->GetID() );
-  snapshotModel->GetModelDisplayNode()->SetAndObserveTextureImageData( snapshotTexture->GetImageData() ); 
+  snapshotModel->GetModelDisplayNode()->SetAndObserveTextureImageData( snapshotTexture->GetImageData() );
+  
+  this->snapshotCounter++;  
 }
 
 
