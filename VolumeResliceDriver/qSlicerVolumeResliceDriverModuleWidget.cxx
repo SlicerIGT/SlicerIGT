@@ -331,7 +331,5 @@ void qSlicerVolumeResliceDriverModuleWidget::onLayoutChanged(int)
         }
       }
     }
-  
-  visibleViews->Delete();
 }
 
