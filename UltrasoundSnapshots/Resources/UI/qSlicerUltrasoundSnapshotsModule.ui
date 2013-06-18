@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>375</width>
+    <width>246</width>
     <height>600</height>
    </rect>
   </property>
@@ -88,6 +88,16 @@
           </layout>
          </item>
          <item>
+          <widget class="ctkCheckBox" name="WindowLevelCheckBox">
+           <property name="text">
+            <string>Preserve image window and level attributes</string>
+           </property>
+           <property name="checked">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item>
           <widget class="QPushButton" name="ClearSnapshotsButton">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Minimum" vsizetype="MinimumExpanding">
@@ -132,6 +142,11 @@
    <extends>QWidget</extends>
    <header>qSlicerWidget.h</header>
    <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>ctkCheckBox</class>
+   <extends>QCheckBox</extends>
+   <header>ctkCheckBox.h</header>
   </customwidget>
   <customwidget>
    <class>ctkCollapsibleButton</class>

@@ -82,7 +82,7 @@ qSlicerUltrasoundSnapshotsModuleWidget
   
   if ( vnode != NULL )
   {
-    d->logic()->AddSnapshot( vnode );
+    d->logic()->AddSnapshot( vnode, d->WindowLevelCheckBox->isChecked() );
   }
 }
 
