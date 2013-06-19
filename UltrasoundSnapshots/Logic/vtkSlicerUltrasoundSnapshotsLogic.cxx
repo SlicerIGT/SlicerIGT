@@ -5,6 +5,7 @@
 // MRML includes
 #include "vtkMRMLModelDisplayNode.h"
 #include "vtkMRMLModelNode.h"
+#include "vtkMRMLScalarVolumeDisplayNode.h"
 #include "vtkMRMLTransformNode.h"
 
 // VTK includes
@@ -15,6 +16,7 @@
 #include <vtkPlaneSource.h>
 #include <vtkSmartPointer.h>
 #include <vtkTransform.h>
+#include <vtkImageMapToWindowLevelColors.h>
 
 // STD includes
 #include <cassert>
@@ -48,7 +50,7 @@ vtkSlicerUltrasoundSnapshotsLogic
 
 void
 vtkSlicerUltrasoundSnapshotsLogic
-::AddSnapshot( vtkMRMLScalarVolumeNode* InputNode )
+::AddSnapshot( vtkMRMLScalarVolumeNode* InputNode, bool preserveWindowLevel )
 {
   if ( InputNode == NULL )
   {
@@ -146,19 +148,36 @@ vtkSlicerUltrasoundSnapshotsLogic
   vtkSmartPointer< vtkImageData > image = vtkSmartPointer< vtkImageData >::New();
   image->DeepCopy(InputNode->GetImageData());
 
+  if ( preserveWindowLevel == true )
+  {
+    vtkSmartPointer< vtkImageMapToWindowLevelColors > mapToWindowLevelColors = vtkSmartPointer< vtkImageMapToWindowLevelColors >::New();
+    mapToWindowLevelColors->SetInput( image );
+    mapToWindowLevelColors->SetOutputFormatToLuminance();
+    mapToWindowLevelColors->SetWindow( InputNode->GetScalarVolumeDisplayNode()->GetWindow() );
+    mapToWindowLevelColors->SetLevel( InputNode->GetScalarVolumeDisplayNode()->GetLevel() );
+    
+    image = mapToWindowLevelColors->GetOutput();
+  }
+  
   std::stringstream textureNameStream;
   textureNameStream << "UltrasoundSnapshots_Texture_";
   textureNameStream << this->snapshotCounter;
-  this->snapshotCounter++;
   
   vtkSmartPointer< vtkMRMLScalarVolumeNode > snapshotTexture = vtkSmartPointer< vtkMRMLScalarVolumeNode >::New();
   this->GetMRMLScene()->AddNode( snapshotTexture );
   snapshotTexture->SetName( textureNameStream.str().c_str() );
+  snapshotTexture->SetDescription( "Live Ultrasound Snapshot Texture" );
   snapshotTexture->SetAndObserveImageData( image );
   snapshotTexture->CopyOrientation( InputNode );
   
+  std::stringstream textureDisplayNameStream;
+  textureDisplayNameStream << "UltrasoundSnapshots_TextureDisplay_";
+  textureDisplayNameStream << this->snapshotCounter;  
+  
   snapshotModel->SetAttribute( "TextureNodeID", snapshotTexture->GetID() );
-  snapshotModel->GetModelDisplayNode()->SetAndObserveTextureImageData( snapshotTexture->GetImageData() ); 
+  snapshotModel->GetModelDisplayNode()->SetAndObserveTextureImageData( snapshotTexture->GetImageData() );
+  
+  this->snapshotCounter++;  
 }
 
 
