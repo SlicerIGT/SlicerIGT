@@ -174,6 +174,16 @@ vtkSlicerUltrasoundSnapshotsLogic
   textureDisplayNameStream << "UltrasoundSnapshots_TextureDisplay_";
   textureDisplayNameStream << this->snapshotCounter;  
   
+  vtkSmartPointer< vtkMRMLScalarVolumeDisplayNode > snapshotTextureDisplay = vtkSmartPointer< vtkMRMLScalarVolumeDisplayNode >::New();
+  this->GetMRMLScene()->AddNode( snapshotTextureDisplay );
+  snapshotTextureDisplay->SetName( textureDisplayNameStream.str().c_str() );
+  snapshotTextureDisplay->SetAutoWindowLevel(0);
+  snapshotTextureDisplay->SetWindow(256);
+  snapshotTextureDisplay->SetLevel(128);
+  snapshotTextureDisplay->SetDefaultColorMap();
+  
+  snapshotTexture->AddAndObserveDisplayNodeID( snapshotTextureDisplay->GetID() );   
+  
   snapshotModel->SetAttribute( "TextureNodeID", snapshotTexture->GetID() );
   snapshotModel->GetModelDisplayNode()->SetAndObserveTextureImageData( snapshotTexture->GetImageData() );
   
