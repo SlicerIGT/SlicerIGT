@@ -155,6 +155,7 @@ vtkSlicerUltrasoundSnapshotsLogic
     mapToWindowLevelColors->SetOutputFormatToLuminance();
     mapToWindowLevelColors->SetWindow( InputNode->GetScalarVolumeDisplayNode()->GetWindow() );
     mapToWindowLevelColors->SetLevel( InputNode->GetScalarVolumeDisplayNode()->GetLevel() );
+    mapToWindowLevelColors->Update();
     
     image = mapToWindowLevelColors->GetOutput();
   }
