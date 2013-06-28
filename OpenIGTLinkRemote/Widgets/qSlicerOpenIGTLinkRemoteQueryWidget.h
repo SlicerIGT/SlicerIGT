@@ -15,28 +15,29 @@
 
 ==============================================================================*/
 
-#ifndef __qSlicerIGTLRemoteModuleWidget_h
-#define __qSlicerIGTLRemoteModuleWidget_h
+#ifndef __qSlicerOpenIGTLinkRemoteModuleQueryWidget_h
+#define __qSlicerOpenIGTLinkRemoteModuleQueryWidget_h
 
 // SlicerQt includes
 #include "qSlicerAbstractModuleWidget.h"
 
-#include "qSlicerIGTLRemoteModuleExport.h"
+#include "qSlicerOpenIGTLinkRemoteModuleWidgetsExport.h"
 
-class qSlicerIGTLRemoteModuleWidgetPrivate;
+class qSlicerOpenIGTLinkRemoteQueryWidgetPrivate;
+class vtkSlicerOpenIGTLinkRemoteQueryLogic;
 class vtkMRMLNode;
 
 /// \ingroup Slicer_QtModules_IGTLRemote
-class Q_SLICER_QTMODULES_IGTLREMOTE_EXPORT qSlicerIGTLRemoteModuleWidget :
-  public qSlicerAbstractModuleWidget
+class Q_SLICER_QTMODULES_OPENIGTLINKREMOTE_WIDGETS_EXPORT qSlicerOpenIGTLinkRemoteQueryWidget :
+  public qSlicerWidget
 {
   Q_OBJECT
 
 public:
 
-  typedef qSlicerAbstractModuleWidget Superclass;
-  qSlicerIGTLRemoteModuleWidget(QWidget *parent=0);
-  virtual ~qSlicerIGTLRemoteModuleWidget();
+  typedef qSlicerWidget Superclass;
+  qSlicerOpenIGTLinkRemoteQueryWidget(QWidget *parent=0);
+  virtual ~qSlicerOpenIGTLinkRemoteQueryWidget();
 
 public slots:
   virtual void setMRMLScene(vtkMRMLScene *newScene);
@@ -46,13 +47,15 @@ public slots:
   void onQueryResponseReceived();
 
 protected:
-  QScopedPointer<qSlicerIGTLRemoteModuleWidgetPrivate> d_ptr;
-  
-  virtual void setup();
+  QScopedPointer<qSlicerOpenIGTLinkRemoteQueryWidgetPrivate> d_ptr;
+
+  void init();
 
 private:
-  Q_DECLARE_PRIVATE(qSlicerIGTLRemoteModuleWidget);
-  Q_DISABLE_COPY(qSlicerIGTLRemoteModuleWidget);
+  Q_DECLARE_PRIVATE(qSlicerOpenIGTLinkRemoteQueryWidget);
+  Q_DISABLE_COPY(qSlicerOpenIGTLinkRemoteQueryWidget);
+
+  vtkSlicerOpenIGTLinkRemoteQueryLogic* QueryLogic;
 };
 
 #endif

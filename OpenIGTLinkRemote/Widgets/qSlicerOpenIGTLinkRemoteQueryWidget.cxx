@@ -18,14 +18,15 @@
 // Qt includes
 
 // SlicerQt includes
-#include "qSlicerIGTLRemoteModuleWidget.h"
-#include "ui_qSlicerIGTLRemoteModule.h"
+#include "qSlicerOpenIGTLinkRemoteQueryWidget.h"
+#include "ui_qSlicerOpenIGTLinkRemoteQueryWidget.h"
 
 #include "qSlicerApplication.h"
 
 #include <QList>
 #include <QTableWidgetSelectionRange>
 
+#include "vtkSlicerOpenIGTLinkRemoteQueryLogic.h"
 
 #include "vtkMRMLIGTLConnectorNode.h"
 #include "vtkMRMLIGTLQueryNode.h"
@@ -33,14 +34,19 @@
 
 //-----------------------------------------------------------------------------
 /// \ingroup Slicer_QtModules_IGTLRemote
-class qSlicerIGTLRemoteModuleWidgetPrivate: public Ui_qSlicerIGTLRemoteModule
+class qSlicerOpenIGTLinkRemoteQueryWidgetPrivate
+  : public Ui_qSlicerOpenIGTLinkRemoteQueryWidget
 {
-public:
-  qSlicerIGTLRemoteModuleWidgetPrivate();
+  Q_DECLARE_PUBLIC(qSlicerOpenIGTLinkRemoteQueryWidget);
 
 public:
+  qSlicerOpenIGTLinkRemoteQueryWidgetPrivate(qSlicerOpenIGTLinkRemoteQueryWidget&);
+  ~qSlicerOpenIGTLinkRemoteQueryWidgetPrivate();
+
   QButtonGroup typeButtonGroup;
   
+  void init();
+
   enum {
     TYPE_IMAGE,
     TYPE_LABEL,
@@ -52,75 +58,88 @@ public:
   // when there are multiple connectors using the single query Node.
   vtkMRMLIGTLQueryNode * queryNode;
   
+protected:
+  qSlicerOpenIGTLinkRemoteQueryWidget* const q_ptr;
 };
 
 //-----------------------------------------------------------------------------
-// qSlicerIGTLRemoteModuleWidgetPrivate methods
+// qSlicerOpenIGTLinkRemoteQueryWidgetPrivate methods
 
 //-----------------------------------------------------------------------------
-qSlicerIGTLRemoteModuleWidgetPrivate::qSlicerIGTLRemoteModuleWidgetPrivate()
+qSlicerOpenIGTLinkRemoteQueryWidgetPrivate::
+  qSlicerOpenIGTLinkRemoteQueryWidgetPrivate(qSlicerOpenIGTLinkRemoteQueryWidget& object)
+  : q_ptr(&object)
 {
   this->connectorNode = NULL;
   this->queryNode = NULL;
 }
 
-
-//-----------------------------------------------------------------------------
-// qSlicerIGTLRemoteModuleWidget methods
-
-//-----------------------------------------------------------------------------
-qSlicerIGTLRemoteModuleWidget::qSlicerIGTLRemoteModuleWidget(QWidget* _parent)
-  : Superclass( _parent )
-  , d_ptr( new qSlicerIGTLRemoteModuleWidgetPrivate )
-{
-  
-}
-
-//-----------------------------------------------------------------------------
-qSlicerIGTLRemoteModuleWidget::~qSlicerIGTLRemoteModuleWidget()
+qSlicerOpenIGTLinkRemoteQueryWidgetPrivate::~qSlicerOpenIGTLinkRemoteQueryWidgetPrivate()
 {
 }
 
+
 //-----------------------------------------------------------------------------
-void qSlicerIGTLRemoteModuleWidget::setup()
+void qSlicerOpenIGTLinkRemoteQueryWidgetPrivate::init()
 {
-  Q_D(qSlicerIGTLRemoteModuleWidget);
-  d->setupUi(this);
-  this->Superclass::setup();
+  Q_Q(qSlicerOpenIGTLinkRemoteQueryWidget);
+  this->setupUi(q);
 
-  d->typeButtonGroup.addButton(d->typeImageRadioButton, qSlicerIGTLRemoteModuleWidgetPrivate::TYPE_IMAGE);
-  d->typeButtonGroup.addButton(d->typeLabelRadioButton, qSlicerIGTLRemoteModuleWidgetPrivate::TYPE_LABEL);
-  //d->typeButtonGroup.addButton(d->typeAllRadioButton, qSlicerIGTLRemoteModuleWidgetPrivate::TYPE_ALL);
-  d->typeImageRadioButton->setChecked(true);
+  this->typeButtonGroup.addButton(this->typeImageRadioButton, qSlicerOpenIGTLinkRemoteQueryWidgetPrivate::TYPE_IMAGE);
+  this->typeButtonGroup.addButton(this->typeLabelRadioButton, qSlicerOpenIGTLinkRemoteQueryWidgetPrivate::TYPE_LABEL);
+  //this->typeButtonGroup.addButton(this->typeAllRadioButton, qSlicerOpenIGTLinkRemoteQueryWidgetPrivate::TYPE_ALL);
+  this->typeImageRadioButton->setChecked(true);
 
-  QObject::connect(d->connectorNodeSelector, SIGNAL(currentNodeChanged(vtkMRMLNode*)),
-                   this, SLOT(setConnectorNode(vtkMRMLNode*)));
-  QObject::connect(d->updateButton, SIGNAL(clicked()),
-                   this, SLOT(queryRemoteList()));
-  QObject::connect(d->getSelectedItemButton, SIGNAL(clicked()),
-                   this, SLOT(querySelectedItem()));
+  QObject::connect(this->connectorNodeSelector, SIGNAL(currentNodeChanged(vtkMRMLNode*)),
+                   q, SLOT(setConnectorNode(vtkMRMLNode*)));
+  QObject::connect(this->updateButton, SIGNAL(clicked()),
+                   q, SLOT(queryRemoteList()));
+  QObject::connect(this->getSelectedItemButton, SIGNAL(clicked()),
+                   q, SLOT(querySelectedItem()));
 
   QStringList list;
-  list << tr("Image ID") << tr("Patient ID") << tr("Patient Name") << tr("Modality") << tr("Time");
-  d->remoteDataListTable->setRowCount(15);
-  d->remoteDataListTable->setColumnCount(5);
-  d->remoteDataListTable->setHorizontalHeaderLabels(list);
-  d->remoteDataListTable->verticalHeader()->hide();
-  d->remoteDataListTable->setSelectionBehavior(QAbstractItemView::SelectRows);
-  d->remoteDataListTable->setSelectionMode(QAbstractItemView::SingleSelection);
-  d->remoteDataListTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
+//  list << tr("Image ID") << tr("Patient ID") << tr("Patient Name") << tr("Modality") << tr("Time");
+  list << "Image ID" << "Patient ID" << "Patient Name" << "Modality" << "Time";
+  this->remoteDataListTable->setRowCount(15);
+  this->remoteDataListTable->setColumnCount(5);
+  this->remoteDataListTable->setHorizontalHeaderLabels(list);
+  this->remoteDataListTable->verticalHeader()->hide();
+  this->remoteDataListTable->setSelectionBehavior(QAbstractItemView::SelectRows);
+  this->remoteDataListTable->setSelectionMode(QAbstractItemView::SingleSelection);
+  this->remoteDataListTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
 
 }
 
 
 //-----------------------------------------------------------------------------
-void qSlicerIGTLRemoteModuleWidget::setMRMLScene(vtkMRMLScene *newScene)
+// qSlicerOpenIGTLinkRemoteQueryWidget methods
+
+//-----------------------------------------------------------------------------
+qSlicerOpenIGTLinkRemoteQueryWidget::qSlicerOpenIGTLinkRemoteQueryWidget(QWidget* _parent)
+  : Superclass(_parent)
+  , d_ptr( new qSlicerOpenIGTLinkRemoteQueryWidgetPrivate(*this) )
 {
-  Q_D(qSlicerIGTLRemoteModuleWidget);
+  this->QueryLogic = vtkSlicerOpenIGTLinkRemoteQueryLogic::New();
+  Q_D(qSlicerOpenIGTLinkRemoteQueryWidget);
+  d->init();
+}
+
+//-----------------------------------------------------------------------------
+qSlicerOpenIGTLinkRemoteQueryWidget::~qSlicerOpenIGTLinkRemoteQueryWidget()
+{
+  this->QueryLogic->Delete();
+  this->QueryLogic = NULL;
+}
+
+
+//-----------------------------------------------------------------------------
+void qSlicerOpenIGTLinkRemoteQueryWidget::setMRMLScene(vtkMRMLScene *newScene)
+{
+  Q_D(qSlicerOpenIGTLinkRemoteQueryWidget);
 
   vtkMRMLScene* oldScene = this->mrmlScene();
 
-  this->Superclass::setMRMLScene(newScene);
+  //this->Superclass::setMRMLScene(newScene);
 
   qSlicerApplication * app = qSlicerApplication::application();
   if (!app)
@@ -137,14 +156,13 @@ void qSlicerIGTLRemoteModuleWidget::setMRMLScene(vtkMRMLScene *newScene)
     }
 
   newScene->InitTraversal();
-
 }
 
 
 //-----------------------------------------------------------------------------
-void qSlicerIGTLRemoteModuleWidget::setConnectorNode(vtkMRMLNode* node)
+void qSlicerOpenIGTLinkRemoteQueryWidget::setConnectorNode(vtkMRMLNode* node)
 {
-  Q_D(qSlicerIGTLRemoteModuleWidget);
+  Q_D(qSlicerOpenIGTLinkRemoteQueryWidget);
 
   vtkMRMLIGTLConnectorNode* cnode =
     vtkMRMLIGTLConnectorNode::SafeDownCast(node);
@@ -156,9 +174,9 @@ void qSlicerIGTLRemoteModuleWidget::setConnectorNode(vtkMRMLNode* node)
 
 
 //-----------------------------------------------------------------------------
-void qSlicerIGTLRemoteModuleWidget::queryRemoteList()
+void qSlicerOpenIGTLinkRemoteQueryWidget::queryRemoteList()
 {
-  Q_D(qSlicerIGTLRemoteModuleWidget);
+  Q_D(qSlicerOpenIGTLinkRemoteQueryWidget);
 
   vtkMRMLScene* scene = this->mrmlScene();
   if (!scene)
@@ -179,11 +197,11 @@ void qSlicerIGTLRemoteModuleWidget::queryRemoteList()
     qvtkConnect(d->queryNode, vtkMRMLIGTLQueryNode::ResponseEvent,
                 this, SLOT(onQueryResponseReceived()));
     }
-  if (d->typeButtonGroup.checkedId() == qSlicerIGTLRemoteModuleWidgetPrivate::TYPE_IMAGE)
+  if (d->typeButtonGroup.checkedId() == qSlicerOpenIGTLinkRemoteQueryWidgetPrivate::TYPE_IMAGE)
     {
     d->queryNode->SetIGTLName("IMGMETA");
     }
-  else if (d->typeButtonGroup.checkedId() == qSlicerIGTLRemoteModuleWidgetPrivate::TYPE_LABEL)
+  else if (d->typeButtonGroup.checkedId() == qSlicerOpenIGTLinkRemoteQueryWidgetPrivate::TYPE_LABEL)
     {
     d->queryNode->SetIGTLName("LBMETA");
     }
@@ -194,9 +212,9 @@ void qSlicerIGTLRemoteModuleWidget::queryRemoteList()
 
 
 //-----------------------------------------------------------------------------
-void qSlicerIGTLRemoteModuleWidget::querySelectedItem()
+void qSlicerOpenIGTLinkRemoteQueryWidget::querySelectedItem()
 {
-  Q_D(qSlicerIGTLRemoteModuleWidget);
+  Q_D(qSlicerOpenIGTLinkRemoteQueryWidget);
 
   vtkMRMLScene* scene = this->mrmlScene();
   if (!scene)
@@ -222,7 +240,7 @@ void qSlicerIGTLRemoteModuleWidget::querySelectedItem()
       node->SetQueryStatus(vtkMRMLIGTLQueryNode::STATUS_PREPARED);
       node->SetQueryType(vtkMRMLIGTLQueryNode::TYPE_GET);
       node->SetName(itemDeviceName->text().toAscii());
-      //this->ImageQueryNodeList.push_back(node);
+      //d->ImageQueryNodeList.push_back(node);
       scene->AddNode(node);
       qvtkConnect(node, vtkMRMLIGTLQueryNode::ResponseEvent,
                   this, SLOT(onQueryResponseReceived()));
@@ -234,9 +252,9 @@ void qSlicerIGTLRemoteModuleWidget::querySelectedItem()
 
 
 //------------------------------------------------------------------------------
-void qSlicerIGTLRemoteModuleWidget::onQueryResponseReceived()
+void qSlicerOpenIGTLinkRemoteQueryWidget::onQueryResponseReceived()
 {
-  Q_D(qSlicerIGTLRemoteModuleWidget);
+  Q_D(qSlicerOpenIGTLinkRemoteQueryWidget);
 
   vtkMRMLScene* scene = this->mrmlScene();
   if (!scene)

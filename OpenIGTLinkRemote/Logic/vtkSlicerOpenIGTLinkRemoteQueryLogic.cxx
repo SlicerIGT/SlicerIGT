@@ -16,7 +16,7 @@
 ==============================================================================*/
 
 // IGTLRemote includes
-#include "vtkSlicerIGTLRemoteLogic.h"
+#include "vtkSlicerOpenIGTLinkRemoteQueryLogic.h"
 
 // MRML includes
 
@@ -27,26 +27,26 @@
 #include <cassert>
 
 //----------------------------------------------------------------------------
-vtkStandardNewMacro(vtkSlicerIGTLRemoteLogic);
+vtkStandardNewMacro(vtkSlicerOpenIGTLinkRemoteQueryLogic);
 
 //----------------------------------------------------------------------------
-vtkSlicerIGTLRemoteLogic::vtkSlicerIGTLRemoteLogic()
+vtkSlicerOpenIGTLinkRemoteQueryLogic::vtkSlicerOpenIGTLinkRemoteQueryLogic()
 {
 }
 
 //----------------------------------------------------------------------------
-vtkSlicerIGTLRemoteLogic::~vtkSlicerIGTLRemoteLogic()
+vtkSlicerOpenIGTLinkRemoteQueryLogic::~vtkSlicerOpenIGTLinkRemoteQueryLogic()
 {
 }
 
 //----------------------------------------------------------------------------
-void vtkSlicerIGTLRemoteLogic::PrintSelf(ostream& os, vtkIndent indent)
+void vtkSlicerOpenIGTLinkRemoteQueryLogic::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerIGTLRemoteLogic::SetMRMLSceneInternal(vtkMRMLScene * newScene)
+void vtkSlicerOpenIGTLinkRemoteQueryLogic::SetMRMLSceneInternal(vtkMRMLScene * newScene)
 {
   vtkNew<vtkIntArray> events;
   events->InsertNextValue(vtkMRMLScene::NodeAddedEvent);
@@ -56,25 +56,25 @@ void vtkSlicerIGTLRemoteLogic::SetMRMLSceneInternal(vtkMRMLScene * newScene)
 }
 
 //-----------------------------------------------------------------------------
-void vtkSlicerIGTLRemoteLogic::RegisterNodes()
+void vtkSlicerOpenIGTLinkRemoteQueryLogic::RegisterNodes()
 {
   assert(this->GetMRMLScene() != 0);
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerIGTLRemoteLogic::UpdateFromMRMLScene()
+void vtkSlicerOpenIGTLinkRemoteQueryLogic::UpdateFromMRMLScene()
 {
   assert(this->GetMRMLScene() != 0);
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerIGTLRemoteLogic
+void vtkSlicerOpenIGTLinkRemoteQueryLogic
 ::OnMRMLSceneNodeAdded(vtkMRMLNode* vtkNotUsed(node))
 {
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerIGTLRemoteLogic
+void vtkSlicerOpenIGTLinkRemoteQueryLogic
 ::OnMRMLSceneNodeRemoved(vtkMRMLNode* vtkNotUsed(node))
 {
 }

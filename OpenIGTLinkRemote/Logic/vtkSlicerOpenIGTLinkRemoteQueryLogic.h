@@ -15,14 +15,14 @@
 
 ==============================================================================*/
 
-// .NAME vtkSlicerIGTLRemoteLogic - slicer logic class for volumes manipulation
+// .NAME vtkSlicerOpenIGTLinkRemoteQueryLogic - slicer logic class for volumes manipulation
 // .SECTION Description
 // This class manages the logic associated with reading, saving,
 // and changing propertied of the volumes
 
 
-#ifndef __vtkSlicerIGTLRemoteLogic_h
-#define __vtkSlicerIGTLRemoteLogic_h
+#ifndef __vtkSlicerOpenIGTLinkRemoteQueryLogic_h
+#define __vtkSlicerOpenIGTLinkRemoteQueryLogic_h
 
 // Slicer includes
 #include "vtkSlicerModuleLogic.h"
@@ -32,22 +32,22 @@
 // STD includes
 #include <cstdlib>
 
-#include "vtkSlicerIGTLRemoteModuleLogicExport.h"
+#include "vtkSlicerOpenIGTLinkRemoteModuleLogicExport.h"
 
 
 /// \ingroup Slicer_QtModules_IGTLRemote
-class VTK_SLICER_IGTLREMOTE_MODULE_LOGIC_EXPORT vtkSlicerIGTLRemoteLogic :
+class VTK_SLICER_OPENIGTLINKREMOTE_MODULE_LOGIC_EXPORT vtkSlicerOpenIGTLinkRemoteQueryLogic :
   public vtkSlicerModuleLogic
 {
 public:
   
-  static vtkSlicerIGTLRemoteLogic *New();
-  vtkTypeMacro(vtkSlicerIGTLRemoteLogic,vtkSlicerModuleLogic);
+  static vtkSlicerOpenIGTLinkRemoteQueryLogic *New();
+  vtkTypeMacro(vtkSlicerOpenIGTLinkRemoteQueryLogic,vtkSlicerModuleLogic);
   void PrintSelf(ostream& os, vtkIndent indent);
 
 protected:
-  vtkSlicerIGTLRemoteLogic();
-  virtual ~vtkSlicerIGTLRemoteLogic();
+  vtkSlicerOpenIGTLinkRemoteQueryLogic();
+  virtual ~vtkSlicerOpenIGTLinkRemoteQueryLogic();
 
   virtual void SetMRMLSceneInternal(vtkMRMLScene * newScene);
   /// Register MRML Node classes to Scene. Gets called automatically when the MRMLScene is attached to this logic class.
@@ -57,8 +57,8 @@ protected:
   virtual void OnMRMLSceneNodeRemoved(vtkMRMLNode* node);
 private:
 
-  vtkSlicerIGTLRemoteLogic(const vtkSlicerIGTLRemoteLogic&); // Not implemented
-  void operator=(const vtkSlicerIGTLRemoteLogic&);               // Not implemented
+  vtkSlicerOpenIGTLinkRemoteQueryLogic(const vtkSlicerOpenIGTLinkRemoteQueryLogic&); // Not implemented
+  void operator=(const vtkSlicerOpenIGTLinkRemoteQueryLogic&);               // Not implemented
 };
 
 #endif

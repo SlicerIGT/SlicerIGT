@@ -121,12 +121,12 @@ void qSlicerOpenIGTLinkRemoteModule
 {
   this->Superclass::setup();
   
-  vtkSlicerOpenIGTLinkRemoteLogic* moduleLogic = vtkSlicerOpenIGTLinkRemoteLogic::SafeDownCast( this->logic() );
+  vtkSlicerOpenIGTLinkRemoteLogic* remoteLogic = vtkSlicerOpenIGTLinkRemoteLogic::SafeDownCast( this->logic() );
   qSlicerAbstractCoreModule* IFModule = qSlicerCoreApplication::application()->moduleManager()->module( "OpenIGTLinkIF" );
   if ( IFModule )
   {
     vtkSlicerOpenIGTLinkIFLogic* IFLogic = vtkSlicerOpenIGTLinkIFLogic::SafeDownCast( IFModule->logic() );
-    moduleLogic->SetIFLogic( IFLogic );
+	remoteLogic->SetIFLogic( IFLogic );
   }
 }
 

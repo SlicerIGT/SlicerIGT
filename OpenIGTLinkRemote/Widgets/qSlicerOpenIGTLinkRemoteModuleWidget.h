@@ -21,7 +21,7 @@
 // SlicerQt includes
 #include "qSlicerAbstractModuleWidget.h"
 
-#include "qSlicerOpenIGTLinkRemoteModuleExport.h"
+#include "qSlicerOpenIGTLinkRemoteModuleWidgetsExport.h"
 
 class QTimer;
 class qSlicerOpenIGTLinkRemoteModuleWidgetPrivate;
@@ -29,7 +29,7 @@ class vtkMRMLNode;
 
 
 /// \ingroup Slicer_QtModules_ExtensionTemplate
-class Q_SLICER_QTMODULES_OPENIGTLINKREMOTE_EXPORT qSlicerOpenIGTLinkRemoteModuleWidget :
+class Q_SLICER_QTMODULES_OPENIGTLINKREMOTE_WIDGETS_EXPORT qSlicerOpenIGTLinkRemoteModuleWidget :
   public qSlicerAbstractModuleWidget
 {
   Q_OBJECT
