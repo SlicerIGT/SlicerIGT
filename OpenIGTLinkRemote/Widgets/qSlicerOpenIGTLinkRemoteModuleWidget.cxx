@@ -8,8 +8,10 @@
 #include "ui_qSlicerOpenIGTLinkRemoteModuleWidget.h"
 
 #include "vtkSlicerOpenIGTLinkRemoteLogic.h"
+#include "vtkSlicerOpenIGTLinkRemoteQueryLogic.h"
 
 #include "vtkMRMLNode.h"
+#include "vtkMRMLScene.h"
 
 
 //-----------------------------------------------------------------------------
@@ -47,9 +49,7 @@ qSlicerOpenIGTLinkRemoteModuleWidget
 {
   this->Timer = new QTimer( this );
   this->LastCommandId = 0;
-  std::cout << "hello from RMW" << std::endl;
 }
-
 
 
 qSlicerOpenIGTLinkRemoteModuleWidget::~qSlicerOpenIGTLinkRemoteModuleWidget()
@@ -66,18 +66,27 @@ void qSlicerOpenIGTLinkRemoteModuleWidget::setup()
 }
 
 
-void qSlicerOpenIGTLinkRemoteModuleWidget
-::OnSendCommandClicked()
+//-----------------------------------------------------------------------------
+void qSlicerOpenIGTLinkRemoteModuleWidget::setMRMLScene(vtkMRMLScene *newScene)
 {
   Q_D(qSlicerOpenIGTLinkRemoteModuleWidget);
 
+  vtkMRMLScene* oldScene = this->mrmlScene();
+
+  if (oldScene != newScene)
+    {
+      this->Superclass::setMRMLScene(newScene);
+      d->queryWidget->setMRMLScene(newScene);
+      d->commandWidget->setMRMLScene(newScene);
+    }
+
+  //newScene->InitTraversal();
 }
 
-
-
-void qSlicerOpenIGTLinkRemoteModuleWidget
-::OnTimeout()
+void qSlicerOpenIGTLinkRemoteModuleWidget::setIFLogic(vtkSlicerOpenIGTLinkIFLogic *ifLogic)
 {
   Q_D(qSlicerOpenIGTLinkRemoteModuleWidget);
 
+  d->queryWidget->setIFLogic(ifLogic);
+  d->commandWidget->setIFLogic(ifLogic);
 }

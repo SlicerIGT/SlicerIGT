@@ -23,8 +23,11 @@
 
 #include "qSlicerOpenIGTLinkRemoteModuleWidgetsExport.h"
 
-class QTimer;
+// MRML includes
+#include "vtkMRMLAbstractLogic.h"
+
 class qSlicerOpenIGTLinkRemoteModuleWidgetPrivate;
+class vtkSlicerOpenIGTLinkIFLogic;
 class vtkMRMLNode;
 
 
@@ -35,17 +38,14 @@ class Q_SLICER_QTMODULES_OPENIGTLINKREMOTE_WIDGETS_EXPORT qSlicerOpenIGTLinkRemo
   Q_OBJECT
 
 public:
+  void setMRMLScene(vtkMRMLScene* scene);
+  void setIFLogic(vtkSlicerOpenIGTLinkIFLogic* ifLogic);
 
   typedef qSlicerAbstractModuleWidget Superclass;
   qSlicerOpenIGTLinkRemoteModuleWidget(QWidget *parent=0);
   virtual ~qSlicerOpenIGTLinkRemoteModuleWidget();
 
-
 protected slots:
-  
-  void OnSendCommandClicked();
-  void OnTimeout();
-
 
 protected:
   QScopedPointer<qSlicerOpenIGTLinkRemoteModuleWidgetPrivate> d_ptr;

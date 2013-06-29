@@ -34,6 +34,7 @@
 
 #include "vtkSlicerOpenIGTLinkRemoteModuleLogicExport.h"
 
+class vtkSlicerOpenIGTLinkIFLogic;
 
 /// \ingroup Slicer_QtModules_IGTLRemote
 class VTK_SLICER_OPENIGTLINKREMOTE_MODULE_LOGIC_EXPORT vtkSlicerOpenIGTLinkRemoteQueryLogic :
@@ -44,6 +45,7 @@ public:
   static vtkSlicerOpenIGTLinkRemoteQueryLogic *New();
   vtkTypeMacro(vtkSlicerOpenIGTLinkRemoteQueryLogic,vtkSlicerModuleLogic);
   void PrintSelf(ostream& os, vtkIndent indent);
+  void SetIFLogic(vtkSlicerOpenIGTLinkIFLogic *ifLogic);
 
 protected:
   vtkSlicerOpenIGTLinkRemoteQueryLogic();
@@ -56,6 +58,8 @@ protected:
   virtual void OnMRMLSceneNodeAdded(vtkMRMLNode* node);
   virtual void OnMRMLSceneNodeRemoved(vtkMRMLNode* node);
 private:
+  class vtkInternal;
+  vtkInternal *Internal;
 
   vtkSlicerOpenIGTLinkRemoteQueryLogic(const vtkSlicerOpenIGTLinkRemoteQueryLogic&); // Not implemented
   void operator=(const vtkSlicerOpenIGTLinkRemoteQueryLogic&);               // Not implemented

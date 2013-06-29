@@ -16,16 +16,15 @@
 ==============================================================================*/
 
 // Qt includes
+#include <QList>
+#include <QTableWidgetSelectionRange>
 
 // SlicerQt includes
 #include "qSlicerOpenIGTLinkRemoteQueryWidget.h"
 #include "ui_qSlicerOpenIGTLinkRemoteQueryWidget.h"
 
-#include "qSlicerApplication.h"
-
-#include <QList>
-#include <QTableWidgetSelectionRange>
-
+// Other includes
+#include "vtkSlicerOpenIGTLinkIFLogic.h"
 #include "vtkSlicerOpenIGTLinkRemoteQueryLogic.h"
 
 #include "vtkMRMLIGTLConnectorNode.h"
@@ -107,7 +106,6 @@ void qSlicerOpenIGTLinkRemoteQueryWidgetPrivate::init()
   this->remoteDataListTable->setSelectionBehavior(QAbstractItemView::SelectRows);
   this->remoteDataListTable->setSelectionMode(QAbstractItemView::SingleSelection);
   this->remoteDataListTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
-
 }
 
 
@@ -124,11 +122,11 @@ qSlicerOpenIGTLinkRemoteQueryWidget::qSlicerOpenIGTLinkRemoteQueryWidget(QWidget
   d->init();
 }
 
+
 //-----------------------------------------------------------------------------
 qSlicerOpenIGTLinkRemoteQueryWidget::~qSlicerOpenIGTLinkRemoteQueryWidget()
 {
   this->QueryLogic->Delete();
-  this->QueryLogic = NULL;
 }
 
 
@@ -138,24 +136,22 @@ void qSlicerOpenIGTLinkRemoteQueryWidget::setMRMLScene(vtkMRMLScene *newScene)
   Q_D(qSlicerOpenIGTLinkRemoteQueryWidget);
 
   vtkMRMLScene* oldScene = this->mrmlScene();
-
-  //this->Superclass::setMRMLScene(newScene);
-
-  qSlicerApplication * app = qSlicerApplication::application();
-  if (!app)
-    {
-    return;
-    }
-  
   if (oldScene != newScene)
     {
     if (d->connectorNodeSelector)
       {
       d->connectorNodeSelector->setMRMLScene(newScene);
       }
+    this->QueryLogic->SetMRMLScene(newScene);
     }
 
-  newScene->InitTraversal();
+  //newScene->InitTraversal(); // TODO: why was this here?
+}
+
+
+void qSlicerOpenIGTLinkRemoteQueryWidget::setIFLogic(vtkSlicerOpenIGTLinkIFLogic *ifLogic)
+{
+  this->QueryLogic->SetIFLogic(ifLogic);
 }
 
 

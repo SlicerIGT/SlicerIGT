@@ -26,23 +26,28 @@
 class QTimer;
 class qSlicerOpenIGTLinkRemoteCommandWidgetPrivate;
 class vtkMRMLNode;
+class vtkMRMLScene;
+class vtkSlicerOpenIGTLinkRemoteLogic;
+class vtkSlicerOpenIGTLinkIFLogic;
 
 
 /// \ingroup Slicer_QtModules_ExtensionTemplate
 class Q_SLICER_QTMODULES_OPENIGTLINKREMOTE_WIDGETS_EXPORT qSlicerOpenIGTLinkRemoteCommandWidget :
-  public qSlicerAbstractModuleWidget
+  public qSlicerWidget
 {
   Q_OBJECT
 
 public:
-
-  typedef qSlicerAbstractModuleWidget Superclass;
+  typedef qSlicerWidget Superclass;
   qSlicerOpenIGTLinkRemoteCommandWidget(QWidget *parent=0);
   virtual ~qSlicerOpenIGTLinkRemoteCommandWidget();
 
+  void setMRMLScene(vtkMRMLScene *scene);
+  void setIFLogic(vtkSlicerOpenIGTLinkIFLogic *logic);
+
 
 protected slots:
-  
+
   void OnSendCommandClicked();
   void OnTimeout();
 
@@ -58,6 +63,8 @@ private:
   
   QTimer* Timer;
   int LastCommandId;  // Id of the last command sent from this widget.
+
+  vtkSlicerOpenIGTLinkRemoteLogic *CommandLogic;
 };
 
 #endif

@@ -27,16 +27,33 @@
 #include <cassert>
 
 //----------------------------------------------------------------------------
+
+class vtkSlicerOpenIGTLinkRemoteQueryLogic::vtkInternal
+{
+public:
+  vtkInternal();
+
+  vtkSlicerOpenIGTLinkIFLogic* IFLogic;
+};
+
+vtkSlicerOpenIGTLinkRemoteQueryLogic::vtkInternal::vtkInternal()
+: IFLogic(NULL)
+{
+}
+
+//----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSlicerOpenIGTLinkRemoteQueryLogic);
 
 //----------------------------------------------------------------------------
 vtkSlicerOpenIGTLinkRemoteQueryLogic::vtkSlicerOpenIGTLinkRemoteQueryLogic()
 {
+  this->Internal = new vtkInternal;
 }
 
 //----------------------------------------------------------------------------
 vtkSlicerOpenIGTLinkRemoteQueryLogic::~vtkSlicerOpenIGTLinkRemoteQueryLogic()
 {
+  delete this->Internal;
 }
 
 //----------------------------------------------------------------------------
@@ -77,5 +94,11 @@ void vtkSlicerOpenIGTLinkRemoteQueryLogic
 void vtkSlicerOpenIGTLinkRemoteQueryLogic
 ::OnMRMLSceneNodeRemoved(vtkMRMLNode* vtkNotUsed(node))
 {
+}
+
+void vtkSlicerOpenIGTLinkRemoteQueryLogic
+::SetIFLogic(vtkSlicerOpenIGTLinkIFLogic *ifLogic)
+{
+  this->Internal->IFLogic = ifLogic;
 }
 

@@ -25,6 +25,7 @@
 
 class qSlicerOpenIGTLinkRemoteQueryWidgetPrivate;
 class vtkSlicerOpenIGTLinkRemoteQueryLogic;
+class vtkSlicerOpenIGTLinkIFLogic;
 class vtkMRMLNode;
 
 /// \ingroup Slicer_QtModules_IGTLRemote
@@ -34,13 +35,14 @@ class Q_SLICER_QTMODULES_OPENIGTLINKREMOTE_WIDGETS_EXPORT qSlicerOpenIGTLinkRemo
   Q_OBJECT
 
 public:
-
   typedef qSlicerWidget Superclass;
   qSlicerOpenIGTLinkRemoteQueryWidget(QWidget *parent=0);
   virtual ~qSlicerOpenIGTLinkRemoteQueryWidget();
 
+  void setMRMLScene(vtkMRMLScene *scene);
+  void setIFLogic(vtkSlicerOpenIGTLinkIFLogic *ifLogic);
+
 public slots:
-  virtual void setMRMLScene(vtkMRMLScene *newScene);
   void setConnectorNode(vtkMRMLNode* node);
   void queryRemoteList();
   void querySelectedItem();

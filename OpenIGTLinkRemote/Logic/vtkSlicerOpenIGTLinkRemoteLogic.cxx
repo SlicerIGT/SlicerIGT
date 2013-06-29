@@ -201,8 +201,9 @@ void vtkSlicerOpenIGTLinkRemoteLogic::RegisterNodes()
 {
   assert(this->GetMRMLScene() != 0);
   
-  // Register IGTL message converter.
-  this->Internal->IFLogic->RegisterMessageConverter( this->CommandConverter );
+  if (this->Internal->IFLogic)
+    // Register IGTL message converter.
+    this->Internal->IFLogic->RegisterMessageConverter( this->CommandConverter );
 }
 
 //----------------------------------------------------------------------------

@@ -7,6 +7,7 @@
 #include "qSlicerOpenIGTLinkRemoteCommandWidget.h"
 #include "ui_qSlicerOpenIGTLinkRemoteCommandWidget.h"
 
+// Other includes
 #include "vtkSlicerOpenIGTLinkRemoteLogic.h"
 
 #include "vtkMRMLNode.h"
@@ -45,7 +46,7 @@ vtkSlicerOpenIGTLinkRemoteLogic * qSlicerOpenIGTLinkRemoteCommandWidgetPrivate
 ::logic()
 {
   Q_Q( qSlicerOpenIGTLinkRemoteCommandWidget );
-  return vtkSlicerOpenIGTLinkRemoteLogic::SafeDownCast( q->logic() );
+  return vtkSlicerOpenIGTLinkRemoteLogic::SafeDownCast( q->CommandLogic );
 }
 
 void qSlicerOpenIGTLinkRemoteCommandWidget::setup()
@@ -53,7 +54,6 @@ void qSlicerOpenIGTLinkRemoteCommandWidget::setup()
   Q_D(qSlicerOpenIGTLinkRemoteCommandWidget);
   d->setupUi(this);
 
-  std::cout <<"Hello world" << std::endl;
   connect( d->SendCommandButton, SIGNAL( clicked() ), this, SLOT( OnSendCommandClicked() ) );
   connect( this->Timer, SIGNAL( timeout() ), this, SLOT( OnTimeout() ) );
 }
@@ -68,6 +68,7 @@ qSlicerOpenIGTLinkRemoteCommandWidget
   : Superclass( _parent )
   , d_ptr( new qSlicerOpenIGTLinkRemoteCommandWidgetPrivate( *this ) )
 {
+  this->CommandLogic = vtkSlicerOpenIGTLinkRemoteLogic::New();
   this->Timer = new QTimer( this );
   this->LastCommandId = 0;
   this->setup();
@@ -76,6 +77,7 @@ qSlicerOpenIGTLinkRemoteCommandWidget
 qSlicerOpenIGTLinkRemoteCommandWidget::~qSlicerOpenIGTLinkRemoteCommandWidget()
 {
   this->Timer->stop();
+  this->CommandLogic->Delete();
 }
 
 void qSlicerOpenIGTLinkRemoteCommandWidget
@@ -136,4 +138,20 @@ void qSlicerOpenIGTLinkRemoteCommandWidget
   {
     d->logic()->DiscardCommand( this->LastCommandId );
   }
+}
+
+
+//-----------------------------------------------------------------------------
+void qSlicerOpenIGTLinkRemoteCommandWidget::setMRMLScene(vtkMRMLScene *newScene)
+{
+  Q_D(qSlicerOpenIGTLinkRemoteCommandWidget);
+
+  this->CommandLogic->SetMRMLScene(newScene);
+
+  Superclass::setMRMLScene(newScene);
+}
+
+void qSlicerOpenIGTLinkRemoteCommandWidget::setIFLogic(vtkSlicerOpenIGTLinkIFLogic* ifLogic)
+{
+  this->CommandLogic->SetIFLogic(ifLogic);
 }

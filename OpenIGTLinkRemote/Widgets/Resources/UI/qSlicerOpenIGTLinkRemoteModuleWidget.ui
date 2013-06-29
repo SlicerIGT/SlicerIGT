@@ -30,7 +30,7 @@
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_3">
       <item>
-       <widget class="qSlicerOpenIGTLinkRemoteQueryWidget" name="query" native="true">
+       <widget class="qSlicerOpenIGTLinkRemoteQueryWidget" name="queryWidget" native="true">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
           <horstretch>0</horstretch>
@@ -58,7 +58,7 @@
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_2">
       <item>
-       <widget class="qSlicerOpenIGTLinkRemoteCommandWidget" name="widget" native="true">
+       <widget class="qSlicerOpenIGTLinkRemoteCommandWidget" name="commandWidget" native="true">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
           <horstretch>0</horstretch>
