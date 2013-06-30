@@ -1,29 +1,41 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>qSlicerOpenIGTLinkRemoteQueryWidget</class>
- <widget class="qSlicerWidget" name="qSlicerOpenIGTLinkQueryWidget">
+ <widget class="qSlicerWidget" name="qSlicerOpenIGTLinkRemoteQueryWidget">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
     <width>458</width>
-    <height>305</height>
+    <height>367</height>
    </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Preferred" vsizetype="Ignored">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
   </property>
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <layout class="QGridLayout" name="gridLayout">
-   <item row="0" column="0" colspan="2">
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="margin">
+    <number>11</number>
+   </property>
+   <item>
     <widget class="ctkCollapsibleButton" name="CTKCollapsibleButton">
      <property name="sizePolicy">
-      <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+      <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
      </property>
      <property name="text">
       <string>Remote Image List</string>
+     </property>
+     <property name="collapsedHeight">
+      <number>0</number>
      </property>
      <property name="contentsFrameShape">
       <enum>QFrame::StyledPanel</enum>
@@ -35,10 +47,10 @@
          <enum>QLayout::SetDefaultConstraint</enum>
         </property>
         <property name="horizontalSpacing">
-         <number>-1</number>
+         <number>7</number>
         </property>
         <property name="verticalSpacing">
-         <number>-1</number>
+         <number>7</number>
         </property>
         <item row="0" column="0">
          <widget class="QLabel" name="connectorLabel">
@@ -62,7 +74,7 @@
            <enum>QLayout::SetMaximumSize</enum>
           </property>
           <item>
-           <widget class="qMRMLNodeComboBox" name="connectorNodeSelector" native="true">
+           <widget class="qMRMLNodeComboBox" name="connectorNodeSelector">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
               <horstretch>0</horstretch>
@@ -75,22 +87,22 @@
               <height>0</height>
              </size>
             </property>
-            <property name="nodeTypes" stdset="0">
+            <property name="nodeTypes">
              <stringlist>
               <string>vtkMRMLIGTLConnectorNode</string>
              </stringlist>
             </property>
-            <property name="selectNodeUponCreation" stdset="0">
-             <bool>false</bool>
-            </property>
-            <property name="addEnabled" stdset="0">
-             <bool>false</bool>
-            </property>
-            <property name="removeEnabled" stdset="0">
-             <bool>false</bool>
-            </property>
-            <property name="noneEnabled" stdset="0">
+            <property name="noneEnabled">
              <bool>true</bool>
+            </property>
+            <property name="addEnabled">
+             <bool>false</bool>
+            </property>
+            <property name="removeEnabled">
+             <bool>false</bool>
+            </property>
+            <property name="selectNodeUponCreation">
+             <bool>false</bool>
             </property>
            </widget>
           </item>
@@ -149,7 +161,7 @@
      </layout>
     </widget>
    </item>
-   <item row="1" column="0">
+   <item>
     <spacer name="verticalSpacer">
      <property name="orientation">
       <enum>Qt::Vertical</enum>
@@ -166,12 +178,6 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>ctkCollapsibleButton</class>
-   <extends>QWidget</extends>
-   <header>ctkCollapsibleButton.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
    <class>qMRMLNodeComboBox</class>
    <extends>QWidget</extends>
    <header>qMRMLNodeComboBox.h</header>
@@ -180,6 +186,12 @@
    <class>qSlicerWidget</class>
    <extends>QWidget</extends>
    <header>qSlicerWidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>ctkCollapsibleButton</class>
+   <extends>QWidget</extends>
+   <header>ctkCollapsibleButton.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

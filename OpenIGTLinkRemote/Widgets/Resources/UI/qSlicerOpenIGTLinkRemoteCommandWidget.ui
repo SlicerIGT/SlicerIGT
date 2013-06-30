@@ -7,13 +7,19 @@
     <x>0</x>
     <y>0</y>
     <width>340</width>
-    <height>793</height>
+    <height>615</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Form</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="spacing">
+    <number>0</number>
+   </property>
+   <property name="margin">
+    <number>0</number>
+   </property>
    <item>
     <widget class="QFrame" name="frame">
      <property name="sizePolicy">
@@ -79,25 +85,7 @@
        </widget>
       </item>
      </layout>
-     <zorder>groupBox_3</zorder>
-     <zorder>groupBox_3</zorder>
-     <zorder>groupBox_3</zorder>
-     <zorder>groupBox</zorder>
-     <zorder>groupBox_2</zorder>
     </widget>
-   </item>
-   <item>
-    <spacer name="verticalSpacer">
-     <property name="orientation">
-      <enum>Qt::Vertical</enum>
-     </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>0</width>
-       <height>0</height>
-      </size>
-     </property>
-    </spacer>
    </item>
   </layout>
  </widget>
