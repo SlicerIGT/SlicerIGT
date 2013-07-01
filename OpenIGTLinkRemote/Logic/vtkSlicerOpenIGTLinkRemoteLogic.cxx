@@ -169,7 +169,7 @@ int vtkSlicerOpenIGTLinkRemoteLogic::SendCommand( std::string strCommand, const 
   // Create annotation text node for this command.
   
   vtkSmartPointer< vtkMRMLAnnotationTextNode > newNode = vtkSmartPointer< vtkMRMLAnnotationTextNode >::New();
-  newNode->SetScene( this->GetMRMLScene() );
+  newNode->Initialize( this->GetMRMLScene() );
   newNode->SetText( 0, strCommand.c_str(), 1, 0 );
   
   // Giving unique name to this new text node.
@@ -177,8 +177,6 @@ int vtkSlicerOpenIGTLinkRemoteLogic::SendCommand( std::string strCommand, const 
   this->CommandCounter ++; // Create a unique Id for this command message.
   ss << "RC" << this->CommandCounter;
   newNode->SetName( ss.str().c_str() );
-  
-  this->GetMRMLScene()->AddNode( newNode );
   
   connectorNode->RegisterOutgoingMRMLNode( newNode );
   newNode->Modified();
