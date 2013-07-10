@@ -145,10 +145,9 @@ void qSlicerOpenIGTLinkRemoteCommandWidget
 void qSlicerOpenIGTLinkRemoteCommandWidget::setMRMLScene(vtkMRMLScene *newScene)
 {
   Q_D(qSlicerOpenIGTLinkRemoteCommandWidget);
-
   this->CommandLogic->SetMRMLScene(newScene);
 
-  Superclass::setMRMLScene(newScene);
+  this->Superclass::setMRMLScene(newScene);
 }
 
 void qSlicerOpenIGTLinkRemoteCommandWidget::setIFLogic(vtkSlicerOpenIGTLinkIFLogic* ifLogic)

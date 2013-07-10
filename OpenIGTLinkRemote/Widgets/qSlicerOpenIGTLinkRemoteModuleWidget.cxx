@@ -71,17 +71,12 @@ void qSlicerOpenIGTLinkRemoteModuleWidget::setMRMLScene(vtkMRMLScene *newScene)
 {
   Q_D(qSlicerOpenIGTLinkRemoteModuleWidget);
 
-  vtkMRMLScene* oldScene = this->mrmlScene();
-
-  if (oldScene != newScene)
-    {
-      this->Superclass::setMRMLScene(newScene);
-      d->queryWidget->setMRMLScene(newScene);
-      d->commandWidget->setMRMLScene(newScene);
-    }
-
-  //newScene->InitTraversal();
+  d->queryWidget->setMRMLScene(newScene);
+  d->commandWidget->setMRMLScene(newScene);
+  
+  this->Superclass::setMRMLScene(newScene);
 }
+
 
 void qSlicerOpenIGTLinkRemoteModuleWidget::setIFLogic(vtkSlicerOpenIGTLinkIFLogic *ifLogic)
 {

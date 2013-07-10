@@ -142,8 +142,9 @@ qSlicerAbstractModuleRepresentation * qSlicerOpenIGTLinkRemoteModule
   return new qSlicerOpenIGTLinkRemoteModuleWidget;
 }
 
+
 //-----------------------------------------------------------------------------
 vtkMRMLAbstractLogic* qSlicerOpenIGTLinkRemoteModule::createLogic()
 {
-  return vtkSlicerOpenIGTLinkRemoteLogic::New();
+  return NULL;
 }

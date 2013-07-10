@@ -31,6 +31,7 @@
 #include "vtkMRMLIGTLQueryNode.h"
 #include "vtkMRMLImageMetaListNode.h"
 
+
 //-----------------------------------------------------------------------------
 /// \ingroup Slicer_QtModules_IGTLRemote
 class qSlicerOpenIGTLinkRemoteQueryWidgetPrivate
@@ -97,8 +98,9 @@ void qSlicerOpenIGTLinkRemoteQueryWidgetPrivate::init()
                    q, SLOT(querySelectedItem()));
 
   QStringList list;
-//  list << tr("Image ID") << tr("Patient ID") << tr("Patient Name") << tr("Modality") << tr("Time");
-  list << "Image ID" << "Patient ID" << "Patient Name" << "Modality" << "Time";
+  list << QObject::tr("Image ID") << QObject::tr("Patient ID") 
+       << QObject::tr("Patient Name") << QObject::tr("Modality")
+       << QObject::tr("Time");
   this->remoteDataListTable->setRowCount(15);
   this->remoteDataListTable->setColumnCount(5);
   this->remoteDataListTable->setHorizontalHeaderLabels(list);
@@ -126,7 +128,8 @@ qSlicerOpenIGTLinkRemoteQueryWidget::qSlicerOpenIGTLinkRemoteQueryWidget(QWidget
 //-----------------------------------------------------------------------------
 qSlicerOpenIGTLinkRemoteQueryWidget::~qSlicerOpenIGTLinkRemoteQueryWidget()
 {
-  this->QueryLogic->Delete();
+  Q_D(qSlicerOpenIGTLinkRemoteQueryWidget);
+  d->queryNode->Delete();
 }
 
 
@@ -135,17 +138,10 @@ void qSlicerOpenIGTLinkRemoteQueryWidget::setMRMLScene(vtkMRMLScene *newScene)
 {
   Q_D(qSlicerOpenIGTLinkRemoteQueryWidget);
 
-  vtkMRMLScene* oldScene = this->mrmlScene();
-  if (oldScene != newScene)
-    {
-    if (d->connectorNodeSelector)
-      {
-      d->connectorNodeSelector->setMRMLScene(newScene);
-      }
-    this->QueryLogic->SetMRMLScene(newScene);
-    }
+  d->connectorNodeSelector->setMRMLScene(newScene);
+  this->QueryLogic->SetMRMLScene(newScene);
 
-  //newScene->InitTraversal(); // TODO: why was this here?
+  this->Superclass::setMRMLScene(newScene);
 }
 
 
