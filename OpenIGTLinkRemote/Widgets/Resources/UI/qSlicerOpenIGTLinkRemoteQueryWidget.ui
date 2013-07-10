@@ -23,7 +23,7 @@
    <property name="margin">
     <number>11</number>
    </property>
-   <item alignment="Qt::AlignTop">
+   <item>
     <widget class="ctkCollapsibleButton" name="CTKCollapsibleButton">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
