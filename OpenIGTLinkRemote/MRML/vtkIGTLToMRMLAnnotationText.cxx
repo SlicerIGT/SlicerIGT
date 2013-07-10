@@ -41,7 +41,7 @@ vtkMRMLNode* vtkIGTLToMRMLAnnotationText
   annotationTextNode->SetName( name );
   annotationTextNode->SetDescription( "Created by OpenIGTLinkRemote module" );
   
-  scene->AddNode( annotationTextNode );
+  annotationTextNode->Initialize(scene);
 
   return annotationTextNode;
 }

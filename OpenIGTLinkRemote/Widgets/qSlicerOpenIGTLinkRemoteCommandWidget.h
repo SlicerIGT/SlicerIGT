@@ -15,49 +15,56 @@
 
 ==============================================================================*/
 
-#ifndef __qSlicerOpenIGTLinkRemoteModuleWidget_h
-#define __qSlicerOpenIGTLinkRemoteModuleWidget_h
+#ifndef __qSlicerOpenIGTLinkRemoteCommandWidget_h
+#define __qSlicerOpenIGTLinkRemoteCommandWidget_h
 
 // SlicerQt includes
 #include "qSlicerAbstractModuleWidget.h"
 
-#include "qSlicerOpenIGTLinkRemoteModuleExport.h"
+#include "qSlicerOpenIGTLinkRemoteModuleWidgetsExport.h"
 
 class QTimer;
-class qSlicerOpenIGTLinkRemoteModuleWidgetPrivate;
+class qSlicerOpenIGTLinkRemoteCommandWidgetPrivate;
 class vtkMRMLNode;
+class vtkMRMLScene;
+class vtkSlicerOpenIGTLinkRemoteLogic;
+class vtkSlicerOpenIGTLinkIFLogic;
 
 
 /// \ingroup Slicer_QtModules_ExtensionTemplate
-class Q_SLICER_QTMODULES_OPENIGTLINKREMOTE_EXPORT qSlicerOpenIGTLinkRemoteModuleWidget :
-  public qSlicerAbstractModuleWidget
+class Q_SLICER_QTMODULES_OPENIGTLINKREMOTE_WIDGETS_EXPORT qSlicerOpenIGTLinkRemoteCommandWidget :
+  public qSlicerWidget
 {
   Q_OBJECT
 
 public:
+  typedef qSlicerWidget Superclass;
+  qSlicerOpenIGTLinkRemoteCommandWidget(QWidget *parent=0);
+  virtual ~qSlicerOpenIGTLinkRemoteCommandWidget();
 
-  typedef qSlicerAbstractModuleWidget Superclass;
-  qSlicerOpenIGTLinkRemoteModuleWidget(QWidget *parent=0);
-  virtual ~qSlicerOpenIGTLinkRemoteModuleWidget();
+  void setMRMLScene(vtkMRMLScene *scene);
+  void setIFLogic(vtkSlicerOpenIGTLinkIFLogic *logic);
 
 
 protected slots:
-  
+
   void OnSendCommandClicked();
   void OnTimeout();
 
-
-protected:
-  QScopedPointer<qSlicerOpenIGTLinkRemoteModuleWidgetPrivate> d_ptr;
-  
   virtual void setup();
 
+
+protected:
+  QScopedPointer<qSlicerOpenIGTLinkRemoteCommandWidgetPrivate> d_ptr;
+  
 private:
-  Q_DECLARE_PRIVATE(qSlicerOpenIGTLinkRemoteModuleWidget);
-  Q_DISABLE_COPY(qSlicerOpenIGTLinkRemoteModuleWidget);
+  Q_DECLARE_PRIVATE(qSlicerOpenIGTLinkRemoteCommandWidget);
+  Q_DISABLE_COPY(qSlicerOpenIGTLinkRemoteCommandWidget);
   
   QTimer* Timer;
   int LastCommandId;  // Id of the last command sent from this widget.
+
+  vtkSlicerOpenIGTLinkRemoteLogic *CommandLogic;
 };
 
 #endif

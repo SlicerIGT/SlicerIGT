@@ -1,25 +1,40 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>qSlicerOpenIGTLinkRemoteModuleWidget</class>
- <widget class="qSlicerWidget" name="qSlicerOpenIGTLinkRemoteModuleWidget">
+ <class>qSlicerOpenIGTLinkRemoteCommandWidget</class>
+ <widget class="qSlicerWidget" name="qSlicerOpenIGTLinkRemoteCommandWidget">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
     <width>340</width>
-    <height>793</height>
+    <height>615</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Form</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="spacing">
+    <number>0</number>
+   </property>
+   <property name="margin">
+    <number>0</number>
+   </property>
    <item>
-    <widget class="ctkCollapsibleButton" name="CTKCollapsibleButton">
-     <property name="text">
-      <string>Display</string>
+    <widget class="QFrame" name="frame">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="MinimumExpanding">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
      </property>
-     <layout class="QVBoxLayout" name="verticalLayout_3">
+     <property name="frameShape">
+      <enum>QFrame::StyledPanel</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Raised</enum>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_6">
       <item>
        <widget class="QGroupBox" name="groupBox_3">
         <property name="title">
@@ -72,19 +87,6 @@
      </layout>
     </widget>
    </item>
-   <item>
-    <spacer name="verticalSpacer">
-     <property name="orientation">
-      <enum>Qt::Vertical</enum>
-     </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>0</width>
-       <height>0</height>
-      </size>
-     </property>
-    </spacer>
-   </item>
   </layout>
  </widget>
  <customwidgets>
@@ -99,17 +101,11 @@
    <header>qSlicerWidget.h</header>
    <container>1</container>
   </customwidget>
-  <customwidget>
-   <class>ctkCollapsibleButton</class>
-   <extends>QWidget</extends>
-   <header>ctkCollapsibleButton.h</header>
-   <container>1</container>
-  </customwidget>
  </customwidgets>
  <resources/>
  <connections>
   <connection>
-   <sender>qSlicerOpenIGTLinkRemoteModuleWidget</sender>
+   <sender>qSlicerOpenIGTLinkRemoteCommandWidget</sender>
    <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
    <receiver>ConnectorComboBox</receiver>
    <slot>setMRMLScene(vtkMRMLScene*)</slot>

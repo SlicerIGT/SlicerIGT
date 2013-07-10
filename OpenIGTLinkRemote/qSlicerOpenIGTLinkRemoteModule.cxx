@@ -27,6 +27,9 @@
 // OpenIGTLinkRemote includes
 #include "qSlicerOpenIGTLinkRemoteModule.h"
 #include "qSlicerOpenIGTLinkRemoteModuleWidget.h"
+#include "qSlicerOpenIGTLinkRemoteQueryWidget.h"
+#include "qSlicerOpenIGTLinkRemoteCommandWidget.h"
+
 
 #include "qSlicerAbstractCoreModule.h"
 #include "qSlicerCoreApplication.h"
@@ -115,18 +118,19 @@ QStringList qSlicerOpenIGTLinkRemoteModule
 }
 
 
-
 void qSlicerOpenIGTLinkRemoteModule
 ::setup()
 {
   this->Superclass::setup();
-  
-  vtkSlicerOpenIGTLinkRemoteLogic* moduleLogic = vtkSlicerOpenIGTLinkRemoteLogic::SafeDownCast( this->logic() );
+
+  qSlicerOpenIGTLinkRemoteModuleWidget *widget =
+    dynamic_cast<qSlicerOpenIGTLinkRemoteModuleWidget*>(this->widgetRepresentation());
+
   qSlicerAbstractCoreModule* IFModule = qSlicerCoreApplication::application()->moduleManager()->module( "OpenIGTLinkIF" );
   if ( IFModule )
   {
     vtkSlicerOpenIGTLinkIFLogic* IFLogic = vtkSlicerOpenIGTLinkIFLogic::SafeDownCast( IFModule->logic() );
-    moduleLogic->SetIFLogic( IFLogic );
+    widget->setIFLogic( IFLogic );
   }
 }
 
@@ -138,8 +142,9 @@ qSlicerAbstractModuleRepresentation * qSlicerOpenIGTLinkRemoteModule
   return new qSlicerOpenIGTLinkRemoteModuleWidget;
 }
 
+
 //-----------------------------------------------------------------------------
 vtkMRMLAbstractLogic* qSlicerOpenIGTLinkRemoteModule::createLogic()
 {
-  return vtkSlicerOpenIGTLinkRemoteLogic::New();
+  return NULL;
 }
