@@ -82,7 +82,7 @@ vtkSlicerOpenIGTLinkRemoteLogic::REPLY_RESULT vtkSlicerOpenIGTLinkRemoteLogic::G
   }
   
   std::stringstream ss;
-  ss << "RC" << commandId << "Reply";
+  ss << "ACQ_" << commandId;
   vtkCollection* replyNodes = this->GetMRMLScene()->GetNodesByName( ss.str().c_str() );
   
   int replyCount = replyNodes->GetNumberOfItems();
@@ -114,7 +114,7 @@ void vtkSlicerOpenIGTLinkRemoteLogic::DiscardCommand( int commandId )
   this->GetMRMLScene()->StartState(vtkMRMLScene::BatchProcessState);
 
   std::stringstream ss;
-  ss << "RC" << commandId << "Reply";
+  ss << "ACQ_" << commandId;
   vtkCollection* replyNodes = this->GetMRMLScene()->GetNodesByName( ss.str().c_str() );
   for( int i = 0; i < replyNodes->GetNumberOfItems(); ++i )
   {
@@ -129,7 +129,7 @@ void vtkSlicerOpenIGTLinkRemoteLogic::DiscardCommand( int commandId )
   replyNodes->Delete();
 
   ss.clear();
-  ss << "RC" << commandId;
+  ss << "CMD_" << commandId;
   vtkCollection* commandNodes = this->GetMRMLScene()->GetNodesByName( ss.str().c_str() );
   for( int i = 0; i < replyNodes->GetNumberOfItems(); ++i )
   {
@@ -175,7 +175,7 @@ int vtkSlicerOpenIGTLinkRemoteLogic::SendCommand( std::string strCommand, const 
   // Giving unique name to this new text node.
   std::stringstream ss;
   this->CommandCounter ++; // Create a unique Id for this command message.
-  ss << "RC" << this->CommandCounter;
+  ss << "CMD_" << this->CommandCounter;
   newNode->SetName( ss.str().c_str() );
   
   connectorNode->RegisterOutgoingMRMLNode( newNode );
