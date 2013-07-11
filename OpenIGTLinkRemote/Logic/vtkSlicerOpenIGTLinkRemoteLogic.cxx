@@ -113,35 +113,39 @@ void vtkSlicerOpenIGTLinkRemoteLogic::DiscardCommand( int commandId )
 {
   this->GetMRMLScene()->StartState(vtkMRMLScene::BatchProcessState);
 
-  std::stringstream ss;
-  ss << "ACQ_" << commandId;
-  vtkCollection* replyNodes = this->GetMRMLScene()->GetNodesByName( ss.str().c_str() );
-  for( int i = 0; i < replyNodes->GetNumberOfItems(); ++i )
   {
-    vtkMRMLAnnotationTextNode* textNode = vtkMRMLAnnotationTextNode::SafeDownCast( replyNodes->GetItemAsObject(i) );
-    if ( textNode == NULL )
+    std::stringstream ss;
+    ss << "ACQ_" << commandId;
+    vtkCollection* replyNodes = this->GetMRMLScene()->GetNodesByName( ss.str().c_str() );
+    for( int i = 0; i < replyNodes->GetNumberOfItems(); ++i )
     {
-      vtkErrorMacro( "Could not cast reply node to vtkMRMLAnnotationTextNode!" );
-      continue;
+      vtkMRMLAnnotationTextNode* textNode = vtkMRMLAnnotationTextNode::SafeDownCast( replyNodes->GetItemAsObject(i) );
+      if ( textNode == NULL )
+      {
+        vtkErrorMacro( "Could not cast reply node to vtkMRMLAnnotationTextNode!" );
+        continue;
+      }
+      this->GetMRMLScene()->RemoveNode(textNode);
     }
-    this->GetMRMLScene()->RemoveNode(textNode);
+    replyNodes->Delete();
   }
-  replyNodes->Delete();
 
-  ss.clear();
-  ss << "CMD_" << commandId;
-  vtkCollection* commandNodes = this->GetMRMLScene()->GetNodesByName( ss.str().c_str() );
-  for( int i = 0; i < replyNodes->GetNumberOfItems(); ++i )
   {
-    vtkMRMLAnnotationTextNode* textNode = vtkMRMLAnnotationTextNode::SafeDownCast( replyNodes->GetItemAsObject(i) );
-    if ( textNode == NULL )
+    std::stringstream ss;
+    ss << "CMD_" << commandId;
+    vtkCollection* commandNodes = this->GetMRMLScene()->GetNodesByName( ss.str().c_str() );
+    for( int i = 0; i < commandNodes->GetNumberOfItems(); ++i )
     {
-      vtkErrorMacro( "Could not cast reply node to vtkMRMLAnnotationTextNode!" );
-      continue;
+      vtkMRMLAnnotationTextNode* textNode = vtkMRMLAnnotationTextNode::SafeDownCast( commandNodes->GetItemAsObject(i) );
+      if ( textNode == NULL )
+      {
+        vtkErrorMacro( "Could not cast reply node to vtkMRMLAnnotationTextNode!" );
+        continue;
+      }
+      this->GetMRMLScene()->RemoveNode(textNode);
     }
-    this->GetMRMLScene()->RemoveNode(textNode);
+    commandNodes->Delete();
   }
-  commandNodes->Delete();
 
   this->GetMRMLScene()->EndState(vtkMRMLScene::BatchProcessState);
 }
