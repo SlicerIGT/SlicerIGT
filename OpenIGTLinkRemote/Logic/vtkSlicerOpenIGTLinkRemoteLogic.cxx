@@ -125,7 +125,7 @@ void vtkSlicerOpenIGTLinkRemoteLogic::DiscardCommand( int commandId, const char*
 
   {
     std::stringstream ss;
-    ss << "ACQ_" << commandId;
+    ss << "ACK_" << commandId;
     vtkCollection* replyNodes = this->GetMRMLScene()->GetNodesByName( ss.str().c_str() );
     for( int i = 0; i < replyNodes->GetNumberOfItems(); ++i )
     {
