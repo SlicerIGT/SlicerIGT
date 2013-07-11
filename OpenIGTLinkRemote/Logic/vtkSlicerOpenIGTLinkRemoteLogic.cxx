@@ -82,7 +82,7 @@ vtkSlicerOpenIGTLinkRemoteLogic::REPLY_RESULT vtkSlicerOpenIGTLinkRemoteLogic::G
   }
   
   std::stringstream ss;
-  ss << "ACQ_" << commandId;
+  ss << "ACK_" << commandId;
   vtkCollection* replyNodes = this->GetMRMLScene()->GetNodesByName( ss.str().c_str() );
   
   int replyCount = replyNodes->GetNumberOfItems();
@@ -109,7 +109,7 @@ vtkSlicerOpenIGTLinkRemoteLogic::REPLY_RESULT vtkSlicerOpenIGTLinkRemoteLogic::G
 }
 
 /**
- * @param commandId int that is used to remove any ACQ and CMD text annotation nodes
+ * @param commandId int that is used to remove any ACK and CMD text annotation nodes
  * @param connectorNodeId Identifies the IGTL connector node that will send the command message to the server.
  */
 void vtkSlicerOpenIGTLinkRemoteLogic::DiscardCommand( int commandId, const char* connectorNodeId )
