@@ -121,6 +121,14 @@ void qSlicerOpenIGTLinkRemoteCommandWidget
   {
     return;
   }
+
+  vtkMRMLNode* node = d->ConnectorComboBox->currentNode();
+  if ( node == NULL )
+  {
+    d->ReplyTextEdit->setPlainText( "Connector node not selected!" );
+    this->LastCommandId = 0;
+    return;
+  }
   
   std::string message;
   int status = d->logic()->GetCommandReply( this->LastCommandId, message );
@@ -136,7 +144,7 @@ void qSlicerOpenIGTLinkRemoteCommandWidget
   
   if ( status != d->logic()->REPLY_WAITING )
   {
-    d->logic()->DiscardCommand( this->LastCommandId );
+    d->logic()->DiscardCommand( this->LastCommandId, node->GetID() );
   }
 }
 

@@ -50,7 +50,7 @@ public:
   
   int ExecuteCommand( const char* connectorNodeId, std::string commandName, std::string parameters );
   REPLY_RESULT GetCommandReply( int commandId, std::string &message );
-  void DiscardCommand( int commandId );
+  void DiscardCommand( int commandId, const char* connectorNodeId );
   
   int SendCommand( std::string strCommand, const char* connectorNodeId );
   

@@ -108,9 +108,19 @@ vtkSlicerOpenIGTLinkRemoteLogic::REPLY_RESULT vtkSlicerOpenIGTLinkRemoteLogic::G
   return status;
 }
 
-//----------------------------------------------------------------------------
-void vtkSlicerOpenIGTLinkRemoteLogic::DiscardCommand( int commandId )
+/**
+ * @param commandId int that is used to remove any ACQ and CMD text annotation nodes
+ * @param connectorNodeId Identifies the IGTL connector node that will send the command message to the server.
+ */
+void vtkSlicerOpenIGTLinkRemoteLogic::DiscardCommand( int commandId, const char* connectorNodeId )
 {
+  vtkMRMLIGTLConnectorNode* connectorNode = vtkMRMLIGTLConnectorNode::SafeDownCast( this->GetMRMLScene()->GetNodeByID( connectorNodeId ) );
+  if ( connectorNode == NULL )
+  {
+    vtkErrorMacro( "SendCommand could not cast MRML node to IGTLConnectorNode." );
+    return;
+  }
+
   this->GetMRMLScene()->StartState(vtkMRMLScene::BatchProcessState);
 
   {
@@ -125,6 +135,7 @@ void vtkSlicerOpenIGTLinkRemoteLogic::DiscardCommand( int commandId )
         vtkErrorMacro( "Could not cast reply node to vtkMRMLAnnotationTextNode!" );
         continue;
       }
+      connectorNode->UnregisterIncomingMRMLNode(textNode);
       this->GetMRMLScene()->RemoveNode(textNode);
     }
     replyNodes->Delete();
@@ -142,6 +153,7 @@ void vtkSlicerOpenIGTLinkRemoteLogic::DiscardCommand( int commandId )
         vtkErrorMacro( "Could not cast reply node to vtkMRMLAnnotationTextNode!" );
         continue;
       }
+      connectorNode->UnregisterOutgoingMRMLNode(textNode);
       this->GetMRMLScene()->RemoveNode(textNode);
     }
     commandNodes->Delete();

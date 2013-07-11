@@ -129,7 +129,10 @@ qSlicerOpenIGTLinkRemoteQueryWidget::qSlicerOpenIGTLinkRemoteQueryWidget(QWidget
 qSlicerOpenIGTLinkRemoteQueryWidget::~qSlicerOpenIGTLinkRemoteQueryWidget()
 {
   Q_D(qSlicerOpenIGTLinkRemoteQueryWidget);
-  d->queryNode->Delete();
+  if( d->queryNode != NULL )
+  {
+    d->queryNode->Delete();
+  }
 }
 
 
