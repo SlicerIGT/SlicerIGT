@@ -96,7 +96,7 @@ void qSlicerOpenIGTLinkRemoteCommandWidget
   std::string commandString = d->CommandTextEdit->toPlainText().toStdString();
   if ( commandString.size() < 1 )
   {
-    d->ReplyTextEdit->setPlainText( "Please type command in the Command filed!" );
+    d->ReplyTextEdit->setPlainText( "Please type command in the Command field!" );
     this->LastCommandId = 0;
     return;
   }

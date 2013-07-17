@@ -54,7 +54,7 @@ vtkIntArray* vtkIGTLToMRMLAnnotationText
   vtkIntArray* events;
 
   events = vtkIntArray::New();
-  events->InsertNextValue( vtkCommand::ModifiedEvent );
+  // Modified has already been observed
 
   return events;
 }
