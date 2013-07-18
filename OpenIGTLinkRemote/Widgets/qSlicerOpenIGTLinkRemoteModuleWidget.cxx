@@ -8,7 +8,6 @@
 #include "ui_qSlicerOpenIGTLinkRemoteModuleWidget.h"
 
 #include "vtkSlicerOpenIGTLinkRemoteLogic.h"
-#include "vtkSlicerOpenIGTLinkRemoteQueryLogic.h"
 
 #include "vtkMRMLNode.h"
 #include "vtkMRMLScene.h"

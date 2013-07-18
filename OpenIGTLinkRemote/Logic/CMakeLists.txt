@@ -11,8 +11,6 @@ set(${KIT}_INCLUDE_DIRECTORIES
 set(${KIT}_SRCS
   vtkSlicerOpenIGTLinkRemoteLogic.cxx
   vtkSlicerOpenIGTLinkRemoteLogic.h
-  vtkSlicerOpenIGTLinkRemoteQueryLogic.cxx
-  vtkSlicerOpenIGTLinkRemoteQueryLogic.h
   )
 
 set(${KIT}_TARGET_LIBRARIES

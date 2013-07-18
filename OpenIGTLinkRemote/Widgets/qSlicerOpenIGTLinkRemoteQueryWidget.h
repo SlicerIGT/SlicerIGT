@@ -24,7 +24,6 @@
 #include "qSlicerOpenIGTLinkRemoteModuleWidgetsExport.h"
 
 class qSlicerOpenIGTLinkRemoteQueryWidgetPrivate;
-class vtkSlicerOpenIGTLinkRemoteQueryLogic;
 class vtkSlicerOpenIGTLinkIFLogic;
 class vtkMRMLNode;
 
@@ -57,7 +56,6 @@ private:
   Q_DECLARE_PRIVATE(qSlicerOpenIGTLinkRemoteQueryWidget);
   Q_DISABLE_COPY(qSlicerOpenIGTLinkRemoteQueryWidget);
 
-  vtkSlicerOpenIGTLinkRemoteQueryLogic* QueryLogic;
 };
 
 #endif
