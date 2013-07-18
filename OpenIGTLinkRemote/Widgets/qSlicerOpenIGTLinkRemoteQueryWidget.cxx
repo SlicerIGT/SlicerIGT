@@ -25,7 +25,6 @@
 
 // Other includes
 #include "vtkSlicerOpenIGTLinkIFLogic.h"
-#include "vtkSlicerOpenIGTLinkRemoteQueryLogic.h"
 
 #include "vtkMRMLIGTLConnectorNode.h"
 #include "vtkMRMLIGTLQueryNode.h"
@@ -119,7 +118,6 @@ qSlicerOpenIGTLinkRemoteQueryWidget::qSlicerOpenIGTLinkRemoteQueryWidget(QWidget
   : Superclass(_parent)
   , d_ptr( new qSlicerOpenIGTLinkRemoteQueryWidgetPrivate(*this) )
 {
-  this->QueryLogic = vtkSlicerOpenIGTLinkRemoteQueryLogic::New();
   Q_D(qSlicerOpenIGTLinkRemoteQueryWidget);
   d->init();
 }
@@ -142,7 +140,6 @@ void qSlicerOpenIGTLinkRemoteQueryWidget::setMRMLScene(vtkMRMLScene *newScene)
   Q_D(qSlicerOpenIGTLinkRemoteQueryWidget);
 
   d->connectorNodeSelector->setMRMLScene(newScene);
-  this->QueryLogic->SetMRMLScene(newScene);
 
   this->Superclass::setMRMLScene(newScene);
 }
@@ -150,7 +147,6 @@ void qSlicerOpenIGTLinkRemoteQueryWidget::setMRMLScene(vtkMRMLScene *newScene)
 
 void qSlicerOpenIGTLinkRemoteQueryWidget::setIFLogic(vtkSlicerOpenIGTLinkIFLogic *ifLogic)
 {
-  this->QueryLogic->SetIFLogic(ifLogic);
 }
 
 
