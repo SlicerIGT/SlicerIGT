@@ -21,6 +21,8 @@
 // SlicerQt includes
 #include "qSlicerAbstractModuleWidget.h"
 
+#include <QTimer>
+
 #include <vtkMRMLNode.h>
 
 #include "qSlicerPivotCalibrationModuleExport.h"
@@ -44,13 +46,26 @@ public:
 
 protected slots:
   void initializeObserver(vtkMRMLNode*);
-
-protected:
-
+  void onStartButton();
+  void onStop();
+  
+  void setTimer(double);
+  
+  void onDelayTimeout();
+  void onSamplingTimeout();
+  
 protected:
   QScopedPointer<qSlicerPivotCalibrationModuleWidgetPrivate> d_ptr;
 
   virtual void setup();
+  
+  int timerSetting;
+  
+  QTimer* delayTimer;
+  int delayCount;
+  
+  QTimer* samplingTimer;
+  int samplingCount;
 
 
 private:

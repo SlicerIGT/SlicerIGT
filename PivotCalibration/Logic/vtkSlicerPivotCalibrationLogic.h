@@ -47,18 +47,31 @@ public:
   void PrintSelf(ostream& os, vtkIndent indent);
   
   void initializeViewer(qMRMLSliceWidget* widget);
-  void InitializerObserver(vtkMRMLNode*);
-  void Test();
+  void InitializeObserver(vtkMRMLNode*);
+  void AddSample(vtkMatrix4x4*);
+  void ComputeCalibration();
   
-  std::vector<vtkMatrix4x4 *> transforms;
+  void ProcessMRMLNodesEvents( vtkObject* caller, unsigned long event, void* callData );
+  
+  //Move to protected, add accessors
+  double PivotPosition[3];
+  double Translation[3];
+  double RMSE;  
+  
+  void setRecordingState(bool);
+  
+  void ClearSamples();
+  
   
 protected:
   vtkSlicerPivotCalibrationLogic();
   virtual ~vtkSlicerPivotCalibrationLogic();
 
-  double PivotPosition[3];
-  double Translation[3];
-  double RMSE;  
+  std::vector<vtkMatrix4x4*> transforms;
+  
+  const char* transformId;
+  
+  bool recordingState;
   
   virtual void SetMRMLSceneInternal(vtkMRMLScene* newScene);
   /// Register MRML Node classes to Scene. Gets called automatically when the MRMLScene is attached to this logic class.
