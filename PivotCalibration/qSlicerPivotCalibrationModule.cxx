@@ -62,13 +62,13 @@ qSlicerPivotCalibrationModule::~qSlicerPivotCalibrationModule()
 //-----------------------------------------------------------------------------
 QString qSlicerPivotCalibrationModule::helpText()const
 {
-  return "";
+  return "For help on how to use this module visit: <a href='https://www.assembla.com/spaces/slicerigt'>SlicerIGT</a>";
 }
 
 //-----------------------------------------------------------------------------
 QString qSlicerPivotCalibrationModule::acknowledgementText()const
 {
-  return "";
+  return "This work was was funded by Cancer Care Ontario and the Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO)";
 }
 
 //-----------------------------------------------------------------------------
@@ -88,7 +88,7 @@ QIcon qSlicerPivotCalibrationModule::icon()const
 //-----------------------------------------------------------------------------
 QStringList qSlicerPivotCalibrationModule::categories() const
 {
-  return QStringList() << "PivotCalibration";
+  return QStringList() << "IGT";
 }
 
 //-----------------------------------------------------------------------------
