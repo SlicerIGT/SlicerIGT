@@ -11,7 +11,6 @@ set( EXTENSION_SCREENSHOTURLS "http://www.slicer.org/slicerWiki/images/7/78/Slic
 set( EXTENSION_DEPENDS "NA") # Specified as a space separated list or 'NA' if any
 set( EXTENSION_BUILD_SUBDIRECTORY inner-build )
 
-project( SlicerIGT )
 find_package( Slicer REQUIRED )
 include( ${Slicer_USE_FILE} )
 
@@ -34,6 +33,7 @@ add_subdirectory( ${CreateModels_SOURCE_DIR} ${CreateModels_BINARY_DIR} )
 add_subdirectory( ${OpenIGTLinkRemote_SOURCE_DIR} ${OpenIGTLinkRemote_BINARY_DIR} )
 add_subdirectory( ${UltrasoundSnapshots_SOURCE_DIR} ${UltrasoundSnapshots_BINARY_DIR} )
 add_subdirectory( ${VolumeResliceDriver_SOURCE_DIR} ${VolumeResliceDriver_BINARY_DIR} )
+add_subdirectory( ${PivotCalibration_SOURCE_DIR} ${PivotCalibration_BINARY_DIR} )
 
 set(CPACK_INSTALL_CMAKE_PROJECTS "${CPACK_INSTALL_CMAKE_PROJECTS};${CMAKE_BINARY_DIR};${EXTENSION_NAME};ALL;/")
 

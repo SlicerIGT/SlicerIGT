@@ -29,6 +29,7 @@ set( SlicerIGT_Modules
   UltrasoundSnapshots
   VolumeResliceDriver
   OpenIGTLinkRemote
+  PivotCalibration
   )
 
   
@@ -81,11 +82,13 @@ ExternalProject_Add( ${proj}
     -DCreateModels_SOURCE_DIR:PATH=${CreateModels_SOURCE_DIR}
     -DCreateModels_BINARY_DIR:PATH=${CreateModels_BINARY_DIR}
     -DOpenIGTLinkRemote_SOURCE_DIR:PATH=${OpenIGTLinkRemote_SOURCE_DIR}
-    -DOpenIGTLinkRemote_BINARY_DIR:PATH=${OpenIGTLinkRemote_BINARY_DIR}      
+    -DOpenIGTLinkRemote_BINARY_DIR:PATH=${OpenIGTLinkRemote_BINARY_DIR}
     -DUltrasoundSnapshots_SOURCE_DIR:PATH=${UltrasoundSnapshots_SOURCE_DIR}
-    -DUltrasoundSnapshots_BINARY_DIR:PATH=${UltrasoundSnapshots_BINARY_DIR}      
+    -DUltrasoundSnapshots_BINARY_DIR:PATH=${UltrasoundSnapshots_BINARY_DIR}
     -DVolumeResliceDriver_SOURCE_DIR:PATH=${VolumeResliceDriver_SOURCE_DIR}
-    -DVolumeResliceDriver_BINARY_DIR:PATH=${VolumeResliceDriver_BINARY_DIR}      
+    -DVolumeResliceDriver_BINARY_DIR:PATH=${VolumeResliceDriver_BINARY_DIR}
+    -DPivotCalibration_SOURCE_DIR:PATH=${PivotCalibration_SOURCE_DIR}
+    -DPivotCalibration_BINARY_DIR:PATH=${PivotCalibration_BINARY_DIR}
     -DSlicer_DIR:PATH=${Slicer_DIR}
     -DMIDAS_PACKAGE_EMAIL:STRING=${MIDAS_PACKAGE_EMAIL}
     -DMIDAS_PACKAGE_API_KEY:STRING=${MIDAS_PACKAGE_API_KEY}    
