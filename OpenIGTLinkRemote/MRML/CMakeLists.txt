@@ -28,6 +28,7 @@ set(${KIT}_TARGET_LIBRARIES
 
 #-----------------------------------------------------------------------------
 SlicerMacroBuildModuleMRML(
+  DISABLE_WRAP_PYTHON
   NAME ${KIT}
   EXPORT_DIRECTIVE ${${KIT}_EXPORT_DIRECTIVE}
   INCLUDE_DIRECTORIES ${${KIT}_INCLUDE_DIRECTORIES}
