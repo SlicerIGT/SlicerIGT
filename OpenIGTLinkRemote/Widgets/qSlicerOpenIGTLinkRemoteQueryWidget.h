@@ -24,6 +24,7 @@
 #include "qSlicerOpenIGTLinkRemoteModuleWidgetsExport.h"
 
 class qSlicerOpenIGTLinkRemoteQueryWidgetPrivate;
+class QAbstractButton;
 class vtkSlicerOpenIGTLinkIFLogic;
 class vtkMRMLNode;
 
@@ -46,6 +47,10 @@ public slots:
   void queryRemoteList();
   void querySelectedItem();
   void onQueryResponseReceived();
+  void onQueryTypeChanged(int id);
+
+  void getImage(std::string id);
+  void getPointList(std::string id);
 
 protected:
   QScopedPointer<qSlicerOpenIGTLinkRemoteQueryWidgetPrivate> d_ptr;
