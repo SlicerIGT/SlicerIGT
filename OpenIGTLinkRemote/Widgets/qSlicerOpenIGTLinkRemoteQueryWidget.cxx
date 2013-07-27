@@ -220,7 +220,6 @@ void qSlicerOpenIGTLinkRemoteQueryWidget::querySelectedItem()
   int i = 0, j = selectRange.at(0).topRow();
   while(i < selectRange.size())
     {
-    std::cout << "i: " << i <<  " j: " << j << std::endl;
     // Get the item identifier from the table
     std::string rowid( d->remoteDataListTable->item(j, 0)->text().toAscii() );
     switch (d->typeButtonGroup.checkedId()) 
