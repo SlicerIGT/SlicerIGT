@@ -45,7 +45,6 @@ vtkSlicerPivotCalibrationLogic::vtkSlicerPivotCalibrationLogic()
 //----------------------------------------------------------------------------
 vtkSlicerPivotCalibrationLogic::~vtkSlicerPivotCalibrationLogic()
 {
-  (this->GetMRMLScene()->GetNodeByID(this->transformId))->RemoveObservers( vtkMRMLLinearTransformNode::TransformModifiedEvent, (vtkCommand*) this->GetMRMLNodesCallbackCommand() );
   this->ClearSamples();
 }
 
