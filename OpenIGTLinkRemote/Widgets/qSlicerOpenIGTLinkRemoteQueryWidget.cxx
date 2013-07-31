@@ -104,6 +104,10 @@ void qSlicerOpenIGTLinkRemoteQueryWidgetPrivate::init()
                    q, SLOT(querySelectedItem()));
   QObject::connect(&typeButtonGroup, SIGNAL(buttonClicked(int)),
                    q, SLOT(onQueryTypeChanged(int)));
+  QObject::connect(this->trackingSTTButton, SIGNAL(clicked()),
+                   q, SLOT(startTracking()));
+  QObject::connect(this->trackingSTPButton, SIGNAL(clicked()),
+                   q, SLOT(stopTracking()));
 
   // set up table
   //this->remoteDataListTable->setRowCount(15);
@@ -127,6 +131,10 @@ qSlicerOpenIGTLinkRemoteQueryWidget::qSlicerOpenIGTLinkRemoteQueryWidget(QWidget
 {
   Q_D(qSlicerOpenIGTLinkRemoteQueryWidget);
   d->init();
+  d->queryNode = vtkMRMLIGTLQueryNode::New();
+  d->queryNode->SetNoNameQuery(1);
+  qvtkConnect(d->queryNode, vtkMRMLIGTLQueryNode::ResponseEvent,
+              this, SLOT(onQueryResponseReceived()));
 }
 
 
@@ -136,6 +144,8 @@ qSlicerOpenIGTLinkRemoteQueryWidget::~qSlicerOpenIGTLinkRemoteQueryWidget()
   Q_D(qSlicerOpenIGTLinkRemoteQueryWidget);
   if( d->queryNode != NULL )
   {
+    qvtkDisconnect(d->queryNode, vtkMRMLIGTLQueryNode::ResponseEvent,
+                this, SLOT(onQueryResponseReceived()));
     d->queryNode->Delete();
   }
 }
@@ -148,12 +158,16 @@ void qSlicerOpenIGTLinkRemoteQueryWidget::setMRMLScene(vtkMRMLScene *newScene)
 
   d->connectorNodeSelector->setMRMLScene(newScene);
 
+  if (newScene)
+    newScene->AddNode(d->queryNode);
+
   this->Superclass::setMRMLScene(newScene);
 }
 
 
 void qSlicerOpenIGTLinkRemoteQueryWidget::setIFLogic(vtkSlicerOpenIGTLinkIFLogic *ifLogic)
 {
+  vtkNotUsed(ifLogic);
 }
 
 
@@ -176,17 +190,9 @@ void qSlicerOpenIGTLinkRemoteQueryWidget::queryRemoteList()
 {
   Q_D(qSlicerOpenIGTLinkRemoteQueryWidget);
 
-  if (!this->mrmlScene() || !d->connectorNode)
+  if (!this->mrmlScene() || !d->connectorNode || !d->queryNode)
     return;
 
-  if (d->queryNode == NULL)
-    {
-    d->queryNode = vtkMRMLIGTLQueryNode::New();
-    d->queryNode->SetNoNameQuery(1);
-    this->mrmlScene()->AddNode(d->queryNode);
-    qvtkConnect(d->queryNode, vtkMRMLIGTLQueryNode::ResponseEvent,
-                this, SLOT(onQueryResponseReceived()));
-    }
   if (d->typeButtonGroup.checkedId() == qSlicerOpenIGTLinkRemoteQueryWidgetPrivate::TYPE_IMAGE)
     {
     d->queryNode->SetIGTLName("IMGMETA");
@@ -201,6 +207,40 @@ void qSlicerOpenIGTLinkRemoteQueryWidget::queryRemoteList()
     }
   d->queryNode->SetQueryStatus(vtkMRMLIGTLQueryNode::STATUS_PREPARED);
   d->queryNode->SetQueryType(vtkMRMLIGTLQueryNode::TYPE_GET);
+  d->connectorNode->PushQuery((vtkMRMLIGTLQueryNode*)d->queryNode);
+}
+
+
+//-----------------------------------------------------------------------------
+void qSlicerOpenIGTLinkRemoteQueryWidget::startTracking()
+{
+  std::cerr << "qSlicerOpenIGTLinkRemoteQueryWidget::startTracking()" << std::endl;
+  Q_D(qSlicerOpenIGTLinkRemoteQueryWidget);
+
+  if (!this->mrmlScene() || !d->connectorNode || !d->queryNode)
+    return;
+
+  d->queryNode->SetIGTLName("TDATA");
+  d->queryNode->SetNoNameQuery(1);
+  d->queryNode->SetQueryStatus(vtkMRMLIGTLQueryNode::STATUS_PREPARED);
+  d->queryNode->SetQueryType(vtkMRMLIGTLQueryNode::TYPE_START);
+  d->connectorNode->PushQuery((vtkMRMLIGTLQueryNode*)d->queryNode);
+}
+
+
+//-----------------------------------------------------------------------------
+void qSlicerOpenIGTLinkRemoteQueryWidget::stopTracking()
+{
+  std::cerr << "qSlicerOpenIGTLinkRemoteQueryWidget::stopTracking()" << std::endl;
+  Q_D(qSlicerOpenIGTLinkRemoteQueryWidget);
+
+  if (!this->mrmlScene() || !d->connectorNode || !d->queryNode)
+    return;
+
+  d->queryNode->SetIGTLName("TDATA");
+  d->queryNode->SetNoNameQuery(1);
+  d->queryNode->SetQueryStatus(vtkMRMLIGTLQueryNode::STATUS_PREPARED);
+  d->queryNode->SetQueryType(vtkMRMLIGTLQueryNode::TYPE_STOP);
   d->connectorNode->PushQuery((vtkMRMLIGTLQueryNode*)d->queryNode);
 }
 
@@ -252,7 +292,7 @@ void qSlicerOpenIGTLinkRemoteQueryWidget::onQueryResponseReceived()
   vtkMRMLImageMetaListNode* imgQueryNode; 
   vtkMRMLPointMetaListNode* ptQueryNode;
 
-  if (imgQueryNode = vtkMRMLImageMetaListNode::SafeDownCast(qNode))
+  if ( (imgQueryNode = vtkMRMLImageMetaListNode::SafeDownCast(qNode)) )
     {
     int numImages = imgQueryNode->GetNumberOfImageMetaElement();
     d->remoteDataListTable->setRowCount(numImages);
@@ -282,7 +322,7 @@ void qSlicerOpenIGTLinkRemoteQueryWidget::onQueryResponseReceived()
       d->remoteDataListTable->setItem(i, 4, timeItem);
       }
     }
-  else if(ptQueryNode = vtkMRMLPointMetaListNode::SafeDownCast(qNode))
+  else if( (ptQueryNode = vtkMRMLPointMetaListNode::SafeDownCast(qNode)) )
     {
     std::vector<std::string> ptGroupIds;
     ptQueryNode->GetPointGroupNames(ptGroupIds);
