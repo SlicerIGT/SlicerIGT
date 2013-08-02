@@ -13,6 +13,14 @@ if( NOT DEFINED SlicerIGT_SUPERBUILD )
 endif()
 
 #-----------------------------------------------------------------------------
+option(DISABLE_WRAP_PYTHON "Disable Python wrapping" OFF)
+if(${DISABLE_WRAP_PYTHON})
+  set(DISABLE_WRAP_PYTHON "DISABLE_WRAP_PYTHON")
+else()
+  set(DISABLE_WRAP_PYTHON "")
+endif()
+
+#-----------------------------------------------------------------------------
 add_subdirectory(MRML)
 add_subdirectory(Logic)
 add_subdirectory(Widgets)
