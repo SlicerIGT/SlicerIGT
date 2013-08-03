@@ -114,7 +114,7 @@ void qSlicerOpenIGTLinkRemoteQueryWidgetPrivate::init()
   this->remoteDataListTable->setColumnCount(5);
   this->remoteDataListTable->verticalHeader()->hide();
   this->remoteDataListTable->setSelectionBehavior(QAbstractItemView::SelectRows);
-  this->remoteDataListTable->setSelectionMode(QAbstractItemView::SingleSelection);
+  this->remoteDataListTable->setSelectionMode(QAbstractItemView::MultiSelection);
   this->remoteDataListTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
 
   // set to default query type
@@ -257,9 +257,10 @@ void qSlicerOpenIGTLinkRemoteQueryWidget::querySelectedItem()
     
   QList<QTableWidgetSelectionRange>
     selectRange(d->remoteDataListTable->selectedRanges());
-  int i = 0, j = selectRange.at(0).topRow();
+  int i = 0, j = 0;
   while(i < selectRange.size())
     {
+    j = selectRange.at(i).topRow();
     // Get the item identifier from the table
     std::string rowid( d->remoteDataListTable->item(j, 0)->text().toAscii() );
     switch (d->typeButtonGroup.checkedId()) 
@@ -274,8 +275,8 @@ void qSlicerOpenIGTLinkRemoteQueryWidget::querySelectedItem()
       }
       
     // iterate: within each range, then increment to the top of next range
-    (j < selectRange.at(i).bottomRow()) ? j++ :
-                                          j = selectRange.at(i++).topRow();
+    (j == selectRange.at(i).bottomRow()) ? i++ :
+                                           j++;
     }
 }
 
