@@ -146,9 +146,8 @@ void qSlicerOpenIGTLinkRemoteCommandWidget
   {
     d->logic()->DiscardCommand( this->LastCommandId, node->GetID() );
     this->Timer->stop();
+    this->LastCommandId = 0;
   }
-
-  this->LastCommandId = 0;
 }
 
 
