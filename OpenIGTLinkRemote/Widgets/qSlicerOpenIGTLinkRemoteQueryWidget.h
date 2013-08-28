@@ -48,6 +48,8 @@ public slots:
   void querySelectedItem();
   void onQueryResponseReceived();
   void onQueryTypeChanged(int id);
+  void startTracking();
+  void stopTracking();
 
   void getImage(std::string id);
   void getPointList(std::string id);
