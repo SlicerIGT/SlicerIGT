@@ -111,6 +111,13 @@
         </property>
        </widget>
       </item>
+      <item>
+       <widget class="QLabel" name="CountdownLabel">
+        <property name="text">
+         <string>Countdown</string>
+        </property>
+       </widget>
+      </item>
      </layout>
      <widget class="QPushButton" name="stopButton">
       <property name="enabled">
