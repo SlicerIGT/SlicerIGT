@@ -20,9 +20,7 @@
 
 // MRML includes
 #include "vtkMRMLLinearTransformNode.h"
-#include "vtkMRMLAnnotationHierarchyNode.h"
-#include "vtkMRMLAnnotationFiducialNode.h"
-#include "vtkMRMLAnnotationPointDisplayNode.h"
+#include "vtkMRMLMarkupsFiducialNode.h"
 
 // VTK includes
 #include <vtkMatrix4x4.h>
@@ -33,7 +31,6 @@
 #include <sstream>
 
 
-
 vtkStandardNewMacro(vtkSlicerCollectFiducialsLogic);
 
 
@@ -41,7 +38,7 @@ vtkStandardNewMacro(vtkSlicerCollectFiducialsLogic);
 vtkSlicerCollectFiducialsLogic::vtkSlicerCollectFiducialsLogic()
 {
   this->ProbeTransformNode = NULL;
-  this->AnnotationHierarchyNode = NULL;
+  this->MarkupsFiducialNode = NULL;
   
   this->Counter = 0;
 }
@@ -56,10 +53,10 @@ vtkSlicerCollectFiducialsLogic::~vtkSlicerCollectFiducialsLogic()
     this->ProbeTransformNode = NULL;
   }
   
-  if ( this->AnnotationHierarchyNode != NULL )
+  if ( this->MarkupsFiducialNode != NULL )
   {
-    this->AnnotationHierarchyNode->Delete();
-    this->AnnotationHierarchyNode = NULL;
+    this->MarkupsFiducialNode->Delete();
+    this->MarkupsFiducialNode = NULL;
   }
 }
 
@@ -76,11 +73,9 @@ void vtkSlicerCollectFiducialsLogic::PrintSelf(ostream& os, vtkIndent indent)
 
 
 void vtkSlicerCollectFiducialsLogic
-::AddFiducial( std::string NameBase, double glyphScale )
+::AddFiducial( std::string NameBase )
 {
-  if (     this->ProbeTransformNode == NULL
-      // ||  this->AnnotationHierarchyNode == NULL
-      )
+  if ( this->ProbeTransformNode == NULL || this->MarkupsFiducialNode == NULL )
   {
     return;
   }
@@ -88,33 +83,21 @@ void vtkSlicerCollectFiducialsLogic
   vtkMatrix4x4* transformToWorld = vtkMatrix4x4::New();
   this->ProbeTransformNode->GetMatrixTransformToWorld( transformToWorld );
   
-  vtkMRMLAnnotationFiducialNode * fnode = vtkMRMLAnnotationFiducialNode::New();
-  
-  // fnode->SetName(labelText);
-  // double coord[3] = {(double)xyz[0], (double)xyz[1], (double)xyz[2]};
-  // fnode->AddControlPoint(coord, sel, vis); 
-  
   double coord[ 3 ] = { transformToWorld->GetElement( 0, 3 ), transformToWorld->GetElement( 1, 3 ), transformToWorld->GetElement( 2, 3 ) };
+  
+  this->Counter++;
+  int n = this->MarkupsFiducialNode->AddFiducialFromArray( coord );
   
   if ( NameBase.size() > 0 )
   {
     std::stringstream ss;
     ss << NameBase << "_" << this->Counter;
-    fnode->SetName( ss.str().c_str() );
-  }
-  this->Counter ++;
-  fnode->SetFiducialCoordinates( coord[ 0 ], coord[ 1 ], coord[ 2 ] );
-  // fnode->SetControlPoint( coord, 1, 1 );
-  fnode->SetSelected( 0 );
-  fnode->SetLocked( 0 );
+    this->MarkupsFiducialNode->SetNthFiducialLabel( n, ss.str().c_str() );
+  }  
   
-  this->GetMRMLScene()->AddNode( fnode );
-  
-  fnode->CreateAnnotationTextDisplayNode();
-  fnode->CreateAnnotationPointDisplayNode();
-  fnode->GetAnnotationPointDisplayNode()->SetGlyphScale( glyphScale );
-  
-  fnode->Delete();
+  //TODO: Add ability to change glyph scale when feature is added to Markups module
+  //this->MarkupsFiducialNode-> ->SetGlyphScale( glyphScale );
+
   transformToWorld->Delete();
 }
 
@@ -130,9 +113,9 @@ void vtkSlicerCollectFiducialsLogic
 
 
 void vtkSlicerCollectFiducialsLogic
-::SetAnnotationHierarchyNode( vtkMRMLAnnotationHierarchyNode *node )
+::SetMarkupsFiducialNode( vtkMRMLMarkupsFiducialNode *node )
 {
-  vtkSetMRMLNodeMacro( this->AnnotationHierarchyNode, node );
+  vtkSetMRMLNodeMacro( this->MarkupsFiducialNode, node );
   this->Modified();
 }
 

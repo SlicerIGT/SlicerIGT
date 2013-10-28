@@ -34,9 +34,10 @@
 #include "vtkMRML.h"
 #include "vtkMRMLNode.h"
 #include "vtkMRMLScene.h"
+#include "vtkMRMLMarkupsFiducialNode.h"
 
+class vtkMRMLMarkupsFiducialNode;
 class vtkMRMLLinearTransformNode;
-class vtkMRMLAnnotationHierarchyNode;
 
 
 // STD includes
@@ -57,25 +58,23 @@ public:
   vtkTypeMacro(vtkSlicerCollectFiducialsLogic,vtkSlicerModuleLogic);
   void PrintSelf(ostream& os, vtkIndent indent);
   
-  void AddFiducial( std::string NameBase = "", double glyphScale = 3.0 );
+  void AddFiducial( std::string NameBase = "" );
   
 
   // Reference to the probe transform.
-
 public:
   vtkGetObjectMacro( ProbeTransformNode, vtkMRMLLinearTransformNode );
   void SetProbeTransformNode( vtkMRMLLinearTransformNode *node );
 private:
   vtkMRMLLinearTransformNode *ProbeTransformNode;
   
-  
-  // Reference to the annotation list.
 
+  // Reference to the markups fiducial node.
 public:
-  vtkGetObjectMacro( AnnotationHierarchyNode, vtkMRMLAnnotationHierarchyNode );
-  void SetAnnotationHierarchyNode( vtkMRMLAnnotationHierarchyNode *node );
+  vtkGetObjectMacro( MarkupsFiducialNode, vtkMRMLMarkupsFiducialNode );
+  void SetMarkupsFiducialNode( vtkMRMLMarkupsFiducialNode *node );
 private:
-  vtkMRMLAnnotationHierarchyNode *AnnotationHierarchyNode;
+  vtkMRMLMarkupsFiducialNode *MarkupsFiducialNode;
   
   
 protected:
@@ -89,12 +88,10 @@ protected:
   virtual void OnMRMLSceneNodeAdded(vtkMRMLNode* node);
   virtual void OnMRMLSceneNodeRemoved(vtkMRMLNode* node);
 private:
-
   vtkSlicerCollectFiducialsLogic(const vtkSlicerCollectFiducialsLogic&); // Not implemented
   void operator=(const vtkSlicerCollectFiducialsLogic&);               // Not implemented
   
 protected:
-
   int Counter;
   
 };

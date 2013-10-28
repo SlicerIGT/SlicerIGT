@@ -25,7 +25,7 @@
 #include "vtkSlicerCollectFiducialsLogic.h"
 
 #include "vtkMRMLLinearTransformNode.h"
-#include "vtkMRMLAnnotationHierarchyNode.h"
+#include "vtkMRMLMarkupsFiducialNode.h"
 
 
 
@@ -97,25 +97,20 @@ void qSlicerCollectFiducialsModuleWidget
 
 
 
-/**
- * This will be used when Annotation list can be specified.
- */
 void qSlicerCollectFiducialsModuleWidget
-::onFiducialListSelected()
+::onMarkupsFiducialNodeSelected()
 {
   Q_D( qSlicerCollectFiducialsModuleWidget );
   
-  /*
-  vtkMRMLNode* node = d->AnnotationListComboBox->currentNode();
-  vtkMRMLAnnotationHierarchyNode* aNode = vtkMRMLAnnotationHierarchyNode::SafeDownCast( node );
+  vtkMRMLNode* node = d->MarkupsFiducialComboBox->currentNode();
+  vtkMRMLMarkupsFiducialNode* mNode = vtkMRMLMarkupsFiducialNode::SafeDownCast( node );
   
-  if( aNode != NULL )
+  if( mNode != NULL )
   {
-    d->logic()->SetAnnotationHierarchyNode( aNode );
+    d->logic()->SetMarkupsFiducialNode( mNode );
   }
-  */
 }
-  
+
 
 
 void qSlicerCollectFiducialsModuleWidget
@@ -123,7 +118,7 @@ void qSlicerCollectFiducialsModuleWidget
 {
   Q_D( qSlicerCollectFiducialsModuleWidget );
   
-  d->logic()->AddFiducial( d->NameBaseLineEdit->text().toStdString(), d->GlyphSizeSpinBox->value() );
+  d->logic()->AddFiducial( d->NameBaseLineEdit->text().toStdString() );
 }
 
 
@@ -136,10 +131,10 @@ void qSlicerCollectFiducialsModuleWidget
   this->Superclass::setup();
   
   d->ProbeTransformComboBox->setNoneEnabled( true );
-  // d->AnnotationListComboBox->setNoneEnabled( true );
+  d->MarkupsFiducialComboBox->setNoneEnabled( true );
   
   connect( d->ProbeTransformComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onProbeTransformNodeSelected() ) );
-  // connect( d->AnnotationListComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onFiducialListSelected() ) );
+  connect( d->MarkupsFiducialComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onMarkupsFiducialNodeSelected() ) );
   connect( d->RecordButton, SIGNAL( clicked() ), this, SLOT( onRecordClicked() ) );
 }
 

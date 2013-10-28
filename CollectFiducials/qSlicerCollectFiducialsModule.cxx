@@ -81,7 +81,7 @@ QString qSlicerCollectFiducialsModule::acknowledgementText()const
 QStringList qSlicerCollectFiducialsModule::contributors()const
 {
   QStringList moduleContributors;
-  moduleContributors << QString("Tamas Ungi (Queen's University)");
+  moduleContributors << QString("Tamas Ungi (Queen's University), Franklin King (Queen's University)");
   // moduleContributors << QString("Richard Roe (Organization2)");
   // ...
   return moduleContributors;

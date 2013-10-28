@@ -44,7 +44,7 @@ public slots:
 protected slots:
 
   void onProbeTransformNodeSelected();
-  void onFiducialListSelected();
+  void onMarkupsFiducialNodeSelected();
   
   void onRecordClicked();
   
