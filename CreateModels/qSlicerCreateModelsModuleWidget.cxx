@@ -87,7 +87,7 @@ qSlicerCreateModelsModuleWidget
 {
   Q_D(qSlicerCreateModelsModuleWidget);
   
-  d->logic()->CreateNeedle( d->NeedleLength->value(), d->NeedleRadius->value() );
+  d->logic()->CreateNeedle( d->NeedleLength->value(), d->NeedleRadius->value(), d->NeedleTipRadius->value() );
 }
 
 
@@ -113,8 +113,17 @@ qSlicerCreateModelsModuleWidget
 }
 
 
+void
+qSlicerCreateModelsModuleWidget
+::OnCreateSphereClicked()
+{
+  Q_D(qSlicerCreateModelsModuleWidget);
+  
+  d->logic()->CreateSphere( d->SphereRadius->value() );
+}
 
-//-----------------------------------------------------------------------------
+
+
 void qSlicerCreateModelsModuleWidget::setup()
 {
   Q_D(qSlicerCreateModelsModuleWidget);
@@ -124,5 +133,6 @@ void qSlicerCreateModelsModuleWidget::setup()
   connect( d->CreateNeedleButton, SIGNAL( clicked() ), this, SLOT( OnCreateNeedleClicked() ) );
   connect( d->CreateCubeButton, SIGNAL( clicked() ), this, SLOT( OnCreateCubeClicked() ) );
   connect( d->CreateCylinderButton, SIGNAL( clicked() ), this, SLOT( OnCreateCylinderClicked() ) );
+  connect( d->CreateSphereButton, SIGNAL( clicked() ), this, SLOT( OnCreateSphereClicked() ) );
 }
 

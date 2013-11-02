@@ -49,9 +49,10 @@ public:
   vtkTypeMacro(vtkSlicerCreateModelsLogic, vtkSlicerModuleLogic);
   void PrintSelf(ostream& os, vtkIndent indent);
   
-  void CreateNeedle( double length, double radius );
+  void CreateNeedle( double length, double radius, double tipRadius );
   void CreateCube( double x, double y, double z );
   void CreateCylinder( double h, double r );
+  void CreateSphere( double radius );
   
   
 protected:
@@ -67,15 +68,12 @@ protected:
 
 private:
   
-  vtkSmartPointer< vtkPolyData > CreateCylinder( double height, double radius, double value );
-  vtkSmartPointer< vtkPolyData > CreateCone( double height, double radius, double value );
-  void LabelPolyData( vtkPolyData* polyData, double value );
+  void CreateCylinderData( vtkPolyData* polyData, double height, double radius );
+  void CreateConeData( vtkPolyData* polyData, double height, double radius );
   
   vtkSlicerCreateModelsLogic(const vtkSlicerCreateModelsLogic&); // Not implemented
-  void operator=(const vtkSlicerCreateModelsLogic&);               // Not implemented
+  void operator=(const vtkSlicerCreateModelsLogic&);             // Not implemented
   
-  double NeedleLabel;
-  double MarkerLabel;
 };
 
 #endif

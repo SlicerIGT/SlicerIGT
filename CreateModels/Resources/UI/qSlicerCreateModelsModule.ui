@@ -30,6 +30,9 @@
           <layout class="QGridLayout" name="gridLayout" columnstretch="1,2,1,2">
            <item row="0" column="1">
             <widget class="QDoubleSpinBox" name="NeedleLength">
+             <property name="decimals">
+              <number>1</number>
+             </property>
              <property name="maximum">
               <double>300.000000000000000</double>
              </property>
@@ -64,6 +67,9 @@
            </item>
            <item row="1" column="1">
             <widget class="QDoubleSpinBox" name="NeedleRadius">
+             <property name="decimals">
+              <number>1</number>
+             </property>
              <property name="maximum">
               <double>50.000000000000000</double>
              </property>
@@ -82,7 +88,28 @@
              </property>
             </widget>
            </item>
-           <item row="1" column="3">
+           <item row="2" column="0">
+            <widget class="QLabel" name="label_17">
+             <property name="text">
+              <string>Tip radius:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="1">
+            <widget class="QDoubleSpinBox" name="NeedleTipRadius">
+             <property name="decimals">
+              <number>1</number>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="2">
+            <widget class="QLabel" name="label_18">
+             <property name="text">
+              <string>(mm)</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="3">
             <widget class="QPushButton" name="CreateNeedleButton">
              <property name="text">
               <string>Create needle</string>
@@ -236,6 +263,12 @@
            </item>
            <item row="1" column="3">
             <widget class="QPushButton" name="CreateCylinderButton">
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>0</height>
+              </size>
+             </property>
              <property name="text">
               <string>Create cylinder</string>
              </property>
@@ -244,23 +277,78 @@
           </layout>
          </widget>
         </item>
+        <item>
+         <widget class="QGroupBox" name="groupBox_4">
+          <property name="title">
+           <string>Sphere model</string>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_4">
+           <item row="0" column="0" rowspan="2">
+            <widget class="QLabel" name="label_16">
+             <property name="text">
+              <string>Radius:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="1">
+            <widget class="QDoubleSpinBox" name="SphereRadius">
+             <property name="decimals">
+              <number>1</number>
+             </property>
+             <property name="minimum">
+              <double>0.000000000000000</double>
+             </property>
+             <property name="maximum">
+              <double>1000.000000000000000</double>
+             </property>
+             <property name="singleStep">
+              <double>0.500000000000000</double>
+             </property>
+             <property name="value">
+              <double>10.000000000000000</double>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="2">
+            <widget class="QLabel" name="label_15">
+             <property name="text">
+              <string>(mm)</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="3">
+            <widget class="QPushButton" name="CreateSphereButton">
+             <property name="minimumSize">
+              <size>
+               <width>100</width>
+               <height>0</height>
+              </size>
+             </property>
+             <property name="text">
+              <string>Create sphere</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
        </layout>
+      </item>
+      <item>
+       <spacer name="verticalSpacer">
+        <property name="orientation">
+         <enum>Qt::Vertical</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>20</width>
+          <height>40</height>
+         </size>
+        </property>
+       </spacer>
       </item>
      </layout>
     </widget>
-   </item>
-   <item>
-    <spacer name="verticalSpacer">
-     <property name="orientation">
-      <enum>Qt::Vertical</enum>
-     </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>0</width>
-       <height>0</height>
-      </size>
-     </property>
-    </spacer>
    </item>
   </layout>
  </widget>

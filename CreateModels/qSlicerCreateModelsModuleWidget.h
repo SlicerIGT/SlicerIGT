@@ -43,6 +43,7 @@ public slots:
   void OnCreateNeedleClicked();
   void OnCreateCubeClicked();
   void OnCreateCylinderClicked();
+  void OnCreateSphereClicked();
   
   
 protected:
