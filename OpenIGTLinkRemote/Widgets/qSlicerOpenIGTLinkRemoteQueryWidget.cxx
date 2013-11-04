@@ -30,6 +30,7 @@
 #include "vtkMRMLIGTLConnectorNode.h"
 #include "vtkMRMLIGTLQueryNode.h"
 #include "vtkMRMLImageMetaListNode.h"
+#include "vtkMRMLLabelMetaListNode.h"
 #include "vtkMRMLPointMetaListNode.h"
 #include "vtkMRMLAnnotationHierarchyNode.h"
 #include "vtkMRMLAnnotationFiducialNode.h"
@@ -291,6 +292,7 @@ void qSlicerOpenIGTLinkRemoteQueryWidget::onQueryResponseReceived()
 
   vtkMRMLNode* qNode = scene->GetNodeByID(d->queryNode->GetResponseDataNodeID());
   vtkMRMLImageMetaListNode* imgQueryNode; 
+  vtkMRMLLabelMetaListNode* lbQueryNode; 
   vtkMRMLPointMetaListNode* ptQueryNode;
 
   if ( (imgQueryNode = vtkMRMLImageMetaListNode::SafeDownCast(qNode)) )
@@ -321,6 +323,24 @@ void qSlicerOpenIGTLinkRemoteQueryWidget::onQueryResponseReceived()
       d->remoteDataListTable->setItem(i, 2, nameItem);
       d->remoteDataListTable->setItem(i, 3, modalityItem);
       d->remoteDataListTable->setItem(i, 4, timeItem);
+      }
+    }
+  else if ( (lbQueryNode = vtkMRMLLabelMetaListNode::SafeDownCast(qNode)) )
+    {
+    int numLabels = lbQueryNode->GetNumberOfLabelMetaElement();
+    d->remoteDataListTable->setRowCount(numLabels);
+
+    for (int i = 0; i < numLabels; i++)
+      {
+      vtkMRMLLabelMetaListNode::LabelMetaElement element;
+
+      lbQueryNode->GetLabelMetaElement(i, &element);
+
+      QTableWidgetItem *deviceItem = new QTableWidgetItem(element.DeviceName.c_str());
+      QTableWidgetItem *ownerItem = new QTableWidgetItem(element.Owner.c_str());
+
+      d->remoteDataListTable->setItem(i, 0, deviceItem);
+      d->remoteDataListTable->setItem(i, 1, ownerItem);
       }
     }
   else if( (ptQueryNode = vtkMRMLPointMetaListNode::SafeDownCast(qNode)) )
@@ -414,10 +434,14 @@ void qSlicerOpenIGTLinkRemoteQueryWidget::onQueryTypeChanged(int id)
   QStringList list;
   switch(id) {
     case qSlicerOpenIGTLinkRemoteQueryWidgetPrivate::TYPE_IMAGE:
-    case qSlicerOpenIGTLinkRemoteQueryWidgetPrivate::TYPE_LABEL:
       list << QObject::tr("Image ID") << QObject::tr("Patient ID") 
            << QObject::tr("Patient Name") << QObject::tr("Modality")
            << QObject::tr("Time");
+      break;
+    case qSlicerOpenIGTLinkRemoteQueryWidgetPrivate::TYPE_LABEL:
+      list << QObject::tr("Image ID") << QObject::tr("Owner Image")
+           << QObject::tr("") << QObject::tr("")
+           << QObject::tr("");
       break;
     case qSlicerOpenIGTLinkRemoteQueryWidgetPrivate::TYPE_POINT:
       list << QObject::tr("Group ID") << QObject::tr("") 
