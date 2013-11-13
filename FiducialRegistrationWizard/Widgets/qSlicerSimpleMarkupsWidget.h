@@ -49,6 +49,7 @@ public:
   static qSlicerSimpleMarkupsWidget* New( vtkSlicerMarkupsLogic* newMarkupsLogic );
 
   vtkSlicerMarkupsLogic* MarkupsLogic;
+  unsigned long ModifiedStatus;
 
   vtkMRMLNode* GetCurrentNode();
 
@@ -69,8 +70,6 @@ protected:
 private:
   Q_DECLARE_PRIVATE(qSlicerSimpleMarkupsWidget);
   Q_DISABLE_COPY(qSlicerSimpleMarkupsWidget);
-
-  unsigned long ModifiedStatus;
 
 };
 

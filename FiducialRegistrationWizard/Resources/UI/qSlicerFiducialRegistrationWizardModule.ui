@@ -145,19 +145,6 @@
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="ApplyButton">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="text">
-            <string>Apply</string>
-           </property>
-          </widget>
-         </item>
-         <item>
           <layout class="QHBoxLayout" name="horizontalLayout_2">
            <property name="topMargin">
             <number>0</number>

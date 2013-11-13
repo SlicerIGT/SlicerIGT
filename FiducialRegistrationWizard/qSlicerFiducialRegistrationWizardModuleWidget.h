@@ -39,13 +39,16 @@ public:
   qSlicerFiducialRegistrationWizardModuleWidget(QWidget *parent=0);
   virtual ~qSlicerFiducialRegistrationWizardModuleWidget();
 
+  unsigned long FromModifiedStatus;
+  unsigned long ToModifiedStatus;
+
 public slots:
 
 
 protected slots:
 
   void onRecordButtonClicked();
-  void onApplyButtonClicked();
+  void updateWidget();
 
 protected:
   QScopedPointer<qSlicerFiducialRegistrationWizardModuleWidgetPrivate> d_ptr;

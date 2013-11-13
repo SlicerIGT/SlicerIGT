@@ -17,6 +17,7 @@
 
 
 // Qt includes
+#include <QtGui>
 
 // SlicerQt includes
 #include "qSlicerFiducialRegistrationWizardModuleWidget.h"
@@ -26,7 +27,6 @@
 
 #include "vtkMRMLLinearTransformNode.h"
 #include "vtkMRMLMarkupsFiducialNode.h"
-
 
 
 //-----------------------------------------------------------------------------
@@ -96,9 +96,16 @@ void qSlicerFiducialRegistrationWizardModuleWidget
 
 
 void qSlicerFiducialRegistrationWizardModuleWidget
-::onApplyButtonClicked()
+::updateWidget()
 {
   Q_D( qSlicerFiducialRegistrationWizardModuleWidget );
+
+  if ( this->FromModifiedStatus == d->FromMarkupsWidget->ModifiedStatus && this->ToModifiedStatus == d->FromMarkupsWidget->ModifiedStatus )
+  {
+    return;
+  }
+  this->FromModifiedStatus = d->FromMarkupsWidget->ModifiedStatus;
+  this->ToModifiedStatus = d->ToMarkupsWidget->ModifiedStatus;
   
   vtkMRMLMarkupsFiducialNode* fromMarkupsFiducialNode = vtkMRMLMarkupsFiducialNode::SafeDownCast( d->FromMarkupsWidget->GetCurrentNode() );
   vtkMRMLMarkupsFiducialNode* toMarkupsFiducialNode = vtkMRMLMarkupsFiducialNode::SafeDownCast( d->ToMarkupsWidget->GetCurrentNode() );
@@ -135,10 +142,18 @@ void qSlicerFiducialRegistrationWizardModuleWidget
   d->ToGroupBox->layout()->addWidget( d->ToMarkupsWidget );
   this->Superclass::setup();
 
+  this->FromModifiedStatus = d->FromMarkupsWidget->ModifiedStatus;
+  this->ToModifiedStatus = d->ToMarkupsWidget->ModifiedStatus;
   this->setMRMLScene( d->logic()->GetMRMLScene() );
    
   connect( d->RecordButton, SIGNAL( clicked() ), this, SLOT( onRecordButtonClicked() ) );
-  connect( d->ApplyButton, SIGNAL( clicked() ), this, SLOT( onApplyButtonClicked() ) );
+
+  // GUI refresh: updates every 10ms
+  QTimer *t = new QTimer( this );
+  connect( t, SIGNAL( timeout() ), this, SLOT( updateWidget() ) );
+  t->start(10); 
+
+  this->updateWidget();
 
 }
 
