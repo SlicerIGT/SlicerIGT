@@ -79,6 +79,7 @@ qSlicerSimpleMarkupsWidget* qSlicerSimpleMarkupsWidget
 {
   qSlicerSimpleMarkupsWidget* newSimpleMarkupsWidget = new qSlicerSimpleMarkupsWidget();
   newSimpleMarkupsWidget->MarkupsLogic = newMarkupsLogic;
+  newSimpleMarkupsWidget->ModifiedStatus = 0;
   newSimpleMarkupsWidget->setup();
   return newSimpleMarkupsWidget;
 }
@@ -93,7 +94,11 @@ void qSlicerSimpleMarkupsWidget
   this->setMRMLScene( this->MarkupsLogic->GetMRMLScene() );
 
   connect( d->MarkupsFiducialNodeComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onMarkupsFiducialNodeChanged() ) );
-  connect( d->MarkupsFiducialTableWidget, SIGNAL( clicked() ), this, SLOT( MarkupsFiducialTableClicked() ) );
+
+  d->MarkupsFiducialTableWidget->setContextMenuPolicy( Qt::CustomContextMenu );
+  connect( d->MarkupsFiducialTableWidget, SIGNAL( clicked() ), this, SLOT( onMarkupsFiducialTableClicked() ) );
+  connect( d->MarkupsFiducialTableWidget, SIGNAL( customContextMenuRequested(const QPoint&) ), this, SLOT( onMarkupsFiducialTableContextMenu(const QPoint&) ) );
+
 
   // GUI refresh: updates every 10ms
   QTimer *t = new QTimer( this );
@@ -142,6 +147,54 @@ void qSlicerSimpleMarkupsWidget
 
 
 void qSlicerSimpleMarkupsWidget
+::onMarkupsFiducialTableContextMenu(const QPoint& position)
+{
+  Q_D(qSlicerSimpleMarkupsWidget);
+
+  QPoint globalPosition = d->MarkupsFiducialTableWidget->viewport()->mapToGlobal( position );
+
+  QMenu* fiducialsMenu = new QMenu( d->MarkupsFiducialTableWidget );
+  QAction* deleteAction = new QAction( "Delete current fiducial", fiducialsMenu );
+  QAction* upAction = new QAction( "Move current fiducial up", fiducialsMenu );
+  QAction* downAction = new QAction( "Move current fiducial down", fiducialsMenu );
+
+  fiducialsMenu->addAction( deleteAction );
+  fiducialsMenu->addAction( upAction );
+  fiducialsMenu->addAction( downAction );
+
+  QAction* selectedAction = fiducialsMenu->exec( globalPosition );
+
+  int currentFiducial = d->MarkupsFiducialTableWidget->currentRow();
+  vtkMRMLMarkupsFiducialNode* currentNode = vtkMRMLMarkupsFiducialNode::SafeDownCast( d->MarkupsFiducialNodeComboBox->currentNode() );
+  
+  if ( selectedAction == deleteAction )
+  {
+    currentNode->RemoveMarkup( currentFiducial );
+  }
+
+  if ( selectedAction == upAction )
+  {
+    if ( currentFiducial > 0 )
+    {
+      currentNode->SwapMarkups( currentFiducial, currentFiducial - 1 );
+    }
+  }
+
+  if ( selectedAction == downAction )
+  {
+    if ( currentFiducial < currentNode->GetNumberOfFiducials() - 1 )
+    {
+      currentNode->SwapMarkups( currentFiducial, currentFiducial + 1 );
+    }
+  }
+
+  
+
+  this->updateWidget();
+}
+
+
+void qSlicerSimpleMarkupsWidget
 ::updateWidget()
 {
   Q_D(qSlicerSimpleMarkupsWidget);
@@ -152,6 +205,13 @@ void qSlicerSimpleMarkupsWidget
   }
 
   vtkMRMLMarkupsFiducialNode* currentNode = vtkMRMLMarkupsFiducialNode::SafeDownCast( d->MarkupsFiducialNodeComboBox->currentNode() );
+
+  // Only update if there is a modified event
+  if ( this->ModifiedStatus == currentNode->GetMTime() )
+  {
+    return;
+  }
+  this->ModifiedStatus = currentNode->GetMTime();
  
   d->MarkupsFiducialTableWidget->clear();
   QStringList MarkupsTableHeaders;

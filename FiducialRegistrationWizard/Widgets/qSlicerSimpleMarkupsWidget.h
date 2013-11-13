@@ -54,8 +54,9 @@ public:
 
 protected slots:
 
-  void onMarkupsFiducialTableClicked();
   void onMarkupsFiducialNodeChanged();
+  void onMarkupsFiducialTableClicked();
+  void onMarkupsFiducialTableContextMenu(const QPoint& position);
 
   void updateWidget();
 
@@ -68,6 +69,8 @@ protected:
 private:
   Q_DECLARE_PRIVATE(qSlicerSimpleMarkupsWidget);
   Q_DISABLE_COPY(qSlicerSimpleMarkupsWidget);
+
+  unsigned long ModifiedStatus;
 
 };
 
