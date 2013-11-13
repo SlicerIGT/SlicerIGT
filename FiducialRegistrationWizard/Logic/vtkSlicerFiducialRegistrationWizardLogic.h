@@ -36,6 +36,8 @@
 #include "vtkMRMLNode.h"
 #include "vtkMRMLScene.h"
 #include <vtkMRMLMarkupsFiducialNode.h>
+#include <vtkLandmarkTransform.h>
+#include <vtkPoints.h>
 
 class vtkMRMLMarkupsFiducialNode;
 class vtkMRMLLinearTransformNode;
@@ -80,7 +82,7 @@ private:
   vtkSlicerFiducialRegistrationWizardLogic(const vtkSlicerFiducialRegistrationWizardLogic&); // Not implemented
   void operator=(const vtkSlicerFiducialRegistrationWizardLogic&);               // Not implemented
     
-
+  double CalculateRegistrationError( vtkPoints* fromPoints, vtkPoints* toPoints, vtkLinearTransform* transform );
 };
 
 #endif

@@ -26,8 +26,7 @@
 #include <vtkMatrix4x4.h>
 #include <vtkNew.h>
 #include <vtkSmartPointer.h>
-#include <vtkLandmarkTransform.h>
-#include <vtkPoints.h>
+#include <vtkMath.h>
 
 // STD includes
 #include <cassert>
@@ -190,11 +189,38 @@ std::string vtkSlicerFiducialRegistrationWizardLogic
   transform->GetMatrix( calculatedTransform );
   outputTransform->SetAndObserveMatrixTransformToParent( calculatedTransform );
 
+  double rmsError = this->CalculateRegistrationError( fromPoints,toPoints, transform );
+
   // Delete stuff // TODO: Use smart pointers
   fromPoints->Delete();
   toPoints->Delete();
   transform->Delete();
   calculatedTransform->Delete();
 
-  return "Success.";
+  std::stringstream successMessage;
+  successMessage << "Success! RMS Error: " << rmsError;
+  return successMessage.str();
+}
+
+
+double vtkSlicerFiducialRegistrationWizardLogic
+::CalculateRegistrationError( vtkPoints* fromPoints, vtkPoints* toPoints, vtkLinearTransform* transform )
+{
+  // Transform the from points
+  vtkPoints* transformedFromPoints = vtkPoints::New();
+  transform->TransformPoints( fromPoints, transformedFromPoints );
+
+  // Calculate the RMS distance between the to points and the transformed from points
+  double sumSquaredError = 0;
+  for ( int i = 0; i < toPoints->GetNumberOfPoints(); i++ )
+  {
+    double currentToPoint[3] = { 0, 0, 0 };
+    toPoints->GetPoint( i, currentToPoint );
+    double currentTransformedFromPoint[3] = { 0, 0, 0 };
+    transformedFromPoints->GetPoint( i, currentTransformedFromPoint );
+    
+    sumSquaredError += vtkMath::Distance2BetweenPoints( currentToPoint, currentTransformedFromPoint );
+  }
+
+  return sqrt( sumSquaredError / toPoints->GetNumberOfPoints() );
 }

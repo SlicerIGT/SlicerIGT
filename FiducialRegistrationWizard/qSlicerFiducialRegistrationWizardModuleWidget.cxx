@@ -114,7 +114,10 @@ void qSlicerFiducialRegistrationWizardModuleWidget
     transformType = "Rigid";
   }
 
-  d->logic()->CalculateTransform( fromMarkupsFiducialNode, toMarkupsFiducialNode, outputTransformNode, transformType );
+  std::stringstream statusString;
+  statusString << "Status: ";
+  statusString << d->logic()->CalculateTransform( fromMarkupsFiducialNode, toMarkupsFiducialNode, outputTransformNode, transformType );
+  d->StatusLabel->setText( QString::fromStdString( statusString.str() ) );
 }
 
 
