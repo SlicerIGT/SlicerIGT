@@ -29,6 +29,7 @@
 
 // Slicer includes
 #include "vtkSlicerModuleLogic.h"
+#include "vtkSlicerMarkupsLogic.h"
 
 // MRML includes
 #include "vtkMRML.h"
@@ -58,23 +59,10 @@ public:
   vtkTypeMacro(vtkSlicerFiducialRegistrationWizardLogic,vtkSlicerModuleLogic);
   void PrintSelf(ostream& os, vtkIndent indent);
   
-  void AddFiducial( std::string NameBase = "" );
-  
+  void AddFiducial( vtkMRMLLinearTransformNode* probeTransformNode );
+  std::string CalculateTransform( vtkMRMLMarkupsFiducialNode* fromFiducials, vtkMRMLMarkupsFiducialNode* toFiducials, vtkMRMLLinearTransformNode* outputTransform, std::string transformType );
 
-  // Reference to the probe transform.
-public:
-  vtkGetObjectMacro( ProbeTransformNode, vtkMRMLLinearTransformNode );
-  void SetProbeTransformNode( vtkMRMLLinearTransformNode *node );
-private:
-  vtkMRMLLinearTransformNode *ProbeTransformNode;
-  
-
-  // Reference to the markups fiducial node.
-public:
-  vtkGetObjectMacro( MarkupsFiducialNode, vtkMRMLMarkupsFiducialNode );
-  void SetMarkupsFiducialNode( vtkMRMLMarkupsFiducialNode *node );
-private:
-  vtkMRMLMarkupsFiducialNode *MarkupsFiducialNode;
+  vtkSlicerMarkupsLogic* MarkupsLogic;
   
   
 protected:
@@ -87,13 +75,12 @@ protected:
   virtual void UpdateFromMRMLScene();
   virtual void OnMRMLSceneNodeAdded(vtkMRMLNode* node);
   virtual void OnMRMLSceneNodeRemoved(vtkMRMLNode* node);
+
 private:
   vtkSlicerFiducialRegistrationWizardLogic(const vtkSlicerFiducialRegistrationWizardLogic&); // Not implemented
   void operator=(const vtkSlicerFiducialRegistrationWizardLogic&);               // Not implemented
-  
-protected:
-  int Counter;
-  
+    
+
 };
 
 #endif

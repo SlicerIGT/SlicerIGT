@@ -20,6 +20,7 @@
 
 // SlicerQt includes
 #include "qSlicerAbstractModuleWidget.h"
+#include "qSlicerSimpleMarkupsWidget.h"
 
 #include "qSlicerFiducialRegistrationWizardModuleExport.h"
 
@@ -43,11 +44,8 @@ public slots:
 
 protected slots:
 
-  void onProbeTransformNodeSelected();
-  void onMarkupsFiducialNodeSelected();
-  
-  void onRecordClicked();
-  
+  void onRecordButtonClicked();
+  void onApplyButtonClicked();
 
 protected:
   QScopedPointer<qSlicerFiducialRegistrationWizardModuleWidgetPrivate> d_ptr;

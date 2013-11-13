@@ -61,6 +61,12 @@ QStringList qSlicerFiducialRegistrationWizardModule::categories()const
 }
 
 //-----------------------------------------------------------------------------
+QStringList qSlicerFiducialRegistrationWizardModule::dependencies() const
+{
+  return QStringList() << "Markups";
+}
+
+//-----------------------------------------------------------------------------
 qSlicerFiducialRegistrationWizardModule::~qSlicerFiducialRegistrationWizardModule()
 {
 }
@@ -81,8 +87,8 @@ QString qSlicerFiducialRegistrationWizardModule::acknowledgementText()const
 QStringList qSlicerFiducialRegistrationWizardModule::contributors()const
 {
   QStringList moduleContributors;
-  moduleContributors << QString("Tamas Ungi (Queen's University), Franklin King (Queen's University)");
-  // moduleContributors << QString("Richard Roe (Organization2)");
+  moduleContributors << QString("Matthew Holden (Queen's University)");
+  moduleContributors << QString("Tamas Ungi (Queen's University)");
   // ...
   return moduleContributors;
 }
@@ -97,6 +103,14 @@ QIcon qSlicerFiducialRegistrationWizardModule::icon()const
 void qSlicerFiducialRegistrationWizardModule::setup()
 {
   this->Superclass::setup();
+
+  vtkSlicerFiducialRegistrationWizardLogic* FiducialRegistrationWizardLogic = vtkSlicerFiducialRegistrationWizardLogic::SafeDownCast( this->logic() );
+  qSlicerAbstractCoreModule* MarkupsModule = qSlicerCoreApplication::application()->moduleManager()->module("Markups");
+
+  if ( MarkupsModule )
+  {
+    FiducialRegistrationWizardLogic->MarkupsLogic = vtkSlicerMarkupsLogic::SafeDownCast( MarkupsModule->logic() );
+  }
 }
 
 //-----------------------------------------------------------------------------

@@ -40,6 +40,10 @@ protected:
 public:
   qSlicerFiducialRegistrationWizardModuleWidgetPrivate( qSlicerFiducialRegistrationWizardModuleWidget& object );
   vtkSlicerFiducialRegistrationWizardLogic* logic() const;
+
+  // Add embedded widgets here
+  qSlicerSimpleMarkupsWidget* FromMarkupsWidget;
+  qSlicerSimpleMarkupsWidget* ToMarkupsWidget;
 };
 
 
@@ -82,43 +86,35 @@ qSlicerFiducialRegistrationWizardModuleWidget
 
 
 void qSlicerFiducialRegistrationWizardModuleWidget
-::onProbeTransformNodeSelected()
+::onRecordButtonClicked()
 {
   Q_D( qSlicerFiducialRegistrationWizardModuleWidget );
   
-  vtkMRMLNode* node = d->ProbeTransformComboBox->currentNode();
-  vtkMRMLLinearTransformNode* tNode = vtkMRMLLinearTransformNode::SafeDownCast( node );
-  
-  if( tNode != NULL )
-  {
-    d->logic()->SetProbeTransformNode( tNode );
-  }
+  vtkMRMLLinearTransformNode* probeTransformNode = vtkMRMLLinearTransformNode::SafeDownCast( d->ProbeTransformComboBox->currentNode() );
+  d->logic()->AddFiducial( probeTransformNode );
 }
 
 
-
 void qSlicerFiducialRegistrationWizardModuleWidget
-::onMarkupsFiducialNodeSelected()
+::onApplyButtonClicked()
 {
   Q_D( qSlicerFiducialRegistrationWizardModuleWidget );
   
-  vtkMRMLNode* node = d->MarkupsFiducialComboBox->currentNode();
-  vtkMRMLMarkupsFiducialNode* mNode = vtkMRMLMarkupsFiducialNode::SafeDownCast( node );
-  
-  if( mNode != NULL )
+  vtkMRMLMarkupsFiducialNode* fromMarkupsFiducialNode = vtkMRMLMarkupsFiducialNode::SafeDownCast( d->FromMarkupsWidget->GetCurrentNode() );
+  vtkMRMLMarkupsFiducialNode* toMarkupsFiducialNode = vtkMRMLMarkupsFiducialNode::SafeDownCast( d->ToMarkupsWidget->GetCurrentNode() );
+  vtkMRMLLinearTransformNode* outputTransformNode = vtkMRMLLinearTransformNode::SafeDownCast( d->OutputTransformComboBox->currentNode() );
+
+  std::string transformType = "";
+  if ( d->SimilarityRadioButton->isChecked() )
   {
-    d->logic()->SetMarkupsFiducialNode( mNode );
+    transformType = "Similarity";
   }
-}
+  if ( d->RigidRadioButton->isChecked() )
+  {
+    transformType = "Rigid";
+  }
 
-
-
-void qSlicerFiducialRegistrationWizardModuleWidget
-::onRecordClicked()
-{
-  Q_D( qSlicerFiducialRegistrationWizardModuleWidget );
-  
-  d->logic()->AddFiducial( d->NameBaseLineEdit->text().toStdString() );
+  d->logic()->CalculateTransform( fromMarkupsFiducialNode, toMarkupsFiducialNode, outputTransformNode, transformType );
 }
 
 
@@ -127,14 +123,19 @@ void qSlicerFiducialRegistrationWizardModuleWidget
 ::setup()
 {
   Q_D(qSlicerFiducialRegistrationWizardModuleWidget);
+
   d->setupUi(this);
+  // Embed widgets here
+  d->FromMarkupsWidget = qSlicerSimpleMarkupsWidget::New( d->logic()->MarkupsLogic );
+  d->FromGroupBox->layout()->addWidget( d->FromMarkupsWidget );
+  d->ToMarkupsWidget = qSlicerSimpleMarkupsWidget::New( d->logic()->MarkupsLogic );
+  d->ToGroupBox->layout()->addWidget( d->ToMarkupsWidget );
   this->Superclass::setup();
-  
-  d->ProbeTransformComboBox->setNoneEnabled( true );
-  d->MarkupsFiducialComboBox->setNoneEnabled( true );
-  
-  connect( d->ProbeTransformComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onProbeTransformNodeSelected() ) );
-  connect( d->MarkupsFiducialComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onMarkupsFiducialNodeSelected() ) );
-  connect( d->RecordButton, SIGNAL( clicked() ), this, SLOT( onRecordClicked() ) );
+
+  this->setMRMLScene( d->logic()->GetMRMLScene() );
+   
+  connect( d->RecordButton, SIGNAL( clicked() ), this, SLOT( onRecordButtonClicked() ) );
+  connect( d->ApplyButton, SIGNAL( clicked() ), this, SLOT( onApplyButtonClicked() ) );
+
 }
 

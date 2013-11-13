@@ -20,16 +20,37 @@
 
 // MRML includes
 #include "vtkMRMLLinearTransformNode.h"
-#include <vtkMRMLMarkupsFiducialNode.h>
+#include "vtkMRMLMarkupsFiducialNode.h"
 
 // VTK includes
 #include <vtkMatrix4x4.h>
 #include <vtkNew.h>
+#include <vtkSmartPointer.h>
+#include <vtkLandmarkTransform.h>
+#include <vtkPoints.h>
 
 // STD includes
 #include <cassert>
 #include <sstream>
 
+
+// Helper methods -------------------------------------------------------------------
+
+vtkPoints* MarkupsFiducialNodeToVTKPoints( vtkMRMLMarkupsFiducialNode* markupsFiducialNode )
+{
+  vtkPoints* points = vtkPoints::New();
+  for ( int i = 0; i < markupsFiducialNode->GetNumberOfFiducials(); i++ )
+  {
+    double currentFiducial[ 3 ] = { 0, 0, 0 };
+    markupsFiducialNode->GetNthFiducialPosition( i, currentFiducial );
+    points->InsertNextPoint( currentFiducial );
+  }
+
+  return points;
+}
+
+
+// Slicer methods -------------------------------------------------------------------
 
 vtkStandardNewMacro(vtkSlicerFiducialRegistrationWizardLogic);
 
@@ -37,27 +58,12 @@ vtkStandardNewMacro(vtkSlicerFiducialRegistrationWizardLogic);
 
 vtkSlicerFiducialRegistrationWizardLogic::vtkSlicerFiducialRegistrationWizardLogic()
 {
-  this->ProbeTransformNode = NULL;
-  this->MarkupsFiducialNode = NULL;
-  
-  this->Counter = 0;
 }
 
 
 
 vtkSlicerFiducialRegistrationWizardLogic::~vtkSlicerFiducialRegistrationWizardLogic()
 {
-  if ( this->ProbeTransformNode != NULL )
-  {
-    this->ProbeTransformNode->Delete();
-    this->ProbeTransformNode = NULL;
-  }
-  
-  if ( this->MarkupsFiducialNode != NULL )
-  {
-    this->MarkupsFiducialNode->Delete();
-    this->MarkupsFiducialNode = NULL;
-  }
 }
 
 
@@ -65,60 +71,7 @@ vtkSlicerFiducialRegistrationWizardLogic::~vtkSlicerFiducialRegistrationWizardLo
 void vtkSlicerFiducialRegistrationWizardLogic::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
-  
-  os << indent << "ProbeTransformNode: "
-     << ( this->ProbeTransformNode ? this->ProbeTransformNode->GetNodeTagName() : "(none)" ) << std::endl;
 }
-
-
-
-void vtkSlicerFiducialRegistrationWizardLogic
-::AddFiducial( std::string NameBase )
-{
-  if ( this->ProbeTransformNode == NULL || this->MarkupsFiducialNode == NULL )
-  {
-    return;
-  }
-  
-  vtkMatrix4x4* transformToWorld = vtkMatrix4x4::New();
-  this->ProbeTransformNode->GetMatrixTransformToWorld( transformToWorld );
-  
-  double coord[ 3 ] = { transformToWorld->GetElement( 0, 3 ), transformToWorld->GetElement( 1, 3 ), transformToWorld->GetElement( 2, 3 ) };
-  
-  this->Counter++;
-  int n = this->MarkupsFiducialNode->AddFiducialFromArray( coord );
-  
-  if ( NameBase.size() > 0 )
-  {
-    std::stringstream ss;
-    ss << NameBase << "_" << this->Counter;
-    this->MarkupsFiducialNode->SetNthFiducialLabel( n, ss.str().c_str() );
-  }  
-  
-  //TODO: Add ability to change glyph scale when feature is added to Markups module
-  //this->MarkupsFiducialNode-> ->SetGlyphScale( glyphScale );
-
-  transformToWorld->Delete();
-}
-
-
-
-void vtkSlicerFiducialRegistrationWizardLogic
-::SetProbeTransformNode( vtkMRMLLinearTransformNode *node )
-{
-  vtkSetMRMLNodeMacro( this->ProbeTransformNode, node );
-  this->Modified();
-}
-
-
-
-void vtkSlicerFiducialRegistrationWizardLogic
-::SetMarkupsFiducialNode( vtkMRMLMarkupsFiducialNode *node )
-{
-  vtkSetMRMLNodeMacro( this->MarkupsFiducialNode, node );
-  this->Modified();
-}
-
 
 
 void vtkSlicerFiducialRegistrationWizardLogic::SetMRMLSceneInternal(vtkMRMLScene * newScene)
@@ -158,3 +111,90 @@ void vtkSlicerFiducialRegistrationWizardLogic
 {
 }
 
+
+// Module-specific methods ----------------------------------------------------------
+
+void vtkSlicerFiducialRegistrationWizardLogic
+::AddFiducial( vtkMRMLLinearTransformNode* probeTransformNode )
+{
+  if ( probeTransformNode == NULL )
+  {
+    return;
+  }
+
+  vtkMRMLMarkupsFiducialNode* activeMarkupsFiducialNode = vtkMRMLMarkupsFiducialNode::SafeDownCast( this->GetMRMLScene()->GetNodeByID( this->MarkupsLogic->GetActiveListID() ) );
+
+  if ( activeMarkupsFiducialNode == NULL )
+  {
+    return;
+  }
+  
+  vtkMatrix4x4* transformToWorld = vtkMatrix4x4::New();
+  probeTransformNode->GetMatrixTransformToWorld( transformToWorld );
+  
+  double coord[ 3 ] = { transformToWorld->GetElement( 0, 3 ), transformToWorld->GetElement( 1, 3 ), transformToWorld->GetElement( 2, 3 ) };
+
+  activeMarkupsFiducialNode->AddFiducialFromArray( coord );
+
+  transformToWorld->Delete();
+}
+
+
+std::string vtkSlicerFiducialRegistrationWizardLogic
+::CalculateTransform( vtkMRMLMarkupsFiducialNode* fromMarkupsFiducialNode, vtkMRMLMarkupsFiducialNode* toMarkupsFiducialNode, vtkMRMLLinearTransformNode* outputTransform, std::string transformType )
+{
+
+  if ( fromMarkupsFiducialNode == NULL || toMarkupsFiducialNode == NULL )
+  {
+    return "One or more fiducial lists not defined.";
+  }
+
+  if ( outputTransform == NULL )
+  {
+    return "Output transform is not defined.";
+  }
+
+  if ( fromMarkupsFiducialNode->GetNumberOfFiducials() < 3 || toMarkupsFiducialNode->GetNumberOfFiducials() < 3 )
+  {
+    return "One or more fiducial lists has too few fiducials.";
+  }
+
+  if ( fromMarkupsFiducialNode->GetNumberOfFiducials() != toMarkupsFiducialNode->GetNumberOfFiducials() )
+  {
+    return "Fiducial lists have unequal number of fiducials.";
+  }
+
+  // Convert the markupsfiducial nodes into vector of itk points
+  vtkPoints* fromPoints = MarkupsFiducialNodeToVTKPoints( fromMarkupsFiducialNode );
+  vtkPoints* toPoints = MarkupsFiducialNodeToVTKPoints( toMarkupsFiducialNode );
+
+  // Setup the registration
+  vtkLandmarkTransform* transform = vtkLandmarkTransform::New();
+
+  transform->SetSourceLandmarks( fromPoints );
+  transform->SetTargetLandmarks( toPoints );
+
+  if ( transformType.compare( "Similarity" ) == 0 )
+  {
+    transform->SetModeToSimilarity();
+  }
+  else
+  {
+    transform->SetModeToRigidBody();
+  }
+
+  transform->Update();
+
+  // Copy the resulting transform into the outputTransform
+  vtkMatrix4x4* calculatedTransform = vtkMatrix4x4::New();
+  transform->GetMatrix( calculatedTransform );
+  outputTransform->SetAndObserveMatrixTransformToParent( calculatedTransform );
+
+  // Delete stuff // TODO: Use smart pointers
+  fromPoints->Delete();
+  toPoints->Delete();
+  transform->Delete();
+  calculatedTransform->Delete();
+
+  return "Success.";
+}
