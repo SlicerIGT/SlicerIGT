@@ -24,6 +24,12 @@
 #include <QtGui>
 
 
+int FIDUCIAL_LABEL_COLUMN = 0;
+int FIDUCIAL_X_COLUMN = 1;
+int FIDUCIAL_Y_COLUMN = 2;
+int FIDUCIAL_Z_COLUMN = 3;
+
+
 //-----------------------------------------------------------------------------
 /// \ingroup Slicer_QtModules_CreateModels
 class qSlicerSimpleMarkupsWidgetPrivate
@@ -80,6 +86,7 @@ qSlicerSimpleMarkupsWidget* qSlicerSimpleMarkupsWidget
   qSlicerSimpleMarkupsWidget* newSimpleMarkupsWidget = new qSlicerSimpleMarkupsWidget();
   newSimpleMarkupsWidget->MarkupsLogic = newMarkupsLogic;
   newSimpleMarkupsWidget->ModifiedStatus = 0;
+  newSimpleMarkupsWidget->IsUpdatingTable = false;
   newSimpleMarkupsWidget->setup();
   return newSimpleMarkupsWidget;
 }
@@ -96,8 +103,8 @@ void qSlicerSimpleMarkupsWidget
   connect( d->MarkupsFiducialNodeComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onMarkupsFiducialNodeChanged() ) );
 
   d->MarkupsFiducialTableWidget->setContextMenuPolicy( Qt::CustomContextMenu );
-  connect( d->MarkupsFiducialTableWidget, SIGNAL( clicked() ), this, SLOT( onMarkupsFiducialTableClicked() ) );
   connect( d->MarkupsFiducialTableWidget, SIGNAL( customContextMenuRequested(const QPoint&) ), this, SLOT( onMarkupsFiducialTableContextMenu(const QPoint&) ) );
+  connect( d->MarkupsFiducialTableWidget, SIGNAL( cellChanged( int, int ) ), this, SLOT( onMarkupsFiducialEdited( int, int ) ) );
 
 
   // GUI refresh: updates every 10ms
@@ -129,19 +136,7 @@ void qSlicerSimpleMarkupsWidget
 {
   Q_D(qSlicerSimpleMarkupsWidget);
 
-  // TODO: My Slicer is too old - doesn't have this function - test with newer Slicer
-  //this->MarkupsLogic->SetActiveListID( d->MarkupsFiducialNodeComboBox->currentNode() );
-  this->updateWidget();
-}
-
-
-void qSlicerSimpleMarkupsWidget
-::onMarkupsFiducialTableClicked()
-{
-  Q_D(qSlicerSimpleMarkupsWidget);
-
-  // TODO: My Slicer is too old - doesn't have this function - test with newer Slicer
-  //this->MarkupsLogic->SetActiveListID( d->MarkupsFiducialNodeComboBox->currentNode() );
+  this->MarkupsLogic->SetActiveListID( vtkMRMLMarkupsNode::SafeDownCast( d->MarkupsFiducialNodeComboBox->currentNode() ) );
   this->updateWidget();
 }
 
@@ -154,10 +149,12 @@ void qSlicerSimpleMarkupsWidget
   QPoint globalPosition = d->MarkupsFiducialTableWidget->viewport()->mapToGlobal( position );
 
   QMenu* fiducialsMenu = new QMenu( d->MarkupsFiducialTableWidget );
+  QAction* activateAction = new QAction( "Make fiducial list active", fiducialsMenu );
   QAction* deleteAction = new QAction( "Delete current fiducial", fiducialsMenu );
   QAction* upAction = new QAction( "Move current fiducial up", fiducialsMenu );
   QAction* downAction = new QAction( "Move current fiducial down", fiducialsMenu );
 
+  fiducialsMenu->addAction( activateAction );
   fiducialsMenu->addAction( deleteAction );
   fiducialsMenu->addAction( upAction );
   fiducialsMenu->addAction( downAction );
@@ -167,6 +164,11 @@ void qSlicerSimpleMarkupsWidget
   int currentFiducial = d->MarkupsFiducialTableWidget->currentRow();
   vtkMRMLMarkupsFiducialNode* currentNode = vtkMRMLMarkupsFiducialNode::SafeDownCast( d->MarkupsFiducialNodeComboBox->currentNode() );
   
+  if ( selectedAction == activateAction )
+  {
+    this->MarkupsLogic->SetActiveListID( vtkMRMLMarkupsNode::SafeDownCast( d->MarkupsFiducialNodeComboBox->currentNode() ) );
+  }
+
   if ( selectedAction == deleteAction )
   {
     currentNode->RemoveMarkup( currentFiducial );
@@ -195,6 +197,56 @@ void qSlicerSimpleMarkupsWidget
 
 
 void qSlicerSimpleMarkupsWidget
+::onMarkupsFiducialEdited( int row, int column )
+{
+  Q_D(qSlicerSimpleMarkupsWidget);
+
+  if ( this->IsUpdatingTable )
+  {
+    return;
+  }
+
+  vtkMRMLMarkupsFiducialNode* currentMarkupsFiducialNode = vtkMRMLMarkupsFiducialNode::SafeDownCast( this->GetCurrentNode() );
+
+  // Find the fiducial's current properties
+  double currentFiducialPosition[3] = { 0, 0, 0 };
+  currentMarkupsFiducialNode->GetNthFiducialPosition( row, currentFiducialPosition );
+  std::string currentFiducialLabel = currentMarkupsFiducialNode->GetNthFiducialLabel( row );
+
+  // Find the entry that we changed
+  QTableWidgetItem* qItem = d->MarkupsFiducialTableWidget->item( row, column );
+  QString qText = qItem->text();
+
+  if ( column == FIDUCIAL_LABEL_COLUMN )
+  {
+    currentMarkupsFiducialNode->SetNthFiducialLabel( row, qText.toStdString() );
+  }
+
+  // Check if the value can be converted to double is already performed implicitly
+  double newFiducialPosition = qText.toDouble();
+
+  // Change the position values
+  if ( column == FIDUCIAL_X_COLUMN )
+  {
+    currentFiducialPosition[ 0 ] = newFiducialPosition;
+  }
+  if ( column == FIDUCIAL_Y_COLUMN )
+  {
+    currentFiducialPosition[ 1 ] = newFiducialPosition;
+  }
+  if ( column == FIDUCIAL_Z_COLUMN )
+  {
+    currentFiducialPosition[ 2 ] = newFiducialPosition;
+  }
+
+  currentMarkupsFiducialNode->SetNthFiducialPositionFromArray( row, currentFiducialPosition );
+
+  this->updateWidget(); // This may not be necessary the widget is updated whenever a fiducial is changed
+}
+
+
+
+void qSlicerSimpleMarkupsWidget
 ::updateWidget()
 {
   Q_D(qSlicerSimpleMarkupsWidget);
@@ -212,6 +264,7 @@ void qSlicerSimpleMarkupsWidget
     return;
   }
   this->ModifiedStatus = currentNode->GetMTime();
+  this->IsUpdatingTable = true;
  
   d->MarkupsFiducialTableWidget->clear();
   QStringList MarkupsTableHeaders;
@@ -239,4 +292,5 @@ void qSlicerSimpleMarkupsWidget
     d->MarkupsFiducialTableWidget->setItem( i, 3, zItem );
   }
 
+  this->IsUpdatingTable = false;
 }
