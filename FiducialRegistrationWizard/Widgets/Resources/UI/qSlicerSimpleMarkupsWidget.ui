@@ -48,16 +48,16 @@
         <bool>true</bool>
        </property>
        <property name="addEnabled">
-        <bool>false</bool>
+        <bool>true</bool>
        </property>
        <property name="removeEnabled">
-        <bool>false</bool>
+        <bool>true</bool>
        </property>
        <property name="editEnabled">
         <bool>false</bool>
        </property>
        <property name="renameEnabled">
-        <bool>false</bool>
+        <bool>true</bool>
        </property>
       </widget>
      </item>

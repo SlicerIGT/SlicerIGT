@@ -28,6 +28,7 @@ int FIDUCIAL_LABEL_COLUMN = 0;
 int FIDUCIAL_X_COLUMN = 1;
 int FIDUCIAL_Y_COLUMN = 2;
 int FIDUCIAL_Z_COLUMN = 3;
+int FIDUCIAL_COLUMNS = 4;
 
 
 //-----------------------------------------------------------------------------
@@ -101,6 +102,7 @@ void qSlicerSimpleMarkupsWidget
   this->setMRMLScene( this->MarkupsLogic->GetMRMLScene() );
 
   connect( d->MarkupsFiducialNodeComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onMarkupsFiducialNodeChanged() ) );
+  connect( d->MarkupsFiducialNodeComboBox, SIGNAL( nodeAddedByUser( vtkMRMLNode* ) ), this, SLOT( onMarkupsFiducialNodeAdded( vtkMRMLNode* ) ) );
 
   d->MarkupsFiducialTableWidget->setContextMenuPolicy( Qt::CustomContextMenu );
   connect( d->MarkupsFiducialTableWidget, SIGNAL( customContextMenuRequested(const QPoint&) ), this, SLOT( onMarkupsFiducialTableContextMenu(const QPoint&) ) );
@@ -136,7 +138,26 @@ void qSlicerSimpleMarkupsWidget
 {
   Q_D(qSlicerSimpleMarkupsWidget);
 
-  this->MarkupsLogic->SetActiveListID( vtkMRMLMarkupsNode::SafeDownCast( d->MarkupsFiducialNodeComboBox->currentNode() ) );
+  vtkMRMLMarkupsNode* currentMarkupsNode = vtkMRMLMarkupsNode::SafeDownCast( d->MarkupsFiducialNodeComboBox->currentNode() );
+
+  if ( currentMarkupsNode == NULL )
+  {
+    return;
+  }
+
+  this->MarkupsLogic->SetActiveListID( currentMarkupsNode );
+  this->updateWidget();
+}
+
+
+void qSlicerSimpleMarkupsWidget
+::onMarkupsFiducialNodeAdded( vtkMRMLNode* newNode )
+{
+  Q_D(qSlicerSimpleMarkupsWidget);
+
+  vtkMRMLMarkupsFiducialNode* newMarkupsFiducialNode = vtkMRMLMarkupsFiducialNode::SafeDownCast( newNode );
+  this->MarkupsLogic->AddNewDisplayNodeForMarkupsNode( newMarkupsFiducialNode ); // Make sure there is an associated display node
+
   this->updateWidget();
 }
 
@@ -270,7 +291,7 @@ void qSlicerSimpleMarkupsWidget
   QStringList MarkupsTableHeaders;
   MarkupsTableHeaders << "Label" << "X" << "Y" << "Z";
   d->MarkupsFiducialTableWidget->setRowCount( currentNode->GetNumberOfFiducials() );
-  d->MarkupsFiducialTableWidget->setColumnCount( 4 );
+  d->MarkupsFiducialTableWidget->setColumnCount( FIDUCIAL_COLUMNS );
   d->MarkupsFiducialTableWidget->setHorizontalHeaderLabels( MarkupsTableHeaders );
   d->MarkupsFiducialTableWidget->horizontalHeader()->setResizeMode( QHeaderView::Stretch );
   

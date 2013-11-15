@@ -56,6 +56,7 @@ public:
 protected slots:
 
   void onMarkupsFiducialNodeChanged();
+  void onMarkupsFiducialNodeAdded( vtkMRMLNode* );
   void onMarkupsFiducialTableContextMenu(const QPoint& position);
 
   void onMarkupsFiducialEdited( int row, int column );
