@@ -274,6 +274,11 @@ void qSlicerSimpleMarkupsWidget
 
   if ( d->MarkupsFiducialNodeComboBox->currentNode() == NULL )
   {
+    d->MarkupsFiducialTableWidget->clear();
+    d->MarkupsFiducialTableWidget->setRowCount( 0 );
+    d->MarkupsFiducialTableWidget->setColumnCount( 0 );
+    this->ModifiedStatus = 0; 
+    // This will ensure that we refresh the widget next time we move to a non-null widget (since there is guaranteed to be a modified status of larger than zero)
     return;
   }
 
