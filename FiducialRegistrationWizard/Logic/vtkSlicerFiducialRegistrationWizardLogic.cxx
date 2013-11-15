@@ -27,6 +27,9 @@
 #include <vtkNew.h>
 #include <vtkSmartPointer.h>
 #include <vtkMath.h>
+#include <vtkDoubleArray.h>
+#include <vtkTable.h>
+#include <vtkPCAStatistics.h>
 
 // STD includes
 #include <cassert>
@@ -34,6 +37,8 @@
 
 
 // Helper methods -------------------------------------------------------------------
+
+double EIGENVALUE_THRESHOLD = 1e-4;
 
 vtkPoints* MarkupsFiducialNodeToVTKPoints( vtkMRMLMarkupsFiducialNode* markupsFiducialNode )
 {
@@ -155,7 +160,7 @@ std::string vtkSlicerFiducialRegistrationWizardLogic
 
   if ( fromMarkupsFiducialNode->GetNumberOfFiducials() < 3 || toMarkupsFiducialNode->GetNumberOfFiducials() < 3 )
   {
-    return "One or more fiducial lists has too few fiducials.";
+    return "One or more fiducial lists has too few fiducials (minimum 3 required).";
   }
 
   if ( fromMarkupsFiducialNode->GetNumberOfFiducials() != toMarkupsFiducialNode->GetNumberOfFiducials() )
@@ -166,6 +171,11 @@ std::string vtkSlicerFiducialRegistrationWizardLogic
   // Convert the markupsfiducial nodes into vector of itk points
   vtkPoints* fromPoints = MarkupsFiducialNodeToVTKPoints( fromMarkupsFiducialNode );
   vtkPoints* toPoints = MarkupsFiducialNodeToVTKPoints( toMarkupsFiducialNode );
+
+  if ( this->CheckCollinear( fromPoints ) || this->CheckCollinear( toPoints ) )
+  {
+    return "One or more fiducial lists have strictly collinear points.";
+  }
 
   // Setup the registration
   vtkLandmarkTransform* transform = vtkLandmarkTransform::New();
@@ -223,4 +233,63 @@ double vtkSlicerFiducialRegistrationWizardLogic
   }
 
   return sqrt( sumSquaredError / toPoints->GetNumberOfPoints() );
+}
+
+
+bool vtkSlicerFiducialRegistrationWizardLogic
+::CheckCollinear( vtkPoints* points )
+{
+  // Initialize the x,y,z arrays for computing the PCA statistics
+  vtkSmartPointer< vtkDoubleArray > xArray = vtkSmartPointer< vtkDoubleArray >::New();
+  xArray->SetName( "xArray" );
+  vtkSmartPointer< vtkDoubleArray > yArray = vtkSmartPointer< vtkDoubleArray >::New();
+  yArray->SetName( "yArray" );
+  vtkSmartPointer< vtkDoubleArray > zArray = vtkSmartPointer< vtkDoubleArray >::New();
+  zArray->SetName( "zArray" );
+
+  // Put the fiducial position values into the arrays
+  double fiducialPosition[ 3 ] = { 0, 0, 0 };
+  for ( int i = 0; i < points->GetNumberOfPoints(); i++ )
+  {
+    points->GetPoint( i, fiducialPosition );
+    xArray->InsertNextValue( fiducialPosition[ 0 ] );
+    yArray->InsertNextValue( fiducialPosition[ 1 ] );
+    zArray->InsertNextValue( fiducialPosition[ 2 ] );
+  }
+
+  // Aggregate the arrays
+  vtkSmartPointer< vtkTable > arrayTable = vtkSmartPointer< vtkTable >::New();
+  arrayTable->AddColumn( xArray );
+  arrayTable->AddColumn( yArray );
+  arrayTable->AddColumn( zArray );
+
+  // Setup the principal component analysis
+  vtkSmartPointer< vtkPCAStatistics > pcaStatistics = vtkSmartPointer< vtkPCAStatistics >::New();
+  pcaStatistics->SetInput( vtkStatisticsAlgorithm::INPUT_DATA, arrayTable );
+  pcaStatistics->SetColumnStatus( "xArray", 1 );
+  pcaStatistics->SetColumnStatus( "yArray", 1 );
+  pcaStatistics->SetColumnStatus( "zArray", 1 );
+  pcaStatistics->SetDeriveOption( true );
+  pcaStatistics->Update();
+
+  // Calculate the eigenvalues
+  vtkSmartPointer< vtkDoubleArray > eigenvalues = vtkSmartPointer< vtkDoubleArray >::New();
+  pcaStatistics->GetEigenvalues( eigenvalues ); // Eigenvalues are largest to smallest
+
+  // Test that each eigenvalues is bigger than some threshold
+  int goodEigenvalues = 0;
+  for ( int i = 0; i < eigenvalues->GetNumberOfTuples(); i++ )
+  {
+    if ( abs( eigenvalues->GetValue( i ) ) > EIGENVALUE_THRESHOLD )
+    {
+      goodEigenvalues++;
+    }
+  }
+
+  if ( goodEigenvalues <= 1 )
+  {
+    return true;
+  }
+
+  return false;
 }

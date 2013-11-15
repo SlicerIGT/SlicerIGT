@@ -83,6 +83,7 @@ private:
   void operator=(const vtkSlicerFiducialRegistrationWizardLogic&);               // Not implemented
     
   double CalculateRegistrationError( vtkPoints* fromPoints, vtkPoints* toPoints, vtkLinearTransform* transform );
+  bool CheckCollinear( vtkPoints* points );
 };
 
 #endif

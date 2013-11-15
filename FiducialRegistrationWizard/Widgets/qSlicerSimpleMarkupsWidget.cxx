@@ -308,9 +308,9 @@ void qSlicerSimpleMarkupsWidget
     currentNode->GetNthFiducialPosition( i, fiducialPosition );
 
     QTableWidgetItem* labelItem = new QTableWidgetItem( QString::fromStdString( fiducialLabel ) );
-    QTableWidgetItem* xItem = new QTableWidgetItem( QString::number( fiducialPosition[0], 'f', 2 ) );
-    QTableWidgetItem* yItem = new QTableWidgetItem( QString::number( fiducialPosition[1], 'f', 2 ) );
-    QTableWidgetItem* zItem = new QTableWidgetItem( QString::number( fiducialPosition[2], 'f', 2 ) );
+    QTableWidgetItem* xItem = new QTableWidgetItem( QString::number( fiducialPosition[0], 'f', 3 ) );
+    QTableWidgetItem* yItem = new QTableWidgetItem( QString::number( fiducialPosition[1], 'f', 3 ) );
+    QTableWidgetItem* zItem = new QTableWidgetItem( QString::number( fiducialPosition[2], 'f', 3 ) );
 
     d->MarkupsFiducialTableWidget->setItem( i, 0, labelItem );
     d->MarkupsFiducialTableWidget->setItem( i, 1, xItem );
