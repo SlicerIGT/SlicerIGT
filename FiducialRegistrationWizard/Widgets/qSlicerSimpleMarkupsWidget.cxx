@@ -104,6 +104,9 @@ void qSlicerSimpleMarkupsWidget
   connect( d->MarkupsFiducialNodeComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onMarkupsFiducialNodeChanged() ) );
   connect( d->MarkupsFiducialNodeComboBox, SIGNAL( nodeAddedByUser( vtkMRMLNode* ) ), this, SLOT( onMarkupsFiducialNodeAdded( vtkMRMLNode* ) ) );
 
+  // Use the pressed signal, since we will refresh before clicking is done
+  connect( d->ActiveButton, SIGNAL( pressed() ), this, SLOT( onActiveButtonClicked() ) );
+
   d->MarkupsFiducialTableWidget->setContextMenuPolicy( Qt::CustomContextMenu );
   connect( d->MarkupsFiducialTableWidget, SIGNAL( customContextMenuRequested(const QPoint&) ), this, SLOT( onMarkupsFiducialTableContextMenu(const QPoint&) ) );
   connect( d->MarkupsFiducialTableWidget, SIGNAL( cellChanged( int, int ) ), this, SLOT( onMarkupsFiducialEdited( int, int ) ) );
@@ -158,6 +161,23 @@ void qSlicerSimpleMarkupsWidget
   vtkMRMLMarkupsFiducialNode* newMarkupsFiducialNode = vtkMRMLMarkupsFiducialNode::SafeDownCast( newNode );
   this->MarkupsLogic->AddNewDisplayNodeForMarkupsNode( newMarkupsFiducialNode ); // Make sure there is an associated display node
 
+  this->updateWidget();
+}
+
+
+void qSlicerSimpleMarkupsWidget
+::onActiveButtonClicked()
+{
+  Q_D(qSlicerSimpleMarkupsWidget);
+
+  vtkMRMLMarkupsNode* currentMarkupsNode = vtkMRMLMarkupsNode::SafeDownCast( d->MarkupsFiducialNodeComboBox->currentNode() );
+
+  if ( currentMarkupsNode == NULL )
+  {
+    return;
+  }
+
+  this->MarkupsLogic->SetActiveListID( currentMarkupsNode );
   this->updateWidget();
 }
 
@@ -272,40 +292,50 @@ void qSlicerSimpleMarkupsWidget
 {
   Q_D(qSlicerSimpleMarkupsWidget);
 
-  if ( d->MarkupsFiducialNodeComboBox->currentNode() == NULL )
+  vtkMRMLMarkupsFiducialNode* currentMarkupsFiducialNode = vtkMRMLMarkupsFiducialNode::SafeDownCast( d->MarkupsFiducialNodeComboBox->currentNode() );
+  if ( currentMarkupsFiducialNode == NULL )
   {
     d->MarkupsFiducialTableWidget->clear();
     d->MarkupsFiducialTableWidget->setRowCount( 0 );
     d->MarkupsFiducialTableWidget->setColumnCount( 0 );
+    d->ActiveButton->setDown( false );
     this->ModifiedStatus = 0; 
     // This will ensure that we refresh the widget next time we move to a non-null widget (since there is guaranteed to be a modified status of larger than zero)
     return;
   }
 
-  vtkMRMLMarkupsFiducialNode* currentNode = vtkMRMLMarkupsFiducialNode::SafeDownCast( d->MarkupsFiducialNodeComboBox->currentNode() );
+  // Set the button indicating if this list is active
+  if ( this->MarkupsLogic->GetActiveListID().compare( currentMarkupsFiducialNode->GetID() ) == 0 )
+  {
+    d->ActiveButton->setDown( true );
+  }
+  else
+  {
+    d->ActiveButton->setDown( false );
+  }
 
   // Only update if there is a modified event
-  if ( this->ModifiedStatus == currentNode->GetMTime() )
+  if ( this->ModifiedStatus == currentMarkupsFiducialNode->GetMTime() )
   {
     return;
   }
-  this->ModifiedStatus = currentNode->GetMTime();
+  this->ModifiedStatus = currentMarkupsFiducialNode->GetMTime();
   this->IsUpdatingTable = true;
  
   d->MarkupsFiducialTableWidget->clear();
   QStringList MarkupsTableHeaders;
   MarkupsTableHeaders << "Label" << "X" << "Y" << "Z";
-  d->MarkupsFiducialTableWidget->setRowCount( currentNode->GetNumberOfFiducials() );
+  d->MarkupsFiducialTableWidget->setRowCount( currentMarkupsFiducialNode->GetNumberOfFiducials() );
   d->MarkupsFiducialTableWidget->setColumnCount( FIDUCIAL_COLUMNS );
   d->MarkupsFiducialTableWidget->setHorizontalHeaderLabels( MarkupsTableHeaders );
   d->MarkupsFiducialTableWidget->horizontalHeader()->setResizeMode( QHeaderView::Stretch );
   
   double fiducialPosition[ 3 ] = { 0, 0, 0 };
   std::string fiducialLabel = "";
-  for ( int i = 0; i < currentNode->GetNumberOfFiducials(); i++ )
+  for ( int i = 0; i < currentMarkupsFiducialNode->GetNumberOfFiducials(); i++ )
   {
-    fiducialLabel = currentNode->GetNthFiducialLabel( i );
-    currentNode->GetNthFiducialPosition( i, fiducialPosition );
+    fiducialLabel = currentMarkupsFiducialNode->GetNthFiducialLabel( i );
+    currentMarkupsFiducialNode->GetNthFiducialPosition( i, fiducialPosition );
 
     QTableWidgetItem* labelItem = new QTableWidgetItem( QString::fromStdString( fiducialLabel ) );
     QTableWidgetItem* xItem = new QTableWidgetItem( QString::number( fiducialPosition[0], 'f', 3 ) );
