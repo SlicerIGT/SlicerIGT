@@ -35,6 +35,7 @@ add_subdirectory( ${OpenIGTLinkRemote_SOURCE_DIR} ${OpenIGTLinkRemote_BINARY_DIR
 add_subdirectory( ${UltrasoundSnapshots_SOURCE_DIR} ${UltrasoundSnapshots_BINARY_DIR} )
 add_subdirectory( ${VolumeResliceDriver_SOURCE_DIR} ${VolumeResliceDriver_BINARY_DIR} )
 add_subdirectory( ${PivotCalibration_SOURCE_DIR} ${PivotCalibration_BINARY_DIR} )
+add_subdirectory( ${FiducialRegistrationWizard_SOURCE_DIR} ${FiducialRegistrationWizard_BINARY_DIR} )
 
 set(CPACK_INSTALL_CMAKE_PROJECTS "${CPACK_INSTALL_CMAKE_PROJECTS};${CMAKE_BINARY_DIR};${EXTENSION_NAME};ALL;/")
 

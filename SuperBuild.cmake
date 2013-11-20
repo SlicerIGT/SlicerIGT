@@ -30,6 +30,7 @@ set( SlicerIGT_Modules
   VolumeResliceDriver
   OpenIGTLinkRemote
   PivotCalibration
+  FiducialRegistrationWizard
   )
 
   
@@ -90,6 +91,8 @@ ExternalProject_Add( ${proj}
     -DVolumeResliceDriver_BINARY_DIR:PATH=${VolumeResliceDriver_BINARY_DIR}
     -DPivotCalibration_SOURCE_DIR:PATH=${PivotCalibration_SOURCE_DIR}
     -DPivotCalibration_BINARY_DIR:PATH=${PivotCalibration_BINARY_DIR}
+    -DFiducialRegistrationWizard_SOURCE_DIR:PATH=${FiducialRegistrationWizard_SOURCE_DIR}
+    -DFiducialRegistrationWizard_BINARY_DIR:PATH=${FiducialRegistrationWizard_BINARY_DIR}
     -DSlicer_DIR:PATH=${Slicer_DIR}
     -DMIDAS_PACKAGE_EMAIL:STRING=${MIDAS_PACKAGE_EMAIL}
     -DMIDAS_PACKAGE_API_KEY:STRING=${MIDAS_PACKAGE_API_KEY}    
