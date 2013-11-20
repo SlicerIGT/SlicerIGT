@@ -232,6 +232,9 @@ double vtkSlicerFiducialRegistrationWizardLogic
     sumSquaredError += vtkMath::Distance2BetweenPoints( currentToPoint, currentTransformedFromPoint );
   }
 
+  // Delete // TODO: User smart pointers
+  transformedFromPoints->Delete();
+
   return sqrt( sumSquaredError / toPoints->GetNumberOfPoints() );
 }
 
