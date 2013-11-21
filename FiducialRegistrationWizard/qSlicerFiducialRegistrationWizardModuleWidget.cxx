@@ -100,12 +100,22 @@ void qSlicerFiducialRegistrationWizardModuleWidget
 {
   Q_D( qSlicerFiducialRegistrationWizardModuleWidget );
 
-  if ( this->FromModifiedStatus == d->FromMarkupsWidget->ModifiedStatus && this->ToModifiedStatus == d->FromMarkupsWidget->ModifiedStatus )
+  if ( this->FromModifiedStatus == d->FromMarkupsWidget->ModifiedStatus && this->ToModifiedStatus == d->ToMarkupsWidget->ModifiedStatus )
   {
     return;
   }
   this->FromModifiedStatus = d->FromMarkupsWidget->ModifiedStatus;
   this->ToModifiedStatus = d->ToMarkupsWidget->ModifiedStatus;
+  
+  this->recalculateRegistration();
+}
+
+
+
+void qSlicerFiducialRegistrationWizardModuleWidget
+::recalculateRegistration()
+{
+  Q_D( qSlicerFiducialRegistrationWizardModuleWidget );
   
   vtkMRMLMarkupsFiducialNode* fromMarkupsFiducialNode = vtkMRMLMarkupsFiducialNode::SafeDownCast( d->FromMarkupsWidget->GetCurrentNode() );
   vtkMRMLMarkupsFiducialNode* toMarkupsFiducialNode = vtkMRMLMarkupsFiducialNode::SafeDownCast( d->ToMarkupsWidget->GetCurrentNode() );
@@ -128,7 +138,6 @@ void qSlicerFiducialRegistrationWizardModuleWidget
 }
 
 
-
 void qSlicerFiducialRegistrationWizardModuleWidget
 ::setup()
 {
@@ -147,6 +156,9 @@ void qSlicerFiducialRegistrationWizardModuleWidget
   this->setMRMLScene( d->logic()->GetMRMLScene() );
    
   connect( d->RecordButton, SIGNAL( clicked() ), this, SLOT( onRecordButtonClicked() ) );
+  connect( d->OutputTransformComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( recalculateRegistration() ) );
+  connect( d->RigidRadioButton, SIGNAL( toggled( bool ) ), this, SLOT( recalculateRegistration() ) );
+  connect( d->SimilarityRadioButton, SIGNAL( toggled( bool ) ), this, SLOT( recalculateRegistration() ) );
 
   // GUI refresh: updates every 10ms
   QTimer *t = new QTimer( this );
@@ -154,6 +166,6 @@ void qSlicerFiducialRegistrationWizardModuleWidget
   t->start(10); 
 
   this->updateWidget();
-
+  this->recalculateRegistration();
 }
 

@@ -48,6 +48,7 @@ public slots:
 protected slots:
 
   void onRecordButtonClicked();
+  void recalculateRegistration(); // Use this to force update the registration
   void updateWidget();
 
 protected:
