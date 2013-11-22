@@ -15,11 +15,36 @@ project( SlicerIGT )
 find_package( Slicer REQUIRED )
 include( ${Slicer_USE_FILE} )
 
-option( MODULE_CollectFiducials_ENABLE "Enable the building of the CollectFiducials module." ON )
+# Enable building of experimental modules
+option( SLICERIGT_ENABLE_EXPERIMENTAL_MODULES "Enable building of work-in-progress, experimental modules." OFF )
+
+set( SlicerIGT_Modules
+  CollectFiducials
+  CreateModels
+  OpenIGTLinkRemote
+  UltrasoundSnapshots
+  VolumeResliceDriver
+  PivotCalibration
+  FiducialRegistrationWizard
+)
+
+if( SLICERIGT_ENABLE_EXPERIMENTAL_MODULES )
+  set( SlicerIGT_Modules
+    ${SlicerIGT_Modules}
+    # Put experimental modules names here
+  )
+endif( SLICERIGT_ENABLE_EXPERIMENTAL_MODULES )
 
 # Run superbuild in the first round of configuration.
 option(${EXTENSION_NAME}_SUPERBUILD "Build ${EXTENSION_NAME} and the projects it depends on via SuperBuild.cmake." ON)
 mark_as_advanced(${EXTENSION_NAME}_SUPERBUILD)
+
+# Ensure that the modules' repositories are correctly set
+foreach( proj ${SlicerIGT_Modules} )
+  set( SLICERIGT_REPOSITORY_URL_${proj} "https://github.com/SlicerIGT/${proj}.git" CACHE STRING "Set the ${proj} repository" )
+  set( SLICERIGT_REPOSITORY_TAG_${proj} "" CACHE STRING "Set the ${proj} repository tag" )
+endforeach( proj )
+
 if(${EXTENSION_NAME}_SUPERBUILD)
   include("${CMAKE_CURRENT_SOURCE_DIR}/SuperBuild.cmake")
   return()
@@ -29,13 +54,9 @@ set( MODULE_NAME ${EXTENSION_NAME} )
 set( MODULE_TITLE ${MODULE_NAME} )
 string( TOUPPER ${MODULE_NAME} MODULE_NAME_UPPER )
 
-add_subdirectory( ${CollectFiducials_SOURCE_DIR} ${CollectFiducials_BINARY_DIR} )
-add_subdirectory( ${CreateModels_SOURCE_DIR} ${CreateModels_BINARY_DIR} )
-add_subdirectory( ${OpenIGTLinkRemote_SOURCE_DIR} ${OpenIGTLinkRemote_BINARY_DIR} )
-add_subdirectory( ${UltrasoundSnapshots_SOURCE_DIR} ${UltrasoundSnapshots_BINARY_DIR} )
-add_subdirectory( ${VolumeResliceDriver_SOURCE_DIR} ${VolumeResliceDriver_BINARY_DIR} )
-add_subdirectory( ${PivotCalibration_SOURCE_DIR} ${PivotCalibration_BINARY_DIR} )
-add_subdirectory( ${FiducialRegistrationWizard_SOURCE_DIR} ${FiducialRegistrationWizard_BINARY_DIR} )
+foreach( proj ${SlicerIGT_Modules} )
+  add_subdirectory( ${${proj}_SOURCE_DIR} ${${proj}_BINARY_DIR} )
+endforeach( proj )
 
 set(CPACK_INSTALL_CMAKE_PROJECTS "${CPACK_INSTALL_CMAKE_PROJECTS};${CMAKE_BINARY_DIR};${EXTENSION_NAME};ALL;/")
 
