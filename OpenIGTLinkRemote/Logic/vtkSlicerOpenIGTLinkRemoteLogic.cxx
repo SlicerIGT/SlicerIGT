@@ -136,7 +136,7 @@ void vtkSlicerOpenIGTLinkRemoteLogic::DiscardCommand( int commandId, const char*
         continue;
       }
       connectorNode->UnregisterIncomingMRMLNode(textNode);
-      this->GetMRMLScene()->RemoveNode(textNode);
+      //this->GetMRMLScene()->RemoveNode(textNode); // At present this crashes Slicer as the openIGT module keeps a reference in a list and is not removed from that list with the previous function
     }
     replyNodes->Delete();
   }
@@ -154,7 +154,7 @@ void vtkSlicerOpenIGTLinkRemoteLogic::DiscardCommand( int commandId, const char*
         continue;
       }
       connectorNode->UnregisterOutgoingMRMLNode(textNode);
-      this->GetMRMLScene()->RemoveNode(textNode);
+      //this->GetMRMLScene()->RemoveNode(textNode);
     }
     commandNodes->Delete();
   }
