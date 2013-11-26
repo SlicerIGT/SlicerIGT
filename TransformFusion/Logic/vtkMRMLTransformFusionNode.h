@@ -25,6 +25,7 @@
 
 #include <vtkMRML.h>
 #include <vtkMRMLNode.h>
+#include <vtkMRMLLinearTransformNode.h>
 
 #include "vtkSlicerTransformFusionModuleLogicExport.h"
 
@@ -50,8 +51,9 @@ public:
   vtkMRMLNode* GetOutputTransformNode();
   void SetAndObserveOutputTransformNode(vtkMRMLNode* node);
 
-  //void SetInputTransformIDs(char* inputIDs, int size);
-  //double* GetInputTransformIDs();
+  void AddInputTransform(vtkMRMLLinearTransformNode*);
+  void RemoveInputTransform(int index);
+  std::vector<vtkMRMLLinearTransformNode*> GetInputTransforms();
   vtkSetMacro(UpdatesPerSecond, int);
   vtkGetMacro(UpdatesPerSecond, int); 
   
@@ -64,7 +66,7 @@ protected:
 
 //Parameters
 protected:
-  //char* InputTransformIDs;
+  std::vector<vtkMRMLLinearTransformNode*> InputTransforms;
   int UpdatesPerSecond;
 };
 

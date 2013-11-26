@@ -49,12 +49,20 @@ public slots:
   void onSceneImportedEvent();
   void setTransformFusionParametersNode(vtkMRMLNode*);
   void updateWidget();
+  void updateButtons();
 
 protected slots:
 
-  void onOutputTransformNodeSelected();
+  void onAddTransform();
+  void onRemoveTransform();
+
+  void onOutputTransformNodeSelected(vtkMRMLNode* node);
   
   void onSingleUpdate();
+  void onStartAutoUpdate();
+  void onStopAutoUpdate();
+
+  void setUpdatesPerSecond(double);
   
 
 protected:
@@ -62,6 +70,10 @@ protected:
   
   virtual void setup();
   void onEnter();
+
+  bool currentlyUpdating;
+
+  QTimer* updateTimer;
 
 private:
   Q_DECLARE_PRIVATE(qSlicerTransformFusionModuleWidget);

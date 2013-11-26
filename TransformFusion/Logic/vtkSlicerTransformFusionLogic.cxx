@@ -28,6 +28,8 @@
 
 // VTK includes
 #include <vtkNew.h>
+#include <vtkQuaternionInterpolator.h>
+#include <vtkMatrix4x4.h>
 
 // STD includes
 #include <cassert>
@@ -38,13 +40,13 @@ vtkStandardNewMacro(vtkSlicerTransformFusionLogic);
 //-----------------------------------------------------------------------------
 vtkSlicerTransformFusionLogic::vtkSlicerTransformFusionLogic()
 {
-
+  this->TransformFusionNode = NULL;
 }
 
 //-----------------------------------------------------------------------------
 vtkSlicerTransformFusionLogic::~vtkSlicerTransformFusionLogic()
 {
-
+  vtkSetAndObserveMRMLNodeMacro(this->TransformFusionNode, NULL);
 }
 
 //-----------------------------------------------------------------------------
@@ -73,12 +75,64 @@ void vtkSlicerTransformFusionLogic::SetAndObserveTransformFusionNode(vtkMRMLTran
 }
 
 //-----------------------------------------------------------------------------
-void vtkSlicerTransformFusionLogic::fuseInputTransforms()
+void vtkSlicerTransformFusionLogic::fuseInputTransforms(int techniqueType) //enum techniqueTypes
 {
-
+  switch (techniqueType){
+    case SIMPLE_AVERAGE:
+    {
+      this->SimpleAverage();
+      break;
+    }
+    case LERP_AND_SLERP:
+    {
+      this->LerpAndSlerp();
+      break;
+    }
+  } 
 
 }
 
+//-----------------------------------------------------------------------------
+void vtkSlicerTransformFusionLogic::SimpleAverage()
+{
+  vtkMRMLLinearTransformNode* outputNode = vtkMRMLLinearTransformNode::SafeDownCast(this->TransformFusionNode->GetOutputTransformNode());
+  if (outputNode == NULL)
+  {
+    return;
+  }
+  std::vector<vtkMRMLLinearTransformNode*> inputTransforms = this->TransformFusionNode->GetInputTransforms();
+  vtkSmartPointer<vtkMatrix4x4> outputMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+  double value = 0;
 
+  for (int column = 0; column < 4; column++)
+  {
+    for (int row = 0; row < 4; row++)
+    {
+      for (int i = 0; i < inputTransforms.size(); i++)
+      {
+        value += inputTransforms[i]->GetMatrixTransformToParent()->GetElement(row,column);
+      }
+      value = value/inputTransforms.size();
+      outputMatrix->SetElement(row,column,value);
+      value = 0;
+    }
+  }
 
+  outputNode->SetAndObserveMatrixTransformToParent(outputMatrix);
+}
 
+//-----------------------------------------------------------------------------
+void vtkSlicerTransformFusionLogic::LerpAndSlerp()
+{
+  //Not implemented yet
+  /*
+  std::vector<vtkMRMLLinearTransformNode*> inputTransforms = this->TransformFusionNode->GetInputTransforms();
+  vtkSmartPointer<vtkQuaternionInterpolator> slerper = vtkSmartPointer<vtkQuaternionInterpolator>::New();
+  vtkMatrix4x4* matrixPointer = NULL;
+
+  for (int i = 0; i < inputTransforms.size(); i++)
+  {
+    matrixPointer = inputTransforms[i]->GetMatrixTransformToParent();
+  }
+  */
+}

@@ -27,6 +27,7 @@
 
 // MRML includes
 #include <vtkMRMLScene.h>
+#include <vtkMRMLLinearTransformNode.h>
 
 #include <sstream>
 
@@ -41,7 +42,7 @@ vtkMRMLNodeNewMacro(vtkMRMLTransformFusionNode);
 vtkMRMLTransformFusionNode::vtkMRMLTransformFusionNode()
 {
   //Parameters
-  //this->InputTransformIDs = "";
+  //this->InputTransforms;
   this->UpdatesPerSecond = 60;
 }
 
@@ -70,7 +71,7 @@ void vtkMRMLTransformFusionNode::ReadXMLAttributes(const char** atts)
       ss >> this->InputTransformIDs;
       continue;
     }
-    */    
+    */
     if (!strcmp(attName,"UpdatesPerSecond")){
       std::stringstream ss;
       ss << attValue;
@@ -118,38 +119,36 @@ void vtkMRMLTransformFusionNode::SetAndObserveOutputTransformNode(vtkMRMLNode* n
   this->SetNthNodeReferenceID(vtkMRMLTransformFusionNode::OutputTransformReferenceRole.c_str(),0,node->GetID());
 }
 
-/*
 //----------------------------------------------------------------------------
-void vtkMRMLTransformFusionNode::SetInputTransformIDs(char* inputIDs, int size)
+void vtkMRMLTransformFusionNode::AddInputTransform(vtkMRMLLinearTransformNode* inputTransform)
 {
-  if (this->InputTransformIDs) { delete [] this->InputTransformIDs; }
-  this->InputTransformIDs = new double[size];
-  if (inputIDs)
-  {
-    for (int i = 0;i<size;i++)
-    {
-      this->InputTransformIDs[i] = inputIDs[i];
-    }
-  }
-  else
-  {
-    this->InputTransformIDs = NULL;
-  }
+  this->InputTransforms.push_back(inputTransform);
 }
 
 //----------------------------------------------------------------------------
-double* vtkMRMLTransformFusionNode::GetInputTransformIDs()
+void vtkMRMLTransformFusionNode::RemoveInputTransform(int index)
 {
-  return this->InputTransformIDs;
+  this->InputTransforms.erase(this->InputTransforms.begin()+index);
 }
-*/
+
+//----------------------------------------------------------------------------
+std::vector<vtkMRMLLinearTransformNode*> vtkMRMLTransformFusionNode::GetInputTransforms()
+{
+  return this->InputTransforms;
+}
 
 //----------------------------------------------------------------------------
 void vtkMRMLTransformFusionNode::PrintSelf(ostream& os, vtkIndent indent)
 {
   Superclass::PrintSelf(os,indent);
 
-  //os << indent << " InputTransformIDs = "<< this->InputTransformIDs << "\n";
+  os << indent << " InputTransformIDs = ";
+  for (int i = 0;i < this->InputTransforms.size();i++)
+  {
+    os << this->InputTransforms[i]->GetID() << " ";
+  }
+  os << "\n";
+
   os << indent << " UpdatesPerSecond = "<< this->UpdatesPerSecond << "\n";   
 }
 

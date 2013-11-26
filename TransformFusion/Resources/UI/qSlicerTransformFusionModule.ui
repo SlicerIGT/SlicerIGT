@@ -48,7 +48,7 @@
         </property>
         <property name="nodeTypes">
          <stringlist>
-          <string>vtkMRMLTransformVisualizerNode</string>
+          <string>vtkMRMLTransformFusionNode</string>
          </stringlist>
         </property>
         <property name="showHidden">
@@ -166,24 +166,8 @@
      <property name="contentsFrameShape">
       <enum>QFrame::StyledPanel</enum>
      </property>
-     <layout class="QVBoxLayout" name="verticalLayout_2">
-      <item>
-       <widget class="ctkCollapsibleGroupBox" name="SingleUpdateBox">
-        <property name="title">
-         <string>Single Update</string>
-        </property>
-        <layout class="QFormLayout" name="formLayout_3">
-         <item row="0" column="0" colspan="2">
-          <widget class="QPushButton" name="updateButton">
-           <property name="text">
-            <string>Update</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </widget>
-      </item>
-      <item>
+     <layout class="QFormLayout" name="formLayout_5">
+      <item row="3" column="0" colspan="2">
        <widget class="ctkCollapsibleGroupBox" name="AutoUpdateBox">
         <property name="title">
          <string>Auto Update</string>
@@ -211,6 +195,9 @@
          </item>
          <item row="1" column="0" colspan="2">
           <widget class="QPushButton" name="startUpdateButton">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
            <property name="text">
             <string>Start</string>
            </property>
@@ -224,6 +211,52 @@
           </widget>
          </item>
         </layout>
+       </widget>
+      </item>
+      <item row="2" column="0" colspan="2">
+       <widget class="ctkCollapsibleGroupBox" name="SingleUpdateBox">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
+        <property name="title">
+         <string>Single Update</string>
+        </property>
+        <layout class="QFormLayout" name="formLayout_3">
+         <item row="0" column="0" colspan="2">
+          <widget class="QPushButton" name="updateButton">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="text">
+            <string>Update</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item row="0" column="0">
+       <widget class="QLabel" name="label">
+        <property name="text">
+         <string>Technique:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="ctkComboBox" name="techniqueBox">
+        <property name="defaultText">
+         <string/>
+        </property>
+        <item>
+         <property name="text">
+          <string>Simple Average</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Lerp and Slerp</string>
+         </property>
+        </item>
        </widget>
       </item>
      </layout>
@@ -268,6 +301,11 @@
    <extends>QGroupBox</extends>
    <header>ctkCollapsibleGroupBox.h</header>
    <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>ctkComboBox</class>
+   <extends>QComboBox</extends>
+   <header>ctkComboBox.h</header>
   </customwidget>
   <customwidget>
    <class>ctkDoubleSpinBox</class>

@@ -55,9 +55,17 @@ public:
   static vtkSlicerTransformFusionLogic *New();
   vtkTypeMacro(vtkSlicerTransformFusionLogic,vtkSlicerModuleLogic);
   void PrintSelf(ostream& os, vtkIndent indent);
+
+  enum techniqueTypes
+  {
+    SIMPLE_AVERAGE = 0,
+    LERP_AND_SLERP
+  };
   
 public:
-  void fuseInputTransforms();
+  void fuseInputTransforms(int techniqueType);
+  void SimpleAverage();
+  void LerpAndSlerp();
 
   void SetAndObserveTransformFusionNode(vtkMRMLTransformFusionNode *node);
   vtkGetObjectMacro(TransformFusionNode, vtkMRMLTransformFusionNode);
