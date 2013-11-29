@@ -86,8 +86,6 @@ qSlicerSimpleMarkupsWidget* qSlicerSimpleMarkupsWidget
 {
   qSlicerSimpleMarkupsWidget* newSimpleMarkupsWidget = new qSlicerSimpleMarkupsWidget();
   newSimpleMarkupsWidget->MarkupsLogic = newMarkupsLogic;
-  newSimpleMarkupsWidget->ModifiedStatus = 0;
-  newSimpleMarkupsWidget->IsUpdatingTable = false;
   newSimpleMarkupsWidget->setup();
   return newSimpleMarkupsWidget;
 }
@@ -104,18 +102,15 @@ void qSlicerSimpleMarkupsWidget
   connect( d->MarkupsFiducialNodeComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onMarkupsFiducialNodeChanged() ) );
   connect( d->MarkupsFiducialNodeComboBox, SIGNAL( nodeAddedByUser( vtkMRMLNode* ) ), this, SLOT( onMarkupsFiducialNodeAdded( vtkMRMLNode* ) ) );
 
-  // Use the pressed signal, since we will refresh before clicking is done
-  connect( d->ActiveButton, SIGNAL( pressed() ), this, SLOT( onActiveButtonClicked() ) );
+  // Use the pressed signal (otherwise we can unpress buttons without clicking them)
+  connect( d->ActiveButton, SIGNAL( toggled( bool ) ), this, SLOT( SetCurrentActive() ) );
 
   d->MarkupsFiducialTableWidget->setContextMenuPolicy( Qt::CustomContextMenu );
   connect( d->MarkupsFiducialTableWidget, SIGNAL( customContextMenuRequested(const QPoint&) ), this, SLOT( onMarkupsFiducialTableContextMenu(const QPoint&) ) );
   connect( d->MarkupsFiducialTableWidget, SIGNAL( cellChanged( int, int ) ), this, SLOT( onMarkupsFiducialEdited( int, int ) ) );
 
-
-  // GUI refresh: updates every 10ms
-  QTimer *t = new QTimer( this );
-  connect( t, SIGNAL( timeout() ), this, SLOT( updateWidget() ) );
-  t->start(10); 
+  // Connect to the markups mrml events
+  this->qvtkConnect( this->GetCurrentNode(), vtkCommand::ModifiedEvent, this, SLOT( onMarkupsFiducialNodeModified() ) );
 
   this->updateWidget();  
 }
@@ -137,6 +132,26 @@ vtkMRMLNode* qSlicerSimpleMarkupsWidget
 
 
 void qSlicerSimpleMarkupsWidget
+::SetCurrentNode( vtkMRMLNode* currentNode )
+{
+  Q_D(qSlicerSimpleMarkupsWidget);
+
+  vtkMRMLMarkupsNode* currentMarkupsNode = vtkMRMLMarkupsNode::SafeDownCast( currentNode );
+  d->MarkupsFiducialNodeComboBox->setCurrentNode( currentMarkupsNode );
+}
+
+
+void qSlicerSimpleMarkupsWidget
+::onMarkupsFiducialNodeModified()
+{
+  Q_D(qSlicerSimpleMarkupsWidget);
+
+  emit markupsFiducialNodeModified();
+  this->updateWidget();
+}
+
+
+void qSlicerSimpleMarkupsWidget
 ::onMarkupsFiducialNodeChanged()
 {
   Q_D(qSlicerSimpleMarkupsWidget);
@@ -145,10 +160,17 @@ void qSlicerSimpleMarkupsWidget
 
   if ( currentMarkupsNode == NULL )
   {
+    this->updateWidget(); // Have to update the widget anyway
     return;
   }
 
-  this->MarkupsLogic->SetActiveListID( currentMarkupsNode );
+  this->SetCurrentActive();
+
+  // Disconnect and reconnect to new node
+  emit markupsFiducialNodeModified();
+  this->qvtkDisconnectAll();
+  this->qvtkConnect( this->GetCurrentNode(), vtkCommand::ModifiedEvent, this, SLOT( onMarkupsFiducialNodeModified() ) );
+
   this->updateWidget();
 }
 
@@ -160,13 +182,12 @@ void qSlicerSimpleMarkupsWidget
 
   vtkMRMLMarkupsFiducialNode* newMarkupsFiducialNode = vtkMRMLMarkupsFiducialNode::SafeDownCast( newNode );
   this->MarkupsLogic->AddNewDisplayNodeForMarkupsNode( newMarkupsFiducialNode ); // Make sure there is an associated display node
-
-  this->updateWidget();
+  this->SetCurrentNode( newMarkupsFiducialNode ); // Make sure onMarkupsFiducialNodeChanged is called (will update widget)
 }
 
 
 void qSlicerSimpleMarkupsWidget
-::onActiveButtonClicked()
+::SetCurrentActive()
 {
   Q_D(qSlicerSimpleMarkupsWidget);
 
@@ -178,6 +199,14 @@ void qSlicerSimpleMarkupsWidget
   }
 
   this->MarkupsLogic->SetActiveListID( currentMarkupsNode );
+
+  // Modify all markups fiducial nodes to force the other markups widgets to change the state of their active button
+  vtkCollection* markupsNodeCollection = this->mrmlScene()->GetNodesByClass( "vtkMRMLMarkupsFiducialNode" );
+  for ( int i = 0; i < markupsNodeCollection->GetNumberOfItems(); i++ )
+  {
+    markupsNodeCollection->GetItemAsObject( i )->Modified();
+  }
+
   this->updateWidget();
 }
 
@@ -205,9 +234,15 @@ void qSlicerSimpleMarkupsWidget
   int currentFiducial = d->MarkupsFiducialTableWidget->currentRow();
   vtkMRMLMarkupsFiducialNode* currentNode = vtkMRMLMarkupsFiducialNode::SafeDownCast( d->MarkupsFiducialNodeComboBox->currentNode() );
   
+  if ( currentNode == NULL )
+  {
+    return;
+  }
+
+  // Only do this for non-null node
   if ( selectedAction == activateAction )
   {
-    this->MarkupsLogic->SetActiveListID( vtkMRMLMarkupsNode::SafeDownCast( d->MarkupsFiducialNodeComboBox->currentNode() ) );
+    this->SetCurrentActive();
   }
 
   if ( selectedAction == deleteAction )
@@ -231,8 +266,6 @@ void qSlicerSimpleMarkupsWidget
     }
   }
 
-  
-
   this->updateWidget();
 }
 
@@ -242,12 +275,12 @@ void qSlicerSimpleMarkupsWidget
 {
   Q_D(qSlicerSimpleMarkupsWidget);
 
-  if ( this->IsUpdatingTable )
+  vtkMRMLMarkupsFiducialNode* currentMarkupsFiducialNode = vtkMRMLMarkupsFiducialNode::SafeDownCast( this->GetCurrentNode() );
+
+  if ( currentMarkupsFiducialNode == NULL )
   {
     return;
   }
-
-  vtkMRMLMarkupsFiducialNode* currentMarkupsFiducialNode = vtkMRMLMarkupsFiducialNode::SafeDownCast( this->GetCurrentNode() );
 
   // Find the fiducial's current properties
   double currentFiducialPosition[3] = { 0, 0, 0 };
@@ -298,29 +331,27 @@ void qSlicerSimpleMarkupsWidget
     d->MarkupsFiducialTableWidget->clear();
     d->MarkupsFiducialTableWidget->setRowCount( 0 );
     d->MarkupsFiducialTableWidget->setColumnCount( 0 );
-    d->ActiveButton->setDown( false );
-    this->ModifiedStatus = 0; 
+    d->ActiveButton->setChecked( false );
     // This will ensure that we refresh the widget next time we move to a non-null widget (since there is guaranteed to be a modified status of larger than zero)
     return;
   }
 
   // Set the button indicating if this list is active
+  d->ActiveButton->blockSignals( true );
+
   if ( this->MarkupsLogic->GetActiveListID().compare( currentMarkupsFiducialNode->GetID() ) == 0 )
   {
-    d->ActiveButton->setDown( true );
+    d->ActiveButton->setChecked( true );
   }
   else
   {
-    d->ActiveButton->setDown( false );
+    d->ActiveButton->setChecked( false );
   }
 
-  // Only update if there is a modified event
-  if ( this->ModifiedStatus == currentMarkupsFiducialNode->GetMTime() )
-  {
-    return;
-  }
-  this->ModifiedStatus = currentMarkupsFiducialNode->GetMTime();
-  this->IsUpdatingTable = true;
+  d->ActiveButton->blockSignals( false );
+
+  // Update the fiducials table
+  d->MarkupsFiducialTableWidget->blockSignals( true );
  
   d->MarkupsFiducialTableWidget->clear();
   QStringList MarkupsTableHeaders;
@@ -348,5 +379,5 @@ void qSlicerSimpleMarkupsWidget
     d->MarkupsFiducialTableWidget->setItem( i, 3, zItem );
   }
 
-  this->IsUpdatingTable = false;
+  d->MarkupsFiducialTableWidget->blockSignals( false );
 }

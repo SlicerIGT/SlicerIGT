@@ -100,22 +100,8 @@ void qSlicerFiducialRegistrationWizardModuleWidget
 {
   Q_D( qSlicerFiducialRegistrationWizardModuleWidget );
 
-  if ( this->FromModifiedStatus == d->FromMarkupsWidget->ModifiedStatus && this->ToModifiedStatus == d->ToMarkupsWidget->ModifiedStatus )
-  {
-    return;
-  }
-  this->FromModifiedStatus = d->FromMarkupsWidget->ModifiedStatus;
-  this->ToModifiedStatus = d->ToMarkupsWidget->ModifiedStatus;
-  
-  this->recalculateRegistration();
-}
-
-
-
-void qSlicerFiducialRegistrationWizardModuleWidget
-::recalculateRegistration()
-{
-  Q_D( qSlicerFiducialRegistrationWizardModuleWidget );
+  // Update the mrml node from the widget (since a widget has been changed)
+  this->UpdateToMRMLNode();
   
   vtkMRMLMarkupsFiducialNode* fromMarkupsFiducialNode = vtkMRMLMarkupsFiducialNode::SafeDownCast( d->FromMarkupsWidget->GetCurrentNode() );
   vtkMRMLMarkupsFiducialNode* toMarkupsFiducialNode = vtkMRMLMarkupsFiducialNode::SafeDownCast( d->ToMarkupsWidget->GetCurrentNode() );
@@ -138,6 +124,7 @@ void qSlicerFiducialRegistrationWizardModuleWidget
 }
 
 
+
 void qSlicerFiducialRegistrationWizardModuleWidget
 ::setup()
 {
@@ -151,21 +138,130 @@ void qSlicerFiducialRegistrationWizardModuleWidget
   d->ToGroupBox->layout()->addWidget( d->ToMarkupsWidget );
   this->Superclass::setup();
 
-  this->FromModifiedStatus = d->FromMarkupsWidget->ModifiedStatus;
-  this->ToModifiedStatus = d->ToMarkupsWidget->ModifiedStatus;
   this->setMRMLScene( d->logic()->GetMRMLScene() );
-   
+
+  // Make connections to update widget
+  connect( d->ProbeTransformComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( updateWidget() ) );
+  connect( d->OutputTransformComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( updateWidget() ) );
+  connect( d->RigidRadioButton, SIGNAL( toggled( bool ) ), this, SLOT( updateWidget() ) );
+  connect( d->SimilarityRadioButton, SIGNAL( toggled( bool ) ), this, SLOT( updateWidget() ) );
+
+  connect( d->FromMarkupsWidget, SIGNAL( markupsFiducialNodeModified() ), this, SLOT( updateWidget() ) );
+  connect( d->ToMarkupsWidget, SIGNAL( markupsFiducialNodeModified() ), this, SLOT( updateWidget() ) );
+
+  // These connections will do work (after being updated from the node)
   connect( d->RecordButton, SIGNAL( clicked() ), this, SLOT( onRecordButtonClicked() ) );
-  connect( d->OutputTransformComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( recalculateRegistration() ) );
-  connect( d->RigidRadioButton, SIGNAL( toggled( bool ) ), this, SLOT( recalculateRegistration() ) );
-  connect( d->SimilarityRadioButton, SIGNAL( toggled( bool ) ), this, SLOT( recalculateRegistration() ) );
 
-  // GUI refresh: updates every 10ms
-  QTimer *t = new QTimer( this );
-  connect( t, SIGNAL( timeout() ), this, SLOT( updateWidget() ) );
-  t->start(10); 
+  // Watch the module node
+  // Note: This module's node is a singleton, so we don't have to worry about it being replaced/deleted etc.
+  // The logic function creates the singleton node if it doesn't already exist
+  this->qvtkConnect( d->logic()->GetFiducialRegistrationWizardNode(), vtkCommand::ModifiedEvent, this, SLOT( UpdateFromMRMLNode() ) );
+  this->qvtkConnect( this->mrmlScene(), vtkMRMLScene::EndImportEvent, this, SLOT( UpdateFromMRMLNode() ) );
 
+  this->UpdateFromMRMLNode();
   this->updateWidget();
-  this->recalculateRegistration();
 }
 
+
+
+void qSlicerFiducialRegistrationWizardModuleWidget
+::UpdateToMRMLNode()
+{
+  Q_D( qSlicerFiducialRegistrationWizardModuleWidget );
+
+  vtkMRMLFiducialRegistrationWizardNode* fiducialRegistrationWizardNode = vtkMRMLFiducialRegistrationWizardNode::SafeDownCast( d->logic()->GetFiducialRegistrationWizardNode() );
+
+  if ( fiducialRegistrationWizardNode == NULL )
+  {
+    return;
+  }
+
+  this->qvtkBlockAll( true );
+
+  fiducialRegistrationWizardNode->ProbeTransformID = d->ProbeTransformComboBox->currentNodeID().toStdString();
+  if ( d->FromMarkupsWidget->GetCurrentNode() != NULL )
+  {
+    fiducialRegistrationWizardNode->FromFiducialListID = d->FromMarkupsWidget->GetCurrentNode()->GetID();
+  }
+  if ( d->ToMarkupsWidget->GetCurrentNode() != NULL )
+  {
+    fiducialRegistrationWizardNode->ToFiducialListID = d->ToMarkupsWidget->GetCurrentNode()->GetID();
+  }
+  fiducialRegistrationWizardNode->ActiveFiducialListID = d->logic()->MarkupsLogic->GetActiveListID();
+  fiducialRegistrationWizardNode->OutputTransformID = d->OutputTransformComboBox->currentNodeID().toStdString();
+
+  if ( d->SimilarityRadioButton->isChecked() )
+  {
+    fiducialRegistrationWizardNode->RegistrationMode = "Similarity";
+  }
+  if ( d->RigidRadioButton->isChecked() )
+  {
+    fiducialRegistrationWizardNode->RegistrationMode = "Rigid";
+  }
+
+  this->qvtkBlockAll( false );
+}
+
+
+void qSlicerFiducialRegistrationWizardModuleWidget
+::UpdateFromMRMLNode()
+{
+  Q_D( qSlicerFiducialRegistrationWizardModuleWidget );
+
+  vtkMRMLFiducialRegistrationWizardNode* fiducialRegistrationWizardNode = vtkMRMLFiducialRegistrationWizardNode::SafeDownCast( d->logic()->GetFiducialRegistrationWizardNode() );
+
+  if ( fiducialRegistrationWizardNode == NULL )
+  {
+    return;
+  }
+
+  // Disconnect to prevent signals form queuing slots
+  disconnect( d->ProbeTransformComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( updateWidget() ) );
+  disconnect( d->OutputTransformComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( updateWidget() ) );
+  disconnect( d->RigidRadioButton, SIGNAL( toggled( bool ) ), this, SLOT( updateWidget() ) );
+  disconnect( d->SimilarityRadioButton, SIGNAL( toggled( bool ) ), this, SLOT( updateWidget() ) );
+  disconnect( d->FromMarkupsWidget, SIGNAL( markupsFiducialNodeModified() ), this, SLOT( updateWidget() ) );
+  disconnect( d->ToMarkupsWidget, SIGNAL( markupsFiducialNodeModified() ), this, SLOT( updateWidget() ) );
+
+  d->ProbeTransformComboBox->setCurrentNodeID( QString::fromStdString( fiducialRegistrationWizardNode->ProbeTransformID ) );
+  d->FromMarkupsWidget->SetCurrentNode( this->mrmlScene()->GetNodeByID( fiducialRegistrationWizardNode->FromFiducialListID ) );
+  d->ToMarkupsWidget->SetCurrentNode( this->mrmlScene()->GetNodeByID( fiducialRegistrationWizardNode->ToFiducialListID ) );
+  vtkMRMLMarkupsNode* activeMarkupsNode = vtkMRMLMarkupsNode::SafeDownCast( this->mrmlScene()->GetNodeByID( fiducialRegistrationWizardNode->ActiveFiducialListID ) );
+  if ( activeMarkupsNode != NULL )
+  {
+    d->logic()->MarkupsLogic->SetActiveListID( activeMarkupsNode );
+  }
+  // Do this to cause the markups widgets to update their Active buttons
+  if ( d->FromMarkupsWidget->GetCurrentNode() != NULL )
+  {
+    d->FromMarkupsWidget->GetCurrentNode()->Modified();
+  }
+  if ( d->ToMarkupsWidget->GetCurrentNode() != NULL )
+  {
+    d->ToMarkupsWidget->GetCurrentNode()->Modified();
+  }
+  d->OutputTransformComboBox->setCurrentNodeID( QString::fromStdString( fiducialRegistrationWizardNode->OutputTransformID ) );
+
+
+  if ( fiducialRegistrationWizardNode->RegistrationMode.compare( "Similarity" ) == 0 )
+  {
+    d->SimilarityRadioButton->setChecked( Qt::Checked );
+    d->RigidRadioButton->setChecked( Qt::Unchecked );
+  }
+  if ( fiducialRegistrationWizardNode->RegistrationMode.compare( "Rigid" ) == 0 )
+  {
+    d->RigidRadioButton->setChecked( Qt::Checked );
+    d->SimilarityRadioButton->setChecked( Qt::Unchecked );
+  }
+
+  // Unblock all singals from firing
+  // TODO: Is there a more efficient way to do this by blokcing slots?
+  connect( d->ProbeTransformComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( updateWidget() ) );
+  connect( d->OutputTransformComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( updateWidget() ) );
+  connect( d->RigidRadioButton, SIGNAL( toggled( bool ) ), this, SLOT( updateWidget() ) );
+  connect( d->SimilarityRadioButton, SIGNAL( toggled( bool ) ), this, SLOT( updateWidget() ) );
+  connect( d->FromMarkupsWidget, SIGNAL( markupsFiducialNodeModified() ), this, SLOT( updateWidget() ) );
+  connect( d->ToMarkupsWidget, SIGNAL( markupsFiducialNodeModified() ), this, SLOT( updateWidget() ) );
+
+  this->updateWidget();
+}

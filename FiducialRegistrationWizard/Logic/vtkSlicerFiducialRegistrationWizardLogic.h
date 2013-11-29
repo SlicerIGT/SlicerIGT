@@ -38,6 +38,8 @@
 #include <vtkMRMLMarkupsFiducialNode.h>
 #include <vtkLandmarkTransform.h>
 #include <vtkPoints.h>
+#include "vtkSmartPointer.h"
+#include "vtkMRMLFiducialRegistrationWizardNode.h"
 
 class vtkMRMLMarkupsFiducialNode;
 class vtkMRMLLinearTransformNode;
@@ -63,6 +65,8 @@ public:
   
   void AddFiducial( vtkMRMLLinearTransformNode* probeTransformNode );
   std::string CalculateTransform( vtkMRMLMarkupsFiducialNode* fromFiducials, vtkMRMLMarkupsFiducialNode* toFiducials, vtkMRMLLinearTransformNode* outputTransform, std::string transformType );
+
+  vtkMRMLNode* GetFiducialRegistrationWizardNode();
 
   vtkSlicerMarkupsLogic* MarkupsLogic;
   

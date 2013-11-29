@@ -91,7 +91,14 @@ void vtkSlicerFiducialRegistrationWizardLogic::SetMRMLSceneInternal(vtkMRMLScene
 
 void vtkSlicerFiducialRegistrationWizardLogic::RegisterNodes()
 {
-  assert(this->GetMRMLScene() != 0);
+  if( ! this->GetMRMLScene() )
+  {
+    return;
+  }
+
+  vtkMRMLFiducialRegistrationWizardNode* frwNode = vtkMRMLFiducialRegistrationWizardNode::New();
+  this->GetMRMLScene()->RegisterNodeClass( frwNode );
+  frwNode->Delete();
 }
 
 
@@ -295,4 +302,25 @@ bool vtkSlicerFiducialRegistrationWizardLogic
   }
 
   return false;
+}
+
+
+// Node update methods ----------------------------------------------------------
+
+vtkMRMLNode* vtkSlicerFiducialRegistrationWizardLogic
+::GetFiducialRegistrationWizardNode()
+{
+  vtkSmartPointer< vtkMRMLNode > fiducialRegistrationWizardNode;
+  fiducialRegistrationWizardNode = this->GetMRMLScene()->GetSingletonNode( "FiducialRegistrationWizard", "vtkMRMLFiducialRegistrationWizardNode" );
+
+  // Add a new node to the scene if one doesn't already exist
+  if ( fiducialRegistrationWizardNode == NULL )
+  {
+    fiducialRegistrationWizardNode.TakeReference( this->GetMRMLScene()->CreateNodeByClass( "vtkMRMLFiducialRegistrationWizardNode" ) );
+    fiducialRegistrationWizardNode->SetSingletonTag( "FiducialRegistrationWizard" );
+    fiducialRegistrationWizardNode->SetScene( this->GetMRMLScene() );
+    this->GetMRMLScene()->AddNode( fiducialRegistrationWizardNode );
+  }
+
+  return fiducialRegistrationWizardNode;
 }
