@@ -186,7 +186,7 @@ void qSlicerPathExplorerMarkupsTableWidget
     }
 
   this->qvtkReconnect(this->mrmlScene(), 
-		      newScene, vtkMRMLScene::EndCloseEvent,
+		      newScene, vtkMRMLScene::StartCloseEvent,
 		      this, SLOT(onMRMLSceneClosed()));
 }
 

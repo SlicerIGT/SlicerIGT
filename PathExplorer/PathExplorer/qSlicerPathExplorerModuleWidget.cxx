@@ -170,12 +170,10 @@ void qSlicerPathExplorerModuleWidget::onEntryNodeActivated(vtkMRMLNode* node)
 		 d->EntryWidget, SLOT(setSelectedMarkup(vtkMRMLMarkupsFiducialNode*,int)));      
       }
 
-
     // Set new markup node
     d->EntryWidget->setAndObserveMarkupFiducialNode(markupNode);
     d->EntryWidget->setColor(0.3, 0.4, 0.7);
     d->TrajectoryWidget->setEntryMarkupsFiducialNode(markupNode);
-
     
     // Connect signals
     connect(d->EntryWidget, SIGNAL(addButtonToggled(bool)),
@@ -223,12 +221,10 @@ void qSlicerPathExplorerModuleWidget::onTargetNodeActivated(vtkMRMLNode* node)
 		 d->TargetWidget, SLOT(setSelectedMarkup(vtkMRMLMarkupsFiducialNode*,int)));      
       }
 
-
     // Set new markup node
     d->TargetWidget->setAndObserveMarkupFiducialNode(markupNode);
     d->TargetWidget->setColor(0.2, 0.8, 0.1);
     d->TrajectoryWidget->setTargetMarkupsFiducialNode(markupNode);
-
     
     // Connect signals
     connect(d->TargetWidget, SIGNAL(addButtonToggled(bool)),
