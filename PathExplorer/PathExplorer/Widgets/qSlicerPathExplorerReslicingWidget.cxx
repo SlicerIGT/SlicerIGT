@@ -280,7 +280,7 @@ qSlicerPathExplorerReslicingWidget
                 << "255)); width:100%; border:1px solid black;} ";
 
   d->ResliceButton->setAutoFillBackground(true);
-  d->ResliceButton->setStyleSheet(buttonBgColor.str().c_str());
+  d->ResliceButton->setStyleSheet(QString::fromStdString(buttonBgColor.str()));
 
   connect(d->ResliceButton, SIGNAL(toggled(bool)),
           this, SLOT(onResliceToggled(bool)));

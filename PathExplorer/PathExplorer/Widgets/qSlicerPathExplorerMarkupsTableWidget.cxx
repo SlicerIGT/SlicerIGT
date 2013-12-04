@@ -617,7 +617,7 @@ void qSlicerPathExplorerMarkupsTableWidget
   tableWidgetBackgroundColor << "QTableWidget { "
 			     << "selection-background-color: rgba("
 			     << r*255 << "," << g*255 << "," << b*255 << "," << 200 << "); }";
-  d->TableWidget->setStyleSheet(tableWidgetBackgroundColor.str().c_str());
+  d->TableWidget->setStyleSheet(QString::fromStdString(tableWidgetBackgroundColor.str()));
 
   // Markups color
   vtkMRMLMarkupsDisplayNode* displayNode =
