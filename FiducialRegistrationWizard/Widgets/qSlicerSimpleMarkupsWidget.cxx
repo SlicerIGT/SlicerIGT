@@ -103,14 +103,11 @@ void qSlicerSimpleMarkupsWidget
   connect( d->MarkupsFiducialNodeComboBox, SIGNAL( nodeAddedByUser( vtkMRMLNode* ) ), this, SLOT( onMarkupsFiducialNodeAdded( vtkMRMLNode* ) ) );
 
   // Use the pressed signal (otherwise we can unpress buttons without clicking them)
-  connect( d->ActiveButton, SIGNAL( toggled( bool ) ), this, SLOT( SetCurrentActive() ) );
+  connect( d->ActiveButton, SIGNAL( toggled( bool ) ), this, SLOT( onMarkupsFiducialNodeChanged() ) );
 
   d->MarkupsFiducialTableWidget->setContextMenuPolicy( Qt::CustomContextMenu );
   connect( d->MarkupsFiducialTableWidget, SIGNAL( customContextMenuRequested(const QPoint&) ), this, SLOT( onMarkupsFiducialTableContextMenu(const QPoint&) ) );
   connect( d->MarkupsFiducialTableWidget, SIGNAL( cellChanged( int, int ) ), this, SLOT( onMarkupsFiducialEdited( int, int ) ) );
-
-  // Connect to the markups mrml events
-  this->qvtkConnect( this->GetCurrentNode(), vtkCommand::ModifiedEvent, this, SLOT( onMarkupsFiducialNodeModified() ) );
 
   this->updateWidget();  
 }
@@ -137,18 +134,12 @@ void qSlicerSimpleMarkupsWidget
   Q_D(qSlicerSimpleMarkupsWidget);
 
   vtkMRMLMarkupsNode* currentMarkupsNode = vtkMRMLMarkupsNode::SafeDownCast( currentNode );
+  d->MarkupsFiducialNodeComboBox->blockSignals( true ); // Block signals so the active node isn't changed during setup
   d->MarkupsFiducialNodeComboBox->setCurrentNode( currentMarkupsNode );
+  d->MarkupsFiducialNodeComboBox->blockSignals( false );
+  this->updateWidget(); // Must call this to update widget even if the node hasn't changed - this will cause the active button and table to update
 }
 
-
-void qSlicerSimpleMarkupsWidget
-::onMarkupsFiducialNodeModified()
-{
-  Q_D(qSlicerSimpleMarkupsWidget);
-
-  emit markupsFiducialNodeModified();
-  this->updateWidget();
-}
 
 
 void qSlicerSimpleMarkupsWidget
@@ -158,19 +149,13 @@ void qSlicerSimpleMarkupsWidget
 
   vtkMRMLMarkupsNode* currentMarkupsNode = vtkMRMLMarkupsNode::SafeDownCast( d->MarkupsFiducialNodeComboBox->currentNode() );
 
-  if ( currentMarkupsNode == NULL )
+  if ( currentMarkupsNode != NULL )
   {
-    this->updateWidget(); // Have to update the widget anyway
-    return;
+    this->MarkupsLogic->SetActiveListID( currentMarkupsNode ); // If there are other widgets, they are responsible for updating themselves
   }
 
-  this->SetCurrentActive();
-
   // Disconnect and reconnect to new node
-  emit markupsFiducialNodeModified();
-  this->qvtkDisconnectAll();
-  this->qvtkConnect( this->GetCurrentNode(), vtkCommand::ModifiedEvent, this, SLOT( onMarkupsFiducialNodeModified() ) );
-
+  emit markupsFiducialNodeChanged();
   this->updateWidget();
 }
 
@@ -183,31 +168,6 @@ void qSlicerSimpleMarkupsWidget
   vtkMRMLMarkupsFiducialNode* newMarkupsFiducialNode = vtkMRMLMarkupsFiducialNode::SafeDownCast( newNode );
   this->MarkupsLogic->AddNewDisplayNodeForMarkupsNode( newMarkupsFiducialNode ); // Make sure there is an associated display node
   this->SetCurrentNode( newMarkupsFiducialNode ); // Make sure onMarkupsFiducialNodeChanged is called (will update widget)
-}
-
-
-void qSlicerSimpleMarkupsWidget
-::SetCurrentActive()
-{
-  Q_D(qSlicerSimpleMarkupsWidget);
-
-  vtkMRMLMarkupsNode* currentMarkupsNode = vtkMRMLMarkupsNode::SafeDownCast( d->MarkupsFiducialNodeComboBox->currentNode() );
-
-  if ( currentMarkupsNode == NULL )
-  {
-    return;
-  }
-
-  this->MarkupsLogic->SetActiveListID( currentMarkupsNode );
-
-  // Modify all markups fiducial nodes to force the other markups widgets to change the state of their active button
-  vtkCollection* markupsNodeCollection = this->mrmlScene()->GetNodesByClass( "vtkMRMLMarkupsFiducialNode" );
-  for ( int i = 0; i < markupsNodeCollection->GetNumberOfItems(); i++ )
-  {
-    markupsNodeCollection->GetItemAsObject( i )->Modified();
-  }
-
-  this->updateWidget();
 }
 
 
@@ -242,7 +202,8 @@ void qSlicerSimpleMarkupsWidget
   // Only do this for non-null node
   if ( selectedAction == activateAction )
   {
-    this->SetCurrentActive();
+    this->MarkupsLogic->SetActiveListID( currentNode ); // If there are other widgets, they are responsible for updating themselves
+    emit markupsFiducialNodeChanged();
   }
 
   if ( selectedAction == deleteAction )

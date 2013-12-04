@@ -55,10 +55,8 @@ public:
 
 protected slots:
 
-  void onMarkupsFiducialNodeModified();
   void onMarkupsFiducialNodeChanged();
   void onMarkupsFiducialNodeAdded( vtkMRMLNode* );
-  void SetCurrentActive();
   void onMarkupsFiducialTableContextMenu(const QPoint& position);
 
   void onMarkupsFiducialEdited( int row, int column );
@@ -67,7 +65,7 @@ protected slots:
 
 signals:
 
-  void markupsFiducialNodeModified();
+  void markupsFiducialNodeChanged();
 
 protected:
   QScopedPointer<qSlicerSimpleMarkupsWidgetPrivate> d_ptr;

@@ -58,13 +58,28 @@ protected:
  
   
 public:
+  // Use default setters and getters - vtk set macro will cause modified event
+  void SetProbeTransformID( std::string newProbeTransformID );
+  void SetFromFiducialListID( std::string newFromFiducialListID );
+  void SetToFiducialListID( std::string newToFiducialListID );
+  void SetActiveFiducialListID( std::string newActiveFiducialListID );
+  void SetOutputTransformID( std::string newOutputTransformID );
+  void SetRegistrationMode( std::string newRegistrationMode );
 
-  // Since the setters and getters will only set and get for now, the attributes may as well be public
-  std::string ProbeTransformID;
-  std::string FromFiducialListID;
-  std::string ToFiducialListID;
-  std::string ActiveFiducialListID;
-  std::string OutputTransformID;
+  std::string GetProbeTransformID();
+  std::string GetFromFiducialListID();
+  std::string GetToFiducialListID();
+  std::string GetActiveFiducialListID();
+  std::string GetOutputTransformID();
+  std::string GetRegistrationMode();
+
+  std::string GetNodeReferenceIDString( std::string referenceRole );
+
+  void ObserveAllReferenceNodes();
+
+  void ProcessMRMLEvents( vtkObject *caller, unsigned long event, void *callData );
+
+private:
   std::string RegistrationMode;
 
 };  

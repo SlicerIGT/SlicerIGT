@@ -48,7 +48,6 @@ protected slots:
   void UpdateFromMRMLNode();
 
   void onRecordButtonClicked();
-  void updateWidget();
 
 protected:
   QScopedPointer<qSlicerFiducialRegistrationWizardModuleWidgetPrivate> d_ptr;
