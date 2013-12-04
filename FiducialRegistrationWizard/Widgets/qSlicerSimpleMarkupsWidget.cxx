@@ -134,7 +134,7 @@ void qSlicerSimpleMarkupsWidget
   Q_D(qSlicerSimpleMarkupsWidget);
 
   vtkMRMLMarkupsNode* currentMarkupsNode = vtkMRMLMarkupsNode::SafeDownCast( currentNode );
-  d->MarkupsFiducialNodeComboBox->blockSignals( true ); // Block signals so the active node isn't changed during setup
+  d->MarkupsFiducialNodeComboBox->blockSignals( true );
   d->MarkupsFiducialNodeComboBox->setCurrentNode( currentMarkupsNode );
   d->MarkupsFiducialNodeComboBox->blockSignals( false );
   this->updateWidget(); // Must call this to update widget even if the node hasn't changed - this will cause the active button and table to update

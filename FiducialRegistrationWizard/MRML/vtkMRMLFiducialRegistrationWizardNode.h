@@ -58,13 +58,21 @@ protected:
  
   
 public:
+  // Enumerate all the possible modified states
+  enum ModifyType
+  {
+    NeverModify,
+    DefaultModify,
+    AlwaysModify
+  };
+
   // Use default setters and getters - vtk set macro will cause modified event
-  void SetProbeTransformID( std::string newProbeTransformID );
-  void SetFromFiducialListID( std::string newFromFiducialListID );
-  void SetToFiducialListID( std::string newToFiducialListID );
-  void SetActiveFiducialListID( std::string newActiveFiducialListID );
-  void SetOutputTransformID( std::string newOutputTransformID );
-  void SetRegistrationMode( std::string newRegistrationMode );
+  void SetProbeTransformID( std::string newProbeTransformID, int modifyType = DefaultModify );
+  void SetFromFiducialListID( std::string newFromFiducialListID, int modifyType = DefaultModify );
+  void SetToFiducialListID( std::string newToFiducialListID, int modifyType = DefaultModify );
+  void SetActiveFiducialListID( std::string newActiveFiducialListID, int modifyType = DefaultModify );
+  void SetOutputTransformID( std::string newOutputTransformID, int modifyType = DefaultModify );
+  void SetRegistrationMode( std::string newRegistrationMode, int modifyType = DefaultModify );
 
   std::string GetProbeTransformID();
   std::string GetFromFiducialListID();

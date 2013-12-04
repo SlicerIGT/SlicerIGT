@@ -146,49 +146,49 @@ void qSlicerFiducialRegistrationWizardModuleWidget
 
   if ( d->ProbeTransformComboBox->currentNode() == NULL )
   {
-    fiducialRegistrationWizardNode->SetProbeTransformID( "" );
+    fiducialRegistrationWizardNode->SetProbeTransformID( "", vtkMRMLFiducialRegistrationWizardNode::NeverModify );
   }
   else
   {
-    fiducialRegistrationWizardNode->SetProbeTransformID( d->ProbeTransformComboBox->currentNode()->GetID() );
+    fiducialRegistrationWizardNode->SetProbeTransformID( d->ProbeTransformComboBox->currentNode()->GetID(), vtkMRMLFiducialRegistrationWizardNode::NeverModify );
   }
 
   if ( d->OutputTransformComboBox->currentNode() == NULL )
   {
-    fiducialRegistrationWizardNode->SetOutputTransformID( "" );
+    fiducialRegistrationWizardNode->SetOutputTransformID( "", vtkMRMLFiducialRegistrationWizardNode::NeverModify );
   }
   else
   {
-    fiducialRegistrationWizardNode->SetOutputTransformID( d->OutputTransformComboBox->currentNode()->GetID() );
+    fiducialRegistrationWizardNode->SetOutputTransformID( d->OutputTransformComboBox->currentNode()->GetID(), vtkMRMLFiducialRegistrationWizardNode::NeverModify );
   }
 
   if ( d->FromMarkupsWidget->GetCurrentNode() == NULL )
   {
-    fiducialRegistrationWizardNode->SetFromFiducialListID( "" );
+    fiducialRegistrationWizardNode->SetFromFiducialListID( "", vtkMRMLFiducialRegistrationWizardNode::NeverModify );
   }
   else
   {
-    fiducialRegistrationWizardNode->SetFromFiducialListID( d->FromMarkupsWidget->GetCurrentNode()->GetID() );
+    fiducialRegistrationWizardNode->SetFromFiducialListID( d->FromMarkupsWidget->GetCurrentNode()->GetID(), vtkMRMLFiducialRegistrationWizardNode::NeverModify );
   }
 
   if ( d->ToMarkupsWidget->GetCurrentNode() == NULL )
   {
-    fiducialRegistrationWizardNode->SetToFiducialListID( "" );
+    fiducialRegistrationWizardNode->SetToFiducialListID( "", vtkMRMLFiducialRegistrationWizardNode::NeverModify );
   }
   else
   {
-    fiducialRegistrationWizardNode->SetToFiducialListID( d->ToMarkupsWidget->GetCurrentNode()->GetID() );
+    fiducialRegistrationWizardNode->SetToFiducialListID( d->ToMarkupsWidget->GetCurrentNode()->GetID(), vtkMRMLFiducialRegistrationWizardNode::NeverModify );
   }
 
-  fiducialRegistrationWizardNode->SetActiveFiducialListID( d->logic()->MarkupsLogic->GetActiveListID() );
+  fiducialRegistrationWizardNode->SetActiveFiducialListID( d->logic()->MarkupsLogic->GetActiveListID(), vtkMRMLFiducialRegistrationWizardNode::NeverModify );
 
   if ( d->SimilarityRadioButton->isChecked() )
   {
-    fiducialRegistrationWizardNode->SetRegistrationMode( "Similarity" );
+    fiducialRegistrationWizardNode->SetRegistrationMode( "Similarity", vtkMRMLFiducialRegistrationWizardNode::NeverModify );
   }
   if ( d->RigidRadioButton->isChecked() )
   {
-    fiducialRegistrationWizardNode->SetRegistrationMode( "Rigid" );
+    fiducialRegistrationWizardNode->SetRegistrationMode( "Rigid", vtkMRMLFiducialRegistrationWizardNode::NeverModify );
   }
 
   this->qvtkBlockAll( false );
