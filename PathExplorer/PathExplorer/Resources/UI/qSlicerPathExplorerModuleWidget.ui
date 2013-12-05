@@ -70,7 +70,7 @@
          </stringlist>
         </property>
         <property name="baseName">
-         <string>PathExplorerEntryList</string>
+         <string>Entry</string>
         </property>
        </widget>
       </item>
@@ -82,7 +82,7 @@
          </stringlist>
         </property>
         <property name="baseName">
-         <string>PathExplorerTargetList</string>
+         <string>Target</string>
         </property>
        </widget>
       </item>
@@ -94,7 +94,7 @@
          </stringlist>
         </property>
         <property name="baseName">
-         <string>PathExplorerTrajectoryList</string>
+         <string>Traj</string>
         </property>
        </widget>
       </item>
