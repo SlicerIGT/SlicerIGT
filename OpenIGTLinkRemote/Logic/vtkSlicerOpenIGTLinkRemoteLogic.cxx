@@ -1,12 +1,14 @@
 #include "vtkIGTLToMRMLAnnotationText.h"
 #include "vtkMRMLAnnotationTextNode.h"
 #include "vtkMRMLIGTLConnectorNode.h"
+#include "vtkMRMLScene.h"
 #include "vtkSlicerOpenIGTLinkIFLogic.h"
 #include "vtkSlicerOpenIGTLinkRemoteLogic.h"
 #include <cassert>
 #include <sstream>
 #include <string>
 #include <vtkNew.h>
+#include <vtkObjectFactory.h>
 
 //----------------------------------------------------------------------------
 
