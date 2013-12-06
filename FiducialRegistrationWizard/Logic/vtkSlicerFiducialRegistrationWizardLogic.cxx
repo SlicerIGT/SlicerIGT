@@ -21,6 +21,7 @@
 // MRML includes
 #include "vtkMRMLLinearTransformNode.h"
 #include "vtkMRMLMarkupsFiducialNode.h"
+#include "vtkMRMLScene.h"
 
 // VTK includes
 #include <vtkMatrix4x4.h>
@@ -30,6 +31,7 @@
 #include <vtkDoubleArray.h>
 #include <vtkTable.h>
 #include <vtkPCAStatistics.h>
+#include <vtkObjectFactory.h>
 
 // STD includes
 #include <cassert>
