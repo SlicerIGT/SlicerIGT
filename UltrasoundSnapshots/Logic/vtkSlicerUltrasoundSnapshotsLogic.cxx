@@ -7,6 +7,7 @@
 #include "vtkMRMLModelNode.h"
 #include "vtkMRMLScalarVolumeDisplayNode.h"
 #include "vtkMRMLTransformNode.h"
+#include "vtkMRMLScene.h"
 
 // VTK includes
 #include <vtkCollection.h>
@@ -17,6 +18,7 @@
 #include <vtkSmartPointer.h>
 #include <vtkTransform.h>
 #include <vtkImageMapToWindowLevelColors.h>
+#include <vtkObjectFactory.h>
 
 // STD includes
 #include <cassert>
