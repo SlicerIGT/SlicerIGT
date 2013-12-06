@@ -20,12 +20,14 @@
 
 // MRML includes
 #include <vtkMRMLLinearTransformNode.h>
+#include "vtkMRMLScene.h"
 
 // VTK includes
 #include <vtkNew.h>
 #include <vtkSmartPointer.h>
 #include <vtkCommand.h>
 #include <vtkMatrix4x4.h>
+#include <vtkObjectFactory.h>
 
 // STD includes
 #include <cassert>
