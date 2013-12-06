@@ -23,6 +23,7 @@
 #include "vtkMRMLScalarVolumeNode.h"
 #include "vtkMRMLSliceNode.h"
 #include "vtkMRMLAnnotationRulerNode.h"
+#include "vtkMRMLScene.h"
 
 // VTK includes
 #include <vtkCollection.h>
@@ -32,6 +33,7 @@
 #include <vtkMatrix4x4.h>
 #include <vtkNew.h>
 #include <vtkTransform.h>
+#include <vtkObjectFactory.h>
 
 // STD includes
 #include <cassert>
