@@ -34,6 +34,7 @@
 
 //----------------------------------------------------------------------------
 std::string vtkMRMLTransformFusionNode::OutputTransformReferenceRole = std::string("outputTransform");
+std::string vtkMRMLTransformFusionNode::InputTransformsReferenceRole = std::string("inputTransforms");
 
 //----------------------------------------------------------------------------
 vtkMRMLNodeNewMacro(vtkMRMLTransformFusionNode);
@@ -42,14 +43,12 @@ vtkMRMLNodeNewMacro(vtkMRMLTransformFusionNode);
 vtkMRMLTransformFusionNode::vtkMRMLTransformFusionNode()
 {
   //Parameters
-  //this->InputTransforms;
   this->UpdatesPerSecond = 60;
 }
 
 //----------------------------------------------------------------------------
 vtkMRMLTransformFusionNode::~vtkMRMLTransformFusionNode()
 {
-  //delete[] this->InputTransformIDs;
 }
 
 //----------------------------------------------------------------------------
@@ -64,14 +63,6 @@ void vtkMRMLTransformFusionNode::ReadXMLAttributes(const char** atts)
     attName = *(atts++);
     attValue = *(atts++);
     
-    /*
-    if (!strcmp(attName,"InputTransformIDs")){
-      std::stringstream ss;
-      ss << attValue;
-      ss >> this->InputTransformIDs;
-      continue;
-    }
-    */
     if (!strcmp(attName,"UpdatesPerSecond")){
       std::stringstream ss;
       ss << attValue;
@@ -89,7 +80,6 @@ void vtkMRMLTransformFusionNode::WriteXML(ostream& of, int nIndent)
   Superclass::WriteXML(of, nIndent);
   vtkIndent indent(nIndent);
   
-  //of << indent << " InputTransformIDs=\""<< this->InputTransformIDs << "\"";
   of << indent << " UpdatesPerSecond=\""<< this->UpdatesPerSecond << "\"";    
 }
 
@@ -100,7 +90,6 @@ void vtkMRMLTransformFusionNode::Copy(vtkMRMLNode *anode)
   vtkMRMLTransformFusionNode *node = vtkMRMLTransformFusionNode::SafeDownCast(anode);
   this->DisableModifiedEventOn();
   
-  //this->InputTransformIDs = node->InputTransformIDs;
   this->UpdatesPerSecond = node->UpdatesPerSecond;
 
   this->DisableModifiedEventOff();
@@ -108,46 +97,45 @@ void vtkMRMLTransformFusionNode::Copy(vtkMRMLNode *anode)
 }
 
 //----------------------------------------------------------------------------
-vtkMRMLNode* vtkMRMLTransformFusionNode::GetOutputTransformNode()
+vtkMRMLLinearTransformNode* vtkMRMLTransformFusionNode::GetOutputTransformNode()
 {
-  return this->GetNodeReference(vtkMRMLTransformFusionNode::OutputTransformReferenceRole.c_str());
+  return vtkMRMLLinearTransformNode::SafeDownCast(this->GetNodeReference(vtkMRMLTransformFusionNode::OutputTransformReferenceRole.c_str()));
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLTransformFusionNode::SetAndObserveOutputTransformNode(vtkMRMLNode* node)
+void vtkMRMLTransformFusionNode::SetAndObserveOutputTransformNode(vtkMRMLLinearTransformNode* node)
 {
   this->SetNthNodeReferenceID(vtkMRMLTransformFusionNode::OutputTransformReferenceRole.c_str(),0,node->GetID());
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLTransformFusionNode::AddInputTransform(vtkMRMLLinearTransformNode* inputTransform)
+vtkMRMLLinearTransformNode* vtkMRMLTransformFusionNode::GetInputTransformNode(int n)
 {
-  this->InputTransforms.push_back(inputTransform);
+  return vtkMRMLLinearTransformNode::SafeDownCast(this->GetNthNodeReference(vtkMRMLTransformFusionNode::InputTransformsReferenceRole.c_str(), n));
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLTransformFusionNode::RemoveInputTransform(int index)
+void vtkMRMLTransformFusionNode::AddAndObserveInputTransformNode(vtkMRMLLinearTransformNode* node)
 {
-  this->InputTransforms.erase(this->InputTransforms.begin()+index);
+  this->AddNodeReferenceID(vtkMRMLTransformFusionNode::InputTransformsReferenceRole.c_str(),node->GetID());
 }
 
 //----------------------------------------------------------------------------
-std::vector<vtkMRMLLinearTransformNode*> vtkMRMLTransformFusionNode::GetInputTransforms()
+void vtkMRMLTransformFusionNode::RemoveInputTransformNode(int n)
 {
-  return this->InputTransforms;
+  this->RemoveNthNodeReferenceID(vtkMRMLTransformFusionNode::InputTransformsReferenceRole.c_str(),n);
+}
+
+//----------------------------------------------------------------------------
+int vtkMRMLTransformFusionNode::GetNumberOfInputTransformNodes()
+{
+  return this->GetNumberOfNodeReferences(vtkMRMLTransformFusionNode::InputTransformsReferenceRole.c_str());
 }
 
 //----------------------------------------------------------------------------
 void vtkMRMLTransformFusionNode::PrintSelf(ostream& os, vtkIndent indent)
 {
   Superclass::PrintSelf(os,indent);
-
-  os << indent << " InputTransformIDs = ";
-  for (int i = 0;i < this->InputTransforms.size();i++)
-  {
-    os << this->InputTransforms[i]->GetID() << " ";
-  }
-  os << "\n";
 
   os << indent << " UpdatesPerSecond = "<< this->UpdatesPerSecond << "\n";   
 }

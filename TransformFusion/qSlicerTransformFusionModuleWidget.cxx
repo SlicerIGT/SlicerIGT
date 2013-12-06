@@ -33,6 +33,7 @@
 #include "vtkMRMLTransformFusionNode.h"
 
 // MRML includes
+#include <vtkMRMLScene.h>
 #include "vtkMRMLLinearTransformNode.h"
 
 //-----------------------------------------------------------------------------
@@ -86,6 +87,7 @@ void qSlicerTransformFusionModuleWidget::setMRMLScene(vtkMRMLScene* scene)
 {
   Q_D(qSlicerTransformFusionModuleWidget);
   this->Superclass::setMRMLScene(scene);
+  qvtkReconnect( d->logic(), scene, vtkMRMLScene::EndImportEvent, this, SLOT(onSceneImportedEvent()) );
   if (scene &&  d->logic()->GetTransformFusionNode() == 0)
   {
     vtkMRMLNode* node = scene->GetNthNodeByClass(0, "vtkMRMLTransformFusionNode");
@@ -99,6 +101,13 @@ void qSlicerTransformFusionModuleWidget::setMRMLScene(vtkMRMLScene* scene)
 void qSlicerTransformFusionModuleWidget::onSceneImportedEvent()
 {
   this->onEnter();
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerTransformFusionModuleWidget::onLogicModified()
+{
+  this->updateWidget();
+  this->updateInputList();
 }
 
 //-----------------------------------------------------------------------------
@@ -138,6 +147,7 @@ void qSlicerTransformFusionModuleWidget::onEnter()
   }
   
   this->updateWidget();
+  this->updateInputList();
 }
 
 //-----------------------------------------------------------------------------
@@ -148,7 +158,9 @@ void qSlicerTransformFusionModuleWidget::setTransformFusionParametersNode(vtkMRM
   vtkMRMLTransformFusionNode* pNode = vtkMRMLTransformFusionNode::SafeDownCast(node);
   qvtkReconnect( d->logic()->GetTransformFusionNode(), pNode, vtkCommand::ModifiedEvent, this, SLOT(update()));
   d->logic()->SetAndObserveTransformFusionNode(pNode);
+
   this->updateWidget();
+  this->updateInputList();
 }
 
 //-----------------------------------------------------------------------------
@@ -185,7 +197,7 @@ void qSlicerTransformFusionModuleWidget::updateButtons()
     return;
   }
 
-  if (pNode->GetInputTransforms().size() >= 2 && pNode->GetOutputTransformNode() != NULL)
+  if (pNode->GetNumberOfInputTransformNodes() >= 2 && pNode->GetOutputTransformNode() != NULL)
   {
     d->updateButton->setEnabled(true);
     if (!currentlyUpdating)
@@ -198,7 +210,25 @@ void qSlicerTransformFusionModuleWidget::updateButtons()
     d->updateButton->setEnabled(false);
     d->startUpdateButton->setEnabled(false);
   }
+}
 
+//-----------------------------------------------------------------------------
+void qSlicerTransformFusionModuleWidget::updateInputList()
+{
+  Q_D(qSlicerTransformFusionModuleWidget);
+  vtkMRMLTransformFusionNode* pNode = d->logic()->GetTransformFusionNode();
+  if (!pNode || !this->mrmlScene())
+  {
+    std::cerr << "Could not find Transform Fusion node" << std::endl;
+    return;
+  }
+
+  d->inputTransformList->clear();
+
+  for (int i = 0; i < pNode->GetNumberOfInputTransformNodes(); i++)
+  {
+      new QListWidgetItem(tr(pNode->GetInputTransformNode(i)->GetName()), d->inputTransformList);
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -206,15 +236,14 @@ void qSlicerTransformFusionModuleWidget::onSingleUpdate()
 {
   Q_D(qSlicerTransformFusionModuleWidget);
   vtkMRMLTransformFusionNode* pNode = d->logic()->GetTransformFusionNode();
-  if (!pNode || !this->mrmlScene() || pNode->GetOutputTransformNode() == NULL || pNode->GetInputTransforms().size() < 2)
+  if (!pNode || !this->mrmlScene() || pNode->GetOutputTransformNode() == NULL || pNode->GetNumberOfInputTransformNodes() < 2)
   {
     std::cerr << "Error: Failed to update transform" << std::endl;
     return;
   }
 
   /*
-    SIMPLE_AVERAGE = 0
-    LERP_AND_SLERP = 1
+    MODE_QUATERNION_AVERAGE = 0
   */
   d->logic()->fuseInputTransforms(d->techniqueBox->currentIndex());
 }
@@ -238,7 +267,7 @@ void qSlicerTransformFusionModuleWidget::onStartAutoUpdate()
 {
   Q_D(qSlicerTransformFusionModuleWidget);
   vtkMRMLTransformFusionNode* pNode = d->logic()->GetTransformFusionNode();
-  if (!pNode || !this->mrmlScene() || pNode->GetOutputTransformNode() == NULL || pNode->GetInputTransforms().size() < 2)
+  if (!pNode || !this->mrmlScene() || pNode->GetOutputTransformNode() == NULL || pNode->GetNumberOfInputTransformNodes() < 2)
   {
     std::cerr << "Error: Failed to start auto-update" << std::endl;
     return;
@@ -267,7 +296,15 @@ void qSlicerTransformFusionModuleWidget::onOutputTransformNodeSelected(vtkMRMLNo
     std::cerr << "Error: Unable to set output transform node" << std::endl;
     return;
   }
-  pNode->SetAndObserveOutputTransformNode(node);
+
+  vtkMRMLLinearTransformNode* outputTransform = vtkMRMLLinearTransformNode::SafeDownCast(node);
+  if (outputTransform == NULL)
+  {
+    std::cerr << "Error: Output is not a linear transform node" << std::endl;
+    return;    
+  }
+
+  pNode->SetAndObserveOutputTransformNode(outputTransform);
   this->updateButtons();
 }
 
@@ -290,8 +327,8 @@ void qSlicerTransformFusionModuleWidget::onAddTransform()
     return;    
   }
 
-  pNode->AddInputTransform(inputTransform);
-  new QListWidgetItem(tr(inputTransform->GetName()), d->inputTransformList);
+  pNode->AddAndObserveInputTransformNode(inputTransform);
+  this->updateInputList();
   this->updateButtons();
 }
 
@@ -307,9 +344,14 @@ void qSlicerTransformFusionModuleWidget::onRemoveTransform()
     return;
   }
 
-  pNode->RemoveInputTransform(d->inputTransformList->currentRow());
-  delete d->inputTransformList->currentItem();
-  this->updateButtons();
+  int selectedInputListIndex = d->inputTransformList->currentRow();
+
+  if (selectedInputListIndex >= 0 && selectedInputListIndex <  pNode->GetNumberOfInputTransformNodes())
+  {
+    pNode->RemoveInputTransformNode(selectedInputListIndex);
+    this->updateInputList();
+    this->updateButtons();
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -332,5 +374,7 @@ void qSlicerTransformFusionModuleWidget::setup()
   connect(d->startUpdateButton, SIGNAL(clicked()), this, SLOT(onStartAutoUpdate()));
   connect(d->stopUpdateButton, SIGNAL(clicked()), this, SLOT(onStopAutoUpdate()));
   connect(updateTimer, SIGNAL(timeout()), this, SLOT(onSingleUpdate()));
+
+  qvtkConnect( d->logic(), vtkCommand::ModifiedEvent, this, SLOT( onLogicModified() ) );
 }
 
