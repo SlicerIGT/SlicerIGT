@@ -21,6 +21,7 @@
 // MRML includes
 #include "vtkMRMLModelNode.h"
 #include "vtkMRMLModelDisplayNode.h"
+#include "vtkMRMLScene.h"
 
 // VTK includes
 #include "vtkAppendPolyData.h"
@@ -35,6 +36,7 @@
 #include "vtkTransform.h"
 #include "vtkTransformPolyDataFilter.h"
 #include <vtkNew.h>
+#include <vtkObjectFactory.h>
 
 // STD includes
 #include <cassert>
