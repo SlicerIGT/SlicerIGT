@@ -40,6 +40,7 @@ public:
   void PrintSelf(ostream& os, vtkIndent indent);
 
   static std::string OutputTransformReferenceRole;
+  static std::string InputTransformsReferenceRole;
 
   virtual vtkMRMLNode* CreateNodeInstance();
   virtual void ReadXMLAttributes( const char** atts);
@@ -48,12 +49,14 @@ public:
   virtual const char* GetNodeTagName() {return "TransformFusionParameters";};
 
 public:
-  vtkMRMLNode* GetOutputTransformNode();
-  void SetAndObserveOutputTransformNode(vtkMRMLNode* node);
+  vtkMRMLLinearTransformNode* GetOutputTransformNode();
+  void SetAndObserveOutputTransformNode(vtkMRMLLinearTransformNode* node);
 
-  void AddInputTransform(vtkMRMLLinearTransformNode*);
-  void RemoveInputTransform(int index);
-  std::vector<vtkMRMLLinearTransformNode*> GetInputTransforms();
+  vtkMRMLLinearTransformNode* GetInputTransformNode(int n);
+  void AddAndObserveInputTransformNode(vtkMRMLLinearTransformNode* node);
+  void RemoveInputTransformNode(int n);
+  int GetNumberOfInputTransformNodes();
+
   vtkSetMacro(UpdatesPerSecond, int);
   vtkGetMacro(UpdatesPerSecond, int); 
   
@@ -66,7 +69,7 @@ protected:
 
 //Parameters
 protected:
-  std::vector<vtkMRMLLinearTransformNode*> InputTransforms;
+  //std::vector<vtkMRMLLinearTransformNode*> InputTransforms;
   int UpdatesPerSecond;
 };
 

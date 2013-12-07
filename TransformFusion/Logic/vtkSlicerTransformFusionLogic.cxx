@@ -24,12 +24,15 @@
 #include "vtkMRMLTransformFusionNode.h"
 
 // MRML includes
+#include <vtkMRMLScene.h>
 #include "vtkMRMLLinearTransformNode.h"
 
 // VTK includes
 #include <vtkNew.h>
-#include <vtkQuaternionInterpolator.h>
+#include <vtkObjectFactory.h>
 #include <vtkMatrix4x4.h>
+#include <vtkMath.h>
+//#include <vtkQuaternionInterpolator.h>
 
 // STD includes
 #include <cassert>
@@ -75,64 +78,91 @@ void vtkSlicerTransformFusionLogic::SetAndObserveTransformFusionNode(vtkMRMLTran
 }
 
 //-----------------------------------------------------------------------------
-void vtkSlicerTransformFusionLogic::fuseInputTransforms(int techniqueType) //enum techniqueTypes
+void vtkSlicerTransformFusionLogic::fuseInputTransforms(int fusionTechnique) //enum techniqueTypes
 {
-  switch (techniqueType){
-    case SIMPLE_AVERAGE:
+  switch (fusionTechnique){
+    case MODE_QUATERNION_AVERAGE:
     {
-      this->SimpleAverage();
-      break;
-    }
-    case LERP_AND_SLERP:
-    {
-      this->LerpAndSlerp();
+      this->QuaternionAverageFusion();
       break;
     }
   } 
-
 }
 
+
 //-----------------------------------------------------------------------------
-void vtkSlicerTransformFusionLogic::SimpleAverage()
+void vtkSlicerTransformFusionLogic::QuaternionAverageFusion()
 {
-  vtkMRMLLinearTransformNode* outputNode = vtkMRMLLinearTransformNode::SafeDownCast(this->TransformFusionNode->GetOutputTransformNode());
+  vtkMRMLLinearTransformNode* outputNode = this->TransformFusionNode->GetOutputTransformNode();
   if (outputNode == NULL)
   {
     return;
   }
-  std::vector<vtkMRMLLinearTransformNode*> inputTransforms = this->TransformFusionNode->GetInputTransforms();
-  vtkSmartPointer<vtkMatrix4x4> outputMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-  double value = 0;
 
-  for (int column = 0; column < 4; column++)
+  // Average quaternion
+  vtkSmartPointer<vtkMatrix4x4> outputMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+  int numberOfInputs = this->TransformFusionNode->GetNumberOfInputTransformNodes();
+  vtkMatrix4x4* matrix4x4Pointer = NULL;
+
+  float rotationMatrix[3][3] = {{0}};
+  float averageRotationMatrix[3][3] = {{0}};
+  float singleQuaternion[4] = {0};
+  float averageQuaternion[4] = {0};
+
+  for (int i = 0; i < numberOfInputs; i++)
   {
-    for (int row = 0; row < 4; row++)
+    matrix4x4Pointer = this->TransformFusionNode->GetInputTransformNode(i)->GetMatrixTransformToParent();
+
+    for (int row = 0; row < 3; row++)
     {
-      for (int i = 0; i < inputTransforms.size(); i++)
-      {
-        value += inputTransforms[i]->GetMatrixTransformToParent()->GetElement(row,column);
+      for (int column = 0; column < 3; column++)
+      { 
+        rotationMatrix[row][column] = matrix4x4Pointer->GetElement(row,column);
       }
-      value = value/inputTransforms.size();
-      outputMatrix->SetElement(row,column,value);
-      value = 0;
+    }
+
+    vtkMath::Matrix3x3ToQuaternion(rotationMatrix, singleQuaternion);
+
+    averageQuaternion[0] = averageQuaternion[0] + singleQuaternion[0];
+    averageQuaternion[1] = averageQuaternion[1] + singleQuaternion[1];
+    averageQuaternion[2] = averageQuaternion[2] + singleQuaternion[2];
+    averageQuaternion[3] = averageQuaternion[3] + singleQuaternion[3];
+  }
+
+  averageQuaternion[0] = averageQuaternion[0] / numberOfInputs;
+  averageQuaternion[1] = averageQuaternion[1] / numberOfInputs;
+  averageQuaternion[2] = averageQuaternion[2] / numberOfInputs;
+  averageQuaternion[3] = averageQuaternion[3] / numberOfInputs;
+
+  float magnitude = sqrt(averageQuaternion[0]*averageQuaternion[0] + averageQuaternion[1]*averageQuaternion[1] + averageQuaternion[2]*averageQuaternion[2] + averageQuaternion[3]*averageQuaternion[3]);
+  averageQuaternion[0] = averageQuaternion[0]/magnitude;
+  averageQuaternion[1] = averageQuaternion[1]/magnitude;
+  averageQuaternion[2] = averageQuaternion[2]/magnitude;
+  averageQuaternion[3] = averageQuaternion[3]/magnitude;
+
+  vtkMath::QuaternionToMatrix3x3(averageQuaternion,averageRotationMatrix);
+  
+  for (int row = 0; row < 3; row++)
+  {
+    for (int column = 0; column < 3; column++)
+    { 
+      outputMatrix->SetElement(row,column,averageRotationMatrix[row][column]);
     }
   }
 
-  outputNode->SetAndObserveMatrixTransformToParent(outputMatrix);
-}
 
-//-----------------------------------------------------------------------------
-void vtkSlicerTransformFusionLogic::LerpAndSlerp()
-{
-  //Not implemented yet
-  /*
-  std::vector<vtkMRMLLinearTransformNode*> inputTransforms = this->TransformFusionNode->GetInputTransforms();
-  vtkSmartPointer<vtkQuaternionInterpolator> slerper = vtkSmartPointer<vtkQuaternionInterpolator>::New();
-  vtkMatrix4x4* matrixPointer = NULL;
-
-  for (int i = 0; i < inputTransforms.size(); i++)
+  // Average linear elements
+  double value = 0;
+  for (int row = 0; row < 4; row++)
   {
-    matrixPointer = inputTransforms[i]->GetMatrixTransformToParent();
+    for (int i = 0; i < numberOfInputs; i++)
+    {
+      value += this->TransformFusionNode->GetInputTransformNode(i)->GetMatrixTransformToParent()->GetElement(row,3);
+    }
+    value = value/numberOfInputs;
+    outputMatrix->SetElement(row,3,value);
+    value = 0;
   }
-  */
+
+  outputNode->SetAndObserveMatrixTransformToParent(outputMatrix);
 }

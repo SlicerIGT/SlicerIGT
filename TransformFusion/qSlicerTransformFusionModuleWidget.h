@@ -47,9 +47,11 @@ public:
 public slots:
   virtual void setMRMLScene(vtkMRMLScene*);
   void onSceneImportedEvent();
+  void onLogicModified();
   void setTransformFusionParametersNode(vtkMRMLNode*);
   void updateWidget();
   void updateButtons();
+  void updateInputList();
 
 protected slots:
 

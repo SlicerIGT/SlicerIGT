@@ -249,12 +249,7 @@
         </property>
         <item>
          <property name="text">
-          <string>Simple Average</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Lerp and Slerp</string>
+          <string>Quaternion Average</string>
          </property>
         </item>
        </widget>

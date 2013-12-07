@@ -58,14 +58,12 @@ public:
 
   enum techniqueTypes
   {
-    SIMPLE_AVERAGE = 0,
-    LERP_AND_SLERP
+    MODE_QUATERNION_AVERAGE = 0,
   };
   
 public:
   void fuseInputTransforms(int techniqueType);
-  void SimpleAverage();
-  void LerpAndSlerp();
+  void QuaternionAverageFusion();
 
   void SetAndObserveTransformFusionNode(vtkMRMLTransformFusionNode *node);
   vtkGetObjectMacro(TransformFusionNode, vtkMRMLTransformFusionNode);
