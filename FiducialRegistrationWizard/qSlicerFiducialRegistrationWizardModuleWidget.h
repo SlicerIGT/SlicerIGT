@@ -39,17 +39,15 @@ public:
   qSlicerFiducialRegistrationWizardModuleWidget(QWidget *parent=0);
   virtual ~qSlicerFiducialRegistrationWizardModuleWidget();
 
-  unsigned long FromModifiedStatus;
-  unsigned long ToModifiedStatus;
-
 public slots:
 
 
 protected slots:
 
+  void UpdateToMRMLNode();
+  void UpdateFromMRMLNode();
+
   void onRecordButtonClicked();
-  void recalculateRegistration(); // Use this to force update the registration
-  void updateWidget();
 
 protected:
   QScopedPointer<qSlicerFiducialRegistrationWizardModuleWidgetPrivate> d_ptr;
@@ -59,6 +57,7 @@ protected:
 private:
   Q_DECLARE_PRIVATE(qSlicerFiducialRegistrationWizardModuleWidget);
   Q_DISABLE_COPY(qSlicerFiducialRegistrationWizardModuleWidget);
+
 };
 
 #endif

@@ -49,20 +49,23 @@ public:
   static qSlicerSimpleMarkupsWidget* New( vtkSlicerMarkupsLogic* newMarkupsLogic );
 
   vtkSlicerMarkupsLogic* MarkupsLogic;
-  unsigned long ModifiedStatus;
 
   vtkMRMLNode* GetCurrentNode();
+  void SetCurrentNode( vtkMRMLNode* currentNode );
 
 protected slots:
 
   void onMarkupsFiducialNodeChanged();
   void onMarkupsFiducialNodeAdded( vtkMRMLNode* );
-  void onActiveButtonClicked();
   void onMarkupsFiducialTableContextMenu(const QPoint& position);
 
   void onMarkupsFiducialEdited( int row, int column );
 
   void updateWidget();
+
+signals:
+
+  void markupsFiducialNodeChanged();
 
 protected:
   QScopedPointer<qSlicerSimpleMarkupsWidgetPrivate> d_ptr;
@@ -73,8 +76,6 @@ protected:
 private:
   Q_DECLARE_PRIVATE(qSlicerSimpleMarkupsWidget);
   Q_DISABLE_COPY(qSlicerSimpleMarkupsWidget);
-
-  bool IsUpdatingTable;
 
 };
 
