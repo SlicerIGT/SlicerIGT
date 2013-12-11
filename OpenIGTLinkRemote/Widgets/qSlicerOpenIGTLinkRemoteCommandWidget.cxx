@@ -131,15 +131,24 @@ void qSlicerOpenIGTLinkRemoteCommandWidget
   }
   
   std::string message;
-  int status = d->logic()->GetCommandReply( this->LastCommandId, message );
-  
+  std::string parameters;
+  int status = d->logic()->GetCommandReply( this->LastCommandId, message, parameters );
+
+  QString replyGroupBoxTitle="Reply received (id: "+QString::number(this->LastCommandId)+")";
+  d->replyGroupBox->setTitle(replyGroupBoxTitle);
+    
   if ( status == vtkSlicerOpenIGTLinkRemoteLogic::REPLY_WAITING )
   {
     d->ReplyTextEdit->setPlainText( "Waiting for reply..." );
   }
   else
   {
-    d->ReplyTextEdit->setPlainText( QString( message.c_str() ) );
+    std::string displayedText=message;
+    if (!parameters.empty())
+    {
+      displayedText+=" ("+parameters+")";
+    }
+    d->ReplyTextEdit->setPlainText( QString( displayedText.c_str() ) );
   }
   
   if ( status != vtkSlicerOpenIGTLinkRemoteLogic::REPLY_WAITING )

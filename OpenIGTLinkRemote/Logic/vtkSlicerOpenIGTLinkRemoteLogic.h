@@ -48,8 +48,8 @@ public:
   
   void SetIFLogic( vtkSlicerOpenIGTLinkIFLogic* ifLogic );
   
-  int ExecuteCommand( const char* connectorNodeId, std::string commandName, std::string parameters );
-  REPLY_RESULT GetCommandReply( int commandId, std::string &message );
+  int ExecuteCommand( const char* connectorNodeId, const char* commandName, const char* attributes );
+  REPLY_RESULT GetCommandReply( int commandId, std::string &message, std::string &attributes);
   void DiscardCommand( int commandId, const char* connectorNodeId );
   
   int SendCommand( std::string strCommand, const char* connectorNodeId );
