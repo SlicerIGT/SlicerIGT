@@ -9,6 +9,8 @@
 #include <string>
 #include <vtkNew.h>
 #include <vtkObjectFactory.h>
+#include <vtkXMLDataElement.h>
+#include <vtkXMLUtilities.h>
 
 //----------------------------------------------------------------------------
 
@@ -64,20 +66,23 @@ void vtkSlicerOpenIGTLinkRemoteLogic::SetIFLogic( vtkSlicerOpenIGTLinkIFLogic* i
 /**
  * @param connectorNodeId Identifies the IGTL connector node that will send this command message.
  * @param commandName Will translate to Name parameter in the Command element (root) of the command message XML text.
- * @param parameters A string in name1="value1" name2="value2" ... format. It will be placed in the Command XML element.
+ * @param attributes A string in name1="value1" name2="value2" ... format. It will be placed in the Command XML element.
  * @returns CommandId number that identifies this command and its response. Returns 0 on error.
  */
-int vtkSlicerOpenIGTLinkRemoteLogic::ExecuteCommand( const char* connectorNodeId, std::string commandName, std::string parameters )
+int vtkSlicerOpenIGTLinkRemoteLogic::ExecuteCommand( const char* connectorNodeId, const char* commandName, const char* attributes )
 {
-  std::string messageString = "<Command Name=\"" + commandName + "\" " + parameters + " />";
+  std::string messageString = std::string("<Command Name=\"") + (commandName?commandName:"") + "\" " + (attributes?attributes:"") + " />";
   return this->SendCommand( messageString, connectorNodeId );
 }
 
 /**
  * @returns status of the command reply
  */
-vtkSlicerOpenIGTLinkRemoteLogic::REPLY_RESULT vtkSlicerOpenIGTLinkRemoteLogic::GetCommandReply( int commandId, std::string &message )
+vtkSlicerOpenIGTLinkRemoteLogic::REPLY_RESULT vtkSlicerOpenIGTLinkRemoteLogic::GetCommandReply( int commandId, std::string &message, std::string &attributes)
 {
+  message.clear();
+  attributes.clear();
+
   if ( this->GetMRMLScene() == NULL )
   {
     return REPLY_FAIL;
@@ -85,28 +90,93 @@ vtkSlicerOpenIGTLinkRemoteLogic::REPLY_RESULT vtkSlicerOpenIGTLinkRemoteLogic::G
   
   std::stringstream ss;
   ss << "ACK_" << commandId;
-  vtkCollection* replyNodes = this->GetMRMLScene()->GetNodesByName( ss.str().c_str() );
+  vtkSmartPointer<vtkCollection> replyNodes = vtkSmartPointer<vtkCollection>::Take(this->GetMRMLScene()->GetNodesByName( ss.str().c_str() ));
   
+/*
+
+    // If there are some custom attributes, then return all attributes as attibuteName=attributeValue pairs
+    // (otherwise just return the Data attribute value as a simple string)
+    if (!attributes.empty())
+    {
+      message = "Data=\""+message+"\" "+attributes;
+    }
+
+
+*/
+
   int replyCount = replyNodes->GetNumberOfItems();
   if ( replyCount < 1 )
   {
-    replyNodes->Delete();
     return REPLY_WAITING;
   }
   
   vtkMRMLAnnotationTextNode* textNode = vtkMRMLAnnotationTextNode::SafeDownCast( replyNodes->GetItemAsObject( 0 ) );
   if ( textNode == NULL )
   {
-    replyNodes->Delete();
     vtkErrorMacro( "Could not cast reply node to vtkMRMLAnnotationTextNode!" );
     return REPLY_FAIL;
   }
   
   std::string reply = std::string( textNode->GetText( 0 ).c_str() );
-  REPLY_RESULT status = reply.find("SUCCESS::") != std::string::npos ? REPLY_SUCCESS : REPLY_FAIL;
-  message = reply.substr(reply.find("::")+2);
   
-  replyNodes->Delete();
+  REPLY_RESULT status = REPLY_FAIL;  
+  
+  vtkSmartPointer<vtkXMLDataElement> replyElement = vtkSmartPointer<vtkXMLDataElement>::Take( vtkXMLUtilities::ReadElementFromString(reply.c_str()) );
+  if (replyElement != NULL)
+  {
+    // Retrieve status from XML string
+    if (replyElement->GetAttribute("Status")==NULL)
+    {
+      vtkErrorMacro("OpenIGTLink command reply: missing Status attribute: "<<reply);
+    }
+    else
+    {
+      if (strcmp(replyElement->GetAttribute("Status"),"SUCCESS")==0)
+      {
+        status = REPLY_SUCCESS;
+      }
+      else if (strcmp(replyElement->GetAttribute("Status"),"FAIL")==0)
+      {
+        status = REPLY_FAIL;
+      }
+      else
+      {
+        vtkErrorMacro("OpenIGTLink command reply: invalid Status attribute value: "<<replyElement->GetAttribute("Status"));
+      }
+    }
+    // Retrieve Data element from XML string
+    if (replyElement->GetAttribute("Message")!=NULL)
+    {
+      message=replyElement->GetAttribute("Message");
+    }
+    // Retrieve other attributes from XML string    
+    for (int attrIndex=0; attrIndex<replyElement->GetNumberOfAttributes(); attrIndex++)
+    {
+      if (replyElement->GetAttributeName(attrIndex)==0)
+      {
+        continue;
+      }
+      if (strcmp(replyElement->GetAttributeName(attrIndex),"Status")==0
+        || strcmp(replyElement->GetAttributeName(attrIndex),"Message")==0)
+      {
+        // Status and Message attributes are processed separately
+        continue;
+      }
+      if (!attributes.empty())
+      {
+        attributes+=" ";
+      }
+      attributes += std::string(replyElement->GetAttributeName(attrIndex)) + "=\""
+        + (replyElement->GetAttributeValue(attrIndex)?replyElement->GetAttributeValue(attrIndex):"") +"\"";
+    }
+  }
+  else
+  {
+    // The reply is not XML
+    status = REPLY_FAIL;
+    message = reply;
+  }
+
   return status;
 }
 
@@ -128,7 +198,7 @@ void vtkSlicerOpenIGTLinkRemoteLogic::DiscardCommand( int commandId, const char*
   {
     std::stringstream ss;
     ss << "ACK_" << commandId;
-    vtkCollection* replyNodes = this->GetMRMLScene()->GetNodesByName( ss.str().c_str() );
+    vtkSmartPointer<vtkCollection> replyNodes = vtkSmartPointer<vtkCollection>::Take(this->GetMRMLScene()->GetNodesByName( ss.str().c_str() ));
     for( int i = 0; i < replyNodes->GetNumberOfItems(); ++i )
     {
       vtkMRMLAnnotationTextNode* textNode = vtkMRMLAnnotationTextNode::SafeDownCast( replyNodes->GetItemAsObject(i) );
@@ -140,7 +210,6 @@ void vtkSlicerOpenIGTLinkRemoteLogic::DiscardCommand( int commandId, const char*
       connectorNode->UnregisterIncomingMRMLNode(textNode);
       //this->GetMRMLScene()->RemoveNode(textNode); // At present this crashes Slicer as the openIGT module keeps a reference in a list and is not removed from that list with the previous function
     }
-    replyNodes->Delete();
   }
 
   {

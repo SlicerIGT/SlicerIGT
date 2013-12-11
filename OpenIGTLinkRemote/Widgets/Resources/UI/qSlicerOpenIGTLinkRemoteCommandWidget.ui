@@ -54,7 +54,7 @@
        </widget>
       </item>
       <item>
-       <widget class="QGroupBox" name="groupBox">
+       <widget class="QGroupBox" name="commandGroupBox">
         <property name="title">
          <string>Command</string>
         </property>
@@ -73,7 +73,7 @@
        </widget>
       </item>
       <item>
-       <widget class="QGroupBox" name="groupBox_2">
+       <widget class="QGroupBox" name="replyGroupBox">
         <property name="title">
          <string>Reply received</string>
         </property>

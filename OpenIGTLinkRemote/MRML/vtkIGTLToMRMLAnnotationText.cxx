@@ -51,12 +51,8 @@ vtkMRMLNode* vtkIGTLToMRMLAnnotationText
 vtkIntArray* vtkIGTLToMRMLAnnotationText
 ::GetNodeEvents()
 {
-  vtkIntArray* events;
-
-  events = vtkIntArray::New();
   // Modified has already been observed
-
-  return events;
+  return NULL;
 }
 
 
