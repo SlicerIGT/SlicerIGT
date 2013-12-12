@@ -26,6 +26,7 @@ set( SlicerIGT_Modules
   VolumeResliceDriver
   PivotCalibration
   FiducialRegistrationWizard
+  TransformFusion
 )
 
 if( SLICERIGT_ENABLE_EXPERIMENTAL_MODULES )
