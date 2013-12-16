@@ -45,7 +45,7 @@
         <bool>true</bool>
        </property>
        <property name="noneEnabled">
-        <bool>true</bool>
+        <bool>false</bool>
        </property>
        <property name="addEnabled">
         <bool>true</bool>
@@ -70,7 +70,7 @@
         </sizepolicy>
        </property>
        <property name="text">
-        <string>Active</string>
+        <string>Idle</string>
        </property>
        <property name="checkable">
         <bool>true</bool>

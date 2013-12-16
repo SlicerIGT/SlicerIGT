@@ -31,6 +31,7 @@
 #include "vtkSlicerFiducialRegistrationWizardLogic.h"
 
 #include "vtkMRMLSelectionNode.h"
+#include "vtkMRMLInteractionNode.h"
 
 #include "vtkMRMLMarkupsFiducialNode.h"
 #include "vtkSlicerMarkupsLogic.h"
@@ -58,6 +59,7 @@ public:
 
 protected slots:
 
+  void onActiveButtonClicked();
   void onMarkupsFiducialNodeChanged();
   void onMarkupsFiducialNodeAdded( vtkMRMLNode* );
   void onMarkupsFiducialTableContextMenu(const QPoint& position);
