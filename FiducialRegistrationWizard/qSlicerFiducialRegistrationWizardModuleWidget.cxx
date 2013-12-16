@@ -184,8 +184,6 @@ void qSlicerFiducialRegistrationWizardModuleWidget
     fiducialRegistrationWizardNode->SetToFiducialListID( d->ToMarkupsWidget->GetCurrentNode()->GetID(), vtkMRMLFiducialRegistrationWizardNode::NeverModify );
   }
 
-  fiducialRegistrationWizardNode->SetActiveFiducialListID( d->logic()->MarkupsLogic->GetActiveListID(), vtkMRMLFiducialRegistrationWizardNode::NeverModify );
-
   if ( d->SimilarityRadioButton->isChecked() )
   {
     fiducialRegistrationWizardNode->SetRegistrationMode( "Similarity", vtkMRMLFiducialRegistrationWizardNode::NeverModify );
@@ -227,12 +225,6 @@ void qSlicerFiducialRegistrationWizardModuleWidget
   d->OutputTransformComboBox->setCurrentNodeID( QString::fromStdString( fiducialRegistrationWizardNode->GetOutputTransformID() ) );
   d->FromMarkupsWidget->SetCurrentNode( this->mrmlScene()->GetNodeByID( fiducialRegistrationWizardNode->GetFromFiducialListID() ) );
   d->ToMarkupsWidget->SetCurrentNode( this->mrmlScene()->GetNodeByID( fiducialRegistrationWizardNode->GetToFiducialListID() ) );
-  vtkMRMLMarkupsNode* activeMarkupsNode = vtkMRMLMarkupsNode::SafeDownCast( this->mrmlScene()->GetNodeByID( fiducialRegistrationWizardNode->GetActiveFiducialListID() ) );
-  
-  if ( activeMarkupsNode != NULL )
-  {
-    d->logic()->MarkupsLogic->SetActiveListID( activeMarkupsNode );
-  }
 
   if ( fiducialRegistrationWizardNode->GetRegistrationMode().compare( "Similarity" ) == 0 )
   {

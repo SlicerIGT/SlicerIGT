@@ -30,6 +30,8 @@
 
 #include "vtkSlicerFiducialRegistrationWizardLogic.h"
 
+#include "vtkMRMLSelectionNode.h"
+
 #include "vtkMRMLMarkupsFiducialNode.h"
 #include "vtkSlicerMarkupsLogic.h"
 

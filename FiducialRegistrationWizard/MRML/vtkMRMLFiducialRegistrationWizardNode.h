@@ -70,14 +70,12 @@ public:
   void SetProbeTransformID( std::string newProbeTransformID, int modifyType = DefaultModify );
   void SetFromFiducialListID( std::string newFromFiducialListID, int modifyType = DefaultModify );
   void SetToFiducialListID( std::string newToFiducialListID, int modifyType = DefaultModify );
-  void SetActiveFiducialListID( std::string newActiveFiducialListID, int modifyType = DefaultModify );
   void SetOutputTransformID( std::string newOutputTransformID, int modifyType = DefaultModify );
   void SetRegistrationMode( std::string newRegistrationMode, int modifyType = DefaultModify );
 
   std::string GetProbeTransformID();
   std::string GetFromFiducialListID();
   std::string GetToFiducialListID();
-  std::string GetActiveFiducialListID();
   std::string GetOutputTransformID();
   std::string GetRegistrationMode();
 

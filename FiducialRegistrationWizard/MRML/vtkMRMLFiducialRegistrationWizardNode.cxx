@@ -7,7 +7,6 @@
 static const char* PROBE_TRANSFORM_REFERENCE_ROLE = "ProbeTransform";
 static const char* FROM_FIDUCIAL_LIST_REFERENCE_ROLE = "FromFiducialList";
 static const char* TO_FIDUCIAL_LIST_REFERENCE_ROLE = "ToFiducialList";
-static const char* ACTIVE_FIDUCIAL_LIST_REFERENCE_ROLE = "ActiveFiducialList";
 static const char* OUTPUT_TRANSFORM_REFERENCE_ROLE = "OutputTransform";
 
 
@@ -63,7 +62,6 @@ vtkMRMLFiducialRegistrationWizardNode
   this->AddNodeReferenceRole( PROBE_TRANSFORM_REFERENCE_ROLE );
   this->AddNodeReferenceRole( FROM_FIDUCIAL_LIST_REFERENCE_ROLE );
   this->AddNodeReferenceRole( TO_FIDUCIAL_LIST_REFERENCE_ROLE );
-  this->AddNodeReferenceRole( ACTIVE_FIDUCIAL_LIST_REFERENCE_ROLE );
   this->AddNodeReferenceRole( OUTPUT_TRANSFORM_REFERENCE_ROLE );
   this->RegistrationMode = "";
 
@@ -167,7 +165,6 @@ void vtkMRMLFiducialRegistrationWizardNode
   this->SetProbeTransformID( this->GetProbeTransformID(), NeverModify );
   this->SetFromFiducialListID( this->GetFromFiducialListID(), NeverModify );
   this->SetToFiducialListID( this->GetToFiducialListID(), NeverModify );
-  this->SetActiveFiducialListID( this->GetActiveFiducialListID(), NeverModify );
   this->SetOutputTransformID( this->GetOutputTransformID(), NeverModify );
 
   this->UpdateNodeReferences();
@@ -238,27 +235,6 @@ void vtkMRMLFiducialRegistrationWizardNode
     this->SetAndObserveNodeReferenceID( TO_FIDUCIAL_LIST_REFERENCE_ROLE, newToFiducialListID.c_str() );
   }
   if ( this->GetToFiducialListID() != newToFiducialListID && modifyType == DefaultModify || modifyType == AlwaysModify )
-  {
-    this->Modified();
-  }
-}
-
-
-std::string vtkMRMLFiducialRegistrationWizardNode
-::GetActiveFiducialListID()
-{
-  return this->GetNodeReferenceIDString( ACTIVE_FIDUCIAL_LIST_REFERENCE_ROLE );
-}
-
-
-void vtkMRMLFiducialRegistrationWizardNode
-::SetActiveFiducialListID( std::string newActiveFiducialListID, int modifyType )
-{
-  if( this->GetActiveFiducialListID() != newActiveFiducialListID )
-  {
-    this->SetNodeReferenceID( ACTIVE_FIDUCIAL_LIST_REFERENCE_ROLE, newActiveFiducialListID.c_str() );
-  }
-  if ( this->GetActiveFiducialListID() != newActiveFiducialListID && modifyType == DefaultModify || modifyType == AlwaysModify )
   {
     this->Modified();
   }

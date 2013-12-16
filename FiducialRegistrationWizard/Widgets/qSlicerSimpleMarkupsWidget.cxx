@@ -109,6 +109,11 @@ void qSlicerSimpleMarkupsWidget
   connect( d->MarkupsFiducialTableWidget, SIGNAL( customContextMenuRequested(const QPoint&) ), this, SLOT( onMarkupsFiducialTableContextMenu(const QPoint&) ) );
   connect( d->MarkupsFiducialTableWidget, SIGNAL( cellChanged( int, int ) ), this, SLOT( onMarkupsFiducialEdited( int, int ) ) );
 
+  // Connect to the selection singleton node - that way we can update the GUI if the Active node changes
+  // Note that only the GUI cares about the active node (the logic and mrml don't)
+  vtkMRMLSelectionNode* selectionNode = vtkMRMLSelectionNode::SafeDownCast( this->mrmlScene()->GetNodeByID( this->MarkupsLogic->GetSelectionNodeID() ) );
+  this->qvtkConnect( selectionNode, vtkCommand::ModifiedEvent, this, SLOT( updateWidget() ) );
+
   this->updateWidget();  
 }
 
