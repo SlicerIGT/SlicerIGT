@@ -103,9 +103,13 @@ void qSlicerFiducialRegistrationWizardModuleWidget
   d->setupUi(this);
   // Embed widgets here
   d->FromMarkupsWidget = qSlicerSimpleMarkupsWidget::New( d->logic()->MarkupsLogic );
+  d->FromMarkupsWidget->SetNodeBaseName( "From" );
   d->FromGroupBox->layout()->addWidget( d->FromMarkupsWidget );
+
   d->ToMarkupsWidget = qSlicerSimpleMarkupsWidget::New( d->logic()->MarkupsLogic );
+  d->ToMarkupsWidget->SetNodeBaseName( "To" );
   d->ToGroupBox->layout()->addWidget( d->ToMarkupsWidget );
+
   this->Superclass::setup();
 
   this->setMRMLScene( d->logic()->GetMRMLScene() );

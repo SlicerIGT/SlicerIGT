@@ -141,6 +141,14 @@ void qSlicerSimpleMarkupsWidget
 }
 
 
+void qSlicerSimpleMarkupsWidget
+::SetNodeBaseName( std::string newNodeBaseName )
+{
+  Q_D(qSlicerSimpleMarkupsWidget);
+
+  d->MarkupsFiducialNodeComboBox->setBaseName( QString::fromStdString( newNodeBaseName ) );
+}
+
 
 void qSlicerSimpleMarkupsWidget
 ::onMarkupsFiducialNodeChanged()
