@@ -187,7 +187,11 @@ std::string vtkMRMLFiducialRegistrationWizardNode
 void vtkMRMLFiducialRegistrationWizardNode
 ::SetProbeTransformID( std::string newProbeTransformID, int modifyType )
 {
-  if ( this->GetProbeTransformID() != newProbeTransformID )
+  if ( newProbeTransformID.compare( "" ) == 0 )
+  {
+    this->RemoveAllNodeReferenceIDs( PROBE_TRANSFORM_REFERENCE_ROLE );
+  }
+  else if ( this->GetProbeTransformID() != newProbeTransformID )
   {
     this->SetNodeReferenceID( PROBE_TRANSFORM_REFERENCE_ROLE, newProbeTransformID.c_str() );
   }
@@ -232,7 +236,6 @@ void vtkMRMLFiducialRegistrationWizardNode
   if ( this->GetToFiducialListID() != newToFiducialListID )
   {
     this->SetAndObserveNodeReferenceID( TO_FIDUCIAL_LIST_REFERENCE_ROLE, newToFiducialListID.c_str() );
-    this->Modified();
   }
   if ( this->GetToFiducialListID() != newToFiducialListID && modifyType == DefaultModify || modifyType == AlwaysModify )
   {
@@ -272,7 +275,11 @@ std::string vtkMRMLFiducialRegistrationWizardNode
 void vtkMRMLFiducialRegistrationWizardNode
 ::SetOutputTransformID( std::string newOutputTransformID, int modifyType )
 {
-  if ( this->GetOutputTransformID() != newOutputTransformID )
+  if ( newOutputTransformID.compare( "" ) == 0 )
+  {
+    this->RemoveAllNodeReferenceIDs( OUTPUT_TRANSFORM_REFERENCE_ROLE );
+  }
+  else if ( this->GetOutputTransformID() != newOutputTransformID )
   {
     this->SetNodeReferenceID( OUTPUT_TRANSFORM_REFERENCE_ROLE, newOutputTransformID.c_str() );
   }
