@@ -30,7 +30,7 @@
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_3">
       <item>
-       <widget class="QGroupBox" name="RecordGroupBox">
+       <widget class="QGroupBox" name="FromGroupBox">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
           <horstretch>0</horstretch>
@@ -38,9 +38,34 @@
          </sizepolicy>
         </property>
         <property name="title">
-         <string>Record</string>
+         <string>From Fiducials</string>
         </property>
-        <layout class="QVBoxLayout" name="verticalLayout_2">
+        <layout class="QVBoxLayout" name="verticalLayout_4"/>
+       </widget>
+      </item>
+      <item>
+       <widget class="QGroupBox" name="ToGroupBox">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="title">
+         <string>To Fiducials</string>
+        </property>
+        <layout class="QVBoxLayout" name="verticalLayout_5"/>
+       </widget>
+      </item>
+      <item>
+       <widget class="ctkCollapsibleGroupBox" name="PlaceFiducialGroupBox">
+        <property name="title">
+         <string>Place Fiducials</string>
+        </property>
+        <property name="collapsed">
+         <bool>true</bool>
+        </property>
+        <layout class="QVBoxLayout" name="verticalLayout_8">
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout">
            <property name="topMargin">
@@ -53,6 +78,9 @@
                <horstretch>0</horstretch>
                <verstretch>0</verstretch>
               </sizepolicy>
+             </property>
+             <property name="toolTip">
+              <string>Transform for locating fiducials</string>
              </property>
              <property name="text">
               <string>Probe transform: </string>
@@ -90,40 +118,15 @@
              <verstretch>0</verstretch>
             </sizepolicy>
            </property>
+           <property name="toolTip">
+            <string>Click when tracked device tip is placed at a fiducial point</string>
+           </property>
            <property name="text">
-            <string>Record</string>
+            <string>Place Fiducial</string>
            </property>
           </widget>
          </item>
         </layout>
-       </widget>
-      </item>
-      <item>
-       <widget class="QGroupBox" name="FromGroupBox">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="title">
-         <string>From Fiducials</string>
-        </property>
-        <layout class="QVBoxLayout" name="verticalLayout_4"/>
-       </widget>
-      </item>
-      <item>
-       <widget class="QGroupBox" name="ToGroupBox">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="title">
-         <string>To Fiducials</string>
-        </property>
-        <layout class="QVBoxLayout" name="verticalLayout_5"/>
        </widget>
       </item>
       <item>
@@ -258,6 +261,12 @@
    <class>ctkCollapsibleButton</class>
    <extends>QWidget</extends>
    <header>ctkCollapsibleButton.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>ctkCollapsibleGroupBox</class>
+   <extends>QGroupBox</extends>
+   <header>ctkCollapsibleGroupBox.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
