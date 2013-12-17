@@ -21,6 +21,7 @@
 // SlicerQt includes
 #include "qSlicerAbstractModuleWidget.h"
 #include "qSlicerSimpleMarkupsWidget.h"
+#include "qSlicerTransformPreviewWidget.h"
 
 #include "qSlicerFiducialRegistrationWizardModuleExport.h"
 

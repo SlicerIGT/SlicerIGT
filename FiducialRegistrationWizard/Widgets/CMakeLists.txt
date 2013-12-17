@@ -10,18 +10,23 @@ set(${KIT}_INCLUDE_DIRECTORIES
 set(${KIT}_SRCS
   qSlicerSimpleMarkupsWidget.h
   qSlicerSimpleMarkupsWidget.cxx
+  qSlicerTransformPreviewWidget.h
+  qSlicerTransformPreviewWidget.cxx
   )
 
 set(${KIT}_MOC_SRCS
   qSlicerSimpleMarkupsWidget.h
+  qSlicerTransformPreviewWidget.h
   )
 
 set(${KIT}_UI_SRCS
   Resources/UI/qSlicerSimpleMarkupsWidget.ui
+  Resources/UI/qSlicerTransformPreviewWidget.ui
   )
 
 set(${KIT}_RESOURCES
   Resources/UI/qSlicerSimpleMarkupsWidget.ui
+  Resources/UI/qSlicerTransformPreviewWidget.ui
   )
 
 set(${KIT}_TARGET_LIBRARIES

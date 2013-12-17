@@ -227,6 +227,23 @@
         </layout>
        </widget>
       </item>
+      <item>
+       <widget class="ctkCollapsibleGroupBox" name="PreviewGroupBox">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="title">
+         <string>Preview Transform</string>
+        </property>
+        <property name="collapsed">
+         <bool>true</bool>
+        </property>
+        <layout class="QVBoxLayout" name="verticalLayout_2"/>
+       </widget>
+      </item>
      </layout>
     </widget>
    </item>

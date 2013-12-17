@@ -44,6 +44,7 @@ public:
   // Add embedded widgets here
   qSlicerSimpleMarkupsWidget* FromMarkupsWidget;
   qSlicerSimpleMarkupsWidget* ToMarkupsWidget;
+  qSlicerTransformPreviewWidget* TransformPreviewWidget;
 };
 
 
@@ -109,6 +110,9 @@ void qSlicerFiducialRegistrationWizardModuleWidget
   d->ToMarkupsWidget = qSlicerSimpleMarkupsWidget::New( d->logic()->MarkupsLogic );
   d->ToMarkupsWidget->SetNodeBaseName( "To" );
   d->ToGroupBox->layout()->addWidget( d->ToMarkupsWidget );
+
+  d->TransformPreviewWidget = qSlicerTransformPreviewWidget::New( d->logic()->GetMRMLScene() );
+  d->PreviewGroupBox->layout()->addWidget( d->TransformPreviewWidget );
 
   this->Superclass::setup();
 
@@ -225,6 +229,7 @@ void qSlicerFiducialRegistrationWizardModuleWidget
   d->OutputTransformComboBox->setCurrentNodeID( QString::fromStdString( fiducialRegistrationWizardNode->GetOutputTransformID() ) );
   d->FromMarkupsWidget->SetCurrentNode( this->mrmlScene()->GetNodeByID( fiducialRegistrationWizardNode->GetFromFiducialListID() ) );
   d->ToMarkupsWidget->SetCurrentNode( this->mrmlScene()->GetNodeByID( fiducialRegistrationWizardNode->GetToFiducialListID() ) );
+  d->TransformPreviewWidget->SetCurrentNode( this->mrmlScene()->GetNodeByID( fiducialRegistrationWizardNode->GetOutputTransformID() ) );
 
   if ( fiducialRegistrationWizardNode->GetRegistrationMode().compare( "Similarity" ) == 0 )
   {
