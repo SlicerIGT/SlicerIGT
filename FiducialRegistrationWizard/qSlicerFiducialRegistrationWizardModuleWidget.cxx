@@ -102,6 +102,8 @@ void qSlicerFiducialRegistrationWizardModuleWidget
   Q_D(qSlicerFiducialRegistrationWizardModuleWidget);
 
   d->setupUi(this);
+  this->Superclass::setup();
+
   // Embed widgets here
   d->FromMarkupsWidget = qSlicerSimpleMarkupsWidget::New( d->logic()->MarkupsLogic );
   d->FromMarkupsWidget->SetNodeBaseName( "From" );
@@ -114,8 +116,7 @@ void qSlicerFiducialRegistrationWizardModuleWidget
   d->TransformPreviewWidget = qSlicerTransformPreviewWidget::New( d->logic()->GetMRMLScene() );
   d->PreviewGroupBox->layout()->addWidget( d->TransformPreviewWidget );
 
-  this->Superclass::setup();
-
+  vtkMRMLScene* scene = d->logic()->GetMRMLScene();
   this->setMRMLScene( d->logic()->GetMRMLScene() );
 
   // Make connections to update the mrml from the widget

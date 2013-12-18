@@ -79,8 +79,12 @@ qSlicerTransformPreviewWidget* qSlicerTransformPreviewWidget
 ::New( vtkMRMLScene* scene )
 {
   qSlicerTransformPreviewWidget* newTransformPreviewWidget = new qSlicerTransformPreviewWidget();
+  // Don't set the scene here - the combo box won't work;
   newTransformPreviewWidget->setup();
+  // Set the scene here
   newTransformPreviewWidget->setMRMLScene( scene );
+  // And create the connections (since we need the scene before we can create the connections)
+  newTransformPreviewWidget->qvtkConnect( newTransformPreviewWidget->mrmlScene(), vtkCommand::ModifiedEvent, newTransformPreviewWidget, SLOT( ObserveAllTransformableNodes() ) );
   return newTransformPreviewWidget;
 }
 
@@ -106,6 +110,7 @@ void qSlicerTransformPreviewWidget
 void qSlicerTransformPreviewWidget
 ::enter()
 {
+  this->updateWidget();
 }
 
 
@@ -123,6 +128,13 @@ void qSlicerTransformPreviewWidget
 {
   Q_D(qSlicerTransformPreviewWidget);
 
+  // First thing to do is delete all of the preview nodes and remove from scene
+  for ( int i = 0; i < this->PreviewNodes.size(); i++ )
+  {
+    this->mrmlScene()->RemoveNode( this->PreviewNodes.at(i) );
+  }
+  this->PreviewNodes.clear(); // Smart pointers will take care of deleting objects
+
   // Reset the combo box if the node has 
   if ( currentNode == NULL || this->CurrentTransformNode == NULL || strcmp( this->CurrentTransformNode->GetID(), currentNode->GetID() ) != 0 )
   {
@@ -139,6 +151,7 @@ void qSlicerTransformPreviewWidget
 
   this->CurrentTransformNode = vtkMRMLLinearTransformNode::SafeDownCast( currentNode );
 
+  this->UpdateHiddenNodes();
   this->updateWidget();
 }
 
@@ -222,7 +235,6 @@ void qSlicerTransformPreviewWidget
 }
 
 
-
 void qSlicerTransformPreviewWidget
 ::onHardenButtonClicked()
 {
@@ -249,56 +261,72 @@ void qSlicerTransformPreviewWidget
 
 
 void qSlicerTransformPreviewWidget
-::HideChildNodes()
+::ObserveAllTransformableNodes()
 {
   Q_D(qSlicerTransformPreviewWidget);
 
-  // First, remove nodes that shouldn't be hidden
-  for ( int i = 0; i < this->HideNodeIDs.size(); i++ )
-  {
-    vtkMRMLTransformableNode* currentNode = vtkMRMLTransformableNode::SafeDownCast( this->mrmlScene()->GetNodeByID( this->HideNodeIDs.at( i ) ) );
+  this->qvtkDisconnectAll();
+  this->qvtkConnect( this->mrmlScene(), vtkCommand::ModifiedEvent, this, SLOT( ObserveAllTransformableNodes() ) );
 
-    if ( currentNode == NULL ) // this could occur if the node is removed from the scene
+  // Iterate over all nodes in the scene and observe them
+  vtkCollection* sceneNodes = this->mrmlScene()->GetNodes();
+  for ( int i = 0; i < sceneNodes->GetNumberOfItems(); i++ )
+  {
+    vtkMRMLTransformableNode* currentNode = vtkMRMLTransformableNode::SafeDownCast( sceneNodes->GetItemAsObject( i ) );
+
+    if ( currentNode == NULL || currentNode->GetHideFromEditors() )
     {
-      this->HideNodeIDs.erase( this->HideNodeIDs.begin() + i );
       continue;
     }
 
+    this->qvtkConnect( currentNode, vtkCommand::ModifiedEvent, this, SLOT( UpdateHiddenNodes() ) );
+  }
+
+  this->UpdateHiddenNodes();
+}
+
+
+void qSlicerTransformPreviewWidget
+::UpdateHiddenNodes()
+{
+  Q_D(qSlicerTransformPreviewWidget);
+
+  QStringList& hiddenNodeIDList = QStringList();
+  QStringList& visibleNodeIDList = QStringList();
+
+  // Iterate over all nodes in the scene and observe them
+  vtkCollection* sceneNodes = this->mrmlScene()->GetNodes();
+
+  for ( int i = 0; i < sceneNodes->GetNumberOfItems(); i++ )
+  {
+    vtkMRMLTransformableNode* currentNode = vtkMRMLTransformableNode::SafeDownCast( sceneNodes->GetItemAsObject( i ) );
+
+    if ( currentNode == NULL || currentNode->GetHideFromEditors() || this->CurrentTransformNode == NULL )
+    {
+      continue;
+    }
+    
     bool isTransformNode = strcmp( currentNode->GetID(), this->CurrentTransformNode->GetID() ) == 0;
     bool isChildNode = currentNode->GetTransformNodeID() != NULL && strcmp( currentNode->GetTransformNodeID(), this->CurrentTransformNode->GetID() ) == 0;
 
-    if ( !( isTransformNode || isChildNode ) )
+    if ( isTransformNode || isChildNode )
     {
-      this->HideNodeIDs.erase( this->HideNodeIDs.begin() + i );
+      hiddenNodeIDList.append( currentNode->GetID() );
+    }
+    else
+    {
+      visibleNodeIDList.append( currentNode->GetID() );
     }
   }
 
-  // Next, add nodes that should be hidden
-  for ( int i = 0; i < d->TransformPreviewComboBox->nodeCount(); i++ )
-  {
-    vtkMRMLTransformableNode* baseNode = vtkMRMLTransformableNode::SafeDownCast( d->TransformPreviewComboBox->nodeFromIndex( i ) );
-
-    bool isTransformNode = strcmp( baseNode->GetID(), this->CurrentTransformNode->GetID() ) == 0;
-    bool isChildNode = baseNode->GetTransformNodeID() != NULL && strcmp( baseNode->GetTransformNodeID(), this->CurrentTransformNode->GetID() ) == 0;
-
-    if ( isTransformNode || isChildNode )
-    {
-      this->HideNodeIDs.push_back( d->TransformPreviewComboBox->nodeFromIndex( i )->GetID() );
-    }    
-  }
-
-  // Finally, add the nodes to the filter and set it
-  QStringList& hideNodeIDList = QStringList();
-  for ( int i = 0; i < this->HideNodeIDs.size(); i++ )
-  {
-    hideNodeIDList.append( this->HideNodeIDs.at( i ).c_str() );
-  }
-
   disconnect( d->TransformPreviewComboBox, SIGNAL( checkedNodesChanged() ), this, SLOT( onCheckedNodesChanged() ) );
-  d->TransformPreviewComboBox->sortFilterProxyModel()->setHiddenNodeIDs( hideNodeIDList );
+  d->TransformPreviewComboBox->sortFilterProxyModel()->setHiddenNodeIDs( hiddenNodeIDList );
+  d->TransformPreviewComboBox->sortFilterProxyModel()->setVisibleNodeIDs( visibleNodeIDList );
   connect( d->TransformPreviewComboBox, SIGNAL( checkedNodesChanged() ), this, SLOT( onCheckedNodesChanged() ) );
 
+  this->updateWidget();
 }
+
 
 
 void qSlicerTransformPreviewWidget
@@ -319,6 +347,4 @@ void qSlicerTransformPreviewWidget
   d->ApplyButton->setEnabled( true );
   d->HardenButton->setEnabled( true );
   d->TransformLabel->setText( QString::fromStdString( this->CurrentTransformNode->GetName() ) );
-
-  this->HideChildNodes();
 }

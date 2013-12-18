@@ -30,6 +30,7 @@
 
 #include "vtkSmartPointer.h"
 #include "vtkGeneralTransform.h"
+#include "vtkCollection.h"
 
 #include "vtkMRMLScene.h"
 
@@ -59,6 +60,9 @@ protected slots:
   void onApplyButtonClicked();
   void onHardenButtonClicked();
 
+  void ObserveAllTransformableNodes();
+  void UpdateHiddenNodes();
+
   void updateWidget();
 
 protected:
@@ -67,11 +71,8 @@ protected:
   virtual void setup();
   virtual void enter();
 
-  void HideChildNodes();
-
   vtkMRMLLinearTransformNode* CurrentTransformNode;
   std::vector< vtkSmartPointer< vtkMRMLTransformableNode > > PreviewNodes;
-  std::vector< std::string > HideNodeIDs;
 
 private:
   Q_DECLARE_PRIVATE(qSlicerTransformPreviewWidget);
