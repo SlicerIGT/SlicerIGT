@@ -54,6 +54,7 @@ protected:
   QScopedPointer<qSlicerFiducialRegistrationWizardModuleWidgetPrivate> d_ptr;
   
   virtual void setup();
+  virtual void enter();
 
 private:
   Q_DECLARE_PRIVATE(qSlicerFiducialRegistrationWizardModuleWidget);

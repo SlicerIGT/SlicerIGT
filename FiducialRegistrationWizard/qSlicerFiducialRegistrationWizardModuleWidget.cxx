@@ -118,7 +118,6 @@ void qSlicerFiducialRegistrationWizardModuleWidget
 
   this->setMRMLScene( d->logic()->GetMRMLScene() );
 
-
   connect( d->ModuleNodeComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( UpdateFromMRMLNode() ) );
 
   // Make connections to update the mrml from the widget
@@ -137,6 +136,26 @@ void qSlicerFiducialRegistrationWizardModuleWidget
   this->qvtkConnect( d->logic(), vtkCommand::ModifiedEvent, this, SLOT( UpdateFromMRMLNode() ) );
 
   this->UpdateFromMRMLNode();
+}
+
+
+void qSlicerFiducialRegistrationWizardModuleWidget
+::enter()
+{
+  Q_D(qSlicerFiducialRegistrationWizardModuleWidget);
+
+  this->qSlicerAbstractModuleWidget::enter();
+
+  // Create a node by default if none already exists
+  int numFiducialRegistrationWizardNodes = this->mrmlScene()->GetNumberOfNodesByClass( "vtkMRMLFiducialRegistrationWizardNode" );
+  if ( numFiducialRegistrationWizardNodes == 0 )
+  {
+    vtkSmartPointer< vtkMRMLNode > fiducialRegistrationWizardNode;
+    fiducialRegistrationWizardNode.TakeReference( this->mrmlScene()->CreateNodeByClass( "vtkMRMLFiducialRegistrationWizardNode" ) );
+    fiducialRegistrationWizardNode->SetScene( this->mrmlScene() );
+    this->mrmlScene()->AddNode( fiducialRegistrationWizardNode );
+    d->ModuleNodeComboBox->setCurrentNode( fiducialRegistrationWizardNode );
+  }
 }
 
 
@@ -216,9 +235,22 @@ void qSlicerFiducialRegistrationWizardModuleWidget
 
   if ( fiducialRegistrationWizardNode == NULL )
   {
+    d->ProbeTransformComboBox->setEnabled( false );
+    d->OutputTransformComboBox->setEnabled( false );
+    d->RigidRadioButton->setEnabled( false );
+    d->SimilarityRadioButton->setEnabled( false );
+    d->FromMarkupsWidget->setEnabled( false );
+    d->ToMarkupsWidget->setEnabled( false );
     d->StatusLabel->setText( "No Fiducial Registration Wizard module node selected." );
     return;
   }
+
+  d->ProbeTransformComboBox->setEnabled( true );
+  d->OutputTransformComboBox->setEnabled( true );
+  d->RigidRadioButton->setEnabled( true );
+  d->SimilarityRadioButton->setEnabled( true );
+  d->FromMarkupsWidget->setEnabled( true );
+  d->ToMarkupsWidget->setEnabled( true );
 
   // Disconnect to prevent signals form cuing slots
   disconnect( d->ProbeTransformComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( UpdateToMRMLNode() ) );
