@@ -142,7 +142,12 @@ void qSlicerSimpleMarkupsWidget
   Q_D(qSlicerSimpleMarkupsWidget);
 
   vtkMRMLMarkupsNode* currentMarkupsNode = vtkMRMLMarkupsNode::SafeDownCast( currentNode );
+
+  // Don't change the active fiducial list if the current node is changed programmatically
+  disconnect( d->MarkupsFiducialNodeComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onMarkupsFiducialNodeChanged() ) );
   d->MarkupsFiducialNodeComboBox->setCurrentNode( currentMarkupsNode );
+  connect( d->MarkupsFiducialNodeComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onMarkupsFiducialNodeChanged() ) );
+
   this->updateWidget(); // Must call this to update widget even if the node hasn't changed - this will cause the active button and table to update
 }
 
