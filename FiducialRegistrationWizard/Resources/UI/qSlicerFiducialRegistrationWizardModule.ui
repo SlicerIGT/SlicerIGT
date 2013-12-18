@@ -30,6 +30,24 @@
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_3">
       <item>
+       <widget class="qMRMLNodeComboBox" name="ModuleNodeComboBox">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="nodeTypes">
+         <stringlist>
+          <string>vtkMRMLFiducialRegistrationWizardNode</string>
+         </stringlist>
+        </property>
+        <property name="renameEnabled">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="QGroupBox" name="FromGroupBox">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
@@ -318,6 +336,22 @@
     <hint type="destinationlabel">
      <x>279</x>
      <y>287</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>qSlicerFiducialRegistrationWizardModule</sender>
+   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+   <receiver>ModuleNodeComboBox</receiver>
+   <slot>setMRMLScene(vtkMRMLScene*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>279</x>
+     <y>238</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>279</x>
+     <y>50</y>
     </hint>
    </hints>
   </connection>

@@ -65,14 +65,12 @@ public:
   
   void AddFiducial( vtkMRMLLinearTransformNode* probeTransformNode );
 
-  vtkMRMLNode* GetFiducialRegistrationWizardNode();
-
   vtkSlicerMarkupsLogic* MarkupsLogic;
 
   void ProcessMRMLNodesEvents( vtkObject* caller, unsigned long event, void* callData );
   void ProcessMRMLSceneEvents( vtkObject* caller, unsigned long event, void* callData );
   
-  std::string GetOutputMessage();
+  std::string GetOutputMessage( std::string nodeID );
   
 protected:
   vtkSlicerFiducialRegistrationWizardLogic();
@@ -89,13 +87,13 @@ private:
   vtkSlicerFiducialRegistrationWizardLogic(const vtkSlicerFiducialRegistrationWizardLogic&); // Not implemented
   void operator=(const vtkSlicerFiducialRegistrationWizardLogic&);               // Not implemented
 
-  void CalculateTransform();
+  void CalculateTransform( vtkMRMLNode* node );
   double CalculateRegistrationError( vtkPoints* fromPoints, vtkPoints* toPoints, vtkLinearTransform* transform );
   bool CheckCollinear( vtkPoints* points );
 
-  std::string OutputMessage;
+  std::map< std::string, std::string > OutputMessages;
 
-  void SetOutputMessage( std::string newOutputMessage ); // The modified event will tell the widget to update (only needs to update when transform is calculated)
+  void SetOutputMessage( std::string nodeID, std::string newOutputMessage ); // The modified event will tell the widget to update (only needs to update when transform is calculated)
 };
 
 #endif

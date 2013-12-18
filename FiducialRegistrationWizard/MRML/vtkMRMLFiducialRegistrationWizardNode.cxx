@@ -54,16 +54,15 @@ vtkMRMLFiducialRegistrationWizardNode* vtkMRMLFiducialRegistrationWizardNode
 vtkMRMLFiducialRegistrationWizardNode
 ::vtkMRMLFiducialRegistrationWizardNode()
 {
-  this->HideFromEditorsOn();
+  this->HideFromEditorsOff();
   this->SetSaveWithScene( true );
-  this->SetSingletonTag( "FiducialRegistrationWizard" );
   // this->SetModifiedSinceRead( true );
 
   this->AddNodeReferenceRole( PROBE_TRANSFORM_REFERENCE_ROLE );
   this->AddNodeReferenceRole( FROM_FIDUCIAL_LIST_REFERENCE_ROLE );
   this->AddNodeReferenceRole( TO_FIDUCIAL_LIST_REFERENCE_ROLE );
   this->AddNodeReferenceRole( OUTPUT_TRANSFORM_REFERENCE_ROLE );
-  this->RegistrationMode = "";
+  this->RegistrationMode = "Rigid";
 
   this->Modified();
 }

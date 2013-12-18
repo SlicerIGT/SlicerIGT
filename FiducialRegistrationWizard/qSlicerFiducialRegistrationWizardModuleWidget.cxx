@@ -116,8 +116,10 @@ void qSlicerFiducialRegistrationWizardModuleWidget
   d->TransformPreviewWidget = qSlicerTransformPreviewWidget::New( d->logic()->GetMRMLScene() );
   d->PreviewGroupBox->layout()->addWidget( d->TransformPreviewWidget );
 
-  vtkMRMLScene* scene = d->logic()->GetMRMLScene();
   this->setMRMLScene( d->logic()->GetMRMLScene() );
+
+
+  connect( d->ModuleNodeComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( UpdateFromMRMLNode() ) );
 
   // Make connections to update the mrml from the widget
   connect( d->ProbeTransformComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( UpdateToMRMLNode() ) );
@@ -138,13 +140,12 @@ void qSlicerFiducialRegistrationWizardModuleWidget
 }
 
 
-
 void qSlicerFiducialRegistrationWizardModuleWidget
 ::UpdateToMRMLNode()
 {
   Q_D( qSlicerFiducialRegistrationWizardModuleWidget );
 
-  vtkMRMLFiducialRegistrationWizardNode* fiducialRegistrationWizardNode = vtkMRMLFiducialRegistrationWizardNode::SafeDownCast( d->logic()->GetFiducialRegistrationWizardNode() );
+  vtkMRMLFiducialRegistrationWizardNode* fiducialRegistrationWizardNode = vtkMRMLFiducialRegistrationWizardNode::SafeDownCast( d->ModuleNodeComboBox->currentNode() );
 
   if ( fiducialRegistrationWizardNode == NULL )
   {
@@ -201,7 +202,7 @@ void qSlicerFiducialRegistrationWizardModuleWidget
   this->qvtkBlockAll( false );
 
   // The modified event will be blocked... Now allow it to happen
-  d->logic()->GetFiducialRegistrationWizardNode()->Modified();
+  d->ModuleNodeComboBox->currentNode()->Modified();
   this->UpdateFromMRMLNode();
 }
 
@@ -211,10 +212,11 @@ void qSlicerFiducialRegistrationWizardModuleWidget
 {
   Q_D( qSlicerFiducialRegistrationWizardModuleWidget );
 
-  vtkMRMLFiducialRegistrationWizardNode* fiducialRegistrationWizardNode = vtkMRMLFiducialRegistrationWizardNode::SafeDownCast( d->logic()->GetFiducialRegistrationWizardNode() );
+  vtkMRMLFiducialRegistrationWizardNode* fiducialRegistrationWizardNode = vtkMRMLFiducialRegistrationWizardNode::SafeDownCast( d->ModuleNodeComboBox->currentNode() );
 
   if ( fiducialRegistrationWizardNode == NULL )
   {
+    d->StatusLabel->setText( "No Fiducial Registration Wizard module node selected." );
     return;
   }
 
@@ -223,8 +225,11 @@ void qSlicerFiducialRegistrationWizardModuleWidget
   disconnect( d->OutputTransformComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( UpdateToMRMLNode() ) );
   disconnect( d->RigidRadioButton, SIGNAL( toggled( bool ) ), this, SLOT( UpdateToMRMLNode() ) );
   disconnect( d->SimilarityRadioButton, SIGNAL( toggled( bool ) ), this, SLOT( UpdateToMRMLNode() ) );
-  disconnect( d->FromMarkupsWidget, SIGNAL( markupsFiducialNodeModified() ), this, SLOT( UpdateToMRMLNode() ) );
-  disconnect( d->ToMarkupsWidget, SIGNAL( markupsFiducialNodeModified() ), this, SLOT( UpdateToMRMLNode() ) );
+  disconnect( d->FromMarkupsWidget, SIGNAL( markupsFiducialNodeChanged() ), this, SLOT( UpdateToMRMLNode() ) );
+  disconnect( d->ToMarkupsWidget, SIGNAL( markupsFiducialNodeChanged() ), this, SLOT( UpdateToMRMLNode() ) );
+
+  std::string fromFid = fiducialRegistrationWizardNode->GetFromFiducialListID();
+  std::string toFid = fiducialRegistrationWizardNode->GetToFiducialListID();
 
   d->ProbeTransformComboBox->setCurrentNodeID( QString::fromStdString( fiducialRegistrationWizardNode->GetProbeTransformID() ) );
   d->OutputTransformComboBox->setCurrentNodeID( QString::fromStdString( fiducialRegistrationWizardNode->GetOutputTransformID() ) );
@@ -249,11 +254,11 @@ void qSlicerFiducialRegistrationWizardModuleWidget
   connect( d->OutputTransformComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( UpdateToMRMLNode() ) );
   connect( d->RigidRadioButton, SIGNAL( toggled( bool ) ), this, SLOT( UpdateToMRMLNode() ) );
   connect( d->SimilarityRadioButton, SIGNAL( toggled( bool ) ), this, SLOT( UpdateToMRMLNode() ) );
-  connect( d->FromMarkupsWidget, SIGNAL( markupsFiducialNodeModified() ), this, SLOT( UpdateToMRMLNode() ) );
-  connect( d->ToMarkupsWidget, SIGNAL( markupsFiducialNodeModified() ), this, SLOT( UpdateToMRMLNode() ) );
+  connect( d->FromMarkupsWidget, SIGNAL( markupsFiducialNodeChanged() ), this, SLOT( UpdateToMRMLNode() ) );
+  connect( d->ToMarkupsWidget, SIGNAL( markupsFiducialNodeChanged() ), this, SLOT( UpdateToMRMLNode() ) );
 
   std::stringstream statusString;
   statusString << "Status: ";
-  statusString << d->logic()->GetOutputMessage();
+  statusString << d->logic()->GetOutputMessage( d->ModuleNodeComboBox->currentNode()->GetID() );
   d->StatusLabel->setText( QString::fromStdString( statusString.str() ) ); // Also update the results
 }
