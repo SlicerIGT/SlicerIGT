@@ -35,6 +35,8 @@
 #include "vtkMRMLScene.h"
 
 #include "vtkMRMLLinearTransformNode.h"
+#include "vtkMRMLDisplayableNode.h"
+#include "vtkMRMLDisplayNode.h"
 
 
 class qSlicerTransformPreviewWidgetPrivate;
@@ -70,6 +72,9 @@ protected:
 
   virtual void setup();
   virtual void enter();
+
+  void CreateAndAddPreviewNode( vtkMRMLNode* baseNode );
+  void ClearPreviewNodes();
 
   vtkMRMLLinearTransformNode* CurrentTransformNode;
   std::vector< vtkSmartPointer< vtkMRMLTransformableNode > > PreviewNodes;

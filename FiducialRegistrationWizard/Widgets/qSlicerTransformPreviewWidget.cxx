@@ -129,11 +129,7 @@ void qSlicerTransformPreviewWidget
   Q_D(qSlicerTransformPreviewWidget);
 
   // First thing to do is delete all of the preview nodes and remove from scene
-  for ( int i = 0; i < this->PreviewNodes.size(); i++ )
-  {
-    this->mrmlScene()->RemoveNode( this->PreviewNodes.at(i) );
-  }
-  this->PreviewNodes.clear(); // Smart pointers will take care of deleting objects
+  this->ClearPreviewNodes();
 
   // Reset the combo box if the node has 
   if ( currentNode == NULL || this->CurrentTransformNode == NULL || strcmp( this->CurrentTransformNode->GetID(), currentNode->GetID() ) != 0 )
@@ -162,11 +158,7 @@ void qSlicerTransformPreviewWidget
   Q_D(qSlicerTransformPreviewWidget);
 
   // First thing to do is delete all of the preview nodes and remove from scene
-  for ( int i = 0; i < this->PreviewNodes.size(); i++ )
-  {
-    this->mrmlScene()->RemoveNode( this->PreviewNodes.at(i) );
-  }
-  this->PreviewNodes.clear(); // Smart pointers will take care of deleting objects
+  this->ClearPreviewNodes();
 
   disconnect( d->TransformPreviewComboBox, SIGNAL( checkedNodesChanged() ), this, SLOT( onCheckedNodesChanged() ) );
 
@@ -185,21 +177,7 @@ void qSlicerTransformPreviewWidget
 
     if ( d->TransformPreviewComboBox->checkState( baseNode ) == Qt::Checked )
     {
-      // Create a preview node, apply the transform and add to the vector of preview nodes
-      vtkSmartPointer< vtkMRMLTransformableNode > previewNode;
-      previewNode.TakeReference( vtkMRMLTransformableNode::SafeDownCast( this->mrmlScene()->CreateNodeByClass( baseNode->GetClassName() ) ) );
-      previewNode->Copy( baseNode );
-
-      QString copyName;
-      copyName.append( baseNode->GetName() ); copyName.append( "_Copy" );
-      previewNode->SetName( copyName.toStdString().c_str() );
-
-      previewNode->SetScene( this->mrmlScene() );
-      this->mrmlScene()->AddNode( previewNode );
-
-      previewNode->SetAndObserveTransformNodeID( this->CurrentTransformNode->GetID() );
-
-      this->PreviewNodes.push_back( previewNode );
+      this->CreateAndAddPreviewNode( baseNode );
     }
 
   }
@@ -348,3 +326,55 @@ void qSlicerTransformPreviewWidget
   d->HardenButton->setEnabled( true );
   d->TransformLabel->setText( QString::fromStdString( this->CurrentTransformNode->GetName() ) );
 }
+
+
+
+void qSlicerTransformPreviewWidget
+::CreateAndAddPreviewNode( vtkMRMLNode* baseNode )
+{
+  Q_D(qSlicerTransformPreviewWidget);
+
+  // Create a preview node, apply the transform and add to the vector of preview nodes
+  vtkSmartPointer< vtkMRMLTransformableNode > previewNode;
+  previewNode.TakeReference( vtkMRMLTransformableNode::SafeDownCast( this->mrmlScene()->CreateNodeByClass( baseNode->GetClassName() ) ) );
+  previewNode->Copy( baseNode );
+
+  QString copyName;
+  copyName.append( baseNode->GetName() ); copyName.append( "_Copy" );
+  previewNode->SetName( copyName.toStdString().c_str() );
+
+  previewNode->SetScene( this->mrmlScene() );
+  this->mrmlScene()->AddNode( previewNode );
+
+  previewNode->SetAndObserveTransformNodeID( this->CurrentTransformNode->GetID() );
+
+  // In case the preview node is a displayable node, then copy its display node
+  vtkMRMLDisplayableNode* displayableNode = vtkMRMLDisplayableNode::SafeDownCast( previewNode );
+  if ( displayableNode != NULL )
+  {
+    vtkSmartPointer< vtkMRMLDisplayNode > displayNode;
+    displayNode.TakeReference( vtkMRMLDisplayNode::SafeDownCast( this->mrmlScene()->CreateNodeByClass( displayableNode->GetDisplayNode()->GetClassName() ) ) );
+    displayNode->Copy( displayableNode->GetDisplayNode() );
+
+    displayNode->SetScene( this->mrmlScene() );
+    this->mrmlScene()->AddNode( displayNode );
+
+    displayableNode->SetAndObserveDisplayNodeID( displayNode->GetID() );
+  }
+
+  this->PreviewNodes.push_back( previewNode );
+}
+
+
+void qSlicerTransformPreviewWidget
+::ClearPreviewNodes()
+{
+  Q_D(qSlicerTransformPreviewWidget);
+
+  for ( int i = 0; i < this->PreviewNodes.size(); i++ )
+  {
+    this->mrmlScene()->RemoveNode( this->PreviewNodes.at(i) );
+  }
+  this->PreviewNodes.clear(); // Smart pointers will take care of deleting objects
+}
+
