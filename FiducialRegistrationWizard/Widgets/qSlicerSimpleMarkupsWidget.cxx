@@ -244,11 +244,13 @@ void qSlicerSimpleMarkupsWidget
   QAction* deleteAction = new QAction( "Delete current fiducial", fiducialsMenu );
   QAction* upAction = new QAction( "Move current fiducial up", fiducialsMenu );
   QAction* downAction = new QAction( "Move current fiducial down", fiducialsMenu );
+  QAction* jumpAction = new QAction( "Jump slices to fiducial", fiducialsMenu );
 
   fiducialsMenu->addAction( activateAction );
   fiducialsMenu->addAction( deleteAction );
   fiducialsMenu->addAction( upAction );
   fiducialsMenu->addAction( downAction );
+  fiducialsMenu->addAction( jumpAction );
 
   QAction* selectedAction = fiducialsMenu->exec( globalPosition );
 
@@ -286,6 +288,11 @@ void qSlicerSimpleMarkupsWidget
     {
       currentNode->SwapMarkups( currentFiducial, currentFiducial + 1 );
     }
+  }
+
+  if ( selectedAction == jumpAction )
+  {
+    this->MarkupsLogic->JumpSlicesToNthPointInMarkup( this->GetCurrentNode()->GetID(), currentFiducial );
   }
 
   this->updateWidget();
