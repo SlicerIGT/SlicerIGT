@@ -269,8 +269,8 @@ void qSlicerTransformPreviewWidget
 {
   Q_D(qSlicerTransformPreviewWidget);
 
-  QStringList& hiddenNodeIDList = QStringList();
-  QStringList& visibleNodeIDList = QStringList();
+  QStringList hiddenNodeIDList;
+  QStringList visibleNodeIDList;
 
   // Iterate over all nodes in the scene and observe them
   vtkCollection* sceneNodes = this->mrmlScene()->GetNodes();
@@ -289,11 +289,11 @@ void qSlicerTransformPreviewWidget
 
     if ( isTransformNode || isChildNode )
     {
-      hiddenNodeIDList.append( currentNode->GetID() );
+      hiddenNodeIDList << QString( currentNode->GetID() );
     }
     else
     {
-      visibleNodeIDList.append( currentNode->GetID() );
+      visibleNodeIDList << QString( currentNode->GetID() );
     }
   }
 
