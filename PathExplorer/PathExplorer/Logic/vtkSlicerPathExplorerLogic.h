@@ -28,6 +28,7 @@
 #include "vtkSlicerModuleLogic.h"
 
 // MRML includes
+#include "vtkMRMLScene.h"
 
 // STD includes
 #include <cstdlib>
