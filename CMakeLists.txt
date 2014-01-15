@@ -21,12 +21,13 @@ option( SLICERIGT_ENABLE_EXPERIMENTAL_MODULES "Enable building of work-in-progre
 set( SlicerIGT_Modules
   CollectFiducials
   CreateModels
+  FiducialRegistrationWizard
   OpenIGTLinkRemote
+  PathExplorer
+  PivotCalibration
+  TransformFusion
   UltrasoundSnapshots
   VolumeResliceDriver
-  PivotCalibration
-  FiducialRegistrationWizard
-  TransformFusion
 )
 
 if( SLICERIGT_ENABLE_EXPERIMENTAL_MODULES )
