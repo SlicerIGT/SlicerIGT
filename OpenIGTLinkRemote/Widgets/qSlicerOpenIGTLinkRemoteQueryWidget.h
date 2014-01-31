@@ -46,6 +46,7 @@ public slots:
   void setConnectorNode(vtkMRMLNode* node);
   void queryRemoteList();
   void querySelectedItem();
+  void onImageReceived(vtkObject*, void*);
   void onQueryResponseReceived();
   void onQueryTypeChanged(int id);
   void startTracking();
