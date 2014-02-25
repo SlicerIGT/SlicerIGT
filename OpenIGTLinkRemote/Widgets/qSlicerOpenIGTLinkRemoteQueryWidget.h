@@ -47,7 +47,7 @@ public slots:
   void queryRemoteList();
   void querySelectedItem();
   void onImageReceived(vtkObject*, void*);
-  void onImageQueryComplete(vtkObject*, void*);
+  void onGetImageComplete(vtkObject*, void*);
   void onQueryResponseReceived();
   void onQueryTypeChanged(int id);
   void startTracking();

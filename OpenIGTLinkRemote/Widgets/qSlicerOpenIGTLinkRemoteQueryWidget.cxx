@@ -66,6 +66,8 @@ public:
   // TODO: we only have one query node.. it may cause some issue,
   // when there are multiple connectors using the single query Node.
   vtkMRMLIGTLQueryNode * queryNode;
+
+  std::vector<std::string> nodesToRemove;
   
 protected:
   qSlicerOpenIGTLinkRemoteQueryWidget* const q_ptr;
@@ -290,24 +292,6 @@ void qSlicerOpenIGTLinkRemoteQueryWidget::querySelectedItem()
 }
 
 //------------------------------------------------------------------------------
-void qSlicerOpenIGTLinkRemoteQueryWidget::onImageQueryComplete(vtkObject* queryNode, void* vtkNotUsed(nonode))
-{
-  Q_D(qSlicerOpenIGTLinkRemoteQueryWidget);
-
-  if (!this->mrmlScene())
-    return; 
-
-  // clean up the query node
-  vtkMRMLIGTLQueryNode* remnode = vtkMRMLIGTLQueryNode::SafeDownCast(queryNode);
-  if (remnode && remnode != d->queryNode)
-    {
-    qvtkDisconnect(remnode, vtkMRMLIGTLQueryNode::ResponseEvent,
-                   this, SLOT(onImageQueryComplete(vtkObject*, void*)));
-    this->mrmlScene()->RemoveNode(remnode);
-    }
-}
-
-//------------------------------------------------------------------------------
 void qSlicerOpenIGTLinkRemoteQueryWidget::onImageReceived(vtkObject* vtkNotUsed(cNode), void* volNode)
 {
   Q_D(qSlicerOpenIGTLinkRemoteQueryWidget);
@@ -430,12 +414,42 @@ void qSlicerOpenIGTLinkRemoteQueryWidget::getImage(std::string name)
   node->SetQueryType(vtkMRMLIGTLQueryNode::TYPE_GET);
   node->SetName(name.c_str());
   this->mrmlScene()->AddNode(node);
-  qvtkConnect(node, vtkMRMLIGTLQueryNode::ResponseEvent,
-              this, SLOT(onImageQueryComplete(vtkObject*, void*)));
   d->connectorNode->PushQuery(node);
-  node->Delete();
+  d->nodesToRemove.push_back(node->GetID());
+
+  // Request callback so the QueryNode can be removed.
+  qvtkConnect(node, vtkMRMLIGTLQueryNode::ResponseEvent,
+            this, SLOT(onGetImageComplete(vtkObject*, void*)));
 }
 
+//------------------------------------------------------------------------------
+
+void qSlicerOpenIGTLinkRemoteQueryWidget::onGetImageComplete(vtkObject* qNode, void* vtkNotUsed(nonode))
+{
+  Q_D(qSlicerOpenIGTLinkRemoteQueryWidget);
+
+  vtkMRMLScene* scene = this->mrmlScene();
+  if (!this->mrmlScene() || !d->queryNode)
+    return;
+
+  std::vector<std::string>::iterator remIter = d->nodesToRemove.begin();
+  for (; remIter != d->nodesToRemove.end(); )
+    {
+    vtkMRMLIGTLQueryNode* node = vtkMRMLIGTLQueryNode::SafeDownCast(scene->GetNodeByID((*remIter).c_str()));
+    if (node && (node != d->queryNode) &&
+      (node->GetQueryStatus() == vtkMRMLIGTLQueryNode::STATUS_SUCCESS) )
+      {
+      qvtkDisconnect(node, vtkMRMLIGTLQueryNode::ResponseEvent,
+                     this, SLOT(onGetImageComplete(vtkObject*, void*)));
+      scene->RemoveNode(node);
+      remIter = d->nodesToRemove.erase(remIter);
+      }
+    else
+      {
+      remIter++;
+      }
+    }
+}
 
 //------------------------------------------------------------------------------
 void qSlicerOpenIGTLinkRemoteQueryWidget::getPointList(std::string id)
