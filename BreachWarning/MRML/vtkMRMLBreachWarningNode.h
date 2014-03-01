@@ -67,6 +67,24 @@ public:
   };
 
   // Use default setters and getters - vtk set macro will cause modified event
+
+  // Watched model defines the risk area that needs to be avoided.
+private:
+  std::string WatchedModelID;
+public:
+  void SetWatchedModelID( std::string modelID, int modifyType = DefaultModify );
+  std::string GetWatchedModelID();
+
+  // Tool transform is interpreted as ToolTip-to-RAS. The origin of ToolTip 
+  // coordinate system is the tip of the surgical tool that needs to avoid the
+  // risk area.
+private:
+  std::string ToolTipTransformID;
+public:
+  void SetToolTipTransformID( std::string newTransformID, int modifyType = DefaultModify );
+  std::string GetToolTipTransformID();
+  
+  // Old sample.
   void SetProbeTransformID( std::string newProbeTransformID, int modifyType = DefaultModify );
   void SetFromFiducialListID( std::string newFromFiducialListID, int modifyType = DefaultModify );
   void SetToFiducialListID( std::string newToFiducialListID, int modifyType = DefaultModify );
@@ -86,6 +104,9 @@ public:
   void ProcessMRMLEvents( vtkObject *caller, unsigned long event, void *callData );
 
 private:
+  
+
+  // Old sample.
   std::string RegistrationMode;
 
 };  

@@ -2,12 +2,15 @@
 <ui version="4.0">
  <class>qSlicerBreachWarningModule</class>
  <widget class="qSlicerWidget" name="qSlicerBreachWarningModule">
+  <property name="enabled">
+   <bool>true</bool>
+  </property>
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>560</width>
-    <height>478</height>
+    <width>342</width>
+    <height>666</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -22,6 +25,12 @@
        <verstretch>0</verstretch>
       </sizepolicy>
      </property>
+     <property name="maximumSize">
+      <size>
+       <width>16777215</width>
+       <height>130</height>
+      </size>
+     </property>
      <property name="text">
       <string>Display</string>
      </property>
@@ -30,76 +39,138 @@
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_3">
       <item>
-       <widget class="qMRMLNodeComboBox" name="ModuleNodeComboBox">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="nodeTypes">
-         <stringlist>
-          <string>vtkMRMLBreachWarningNode</string>
-         </stringlist>
-        </property>
-        <property name="renameEnabled">
-         <bool>false</bool>
-        </property>
-       </widget>
+       <layout class="QVBoxLayout" name="verticalLayout_2">
+        <item>
+         <layout class="QGridLayout" name="gridLayout">
+          <item row="0" column="0">
+           <widget class="QLabel" name="label">
+            <property name="text">
+             <string>Model to watch:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="qMRMLNodeComboBox" name="ModelNodeComboBox">
+            <property name="enabled">
+             <bool>true</bool>
+            </property>
+            <property name="nodeTypes">
+             <stringlist>
+              <string>vtkMRMLModelNode</string>
+             </stringlist>
+            </property>
+            <property name="noneEnabled">
+             <bool>true</bool>
+            </property>
+            <property name="addEnabled">
+             <bool>false</bool>
+            </property>
+            <property name="removeEnabled">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_2">
+            <property name="text">
+             <string>Tool tip (to RAS) transform: </string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="qMRMLNodeComboBox" name="ToolComboBox">
+            <property name="enabled">
+             <bool>true</bool>
+            </property>
+            <property name="nodeTypes">
+             <stringlist>
+              <string>vtkMRMLLinearTransformNode</string>
+             </stringlist>
+            </property>
+            <property name="noneEnabled">
+             <bool>true</bool>
+            </property>
+            <property name="addEnabled">
+             <bool>false</bool>
+            </property>
+            <property name="removeEnabled">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="label_4">
+            <property name="text">
+             <string>Warning color:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="ctkColorPickerButton" name="ColorPickerButton"/>
+          </item>
+         </layout>
+        </item>
+       </layout>
       </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="ctkCollapsibleButton" name="CollapsibleButton">
+     <property name="text">
+      <string>Advanced options</string>
+     </property>
+     <property name="collapsed">
+      <bool>true</bool>
+     </property>
+     <property name="contentsFrameShape">
+      <enum>QFrame::StyledPanel</enum>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_5">
       <item>
-       <layout class="QGridLayout" name="gridLayout">
-        <item row="1" column="0">
-         <widget class="QLabel" name="label">
-          <property name="text">
-           <string>Model to watch:</string>
+       <layout class="QGridLayout" name="gridLayout_2">
+        <item row="0" column="1">
+         <widget class="qMRMLNodeComboBox" name="ModuleNodeComboBox">
+          <property name="enabled">
+           <bool>true</bool>
+          </property>
+          <property name="nodeTypes">
+           <stringlist>
+            <string>vtkMRMLBreachWarningNode</string>
+           </stringlist>
+          </property>
+          <property name="renameEnabled">
+           <bool>true</bool>
+          </property>
+          <property name="selectNodeUponCreation">
+           <bool>false</bool>
           </property>
          </widget>
         </item>
-        <item row="1" column="2">
-         <widget class="qMRMLNodeComboBox" name="ModelNodeComboBox"/>
-        </item>
-        <item row="2" column="0">
-         <widget class="QLabel" name="label_2">
-          <property name="text">
-           <string>Tool tip (to RAS) transform: </string>
-          </property>
-         </widget>
-        </item>
-        <item row="2" column="2">
-         <widget class="qMRMLNodeComboBox" name="ToolComboBox"/>
-        </item>
-        <item row="3" column="0">
+        <item row="0" column="0">
          <widget class="QLabel" name="label_3">
           <property name="text">
-           <string>Safe color:</string>
-          </property>
-         </widget>
-        </item>
-        <item row="4" column="0">
-         <widget class="QLabel" name="label_4">
-          <property name="text">
-           <string>Warning color:</string>
+           <string>Active module node: </string>
           </property>
          </widget>
         </item>
        </layout>
       </item>
-      <item>
-       <spacer name="verticalSpacer">
-        <property name="orientation">
-         <enum>Qt::Vertical</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>20</width>
-          <height>40</height>
-         </size>
-        </property>
-       </spacer>
-      </item>
      </layout>
     </widget>
+   </item>
+   <item>
+    <spacer name="verticalSpacer">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>40</height>
+      </size>
+     </property>
+    </spacer>
    </item>
   </layout>
  </widget>
@@ -121,9 +192,30 @@
    <header>ctkCollapsibleButton.h</header>
    <container>1</container>
   </customwidget>
+  <customwidget>
+   <class>ctkColorPickerButton</class>
+   <extends>QPushButton</extends>
+   <header>ctkColorPickerButton.h</header>
+  </customwidget>
  </customwidgets>
  <resources/>
  <connections>
+  <connection>
+   <sender>qSlicerBreachWarningModule</sender>
+   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+   <receiver>ModelNodeComboBox</receiver>
+   <slot>setMRMLScene(vtkMRMLScene*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>216</x>
+     <y>316</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>286</x>
+     <y>52</y>
+    </hint>
+   </hints>
+  </connection>
   <connection>
    <sender>qSlicerBreachWarningModule</sender>
    <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
@@ -131,12 +223,28 @@
    <slot>setMRMLScene(vtkMRMLScene*)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>279</x>
-     <y>238</y>
+     <x>216</x>
+     <y>316</y>
     </hint>
     <hint type="destinationlabel">
-     <x>279</x>
-     <y>50</y>
+     <x>216</x>
+     <y>161</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>qSlicerBreachWarningModule</sender>
+   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+   <receiver>ToolComboBox</receiver>
+   <slot>setMRMLScene(vtkMRMLScene*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>216</x>
+     <y>316</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>286</x>
+     <y>78</y>
     </hint>
    </hints>
   </connection>

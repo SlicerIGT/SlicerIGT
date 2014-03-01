@@ -83,7 +83,8 @@ qSlicerBreachWarningModuleWidget
 
 
 
-void qSlicerBreachWarningModuleWidget
+void
+qSlicerBreachWarningModuleWidget
 ::setup()
 {
   Q_D(qSlicerBreachWarningModuleWidget);
@@ -96,6 +97,9 @@ void qSlicerBreachWarningModuleWidget
   connect( d->ModuleNodeComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( UpdateFromMRMLNode() ) );
 
   // Make connections to update the mrml from the widget
+  connect( d->ModelNodeComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( UpdateWathedModel() ) );
+  connect( d->ToolComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( UpdateToolTipTransform() ) );
+  
   // connect( d->ProbeTransformComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( UpdateToMRMLNode() ) );
   // connect( d->OutputTransformComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( UpdateToMRMLNode() ) );
   // connect( d->RigidRadioButton, SIGNAL( toggled( bool ) ), this, SLOT( UpdateToMRMLNode() ) );
@@ -107,7 +111,9 @@ void qSlicerBreachWarningModuleWidget
 }
 
 
-void qSlicerBreachWarningModuleWidget
+
+void
+qSlicerBreachWarningModuleWidget
 ::enter()
 {
   Q_D(qSlicerBreachWarningModuleWidget);
@@ -127,8 +133,9 @@ void qSlicerBreachWarningModuleWidget
 }
 
 
+
 void qSlicerBreachWarningModuleWidget
-::UpdateToMRMLNode()
+::UpdateWatchedModel()
 {
   Q_D( qSlicerBreachWarningModuleWidget );
 
@@ -140,16 +147,15 @@ void qSlicerBreachWarningModuleWidget
   }
 
   this->qvtkBlockAll( true );
-/*
-  if ( d->ProbeTransformComboBox->currentNode() == NULL )
+
+  if ( d->ModelNodeComboBox->currentNode() == NULL )
   {
-    BreachWarningNode->SetProbeTransformID( "", vtkMRMLBreachWarningNode::NeverModify );
+    BreachWarningNode->SetWatchedModelID( "", vtkMRMLBreachWarningNode::NeverModify );
   }
   else
   {
-    BreachWarningNode->SetProbeTransformID( d->ProbeTransformComboBox->currentNode()->GetID(), vtkMRMLBreachWarningNode::NeverModify );
+    BreachWarningNode->SetWatchedModelID( d->ModelNodeComboBox->currentNode()->GetID(), vtkMRMLBreachWarningNode::NeverModify );
   }
-*/
   
   this->qvtkBlockAll( false );
 
@@ -159,7 +165,39 @@ void qSlicerBreachWarningModuleWidget
 }
 
 
-void qSlicerBreachWarningModuleWidget
+
+void
+qSlicerBreachWarningModuleWidget
+::UpdateToolTipTransform()
+{
+  Q_D( qSlicerBreachWarningModuleWidget );
+  vtkMRMLBreachWarningNode* moduleNode = vtkMRMLBreachWarningNode::SafeDownCast( d->ModuleNodeComboBox->currentNode() );
+  if ( moduleNode == NULL )
+  {
+    return;
+  }
+
+  this->qvtkBlockAll( true );
+
+  if ( d->ToolComboBox->currentNode() == NULL )
+  {
+    moduleNode->SetToolTipTransformID( "", vtkMRMLBreachWarningNode::NeverModify );
+  }
+  else
+  {
+    moduleNode->SetToolTipTransformID( d->ToolComboBox->currentNode()->GetID(), vtkMRMLBreachWarningNode::NeverModify );
+  }
+
+  this->qvtkBlockAll( false );
+
+  d->ToolComboBox->currentNode()->Modified();
+  this->UpdateFromMRMLNode();
+}
+
+
+
+void
+qSlicerBreachWarningModuleWidget
 ::UpdateFromMRMLNode()
 {
   Q_D( qSlicerBreachWarningModuleWidget );
@@ -168,20 +206,23 @@ void qSlicerBreachWarningModuleWidget
 
   if ( BreachWarningNode == NULL )
   {
-    // d->ProbeTransformComboBox->setEnabled( false );
-
+    d->ModelNodeComboBox->setEnabled( false );
+    d->ToolComboBox->setEnabled( false );
     return;
   }
 
-  // d->ProbeTransformComboBox->setEnabled( true );
+  d->ModelNodeComboBox->setEnabled( true );
+  d->ToolComboBox->setEnabled( true );
 
   // Disconnect to prevent signals form cuing slots
-  // disconnect( d->ProbeTransformComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( UpdateToMRMLNode() ) );
+  disconnect( d->ModelNodeComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( UpdateWatchedModel() ) );
+  disconnect( d->ToolComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( UpdateToolTipTransform() ) );
   
-  // d->ProbeTransformComboBox->setCurrentNodeID( QString::fromStdString( BreachWarningNode->GetProbeTransformID() ) );
+  d->ModelNodeComboBox->setCurrentNodeID( QString::fromStdString( BreachWarningNode->GetWatchedModelID() ) );
   
   // Unblock all singals from firing
   // TODO: Is there a more efficient way to do this by blokcing slots?
-  // connect( d->ProbeTransformComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( UpdateToMRMLNode() ) );
+  connect( d->ModelNodeComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( UpdateWatchedModel() ) );
+  connect( d->ToolComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( UpdateToolTipTransform() ) );
   
 }

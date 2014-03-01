@@ -58,13 +58,23 @@ vtkMRMLBreachWarningNode
   this->SetSaveWithScene( true );
   // this->SetModifiedSinceRead( true );
 
+  this->AddNodeReferenceRole( "WatchedModel" );
+  this->AddNodeReferenceRole( "ToolTipTransform" );
+
+  this->WatchedModelID = "";
+  this->ToolTipTransformID = "";
+
+  this->Modified();
+
+  /*
+  // Old sample.
   this->AddNodeReferenceRole( PROBE_TRANSFORM_REFERENCE_ROLE );
   this->AddNodeReferenceRole( FROM_FIDUCIAL_LIST_REFERENCE_ROLE );
   this->AddNodeReferenceRole( TO_FIDUCIAL_LIST_REFERENCE_ROLE );
   this->AddNodeReferenceRole( OUTPUT_TRANSFORM_REFERENCE_ROLE );
   this->RegistrationMode = "Rigid";
+  */
 
-  this->Modified();
 }
 
 
@@ -103,7 +113,10 @@ void vtkMRMLBreachWarningNode
 
   vtkIndent indent(nIndent);
   
-  of << indent << " RegistrationMode=\"" << this->RegistrationMode << "\"";
+  of << indent << " WatchedModelID=\"" << this->WatchedModelID << "\"";
+  of << indent << " ToolTipTransformID=\"" << this->ToolTipTransformID << "\"";
+
+  // of << indent << " RegistrationMode=\"" << this->RegistrationMode << "\"";
 }
 
 
@@ -121,6 +134,17 @@ void vtkMRMLBreachWarningNode::ReadXMLAttributes( const char** atts )
     attName  = *(atts++);
     attValue = *(atts++);
     
+    if ( ! strcmp( attName, "WatchedModuleID" ) )
+    {
+      this->WatchedModelID = std::string( attValue );
+    }
+
+    if ( ! strcmp( attName, "ToolTipTransformID" ) )
+    {
+      this->ToolTipTransformID = std::string( attValue );
+    }
+
+    // Old sample.
     if ( ! strcmp( attName, "RegistrationMode" ) )
     {
       this->RegistrationMode = std::string( attValue );
@@ -144,7 +168,11 @@ void vtkMRMLBreachWarningNode
   
   // Note: It seems that the WriteXML function copies the node then writes the copied node to file
   // So, anything we want in the MRML file we must copy here (I don't think we need to copy other things)
-  this->RegistrationMode = node->RegistrationMode;
+  
+  this->WatchedModelID = node->WatchedModelID;
+  this->ToolTipTransformID = node->ToolTipTransformID;
+
+  // this->RegistrationMode = node->RegistrationMode;
   this->Modified();
 }
 
@@ -154,7 +182,11 @@ void vtkMRMLBreachWarningNode
 ::PrintSelf( ostream& os, vtkIndent indent )
 {
   vtkMRMLNode::PrintSelf(os,indent); // This will take care of referenced nodes
-  os << indent << "RegistrationMode: " << this->RegistrationMode << "\n";
+
+  os << indent << "WatchedModelID: " << this->WatchedModelID << "\n";
+  os << indent << "ToolTipTransformID: " << this->ToolTipTransformID << "\n";
+
+  // os << indent << "RegistrationMode: " << this->RegistrationMode << "\n";
 }
 
 
@@ -171,13 +203,78 @@ void vtkMRMLBreachWarningNode
 }
 
 
+
 // Variable getters and setters -----------------------------------------------------
+
+
 
 std::string vtkMRMLBreachWarningNode
 ::GetProbeTransformID()
 {
   return this->GetNodeReferenceIDString( PROBE_TRANSFORM_REFERENCE_ROLE );
 }
+
+
+
+void vtkMRMLBreachWarningNode
+::SetWatchedModelID( std::string modelID, int modifyType )
+{
+  bool modify = false;
+
+  if ( modelID.compare( "" ) == 0 )
+  {
+    this->RemoveAllNodeReferenceIDs( "WatchedModel" );
+  }
+  else if ( this->GetWatchedModelID() != modelID )
+  {
+    if ( modifyType == DefaultModify || modifyType == AlwaysModify )
+    {
+      modify = true;
+    }
+    this->SetNodeReferenceID( "WatchedModel", modelID.c_str() );
+  }
+
+  if ( modify )
+  {
+    this->Modified();
+  }
+}
+
+
+
+std::string vtkMRMLBreachWarningNode
+::GetWatchedModelID()
+{
+  return this->GetNodeReferenceIDString( "WatchedModel" );
+}
+
+
+
+void vtkMRMLBreachWarningNode
+::SetToolTipTransformID( std::string newTransformID, int modifyType )
+{
+  if ( newTransformID.compare( "" ) == 0 )
+  {
+    this->RemoveAllNodeReferenceIDs( "ToolTipTransform" );
+  }
+  else if ( this->GetToolTipTransformID() != newTransformID )
+  {
+    this->SetNodeReferenceID( "ToolTipTransform", newTransformID.c_str() );
+  }
+  if ( this->GetToolTipTransformID() != newTransformID && modifyType == DefaultModify || modifyType == AlwaysModify )
+  {
+    this->Modified();
+  }
+}
+
+
+
+std::string vtkMRMLBreachWarningNode
+::GetToolTipTransformID()
+{
+  return this->GetNodeReferenceIDString( "ToolTipTransform" );
+}
+
 
 
 void vtkMRMLBreachWarningNode

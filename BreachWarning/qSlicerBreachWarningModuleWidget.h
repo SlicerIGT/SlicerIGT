@@ -44,7 +44,8 @@ public slots:
 
 protected slots:
 
-  void UpdateToMRMLNode();
+  void UpdateWatchedModel();
+  void UpdateToolTipTransform();
   void UpdateFromMRMLNode();
 
 protected:
