@@ -17,8 +17,7 @@
 
 // .NAME vtkSlicerBreachWarningLogic - slicer logic class for volumes manipulation
 // .SECTION Description
-// This class manages the logic associated with reading, saving,
-// and changing propertied of the volumes
+// This class manages the logic of the Breach Warning module.
 
 
 #ifndef __vtkSlicerBreachWarningLogic_h
@@ -40,6 +39,7 @@
 #include <vtkPoints.h>
 #include "vtkSmartPointer.h"
 #include "vtkMRMLBreachWarningNode.h"
+
 
 class vtkMRMLMarkupsFiducialNode;
 class vtkMRMLLinearTransformNode;
@@ -63,7 +63,12 @@ public:
   vtkTypeMacro(vtkSlicerBreachWarningLogic,vtkSlicerModuleLogic);
   void PrintSelf(ostream& os, vtkIndent indent);
   
-  void AddFiducial( vtkMRMLLinearTransformNode* probeTransformNode );
+
+  // Public interface to be used by GUI and other modules.
+  
+  void SetModelNodeID( std::string newNodeID );
+  void SetObservedTransformNode( vtkMRMLNode* newNode );
+
 
   vtkSlicerMarkupsLogic* MarkupsLogic;
 
@@ -86,11 +91,7 @@ protected:
 private:
   vtkSlicerBreachWarningLogic(const vtkSlicerBreachWarningLogic&); // Not implemented
   void operator=(const vtkSlicerBreachWarningLogic&);               // Not implemented
-
-  void CalculateTransform( vtkMRMLNode* node );
-  double CalculateRegistrationError( vtkPoints* fromPoints, vtkPoints* toPoints, vtkLinearTransform* transform );
-  bool CheckCollinear( vtkPoints* points );
-
+ 
   std::map< std::string, std::string > OutputMessages;
 
   void SetOutputMessage( std::string nodeID, std::string newOutputMessage ); // The modified event will tell the widget to update (only needs to update when transform is calculated)

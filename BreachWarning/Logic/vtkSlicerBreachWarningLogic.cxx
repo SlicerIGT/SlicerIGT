@@ -21,6 +21,7 @@
 // MRML includes
 #include "vtkMRMLLinearTransformNode.h"
 #include "vtkMRMLMarkupsFiducialNode.h"
+#include "vtkMRMLModelNode.h"
 #include "vtkMRMLScene.h"
 
 // VTK includes
@@ -98,9 +99,9 @@ void vtkSlicerBreachWarningLogic::RegisterNodes()
     return;
   }
 
-  vtkMRMLBreachWarningNode* frwNode = vtkMRMLBreachWarningNode::New();
-  this->GetMRMLScene()->RegisterNodeClass( frwNode );
-  frwNode->Delete();
+  vtkMRMLBreachWarningNode* moduleNode = vtkMRMLBreachWarningNode::New();
+  this->GetMRMLScene()->RegisterNodeClass( moduleNode );
+  moduleNode->Delete();
 }
 
 
@@ -145,201 +146,38 @@ void vtkSlicerBreachWarningLogic
 
 // Module-specific methods ----------------------------------------------------------
 
-void vtkSlicerBreachWarningLogic
-::AddFiducial( vtkMRMLLinearTransformNode* probeTransformNode )
+
+
+void
+vtkSlicerBreachWarningLogic
+::SetModelNodeID( std::string newNodeID )
 {
-  if ( probeTransformNode == NULL )
+  vtkMRMLNode* newNode = this->GetMRMLScene()->GetNodeByID( newNodeID );
+  if ( newNode == NULL )
   {
+    vtkWarningMacro( "MRML node ID not found" );
     return;
   }
 
-  vtkMRMLMarkupsFiducialNode* activeMarkupsFiducialNode = vtkMRMLMarkupsFiducialNode::SafeDownCast( this->GetMRMLScene()->GetNodeByID( this->MarkupsLogic->GetActiveListID() ) );
-
-  if ( activeMarkupsFiducialNode == NULL )
+  vtkMRMLModelNode* modelNode = vtkMRMLModelNode::SafeDownCast( newNode );
+  if ( modelNode == NULL )
   {
+    vtkWarningMacro( "Unexpected MRML node type" );
     return;
   }
+
   
-  vtkMatrix4x4* transformToWorld = vtkMatrix4x4::New();
-  probeTransformNode->GetMatrixTransformToWorld( transformToWorld );
-  
-  double coord[ 3 ] = { transformToWorld->GetElement( 0, 3 ), transformToWorld->GetElement( 1, 3 ), transformToWorld->GetElement( 2, 3 ) };
-
-  activeMarkupsFiducialNode->AddFiducialFromArray( coord );
-
-  transformToWorld->Delete();
 }
 
 
-void vtkSlicerBreachWarningLogic
-::CalculateTransform( vtkMRMLNode* node )
+
+void
+vtkSlicerBreachWarningLogic
+::SetObservedTransformNode( vtkMRMLNode* newNode )
 {
-  vtkMRMLBreachWarningNode* BreachWarningNode = vtkMRMLBreachWarningNode::SafeDownCast( node );
-  if ( BreachWarningNode == NULL )
-  {
-    this->SetOutputMessage( BreachWarningNode->GetID(), "Failed to find module node." ); // Note: This should never happen
-    return;
-  }
 
-  vtkMRMLMarkupsFiducialNode* fromMarkupsFiducialNode = vtkMRMLMarkupsFiducialNode::SafeDownCast( this->GetMRMLScene()->GetNodeByID( BreachWarningNode->GetFromFiducialListID() ) );
-  vtkMRMLMarkupsFiducialNode* toMarkupsFiducialNode = vtkMRMLMarkupsFiducialNode::SafeDownCast( this->GetMRMLScene()->GetNodeByID( BreachWarningNode->GetToFiducialListID() ) );
-  vtkMRMLLinearTransformNode* outputTransform = vtkMRMLLinearTransformNode::SafeDownCast( this->GetMRMLScene()->GetNodeByID( BreachWarningNode->GetOutputTransformID() ) );
-  std::string transformType = BreachWarningNode->GetRegistrationMode();
-
-
-  if ( fromMarkupsFiducialNode == NULL || toMarkupsFiducialNode == NULL )
-  {
-    this->SetOutputMessage( BreachWarningNode->GetID(), "One or more fiducial lists not defined." );
-    return;
-  }
-
-  if ( outputTransform == NULL )
-  {
-    this->SetOutputMessage( BreachWarningNode->GetID(), "Output transform is not defined." );
-    return;
-  }
-
-  if ( fromMarkupsFiducialNode->GetNumberOfFiducials() < 3 || toMarkupsFiducialNode->GetNumberOfFiducials() < 3 )
-  {
-    this->SetOutputMessage( BreachWarningNode->GetID(), "One or more fiducial lists has too few fiducials (minimum 3 required)." );
-    return;
-  }
-
-  if ( fromMarkupsFiducialNode->GetNumberOfFiducials() != toMarkupsFiducialNode->GetNumberOfFiducials() )
-  {
-    this->SetOutputMessage( BreachWarningNode->GetID(), "Fiducial lists have unequal number of fiducials." );
-    return;
-  }
-
-  // Convert the markupsfiducial nodes into vector of itk points
-  vtkPoints* fromPoints = MarkupsFiducialNodeToVTKPoints( fromMarkupsFiducialNode );
-  vtkPoints* toPoints = MarkupsFiducialNodeToVTKPoints( toMarkupsFiducialNode );
-
-  if ( this->CheckCollinear( fromPoints ) || this->CheckCollinear( toPoints ) )
-  {
-    this->SetOutputMessage( BreachWarningNode->GetID(), "One or more fiducial lists have strictly collinear points." );
-    return;
-  }
-
-  // Setup the registration
-  vtkLandmarkTransform* transform = vtkLandmarkTransform::New();
-
-  transform->SetSourceLandmarks( fromPoints );
-  transform->SetTargetLandmarks( toPoints );
-
-  if ( transformType.compare( "Similarity" ) == 0 )
-  {
-    transform->SetModeToSimilarity();
-  }
-  else
-  {
-    transform->SetModeToRigidBody();
-  }
-
-  transform->Update();
-
-  // Copy the resulting transform into the outputTransform
-  vtkMatrix4x4* calculatedTransform = vtkMatrix4x4::New();
-  transform->GetMatrix( calculatedTransform );
-  outputTransform->SetAndObserveMatrixTransformToParent( calculatedTransform );
-
-  double rmsError = this->CalculateRegistrationError( fromPoints,toPoints, transform );
-
-  // Delete stuff // TODO: Use smart pointers
-  fromPoints->Delete();
-  toPoints->Delete();
-  transform->Delete();
-  calculatedTransform->Delete();
-
-  std::stringstream successMessage;
-  successMessage << "Success! RMS Error: " << rmsError;
-  this->SetOutputMessage( BreachWarningNode->GetID(), successMessage.str() );
 }
 
-
-double vtkSlicerBreachWarningLogic
-::CalculateRegistrationError( vtkPoints* fromPoints, vtkPoints* toPoints, vtkLinearTransform* transform )
-{
-  // Transform the from points
-  vtkPoints* transformedFromPoints = vtkPoints::New();
-  transform->TransformPoints( fromPoints, transformedFromPoints );
-
-  // Calculate the RMS distance between the to points and the transformed from points
-  double sumSquaredError = 0;
-  for ( int i = 0; i < toPoints->GetNumberOfPoints(); i++ )
-  {
-    double currentToPoint[3] = { 0, 0, 0 };
-    toPoints->GetPoint( i, currentToPoint );
-    double currentTransformedFromPoint[3] = { 0, 0, 0 };
-    transformedFromPoints->GetPoint( i, currentTransformedFromPoint );
-    
-    sumSquaredError += vtkMath::Distance2BetweenPoints( currentToPoint, currentTransformedFromPoint );
-  }
-
-  // Delete // TODO: User smart pointers
-  transformedFromPoints->Delete();
-
-  return sqrt( sumSquaredError / toPoints->GetNumberOfPoints() );
-}
-
-
-bool vtkSlicerBreachWarningLogic
-::CheckCollinear( vtkPoints* points )
-{
-  // Initialize the x,y,z arrays for computing the PCA statistics
-  vtkSmartPointer< vtkDoubleArray > xArray = vtkSmartPointer< vtkDoubleArray >::New();
-  xArray->SetName( "xArray" );
-  vtkSmartPointer< vtkDoubleArray > yArray = vtkSmartPointer< vtkDoubleArray >::New();
-  yArray->SetName( "yArray" );
-  vtkSmartPointer< vtkDoubleArray > zArray = vtkSmartPointer< vtkDoubleArray >::New();
-  zArray->SetName( "zArray" );
-
-  // Put the fiducial position values into the arrays
-  double fiducialPosition[ 3 ] = { 0, 0, 0 };
-  for ( int i = 0; i < points->GetNumberOfPoints(); i++ )
-  {
-    points->GetPoint( i, fiducialPosition );
-    xArray->InsertNextValue( fiducialPosition[ 0 ] );
-    yArray->InsertNextValue( fiducialPosition[ 1 ] );
-    zArray->InsertNextValue( fiducialPosition[ 2 ] );
-  }
-
-  // Aggregate the arrays
-  vtkSmartPointer< vtkTable > arrayTable = vtkSmartPointer< vtkTable >::New();
-  arrayTable->AddColumn( xArray );
-  arrayTable->AddColumn( yArray );
-  arrayTable->AddColumn( zArray );
-
-  // Setup the principal component analysis
-  vtkSmartPointer< vtkPCAStatistics > pcaStatistics = vtkSmartPointer< vtkPCAStatistics >::New();
-  pcaStatistics->SetInput( vtkStatisticsAlgorithm::INPUT_DATA, arrayTable );
-  pcaStatistics->SetColumnStatus( "xArray", 1 );
-  pcaStatistics->SetColumnStatus( "yArray", 1 );
-  pcaStatistics->SetColumnStatus( "zArray", 1 );
-  pcaStatistics->SetDeriveOption( true );
-  pcaStatistics->Update();
-
-  // Calculate the eigenvalues
-  vtkSmartPointer< vtkDoubleArray > eigenvalues = vtkSmartPointer< vtkDoubleArray >::New();
-  pcaStatistics->GetEigenvalues( eigenvalues ); // Eigenvalues are largest to smallest
-
-  // Test that each eigenvalues is bigger than some threshold
-  int goodEigenvalues = 0;
-  for ( int i = 0; i < eigenvalues->GetNumberOfTuples(); i++ )
-  {
-    if ( abs( eigenvalues->GetValue( i ) ) > EIGENVALUE_THRESHOLD )
-    {
-      goodEigenvalues++;
-    }
-  }
-
-  if ( goodEigenvalues <= 1 )
-  {
-    return true;
-  }
-
-  return false;
-}
 
 
 // Node update methods ----------------------------------------------------------
@@ -351,7 +189,7 @@ void vtkSlicerBreachWarningLogic
   // The caller must be a vtkMRMLBreachWarningNode
   if ( callerNode != NULL )
   {
-    this->CalculateTransform( callerNode ); // Will create modified event to update widget
+    // Will create modified event to update widget
   }
 }
 
@@ -370,7 +208,7 @@ void vtkSlicerBreachWarningLogic
     BreachWarningNode->AddObserver( vtkCommand::ModifiedEvent, ( vtkCommand* ) this->GetMRMLNodesCallbackCommand() );
     BreachWarningNode->UpdateScene( this->GetMRMLScene() );
     BreachWarningNode->ObserveAllReferenceNodes(); // This will update
-    this->CalculateTransform( BreachWarningNode ); // Will create modified event to update widget
+    // this->CalculateTransform( BreachWarningNode ); // Will create modified event to update widget
   }
 
 }
