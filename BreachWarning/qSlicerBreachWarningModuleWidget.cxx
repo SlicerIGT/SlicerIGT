@@ -99,10 +99,7 @@ qSlicerBreachWarningModuleWidget
   // Make connections to update the mrml from the widget
   connect( d->ModelNodeComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( UpdateWathedModel() ) );
   connect( d->ToolComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( UpdateToolTipTransform() ) );
-  
-  // connect( d->ProbeTransformComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( UpdateToMRMLNode() ) );
-  // connect( d->OutputTransformComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( UpdateToMRMLNode() ) );
-  // connect( d->RigidRadioButton, SIGNAL( toggled( bool ) ), this, SLOT( UpdateToMRMLNode() ) );
+  connect( d->ColorPickerButton, SIGNAL( colorChanged( QColor ) ), this, SLOT( UpdateWarningColor( QColor ) ) );
   
   // Watch the logic - it is updated whenver the mrml node is updated
   this->qvtkConnect( d->logic(), vtkCommand::ModifiedEvent, this, SLOT( UpdateFromMRMLNode() ) );
@@ -198,6 +195,16 @@ qSlicerBreachWarningModuleWidget
 
 void
 qSlicerBreachWarningModuleWidget
+::UpdateWarningColor( QColor newColor )
+{
+  Q_D(qSlicerBreachWarningModuleWidget);
+  d->logic()->SetWarningColor( newColor.redF(), newColor.greenF(), newColor.blueF(), newColor.alphaF() );
+}
+
+
+
+void
+qSlicerBreachWarningModuleWidget
 ::UpdateFromMRMLNode()
 {
   Q_D( qSlicerBreachWarningModuleWidget );
@@ -220,6 +227,7 @@ qSlicerBreachWarningModuleWidget
   
   d->ModelNodeComboBox->setCurrentNodeID( QString::fromStdString( BreachWarningNode->GetWatchedModelID() ) );
   d->ToolComboBox->setCurrentNodeID( QString::fromStdString( BreachWarningNode->GetToolTipTransformID() ) );
+  // d->ColorPickerButton->
   
   // Unblock all singals from firing
   // TODO: Is there a more efficient way to do this by blokcing slots?

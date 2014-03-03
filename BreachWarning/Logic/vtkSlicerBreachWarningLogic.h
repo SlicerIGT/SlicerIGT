@@ -70,7 +70,7 @@ public:
   
   void SetModelNodeID( std::string newNodeID );
   void SetObservedTransformNode( vtkMRMLNode* newNode );
-
+  void SetWarningColor( double red, double green, double blue, double alpha );
 
   vtkSlicerMarkupsLogic* MarkupsLogic;
 
@@ -91,16 +91,19 @@ protected:
 private:
   vtkSlicerBreachWarningLogic(const vtkSlicerBreachWarningLogic&); // Not implemented
   void operator=(const vtkSlicerBreachWarningLogic&);               // Not implemented
- 
-  ProcessModuleNodeEvents( vtkObject* caller, unsigned long event, void* callData );
-
 
   // Reference to own module node.
 public:
   vtkMRMLBreachWarningNode* GetModuleNode();
   void SetModuleNode( vtkMRMLBreachWarningNode* node );
 private:
+  char* ModuleNodeID;
   vtkMRMLBreachWarningNode* ModuleNode;
+  
+  void ColorModel( bool inside );
+
+  double OriginalColor[4];
+  double WarningColor[4];
 
 };
 

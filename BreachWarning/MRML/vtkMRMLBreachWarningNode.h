@@ -36,6 +36,7 @@ vtkMRMLBreachWarningNode
 : public vtkMRMLNode
 {
 public:
+  
   vtkTypeMacro( vtkMRMLBreachWarningNode, vtkMRMLNode );
   
   // Standard MRML node methods  
@@ -66,12 +67,10 @@ public:
     AlwaysModify
   };
 
-  // Use default setters and getters - vtk set macro will cause modified event
+  
+  vtkGetMacro( ToolInsideModel, bool );
 
   // Watched model defines the risk area that needs to be avoided.
-private:
-  std::string WatchedModelID;
-public:
   void SetWatchedModelID( std::string modelID, int modifyType = DefaultModify );
   std::string GetWatchedModelID();
 
@@ -84,30 +83,14 @@ public:
   void SetToolTipTransformID( std::string newTransformID, int modifyType = DefaultModify );
   std::string GetToolTipTransformID();
   
-  // Old sample.
-  void SetProbeTransformID( std::string newProbeTransformID, int modifyType = DefaultModify );
-  void SetFromFiducialListID( std::string newFromFiducialListID, int modifyType = DefaultModify );
-  void SetToFiducialListID( std::string newToFiducialListID, int modifyType = DefaultModify );
-  void SetOutputTransformID( std::string newOutputTransformID, int modifyType = DefaultModify );
-  void SetRegistrationMode( std::string newRegistrationMode, int modifyType = DefaultModify );
-
-  std::string GetProbeTransformID();
-  std::string GetFromFiducialListID();
-  std::string GetToFiducialListID();
-  std::string GetOutputTransformID();
-  std::string GetRegistrationMode();
-
   std::string GetNodeReferenceIDString( std::string referenceRole );
-
-  void ObserveAllReferenceNodes();
 
   void ProcessMRMLEvents( vtkObject *caller, unsigned long event, void *callData );
 
 private:
-  
+  void UpdateCalculation();
 
-  // Old sample.
-  std::string RegistrationMode;
+  bool ToolInsideModel;
 
 };  
 

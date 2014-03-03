@@ -46,6 +46,7 @@ protected slots:
 
   void UpdateWatchedModel();
   void UpdateToolTipTransform();
+  void UpdateWarningColor( QColor newColor );
   void UpdateFromMRMLNode();
 
 protected:
