@@ -46,6 +46,7 @@ public:
 
 protected slots:
   void initializeObserver(vtkMRMLNode*);
+  void disableSpinCalibration();
   void onStartPivotPart();
   void onStartSpinPart();
   void onPivotStop();

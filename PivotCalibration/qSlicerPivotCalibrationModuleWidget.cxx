@@ -112,6 +112,16 @@ void qSlicerPivotCalibrationModuleWidget::initializeObserver(vtkMRMLNode* node)
   d->logic()->InitializeObserver(node);
 }
 
+
+//-----------------------------------------------------------------------------
+void qSlicerPivotCalibrationModuleWidget::disableSpinCalibration()
+{
+  Q_D(qSlicerPivotCalibrationModuleWidget);
+  
+  d->startSpinButton->setEnabled( false );
+}
+
+
 //-----------------------------------------------------------------------------
 void qSlicerPivotCalibrationModuleWidget::setup()
 {
@@ -127,9 +137,11 @@ void qSlicerPivotCalibrationModuleWidget::setup()
   connect(spinSamplingTimer, SIGNAL( timeout() ), this, SLOT( onSpinSamplingTimeout() )); 
   
   connect( d->InputComboBox, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(initializeObserver(vtkMRMLNode*)) );
+  connect( d->InputComboBox, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(disableSpinCalibration()) );
+  connect( d->OutputComboBox, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(disableSpinCalibration()) );
   
-  connect( d->startButton, SIGNAL( clicked() ), this, SLOT( onStartPivotPart() ) );
-  //connect( d->stopButton, SIGNAL( clicked() ), this, SLOT( onStop() ) );
+  connect( d->startPivotButton, SIGNAL( clicked() ), this, SLOT( onStartPivotPart() ) );
+  connect( d->startSpinButton, SIGNAL( clicked() ), this, SLOT( onStartSpinPart() ) );
   
   connect( d->timerEdit, SIGNAL( valueChanged(double) ), this, SLOT( setTimer(double) ) );
 }
@@ -208,7 +220,6 @@ void qSlicerPivotCalibrationModuleWidget::onPivotSamplingTimeout()
     
     this->pivotSamplingTimer->stop();
     this->onPivotStop();
-    this->onStartSpinPart();
   }  
 }
 
@@ -270,6 +281,7 @@ void qSlicerPivotCalibrationModuleWidget::onPivotStop()
   
   vtkMRMLLinearTransformNode* outputTransform = vtkMRMLLinearTransformNode::SafeDownCast(d->OutputComboBox->currentNode());
   vtkMatrix4x4* outputMatrix = outputTransform->GetMatrixTransformToParent();
+  outputMatrix->Identity(); // Make this identity - spin calibration assumes it is the identity for simplicity
   outputMatrix->SetElement(0,3,d->logic()->Translation[0]);
   outputMatrix->SetElement(1,3,d->logic()->Translation[1]);
   outputMatrix->SetElement(2,3,d->logic()->Translation[2]);
@@ -279,6 +291,8 @@ void qSlicerPivotCalibrationModuleWidget::onPivotStop()
   d->rmseLabel->setText(ss.str().c_str());
   
   d->logic()->ClearSamples();
+
+  d->startSpinButton->setEnabled( true );
 }
 
 
@@ -308,7 +322,10 @@ void qSlicerPivotCalibrationModuleWidget::onSpinStop()
   vtkMatrix4x4::Multiply4x4( outputMatrix, XShaftToStylusTip, XShaftToStylus );
   outputMatrix->DeepCopy( XShaftToStylus );
   
-  // Don't set the rmse label - that was set in the pivot step
+  // Set the rmse label for the circle fitting rms error
+  std::stringstream ss;
+  ss << d->logic()->RMSE;
+  d->rmseLabel->setText(ss.str().c_str());
   
   d->logic()->ClearSamples();
 }

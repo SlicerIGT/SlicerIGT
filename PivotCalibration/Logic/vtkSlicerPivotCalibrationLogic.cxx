@@ -180,6 +180,9 @@ void vtkSlicerPivotCalibrationLogic::ComputePivotCalibration()
 //---------------------------------------------------------------------------
 void vtkSlicerPivotCalibrationLogic::ComputeSpinCalibration()
 {
+  this->Rotation = vnl_matrix<double>( 3, 3, 0.0 );
+  this->Rotation.set_identity();
+
   if ( this->transforms.size() == 0 )
   {
     return;
@@ -216,40 +219,44 @@ void vtkSlicerPivotCalibrationLogic::ComputeSpinCalibration()
   meanStylusPoint_Reference.put( 1, meanStylusPoint_Reference.get( 1 ) / StylusToReferenceTransforms.size() );
   meanStylusPoint_Reference.put( 2, meanStylusPoint_Reference.get( 2 ) / StylusToReferenceTransforms.size() );
 
-  vnl_matrix<double> covariance = stylusPoints_Reference.transpose() * stylusPoints_Reference / StylusToReferenceTransforms.size() - outer_product( meanStylusPoint_Reference, meanStylusPoint_Reference );
+  vnl_matrix<double> stylusCovariance_Reference = stylusPoints_Reference.transpose() * stylusPoints_Reference / StylusToReferenceTransforms.size() - outer_product( meanStylusPoint_Reference, meanStylusPoint_Reference );
   
-  vnl_matrix<double> eigenvectors( 3, 3, 0.0 );
-  vnl_vector<double> eigenvalues( 3, 0.0 );
-  vnl_symmetric_eigensystem_compute( covariance, eigenvectors, eigenvalues );
+  vnl_matrix<double> stylusCovarianceEigenvectors_Reference( 3, 3, 0.0 );
+  vnl_vector<double> stylusCovarianceEigenvalues_Reference( 3, 0.0 );
+  vnl_symmetric_eigensystem_compute( stylusCovariance_Reference, stylusCovarianceEigenvectors_Reference, stylusCovarianceEigenvalues_Reference );
   // Note: eigenvectors are ordered in increasing eigenvalue ( 0 = smallest, end = biggest )
 
-  vnl_vector<double> vector1 = eigenvectors.get_column( 1 );
-  vnl_vector<double> vector2 = eigenvectors.get_column( 2 );
+  vnl_vector<double> basisVector1_Projection = stylusCovarianceEigenvectors_Reference.get_column( 1 );
+  vnl_vector<double> basisVector2_Projection = stylusCovarianceEigenvectors_Reference.get_column( 2 );
 
   // Project positions onto plane
-  vnl_matrix<double> FitCircleMatrix( stylusPoints_Reference.rows(), 3, 0.0 );
-  vnl_vector<double> FitCircleVector( stylusPoints_Reference.rows(), 0.0 );
+  vnl_matrix<double> stylusCircleMatrix_Projection( stylusPoints_Reference.rows(), 3, 0.0 );
+  vnl_vector<double> stylusCircleVector_Projection( stylusPoints_Reference.rows(), 0.0 );
 
   for ( int i = 0; i < stylusPoints_Reference.rows(); i++ )
   {
     vnl_vector<double> currentStylusPoint_Reference = stylusPoints_Reference.get_row( i ) - meanStylusPoint_Reference;
     vnl_vector<double> currentStylusTip_Projection( 2, 0.0 );
-    currentStylusTip_Projection.put( 0, dot_product( currentStylusPoint_Reference, vector1 ) );
-    currentStylusTip_Projection.put( 1, dot_product( currentStylusPoint_Reference, vector2 ) );
+    currentStylusTip_Projection.put( 0, dot_product( currentStylusPoint_Reference, basisVector1_Projection ) );
+    currentStylusTip_Projection.put( 1, dot_product( currentStylusPoint_Reference, basisVector2_Projection ) );
 
-    FitCircleMatrix.put( i, 0, 2 * currentStylusTip_Projection.get( 0 ) );
-    FitCircleMatrix.put( i, 1, 2 * currentStylusTip_Projection.get( 1 ) );
-    FitCircleMatrix.put( i, 2, 1 );
+    stylusCircleMatrix_Projection.put( i, 0, 2 * currentStylusTip_Projection.get( 0 ) );
+    stylusCircleMatrix_Projection.put( i, 1, 2 * currentStylusTip_Projection.get( 1 ) );
+    stylusCircleMatrix_Projection.put( i, 2, 1 );
 
-    FitCircleVector.put( i, currentStylusTip_Projection.get( 0 ) * currentStylusTip_Projection.get( 0 ) + currentStylusTip_Projection.get( 1 ) * currentStylusTip_Projection.get( 1 ) );
+    stylusCircleVector_Projection.put( i, currentStylusTip_Projection.get( 0 ) * currentStylusTip_Projection.get( 0 ) + currentStylusTip_Projection.get( 1 ) * currentStylusTip_Projection.get( 1 ) );
   }
 
   // Solve the system
-  vnl_svd<double> CircleSolver( FitCircleMatrix );
-  vnl_vector<double> stylusRotationCentre_Projection = CircleSolver.solve( FitCircleVector );
+  vnl_svd<double> stylusCircleSolver_Reference( stylusCircleMatrix_Projection );
+  vnl_vector<double> stylusRotationCentre_Projection = stylusCircleSolver_Reference.solve( stylusCircleVector_Projection );
+
+  // This will compute the rms of the square roots of the residual vector
+  // This is a better error metrics because the residuals are the sums/differences of squared quantities
+  this->RMSE = sqrt( ( stylusCircleMatrix_Projection * stylusRotationCentre_Projection - stylusCircleVector_Projection ).one_norm() / stylusCircleVector_Projection.size() );
 
   // Unproject the centre
-  vnl_vector<double> stylusRotationCentre_Reference = stylusRotationCentre_Projection.get( 0 ) * vector1 + stylusRotationCentre_Projection.get( 1 ) * vector2 + meanStylusPoint_Reference;
+  vnl_vector<double> stylusRotationCentre_Reference = stylusRotationCentre_Projection.get( 0 ) * basisVector1_Projection + stylusRotationCentre_Projection.get( 1 ) * basisVector2_Projection + meanStylusPoint_Reference;
   
   // Put into the StylusTip coordinate system
   double arrayStylusRotationCentre_Reference[ 4 ] = { stylusRotationCentre_Reference[ 0 ], stylusRotationCentre_Reference[ 1 ], stylusRotationCentre_Reference[ 2 ], 1 };
@@ -316,9 +323,9 @@ void vtkSlicerPivotCalibrationLogic::ComputeSpinCalibration()
   XShaftPoints.put( 2, 1, 0 );
   XShaftPoints.put( 2, 2, 0 );
   
-  vnl_svd<double> registrator( XShaftPoints.transpose() * StylusTipPoints );
+  vnl_svd<double> XShaftToStylusTipRegistrator( XShaftPoints.transpose() * StylusTipPoints );
     
-  this->Rotation = registrator.V() * registrator.U().transpose();
+  this->Rotation = XShaftToStylusTipRegistrator.V() * XShaftToStylusTipRegistrator.U().transpose();
 }
 
 
