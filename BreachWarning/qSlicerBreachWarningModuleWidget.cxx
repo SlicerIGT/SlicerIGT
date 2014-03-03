@@ -219,6 +219,7 @@ qSlicerBreachWarningModuleWidget
   disconnect( d->ToolComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( UpdateToolTipTransform() ) );
   
   d->ModelNodeComboBox->setCurrentNodeID( QString::fromStdString( BreachWarningNode->GetWatchedModelID() ) );
+  d->ToolComboBox->setCurrentNodeID( QString::fromStdString( BreachWarningNode->GetToolTipTransformID() ) );
   
   // Unblock all singals from firing
   // TODO: Is there a more efficient way to do this by blokcing slots?

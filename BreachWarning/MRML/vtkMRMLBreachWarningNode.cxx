@@ -405,5 +405,6 @@ std::string vtkMRMLBreachWarningNode
 void vtkMRMLBreachWarningNode
 ::ProcessMRMLEvents( vtkObject *caller, unsigned long event, void *callData )
 {
+
   this->Modified(); // This will tell the logic to update
 }

@@ -38,6 +38,8 @@
 #include <vtkLandmarkTransform.h>
 #include <vtkPoints.h>
 #include "vtkSmartPointer.h"
+
+// For referencing own MRML node
 #include "vtkMRMLBreachWarningNode.h"
 
 
@@ -75,8 +77,6 @@ public:
   void ProcessMRMLNodesEvents( vtkObject* caller, unsigned long event, void* callData );
   void ProcessMRMLSceneEvents( vtkObject* caller, unsigned long event, void* callData );
   
-  std::string GetOutputMessage( std::string nodeID );
-  
 protected:
   vtkSlicerBreachWarningLogic();
   virtual ~vtkSlicerBreachWarningLogic();
@@ -92,9 +92,16 @@ private:
   vtkSlicerBreachWarningLogic(const vtkSlicerBreachWarningLogic&); // Not implemented
   void operator=(const vtkSlicerBreachWarningLogic&);               // Not implemented
  
-  std::map< std::string, std::string > OutputMessages;
+  ProcessModuleNodeEvents( vtkObject* caller, unsigned long event, void* callData );
 
-  void SetOutputMessage( std::string nodeID, std::string newOutputMessage ); // The modified event will tell the widget to update (only needs to update when transform is calculated)
+
+  // Reference to own module node.
+public:
+  vtkMRMLBreachWarningNode* GetModuleNode();
+  void SetModuleNode( vtkMRMLBreachWarningNode* node );
+private:
+  vtkMRMLBreachWarningNode* ModuleNode;
+
 };
 
 #endif
