@@ -46,13 +46,17 @@ public:
 
 protected slots:
   void initializeObserver(vtkMRMLNode*);
-  void onStartButton();
-  void onStop();
+  void onStartPivotPart();
+  void onStartSpinPart();
+  void onPivotStop();
+  void onSpinStop();
   
   void setTimer(double);
   
-  void onDelayTimeout();
-  void onSamplingTimeout();
+  void onPivotDelayTimeout();
+  void onPivotSamplingTimeout();
+  void onSpinDelayTimeout();
+  void onSpinSamplingTimeout();
   
 protected:
   QScopedPointer<qSlicerPivotCalibrationModuleWidgetPrivate> d_ptr;
@@ -61,11 +65,17 @@ protected:
   
   int timerSetting;
   
-  QTimer* delayTimer;
-  int delayCount;
+  QTimer* pivotDelayTimer;
+  int pivotDelayCount;
   
-  QTimer* samplingTimer;
-  int samplingCount;
+  QTimer* pivotSamplingTimer;
+  int pivotSamplingCount;
+
+  QTimer* spinDelayTimer;
+  int spinDelayCount;
+  
+  QTimer* spinSamplingTimer;
+  int spinSamplingCount;
 
 
 private:
