@@ -4,7 +4,7 @@ set( EXTENSION_NAME SlicerIGT )
 
 set( EXTENSION_HOMEPAGE "http://slicerigt.github.com/" )
 set( EXTENSION_CATEGORY "IGT" )
-set( EXTENSION_CONTRIBUTORS "Tamas Ungi, Andras Lasso, Adam Rankin (Queen's University), Junichi Tokuda (Brigham and Women's Hospital)" )
+set( EXTENSION_CONTRIBUTORS "Tamas Ungi (Queen's University), Junichi Tokuda (Brigham and Women's Hospital)" )
 set( EXTENSION_DESCRIPTION "This extension contains modules that enable rapid prototyping of applications for image-guided interventions. Intended users should have real-time imaging and/or tracking hardware (e.g. tracked ultrasound) connected to 3D Slicer through OpenIGTLink network. Specific modules allow patient registration to the navigation coordinate system in 3D Slicer, and real-time update of tracked models and images." )
 set( EXTENSION_ICONURL "http://www.slicer.org/slicerWiki/images/2/2b/SlicerIGTLogo.png" )
 set( EXTENSION_SCREENSHOTURLS "http://www.slicer.org/slicerWiki/images/7/78/SlicerIGTScreenshot.png" )
@@ -19,6 +19,7 @@ include( ${Slicer_USE_FILE} )
 option( SLICERIGT_ENABLE_EXPERIMENTAL_MODULES "Enable building of work-in-progress, experimental modules." OFF )
 
 set( SlicerIGT_Modules
+  BreachWarning
   CollectFiducials
   CreateModels
   FiducialRegistrationWizard
