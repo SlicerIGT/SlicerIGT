@@ -125,6 +125,13 @@
        </widget>
       </item>
       <item>
+       <widget class="QCheckBox" name="snapCheckBox">
+        <property name="text">
+         <string>Snap rotation to right-angle</string>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="QLabel" name="CountdownLabel">
         <property name="text">
          <string>Countdown</string>

@@ -54,6 +54,8 @@ public:
   void AddSample(vtkMatrix4x4*);
   void ComputePivotCalibration();
   void ComputeSpinCalibration();
+
+  void SnapRotationRightAngle();
   
   void ProcessMRMLNodesEvents( vtkObject* caller, unsigned long event, void* callData );
   

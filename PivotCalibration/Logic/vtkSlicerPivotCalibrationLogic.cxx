@@ -28,14 +28,17 @@
 #include <vtkCommand.h>
 #include <vtkMatrix4x4.h>
 #include <vtkObjectFactory.h>
+#include <vtkTransform.h>
 
 // STD includes
 #include <cassert>
+#include <cmath>
 
 // VNL includes
 #include "vnl/algo/vnl_symmetric_eigensystem.h"
 #include "vnl/vnl_vector.h"
 #include "vnl/algo/vnl_svd.h"
+#include "vnl/algo/vnl_determinant.h"
 
 
 //----------------------------------------------------------------------------
@@ -324,8 +327,90 @@ void vtkSlicerPivotCalibrationLogic::ComputeSpinCalibration()
   XShaftPoints.put( 2, 2, 0 );
   
   vnl_svd<double> XShaftToStylusTipRegistrator( XShaftPoints.transpose() * StylusTipPoints );
-    
-  this->Rotation = XShaftToStylusTipRegistrator.V() * XShaftToStylusTipRegistrator.U().transpose();
+  vnl_matrix<double> V = XShaftToStylusTipRegistrator.V();
+  vnl_matrix<double> U = XShaftToStylusTipRegistrator.U();
+  this->Rotation = V * U.transpose();
+
+  // Make sure the determinant is positve (i.e. +1)
+  double determinant = vnl_determinant( this->Rotation );
+  if ( determinant > 0 )
+  {
+    return;
+  }
+
+  // Switch the sign of the third column of V if the determinant is not +1
+  // This is the recommended approach from Huang et al. 1987
+  V.put( 0, 2, -V.get( 0, 2 ) );
+  V.put( 1, 2, -V.get( 1, 2 ) );
+  V.put( 2, 2, -V.get( 2, 2 ) );
+
+  this->Rotation = V * U.transpose();
+}
+
+
+//---------------------------------------------------------------------------
+void vtkSlicerPivotCalibrationLogic::SnapRotationRightAngle()
+{
+  if ( this->Rotation.rows() != 3 || this->Rotation.cols() != 3 )
+  {
+    return;
+  }
+
+  // The idea is to find the axis-angle representation
+  // Then find the closest coordinate axis to the rotation
+  // Then round the angle to the nearest multiple of 90 degrees
+  vtkSmartPointer< vtkTransform > XShaftToStylusTipTransform = vtkSmartPointer< vtkTransform >::New();
+  vtkSmartPointer< vtkMatrix4x4 > XShaftToStylusTipMatrix = vtkSmartPointer< vtkMatrix4x4 >::New();
+  XShaftToStylusTipMatrix->SetElement( 0, 0, this->Rotation.get( 0, 0 ) );
+  XShaftToStylusTipMatrix->SetElement( 0, 1, this->Rotation.get( 0, 1 ) );
+  XShaftToStylusTipMatrix->SetElement( 0, 2, this->Rotation.get( 0, 2 ) );
+  XShaftToStylusTipMatrix->SetElement( 1, 0, this->Rotation.get( 1, 0 ) );
+  XShaftToStylusTipMatrix->SetElement( 1, 1, this->Rotation.get( 1, 1 ) );
+  XShaftToStylusTipMatrix->SetElement( 1, 1, this->Rotation.get( 1, 2 ) );
+  XShaftToStylusTipMatrix->SetElement( 2, 0, this->Rotation.get( 2, 0 ) );
+  XShaftToStylusTipMatrix->SetElement( 2, 1, this->Rotation.get( 2, 1 ) );
+  XShaftToStylusTipMatrix->SetElement( 2, 2, this->Rotation.get( 2, 2 ) );
+
+  XShaftToStylusTipTransform->SetMatrix( XShaftToStylusTipMatrix );
+
+  // Get the axis-angl representation
+  double XShaftToStylusTipOrientationWXYZ[ 4 ] = { 0.0, 0.0, 0.0, 0.0 };
+  XShaftToStylusTipTransform->GetOrientationWXYZ( XShaftToStylusTipOrientationWXYZ );
+
+  // Calculate the right-angle axis vector
+  vnl_vector<double> XShaftToStylusTipAxisVector( 3, 0.0 );
+  XShaftToStylusTipAxisVector.put( 0, XShaftToStylusTipOrientationWXYZ[ 1 ] );
+  XShaftToStylusTipAxisVector.put( 1, XShaftToStylusTipOrientationWXYZ[ 2 ] );
+  XShaftToStylusTipAxisVector.put( 2, XShaftToStylusTipOrientationWXYZ[ 3 ] );
+  int maxAbsAxisVectorLocation = element_product( XShaftToStylusTipAxisVector, XShaftToStylusTipAxisVector ).arg_max();
+
+  vnl_vector<double> XShaftToStylusTipSnapAxisVector( 3, 0.0 );
+  XShaftToStylusTipSnapAxisVector.put( maxAbsAxisVectorLocation, XShaftToStylusTipAxisVector.get( maxAbsAxisVectorLocation ) );
+  XShaftToStylusTipSnapAxisVector.normalize();
+
+  double XShaftToStylusTipSnapAxisArray[ 3 ] = { 0.0, 0.0, 0.0 };
+  XShaftToStylusTipSnapAxisArray[ 0 ] = XShaftToStylusTipSnapAxisVector.get( 0 );
+  XShaftToStylusTipSnapAxisArray[ 1 ] = XShaftToStylusTipSnapAxisVector.get( 1 );
+  XShaftToStylusTipSnapAxisArray[ 2 ] = XShaftToStylusTipSnapAxisVector.get( 2 );
+
+  // Calculate the 90 degree rotation
+  double XShaftToStylusTipSnapAngle = 90 * floor( XShaftToStylusTipOrientationWXYZ[ 0 ] / 90 + 0.5 ); // Trick for raounding without round function
+
+  // Put it back into a matrix
+  vtkSmartPointer< vtkTransform > XShaftToStylusTipSnapTransform = vtkSmartPointer< vtkTransform >::New();
+  XShaftToStylusTipSnapTransform->RotateWXYZ( XShaftToStylusTipSnapAngle, XShaftToStylusTipSnapAxisArray );
+  vtkSmartPointer< vtkMatrix4x4 > XShaftToStylusTipSnapMatrix = XShaftToStylusTipSnapTransform->GetMatrix();
+
+  this->Rotation.put( 0, 0, XShaftToStylusTipSnapMatrix->GetElement( 0, 0 ) );
+  this->Rotation.put( 0, 1, XShaftToStylusTipSnapMatrix->GetElement( 0, 1 ) );
+  this->Rotation.put( 0, 2, XShaftToStylusTipSnapMatrix->GetElement( 0, 2 ) );
+  this->Rotation.put( 1, 0, XShaftToStylusTipSnapMatrix->GetElement( 1, 0 ) );
+  this->Rotation.put( 1, 1, XShaftToStylusTipSnapMatrix->GetElement( 1, 1 ) );
+  this->Rotation.put( 1, 2, XShaftToStylusTipSnapMatrix->GetElement( 1, 2 ) );
+  this->Rotation.put( 2, 0, XShaftToStylusTipSnapMatrix->GetElement( 2, 0 ) );
+  this->Rotation.put( 2, 1, XShaftToStylusTipSnapMatrix->GetElement( 2, 1 ) );
+  this->Rotation.put( 2, 2, XShaftToStylusTipSnapMatrix->GetElement( 2, 2 ) );
+
 }
 
 
