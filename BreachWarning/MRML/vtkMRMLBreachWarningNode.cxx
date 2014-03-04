@@ -206,7 +206,7 @@ double
 vtkMRMLBreachWarningNode
 ::GetWarningColorComponent( int c )
 {
-  if ( c > 0 && c < 4 )
+  if ( c >= 0 && c < 4 )
   {
     return this->WarningColor[ c ];
   }
@@ -235,7 +235,7 @@ double
 vtkMRMLBreachWarningNode
 ::GetOriginalColorComponent( int c )
 {
-  if ( c > 0 && c < 4 )
+  if ( c >= 0 && c < 4 )
   {
     return this->OriginalColor[ c ];
   }

@@ -136,6 +136,20 @@ qSlicerBreachWarningModuleWidget
     this->mrmlScene()->AddNode( newNode );
   }
 
+  node = this->mrmlScene()->GetNthNodeByClass( 0, "vtkMRMLBreachWarningNode" );
+  if ( node == NULL )
+  {
+    qCritical( "Failed to create module node" );
+    return;
+  }
+
+  // For convenience, select a default module.
+
+  if ( d->ModuleNodeComboBox->currentNode() == NULL )
+  {
+    d->ModuleNodeComboBox->setCurrentNodeID( node->GetID() );
+  }
+
   this->Superclass::enter();
 }
 
@@ -286,6 +300,9 @@ qSlicerBreachWarningModuleWidget
     d->ModelNodeComboBox->setCurrentNodeID( "" );
   }
   
-  d->ColorPickerButton->setColor( QColor( d->logic()->GetWarningColorComponent( 0, bwNode ), d->logic()->GetWarningColorComponent( 1, bwNode ), d->logic()->GetWarningColorComponent( 2, bwNode ) ) );
+  d->ColorPickerButton->setColor( QColor( 
+    d->logic()->GetWarningColorComponent( 0, bwNode ),
+    d->logic()->GetWarningColorComponent( 1, bwNode ),
+    d->logic()->GetWarningColorComponent( 2, bwNode ) ) );
   
 }

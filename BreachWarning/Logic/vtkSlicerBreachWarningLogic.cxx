@@ -138,11 +138,17 @@ vtkSlicerBreachWarningLogic
 
   if ( inside )
   {
-    modelNode->GetDisplayNode()->SetColor( bwNode->GetWarningColorComponent( 0 ), bwNode->GetWarningColorComponent( 1 ), bwNode->GetWarningColorComponent( 2 ) );
+    double r = bwNode->GetWarningColorComponent( 0 );
+    double g = bwNode->GetWarningColorComponent( 1 );
+    double b = bwNode->GetWarningColorComponent( 2 );
+    modelNode->GetDisplayNode()->SetColor( r, g, b );
   }
   else
   {
-    modelNode->GetDisplayNode()->SetColor( bwNode->GetOriginalColorComponent( 0 ), bwNode->GetOriginalColorComponent( 1 ), bwNode->GetOriginalColorComponent( 2 ) );
+    double r = bwNode->GetOriginalColorComponent( 0 );
+    double g = bwNode->GetOriginalColorComponent( 1 );
+    double b = bwNode->GetOriginalColorComponent( 2 );
+    modelNode->GetDisplayNode()->SetColor( r, g, b );
   }
 }
 
