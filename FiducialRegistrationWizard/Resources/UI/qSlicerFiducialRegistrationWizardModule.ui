@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>560</width>
+    <width>492</width>
     <height>478</height>
    </rect>
   </property>
@@ -101,7 +101,7 @@
               <string>Transform for locating fiducials</string>
              </property>
              <property name="text">
-              <string>Probe transform: </string>
+              <string>Probe transform (parents will be applied): </string>
              </property>
             </widget>
            </item>
@@ -285,6 +285,7 @@
    <class>qMRMLNodeComboBox</class>
    <extends>QWidget</extends>
    <header>qMRMLNodeComboBox.h</header>
+   <container>1</container>
   </customwidget>
   <customwidget>
    <class>qSlicerWidget</class>
