@@ -208,7 +208,7 @@ vtkSlicerBreachWarningLogic
     return;
   }
 
-  this->BreachWarningNode->SetWatchedModelID( newNodeID );
+  this->BreachWarningNode->SetWatchedModelNodeID( newNode->GetID() );
 }
 
 
@@ -219,7 +219,7 @@ vtkSlicerBreachWarningLogic
 {
   if ( newNode == NULL )
   {
-    this->BreachWarningNode->SetToolTipTransformID( "" );
+    this->BreachWarningNode->SetAndObserveToolTransformNodeId( "" );
     return;
   }
 
@@ -230,7 +230,7 @@ vtkSlicerBreachWarningLogic
     return;
   }
 
-  this->BreachWarningNode->SetToolTipTransformID( std::string( ltNode->GetID() ) );
+  this->BreachWarningNode->SetAndObserveToolTransformNodeId( newNode->GetID() );
 }
 
 
@@ -243,6 +243,20 @@ vtkSlicerBreachWarningLogic
   this->WarningColor[ 1 ] = green;
   this->WarningColor[ 2 ] = blue;
   this->WarningColor[ 3 ] = alpha;
+}
+
+
+
+double
+vtkSlicerBreachWarningLogic
+::GetWarningColorComponent( int c )
+{
+  if ( c < 0 || c > 3 )
+  {
+    vtkErrorMacro( "Invalid color component index" );
+    return 0.0;
+  }
+  return this->WarningColor[ c ];
 }
 
 
@@ -300,10 +314,9 @@ void
 vtkSlicerBreachWarningLogic
 ::ColorModel( bool inside )
 {
-  vtkMRMLNode* nodeModel = this->GetMRMLScene()->GetNodeByID( this->BreachWarningNode->GetWatchedModelID() );
-  if ( nodeModel == NULL ) return;
+  if ( this->ModuleNode == NULL ) return;
 
-  vtkMRMLModelNode* modelNode = vtkMRMLModelNode::SafeDownCast( nodeModel );
+  vtkMRMLModelNode* modelNode = this->ModuleNode->GetWatchedModelNode();
   if ( modelNode == NULL ) return;
 
   if ( inside )

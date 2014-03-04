@@ -18,37 +18,14 @@
 #include <vtkSelectEnclosedPoints.h>
 #include <vtkSmartPointer.h>
 
+// Other includes
+#include <sstream>
 
-// Constants ------------------------------------------------------------------
-static const char* MODEL_ROLE = "WatchedModel";
-static const char* TOOL_ROLE = "ToolToRasTransform";
-
-
-// MACROS ---------------------------------------------------------------------
-
-#define DELETE_IF_NOT_NULL(x) \
-  if ( x != NULL ) \
-    { \
-    x->Delete(); \
-    x = NULL; \
-    }
-
-#define WRITE_STRING_XML(x) \
-  if ( this->x != NULL ) \
-  { \
-    of << indent << " "#x"=\"" << this->x << "\"\n"; \
-  }
-
-#define READ_AND_SET_STRING_XML(x) \
-    if ( !strcmp( attName, #x ) ) \
-      { \
-      this->SetAndObserve##x( NULL ); \
-      this->Set##x( attValue ); \
-      }
+// Constants
+static const char* MODEL_ROLE = "WatchedModelNode";
+static const char* TOOL_ROLE = "ToolTransformNode";
 
 
-// Constructors and Destructors
-// ----------------------------------------------------------------------------
 
 vtkMRMLBreachWarningNode* vtkMRMLBreachWarningNode
 ::New()
@@ -73,8 +50,6 @@ vtkMRMLBreachWarningNode
   
   this->AddNodeReferenceRole( MODEL_ROLE );
   this->AddNodeReferenceRole( TOOL_ROLE );
-
-  this->Modified();
 }
 
 
@@ -86,7 +61,8 @@ vtkMRMLBreachWarningNode
 
 
 
-vtkMRMLNode* vtkMRMLBreachWarningNode
+vtkMRMLNode*
+vtkMRMLBreachWarningNode
 ::CreateNodeInstance()
 {
   // First try to create the object from the vtkObjectFactory
@@ -101,20 +77,18 @@ vtkMRMLNode* vtkMRMLBreachWarningNode
 
 
 
-// Scene: Save and load
-// ----------------------------------------------------------------------------
-
-
 void
 vtkMRMLBreachWarningNode
 ::WriteXML( ostream& of, int nIndent )
 {
   Superclass::WriteXML(of, nIndent); // This will take care of referenced nodes
-
   vtkIndent indent(nIndent);
-  
-  of << indent << " WatchedModelID=\"" << this->GetNodeReferenceIDString( MODEL_ROLE ) << "\"\n";
-  of << indent << " ToolTipTransformID=\"" << this->GetNodeReferenceIDString( TOOL_ROLE) << "\"\n";
+
+  of << indent << " WarningColorR=\"" << this->WarningColor[ 0 ] << "\"";
+  of << indent << " WarningColorG=\"" << this->WarningColor[ 1 ] << "\"";
+  of << indent << " WarningColorB=\"" << this->WarningColor[ 2 ] << "\"";
+  of << indent << " WarningColorA=\"" << this->WarningColor[ 3 ] << "\"";
+  of << indent << " ToolInsideModel=\"" << ( this->ToolInsideModel ? "true" : "false" ) << "\"";
 }
 
 
@@ -129,22 +103,55 @@ vtkMRMLBreachWarningNode
   const char* attName;
   const char* attValue;
 
-  // This does nothing now.
   while (*atts != NULL)
   {
     attName  = *(atts++);
     attValue = *(atts++);
     
-    /*
-    if ( ! strcmp( attName, "ToolTipTransformID" ) )
+    if ( ! strcmp( attName, "WarningColorR" ) )
     {
-      this->ToolTipTransformID = std::string( attValue );
+      std::stringstream ss;
+      ss << attValue;
+      double r = 0.0;
+      ss >> r;
+      this->WarningColor[ 0 ] = r;
     }
-    */
-
+    else if ( ! strcmp( attName, "WarningColorG" ) )
+    {
+      std::stringstream ss;
+      ss << attValue;
+      double g = 0.0;
+      ss >> g;
+      this->WarningColor[ 1 ] = g;
+    }
+    else if ( ! strcmp( attName, "WarningColorB" ) )
+    {
+      std::stringstream ss;
+      ss << attValue;
+      double r = 0.0;
+      ss >> r;
+      this->WarningColor[ 2 ] = r;
+    }
+    else if ( ! strcmp( attName, "WarningColorA" ) )
+    {
+      std::stringstream ss;
+      ss << attValue;
+      double r = 0.0;
+      ss >> r;
+      this->WarningColor[ 3 ] = r;
+    }
+    else if ( ! strcmp( attName, "ToolInsideModel" ) )
+    {
+      if (!strcmp(attValue,"true"))
+      {
+        this->ToolInsideModel = true;
+      }
+      else
+      {
+        this->ToolInsideModel = false;
+      }
+    }
   }
-
-  this->Modified();
 }
 
 
@@ -157,6 +164,11 @@ vtkMRMLBreachWarningNode
   
   vtkMRMLBreachWarningNode *node = ( vtkMRMLBreachWarningNode* ) anode;
   
+  for ( int i = 0; i < 4; ++ i )
+  {
+    this->WarningColor[ i ] = node->WarningColor[ i ];
+  }
+
   this->ToolInsideModel = node->ToolInsideModel;
   
   this->Modified();
@@ -170,99 +182,47 @@ vtkMRMLBreachWarningNode
 {
   vtkMRMLNode::PrintSelf(os,indent); // This will take care of referenced nodes
 
-  os << indent << "WatchedModelID: " << this->GetNodeReferenceIDString( MODEL_ROLE ) << std::endl;
-  os << indent << "ToolTipTransformID: " << this->GetNodeReferenceIDString( TOOL_ROLE ) << std::endl;
+  os << indent << "WatchedModelID: " << this->GetWatchedModelNode()->GetID() << std::endl;
+  os << indent << "ToolTipTransformID: " << this->GetToolTransformNode()->GetID() << std::endl;
   os << indent << "ToolInsideModel: " << this->ToolInsideModel << std::endl;
 }
 
 
 
-void
+vtkMRMLModelNode*
 vtkMRMLBreachWarningNode
-::SetWatchedModelID( std::string modelID, int modifyType )
+::GetWatchedModelNode()
 {
-  bool modify = false;
-
-  if ( modelID.compare( "" ) == 0 )
-  {
-    this->RemoveAllNodeReferenceIDs( MODEL_ROLE );
-    return;
-  }
-
-  if ( this->GetWatchedModelID() != modelID )
-  {
-    if ( modifyType == DefaultModify || modifyType == AlwaysModify )
-    {
-      modify = true;
-    }
-    this->SetAndObserveNodeReferenceID( MODEL_ROLE, modelID.c_str() );
-  }
-
-  if ( modify )
-  {
-    this->Modified();
-  }
-}
-
-
-
-std::string
-vtkMRMLBreachWarningNode
-::GetWatchedModelID()
-{
-  return this->GetNodeReferenceIDString( MODEL_ROLE );
+  vtkMRMLModelNode* modelNode = vtkMRMLModelNode::SafeDownCast( this->GetNodeReference( MODEL_ROLE ) );
+  return modelNode;
 }
 
 
 
 void
 vtkMRMLBreachWarningNode
-::SetToolTipTransformID( std::string newTransformID, int modifyType )
+::SetWatchedModelNodeID( const char* modelId )
 {
-  if ( newTransformID.compare( "" ) == 0 )
-  {
-    this->RemoveAllNodeReferenceIDs( TOOL_ROLE );
-    return;
-  }
+  this->SetNodeReferenceID( MODEL_ROLE, modelId );
+}
   
-  if ( this->GetToolTipTransformID() != newTransformID )
-  {
-    this->SetNodeReferenceID( TOOL_ROLE, newTransformID.c_str() );
-  }
-  if ( this->GetToolTipTransformID() != newTransformID && modifyType == DefaultModify || modifyType == AlwaysModify )
-  {
-    this->Modified();
-  }
+
+
+vtkMRMLLinearTransformNode*
+vtkMRMLBreachWarningNode
+::GetToolTransformNode()
+{
+  vtkMRMLLinearTransformNode* ltNode = vtkMRMLLinearTransformNode::SafeDownCast( this->GetNodeReference( TOOL_ROLE ) );
+  return ltNode;
 }
 
 
 
-std::string
+void
 vtkMRMLBreachWarningNode
-::GetToolTipTransformID()
+::SetAndObserveToolTransformNodeId( const char* nodeId )
 {
-  return this->GetNodeReferenceIDString( TOOL_ROLE );
-}
-
-
-
-std::string
-vtkMRMLBreachWarningNode
-::GetNodeReferenceIDString( std::string referenceRole )
-{
-  const char* refID = this->GetNodeReferenceID( referenceRole.c_str() );
-  std::string refIDString;
-
-  if ( refID == NULL )
-  {
-    refIDString = std::string( "" );
-  }
-  else
-  {
-    refIDString = std::string( refID );
-  }
-
-  return refIDString;
+  this->SetAndObserveNodeReferenceID( TOOL_ROLE, nodeId );
 }
 
 
@@ -274,7 +234,7 @@ vtkMRMLBreachWarningNode
   vtkMRMLNode* callerNode = vtkMRMLNode::SafeDownCast( caller );
   if ( callerNode == NULL ) return;
 
-  if ( this->GetNodeReferenceIDString( TOOL_ROLE ).compare( callerNode->GetID() ) == 0
+  if ( strcmp( this->GetToolTransformNode()->GetID(), callerNode->GetID() ) == 0 
     && event == vtkMRMLTransformNode::TransformModifiedEvent )
   {
     this->UpdateCalculation();

@@ -70,7 +70,9 @@ public:
   
   void SetModelNodeID( std::string newNodeID );
   void SetObservedTransformNode( vtkMRMLNode* newNode );
+
   void SetWarningColor( double red, double green, double blue, double alpha );
+  double GetWarningColorComponent( int c );
 
   vtkSlicerMarkupsLogic* MarkupsLogic;
 

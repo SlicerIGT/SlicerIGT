@@ -28,6 +28,10 @@
 #include "vtkMRMLBreachWarningNode.h"
 #include "vtkMRMLLinearTransformNode.h"
 #include "vtkMRMLMarkupsFiducialNode.h"
+#include "vtkMRMLModelNode.h"
+#include "vtkMRMLNode.h"
+#include "vtkMRMLScene.h"
+
 
 
 //-----------------------------------------------------------------------------
@@ -99,7 +103,7 @@ qSlicerBreachWarningModuleWidget
 
   this->setMRMLScene( d->logic()->GetMRMLScene() );
 
-  connect( d->ModuleNodeComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( UpdateFromMRMLNode() ) );
+  connect( d->ModuleNodeComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onModuleNodeChanged() ) );
 
   // Make connections to update the mrml from the widget
   connect( d->ModelNodeComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( UpdateWathedModel() ) );
@@ -205,8 +209,29 @@ qSlicerBreachWarningModuleWidget
 
 
 
+void
+qSlicerBreachWarningModuleWidget
+::onModuleNodeChanged()
+{
+  Q_D( qSlicerBreachWarningModuleWidget );
+
+  vtkMRMLNode* currentNode = d->ModelNodeComboBox->currentNode();
+  if ( currentNode == NULL )
+  {
+    d->logic()->SetAndObserveBreachWarningNode( NULL );
+  }
+  else
+  {
+    d->logic()->SetAndObserveBreachWarningNode( vtkMRMLBreachWarningNode::SafeDownCast( currentNode ) );
+  }
+
+  this->UpdateFromMRMLNode();
+}
+
+
+
 void qSlicerBreachWarningModuleWidget
-::UpdateWatchedModel()
+::onModelNodeChanged()
 {
   Q_D( qSlicerBreachWarningModuleWidget );
 
@@ -217,20 +242,15 @@ void qSlicerBreachWarningModuleWidget
     return;
   }
 
-  this->qvtkBlockAll( true );
-
   if ( d->ModelNodeComboBox->currentNode() == NULL )
   {
-    BreachWarningNode->SetWatchedModelID( "", vtkMRMLBreachWarningNode::NeverModify );
+    BreachWarningNode->SetWatchedModelNodeID( "" );
   }
   else
   {
-    BreachWarningNode->SetWatchedModelID( d->ModelNodeComboBox->currentNode()->GetID(), vtkMRMLBreachWarningNode::NeverModify );
+    BreachWarningNode->SetWatchedModelNodeID( d->ModelNodeComboBox->currentNode()->GetID() );
   }
   
-  this->qvtkBlockAll( false );
-
-  // The modified event will be blocked... Now allow it to happen
   d->ModuleNodeComboBox->currentNode()->Modified();
   this->UpdateFromMRMLNode();
 }
@@ -252,11 +272,11 @@ qSlicerBreachWarningModuleWidget
 
   if ( d->ToolComboBox->currentNode() == NULL )
   {
-    moduleNode->SetToolTipTransformID( "", vtkMRMLBreachWarningNode::NeverModify );
+    moduleNode->SetAndObserveToolTransformNodeId( "" );
   }
   else
   {
-    moduleNode->SetToolTipTransformID( d->ToolComboBox->currentNode()->GetID(), vtkMRMLBreachWarningNode::NeverModify );
+    moduleNode->SetAndObserveToolTransformNodeId( d->ToolComboBox->currentNode()->GetID() );
   }
 
   this->qvtkBlockAll( false );
@@ -282,30 +302,44 @@ qSlicerBreachWarningModuleWidget
 ::UpdateFromMRMLNode()
 {
   Q_D( qSlicerBreachWarningModuleWidget );
+  
+  vtkMRMLBreachWarningNode* moduleNode = d->logic()->GetBreachWarningNode();
 
-  vtkMRMLBreachWarningNode* BreachWarningNode = vtkMRMLBreachWarningNode::SafeDownCast( d->ModuleNodeComboBox->currentNode() );
-
-  if ( BreachWarningNode == NULL )
+  if ( moduleNode != NULL )
   {
+    d->ModelNodeComboBox->setEnabled( true );
+    d->ToolComboBox->setEnabled( true );
+    d->ModuleNodeComboBox->setCurrentNode( d->logic()->GetBreachWarningNode() );
+  }
+  else
+  {
+    d->ToolComboBox->setCurrentNodeID( "" );
+    d->ModelNodeComboBox->setCurrentNodeID( "" );
     d->ModelNodeComboBox->setEnabled( false );
     d->ToolComboBox->setEnabled( false );
     return;
   }
 
-  d->ModelNodeComboBox->setEnabled( true );
-  d->ToolComboBox->setEnabled( true );
+  
+  if ( moduleNode->GetToolTransformNode() != NULL )
+  {
+    d->ToolComboBox->setCurrentNodeID( QString::fromStdString( moduleNode->GetToolTransformNode()->GetID() ) );
+  }
+  else
+  {
+    d->ToolComboBox->setCurrentNodeID( "" );
+    
+  }
 
-  // Disconnect to prevent signals form cuing slots
-  disconnect( d->ModelNodeComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( UpdateWatchedModel() ) );
-  disconnect( d->ToolComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( UpdateToolTipTransform() ) );
+  if ( moduleNode->GetWatchedModelNode() != NULL )
+  {
+    d->ModelNodeComboBox->setCurrentNodeID( QString::fromStdString( moduleNode->GetWatchedModelNode()->GetID() ) );
+  }
+  else
+  {
+    d->ModelNodeComboBox->setCurrentNodeID( "" );
+  }
   
-  d->ModelNodeComboBox->setCurrentNodeID( QString::fromStdString( BreachWarningNode->GetWatchedModelID() ) );
-  d->ToolComboBox->setCurrentNodeID( QString::fromStdString( BreachWarningNode->GetToolTipTransformID() ) );
-  // d->ColorPickerButton->
-  
-  // Unblock all singals from firing
-  // TODO: Is there a more efficient way to do this by blokcing slots?
-  connect( d->ModelNodeComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( UpdateWatchedModel() ) );
-  connect( d->ToolComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( UpdateToolTipTransform() ) );
+  d->ColorPickerButton->setColor( QColor( d->logic()->GetWarningColorComponent( 0 ), d->logic()->GetWarningColorComponent( 1 ), d->logic()->GetWarningColorComponent( 2 ) ) );
   
 }

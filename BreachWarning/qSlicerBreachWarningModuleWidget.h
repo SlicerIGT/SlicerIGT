@@ -47,7 +47,9 @@ public slots:
 
 protected slots:
 
-  void UpdateWatchedModel();
+  void onModuleNodeChanged();
+
+  void onModelNodeChanged();
   void UpdateToolTipTransform();
   void UpdateWarningColor( QColor newColor );
   void UpdateFromMRMLNode();

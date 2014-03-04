@@ -29,6 +29,9 @@
 // BreachWarning includes
 #include "vtkSlicerBreachWarningModuleMRMLExport.h"
 
+class vtkMRMLLinearTransformNode;
+class vtkMRMLModelNode;
+
 
 class
 VTK_SLICER_BREACHWARNING_MODULE_MRML_EXPORT
@@ -40,6 +43,7 @@ public:
   vtkTypeMacro( vtkMRMLBreachWarningNode, vtkMRMLNode );
   
   // Standard MRML node methods  
+
   static vtkMRMLBreachWarningNode *New();  
 
   virtual vtkMRMLNode* CreateNodeInstance();
@@ -52,6 +56,7 @@ public:
 protected:
 
   // Constructor/desctructor methods
+
   vtkMRMLBreachWarningNode();
   virtual ~vtkMRMLBreachWarningNode();
   vtkMRMLBreachWarningNode ( const vtkMRMLBreachWarningNode& );
@@ -59,37 +64,30 @@ protected:
  
   
 public:
-  // Enumerate all the possible modified states
-  enum ModifyType
-  {
-    NeverModify,
-    DefaultModify,
-    AlwaysModify
-  };
-
-  
+    
   vtkGetMacro( ToolInsideModel, bool );
 
+
   // Watched model defines the risk area that needs to be avoided.
-  void SetWatchedModelID( std::string modelID, int modifyType = DefaultModify );
-  std::string GetWatchedModelID();
+
+  vtkMRMLModelNode* GetWatchedModelNode();
+  void SetWatchedModelNodeID( const char* modelId );
+  
 
   // Tool transform is interpreted as ToolTip-to-RAS. The origin of ToolTip 
   // coordinate system is the tip of the surgical tool that needs to avoid the
   // risk area.
-private:
-  std::string ToolTipTransformID;
-public:
-  void SetToolTipTransformID( std::string newTransformID, int modifyType = DefaultModify );
-  std::string GetToolTipTransformID();
-  
-  std::string GetNodeReferenceIDString( std::string referenceRole );
 
+  vtkMRMLLinearTransformNode* GetToolTransformNode();
+  void SetAndObserveToolTransformNodeId( const char* nodeId );
+
+  
   void ProcessMRMLEvents( vtkObject *caller, unsigned long event, void *callData );
 
 private:
   void UpdateCalculation();
 
+  double WarningColor[ 4 ];
   bool ToolInsideModel;
 
 };  
