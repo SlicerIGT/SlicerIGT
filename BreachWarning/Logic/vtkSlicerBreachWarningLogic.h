@@ -44,6 +44,7 @@ class vtkMRMLBreachWarningNode;
 
 
 class vtkMRMLMarkupsFiducialNode;
+class vtkMRMLModelNode;
 class vtkMRMLLinearTransformNode;
 
 
@@ -68,16 +69,18 @@ public:
 
   // Public interface to be used by GUI and other modules.
   
-  void SetModelNodeID( std::string newNodeID );
-  void SetObservedTransformNode( vtkMRMLNode* newNode );
+  void SetWatchedModelNode( vtkMRMLModelNode* newModel, vtkMRMLBreachWarningNode* moduleNode );
+  void SetObservedTransformNode( vtkMRMLLinearTransformNode* newTransform, vtkMRMLBreachWarningNode* moduleNode );
 
-  void SetWarningColor( double red, double green, double blue, double alpha );
-  double GetWarningColorComponent( int c );
+  void SetWarningColor( double red, double green, double blue, double alpha, vtkMRMLBreachWarningNode* moduleNode );
+  double GetWarningColorComponent( int c, vtkMRMLBreachWarningNode* moduleNode );
+  
+  void SetOriginalColor( double red, double green, double blue, double alpha, vtkMRMLBreachWarningNode* moduleNode );
+  double GetOriginalColorComponent( int c, vtkMRMLBreachWarningNode* moduleNode );
 
   vtkSlicerMarkupsLogic* MarkupsLogic;
 
   void ProcessMRMLNodesEvents( vtkObject* caller, unsigned long event, void* callData );
-  void ProcessMRMLSceneEvents( vtkObject* caller, unsigned long event, void* callData );
   
 protected:
   vtkSlicerBreachWarningLogic();
@@ -86,32 +89,21 @@ protected:
   virtual void SetMRMLSceneInternal(vtkMRMLScene * newScene);
   /// Register MRML Node classes to Scene. Gets called automatically when the MRMLScene is attached to this logic class.
   virtual void RegisterNodes();
-  virtual void UpdateFromMRMLScene();
+  
   virtual void OnMRMLSceneNodeAdded(vtkMRMLNode* node);
   virtual void OnMRMLSceneNodeRemoved(vtkMRMLNode* node);
-  virtual void OnMRMLSceneEndImport();
-  virtual void OnMRMLSceneEndClose();
+
+
+  void UpdateModelColor( vtkMRMLBreachWarningNode* bwNode );
+
 
 private:
   vtkSlicerBreachWarningLogic(const vtkSlicerBreachWarningLogic&); // Not implemented
   void operator=(const vtkSlicerBreachWarningLogic&);               // Not implemented
 
-  // Reference to own module node.
-public:
-  void SetAndObserveBreachWarningNode( vtkMRMLBreachWarningNode* node );
-  vtkGetObjectMacro( BreachWarningNode, vtkMRMLBreachWarningNode );
-private:
-  vtkMRMLBreachWarningNode* BreachWarningNode;
-
 private:
   char* ModuleNodeID;
   vtkMRMLBreachWarningNode* ModuleNode;
-  
-  void ColorModel( bool inside );
-
-  double OriginalColor[4];
-  double WarningColor[4];
-
 };
 
 #endif

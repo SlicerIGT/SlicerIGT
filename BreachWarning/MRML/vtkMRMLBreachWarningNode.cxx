@@ -11,11 +11,6 @@
 // VTK includes
 #include <vtkDoubleArray.h>
 #include <vtkMath.h>
-#include <vtkMatrix4x4.h>
-#include <vtkModifiedBSPTree.h>
-#include <vtkPoints.h>
-#include <vtkPolyData.h>
-#include <vtkSelectEnclosedPoints.h>
 #include <vtkSmartPointer.h>
 
 // Other includes
@@ -50,6 +45,12 @@ vtkMRMLBreachWarningNode
   
   this->AddNodeReferenceRole( MODEL_ROLE );
   this->AddNodeReferenceRole( TOOL_ROLE );
+  
+  for ( int i = 0; i < 4; ++ i )
+  {
+    this->WarningColor[ i ] = 0.0;
+    this->OriginalColor[ i ] = 0.0;
+  }
 }
 
 
@@ -189,6 +190,64 @@ vtkMRMLBreachWarningNode
 
 
 
+void
+vtkMRMLBreachWarningNode
+::SetWarningColor( double r, double g, double b, double a )
+{
+  this->WarningColor[ 0 ] = r;
+  this->WarningColor[ 1 ] = g;
+  this->WarningColor[ 2 ] = b;
+  this->WarningColor[ 3 ] = a;
+}
+
+
+
+double
+vtkMRMLBreachWarningNode
+::GetWarningColorComponent( int c )
+{
+  if ( c > 0 && c < 4 )
+  {
+    return this->WarningColor[ c ];
+  }
+  else
+  {
+    vtkErrorMacro( "GetWarningColorComponent: Index out of range" );
+    return 0.0;
+  }
+}
+
+
+
+void
+vtkMRMLBreachWarningNode
+::SetOriginalColor( double r, double g, double b, double a )
+{
+  this->OriginalColor[ 0 ] = r;
+  this->OriginalColor[ 1 ] = g;
+  this->OriginalColor[ 2 ] = b;
+  this->OriginalColor[ 3 ] = a;
+}
+
+
+
+double
+vtkMRMLBreachWarningNode
+::GetOriginalColorComponent( int c )
+{
+  if ( c > 0 && c < 4 )
+  {
+    return this->OriginalColor[ c ];
+  }
+  else
+  {
+    vtkErrorMacro( "GetOriginalColorComponent: Index out of range" );
+    return 0.0;
+  }
+}
+
+
+
 vtkMRMLModelNode*
 vtkMRMLBreachWarningNode
 ::GetWatchedModelNode()
@@ -237,67 +296,6 @@ vtkMRMLBreachWarningNode
   if ( strcmp( this->GetToolTransformNode()->GetID(), callerNode->GetID() ) == 0 
     && event == vtkMRMLTransformNode::TransformModifiedEvent )
   {
-    this->UpdateCalculation();
-  }
-
-  this->Modified(); // This will tell the logic to update
-}
-
-
-
-void
-vtkMRMLBreachWarningNode
-::UpdateCalculation()
-{
-  vtkMRMLNode* nodeForModel = this->GetNodeReference( MODEL_ROLE );
-  vtkMRMLNode* nodeForTool = this->GetNodeReference( TOOL_ROLE );
-  if ( nodeForModel == NULL || nodeForTool == NULL )
-  {
-    this->ToolInsideModel = false;
-    return;
-  }
-
-  vtkMRMLModelNode* modelNode = vtkMRMLModelNode::SafeDownCast( nodeForModel );
-  if ( modelNode == NULL )
-  {
-    vtkWarningMacro( "Node type does not match role: surface model" );
-    return;
-  }
-
-  vtkPolyData* body = modelNode->GetPolyData();
-  if ( body == NULL )
-  {
-    vtkWarningMacro( "No surface model in node" );
-    this->ToolInsideModel = false;
-    return;
-  }
-
-  vtkMRMLLinearTransformNode* toolTransformNode = vtkMRMLLinearTransformNode::SafeDownCast( nodeForTool );
-  if ( toolTransformNode == NULL )
-  {
-    vtkWarningMacro( "Node type does not match role" );
-    return;
-  }
-
-  vtkSmartPointer< vtkSelectEnclosedPoints > EnclosedFilter = vtkSmartPointer< vtkSelectEnclosedPoints >::New();
-  EnclosedFilter->Initialize( body );
-  
-  vtkSmartPointer< vtkMatrix4x4 > ToolToRASMatrix = vtkSmartPointer< vtkMatrix4x4 >::New();
-  toolTransformNode->GetMatrixTransformToWorld( ToolToRASMatrix );
- 
-  double Origin[ 4 ] = { 0.0, 0.0, 0.0, 1.0 };
-  double P0[ 4 ] = { 0.0, 0.0, 0.0, 1.0 };
-
-  ToolToRASMatrix->MultiplyPoint( Origin, P0 );
-  
-  int inside = EnclosedFilter->IsInsideSurface( P0[ 0 ], P0[ 1 ], P0[ 2 ] );
-
-  if ( inside )
-  {
-    this->ToolInsideModel = true;
-  }
-  else
-  {
-    this->ToolInsideModel = false;
+    this->Modified(); // This will tell the logic to update
   }
 }

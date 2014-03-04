@@ -66,7 +66,12 @@ protected:
 public:
     
   vtkGetMacro( ToolInsideModel, bool );
-
+  
+  void SetWarningColor( double r, double g, double b, double a );
+  double GetWarningColorComponent( int c );
+  
+  void SetOriginalColor( double r, double g, double b, double a );
+  double GetOriginalColorComponent( int c );
 
   // Watched model defines the risk area that needs to be avoided.
 
@@ -85,9 +90,9 @@ public:
   void ProcessMRMLEvents( vtkObject *caller, unsigned long event, void *callData );
 
 private:
-  void UpdateCalculation();
 
   double WarningColor[ 4 ];
+  double OriginalColor[ 4 ];
   bool ToolInsideModel;
 
 };  

@@ -106,13 +106,10 @@ qSlicerBreachWarningModuleWidget
   connect( d->ModuleNodeComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onModuleNodeChanged() ) );
 
   // Make connections to update the mrml from the widget
-  connect( d->ModelNodeComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( UpdateWathedModel() ) );
-  connect( d->ToolComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( UpdateToolTipTransform() ) );
+  connect( d->ModelNodeComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onModelNodeChanged() ) );
+  connect( d->ToolComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onToolTransformChanged() ) );
   connect( d->ColorPickerButton, SIGNAL( colorChanged( QColor ) ), this, SLOT( UpdateWarningColor( QColor ) ) );
   
-  // Watch the logic - it is updated whenver the mrml node is updated
-  this->qvtkConnect( d->logic(), vtkCommand::ModifiedEvent, this, SLOT( UpdateFromMRMLNode() ) );
-
   this->UpdateFromMRMLNode();
 }
 
@@ -235,54 +232,37 @@ void qSlicerBreachWarningModuleWidget
 {
   Q_D( qSlicerBreachWarningModuleWidget );
 
-  vtkMRMLBreachWarningNode* BreachWarningNode = vtkMRMLBreachWarningNode::SafeDownCast( d->ModuleNodeComboBox->currentNode() );
+  vtkMRMLBreachWarningNode* bwNode = vtkMRMLBreachWarningNode::SafeDownCast( d->ModuleNodeComboBox->currentNode() );
 
   if ( BreachWarningNode == NULL )
   {
+    vtkWarningMacro( "Model node changed with no module node selection" );
     return;
   }
-
-  if ( d->ModelNodeComboBox->currentNode() == NULL )
-  {
-    BreachWarningNode->SetWatchedModelNodeID( "" );
-  }
-  else
-  {
-    BreachWarningNode->SetWatchedModelNodeID( d->ModelNodeComboBox->currentNode()->GetID() );
-  }
   
-  d->ModuleNodeComboBox->currentNode()->Modified();
-  this->UpdateFromMRMLNode();
+  d->logic()->SetWatchedModelNode( d->ModelNodeComboBox->currentNode(), bwNode );
 }
 
 
 
 void
 qSlicerBreachWarningModuleWidget
-::UpdateToolTipTransform()
+::onToolTransformChanged()
 {
   Q_D( qSlicerBreachWarningModuleWidget );
+  
   vtkMRMLBreachWarningNode* moduleNode = vtkMRMLBreachWarningNode::SafeDownCast( d->ModuleNodeComboBox->currentNode() );
   if ( moduleNode == NULL )
   {
+    vtkWarningMacro( "Transform node should not be changed when no module node selected" );
     return;
   }
 
-  this->qvtkBlockAll( true );
+  // this->qvtkBlockAll( true );
 
-  if ( d->ToolComboBox->currentNode() == NULL )
-  {
-    moduleNode->SetAndObserveToolTransformNodeId( "" );
-  }
-  else
-  {
-    moduleNode->SetAndObserveToolTransformNodeId( d->ToolComboBox->currentNode()->GetID() );
-  }
+  d->logic()->SetObservedTransformNode( d->ToolComboBox->currentNode(), moduleNode );
 
-  this->qvtkBlockAll( false );
-
-  d->ToolComboBox->currentNode()->Modified();
-  this->UpdateFromMRMLNode();
+  // this->qvtkBlockAll( false );
 }
 
 
