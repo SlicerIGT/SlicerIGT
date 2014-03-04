@@ -43,7 +43,6 @@ public slots:
 
   virtual void setMRMLScene( vtkMRMLScene* scene );
   void onSceneImportedEvent();
-  void setBreachWarningNode( vtkMRMLNode* node );
 
 protected slots:
 

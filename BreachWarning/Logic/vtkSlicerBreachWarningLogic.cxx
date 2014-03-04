@@ -197,6 +197,10 @@ vtkSlicerBreachWarningLogic
     return;
   }
   
+  double originalColor[ 3 ];
+  newModel->GetDisplayNode()->GetColor( originalColor );
+  moduleNode->SetOriginalColor( originalColor[ 0 ], originalColor[ 1 ], originalColor[ 2 ], 1.0 );
+
   moduleNode->SetWatchedModelNodeID( newModel->GetID() );
 }
 

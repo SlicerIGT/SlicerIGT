@@ -262,6 +262,20 @@ void
 vtkMRMLBreachWarningNode
 ::SetWatchedModelNodeID( const char* modelId )
 {
+  vtkMRMLNode* node = this->GetScene()->GetNodeByID( modelId );
+  if ( node == NULL )
+  {
+    this->SetNodeReferenceID( "", modelId );
+    return;
+  }
+  
+  vtkMRMLModelNode* modelNode = vtkMRMLModelNode::SafeDownCast( node );
+  if ( modelNode == NULL )
+  {
+    this->SetNodeReferenceID( "", modelId );
+    return;
+  }
+  
   this->SetNodeReferenceID( MODEL_ROLE, modelId );
 }
   
@@ -293,8 +307,8 @@ vtkMRMLBreachWarningNode
   vtkMRMLNode* callerNode = vtkMRMLNode::SafeDownCast( caller );
   if ( callerNode == NULL ) return;
 
-  if ( strcmp( this->GetToolTransformNode()->GetID(), callerNode->GetID() ) == 0 
-    && event == vtkMRMLTransformNode::TransformModifiedEvent )
+  const char* ObservedTransformNodeId = this->GetToolTransformNode()->GetID();
+  if ( strcmp( ObservedTransformNodeId, callerNode->GetID() ) == 0 )
   {
     this->Modified(); // This will tell the logic to update
   }
