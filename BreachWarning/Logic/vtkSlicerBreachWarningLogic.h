@@ -40,7 +40,7 @@
 #include "vtkSmartPointer.h"
 
 // For referencing own MRML node
-#include "vtkMRMLBreachWarningNode.h"
+class vtkMRMLBreachWarningNode;
 
 
 class vtkMRMLMarkupsFiducialNode;
@@ -87,6 +87,8 @@ protected:
   virtual void UpdateFromMRMLScene();
   virtual void OnMRMLSceneNodeAdded(vtkMRMLNode* node);
   virtual void OnMRMLSceneNodeRemoved(vtkMRMLNode* node);
+  virtual void OnMRMLSceneEndImport();
+  virtual void OnMRMLSceneEndClose();
 
 private:
   vtkSlicerBreachWarningLogic(const vtkSlicerBreachWarningLogic&); // Not implemented
@@ -94,8 +96,11 @@ private:
 
   // Reference to own module node.
 public:
-  vtkMRMLBreachWarningNode* GetModuleNode();
-  void SetModuleNode( vtkMRMLBreachWarningNode* node );
+  void SetAndObserveBreachWarningNode( vtkMRMLBreachWarningNode* node );
+  vtkGetObjectMacro( BreachWarningNode, vtkMRMLBreachWarningNode );
+private:
+  vtkMRMLBreachWarningNode* BreachWarningNode;
+
 private:
   char* ModuleNodeID;
   vtkMRMLBreachWarningNode* ModuleNode;

@@ -19,6 +19,7 @@
 #include "vtkSlicerBreachWarningLogic.h"
 
 // MRML includes
+#include "vtkMRMLBreachWarningNode.h"
 #include "vtkMRMLLinearTransformNode.h"
 #include "vtkMRMLMarkupsFiducialNode.h"
 #include "vtkMRMLModelNode.h"
@@ -47,7 +48,7 @@ vtkStandardNewMacro(vtkSlicerBreachWarningLogic);
 vtkSlicerBreachWarningLogic
 ::vtkSlicerBreachWarningLogic()
 {
-  this->ModuleNode = NULL;
+  this->BreachWarningNode = NULL;
   for ( int i = 0; i < 3; ++ i )
   {
     this->OriginalColor[ i ] = 0.0;
@@ -62,11 +63,7 @@ vtkSlicerBreachWarningLogic
 vtkSlicerBreachWarningLogic
 ::~vtkSlicerBreachWarningLogic()
 {
-  if ( this->ModuleNode != NULL )
-  {
-    this->ModuleNode->Delete();
-    this->ModuleNode = NULL;
-  }
+  vtkSetAndObserveMRMLNodeMacro( this->BreachWarningNode, NULL );
 }
 
 
@@ -101,9 +98,7 @@ void vtkSlicerBreachWarningLogic::RegisterNodes()
     return;
   }
 
-  vtkMRMLBreachWarningNode* moduleNode = vtkMRMLBreachWarningNode::New();
-  this->GetMRMLScene()->RegisterNodeClass( moduleNode );
-  moduleNode->Delete();
+  this->GetMRMLScene()->RegisterNodeClass( vtkSmartPointer< vtkMRMLBreachWarningNode >::New() );
 }
 
 
@@ -112,27 +107,80 @@ void
 vtkSlicerBreachWarningLogic::UpdateFromMRMLScene()
 {
   assert(this->GetMRMLScene() != 0);
+
+  this->Modified();
 }
 
 
 
 void
 vtkSlicerBreachWarningLogic
-::OnMRMLSceneNodeAdded(vtkMRMLNode* vtkNotUsed(node))
+::OnMRMLSceneNodeAdded( vtkMRMLNode* node )
 {
+  if ( node == NULL || this->GetMRMLScene() == NULL )
+  {
+    vtkWarningMacro( "OnMRMLSceneNodeAdded: Invalid MRML scene or node" );
+    return;
+  }
+
+  if ( this->GetMRMLScene()->IsBatchProcessing() )
+  {
+    return;
+  }
+
+  if ( node->IsA( "vtkMRMLBreachWarningNode" ) )
+  {
+    this->Modified();
+  }
 }
 
 
 
 void
 vtkSlicerBreachWarningLogic
-::OnMRMLSceneNodeRemoved(vtkMRMLNode* vtkNotUsed(node))
+::OnMRMLSceneNodeRemoved( vtkMRMLNode* node )
 {
+  if ( node == NULL || this->GetMRMLScene() == NULL )
+  {
+    vtkWarningMacro( "OnMRMLSceneNodeRemoved: Invalid MRML scene or node" );
+    return;
+  }
+
+  if ( this->GetMRMLScene()->IsBatchProcessing() )
+  {
+    return;
+  }
+
+  if ( node->IsA( "vtkMRMLBreachWarningNode" ) )
+  {
+    this->Modified();
+  }
 }
 
 
 
-// Module-specific methods ----------------------------------------------------------
+void
+vtkSlicerBreachWarningLogic
+::OnMRMLSceneEndImport()
+{
+  // If a module node was imported, make that the selected node.
+  vtkMRMLBreachWarningNode* moduleNode = NULL;
+  vtkMRMLNode* node = this->GetMRMLScene()->GetNthNodeByClass( 0, "vtkMRMLBreachWarningNode" );
+  if ( node != NULL )
+  {
+    moduleNode = vtkMRMLBreachWarningNode::SafeDownCast( node );
+    vtkSetAndObserveMRMLNodeMacro( this->BreachWarningNode, moduleNode );
+  }
+}
+
+
+
+void
+vtkSlicerBreachWarningLogic
+::OnMRMLSceneEndClose()
+{
+  this->Modified();
+}
 
 
 
@@ -154,14 +202,13 @@ vtkSlicerBreachWarningLogic
     return;
   }
 
-  if ( this->ModuleNode == NULL )
+  if ( this->BreachWarningNode == NULL )
   {
-    vtkWarningMacro( "Module node not set yet" );
+    vtkWarningMacro( "vtkSlicerBreachWarningLogic: Module node not set yet" );
     return;
   }
 
-  this->ModuleNode->SetWatchedModelID( newNodeID );
-
+  this->BreachWarningNode->SetWatchedModelID( newNodeID );
 }
 
 
@@ -172,7 +219,7 @@ vtkSlicerBreachWarningLogic
 {
   if ( newNode == NULL )
   {
-    this->ModuleNode->SetToolTipTransformID( "" );
+    this->BreachWarningNode->SetToolTipTransformID( "" );
     return;
   }
 
@@ -183,7 +230,7 @@ vtkSlicerBreachWarningLogic
     return;
   }
 
-  this->ModuleNode->SetToolTipTransformID( std::string( ltNode->GetID() ) );
+  this->BreachWarningNode->SetToolTipTransformID( std::string( ltNode->GetID() ) );
 }
 
 
@@ -207,12 +254,12 @@ vtkSlicerBreachWarningLogic
   vtkMRMLNode* callerNode = vtkMRMLNode::SafeDownCast( caller );
   if ( callerNode == NULL ) return;
   
-  if ( this->ModuleNode == NULL ) return;
+  if ( this->BreachWarningNode == NULL ) return;
 
-  if ( std::string( callerNode->GetID() ).compare( this->ModuleNode->GetID() ) == 0 )
+  if ( std::string( callerNode->GetID() ).compare( this->BreachWarningNode->GetID() ) == 0 )
   {
     // The module node was modified.
-    this->ColorModel( this->ModuleNode->GetToolInsideModel() );
+    this->ColorModel( this->BreachWarningNode->GetToolInsideModel() );
   }
 }
 
@@ -240,31 +287,11 @@ vtkSlicerBreachWarningLogic
 
 
 
-vtkMRMLBreachWarningNode*
-vtkSlicerBreachWarningLogic
-::GetModuleNode()
-{
-  vtkMRMLNode* node = this->GetMRMLScene()->GetNodeByID( this->ModuleNodeID );
-  if ( node == NULL ) return NULL;
-
-  vtkMRMLBreachWarningNode* bwNode = vtkMRMLBreachWarningNode::SafeDownCast( node );
-  return bwNode;
-}
-
-
-
 void
 vtkSlicerBreachWarningLogic
-::SetModuleNode( vtkMRMLBreachWarningNode* node )
+::SetAndObserveBreachWarningNode( vtkMRMLBreachWarningNode* node )
 {
-  this->ModuleNodeID = NULL;
-  this->ModuleNode->Delete();
-  
-  if ( node == NULL ) return;
-
-  this->ModuleNode = node;
-  this->ModuleNodeID = node->GetID();
-  // this->ModuleNode->AddObserver(
+  vtkSetAndObserveMRMLNodeMacro( this->BreachWarningNode, node );
 }
 
 
@@ -273,7 +300,7 @@ void
 vtkSlicerBreachWarningLogic
 ::ColorModel( bool inside )
 {
-  vtkMRMLNode* nodeModel = this->GetMRMLScene()->GetNodeByID( this->ModuleNode->GetWatchedModelID() );
+  vtkMRMLNode* nodeModel = this->GetMRMLScene()->GetNodeByID( this->BreachWarningNode->GetWatchedModelID() );
   if ( nodeModel == NULL ) return;
 
   vtkMRMLModelNode* modelNode = vtkMRMLModelNode::SafeDownCast( nodeModel );

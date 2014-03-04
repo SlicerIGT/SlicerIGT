@@ -25,6 +25,7 @@
 
 #include "vtkSlicerBreachWarningLogic.h"
 
+#include "vtkMRMLBreachWarningNode.h"
 #include "vtkMRMLLinearTransformNode.h"
 #include "vtkMRMLMarkupsFiducialNode.h"
 
@@ -41,6 +42,8 @@ public:
   qSlicerBreachWarningModuleWidgetPrivate( qSlicerBreachWarningModuleWidget& object );
   vtkSlicerBreachWarningLogic* logic() const;
 
+  bool ModuleWindowInitialized;
+
 };
 
 
@@ -49,7 +52,9 @@ public:
 // qSlicerBreachWarningModuleWidgetPrivate methods
 
 
-qSlicerBreachWarningModuleWidgetPrivate::qSlicerBreachWarningModuleWidgetPrivate( qSlicerBreachWarningModuleWidget& object ) : q_ptr( &object )
+qSlicerBreachWarningModuleWidgetPrivate::qSlicerBreachWarningModuleWidgetPrivate( qSlicerBreachWarningModuleWidget& object ) 
+  : q_ptr( &object )
+  , ModuleWindowInitialized( false )
 {
 }
 
@@ -113,20 +118,89 @@ void
 qSlicerBreachWarningModuleWidget
 ::enter()
 {
+  if ( this->mrmlScene() == NULL )
+  {
+    qCritical() << "Invalid scene!";
+    return;
+  }
+
   Q_D(qSlicerBreachWarningModuleWidget);
 
   this->qSlicerAbstractModuleWidget::enter();
 
-  // Create a node by default if none already exists
-  int numBreachWarningNodes = this->mrmlScene()->GetNumberOfNodesByClass( "vtkMRMLBreachWarningNode" );
-  if ( numBreachWarningNodes == 0 )
+  if ( d->logic() == NULL )
   {
-    vtkSmartPointer< vtkMRMLNode > BreachWarningNode;
-    BreachWarningNode.TakeReference( this->mrmlScene()->CreateNodeByClass( "vtkMRMLBreachWarningNode" ) );
-    BreachWarningNode->SetScene( this->mrmlScene() );
-    this->mrmlScene()->AddNode( BreachWarningNode );
-    d->ModuleNodeComboBox->setCurrentNode( BreachWarningNode );
+    qCritical() << "Invalid logic!";
+    return;
   }
+  vtkMRMLBreachWarningNode* moduleNode = d->logic()->GetBreachWarningNode();
+
+  if ( moduleNode == NULL )
+  {
+    vtkMRMLNode* node = this->mrmlScene()->GetNthNodeByClass( 0, "vtkMRMLBreachWarningNode" );
+    if ( node )
+    {
+      moduleNode = vtkMRMLBreachWarningNode::SafeDownCast( node );
+      d->logic()->SetAndObserveBreachWarningNode( moduleNode );
+      return;
+    }
+    else
+    {
+      vtkSmartPointer< vtkMRMLBreachWarningNode > newNode = vtkSmartPointer< vtkMRMLBreachWarningNode >::New();
+      this->mrmlScene()->AddNode( newNode );
+      d->logic()->SetAndObserveBreachWarningNode( newNode );
+    }
+  }
+  
+  this->UpdateFromMRMLNode();
+  d->ModuleWindowInitialized = true;
+}
+
+
+
+void
+qSlicerBreachWarningModuleWidget
+::setMRMLScene( vtkMRMLScene* scene )
+{
+  Q_D( qSlicerBreachWarningModuleWidget );
+
+  this->Superclass::setMRMLScene( scene );
+
+  qvtkReconnect( d->logic(), scene, vtkMRMLScene::EndImportEvent, this, SLOT( onSceneImportedEvent() ) );
+
+  if ( scene && d->logic()->GetBreachWarningNode() == 0 )
+  {
+    vtkMRMLNode* node = scene->GetNthNodeByClass( 0, "vtkMRMLBreachWarningNode" );
+    if ( node )
+    {
+      this->setBreachWarningNode( vtkMRMLBreachWarningNode::SafeDownCast( node ) );
+    }
+  }
+}
+
+
+
+void
+qSlicerBreachWarningModuleWidget
+::onSceneImportedEvent()
+{
+  this->enter();
+}
+
+
+
+void
+qSlicerBreachWarningModuleWidget
+::setBreachWarningNode( vtkMRMLNode* node )
+{
+  Q_D( qSlicerBreachWarningModuleWidget );
+  
+  vtkMRMLBreachWarningNode* moduleNode = vtkMRMLBreachWarningNode::SafeDownCast( node );
+
+  qvtkReconnect( d->logic()->GetBreachWarningNode(), moduleNode, vtkCommand::ModifiedEvent, this, SLOT( UpdateFromMRMLNode() ) );
+
+  d->logic()->SetAndObserveBreachWarningNode( moduleNode );
+  this->UpdateFromMRMLNode();
 }
 
 
