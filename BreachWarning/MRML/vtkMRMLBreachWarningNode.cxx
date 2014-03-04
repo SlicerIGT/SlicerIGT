@@ -3,6 +3,7 @@
 #include "vtkMRMLBreachWarningNode.h"
 
 // Other MRML includes
+#include "vtkMRMLDisplayNode.h"
 #include "vtkMRMLLinearTransformNode.h"
 #include "vtkMRMLModelNode.h"
 #include "vtkMRMLNode.h"
@@ -89,6 +90,10 @@ vtkMRMLBreachWarningNode
   of << indent << " WarningColorG=\"" << this->WarningColor[ 1 ] << "\"";
   of << indent << " WarningColorB=\"" << this->WarningColor[ 2 ] << "\"";
   of << indent << " WarningColorA=\"" << this->WarningColor[ 3 ] << "\"";
+  of << indent << " OriginalColorR=\"" << this->OriginalColor[ 0 ] << "\"";
+  of << indent << " OriginalColorG=\"" << this->OriginalColor[ 1 ] << "\"";
+  of << indent << " OriginalColorB=\"" << this->OriginalColor[ 2 ] << "\"";
+  of << indent << " OriginalColorA=\"" << this->OriginalColor[ 3 ] << "\"";
   of << indent << " ToolInsideModel=\"" << ( this->ToolInsideModel ? "true" : "false" ) << "\"";
 }
 
@@ -140,6 +145,38 @@ vtkMRMLBreachWarningNode
       double r = 0.0;
       ss >> r;
       this->WarningColor[ 3 ] = r;
+    }
+    else if ( ! strcmp( attName, "OriginalColorR" ) )
+    {
+      std::stringstream ss;
+      ss << attValue;
+      double r = 0.0;
+      ss >> r;
+      this->OriginalColor[ 0 ] = r;
+    }
+    else if ( ! strcmp( attName, "OriginalColorG" ) )
+    {
+      std::stringstream ss;
+      ss << attValue;
+      double r = 0.0;
+      ss >> r;
+      this->OriginalColor[ 1 ] = r;
+    }
+    else if ( ! strcmp( attName, "OriginalColorB" ) )
+    {
+      std::stringstream ss;
+      ss << attValue;
+      double r = 0.0;
+      ss >> r;
+      this->OriginalColor[ 2 ] = r;
+    }
+    else if ( ! strcmp( attName, "OriginalColorA" ) )
+    {
+      std::stringstream ss;
+      ss << attValue;
+      double r = 0.0;
+      ss >> r;
+      this->OriginalColor[ 3 ] = r;
     }
     else if ( ! strcmp( attName, "ToolInsideModel" ) )
     {
