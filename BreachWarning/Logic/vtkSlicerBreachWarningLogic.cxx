@@ -232,6 +232,7 @@ vtkSlicerBreachWarningLogic
 ::SetWarningColor( double red, double green, double blue, double alpha, vtkMRMLBreachWarningNode* moduleNode )
 {
   moduleNode->SetWarningColor( red, green, blue, alpha );
+  this->UpdateModelColor( moduleNode );
 }
 
 

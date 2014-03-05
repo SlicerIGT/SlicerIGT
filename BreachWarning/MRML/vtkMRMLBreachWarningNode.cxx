@@ -13,6 +13,9 @@
 #include <vtkDoubleArray.h>
 #include <vtkMath.h>
 #include <vtkSmartPointer.h>
+#include <vtkNew.h>
+#include <vtkIntArray.h>
+#include <vtkCommand.h>
 
 // Other includes
 #include <sstream>
@@ -332,7 +335,10 @@ void
 vtkMRMLBreachWarningNode
 ::SetAndObserveToolTransformNodeId( const char* nodeId )
 {
-  this->SetAndObserveNodeReferenceID( TOOL_ROLE, nodeId );
+  vtkNew<vtkIntArray> events;
+  events->InsertNextValue( vtkCommand::ModifiedEvent );
+  events->InsertNextValue( vtkMRMLLinearTransformNode::TransformModifiedEvent );
+  this->SetAndObserveNodeReferenceID( TOOL_ROLE, nodeId, events.GetPointer() );
 }
 
 
