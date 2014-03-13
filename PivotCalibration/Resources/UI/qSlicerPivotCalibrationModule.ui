@@ -2,12 +2,15 @@
 <ui version="4.0">
  <class>qSlicerPivotCalibrationModule</class>
  <widget class="qSlicerWidget" name="qSlicerPivotCalibrationModule">
+  <property name="enabled">
+   <bool>true</bool>
+  </property>
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>305</width>
-    <height>426</height>
+    <width>492</width>
+    <height>767</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -105,9 +108,26 @@
        </widget>
       </item>
       <item>
-       <widget class="QPushButton" name="startButton">
+       <widget class="QPushButton" name="startPivotButton">
         <property name="text">
-         <string>Start</string>
+         <string>Start Pivot Calibration</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="startSpinButton">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="text">
+         <string>Start Spin Calibration</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="snapCheckBox">
+        <property name="text">
+         <string>Snap rotation to right-angle</string>
         </property>
        </widget>
       </item>

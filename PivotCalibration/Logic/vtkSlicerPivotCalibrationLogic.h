@@ -33,6 +33,9 @@
 // STD includes
 #include <cstdlib>
 
+// VNL includes
+#include "vnl/vnl_matrix.h"
+
 #include "vtkSlicerPivotCalibrationModuleLogicExport.h"
 
 
@@ -49,14 +52,18 @@ public:
   void initializeViewer(qMRMLSliceWidget* widget);
   void InitializeObserver(vtkMRMLNode*);
   void AddSample(vtkMatrix4x4*);
-  void ComputeCalibration();
+  void ComputePivotCalibration();
+  void ComputeSpinCalibration();
+
+  void SnapRotationRightAngle();
   
   void ProcessMRMLNodesEvents( vtkObject* caller, unsigned long event, void* callData );
   
   //Move to protected, add accessors
   double PivotPosition[3];
   double Translation[3];
-  double RMSE;  
+  double RMSE;
+  vnl_matrix<double> Rotation;
   
   void setRecordingState(bool);
   
