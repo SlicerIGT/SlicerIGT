@@ -280,11 +280,20 @@ void qSlicerPivotCalibrationModuleWidget::onPivotStop()
   d->logic()->ComputePivotCalibration();
   
   vtkMRMLLinearTransformNode* outputTransform = vtkMRMLLinearTransformNode::SafeDownCast(d->OutputComboBox->currentNode());
+#ifdef TRANSFORM_NODE_MATRIX_COPY_REQUIRED
+  vtkSmartPointer<vtkMatrix4x4> outputMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+  outputTransform->GetMatrixTransformToParent(outputMatrix);
+#else
   vtkMatrix4x4* outputMatrix = outputTransform->GetMatrixTransformToParent();
+#endif
+
   outputMatrix->Identity(); // Make this identity - spin calibration assumes it is the identity for simplicity
   outputMatrix->SetElement(0,3,d->logic()->Translation[0]);
   outputMatrix->SetElement(1,3,d->logic()->Translation[1]);
   outputMatrix->SetElement(2,3,d->logic()->Translation[2]);
+#ifdef TRANSFORM_NODE_MATRIX_COPY_REQUIRED
+  outputTransform->SetMatrixTransformToParent(outputMatrix);
+#endif
   
   std::stringstream ss;
   ss << d->logic()->RMSE;
