@@ -227,7 +227,13 @@ void qSlicerTransformPreviewWidget
 
     if ( d->TransformPreviewComboBox->checkState( baseNode ) == Qt::Checked )
     {
+#ifdef TRANSFORM_NODE_MATRIX_COPY_REQUIRED
+      vtkSmartPointer<vtkMatrix4x4> matrix = vtkSmartPointer<vtkMatrix4x4>::New();
+      this->CurrentTransformNode->GetMatrixTransformToParent(matrix);
+      baseNode->ApplyTransformMatrix(matrix);
+#else
       baseNode->ApplyTransformMatrix( this->CurrentTransformNode->GetMatrixTransformToParent() );
+#endif
       d->TransformPreviewComboBox->setCheckState( baseNode, Qt::Unchecked );
     }
   }
