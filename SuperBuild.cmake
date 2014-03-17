@@ -33,11 +33,6 @@ foreach( proj ${SlicerIGT_Modules} )
     -D${proj}_BINARY_DIR:PATH=${${proj}_BINARY_DIR}
   )    
   
-  message( STATUS " *** " )
-  message( STATUS "Adding new module to superbulid:" )
-  message( STATUS ${proj}_SOURCE_DIR" = "${${proj}_SOURCE_DIR} )
-  message( STATUS ${proj}_BINARY_DIR" = "${${proj}_BINARY_DIR} )
-  
   ExternalProject_Add(
     ${proj}Download
     GIT_REPOSITORY ${SLICERIGT_REPOSITORY_URL_${proj}}
