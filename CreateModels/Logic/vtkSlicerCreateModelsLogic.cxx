@@ -178,7 +178,24 @@ vtkSlicerCreateModelsLogic
       // Increment the centimeter marker
     markPositionYMm = markPositionYMm + 10;
   }
-  
+
+  // Rotate to the proper needle orientation (X shaft)
+  vtkSmartPointer< vtkTransform > xShaftTransform = vtkSmartPointer< vtkTransform >::New();
+  xShaftTransform->RotateZ( -90 );
+
+  vtkSmartPointer< vtkTransformPolyDataFilter > xShaftNeedleTransformFilter = vtkSmartPointer< vtkTransformPolyDataFilter >::New();
+  xShaftNeedleTransformFilter->SetTransform( xShaftTransform );
+
+  xShaftNeedleTransformFilter->SetInput( appendShaftTip->GetOutput() );
+  xShaftNeedleTransformFilter->Update();
+  vtkSmartPointer< vtkPolyData > needlePolyData = xShaftNeedleTransformFilter->GetOutput();
+
+  vtkSmartPointer< vtkTransformPolyDataFilter > xShaftMarkersTransformFilter = vtkSmartPointer< vtkTransformPolyDataFilter >::New();
+  xShaftMarkersTransformFilter->SetTransform( xShaftTransform );
+
+  xShaftMarkersTransformFilter->SetInput( appendMarkings->GetOutput() );
+  xShaftMarkersTransformFilter->Update();
+  vtkSmartPointer< vtkPolyData > needleMarkersPolyData = xShaftMarkersTransformFilter->GetOutput();  
   
   
     // Add the needle poly data to the scene as a model
@@ -186,7 +203,7 @@ vtkSlicerCreateModelsLogic
   vtkSmartPointer< vtkMRMLModelNode > needleModelNode = vtkSmartPointer< vtkMRMLModelNode >::New();
   needleModelNode->SetScene( this->GetMRMLScene() );
   needleModelNode->SetName( "NeedleModel" );
-  needleModelNode->SetAndObservePolyData( appendShaftTip->GetOutput() );
+  needleModelNode->SetAndObservePolyData( needlePolyData );
 	
   vtkSmartPointer< vtkMRMLModelDisplayNode > needleDisplayNode = vtkSmartPointer< vtkMRMLModelDisplayNode >::New();
   needleDisplayNode->SetScene( this->GetMRMLScene() );
@@ -203,7 +220,7 @@ vtkSlicerCreateModelsLogic
   vtkSmartPointer< vtkMRMLModelNode > markersModelNode = vtkSmartPointer< vtkMRMLModelNode >::New();
   markersModelNode->SetScene( this->GetMRMLScene() );
   markersModelNode->SetName( "NeedleMarkersModel" );
-  markersModelNode->SetAndObservePolyData( appendMarkings->GetOutput() );
+  markersModelNode->SetAndObservePolyData( needleMarkersPolyData );
   
   vtkSmartPointer< vtkMRMLModelDisplayNode > markersDisplayNode = vtkSmartPointer< vtkMRMLModelDisplayNode >::New();
   markersDisplayNode->SetScene( this->GetMRMLScene() );
