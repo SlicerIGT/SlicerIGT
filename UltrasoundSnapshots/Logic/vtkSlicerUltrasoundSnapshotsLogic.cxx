@@ -99,6 +99,9 @@ vtkSlicerUltrasoundSnapshotsLogic
   vtkPolyData* slicePolyData = snapshotModel->GetPolyData();
   vtkPoints* slicePoints = slicePolyData->GetPoints();
   
+  
+  // If the image is placed on a parent transform, get a copy of that transform.
+  
   vtkSmartPointer< vtkTransform > ParentTransform = vtkSmartPointer< vtkTransform >::New();
   ParentTransform->Identity();
   if ( InputNode->GetParentTransformNode() != NULL )
@@ -109,13 +112,16 @@ vtkSlicerUltrasoundSnapshotsLogic
     ParentTransform->Update();
   }
   
+  // Get the image transform from the image node. This actually only contains the
+  // Image-to-Parent transform.
+
   vtkSmartPointer< vtkTransform > InImageTransform = vtkSmartPointer< vtkTransform >::New();
   InImageTransform->Identity();
   InputNode->GetIJKToRASMatrix( InImageTransform->GetMatrix() );
   
+  
   vtkSmartPointer< vtkTransform > tImageToRAS = vtkSmartPointer< vtkTransform >::New();
   tImageToRAS->Identity();
-  tImageToRAS->PostMultiply();
   tImageToRAS->Concatenate( ParentTransform );
   tImageToRAS->Concatenate( InImageTransform );
   tImageToRAS->Update();
