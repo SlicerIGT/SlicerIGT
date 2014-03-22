@@ -205,8 +205,8 @@ void
 vtkSlicerUltrasoundSnapshotsLogic
 ::ClearSnapshots()
 {
-  vtkCollection* modelNodes = this->GetMRMLScene()->GetNodesByClass( "vtkMRMLModelNode" );
-  vtkCollectionIterator* modelIt = vtkCollectionIterator::New();
+  vtkSmartPointer< vtkCollection > modelNodes = vtkSmartPointer< vtkCollection >::Take( this->GetMRMLScene()->GetNodesByClass( "vtkMRMLModelNode" ) );
+  vtkNew< vtkCollectionIterator > modelIt;
   modelIt->SetCollection( modelNodes );
   
   for ( modelIt->InitTraversal(); ! modelIt->IsDoneWithTraversal(); modelIt->GoToNextItem() )
@@ -220,18 +220,11 @@ vtkSlicerUltrasoundSnapshotsLogic
       {
         this->GetMRMLScene()->RemoveNode( snapshotTexture );
         snapshotTexture = NULL;
-        this->snapshotCounter--;
       }
-      vtkMRMLDisplayNode* snapshotDisp = snapshotModel->GetDisplayNode();
-      this->GetMRMLScene()->RemoveNode( snapshotDisp );
       this->GetMRMLScene()->RemoveNode( snapshotModel );
-      snapshotDisp = NULL;
-      snapshotModel = NULL;
+      this->snapshotCounter--;
     }
   }
-  
-  modelIt->Delete();
-  modelNodes->Delete();
 }
 
 
