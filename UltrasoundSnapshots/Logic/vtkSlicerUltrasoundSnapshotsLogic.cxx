@@ -115,15 +115,15 @@ vtkSlicerUltrasoundSnapshotsLogic
   // Get the image transform from the image node. This actually only contains the
   // Image-to-Parent transform.
 
-  vtkSmartPointer< vtkTransform > InImageTransform = vtkSmartPointer< vtkTransform >::New();
-  InImageTransform->Identity();
-  InputNode->GetIJKToRASMatrix( InImageTransform->GetMatrix() );
+  vtkSmartPointer< vtkTransform > ImageToParentTransform = vtkSmartPointer< vtkTransform >::New();
+  ImageToParentTransform->Identity();
+  InputNode->GetIJKToRASMatrix( ImageToParentTransform->GetMatrix() );
   
   
   vtkSmartPointer< vtkTransform > tImageToRAS = vtkSmartPointer< vtkTransform >::New();
   tImageToRAS->Identity();
   tImageToRAS->Concatenate( ParentTransform );
-  tImageToRAS->Concatenate( InImageTransform );
+  tImageToRAS->Concatenate( ImageToParentTransform );
   tImageToRAS->Update();
   
     // Four corners of the image in Image coordinate system.
@@ -164,8 +164,7 @@ vtkSlicerUltrasoundSnapshotsLogic
     mapToWindowLevelColors->SetWindow( InputNode->GetScalarVolumeDisplayNode()->GetWindow() );
     mapToWindowLevelColors->SetLevel( InputNode->GetScalarVolumeDisplayNode()->GetLevel() );
     mapToWindowLevelColors->Update();
-    
-    image = mapToWindowLevelColors->GetOutput();
+    image->DeepCopy( mapToWindowLevelColors->GetOutput() );
   }
   
   std::stringstream textureNameStream;
@@ -178,6 +177,9 @@ vtkSlicerUltrasoundSnapshotsLogic
   snapshotTexture->SetDescription( "Live Ultrasound Snapshot Texture" );
   snapshotTexture->SetAndObserveImageData( image );
   snapshotTexture->CopyOrientation( InputNode );
+  snapshotTexture->SetSpacing( InputNode->GetSpacing() );
+  snapshotTexture->SetOrigin( InputNode->GetOrigin() );
+  snapshotTexture->SetIJKToRASMatrix( tImageToRAS->GetMatrix() );
   
   std::stringstream textureDisplayNameStream;
   textureDisplayNameStream << "UltrasoundSnapshots_TextureDisplay_";

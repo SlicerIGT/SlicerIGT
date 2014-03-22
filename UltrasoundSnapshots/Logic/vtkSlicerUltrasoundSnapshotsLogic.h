@@ -54,7 +54,7 @@ protected:
   vtkSlicerUltrasoundSnapshotsLogic();
   virtual ~vtkSlicerUltrasoundSnapshotsLogic();
   
-  int snapshotCounter;
+  int snapshotCounter; // This is only used to ensure unique MRML node names.
 
   virtual void SetMRMLSceneInternal(vtkMRMLScene* newScene);
   /// Register MRML Node classes to Scene. Gets called automatically when the MRMLScene is attached to this logic class.
