@@ -46,6 +46,8 @@ public:
   vtkTypeMacro(vtkSlicerUltrasoundSnapshotsLogic, vtkSlicerModuleLogic);
   void PrintSelf(ostream& os, vtkIndent indent);
   
+  void SetInputVolumeNode( vtkMRMLScalarVolumeNode* InputNode );
+  vtkMRMLScalarVolumeNode* GetInputVolumeNode();
   void AddSnapshot( vtkMRMLScalarVolumeNode* InputNode, bool preserveWindowLevel );
   void ClearSnapshots();
   

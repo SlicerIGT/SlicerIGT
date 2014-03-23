@@ -52,6 +52,70 @@ vtkSlicerUltrasoundSnapshotsLogic
 
 void
 vtkSlicerUltrasoundSnapshotsLogic
+::SetInputVolumeNode( vtkMRMLScalarVolumeNode* InputNode )
+{
+  vtkSmartPointer< vtkCollection > volumeNodes = vtkSmartPointer< vtkCollection >::Take( this->GetMRMLScene()->GetNodesByClass( "vtkMRMLScalarVolumeNode" ) );
+  vtkNew< vtkCollectionIterator > volumeIt;
+  volumeIt->SetCollection( volumeNodes );
+  
+  for ( volumeIt->InitTraversal(); ! volumeIt->IsDoneWithTraversal(); volumeIt->GoToNextItem() )
+  {
+    vtkMRMLScalarVolumeNode* volume = vtkMRMLScalarVolumeNode::SafeDownCast( volumeIt->GetCurrentObject() );
+    
+    if ( volume == NULL )
+    {
+      continue;
+    }
+    
+    if ( volume->GetAttribute( "UltrasoundSnapshotsInput" )
+         && std::string( volume->GetAttribute( "UltrasoundSnapshotsInput" ) ).compare( "true" ) == 0 )
+    {
+      if ( std::string( volume->GetID() ).compare( InputNode->GetID() ) != 0 )
+      {
+        volume->SetAttribute( "UltrasoundSnapshotsInput", NULL );
+      }
+    }
+    else
+    {
+      if ( std::string( volume->GetID() ).compare( InputNode->GetID() ) == 0 )
+      {
+        volume->SetAttribute( "UltrasoundSnapshotsInput", "true" );
+      }
+    }
+  }
+}
+
+
+
+vtkMRMLScalarVolumeNode*
+vtkSlicerUltrasoundSnapshotsLogic
+::GetInputVolumeNode()
+{
+  vtkSmartPointer< vtkCollection > volumeNodes = vtkSmartPointer< vtkCollection >::Take( this->GetMRMLScene()->GetNodesByClass( "vtkMRMLScalarVolumeNode" ) );
+  vtkNew< vtkCollectionIterator > volumeIt;
+  volumeIt->SetCollection( volumeNodes );
+  
+  for ( volumeIt->InitTraversal(); ! volumeIt->IsDoneWithTraversal(); volumeIt->GoToNextItem() )
+  {
+    vtkMRMLScalarVolumeNode* volume = vtkMRMLScalarVolumeNode::SafeDownCast( volumeIt->GetCurrentObject() );
+    if ( volume == NULL )
+    {
+      continue;
+    }
+    if ( volume->GetAttribute( "UltrasoundSnapshotsInput" )
+         && std::string( volume->GetAttribute( "UltrasoundSnapshotsInput" ) ).compare( "true" ) == 0 )
+    {
+      return volume;
+    }
+  }
+  
+  return NULL;
+}
+
+  
+
+void
+vtkSlicerUltrasoundSnapshotsLogic
 ::AddSnapshot( vtkMRMLScalarVolumeNode* InputNode, bool preserveWindowLevel )
 {
   if ( InputNode == NULL )

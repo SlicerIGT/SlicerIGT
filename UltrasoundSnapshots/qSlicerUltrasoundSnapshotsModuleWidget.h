@@ -40,6 +40,7 @@ public:
 
 public slots:
   
+  void OnInputSelectionChanged( vtkMRMLNode* currentNode );
   void OnAddSnapshotClicked();
   void OnClearSnapshotsClicked();
   
@@ -47,6 +48,7 @@ public slots:
 protected:
   QScopedPointer<qSlicerUltrasoundSnapshotsModuleWidgetPrivate> d_ptr;
   
+  virtual void enter();
   virtual void setup();
 
 private:

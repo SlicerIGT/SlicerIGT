@@ -10,6 +10,8 @@
 
 #include "vtkSlicerUltrasoundSnapshotsLogic.h"
 
+#include "vtkMRMLScene.h"
+
 
 
 //-----------------------------------------------------------------------------
@@ -69,6 +71,28 @@ qSlicerUltrasoundSnapshotsModuleWidget
 
 void
 qSlicerUltrasoundSnapshotsModuleWidget
+::OnInputSelectionChanged( vtkMRMLNode* currentNode )
+{
+  Q_D(qSlicerUltrasoundSnapshotsModuleWidget);
+  
+  if ( currentNode == NULL )
+  {
+    return;
+  }
+  
+  vtkMRMLScalarVolumeNode* volumeNode = vtkMRMLScalarVolumeNode::SafeDownCast( currentNode );
+  if ( volumeNode == NULL )
+  {
+    return;
+  }
+  
+  d->logic()->SetInputVolumeNode( volumeNode );
+}
+
+
+
+void
+qSlicerUltrasoundSnapshotsModuleWidget
 ::OnAddSnapshotClicked()
 {
   Q_D(qSlicerUltrasoundSnapshotsModuleWidget);
@@ -117,12 +141,26 @@ qSlicerUltrasoundSnapshotsModuleWidget
 
 void
 qSlicerUltrasoundSnapshotsModuleWidget
+::enter()
+{
+  Q_D( qSlicerUltrasoundSnapshotsModuleWidget );
+  
+  d->UltrasoundImageComboBox->setCurrentNode( d->logic()->GetInputVolumeNode() );
+  
+  this->Superclass::enter();
+}
+
+
+
+void
+qSlicerUltrasoundSnapshotsModuleWidget
 ::setup()
 {
   Q_D(qSlicerUltrasoundSnapshotsModuleWidget);
   d->setupUi(this);
   this->Superclass::setup();
   
+  connect( d->UltrasoundImageComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( OnInputSelectionChanged( vtkMRMLNode* ) ) );
   connect( d->AddSnapshotButton, SIGNAL( clicked() ), this, SLOT( OnAddSnapshotClicked() ) );
   connect( d->ClearSnapshotsButton, SIGNAL( clicked() ), this, SLOT( OnClearSnapshotsClicked() ) );
 }
