@@ -59,6 +59,7 @@ public:
 
 protected slots:
 
+  void onPlaceButtonClicked();
   void onActiveButtonClicked();
   void onMarkupsFiducialNodeChanged();
   void onMarkupsFiducialNodeAdded( vtkMRMLNode* );

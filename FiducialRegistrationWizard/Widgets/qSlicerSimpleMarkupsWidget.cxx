@@ -103,7 +103,9 @@ void qSlicerSimpleMarkupsWidget
   connect( d->MarkupsFiducialNodeComboBox, SIGNAL( nodeAddedByUser( vtkMRMLNode* ) ), this, SLOT( onMarkupsFiducialNodeAdded( vtkMRMLNode* ) ) );
 
   // Use the pressed signal (otherwise we can unpress buttons without clicking them)
-  connect( d->ActiveButton, SIGNAL( toggled( bool ) ), this, SLOT( onActiveButtonClicked() ) );
+  connect( d->ActiveButton, SIGNAL( clicked() ), this, SLOT( onActiveButtonClicked() ) ); 
+  connect( d->PlaceButton, SIGNAL( toggled( bool ) ), this, SLOT( onPlaceButtonClicked() ) ); 
+  d->PlaceButton->setIcon( QIcon( ":/Icons/MarkupsMouseModePlace.png" ) );
 
   d->MarkupsFiducialTableWidget->setContextMenuPolicy( Qt::CustomContextMenu );
   connect( d->MarkupsFiducialTableWidget, SIGNAL( customContextMenuRequested(const QPoint&) ), this, SLOT( onMarkupsFiducialTableContextMenu(const QPoint&) ) );
@@ -162,7 +164,7 @@ void qSlicerSimpleMarkupsWidget
 
 
 void qSlicerSimpleMarkupsWidget
-::onActiveButtonClicked()
+::onPlaceButtonClicked()
 {
   Q_D(qSlicerSimpleMarkupsWidget);
 
@@ -181,7 +183,33 @@ void qSlicerSimpleMarkupsWidget
   else
   {
     interactionNode->SetCurrentInteractionMode( vtkMRMLInteractionNode::Place );
-    interactionNode->SetPlaceModePersistence( true );
+    // interactionNode->SetPlaceModePersistence( true ); // Use whatever persistence the user has already set
+  }
+
+  if ( currentMarkupsNode != NULL )
+  {
+    this->MarkupsLogic->SetActiveListID( currentMarkupsNode ); // If there are other widgets, they are responsible for updating themselves
+  }
+
+  this->updateWidget();
+}
+
+
+void qSlicerSimpleMarkupsWidget
+::onActiveButtonClicked()
+{
+  Q_D(qSlicerSimpleMarkupsWidget);
+
+  vtkMRMLMarkupsNode* currentMarkupsNode = vtkMRMLMarkupsNode::SafeDownCast( d->MarkupsFiducialNodeComboBox->currentNode() );
+
+  // Depending to the current state, change the activeness and placeness for the current markups node
+  vtkMRMLInteractionNode *interactionNode = vtkMRMLInteractionNode::SafeDownCast( this->mrmlScene()->GetNodeByID( "vtkMRMLInteractionNodeSingleton" ) );
+
+  bool isActive = currentMarkupsNode != NULL && this->MarkupsLogic->GetActiveListID().compare( currentMarkupsNode->GetID() ) == 0;
+
+  if ( ! isActive )
+  {
+    interactionNode->SetCurrentInteractionMode( vtkMRMLInteractionNode::ViewTransform );
   }
 
   if ( currentMarkupsNode != NULL )
@@ -209,7 +237,7 @@ void qSlicerSimpleMarkupsWidget
   {
     this->MarkupsLogic->SetActiveListID( currentMarkupsNode ); // If there are other widgets, they are responsible for updating themselves
     interactionNode->SetCurrentInteractionMode( vtkMRMLInteractionNode::Place );
-    interactionNode->SetPlaceModePersistence( true );
+    // interactionNode->SetPlaceModePersistence( true ); // Use whatever persistence the user has already set
   }
   else
   {
@@ -360,37 +388,27 @@ void qSlicerSimpleMarkupsWidget
     d->MarkupsFiducialTableWidget->clear();
     d->MarkupsFiducialTableWidget->setRowCount( 0 );
     d->MarkupsFiducialTableWidget->setColumnCount( 0 );
-    d->ActiveButton->setChecked( false );
-    d->ActiveButton->setText( QString::fromStdString( "Idle" ) );
+    d->PlaceButton->setChecked( false );
     // This will ensure that we refresh the widget next time we move to a non-null widget (since there is guaranteed to be a modified status of larger than zero)
     return;
   }
 
   // Set the button indicating if this list is active
-  d->ActiveButton->blockSignals( true );
+  d->PlaceButton->blockSignals( true );
 
   // Depending to the current state, change the activeness and placeness for the current markups node
   vtkMRMLInteractionNode *interactionNode = vtkMRMLInteractionNode::SafeDownCast( this->mrmlScene()->GetNodeByID( "vtkMRMLInteractionNodeSingleton" ) );
 
   if ( interactionNode->GetCurrentInteractionMode() == vtkMRMLInteractionNode::Place && this->MarkupsLogic->GetActiveListID().compare( currentMarkupsFiducialNode->GetID() ) == 0 )
   {
-    d->ActiveButton->setChecked( true );
+    d->PlaceButton->setChecked( true );
   }
   else
   {
-    d->ActiveButton->setChecked( false );
+    d->PlaceButton->setChecked( false );
   }
 
-  if ( this->MarkupsLogic->GetActiveListID().compare( currentMarkupsFiducialNode->GetID() ) == 0 )
-  {
-    d->ActiveButton->setText( QString::fromStdString( "Active" ) );
-  }
-  else
-  {
-    d->ActiveButton->setText( QString::fromStdString( "Idle" ) );
-  }
-
-  d->ActiveButton->blockSignals( false );
+  d->PlaceButton->blockSignals( false );
 
   // Update the fiducials table
   d->MarkupsFiducialTableWidget->blockSignals( true );

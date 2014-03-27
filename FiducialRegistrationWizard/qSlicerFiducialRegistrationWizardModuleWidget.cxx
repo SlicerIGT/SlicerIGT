@@ -132,6 +132,10 @@ void qSlicerFiducialRegistrationWizardModuleWidget
   // These connections will do work (after being updated from the node)
   connect( d->RecordButton, SIGNAL( clicked() ), this, SLOT( onRecordButtonClicked() ) );
 
+  // Update if the active fiducial node is changed
+  vtkMRMLSelectionNode* selectionNode = vtkMRMLSelectionNode::SafeDownCast( this->mrmlScene()->GetNodeByID( d->logic()->MarkupsLogic->GetSelectionNodeID() ) );
+  this->qvtkConnect( selectionNode, vtkCommand::ModifiedEvent, this, SLOT( UpdateFromMRMLNode() ) );
+
   // Watch the logic - it is updated whenver the mrml node is updated
   this->qvtkConnect( d->logic(), vtkCommand::ModifiedEvent, this, SLOT( UpdateFromMRMLNode() ) );
 
@@ -241,6 +245,8 @@ void qSlicerFiducialRegistrationWizardModuleWidget
     d->SimilarityRadioButton->setEnabled( false );
     d->FromMarkupsWidget->setEnabled( false );
     d->ToMarkupsWidget->setEnabled( false );
+    d->FromGroupBox->setStyleSheet( "QGroupBox { font-weight : normal; background-color: white }" );
+    d->ToGroupBox->setStyleSheet( "QGroupBox { font-weight : normal; background-color: white }" );
     d->StatusLabel->setText( "No Fiducial Registration Wizard module node selected." );
     return;
   }
@@ -268,6 +274,26 @@ void qSlicerFiducialRegistrationWizardModuleWidget
   d->FromMarkupsWidget->SetCurrentNode( this->mrmlScene()->GetNodeByID( fiducialRegistrationWizardNode->GetFromFiducialListID() ) );
   d->ToMarkupsWidget->SetCurrentNode( this->mrmlScene()->GetNodeByID( fiducialRegistrationWizardNode->GetToFiducialListID() ) );
   d->TransformPreviewWidget->SetCurrentNode( this->mrmlScene()->GetNodeByID( fiducialRegistrationWizardNode->GetOutputTransformID() ) );
+
+  // Depending to the current state, change the activeness and placeness for the current markups node
+  if ( d->logic()->MarkupsLogic->GetActiveListID().compare( fiducialRegistrationWizardNode->GetFromFiducialListID() ) == 0 && d->logic()->MarkupsLogic->GetActiveListID().compare( "" ) != 0 )
+  {
+    d->FromGroupBox->setStyleSheet( "QGroupBox { font-weight : bold; background-color: yellow }" );
+  }
+  else
+  {
+    d->FromGroupBox->setStyleSheet( "QGroupBox { font-weight : normal; background-color: white }" );
+  }
+
+  if ( d->logic()->MarkupsLogic->GetActiveListID().compare( fiducialRegistrationWizardNode->GetToFiducialListID() ) == 0 && d->logic()->MarkupsLogic->GetActiveListID().compare( "" ) != 0 )
+  {
+    d->ToGroupBox->setStyleSheet( "QGroupBox { font-weight : bold; background-color: yellow }" );
+  }
+  else
+  {
+    d->ToGroupBox->setStyleSheet( "QGroupBox { font-weight : normal; background-color: white }" );
+  }
+
 
   if ( fiducialRegistrationWizardNode->GetRegistrationMode().compare( "Similarity" ) == 0 )
   {
