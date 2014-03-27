@@ -245,6 +245,8 @@ void qSlicerFiducialRegistrationWizardModuleWidget
     d->SimilarityRadioButton->setEnabled( false );
     d->FromMarkupsWidget->setEnabled( false );
     d->ToMarkupsWidget->setEnabled( false );
+    d->FromGroupBox->setStyleSheet( "QGroupBox { font-weight : normal; background-color: white }" );
+    d->ToGroupBox->setStyleSheet( "QGroupBox { font-weight : normal; background-color: white }" );
     d->StatusLabel->setText( "No Fiducial Registration Wizard module node selected." );
     return;
   }
@@ -276,20 +278,20 @@ void qSlicerFiducialRegistrationWizardModuleWidget
   // Depending to the current state, change the activeness and placeness for the current markups node
   if ( d->logic()->MarkupsLogic->GetActiveListID().compare( fiducialRegistrationWizardNode->GetFromFiducialListID() ) == 0 && d->logic()->MarkupsLogic->GetActiveListID().compare( "" ) != 0 )
   {
-    d->FromGroupBox->setStyleSheet( "QGroupBox { font-weight : bold }" );
+    d->FromGroupBox->setStyleSheet( "QGroupBox { font-weight : bold; background-color: yellow }" );
   }
   else
   {
-    d->FromGroupBox->setStyleSheet( "QGroupBox { font-weight : normal }" );
+    d->FromGroupBox->setStyleSheet( "QGroupBox { font-weight : normal; background-color: white }" );
   }
 
   if ( d->logic()->MarkupsLogic->GetActiveListID().compare( fiducialRegistrationWizardNode->GetToFiducialListID() ) == 0 && d->logic()->MarkupsLogic->GetActiveListID().compare( "" ) != 0 )
   {
-    d->ToGroupBox->setStyleSheet( "QGroupBox { font-weight : bold }" );
+    d->ToGroupBox->setStyleSheet( "QGroupBox { font-weight : bold; background-color: yellow }" );
   }
   else
   {
-    d->ToGroupBox->setStyleSheet( "QGroupBox { font-weight : normal }" );
+    d->ToGroupBox->setStyleSheet( "QGroupBox { font-weight : normal; background-color: white }" );
   }
 
 
