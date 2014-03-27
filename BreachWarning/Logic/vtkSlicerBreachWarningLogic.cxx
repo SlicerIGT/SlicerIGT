@@ -27,15 +27,18 @@
 
 // VTK includes
 #include <vtkDoubleArray.h>
-#include <vtkSelectEnclosedPoints.h>
+#include <vtkGeneralTransform.h>
 #include <vtkMatrix4x4.h>
 #include <vtkModifiedBSPTree.h>
 #include <vtkNew.h>
 #include <vtkObjectFactory.h>
 #include <vtkPolyData.h>
 #include <vtkPoints.h>
+#include <vtkSelectEnclosedPoints.h>
 #include <vtkSmartPointer.h>
 #include <vtkTable.h>
+#include <vtkTransform.h>
+#include <vtkTransformPolyDataFilter.h>
 
 // STD includes
 #include <cassert>
@@ -121,10 +124,28 @@ vtkSlicerBreachWarningLogic
     vtkWarningMacro( "No surface model in node" );
     return;
   }
-
-
+  
   vtkSmartPointer< vtkSelectEnclosedPoints > EnclosedFilter = vtkSmartPointer< vtkSelectEnclosedPoints >::New();
-  EnclosedFilter->Initialize( body );
+  
+  // Transform the body poly data if there is a parent transform.
+
+  vtkMRMLTransformNode* bodyParentTransform = modelNode->GetParentTransformNode();
+  if ( bodyParentTransform != NULL )
+  {
+    vtkSmartPointer< vtkGeneralTransform > bodyToRasTransform = vtkSmartPointer< vtkGeneralTransform >::New();
+    bodyParentTransform->GetTransformToWorld( bodyToRasTransform );
+
+    vtkSmartPointer< vtkTransformPolyDataFilter > bodyToRasFilter = vtkSmartPointer< vtkTransformPolyDataFilter >::New();
+    bodyToRasFilter->SetInput( body );
+    bodyToRasFilter->SetTransform( bodyToRasTransform );
+    bodyToRasFilter->Update();
+
+    EnclosedFilter->Initialize( bodyToRasFilter->GetOutput() );
+  }
+  else
+  {
+    EnclosedFilter->Initialize( body );
+  }
   
   vtkSmartPointer< vtkMatrix4x4 > ToolToRASMatrix = vtkSmartPointer< vtkMatrix4x4 >::New();
   toolToRasNode->GetMatrixTransformToWorld( ToolToRASMatrix );
