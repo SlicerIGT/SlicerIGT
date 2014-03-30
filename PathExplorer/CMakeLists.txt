@@ -18,4 +18,6 @@ include(${Slicer_USE_FILE})
 add_subdirectory(PathExplorer)
 
 #-----------------------------------------------------------------------------
-include(${Slicer_EXTENSION_CPACK})
+if( NOT DEFINED SlicerIGT_SUPERBUILD )
+  include(${Slicer_EXTENSION_CPACK})
+endif()
