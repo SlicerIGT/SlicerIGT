@@ -96,6 +96,38 @@ void qSlicerFiducialRegistrationWizardModuleWidget
 }
 
 
+std::string qSlicerFiducialRegistrationWizardModuleWidget
+::GetCorrespondingFiducialString()
+{
+  Q_D( qSlicerFiducialRegistrationWizardModuleWidget );
+
+  std::stringstream correspondingFiducialString;
+  correspondingFiducialString << "Place Fiducial (";
+
+  vtkMRMLMarkupsNode* activeMarkupsNode = vtkMRMLMarkupsNode::SafeDownCast( this->mrmlScene()->GetNodeByID( d->logic()->MarkupsLogic->GetActiveListID() ) );
+
+  vtkMRMLMarkupsFiducialNode* fromMarkupsNode = vtkMRMLMarkupsFiducialNode::SafeDownCast( d->FromMarkupsWidget->GetCurrentNode() );
+  vtkMRMLMarkupsFiducialNode* toMarkupsNode = vtkMRMLMarkupsFiducialNode::SafeDownCast( d->ToMarkupsWidget->GetCurrentNode() );
+
+  if ( fromMarkupsNode != NULL && toMarkupsNode != NULL )
+  {
+    if ( strcmp( activeMarkupsNode->GetID(), fromMarkupsNode->GetID() ) == 0 && fromMarkupsNode->GetNumberOfFiducials() < toMarkupsNode->GetNumberOfFiducials() )
+    {
+      correspondingFiducialString << "corresponding to ";
+      correspondingFiducialString << toMarkupsNode->GetNthFiducialLabel( fromMarkupsNode->GetNumberOfFiducials() );
+    }
+    if ( strcmp( activeMarkupsNode->GetID(), toMarkupsNode->GetID() ) == 0 && toMarkupsNode->GetNumberOfFiducials() < fromMarkupsNode->GetNumberOfFiducials() )
+    {
+      correspondingFiducialString << "corresponding to ";
+      correspondingFiducialString << fromMarkupsNode->GetNthFiducialLabel( toMarkupsNode->GetNumberOfFiducials() );
+    }
+  }
+
+  correspondingFiducialString << ")";
+  return correspondingFiducialString.str();
+}
+
+
 void qSlicerFiducialRegistrationWizardModuleWidget
 ::setup()
 {
@@ -278,6 +310,7 @@ void qSlicerFiducialRegistrationWizardModuleWidget
   //d->FromMarkupsWidget->SetCurrentNode( this->mrmlScene()->GetNodeByID( fiducialRegistrationWizardNode->GetFromFiducialListID() ) );
   //d->ToMarkupsWidget->SetCurrentNode( this->mrmlScene()->GetNodeByID( fiducialRegistrationWizardNode->GetToFiducialListID() ) );
   d->TransformPreviewWidget->SetCurrentNode( this->mrmlScene()->GetNodeByID( fiducialRegistrationWizardNode->GetOutputTransformID() ) );
+  d->RecordButton->setText( QString::fromStdString( this->GetCorrespondingFiducialString() ) );
 
   // Depending to the current state, change the activeness and placeness for the current markups node
   if ( d->logic()->MarkupsLogic->GetActiveListID().compare( fiducialRegistrationWizardNode->GetFromFiducialListID() ) == 0 && d->logic()->MarkupsLogic->GetActiveListID().compare( "" ) != 0 )

@@ -40,6 +40,8 @@ public:
   qSlicerFiducialRegistrationWizardModuleWidget(QWidget *parent=0);
   virtual ~qSlicerFiducialRegistrationWizardModuleWidget();
 
+  std::string GetCorrespondingFiducialString();
+
 public slots:
 
 
