@@ -107,10 +107,14 @@ void qSlicerFiducialRegistrationWizardModuleWidget
   // Embed widgets here
   d->FromMarkupsWidget = qSlicerSimpleMarkupsWidget::New( d->logic()->MarkupsLogic );
   d->FromMarkupsWidget->SetNodeBaseName( "From" );
+  double FROM_MARKUPS_DEFAULT_COLOR[3] = { 1, 0, 0 };
+  d->FromMarkupsWidget->SetDefaultNodeColor( FROM_MARKUPS_DEFAULT_COLOR );
   d->FromGroupBox->layout()->addWidget( d->FromMarkupsWidget );
 
   d->ToMarkupsWidget = qSlicerSimpleMarkupsWidget::New( d->logic()->MarkupsLogic );
   d->ToMarkupsWidget->SetNodeBaseName( "To" );
+  double TO_MARKUPS_DEFAULT_COLOR[3] = { 0, 0, 1 };
+  d->ToMarkupsWidget->SetDefaultNodeColor( TO_MARKUPS_DEFAULT_COLOR );
   d->ToGroupBox->layout()->addWidget( d->ToMarkupsWidget );
 
   d->TransformPreviewWidget = qSlicerTransformPreviewWidget::New( d->logic()->GetMRMLScene() );
@@ -278,20 +282,20 @@ void qSlicerFiducialRegistrationWizardModuleWidget
   // Depending to the current state, change the activeness and placeness for the current markups node
   if ( d->logic()->MarkupsLogic->GetActiveListID().compare( fiducialRegistrationWizardNode->GetFromFiducialListID() ) == 0 && d->logic()->MarkupsLogic->GetActiveListID().compare( "" ) != 0 )
   {
-    d->FromGroupBox->setStyleSheet( "QGroupBox { font-weight : bold; background-color: yellow }" );
+    d->FromGroupBox->setStyleSheet( d->FromMarkupsWidget->GetQtStyleStringActive().c_str() );
   }
   else
   {
-    d->FromGroupBox->setStyleSheet( "QGroupBox { font-weight : normal; background-color: white }" );
+    d->FromGroupBox->setStyleSheet( d->FromMarkupsWidget->GetQtStyleStringInactive().c_str() );
   }
 
   if ( d->logic()->MarkupsLogic->GetActiveListID().compare( fiducialRegistrationWizardNode->GetToFiducialListID() ) == 0 && d->logic()->MarkupsLogic->GetActiveListID().compare( "" ) != 0 )
   {
-    d->ToGroupBox->setStyleSheet( "QGroupBox { font-weight : bold; background-color: yellow }" );
+    d->ToGroupBox->setStyleSheet( d->ToMarkupsWidget->GetQtStyleStringActive().c_str() );
   }
   else
   {
-    d->ToGroupBox->setStyleSheet( "QGroupBox { font-weight : normal; background-color: white }" );
+    d->ToGroupBox->setStyleSheet( d->ToMarkupsWidget->GetQtStyleStringInactive().c_str() );
   }
 
 

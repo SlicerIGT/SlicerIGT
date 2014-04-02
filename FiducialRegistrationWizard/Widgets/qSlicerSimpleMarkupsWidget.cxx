@@ -99,6 +99,10 @@ void qSlicerSimpleMarkupsWidget
   d->setupUi(this);
   this->setMRMLScene( this->MarkupsLogic->GetMRMLScene() );
 
+  this->DefaultNodeColor[ 0 ] = 0.0;
+  this->DefaultNodeColor[ 1 ] = 0.0;
+  this->DefaultNodeColor[ 2 ] = 0.0;
+
   connect( d->MarkupsFiducialNodeComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onMarkupsFiducialNodeChanged() ) );
   connect( d->MarkupsFiducialNodeComboBox, SIGNAL( nodeAddedByUser( vtkMRMLNode* ) ), this, SLOT( onMarkupsFiducialNodeAdded( vtkMRMLNode* ) ) );
 
@@ -160,6 +164,76 @@ void qSlicerSimpleMarkupsWidget
   Q_D(qSlicerSimpleMarkupsWidget);
 
   d->MarkupsFiducialNodeComboBox->setBaseName( QString::fromStdString( newNodeBaseName ) );
+}
+
+
+void qSlicerSimpleMarkupsWidget
+::SetDefaultNodeColor( double rgb[3] )
+{
+  this->DefaultNodeColor[ 0 ] = rgb[ 0 ];
+  this->DefaultNodeColor[ 1 ] = rgb[ 1 ];
+  this->DefaultNodeColor[ 2 ] = rgb[ 2 ];
+}
+
+
+void qSlicerSimpleMarkupsWidget
+::SetNodeColor( double rgb[3] )
+{
+  Q_D(qSlicerSimpleMarkupsWidget);
+
+  vtkMRMLMarkupsNode* currentMarkupsNode = vtkMRMLMarkupsNode::SafeDownCast( d->MarkupsFiducialNodeComboBox->currentNode() );
+  if ( currentMarkupsNode == NULL )
+  {
+    return;
+  }
+  
+  vtkMRMLDisplayNode* currentMarkupsDisplayNode = currentMarkupsNode->GetDisplayNode();
+  if ( currentMarkupsDisplayNode == NULL )
+  {
+    return;
+  }
+
+  currentMarkupsDisplayNode->SetColor( rgb );
+  currentMarkupsDisplayNode->SetSelectedColor( rgb );
+}
+
+
+void qSlicerSimpleMarkupsWidget
+::GetNodeColor( double rgb[3] )
+{
+  Q_D(qSlicerSimpleMarkupsWidget);
+
+  vtkMRMLMarkupsNode* currentMarkupsNode = vtkMRMLMarkupsNode::SafeDownCast( d->MarkupsFiducialNodeComboBox->currentNode() );
+  if ( currentMarkupsNode == NULL )
+  {
+    return;
+  }
+  
+  vtkMRMLDisplayNode* currentMarkupsDisplayNode = currentMarkupsNode->GetDisplayNode();
+  if ( currentMarkupsDisplayNode == NULL )
+  {
+    return;
+  }
+
+  return currentMarkupsDisplayNode->GetSelectedColor( rgb );
+}
+
+std::string qSlicerSimpleMarkupsWidget
+::GetQtStyleStringActive()
+{
+  double NodeColor[ 3 ] = { 0, 0, 0 };
+  this->GetNodeColor( NodeColor );
+  int QtNodeColor[ 3 ] = { 255 * NodeColor[ 0 ], 255 * NodeColor[ 1 ], 255 * NodeColor[ 2 ] };
+  std::stringstream styleStringstream;
+  styleStringstream << "QGroupBox { font-weight : bold; background-color: rgb( " << QtNodeColor[0] << ", " << QtNodeColor[1] << ", " << QtNodeColor[2] << ") }";
+  return styleStringstream.str();
+}
+
+
+std::string qSlicerSimpleMarkupsWidget
+::GetQtStyleStringInactive()
+{
+  return "QGroupBox { font-weight : normal; background-color: white }";
 }
 
 
@@ -256,6 +330,7 @@ void qSlicerSimpleMarkupsWidget
   vtkMRMLMarkupsFiducialNode* newMarkupsFiducialNode = vtkMRMLMarkupsFiducialNode::SafeDownCast( newNode );
   this->MarkupsLogic->AddNewDisplayNodeForMarkupsNode( newMarkupsFiducialNode ); // Make sure there is an associated display node
   d->MarkupsFiducialNodeComboBox->setCurrentNode( newMarkupsFiducialNode );
+  this->SetNodeColor( this->DefaultNodeColor );
   this->onMarkupsFiducialNodeChanged();
 }
 

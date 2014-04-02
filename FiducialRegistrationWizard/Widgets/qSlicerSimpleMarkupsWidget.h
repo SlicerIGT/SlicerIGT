@@ -57,6 +57,14 @@ public:
   void SetCurrentNode( vtkMRMLNode* currentNode );
   void SetNodeBaseName( std::string newNodeBaseName );
 
+  void GetNodeColor( double rgb[3] );
+  void SetNodeColor( double rgb[3] );
+  void SetDefaultNodeColor( double rgb[3] );
+
+  std::string GetQtStyleStringInactive();
+  std::string GetQtStyleStringActive();
+
+
 protected slots:
 
   void onPlaceButtonClicked();
@@ -78,6 +86,8 @@ protected:
 
   virtual void setup();
   virtual void enter();
+
+  double DefaultNodeColor[3];
 
 private:
   Q_DECLARE_PRIVATE(qSlicerSimpleMarkupsWidget);
