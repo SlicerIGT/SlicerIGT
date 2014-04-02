@@ -87,6 +87,8 @@ protected:
   virtual void setup();
   virtual void enter();
 
+  void ConnectInteractionAndSelectionNodes();
+
   double DefaultNodeColor[3];
 
 private:

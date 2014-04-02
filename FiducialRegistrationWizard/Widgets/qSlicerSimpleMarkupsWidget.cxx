@@ -117,11 +117,7 @@ void qSlicerSimpleMarkupsWidget
 
   // Connect to the selection singleton node - that way we can update the GUI if the Active node changes
   // Note that only the GUI cares about the active node (the logic and mrml don't)
-  vtkMRMLSelectionNode* selectionNode = vtkMRMLSelectionNode::SafeDownCast( this->mrmlScene()->GetNodeByID( this->MarkupsLogic->GetSelectionNodeID() ) );
-  this->qvtkConnect( selectionNode, vtkCommand::ModifiedEvent, this, SLOT( updateWidget() ) );
-
-  vtkMRMLInteractionNode *interactionNode = vtkMRMLInteractionNode::SafeDownCast( this->mrmlScene()->GetNodeByID( "vtkMRMLInteractionNodeSingleton" ) );
-  this->qvtkConnect( interactionNode, vtkCommand::ModifiedEvent, this, SLOT( updateWidget() ) );
+  this->ConnectInteractionAndSelectionNodes();
 
   this->updateWidget();  
 }
@@ -131,6 +127,24 @@ void qSlicerSimpleMarkupsWidget
 ::enter()
 {
 }
+
+
+void qSlicerSimpleMarkupsWidget
+::ConnectInteractionAndSelectionNodes()
+{
+  vtkMRMLSelectionNode* selectionNode = vtkMRMLSelectionNode::SafeDownCast( this->mrmlScene()->GetNodeByID( this->MarkupsLogic->GetSelectionNodeID() ) );
+  if ( selectionNode != NULL )
+  {
+    this->qvtkConnect( selectionNode, vtkCommand::ModifiedEvent, this, SLOT( updateWidget() ) );
+  }
+
+  vtkMRMLInteractionNode *interactionNode = vtkMRMLInteractionNode::SafeDownCast( this->mrmlScene()->GetNodeByID( "vtkMRMLInteractionNodeSingleton" ) );
+  if ( interactionNode != NULL )
+  {
+    this->qvtkConnect( interactionNode, vtkCommand::ModifiedEvent, this, SLOT( updateWidget() ) );
+  }
+}
+
 
 
 vtkMRMLNode* qSlicerSimpleMarkupsWidget
@@ -300,9 +314,13 @@ void qSlicerSimpleMarkupsWidget
 {
   Q_D(qSlicerSimpleMarkupsWidget);
 
-  emit markupsFiducialNodeChanged();
-
   vtkMRMLMarkupsNode* currentMarkupsNode = vtkMRMLMarkupsNode::SafeDownCast( d->MarkupsFiducialNodeComboBox->currentNode() );
+
+  // Reconnect the appropriate nodes
+  this->qvtkDisconnectAll();
+  this->ConnectInteractionAndSelectionNodes();
+  this->qvtkConnect( currentMarkupsNode, vtkCommand::ModifiedEvent, this, SLOT( updateWidget() ) );
+  this->qvtkConnect( currentMarkupsNode, vtkMRMLMarkupsNode::MarkupAddedEvent, d->MarkupsFiducialTableWidget, SLOT( scrollToBottom() ) );
 
   // Depending to the current state, change the activeness and placeness for the current markups node
   vtkMRMLInteractionNode *interactionNode = vtkMRMLInteractionNode::SafeDownCast( this->mrmlScene()->GetNodeByID( "vtkMRMLInteractionNodeSingleton" ) );
@@ -319,6 +337,8 @@ void qSlicerSimpleMarkupsWidget
   }
 
   this->updateWidget();
+
+  emit markupsFiducialNodeChanged();
 }
 
 
