@@ -111,16 +111,28 @@ std::string qSlicerFiducialRegistrationWizardModuleWidget
 
   if ( fromMarkupsNode != NULL && toMarkupsNode != NULL )
   {
-    if ( strcmp( activeMarkupsNode->GetID(), fromMarkupsNode->GetID() ) == 0 && fromMarkupsNode->GetNumberOfFiducials() < toMarkupsNode->GetNumberOfFiducials() )
+    // Adding to "From" list
+    if ( strcmp( activeMarkupsNode->GetID(), fromMarkupsNode->GetID() ) == 0 )
     {
-      correspondingFiducialString << "corresponding to ";
-      correspondingFiducialString << toMarkupsNode->GetNthFiducialLabel( fromMarkupsNode->GetNumberOfFiducials() );
+      if ( fromMarkupsNode->GetNumberOfFiducials() < toMarkupsNode->GetNumberOfFiducials() )
+      {
+        correspondingFiducialString << "corresponding to ";
+        correspondingFiducialString << toMarkupsNode->GetNthFiducialLabel( fromMarkupsNode->GetNumberOfFiducials() );
+      }
+      d->ToMarkupsWidget->highlightNthFiducial( fromMarkupsNode->GetNumberOfFiducials() );
     }
-    if ( strcmp( activeMarkupsNode->GetID(), toMarkupsNode->GetID() ) == 0 && toMarkupsNode->GetNumberOfFiducials() < fromMarkupsNode->GetNumberOfFiducials() )
+
+    // Adding to "To" list
+    if ( strcmp( activeMarkupsNode->GetID(), toMarkupsNode->GetID() ) == 0 )
     {
-      correspondingFiducialString << "corresponding to ";
-      correspondingFiducialString << fromMarkupsNode->GetNthFiducialLabel( toMarkupsNode->GetNumberOfFiducials() );
+      if ( toMarkupsNode->GetNumberOfFiducials() < fromMarkupsNode->GetNumberOfFiducials() )
+      {
+        correspondingFiducialString << "corresponding to ";
+        correspondingFiducialString << fromMarkupsNode->GetNthFiducialLabel( toMarkupsNode->GetNumberOfFiducials() );
+      }
+      d->FromMarkupsWidget->highlightNthFiducial( toMarkupsNode->GetNumberOfFiducials() );
     }
+
   }
 
   correspondingFiducialString << ")";
@@ -163,14 +175,18 @@ void qSlicerFiducialRegistrationWizardModuleWidget
   connect( d->SimilarityRadioButton, SIGNAL( toggled( bool ) ), this, SLOT( UpdateToMRMLNode() ) );
 
   connect( d->FromMarkupsWidget, SIGNAL( markupsFiducialNodeChanged() ), this, SLOT( UpdateToMRMLNode() ) );
+  connect( d->FromMarkupsWidget, SIGNAL( markupsFiducialActivated() ), this, SLOT( UpdateToMRMLNode() ) );
+  connect( d->FromMarkupsWidget, SIGNAL( markupsFiducialPlaceModeChanged() ), this, SLOT( UpdateToMRMLNode() ) );
   connect( d->ToMarkupsWidget, SIGNAL( markupsFiducialNodeChanged() ), this, SLOT( UpdateToMRMLNode() ) );
+  connect( d->ToMarkupsWidget, SIGNAL( markupsFiducialActivated() ), this, SLOT( UpdateToMRMLNode() ) );
+  connect( d->ToMarkupsWidget, SIGNAL( markupsFiducialPlaceModeChanged() ), this, SLOT( UpdateToMRMLNode() ) );
 
   // These connections will do work (after being updated from the node)
   connect( d->RecordButton, SIGNAL( clicked() ), this, SLOT( onRecordButtonClicked() ) );
 
   // Update if the active fiducial node is changed
-  vtkMRMLSelectionNode* selectionNode = vtkMRMLSelectionNode::SafeDownCast( this->mrmlScene()->GetNodeByID( d->logic()->MarkupsLogic->GetSelectionNodeID() ) );
-  this->qvtkConnect( selectionNode, vtkCommand::ModifiedEvent, this, SLOT( UpdateFromMRMLNode() ) );
+  //vtkMRMLSelectionNode* selectionNode = vtkMRMLSelectionNode::SafeDownCast( this->mrmlScene()->GetNodeByID( d->logic()->MarkupsLogic->GetSelectionNodeID() ) );
+  //this->qvtkConnect( selectionNode, vtkCommand::ModifiedEvent, this, SLOT( UpdateFromMRMLNode() ) );
 
   // Watch the logic - it is updated whenver the mrml node is updated
   this->qvtkConnect( d->logic(), vtkCommand::ModifiedEvent, this, SLOT( UpdateFromMRMLNode() ) );

@@ -252,6 +252,22 @@ std::string qSlicerSimpleMarkupsWidget
 
 
 void qSlicerSimpleMarkupsWidget
+::highlightNthFiducial( int n )
+{
+  Q_D(qSlicerSimpleMarkupsWidget);
+
+  if ( n >= 0 && n < d->MarkupsFiducialTableWidget->rowCount() )
+  {
+    d->MarkupsFiducialTableWidget->selectRow( n );
+  }
+  else
+  {
+    d->MarkupsFiducialTableWidget->clearSelection();
+  }
+}
+
+
+void qSlicerSimpleMarkupsWidget
 ::onPlaceButtonClicked()
 {
   Q_D(qSlicerSimpleMarkupsWidget);
@@ -280,6 +296,8 @@ void qSlicerSimpleMarkupsWidget
   }
 
   this->updateWidget();
+
+  emit markupsFiducialPlaceModeChanged();
 }
 
 
@@ -306,6 +324,8 @@ void qSlicerSimpleMarkupsWidget
   }
 
   this->updateWidget();
+
+  emit markupsFiducialActivated();
 }
 
 

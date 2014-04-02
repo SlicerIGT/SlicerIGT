@@ -64,6 +64,9 @@ public:
   std::string GetQtStyleStringInactive();
   std::string GetQtStyleStringActive();
 
+public slots:
+
+  void highlightNthFiducial( int n );
 
 protected slots:
 
@@ -80,6 +83,8 @@ protected slots:
 signals:
 
   void markupsFiducialNodeChanged();
+  void markupsFiducialActivated();
+  void markupsFiducialPlaceModeChanged();
 
 protected:
   QScopedPointer<qSlicerSimpleMarkupsWidgetPrivate> d_ptr;
