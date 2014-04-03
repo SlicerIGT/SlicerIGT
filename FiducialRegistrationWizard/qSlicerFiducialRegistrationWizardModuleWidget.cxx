@@ -169,6 +169,24 @@ void qSlicerFiducialRegistrationWizardModuleWidget
   connect( d->ModuleNodeComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( UpdateFromMRMLNode() ) );
 
   // Make connections to update the mrml from the widget
+  this->ConnectAllUpdateWidgets();
+
+  // These connections will do work (after being updated from the node)
+  connect( d->RecordButton, SIGNAL( clicked() ), this, SLOT( onRecordButtonClicked() ) );
+
+  // Watch the logic - it is updated whenver the mrml node is updated
+  this->qvtkConnect( d->logic(), vtkCommand::ModifiedEvent, this, SLOT( UpdateFromMRMLNode() ) );
+
+  this->UpdateFromMRMLNode();
+}
+
+
+void qSlicerFiducialRegistrationWizardModuleWidget
+::ConnectAllUpdateWidgets()
+{
+  Q_D(qSlicerFiducialRegistrationWizardModuleWidget);
+
+  // Make connections to update the mrml from the widget
   connect( d->ProbeTransformComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( UpdateToMRMLNode() ) );
   connect( d->OutputTransformComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( UpdateToMRMLNode() ) );
   connect( d->RigidRadioButton, SIGNAL( toggled( bool ) ), this, SLOT( UpdateToMRMLNode() ) );
@@ -177,21 +195,45 @@ void qSlicerFiducialRegistrationWizardModuleWidget
   connect( d->FromMarkupsWidget, SIGNAL( markupsFiducialNodeChanged() ), this, SLOT( UpdateToMRMLNode() ) );
   connect( d->FromMarkupsWidget, SIGNAL( markupsFiducialActivated() ), this, SLOT( UpdateToMRMLNode() ) );
   connect( d->FromMarkupsWidget, SIGNAL( markupsFiducialPlaceModeChanged() ), this, SLOT( UpdateToMRMLNode() ) );
+  connect( d->FromMarkupsWidget, SIGNAL( updateFinished() ), this, SLOT( PostProcessMarkupsWidgets() ) );
   connect( d->ToMarkupsWidget, SIGNAL( markupsFiducialNodeChanged() ), this, SLOT( UpdateToMRMLNode() ) );
   connect( d->ToMarkupsWidget, SIGNAL( markupsFiducialActivated() ), this, SLOT( UpdateToMRMLNode() ) );
   connect( d->ToMarkupsWidget, SIGNAL( markupsFiducialPlaceModeChanged() ), this, SLOT( UpdateToMRMLNode() ) );
+  connect( d->ToMarkupsWidget, SIGNAL( updateFinished() ), this, SLOT( PostProcessMarkupsWidgets() ) );
+}
 
-  // These connections will do work (after being updated from the node)
-  connect( d->RecordButton, SIGNAL( clicked() ), this, SLOT( onRecordButtonClicked() ) );
 
-  // Update if the active fiducial node is changed
-  //vtkMRMLSelectionNode* selectionNode = vtkMRMLSelectionNode::SafeDownCast( this->mrmlScene()->GetNodeByID( d->logic()->MarkupsLogic->GetSelectionNodeID() ) );
-  //this->qvtkConnect( selectionNode, vtkCommand::ModifiedEvent, this, SLOT( UpdateFromMRMLNode() ) );
+void qSlicerFiducialRegistrationWizardModuleWidget
+::DisconnectAllUpdateWidgets()
+{
+  Q_D(qSlicerFiducialRegistrationWizardModuleWidget);
 
-  // Watch the logic - it is updated whenver the mrml node is updated
-  this->qvtkConnect( d->logic(), vtkCommand::ModifiedEvent, this, SLOT( UpdateFromMRMLNode() ) );
+  // Make connections to update the mrml from the widget
+  disconnect( d->ProbeTransformComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( UpdateToMRMLNode() ) );
+  disconnect( d->OutputTransformComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( UpdateToMRMLNode() ) );
+  disconnect( d->RigidRadioButton, SIGNAL( toggled( bool ) ), this, SLOT( UpdateToMRMLNode() ) );
+  disconnect( d->SimilarityRadioButton, SIGNAL( toggled( bool ) ), this, SLOT( UpdateToMRMLNode() ) );
 
-  this->UpdateFromMRMLNode();
+  disconnect( d->FromMarkupsWidget, SIGNAL( markupsFiducialNodeChanged() ), this, SLOT( UpdateToMRMLNode() ) );
+  disconnect( d->FromMarkupsWidget, SIGNAL( markupsFiducialActivated() ), this, SLOT( UpdateToMRMLNode() ) );
+  disconnect( d->FromMarkupsWidget, SIGNAL( markupsFiducialPlaceModeChanged() ), this, SLOT( UpdateToMRMLNode() ) );
+  disconnect( d->ToMarkupsWidget, SIGNAL( markupsFiducialNodeChanged() ), this, SLOT( UpdateToMRMLNode() ) );
+  disconnect( d->ToMarkupsWidget, SIGNAL( markupsFiducialActivated() ), this, SLOT( UpdateToMRMLNode() ) );
+  disconnect( d->ToMarkupsWidget, SIGNAL( markupsFiducialPlaceModeChanged() ), this, SLOT( UpdateToMRMLNode() ) );
+}
+
+
+void qSlicerFiducialRegistrationWizardModuleWidget
+::EnableAllWidgets( bool enable )
+{
+  Q_D(qSlicerFiducialRegistrationWizardModuleWidget);
+
+  d->ProbeTransformComboBox->setEnabled( enable );
+  d->OutputTransformComboBox->setEnabled( enable );
+  d->RigidRadioButton->setEnabled( enable );
+  d->SimilarityRadioButton->setEnabled( enable );
+  d->FromMarkupsWidget->setEnabled( enable );
+  d->ToMarkupsWidget->setEnabled( enable );
 }
 
 
@@ -291,45 +333,28 @@ void qSlicerFiducialRegistrationWizardModuleWidget
 
   if ( fiducialRegistrationWizardNode == NULL )
   {
-    d->ProbeTransformComboBox->setEnabled( false );
-    d->OutputTransformComboBox->setEnabled( false );
-    d->RigidRadioButton->setEnabled( false );
-    d->SimilarityRadioButton->setEnabled( false );
-    d->FromMarkupsWidget->setEnabled( false );
-    d->ToMarkupsWidget->setEnabled( false );
+    this->EnableAllWidgets( false );
     d->FromGroupBox->setStyleSheet( "QGroupBox { font-weight : normal; background-color: white }" );
     d->ToGroupBox->setStyleSheet( "QGroupBox { font-weight : normal; background-color: white }" );
     d->StatusLabel->setText( "No Fiducial Registration Wizard module node selected." );
     return;
   }
 
-  d->ProbeTransformComboBox->setEnabled( true );
-  d->OutputTransformComboBox->setEnabled( true );
-  d->RigidRadioButton->setEnabled( true );
-  d->SimilarityRadioButton->setEnabled( true );
-  d->FromMarkupsWidget->setEnabled( true );
-  d->ToMarkupsWidget->setEnabled( true );
+  this->EnableAllWidgets( true );
 
   // Disconnect to prevent signals form cuing slots
-  disconnect( d->ProbeTransformComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( UpdateToMRMLNode() ) );
-  disconnect( d->OutputTransformComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( UpdateToMRMLNode() ) );
-  disconnect( d->RigidRadioButton, SIGNAL( toggled( bool ) ), this, SLOT( UpdateToMRMLNode() ) );
-  disconnect( d->SimilarityRadioButton, SIGNAL( toggled( bool ) ), this, SLOT( UpdateToMRMLNode() ) );
-  disconnect( d->FromMarkupsWidget, SIGNAL( markupsFiducialNodeChanged() ), this, SLOT( UpdateToMRMLNode() ) );
-  disconnect( d->ToMarkupsWidget, SIGNAL( markupsFiducialNodeChanged() ), this, SLOT( UpdateToMRMLNode() ) );
+  this->DisconnectAllUpdateWidgets();
 
-  std::string fromFid = fiducialRegistrationWizardNode->GetFromFiducialListID();
-  std::string toFid = fiducialRegistrationWizardNode->GetToFiducialListID();
+  std::string fromFiducialListID = fiducialRegistrationWizardNode->GetFromFiducialListID();
+  std::string toFiducialListID = fiducialRegistrationWizardNode->GetToFiducialListID();
 
   d->ProbeTransformComboBox->setCurrentNodeID( QString::fromStdString( fiducialRegistrationWizardNode->GetProbeTransformID() ) );
   d->OutputTransformComboBox->setCurrentNodeID( QString::fromStdString( fiducialRegistrationWizardNode->GetOutputTransformID() ) );
-  //d->FromMarkupsWidget->SetCurrentNode( this->mrmlScene()->GetNodeByID( fiducialRegistrationWizardNode->GetFromFiducialListID() ) );
-  //d->ToMarkupsWidget->SetCurrentNode( this->mrmlScene()->GetNodeByID( fiducialRegistrationWizardNode->GetToFiducialListID() ) );
   d->TransformPreviewWidget->SetCurrentNode( this->mrmlScene()->GetNodeByID( fiducialRegistrationWizardNode->GetOutputTransformID() ) );
   d->RecordButton->setText( QString::fromStdString( this->GetCorrespondingFiducialString() ) );
 
   // Depending to the current state, change the activeness and placeness for the current markups node
-  if ( d->logic()->MarkupsLogic->GetActiveListID().compare( fiducialRegistrationWizardNode->GetFromFiducialListID() ) == 0 && d->logic()->MarkupsLogic->GetActiveListID().compare( "" ) != 0 )
+  if ( d->logic()->MarkupsLogic->GetActiveListID().compare( fromFiducialListID ) == 0 && d->logic()->MarkupsLogic->GetActiveListID().compare( "" ) != 0 )
   {
     d->FromGroupBox->setStyleSheet( d->FromMarkupsWidget->GetQtStyleStringActive().c_str() );
   }
@@ -338,7 +363,7 @@ void qSlicerFiducialRegistrationWizardModuleWidget
     d->FromGroupBox->setStyleSheet( d->FromMarkupsWidget->GetQtStyleStringInactive().c_str() );
   }
 
-  if ( d->logic()->MarkupsLogic->GetActiveListID().compare( fiducialRegistrationWizardNode->GetToFiducialListID() ) == 0 && d->logic()->MarkupsLogic->GetActiveListID().compare( "" ) != 0 )
+  if ( d->logic()->MarkupsLogic->GetActiveListID().compare( toFiducialListID ) == 0 && d->logic()->MarkupsLogic->GetActiveListID().compare( "" ) != 0 )
   {
     d->ToGroupBox->setStyleSheet( d->ToMarkupsWidget->GetQtStyleStringActive().c_str() );
   }
@@ -360,16 +385,38 @@ void qSlicerFiducialRegistrationWizardModuleWidget
   }
 
   // Unblock all singals from firing
-  // TODO: Is there a more efficient way to do this by blokcing slots?
-  connect( d->ProbeTransformComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( UpdateToMRMLNode() ) );
-  connect( d->OutputTransformComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( UpdateToMRMLNode() ) );
-  connect( d->RigidRadioButton, SIGNAL( toggled( bool ) ), this, SLOT( UpdateToMRMLNode() ) );
-  connect( d->SimilarityRadioButton, SIGNAL( toggled( bool ) ), this, SLOT( UpdateToMRMLNode() ) );
-  connect( d->FromMarkupsWidget, SIGNAL( markupsFiducialNodeChanged() ), this, SLOT( UpdateToMRMLNode() ) );
-  connect( d->ToMarkupsWidget, SIGNAL( markupsFiducialNodeChanged() ), this, SLOT( UpdateToMRMLNode() ) );
+  this->ConnectAllUpdateWidgets();
 
   std::stringstream statusString;
   statusString << "Status: ";
   statusString << d->logic()->GetOutputMessage( d->ModuleNodeComboBox->currentNode()->GetID() );
   d->StatusLabel->setText( QString::fromStdString( statusString.str() ) ); // Also update the results
+}
+
+
+void qSlicerFiducialRegistrationWizardModuleWidget
+::PostProcessMarkupsWidgets()
+{
+  Q_D( qSlicerFiducialRegistrationWizardModuleWidget );
+
+  vtkMRMLMarkupsNode* activeMarkupsNode = vtkMRMLMarkupsNode::SafeDownCast( this->mrmlScene()->GetNodeByID( d->logic()->MarkupsLogic->GetActiveListID() ) );
+
+  vtkMRMLMarkupsFiducialNode* fromMarkupsNode = vtkMRMLMarkupsFiducialNode::SafeDownCast( d->FromMarkupsWidget->GetCurrentNode() );
+  vtkMRMLMarkupsFiducialNode* toMarkupsNode = vtkMRMLMarkupsFiducialNode::SafeDownCast( d->ToMarkupsWidget->GetCurrentNode() );
+
+  if ( fromMarkupsNode != NULL && toMarkupsNode != NULL )
+  {
+    // Adding to "From" list
+    if ( strcmp( activeMarkupsNode->GetID(), fromMarkupsNode->GetID() ) == 0 )
+    {
+      d->ToMarkupsWidget->highlightNthFiducial( fromMarkupsNode->GetNumberOfFiducials() );
+    }
+
+    // Adding to "To" list
+    if ( strcmp( activeMarkupsNode->GetID(), toMarkupsNode->GetID() ) == 0 )
+    {
+      d->FromMarkupsWidget->highlightNthFiducial( toMarkupsNode->GetNumberOfFiducials() );
+    }
+  }
+
 }

@@ -85,6 +85,7 @@ signals:
   void markupsFiducialNodeChanged();
   void markupsFiducialActivated();
   void markupsFiducialPlaceModeChanged();
+  void updateFinished();
 
 protected:
   QScopedPointer<qSlicerSimpleMarkupsWidgetPrivate> d_ptr;

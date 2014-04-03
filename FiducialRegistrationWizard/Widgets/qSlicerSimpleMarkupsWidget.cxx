@@ -555,4 +555,6 @@ void qSlicerSimpleMarkupsWidget
   }
 
   d->MarkupsFiducialTableWidget->blockSignals( false );
+
+  emit updateFinished();
 }

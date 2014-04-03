@@ -50,6 +50,8 @@ protected slots:
   void UpdateToMRMLNode();
   void UpdateFromMRMLNode();
 
+  void PostProcessMarkupsWidgets();
+
   void onRecordButtonClicked();
 
 protected:
@@ -57,6 +59,11 @@ protected:
   
   virtual void setup();
   virtual void enter();
+
+  void ConnectAllUpdateWidgets();
+  void DisconnectAllUpdateWidgets();
+
+  void EnableAllWidgets( bool enable );
 
 private:
   Q_DECLARE_PRIVATE(qSlicerFiducialRegistrationWizardModuleWidget);
