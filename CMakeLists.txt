@@ -26,6 +26,7 @@ set( SlicerIGT_Modules
   OpenIGTLinkRemote
   PathExplorer
   PivotCalibration
+  PlusRemote
   TransformFusion
   UltrasoundSnapshots
   VolumeResliceDriver
