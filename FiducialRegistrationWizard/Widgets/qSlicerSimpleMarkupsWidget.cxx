@@ -384,7 +384,7 @@ void qSlicerSimpleMarkupsWidget
 
   QMenu* fiducialsMenu = new QMenu( d->MarkupsFiducialTableWidget );
   QAction* activateAction = new QAction( "Make fiducial list active", fiducialsMenu );
-  QAction* deleteAction = new QAction( "Delete current fiducial", fiducialsMenu );
+  QAction* deleteAction = new QAction( "Delete highlighted fiducials", fiducialsMenu );
   QAction* upAction = new QAction( "Move current fiducial up", fiducialsMenu );
   QAction* downAction = new QAction( "Move current fiducial down", fiducialsMenu );
   QAction* jumpAction = new QAction( "Jump slices to fiducial", fiducialsMenu );
@@ -414,9 +414,24 @@ void qSlicerSimpleMarkupsWidget
 
   if ( selectedAction == deleteAction )
   {
-    currentNode->RemoveMarkup( currentFiducial );
+    QItemSelectionModel* selectionModel = d->MarkupsFiducialTableWidget->selectionModel();
+    std::vector< int > deleteFiducials;
+    // Need to find selected before removing because removing automatically refreshes the table
+    for ( int i = 0; i < d->MarkupsFiducialTableWidget->rowCount(); i++ )
+    {
+      if ( selectionModel->rowIntersectsSelection( i, d->MarkupsFiducialTableWidget->rootIndex() ) )
+      {
+        deleteFiducials.push_back( i );
+      }
+    }
+    //Traversing this way should be more efficient and correct
+    for ( int i = deleteFiducials.size() - 1; i >= 0; i-- )
+    {
+      currentNode->RemoveMarkup( deleteFiducials.at( i ) );
+    }
   }
 
+  
   if ( selectedAction == upAction )
   {
     if ( currentFiducial > 0 )
