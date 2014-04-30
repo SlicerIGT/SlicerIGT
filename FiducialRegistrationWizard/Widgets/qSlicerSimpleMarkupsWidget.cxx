@@ -235,11 +235,30 @@ void qSlicerSimpleMarkupsWidget
 std::string qSlicerSimpleMarkupsWidget
 ::GetQtStyleStringActive()
 {
+  // Get the node colour (i.e. the background colour for the highlighted fiducial list)
   double NodeColor[ 3 ] = { 0, 0, 0 };
   this->GetNodeColor( NodeColor );
   int QtNodeColor[ 3 ] = { 255 * NodeColor[ 0 ], 255 * NodeColor[ 1 ], 255 * NodeColor[ 2 ] };
+
+  // Get the colour of the title (black or white)
+  // These numbers are taken from Matlab's rgb2gray command
+  double grayscaleThreshold = 0.5;
+  double grayscaleValue = 0.2989 * NodeColor[ 0 ] + 0.5870 * NodeColor[ 1 ] + 0.1140 * NodeColor[ 2 ];
+  int QtTitleColor[ 3 ] = { 0, 0, 0 };
+  if ( grayscaleValue < grayscaleThreshold )
+  {
+    QtTitleColor[ 0 ] = 255;
+    QtTitleColor[ 1 ] = 255;
+    QtTitleColor[ 2 ] = 255;
+  }
+
+  // Set the style string
   std::stringstream styleStringstream;
-  styleStringstream << "QGroupBox { font-weight : bold; background-color: rgb( " << QtNodeColor[0] << ", " << QtNodeColor[1] << ", " << QtNodeColor[2] << ") }";
+  styleStringstream << "QGroupBox { ";
+  styleStringstream << "font-weight : bold;";
+  styleStringstream << "color: rgb( " << QtTitleColor[0] << ", " << QtTitleColor[1] << ", " << QtTitleColor[2] << "); ";
+  styleStringstream << "background-color: rgb( " << QtNodeColor[0] << ", " << QtNodeColor[1] << ", " << QtNodeColor[2] << ") ";
+  styleStringstream << "}";
   return styleStringstream.str();
 }
 
@@ -247,7 +266,7 @@ std::string qSlicerSimpleMarkupsWidget
 std::string qSlicerSimpleMarkupsWidget
 ::GetQtStyleStringInactive()
 {
-  return "QGroupBox { font-weight : normal; background-color: white }";
+  return "QGroupBox { font-weight : normal; color : black; background-color: white }";
 }
 
 
