@@ -254,6 +254,11 @@ void qSlicerFiducialRegistrationWizardModuleWidget
     this->mrmlScene()->AddNode( fiducialRegistrationWizardNode );
     d->ModuleNodeComboBox->setCurrentNode( fiducialRegistrationWizardNode );
   }
+  else
+  {
+    this->UpdateFromMRMLNode();
+  }
+
 }
 
 
@@ -371,6 +376,9 @@ void qSlicerFiducialRegistrationWizardModuleWidget
   {
     d->ToGroupBox->setStyleSheet( d->ToMarkupsWidget->GetQtStyleStringInactive().c_str() );
   }
+
+  d->FromMarkupsWidget->SetCurrentNode( this->mrmlScene()->GetNodeByID( fiducialRegistrationWizardNode->GetFromFiducialListID() ) );
+  d->ToMarkupsWidget->SetCurrentNode( this->mrmlScene()->GetNodeByID( fiducialRegistrationWizardNode->GetToFiducialListID() ) );
 
 
   if ( fiducialRegistrationWizardNode->GetRegistrationMode().compare( "Similarity" ) == 0 )
