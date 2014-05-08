@@ -46,6 +46,14 @@ public:
   vtkTypeMacro(vtkSlicerPathExplorerLogic, vtkSlicerModuleLogic);
   void PrintSelf(ostream& os, vtkIndent indent);
 
+  // TODO: Add new entry
+
+  // TODO: Add new target
+
+  // TODO: Add new trajectory
+
+  // TODO: Reslice
+
 protected:
   vtkSlicerPathExplorerLogic();
   virtual ~vtkSlicerPathExplorerLogic();

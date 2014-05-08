@@ -30,6 +30,8 @@
 #include "vtkMRMLAnnotationHierarchyNode.h"
 #include "vtkMRMLSliceNode.h"
 
+
+class QShortcut;
 class qSlicerPathExplorerModuleWidgetPrivate;
 class vtkMRMLNode;
 
@@ -45,6 +47,9 @@ public:
   qSlicerPathExplorerModuleWidget(QWidget *parent=0);
   virtual ~qSlicerPathExplorerModuleWidget();
 
+  virtual void enter();
+  virtual void exit();
+
 public slots:
   void onEntryNodeActivated(vtkMRMLNode* node);
   void onTargetNodeActivated(vtkMRMLNode* node);
@@ -52,6 +57,8 @@ public slots:
   void onMRMLSceneChanged(vtkMRMLScene* scene);
   void onEntryAddButtonToggled(bool state);
   void onTargetAddButtonToggled(bool state);
+  void onEKeyPressed();
+  void onTKeyPressed();
 
 protected:
   QScopedPointer<qSlicerPathExplorerModuleWidgetPrivate> d_ptr;
@@ -61,6 +68,9 @@ protected:
 private:
   Q_DECLARE_PRIVATE(qSlicerPathExplorerModuleWidget);
   Q_DISABLE_COPY(qSlicerPathExplorerModuleWidget);
+
+  QShortcut *eToAddShortcut;
+  QShortcut *tToAddShortcut;
 };
 
 #endif

@@ -17,6 +17,7 @@
 
 // Qt includes
 #include <QDebug>
+#include <QShortcut>
 
 // SlicerQt includes
 #include "qSlicerPathExplorerModuleWidget.h"
@@ -48,6 +49,8 @@ qSlicerPathExplorerModuleWidget::qSlicerPathExplorerModuleWidget(QWidget* _paren
   : Superclass( _parent )
   , d_ptr( new qSlicerPathExplorerModuleWidgetPrivate )
 {
+  this->eToAddShortcut = 0;
+  this->tToAddShortcut = 0;
 }
 
 //-----------------------------------------------------------------------------
@@ -75,6 +78,50 @@ void qSlicerPathExplorerModuleWidget::setup()
 	  this, SLOT(onMRMLSceneChanged(vtkMRMLScene*)));
 }
 
+//-----------------------------------------------------------------------------
+void qSlicerPathExplorerModuleWidget::enter()
+{
+  if (this->eToAddShortcut == 0)
+    {
+    this->eToAddShortcut = new QShortcut(QKeySequence(QString("e")), this);
+    }
+
+  if (this->tToAddShortcut == 0)
+    {
+    this->tToAddShortcut = new QShortcut(QKeySequence(QString("t")), this);
+    }
+
+  QObject::connect(this->eToAddShortcut, SIGNAL(activated()),
+		   this, SLOT(onEKeyPressed()));
+
+  QObject::connect(this->tToAddShortcut, SIGNAL(activated()),
+		   this, SLOT(onTKeyPressed()));
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerPathExplorerModuleWidget::onEKeyPressed()
+{
+  Q_D(qSlicerPathExplorerModuleWidget);
+
+  d->EntryWidget->setAddButtonState(true);
+  d->EntryWidget->onAddButtonToggled(true);
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerPathExplorerModuleWidget::onTKeyPressed()
+{
+  Q_D(qSlicerPathExplorerModuleWidget);
+
+  d->TargetWidget->setAddButtonState(true);
+  d->TargetWidget->onAddButtonToggled(true);
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerPathExplorerModuleWidget::exit()
+{
+  this->eToAddShortcut->disconnect(SIGNAL(activated()));
+  this->tToAddShortcut->disconnect(SIGNAL(activated()));
+}
 
 //-----------------------------------------------------------------------------
 void qSlicerPathExplorerModuleWidget::onMRMLSceneChanged(vtkMRMLScene* newScene)
