@@ -208,6 +208,7 @@ vtkSlicerCreateModelsLogic
   vtkSmartPointer< vtkMRMLModelDisplayNode > needleDisplayNode = vtkSmartPointer< vtkMRMLModelDisplayNode >::New();
   needleDisplayNode->SetScene( this->GetMRMLScene() );
   needleDisplayNode->SetName( "NeedleModelDisplay" );
+  needleDisplayNode->SetColor( 0.0, 1.0, 1.0 );
   this->GetMRMLScene()->AddNode( needleDisplayNode );
     
   needleModelNode->SetAndObserveDisplayNodeID( needleDisplayNode->GetID() );
@@ -225,6 +226,7 @@ vtkSlicerCreateModelsLogic
   vtkSmartPointer< vtkMRMLModelDisplayNode > markersDisplayNode = vtkSmartPointer< vtkMRMLModelDisplayNode >::New();
   markersDisplayNode->SetScene( this->GetMRMLScene() );
   markersDisplayNode->SetName( "NeedleMarkersDisplay" );
+  markersDisplayNode->SetColor( 0.0, 0.0, 0.0 );
   this->GetMRMLScene()->AddNode( markersDisplayNode );
   
   markersModelNode->SetAndObserveDisplayNodeID( markersDisplayNode->GetID() );
