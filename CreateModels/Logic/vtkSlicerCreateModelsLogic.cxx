@@ -350,7 +350,6 @@ vtkSlicerCreateModelsLogic
   XTipSource->SetHeight( axisLength / 4.0 );
   
   vtkSmartPointer< vtkTransform > XTipTransform = vtkSmartPointer< vtkTransform >::New();
-  // XTipTransform->RotateZ( -90.0 );
   XTipTransform->Translate( axisLength + axisLength * 0.1, 0.0, 0.0 );
   XTipTransform->Update();
   
