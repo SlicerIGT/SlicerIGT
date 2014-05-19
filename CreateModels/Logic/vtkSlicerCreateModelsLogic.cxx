@@ -320,6 +320,103 @@ vtkSlicerCreateModelsLogic
 
 
 
+void
+vtkSlicerCreateModelsLogic
+::CreateCoordinate( double axisLength, double axisDiameter )
+{
+  
+  vtkSmartPointer< vtkAppendPolyData > appendPolyData = vtkSmartPointer< vtkAppendPolyData >::New();
+  
+  // X axis
+  
+  vtkSmartPointer< vtkCylinderSource > XCylinderSource = vtkSmartPointer< vtkCylinderSource >::New();
+  XCylinderSource->SetRadius( axisDiameter / 2.0 );
+  XCylinderSource->SetHeight( axisLength );
+  
+  vtkSmartPointer< vtkTransform > XCylinderTransform = vtkSmartPointer< vtkTransform >::New();
+  XCylinderTransform->RotateZ( -90.0 );
+  XCylinderTransform->Translate( 0.0, axisLength / 2.0, 0.0 );
+  XCylinderTransform->Update();
+  
+  vtkSmartPointer< vtkTransformPolyDataFilter > XCylinderTransformFilter = vtkSmartPointer< vtkTransformPolyDataFilter >::New();
+  XCylinderTransformFilter->SetInput( XCylinderSource->GetOutput() );
+  XCylinderTransformFilter->SetTransform( XCylinderTransform );
+  XCylinderTransformFilter->Update();
+  
+  appendPolyData->AddInput( XCylinderTransformFilter->GetOutput() );
+  
+  vtkSmartPointer< vtkConeSource > XTipSource = vtkSmartPointer< vtkConeSource >::New();
+  XTipSource->SetRadius( axisDiameter * 1.5 );
+  XTipSource->SetHeight( axisLength / 4.0 );
+  
+  vtkSmartPointer< vtkTransform > XTipTransform = vtkSmartPointer< vtkTransform >::New();
+  // XTipTransform->RotateZ( -90.0 );
+  XTipTransform->Translate( axisLength + axisLength * 0.1, 0.0, 0.0 );
+  XTipTransform->Update();
+  
+  vtkSmartPointer< vtkTransformPolyDataFilter > XTipTransformFilter = vtkSmartPointer< vtkTransformPolyDataFilter >::New();
+  XTipTransformFilter->SetInput( XTipSource->GetOutput() );
+  XTipTransformFilter->SetTransform( XTipTransform );
+  XTipTransformFilter->Update();
+  
+  appendPolyData->AddInput( XTipTransformFilter->GetOutput() );
+  
+  
+  // Y axis
+  
+  vtkSmartPointer< vtkCylinderSource > YCylinderSource = vtkSmartPointer< vtkCylinderSource >::New();
+  YCylinderSource->SetRadius( axisDiameter / 2.0 );
+  YCylinderSource->SetHeight( axisLength );
+  
+  vtkSmartPointer< vtkTransform > YCylinderTransform = vtkSmartPointer< vtkTransform >::New();
+  YCylinderTransform->Translate( 0.0, axisLength / 2.0, 0.0 );
+  YCylinderTransform->Update();
+  
+  vtkSmartPointer< vtkTransformPolyDataFilter > YCylinderTransformFilter = vtkSmartPointer< vtkTransformPolyDataFilter >::New();
+  YCylinderTransformFilter->SetInput( YCylinderSource->GetOutput() );
+  YCylinderTransformFilter->SetTransform( YCylinderTransform );
+  
+  appendPolyData->AddInput( YCylinderTransformFilter->GetOutput() );
+  
+  
+  // Z axis
+  
+  vtkSmartPointer< vtkCylinderSource > ZCylinderSource = vtkSmartPointer< vtkCylinderSource >::New();
+  ZCylinderSource->SetRadius( axisDiameter / 2.0 );
+  ZCylinderSource->SetHeight( axisLength );
+  
+  vtkSmartPointer< vtkTransform > ZCylinderTransform = vtkSmartPointer< vtkTransform >::New();
+  ZCylinderTransform->RotateX( 90.0 );
+  ZCylinderTransform->Translate( 0.0, axisLength / 2.0, 0.0 );
+  ZCylinderTransform->Update();
+  
+  vtkSmartPointer< vtkTransformPolyDataFilter > ZCylinderTransformFilter = vtkSmartPointer< vtkTransformPolyDataFilter >::New();
+  ZCylinderTransformFilter->SetInput( ZCylinderSource->GetOutput() );
+  ZCylinderTransformFilter->SetTransform( ZCylinderTransform );
+  
+  appendPolyData->AddInput( ZCylinderTransformFilter->GetOutput() );
+  
+  
+  
+  // Model node
+  
+  vtkSmartPointer< vtkMRMLModelNode > modelNode = vtkSmartPointer< vtkMRMLModelNode >::New();
+  modelNode->SetScene( this->GetMRMLScene() );
+  modelNode->SetName( "CoordinateModel" );
+  modelNode->SetAndObservePolyData( appendPolyData->GetOutput() );
+  
+  vtkSmartPointer< vtkMRMLModelDisplayNode > displayNode = vtkSmartPointer< vtkMRMLModelDisplayNode >::New();
+  displayNode->SetScene( this->GetMRMLScene() );
+  displayNode->SetName( "CoordinateModelDisplay" );
+  this->GetMRMLScene()->AddNode( displayNode );
+  
+  modelNode->SetAndObserveDisplayNodeID( displayNode->GetID() );
+  
+  this->GetMRMLScene()->AddNode( modelNode );
+}
+
+
+
 vtkSlicerCreateModelsLogic::vtkSlicerCreateModelsLogic()
 {
   

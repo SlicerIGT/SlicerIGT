@@ -44,6 +44,7 @@ public slots:
   void OnCreateCubeClicked();
   void OnCreateCylinderClicked();
   void OnCreateSphereClicked();
+  void OnCreateCoordinateClicked();
   
   
 protected:

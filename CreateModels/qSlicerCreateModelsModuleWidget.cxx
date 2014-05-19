@@ -124,6 +124,17 @@ qSlicerCreateModelsModuleWidget
 
 
 
+void
+qSlicerCreateModelsModuleWidget
+::OnCreateCoordinateClicked()
+{
+  Q_D( qSlicerCreateModelsModuleWidget );
+  
+  d->logic()->CreateCoordinate( d->CAxisLengthSpinBox->value(), d->CAxisThicknessSpinBox->value() );
+}
+
+
+
 void qSlicerCreateModelsModuleWidget::setup()
 {
   Q_D(qSlicerCreateModelsModuleWidget);
@@ -134,5 +145,6 @@ void qSlicerCreateModelsModuleWidget::setup()
   connect( d->CreateCubeButton, SIGNAL( clicked() ), this, SLOT( OnCreateCubeClicked() ) );
   connect( d->CreateCylinderButton, SIGNAL( clicked() ), this, SLOT( OnCreateCylinderClicked() ) );
   connect( d->CreateSphereButton, SIGNAL( clicked() ), this, SLOT( OnCreateSphereClicked() ) );
+  connect( d->CreateCoordinateButton, SIGNAL( clicked() ), this, SLOT( OnCreateCoordinateClicked() ) );
 }
 

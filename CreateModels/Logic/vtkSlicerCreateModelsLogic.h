@@ -53,6 +53,7 @@ public:
   void CreateCube( double x, double y, double z );
   void CreateCylinder( double h, double r );
   void CreateSphere( double radius );
+  void CreateCoordinate( double axisLength, double axisRadius );
   
   
 protected:
