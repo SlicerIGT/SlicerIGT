@@ -62,6 +62,13 @@ class VTK_SLICER_BREACHWARNING_MODULE_LOGIC_EXPORT vtkSlicerBreachWarningLogic :
 {
 public:
   
+  enum ToolState
+  {
+    UNDEFINED,
+    INSIDE,
+    OUTSIDE
+  };
+  
   static vtkSlicerBreachWarningLogic *New();
   vtkTypeMacro(vtkSlicerBreachWarningLogic,vtkSlicerModuleLogic);
   void PrintSelf(ostream& os, vtkIndent indent);
@@ -93,8 +100,9 @@ protected:
   virtual void OnMRMLSceneNodeAdded(vtkMRMLNode* node);
   virtual void OnMRMLSceneNodeRemoved(vtkMRMLNode* node);
 
-
+  void UpdateToolState( vtkMRMLBreachWarningNode* bwNode );
   void UpdateModelColor( vtkMRMLBreachWarningNode* bwNode );
+  void PlaySound();
 
 
 private:
@@ -104,6 +112,8 @@ private:
 private:
   char* ModuleNodeID;
   vtkMRMLBreachWarningNode* ModuleNode;
+  ToolState LastToolState;
+  ToolState CurrentToolState;
 };
 
 #endif

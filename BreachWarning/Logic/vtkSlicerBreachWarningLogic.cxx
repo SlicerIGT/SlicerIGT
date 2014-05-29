@@ -54,6 +54,8 @@ vtkStandardNewMacro(vtkSlicerBreachWarningLogic);
 
 vtkSlicerBreachWarningLogic
 ::vtkSlicerBreachWarningLogic()
+: LastToolState( UNDEFINED ),
+  CurrentToolState( UNDEFINED )
 {
 }
 
@@ -103,7 +105,7 @@ void vtkSlicerBreachWarningLogic::RegisterNodes()
 
 void
 vtkSlicerBreachWarningLogic
-::UpdateModelColor( vtkMRMLBreachWarningNode* bwNode )
+::UpdateToolState( vtkMRMLBreachWarningNode* bwNode )
 {
   if ( bwNode == NULL )
   {
@@ -157,20 +159,55 @@ vtkSlicerBreachWarningLogic
   
   int inside = EnclosedFilter->IsInsideSurface( P0[ 0 ], P0[ 1 ], P0[ 2 ] );
 
+  this->LastToolState = this->CurrentToolState;
+  
   if ( inside )
+  {
+    this->CurrentToolState = INSIDE;
+  }
+  else
+  {
+    this->CurrentToolState = OUTSIDE;
+  }
+}
+
+
+
+void
+vtkSlicerBreachWarningLogic
+::UpdateModelColor( vtkMRMLBreachWarningNode* bwNode )
+{
+  if ( bwNode == NULL )
+  {
+    return;
+  }
+  
+  vtkMRMLModelNode* modelNode = bwNode->GetWatchedModelNode();
+  
+  if ( this->CurrentToolState == INSIDE )
   {
     double r = bwNode->GetWarningColorComponent( 0 );
     double g = bwNode->GetWarningColorComponent( 1 );
     double b = bwNode->GetWarningColorComponent( 2 );
     modelNode->GetDisplayNode()->SetColor( r, g, b );
   }
-  else
+  
+  if ( this->CurrentToolState == OUTSIDE )
   {
     double r = bwNode->GetOriginalColorComponent( 0 );
     double g = bwNode->GetOriginalColorComponent( 1 );
     double b = bwNode->GetOriginalColorComponent( 2 );
     modelNode->GetDisplayNode()->SetColor( r, g, b );
   }
+}
+
+
+
+void
+vtkSlicerBreachWarningLogic
+::PlaySound()
+{
+  
 }
 
 
@@ -310,7 +347,9 @@ vtkSlicerBreachWarningLogic
   {
     return;
   }
-
+  
+  this->UpdateToolState( bwNode );
   this->UpdateModelColor( bwNode );
+  this->PlaySound();
 }
 

@@ -18,6 +18,7 @@
 
 // Qt includes
 #include <QtGui>
+#include <QSound>
 
 // SlicerQt includes
 #include "qSlicerBreachWarningModuleWidget.h"
@@ -109,6 +110,7 @@ qSlicerBreachWarningModuleWidget
   connect( d->ModelNodeComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onModelNodeChanged() ) );
   connect( d->ToolComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onToolTransformChanged() ) );
   connect( d->ColorPickerButton, SIGNAL( colorChanged( QColor ) ), this, SLOT( UpdateWarningColor( QColor ) ) );
+  connect( d->soundPushButton, SIGNAL( clicked() ), this, SLOT( onPlaySoundClicked() ) );
   
   this->UpdateFromMRMLNode();
 }
@@ -234,6 +236,15 @@ qSlicerBreachWarningModuleWidget
   {
     d->logic()->SetObservedTransformNode( vtkMRMLLinearTransformNode::SafeDownCast( currentNode ), moduleNode );
   }
+}
+
+
+
+void
+qSlicerBreachWarningModuleWidget
+::onPlaySoundClicked()
+{
+  QSound::play(":/ComputerErrorAlert.wav");
 }
 
 
