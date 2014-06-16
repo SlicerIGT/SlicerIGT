@@ -31,6 +31,8 @@ class PlusRemoteWidget:
       self.parent = parent
     self.layout = self.parent.layout()
     self.lastCommandId = 0
+    #self.commandResponseReceivedCallback = None
+    #self.commandReply = ""
     self.timeoutCounter = 0
     if not parent:
       self.setup()
@@ -98,8 +100,9 @@ class PlusRemoteWidget:
     self.layout.addWidget(recordingCollapsibleButton)
     recordingLayout = qt.QFormLayout(recordingCollapsibleButton)
     
-    self.captureIDBox = qt.QLineEdit()
-    recordingLayout.addRow("Capture Device ID: ", self.captureIDBox)    
+    self.captureIDSelector = qt.QComboBox()
+    self.captureIDSelector.setToolTip( "Pick capture device ID" )
+    recordingLayout.addRow("Capture Device ID: ", self.captureIDSelector)
     
     self.fileNameBox = qt.QLineEdit()
     recordingLayout.addRow("Filename: ", self.fileNameBox)
@@ -117,7 +120,11 @@ class PlusRemoteWidget:
     reconstructionCollapsibleButton = ctk.ctkCollapsibleButton()
     reconstructionCollapsibleButton.text = "Reconstruction"
     self.layout.addWidget(reconstructionCollapsibleButton)
-    reconstructionLayout = qt.QFormLayout(reconstructionCollapsibleButton)    
+    reconstructionLayout = qt.QFormLayout(reconstructionCollapsibleButton)
+    
+    self.volumeReconstructorIDSelector = qt.QComboBox()
+    self.volumeReconstructorIDSelector.setToolTip( "Pick volume reconstructor device ID" )
+    reconstructionLayout.addRow("Volume Reconstructor Device ID: ", self.volumeReconstructorIDSelector)
     
     liveReconstructionLayout = qt.QGridLayout()
     self.startReconstuctionButton = qt.QPushButton("Start Live Reconstruction")
@@ -166,7 +173,15 @@ class PlusRemoteWidget:
     self.replyBox.setReadOnly(True)
     replyLayout.addRow(self.replyBox)
     
+    self.testBox = qt.QPlainTextEdit()
+    self.testBox.setReadOnly(True)
+    replyLayout.addRow(self.testBox)
+    
     # connections
+    
+    self.linkInputSelector.connect("nodeActivated(vtkMRMLNode*)", self.onConnectorNodeSelected)
+    #self.captureIDSelector.connect('activated(int)', self.onCaptureDeviceSelected)
+    
     self.startRecordingButton.connect('clicked(bool)', self.onStartRecording)
     self.stopRecordingButton.connect('clicked(bool)', self.onStopRecording)
     
@@ -183,63 +198,93 @@ class PlusRemoteWidget:
   def cleanup(self):
     pass
   
+  def onConnectorNodeSelected(self):
+    logic = PlusRemoteLogic()
+    self.lastCommandId = logic.getCaptureDeviceIds(self.linkInputSelector.currentNode().GetID())
+    self.setCommandResponseReceivedAction(self.onGetCaptureDeviceCommandResponseReceived)
+    #self.setCommandResponseReceivedAction()
+  
+  #def onCaptureDeviceSelected(self):
+    #logic = PlusRemoteLogic()
+    #self.testBox.setPlainText("test")
+    #self.lastCommandId = logic.getVolumeReconstructorDeviceIds(self.linkInputSelector.currentNode().GetID())
+    #response = self.setCommandResponseReceivedAction(self.onGenericCommandResponseReceived)
+
   def onStartRecording(self):
     logic = PlusRemoteLogic()
-    self.lastCommandId = logic.startRecording(self.linkInputSelector.currentNode().GetID(), self.captureIDBox.text, self.fileNameBox.text)
-    self.setTimer()
+    print self.captureIDSelector.currentText
+    self.lastCommandId = logic.startRecording(self.linkInputSelector.currentNode().GetID(), self.captureIDSelector.currentText, self.fileNameBox.text)
+    self.setCommandResponseReceivedAction(self.onGenericCommandResponseReceived)
   
   def onStopRecording(self):
     logic = PlusRemoteLogic()
-    self.lastCommandId = logic.stopRecording(self.linkInputSelector.currentNode().GetID(), self.captureIDBox.text)
-    self.setTimer()
+    self.lastCommandId = logic.stopRecording(self.linkInputSelector.currentNode().GetID(), self.captureIDSelector.currentText)
+    self.setCommandResponseReceivedAction(self.onGenericCommandResponseReceived)
   
   def onStartReconstruction(self):
     logic = PlusRemoteLogic()
     self.lastCommandId = logic.startVolumeReconstuction( self.linkInputSelector.currentNode().GetID())
-    self.setTimer()
+    self.setCommandResponseReceivedAction(self.onGenericCommandResponseReceived)
   
   def onStopReconstruction(self):
     logic = PlusRemoteLogic()
     self.lastCommandId = logic.stopVolumeReconstruction(self.linkInputSelector.currentNode().GetID())
-    self.setTimer()
+    self.setCommandResponseReceivedAction(self.onGenericCommandResponseReceived)
   
   def onReconstVolume(self):
     logic = PlusRemoteLogic()
     self.lastCommandId = logic.reconstructRecorded(self.linkInputSelector.currentNode().GetID(), self.fileNameBox.text)
-    self.setTimer()
+    self.setCommandResponseReceivedAction(self.onGenericCommandResponseReceived)
   
   def onUpdateTransform(self):
     logic = PlusRemoteLogic()
     self.lastCommandId = logic.updateTransform(self.linkInputSelector.currentNode().GetID(), self.transformUpdateInputSelector.currentNode())
-    self.setTimer()
+    self.setCommandResponseReceivedAction(self.onGenericCommandResponseReceived)
     
   def onSaveTransform(self):
     logic = PlusRemoteLogic()
     self.lastCommandId = logic.saveTransform(self.linkInputSelector.currentNode().GetID(), self.configFileNameBox.text)
-    self.setTimer()
+    self.setCommandResponseReceivedAction(self.onGenericCommandResponseReceived)
   
-  def setTimer(self):
+  def setCommandResponseReceivedAction(self, method):
     self.replyBox.setPlainText("Waiting for reply...")
     self.timeoutCounter = 0
     self.timer = qt.QTimer()
     self.timer.timeout.connect(self.getCommandReply)
+    self.commandResponseReceivedCallback = method
     self.timer.start(100)
   
   def getCommandReply(self):
-    logic = PlusRemoteLogic()
     replyNodes = slicer.mrmlScene.GetNodesByName( "ACK_" + str(self.lastCommandId) )
     textNode = slicer.vtkMRMLAnnotationTextNode.SafeDownCast( replyNodes.GetItemAsObject(0) )
     if textNode:
-      self.replyBox.setPlainText(textNode.GetText(0))
-      logic.discardCommand(self.lastCommandId, self.linkInputSelector.currentNode().GetID())
       self.timer.stop()
+      self.commandResponseReceivedCallback(textNode)
     elif self.timeoutCounter >= 50:
       self.replyBox.setPlainText("No reply: Timeout")
+      logic = PlusRemoteLogic()
       logic.discardCommand(self.lastCommandId, self.linkInputSelector.currentNode().GetID())
       self.timer.stop()
     else:
       self.timeoutCounter += 1
-  
+
+  def onGenericCommandResponseReceived(self, textNode):
+    self.replyBox.setPlainText(textNode.GetText(0))
+    logic = PlusRemoteLogic()
+    logic.discardCommand(self.lastCommandId, self.linkInputSelector.currentNode().GetID())
+
+  def onGetCaptureDeviceCommandResponseReceived(self, textNode):
+    commandResponse=textNode.GetText(0)
+    logic = PlusRemoteLogic()
+    logic.discardCommand(self.lastCommandId, self.linkInputSelector.currentNode().GetID())
+    
+    commandResponseElement=vtk.vtkXMLUtilities.ReadElementFromString(commandResponse)
+    captureDeviceIdsListString=commandResponseElement.GetAttribute("Message")
+        
+    captureDevicesIdsList = captureDeviceIdsListString.split(",")
+    self.captureIDSelector.clear()
+    self.captureIDSelector.addItems(captureDevicesIdsList)
+
   def onReload(self,moduleName="PlusRemote"):
     """Generic reload method for any scripted module.
     ModuleWizard will subsitute correct default moduleName.
@@ -284,13 +329,31 @@ class PlusRemoteWidget:
         'globals()["%s"].%s(parent)' % (moduleName, widgetName))
     globals()[widgetName.lower()].setup()
     setattr(globals()['slicer'].modules, widgetName, globals()[widgetName.lower()])
-    
+  
 #
 # PlusRemoteLogic
 #
 class PlusRemoteLogic:
   def __init__(self):
     pass
+  
+  def getCaptureDeviceIds(self, connectorNodeId):
+    if connectorNodeId is None:
+      commandCounter = -1
+    else:
+      parameters = "DeviceType=" + "\"" + "VirtualDiscCapture" +"\""
+      #parameters = ""
+      commandCounter = slicer.modules.openigtlinkremote.logic().ExecuteCommand(connectorNodeId, "RequestDeviceIds", parameters)
+    return commandCounter
+  
+  #def getVolumeReconstructorDeviceIds(self, connectorNodeId):
+  #  if connectorNodeId is None:
+  #    commandCounter = -1
+  #  else:
+  #    parameters = "DeviceType=" + "\"" + "VirtualVolumeReconstructor" +"\""
+      #parameters = ""
+  #    commandCounter = slicer.modules.openigtlinkremote.logic().ExecuteCommand(connectorNodeId, "RequestDeviceIds", parameters)
+  #  return commandCounter
   
   def startVolumeReconstuction(self, connectorNodeId):
     #parameters = "VolumeReconstructorDeviceId=" + "\"" 
@@ -313,12 +376,13 @@ class PlusRemoteLogic:
     return commandCounter
   
   def startRecording(self, connectorNodeId, captureName, fileName):
-    parameters = "CaptureDeviceID=" + "\"" + captureName + "\"" + " OutputFilename=" + "\"" + fileName + "\""
+    parameters = "CaptureDeviceId=" + "\"" + captureName + "\"" + " OutputFilename=" + "\"" + fileName + "\""
+    print parameters
     commandCounter = slicer.modules.openigtlinkremote.logic().ExecuteCommand(connectorNodeId, "StartRecording", parameters)
     return commandCounter
   
   def stopRecording(self, connectorNodeId, captureName):
-    commandCounter = slicer.modules.openigtlinkremote.logic().ExecuteCommand(connectorNodeId, "StopRecording", "CaptureDeviceID=" + "\"" + captureName + "\"")
+    commandCounter = slicer.modules.openigtlinkremote.logic().ExecuteCommand(connectorNodeId, "StopRecording", "CaptureDeviceId=" + "\"" + captureName + "\"")
     return commandCounter
   
   def updateTransform(self, connectorNodeId, transformNode):
