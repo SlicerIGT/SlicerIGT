@@ -31,8 +31,7 @@ class PlusRemoteWidget:
       self.parent = parent
     self.layout = self.parent.layout()
     self.lastCommandId = 0
-    #self.commandResponseReceivedCallback = None
-    #self.commandReply = ""
+    self.commandResponseReceivedCallback = None
     self.timeoutCounter = 0
     if not parent:
       self.setup()
@@ -180,6 +179,7 @@ class PlusRemoteWidget:
     # connections
     
     self.linkInputSelector.connect("nodeActivated(vtkMRMLNode*)", self.onConnectorNodeSelected)
+    #self.linkInputSelector.connect("currentNodeChanged(vtkMRMLNode*)", self.onConnectorNodeSelected)
     #self.captureIDSelector.connect('activated(int)', self.onCaptureDeviceSelected)
     
     self.startRecordingButton.connect('clicked(bool)', self.onStartRecording)
@@ -202,7 +202,6 @@ class PlusRemoteWidget:
     logic = PlusRemoteLogic()
     self.lastCommandId = logic.getCaptureDeviceIds(self.linkInputSelector.currentNode().GetID())
     self.setCommandResponseReceivedAction(self.onGetCaptureDeviceCommandResponseReceived)
-    #self.setCommandResponseReceivedAction()
   
   #def onCaptureDeviceSelected(self):
     #logic = PlusRemoteLogic()
@@ -280,7 +279,7 @@ class PlusRemoteWidget:
     
     commandResponseElement=vtk.vtkXMLUtilities.ReadElementFromString(commandResponse)
     captureDeviceIdsListString=commandResponseElement.GetAttribute("Message")
-        
+    
     captureDevicesIdsList = captureDeviceIdsListString.split(",")
     self.captureIDSelector.clear()
     self.captureIDSelector.addItems(captureDevicesIdsList)
