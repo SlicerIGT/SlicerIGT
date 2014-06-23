@@ -138,7 +138,7 @@ vtkSlicerBreachWarningLogic
     bodyParentTransform->GetTransformToWorld( bodyToRasTransform );
 
     vtkSmartPointer< vtkTransformPolyDataFilter > bodyToRasFilter = vtkSmartPointer< vtkTransformPolyDataFilter >::New();
-    bodyToRasFilter->SetInput( body );
+    bodyToRasFilter->SetInputData( body );
     bodyToRasFilter->SetTransform( bodyToRasTransform );
     bodyToRasFilter->Update();
 
