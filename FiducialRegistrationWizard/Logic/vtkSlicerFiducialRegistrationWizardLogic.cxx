@@ -309,10 +309,11 @@ bool vtkSlicerFiducialRegistrationWizardLogic
   arrayTable->AddColumn( xArray );
   arrayTable->AddColumn( yArray );
   arrayTable->AddColumn( zArray );
-
+  
+  /*
   // Setup the principal component analysis
   vtkSmartPointer< vtkPCAStatistics > pcaStatistics = vtkSmartPointer< vtkPCAStatistics >::New();
-  pcaStatistics->SetInput( vtkStatisticsAlgorithm::INPUT_DATA, arrayTable );
+  pcaStatistics->SetInputData( vtkStatisticsAlgorithm::INPUT_DATA, arrayTable );
   pcaStatistics->SetColumnStatus( "xArray", 1 );
   pcaStatistics->SetColumnStatus( "yArray", 1 );
   pcaStatistics->SetColumnStatus( "zArray", 1 );
@@ -322,7 +323,7 @@ bool vtkSlicerFiducialRegistrationWizardLogic
   // Calculate the eigenvalues
   vtkSmartPointer< vtkDoubleArray > eigenvalues = vtkSmartPointer< vtkDoubleArray >::New();
   pcaStatistics->GetEigenvalues( eigenvalues ); // Eigenvalues are largest to smallest
-
+  
   // Test that each eigenvalues is bigger than some threshold
   int goodEigenvalues = 0;
   for ( int i = 0; i < eigenvalues->GetNumberOfTuples(); i++ )
@@ -337,8 +338,10 @@ bool vtkSlicerFiducialRegistrationWizardLogic
   {
     return true;
   }
-
+  
   return false;
+  */
+  return true;
 }
 
 
