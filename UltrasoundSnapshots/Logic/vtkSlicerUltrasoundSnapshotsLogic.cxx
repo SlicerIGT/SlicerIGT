@@ -223,7 +223,7 @@ vtkSlicerUltrasoundSnapshotsLogic
   if ( preserveWindowLevel == true )
   {
     vtkSmartPointer< vtkImageMapToWindowLevelColors > mapToWindowLevelColors = vtkSmartPointer< vtkImageMapToWindowLevelColors >::New();
-    mapToWindowLevelColors->SetInput( image );
+    mapToWindowLevelColors->SetInputData( image );
     mapToWindowLevelColors->SetOutputFormatToLuminance();
     mapToWindowLevelColors->SetWindow( InputNode->GetScalarVolumeDisplayNode()->GetWindow() );
     mapToWindowLevelColors->SetLevel( InputNode->GetScalarVolumeDisplayNode()->GetLevel() );
@@ -260,7 +260,8 @@ vtkSlicerUltrasoundSnapshotsLogic
   snapshotTexture->AddAndObserveDisplayNodeID( snapshotTextureDisplay->GetID() );   
   
   snapshotModel->SetAttribute( "TextureNodeID", snapshotTexture->GetID() );
-  snapshotModel->GetModelDisplayNode()->SetAndObserveTextureImageData( snapshotTexture->GetImageData() );
+  // snapshotModel->GetModelDisplayNode()->SetAndObserveTextureImageData( snapshotTexture->GetImageData() );
+  snapshotModel->GetDisplayNode()->SetTextureImageDataConnection( snapshotTexture->GetImageDataConnection() );
   
   this->snapshotCounter++;  
 }
@@ -336,7 +337,8 @@ void vtkSlicerUltrasoundSnapshotsLogic::OnMRMLSceneEndImport()
       vtkMRMLScalarVolumeNode* snapshotTexture = vtkMRMLScalarVolumeNode::SafeDownCast( this->GetMRMLScene()->GetNodeByID( snapshotModel->GetAttribute("TextureNodeID") ) );
       if ( snapshotTexture != NULL )
       {
-        snapshotModel->GetModelDisplayNode()->SetAndObserveTextureImageData( snapshotTexture->GetImageData() );
+        // snapshotModel->GetModelDisplayNode()->SetAndObserveTextureImageData( snapshotTexture->GetImageData() );
+		  snapshotModel->GetDisplayNode()->SetTextureImageDataConnection( snapshotTexture->GetImageDataConnection() );
         this->snapshotCounter++;
       }        
     }
