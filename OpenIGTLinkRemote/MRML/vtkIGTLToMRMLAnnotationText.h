@@ -15,7 +15,7 @@ class VTK_SLICER_OPENIGTLINKREMOTE_MODULE_MRML_EXPORT vtkIGTLToMRMLAnnotationTex
  public:
 
   static vtkIGTLToMRMLAnnotationText *New();
-  vtkTypeRevisionMacro(vtkIGTLToMRMLAnnotationText,vtkObject);
+  vtkTypeMacro(vtkIGTLToMRMLAnnotationText,vtkObject);
 
   void PrintSelf(ostream& os, vtkIndent indent);
 

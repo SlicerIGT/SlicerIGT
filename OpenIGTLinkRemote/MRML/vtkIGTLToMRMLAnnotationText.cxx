@@ -9,8 +9,6 @@
 #include "vtkIGTLToMRMLAnnotationText.h"
 
 vtkStandardNewMacro(vtkIGTLToMRMLAnnotationText);
-vtkCxxRevisionMacro(vtkIGTLToMRMLAnnotationText, "$Revision: 1.0 $");
-
 
 
 vtkIGTLToMRMLAnnotationText
