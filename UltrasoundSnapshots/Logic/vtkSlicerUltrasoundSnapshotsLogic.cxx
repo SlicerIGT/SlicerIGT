@@ -223,7 +223,13 @@ vtkSlicerUltrasoundSnapshotsLogic
   if ( preserveWindowLevel == true )
   {
     vtkSmartPointer< vtkImageMapToWindowLevelColors > mapToWindowLevelColors = vtkSmartPointer< vtkImageMapToWindowLevelColors >::New();
+    
+#if (VTK_MAJOR_VERSION <= 5)
+	mapToWindowLevelColors->SetInput( image );
+#else
     mapToWindowLevelColors->SetInputData( image );
+#endif
+
     mapToWindowLevelColors->SetOutputFormatToLuminance();
     mapToWindowLevelColors->SetWindow( InputNode->GetScalarVolumeDisplayNode()->GetWindow() );
     mapToWindowLevelColors->SetLevel( InputNode->GetScalarVolumeDisplayNode()->GetLevel() );
