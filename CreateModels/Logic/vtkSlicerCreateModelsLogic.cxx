@@ -103,7 +103,13 @@ vtkSlicerCreateModelsLogic
     // Transform the needle shaft
   vtkSmartPointer< vtkTransformPolyDataFilter > needleShaftTransformFilter = vtkSmartPointer< vtkTransformPolyDataFilter >::New();
   needleShaftTransformFilter->SetTransform( needleShaftTransform );
+
+#if (VTK_MAJOR_VERSION <= 5)
+  needleShaftTransformFilter->SetInput( needleShaft );
+#else
   needleShaftTransformFilter->SetInputData( needleShaft );
+#endif
+
   needleShaftTransformFilter->Update();
     	
   appendShaftTip->AddInputData( needleShaftTransformFilter->GetOutput() );
@@ -120,7 +126,12 @@ vtkSlicerCreateModelsLogic
     // Transform the needle tip
   vtkSmartPointer< vtkTransformPolyDataFilter > needleTipTransformFilter = vtkSmartPointer< vtkTransformPolyDataFilter >::New();
   needleTipTransformFilter->SetTransform( needleTipTransform );
+#if (VTK_MAJOR_VERSION <= 5)
+  needleTipTransformFilter->SetInput( needleTip );
+#else
   needleTipTransformFilter->SetInputData( needleTip );
+#endif
+
   needleTipTransformFilter->Update();
     
   appendShaftTip->AddInputData( needleTipTransformFilter->GetOutput() );
@@ -169,8 +180,13 @@ vtkSlicerCreateModelsLogic
         
       vtkSmartPointer< vtkTransformPolyDataFilter > lineTransformFilter = vtkSmartPointer< vtkTransformPolyDataFilter >::New();
       lineTransformFilter->SetTransform( lineTransform );
-      lineTransformFilter->SetInputData( linePolyData );
-      lineTransformFilter->Update();
+#if (VTK_MAJOR_VERSION <= 5)
+      lineTransformFilter->SetInput( linePolyData );
+#else
+	  lineTransformFilter->SetInputData( linePolyData );
+#endif
+
+	  lineTransformFilter->Update();
             
       appendMarkings->AddInputData( lineTransformFilter->GetOutput() );
     }
@@ -186,14 +202,24 @@ vtkSlicerCreateModelsLogic
   vtkSmartPointer< vtkTransformPolyDataFilter > xShaftNeedleTransformFilter = vtkSmartPointer< vtkTransformPolyDataFilter >::New();
   xShaftNeedleTransformFilter->SetTransform( xShaftTransform );
 
+#if (VTK_MAJOR_VERSION <= 5)
+  xShaftNeedleTransformFilter->SetInput( appendShaftTip->GetOutput() );
+#else
   xShaftNeedleTransformFilter->SetInputData( appendShaftTip->GetOutput() );
+#endif
+
   xShaftNeedleTransformFilter->Update();
   vtkSmartPointer< vtkPolyData > needlePolyData = xShaftNeedleTransformFilter->GetOutput();
 
   vtkSmartPointer< vtkTransformPolyDataFilter > xShaftMarkersTransformFilter = vtkSmartPointer< vtkTransformPolyDataFilter >::New();
   xShaftMarkersTransformFilter->SetTransform( xShaftTransform );
 
+#if (VTK_MAJOR_VERSION <= 5)
+  xShaftMarkersTransformFilter->SetInput( appendMarkings->GetOutput() );
+#else
   xShaftMarkersTransformFilter->SetInputData( appendMarkings->GetOutput() );
+#endif
+
   xShaftMarkersTransformFilter->Update();
   vtkSmartPointer< vtkPolyData > needleMarkersPolyData = xShaftMarkersTransformFilter->GetOutput();  
   
@@ -339,7 +365,13 @@ vtkSlicerCreateModelsLogic
   XCylinderTransform->Update();
   
   vtkSmartPointer< vtkTransformPolyDataFilter > XCylinderTransformFilter = vtkSmartPointer< vtkTransformPolyDataFilter >::New();
+  
+#if (VTK_MAJOR_VERSION <= 5)
+  XCylinderTransformFilter->SetInput( XCylinderSource->GetOutput() );
+#else
   XCylinderTransformFilter->SetInputData( XCylinderSource->GetOutput() );
+#endif
+
   XCylinderTransformFilter->SetTransform( XCylinderTransform );
   XCylinderTransformFilter->Update();
   
@@ -354,7 +386,13 @@ vtkSlicerCreateModelsLogic
   XTipTransform->Update();
   
   vtkSmartPointer< vtkTransformPolyDataFilter > XTipTransformFilter = vtkSmartPointer< vtkTransformPolyDataFilter >::New();
+  
+#if (VTK_MAJOR_VERSION <= 5)
+  XTipTransformFilter->SetInput( XTipSource->GetOutput() );
+#else
   XTipTransformFilter->SetInputData( XTipSource->GetOutput() );
+#endif
+
   XTipTransformFilter->SetTransform( XTipTransform );
   XTipTransformFilter->Update();
   
@@ -372,7 +410,13 @@ vtkSlicerCreateModelsLogic
   YCylinderTransform->Update();
   
   vtkSmartPointer< vtkTransformPolyDataFilter > YCylinderTransformFilter = vtkSmartPointer< vtkTransformPolyDataFilter >::New();
+  
+#if (VTK_MAJOR_VERSION <= 5)
+  YCylinderTransformFilter->SetInput( YCylinderSource->GetOutput() );
+#else
   YCylinderTransformFilter->SetInputData( YCylinderSource->GetOutput() );
+#endif
+
   YCylinderTransformFilter->SetTransform( YCylinderTransform );
   
   appendPolyData->AddInputData( YCylinderTransformFilter->GetOutput() );
@@ -390,7 +434,13 @@ vtkSlicerCreateModelsLogic
   ZCylinderTransform->Update();
   
   vtkSmartPointer< vtkTransformPolyDataFilter > ZCylinderTransformFilter = vtkSmartPointer< vtkTransformPolyDataFilter >::New();
+  
+#if (VTK_MAJOR_VERSION <= 5)
+  ZCylinderTransformFilter->SetInput( ZCylinderSource->GetOutput() );
+#else
   ZCylinderTransformFilter->SetInputData( ZCylinderSource->GetOutput() );
+#endif
+
   ZCylinderTransformFilter->SetTransform( ZCylinderTransform );
   
   appendPolyData->AddInputData( ZCylinderTransformFilter->GetOutput() );
