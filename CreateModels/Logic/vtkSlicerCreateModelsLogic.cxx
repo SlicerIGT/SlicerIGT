@@ -113,7 +113,8 @@ vtkSlicerCreateModelsLogic
   needleShaftTransformFilter->Update();
     	
   appendShaftTip->AddInputData( needleShaftTransformFilter->GetOutput() );
-  
+  appendShaftTip->Update();
+
     // Create a cone to represent the needle tip
   vtkSmartPointer< vtkPolyData > needleTip = vtkSmartPointer< vtkPolyData >::New();
   CreateConeData( needleTip, tip, radius );
@@ -135,7 +136,8 @@ vtkSlicerCreateModelsLogic
   needleTipTransformFilter->Update();
     
   appendShaftTip->AddInputData( needleTipTransformFilter->GetOutput() );
-  
+  appendShaftTip->Update();
+
   // Sphere for ball tip needle
   if ( tipRadius > 0.0 )
   {
@@ -145,6 +147,7 @@ vtkSlicerCreateModelsLogic
     needleBallSource->SetPhiResolution( 24 );
     needleBallSource->Update();
     appendShaftTip->AddInputData( needleBallSource->GetOutput() );
+	appendShaftTip->Update();
   }
     
     
@@ -189,6 +192,7 @@ vtkSlicerCreateModelsLogic
 	  lineTransformFilter->Update();
             
       appendMarkings->AddInputData( lineTransformFilter->GetOutput() );
+	  appendMarkings->Update();
     }
       
       // Increment the centimeter marker
@@ -227,38 +231,33 @@ vtkSlicerCreateModelsLogic
     // Add the needle poly data to the scene as a model
     
   vtkSmartPointer< vtkMRMLModelNode > needleModelNode = vtkSmartPointer< vtkMRMLModelNode >::New();
-  needleModelNode->SetScene( this->GetMRMLScene() );
+  this->GetMRMLScene()->AddNode( needleModelNode );
   needleModelNode->SetName( "NeedleModel" );
   needleModelNode->SetAndObservePolyData( needlePolyData );
 	
   vtkSmartPointer< vtkMRMLModelDisplayNode > needleDisplayNode = vtkSmartPointer< vtkMRMLModelDisplayNode >::New();
-  needleDisplayNode->SetScene( this->GetMRMLScene() );
+  this->GetMRMLScene()->AddNode( needleDisplayNode );
   needleDisplayNode->SetName( "NeedleModelDisplay" );
   needleDisplayNode->SetColor( 0.0, 1.0, 1.0 );
-  this->GetMRMLScene()->AddNode( needleDisplayNode );
     
   needleModelNode->SetAndObserveDisplayNodeID( needleDisplayNode->GetID() );
   needleDisplayNode->SetAmbient( 0.2 );
     
-  this->GetMRMLScene()->AddNode( needleModelNode );
   
     // Add the markers model to the scene
   
   vtkSmartPointer< vtkMRMLModelNode > markersModelNode = vtkSmartPointer< vtkMRMLModelNode >::New();
-  markersModelNode->SetScene( this->GetMRMLScene() );
+  this->GetMRMLScene()->AddNode( markersModelNode );
   markersModelNode->SetName( "NeedleMarkersModel" );
   markersModelNode->SetAndObservePolyData( needleMarkersPolyData );
   
   vtkSmartPointer< vtkMRMLModelDisplayNode > markersDisplayNode = vtkSmartPointer< vtkMRMLModelDisplayNode >::New();
-  markersDisplayNode->SetScene( this->GetMRMLScene() );
+  this->GetMRMLScene()->AddNode( markersDisplayNode );
   markersDisplayNode->SetName( "NeedleMarkersDisplay" );
   markersDisplayNode->SetColor( 0.0, 0.0, 0.0 );
-  this->GetMRMLScene()->AddNode( markersDisplayNode );
   
   markersModelNode->SetAndObserveDisplayNodeID( markersDisplayNode->GetID() );
   markersDisplayNode->SetAmbient( 0.2 );
-  
-  this->GetMRMLScene()->AddNode( markersModelNode );
 }
 
 
@@ -276,18 +275,15 @@ vtkSlicerCreateModelsLogic
     // Add the needle poly data to the scene as a model
   
   vtkSmartPointer< vtkMRMLModelNode > modelNode = vtkSmartPointer< vtkMRMLModelNode >::New();
-  modelNode->SetScene( this->GetMRMLScene() );
+  this->GetMRMLScene()->AddNode( modelNode );
   modelNode->SetName( "CubeModel" );
   modelNode->SetAndObservePolyData( cube->GetOutput() );
 
   vtkSmartPointer< vtkMRMLModelDisplayNode > displayNode = vtkSmartPointer< vtkMRMLModelDisplayNode >::New();
-  displayNode->SetScene( this->GetMRMLScene() );
-  displayNode->SetName( "CubeModelDisplay" );
   this->GetMRMLScene()->AddNode( displayNode );
+  displayNode->SetName( "CubeModelDisplay" );
   
   modelNode->SetAndObserveDisplayNodeID( displayNode->GetID() );
-  
-  this->GetMRMLScene()->AddNode( modelNode );
 }
 
 
@@ -305,18 +301,15 @@ vtkSlicerCreateModelsLogic
     // Add the needle poly data to the scene as a model
   
   vtkSmartPointer< vtkMRMLModelNode > modelNode = vtkSmartPointer< vtkMRMLModelNode >::New();
-  modelNode->SetScene( this->GetMRMLScene() );
+  this->GetMRMLScene()->AddNode( modelNode );
   modelNode->SetName( "CylinderModel" );
   modelNode->SetAndObservePolyData( cube->GetOutput() );
 
   vtkSmartPointer< vtkMRMLModelDisplayNode > displayNode = vtkSmartPointer< vtkMRMLModelDisplayNode >::New();
-  displayNode->SetScene( this->GetMRMLScene() );
-  displayNode->SetName( "CylinderModelDisplay" );
   this->GetMRMLScene()->AddNode( displayNode );
+  displayNode->SetName( "CylinderModelDisplay" );
   
   modelNode->SetAndObserveDisplayNodeID( displayNode->GetID() );
-  
-  this->GetMRMLScene()->AddNode( modelNode );
 }
 
 
@@ -329,19 +322,18 @@ vtkSlicerCreateModelsLogic
   sphere->SetRadius( radius );
   sphere->SetThetaResolution( 24 );
   sphere->SetPhiResolution( 12 );
+  sphere->Update();
   
   vtkSmartPointer< vtkMRMLModelNode > modelNode = vtkSmartPointer< vtkMRMLModelNode >::New();
-  modelNode->SetScene( this->GetMRMLScene() );
+  this->GetMRMLScene()->AddNode( modelNode );
   modelNode->SetName( "SphereModel" );
   modelNode->SetAndObservePolyData( sphere->GetOutput() );
   
   vtkSmartPointer< vtkMRMLModelDisplayNode > displayNode = vtkSmartPointer< vtkMRMLModelDisplayNode >::New();
-  displayNode->SetScene( this->GetMRMLScene() );
-  displayNode->SetName( "SphereModelDisplay" );
   this->GetMRMLScene()->AddNode( displayNode );
+  displayNode->SetName( "SphereModelDisplay" );
   
   modelNode->SetAndObserveDisplayNodeID( displayNode->GetID() );
-  this->GetMRMLScene()->AddNode( modelNode );
 }
 
 
@@ -350,7 +342,6 @@ void
 vtkSlicerCreateModelsLogic
 ::CreateCoordinate( double axisLength, double axisDiameter )
 {
-  
   vtkSmartPointer< vtkAppendPolyData > appendPolyData = vtkSmartPointer< vtkAppendPolyData >::New();
   
   // X axis
@@ -358,7 +349,8 @@ vtkSlicerCreateModelsLogic
   vtkSmartPointer< vtkCylinderSource > XCylinderSource = vtkSmartPointer< vtkCylinderSource >::New();
   XCylinderSource->SetRadius( axisDiameter / 2.0 );
   XCylinderSource->SetHeight( axisLength );
-  
+  XCylinderSource->Update();
+
   vtkSmartPointer< vtkTransform > XCylinderTransform = vtkSmartPointer< vtkTransform >::New();
   XCylinderTransform->RotateZ( -90.0 );
   XCylinderTransform->Translate( 0.0, axisLength / 2.0, 0.0 );
@@ -376,10 +368,12 @@ vtkSlicerCreateModelsLogic
   XCylinderTransformFilter->Update();
   
   appendPolyData->AddInputData( XCylinderTransformFilter->GetOutput() );
-  
+  appendPolyData->Update();
+
   vtkSmartPointer< vtkConeSource > XTipSource = vtkSmartPointer< vtkConeSource >::New();
   XTipSource->SetRadius( axisDiameter * 1.5 );
   XTipSource->SetHeight( axisLength / 4.0 );
+  XTipSource->Update();
   
   vtkSmartPointer< vtkTransform > XTipTransform = vtkSmartPointer< vtkTransform >::New();
   XTipTransform->Translate( axisLength + axisLength * 0.1, 0.0, 0.0 );
@@ -404,6 +398,7 @@ vtkSlicerCreateModelsLogic
   vtkSmartPointer< vtkCylinderSource > YCylinderSource = vtkSmartPointer< vtkCylinderSource >::New();
   YCylinderSource->SetRadius( axisDiameter / 2.0 );
   YCylinderSource->SetHeight( axisLength );
+  YCylinderSource->Update();
   
   vtkSmartPointer< vtkTransform > YCylinderTransform = vtkSmartPointer< vtkTransform >::New();
   YCylinderTransform->Translate( 0.0, axisLength / 2.0, 0.0 );
@@ -418,15 +413,17 @@ vtkSlicerCreateModelsLogic
 #endif
 
   YCylinderTransformFilter->SetTransform( YCylinderTransform );
-  
+  YCylinderTransformFilter->Update();
+
   appendPolyData->AddInputData( YCylinderTransformFilter->GetOutput() );
-  
+  appendPolyData->Update();
   
   // Z axis
   
   vtkSmartPointer< vtkCylinderSource > ZCylinderSource = vtkSmartPointer< vtkCylinderSource >::New();
   ZCylinderSource->SetRadius( axisDiameter / 2.0 );
   ZCylinderSource->SetHeight( axisLength );
+  ZCylinderSource->Update();
   
   vtkSmartPointer< vtkTransform > ZCylinderTransform = vtkSmartPointer< vtkTransform >::New();
   ZCylinderTransform->RotateX( 90.0 );
@@ -442,26 +439,26 @@ vtkSlicerCreateModelsLogic
 #endif
 
   ZCylinderTransformFilter->SetTransform( ZCylinderTransform );
-  
+  ZCylinderTransformFilter->Update();
+
   appendPolyData->AddInputData( ZCylinderTransformFilter->GetOutput() );
-  
+  appendPolyData->Update();
   
   
   // Model node
   
   vtkSmartPointer< vtkMRMLModelNode > modelNode = vtkSmartPointer< vtkMRMLModelNode >::New();
-  modelNode->SetScene( this->GetMRMLScene() );
+  this->GetMRMLScene()->AddNode( modelNode );
+  
   modelNode->SetName( "CoordinateModel" );
   modelNode->SetAndObservePolyData( appendPolyData->GetOutput() );
   
   vtkSmartPointer< vtkMRMLModelDisplayNode > displayNode = vtkSmartPointer< vtkMRMLModelDisplayNode >::New();
-  displayNode->SetScene( this->GetMRMLScene() );
-  displayNode->SetName( "CoordinateModelDisplay" );
   this->GetMRMLScene()->AddNode( displayNode );
   
-  modelNode->SetAndObserveDisplayNodeID( displayNode->GetID() );
+  displayNode->SetName( "CoordinateModelDisplay" );
   
-  this->GetMRMLScene()->AddNode( modelNode );
+  modelNode->SetAndObserveDisplayNodeID( displayNode->GetID() );
 }
 
 
