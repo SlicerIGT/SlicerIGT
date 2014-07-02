@@ -112,7 +112,11 @@ vtkSlicerCreateModelsLogic
 
   needleShaftTransformFilter->Update();
     	
+#if (VTK_MAJOR_VERSION <= 5)
+  appendShaftTip->AddInput( needleShaftTransformFilter->GetOutput() );
+#else
   appendShaftTip->AddInputData( needleShaftTransformFilter->GetOutput() );
+#endif
   appendShaftTip->Update();
 
     // Create a cone to represent the needle tip
