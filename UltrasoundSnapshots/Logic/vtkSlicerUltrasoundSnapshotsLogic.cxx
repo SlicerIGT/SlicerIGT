@@ -266,8 +266,12 @@ vtkSlicerUltrasoundSnapshotsLogic
   snapshotTexture->AddAndObserveDisplayNodeID( snapshotTextureDisplay->GetID() );   
   
   snapshotModel->SetAttribute( "TextureNodeID", snapshotTexture->GetID() );
-  // snapshotModel->GetModelDisplayNode()->SetAndObserveTextureImageData( snapshotTexture->GetImageData() );
+
+#if (VTK_MAJOR_VERSION <= 5)
+  snapshotModel->GetModelDisplayNode()->SetAndObserveTextureImageData( snapshotTexture->GetImageData() );
+#else
   snapshotModel->GetDisplayNode()->SetTextureImageDataConnection( snapshotTexture->GetImageDataConnection() );
+#endif  
   
   this->snapshotCounter++;  
 }
@@ -343,8 +347,13 @@ void vtkSlicerUltrasoundSnapshotsLogic::OnMRMLSceneEndImport()
       vtkMRMLScalarVolumeNode* snapshotTexture = vtkMRMLScalarVolumeNode::SafeDownCast( this->GetMRMLScene()->GetNodeByID( snapshotModel->GetAttribute("TextureNodeID") ) );
       if ( snapshotTexture != NULL )
       {
-        // snapshotModel->GetModelDisplayNode()->SetAndObserveTextureImageData( snapshotTexture->GetImageData() );
-		  snapshotModel->GetDisplayNode()->SetTextureImageDataConnection( snapshotTexture->GetImageDataConnection() );
+
+#if (VTK_MAJOR_VERSION <= 5)
+        snapshotModel->GetModelDisplayNode()->SetAndObserveTextureImageData( snapshotTexture->GetImageData() );
+#else
+        snapshotModel->GetDisplayNode()->SetTextureImageDataConnection( snapshotTexture->GetImageDataConnection() );
+#endif  
+  
         this->snapshotCounter++;
       }        
     }
