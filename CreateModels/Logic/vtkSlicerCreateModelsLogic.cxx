@@ -138,8 +138,13 @@ vtkSlicerCreateModelsLogic
 #endif
 
   needleTipTransformFilter->Update();
-    
+
+#if (VTK_MAJOR_VERSION <= 5)
+  appendShaftTip->AddInput( needleTipTransformFilter->GetOutput() );
+#else
   appendShaftTip->AddInputData( needleTipTransformFilter->GetOutput() );
+#endif
+
   appendShaftTip->Update();
 
   // Sphere for ball tip needle
@@ -150,7 +155,13 @@ vtkSlicerCreateModelsLogic
     needleBallSource->SetThetaResolution( 24 );
     needleBallSource->SetPhiResolution( 24 );
     needleBallSource->Update();
+
+#if (VTK_MAJOR_VERSION <= 5)
+    appendShaftTip->AddInput( needleBallSource->GetOutput() );
+#else
     appendShaftTip->AddInputData( needleBallSource->GetOutput() );
+#endif
+
 	appendShaftTip->Update();
   }
     
@@ -193,10 +204,15 @@ vtkSlicerCreateModelsLogic
 	  lineTransformFilter->SetInputData( linePolyData );
 #endif
 
-	  lineTransformFilter->Update();
-            
-      appendMarkings->AddInputData( lineTransformFilter->GetOutput() );
-	  appendMarkings->Update();
+	    lineTransformFilter->Update();
+
+#if (VTK_MAJOR_VERSION <= 5)
+      appendMarkings->AddInput( lineTransformFilter->GetOutput() );
+#else
+	    appendMarkings->AddInputData( lineTransformFilter->GetOutput() );
+#endif
+
+	    appendMarkings->Update();
     }
       
       // Increment the centimeter marker
@@ -370,8 +386,15 @@ vtkSlicerCreateModelsLogic
 
   XCylinderTransformFilter->SetTransform( XCylinderTransform );
   XCylinderTransformFilter->Update();
-  
+
+    
+#if (VTK_MAJOR_VERSION <= 5)
+  appendPolyData->AddInput( XCylinderTransformFilter->GetOutput() );
+#else
   appendPolyData->AddInputData( XCylinderTransformFilter->GetOutput() );
+#endif
+
+  
   appendPolyData->Update();
 
   vtkSmartPointer< vtkConeSource > XTipSource = vtkSmartPointer< vtkConeSource >::New();
@@ -394,7 +417,11 @@ vtkSlicerCreateModelsLogic
   XTipTransformFilter->SetTransform( XTipTransform );
   XTipTransformFilter->Update();
   
+#if (VTK_MAJOR_VERSION <= 5)
+  appendPolyData->AddInput( XTipTransformFilter->GetOutput() );
+#else
   appendPolyData->AddInputData( XTipTransformFilter->GetOutput() );
+#endif
   
   
   // Y axis
@@ -419,7 +446,12 @@ vtkSlicerCreateModelsLogic
   YCylinderTransformFilter->SetTransform( YCylinderTransform );
   YCylinderTransformFilter->Update();
 
+#if (VTK_MAJOR_VERSION <= 5)
+  appendPolyData->AddInput( YCylinderTransformFilter->GetOutput() );
+#else
   appendPolyData->AddInputData( YCylinderTransformFilter->GetOutput() );
+#endif
+
   appendPolyData->Update();
   
   // Z axis
@@ -445,7 +477,13 @@ vtkSlicerCreateModelsLogic
   ZCylinderTransformFilter->SetTransform( ZCylinderTransform );
   ZCylinderTransformFilter->Update();
 
+  
+#if (VTK_MAJOR_VERSION <= 5)
+  appendPolyData->AddInput( ZCylinderTransformFilter->GetOutput() );
+#else
   appendPolyData->AddInputData( ZCylinderTransformFilter->GetOutput() );
+#endif
+
   appendPolyData->Update();
   
   
