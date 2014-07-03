@@ -215,12 +215,12 @@ class PlusRemoteWidget:
 
     self.onConnectorNodeSelected()
 
-
   def cleanup(self):
     pass
 
   def onConnectorNodeSelected(self):
     self.connectorNode = self.linkInputSelector.currentNode()
+    self.onEventReceived(None,None)
     #self.volumeToReconstructListUpdate()
     #self.onConfigFileQueried()
 
@@ -228,6 +228,7 @@ class PlusRemoteWidget:
       i=0
       while i<len(self.connectorNodeObserverTagList):
         self.connectorNode.RemoveObserver(self.connectorNodeObserverTagList[i])
+        del self.connectorNodeObserverTagList[i]
         i+=1
 
     events = [slicer.vtkMRMLIGTLConnectorNode.ConnectedEvent, slicer.vtkMRMLIGTLConnectorNode.DisconnectedEvent]
@@ -269,79 +270,62 @@ class PlusRemoteWidget:
     self.captureIDSelector.setDisabled(True)
     self.volumeReconstructorIDSelector.setDisabled(True)
 
-
-#   def onConnectorChanged(self, caller, event):
-#   #def onConnectorChanged(self):
-#     if (self.linkInputSelector.currentNode() is not None) and (self.connectorNode.GetState() == slicer.vtkMRMLIGTLConnectorNode.STATE_CONNECTED):
-#       self.replyBox.setPlainText("IGTLConnector connected")
-#       self.logic.getCaptureDeviceIds(self.linkInputSelector.currentNode().GetID(), self.onGetCaptureDeviceCommandResponseReceived)
-#       self.logic.getVolumeReconstructorDeviceIds(self.linkInputSelector.currentNode().GetID(), self.onGetVolumeReconstructorDeviceCommandResponseReceived)
-#     #if (self.linkInputSelector.currentNode() is None) or (self.linkInputSelector.currentNode().GetState() != slicer.vtkMRMLIGTLConnectorNode.STATE_CONNECTED):
-#     else:
-#       self.startRecordingButton.setEnabled(False)
-#       self.stopRecordingButton.setEnabled(False)
-#       self.startReconstructionButton.setEnabled(False)
-#       self.stopReconstructionButton.setEnabled(False)
-#       self.captureIDSelector.clear()
-#       self.volumeReconstructorIDSelector.clear()
-#       self.replyBox.setPlainText("IGTLConnector not connected or missing")
-
-  def volumeToReconstructListUpdate(self):
-    #GetOutputDirectory ()vtk PlusConfig
-    import glob, os.path
-
-    #filePath = os.path.expanduser('~/PlusApp-2.1.2.3392-Win64/data/*.mha')
-    #fileList = glob.glob(filePath)
-    #i=0
-    #while i<len(fileList):
-    #  volumeToReconstructFile = os.path.basename(fileList[i])
-    #  self.volumeToReconstructSelector.addItem(volumeToReconstructFile)
-    #  i+=1
-
-    #find the Output Directory path using the config file PlusConfig.xml
-    plusConfigFilePath = os.path.expanduser('~/PlusApp-2.1.2.3392-Win64/bin/PlusConfig.xml')
-    plusConfigFile = open(plusConfigFilePath)
-    configFileLinesArray = plusConfigFile.readlines()
-    i=0
-    while i < len(configFileLinesArray):
-      if 'OutputDirector' in configFileLinesArray[i]:
-        configFileLinesArray[i] = configFileLinesArray[i].replace('OutputDirectory=','')
-        plusOutputDirectoryPath =  os.path.expanduser('~/PlusApp-2.1.2.3392-Win64/')
-        configFileLinesArray[i] = configFileLinesArray[i].replace('..',plusOutputDirectoryPath)
-        configFileLinesArray[i] = os.path.normpath(configFileLinesArray[i])
-        outputDirectoryPath = configFileLinesArray[i]
-        outputDirectoryPath = str(outputDirectoryPath) + '\*.mha'
-        #print outputDirectoryPath
-        print "/".join([str(outputDirectoryPath),'\*.mha'])
-      i+=1
-    plusConfigFile.close()
-    volumeFilesList = glob.glob(outputDirectoryPath)
-    i=0
-    while i<len(volumeFilesList):
-      volumeToReconstructFile = os.path.basename(volumeFilesList[i])
-      self.volumeToReconstructSelector.addItem(volumeToReconstructFile)
-      i+=1
-
-    #need to find automatically the Plus version. use PlusVersion.exe in /bin?
-    #import subprocess
-    #plusVersion = subprocess.Popen(r"C:\Users\meyer\PlusApp-2.1.2.3392-Win64\bin\PlusVersion.exe")
-
-  def onConfigFileQueried(self):
-    #GetNewDeviceSetConfigurationFileName () vtk PlusConfig
-    import glob, os.path
-    plusConfigFilePath = os.path.expanduser('~/PlusApp-2.1.2.3392-Win64/bin/PlusConfig.xml')
-    plusConfigFile = open(plusConfigFilePath)
-    linesArray = plusConfigFile.readlines()
-    i=0
-    while i < len(linesArray):
-      if 'LastDeviceSetConfigurationFileName' in linesArray[i]:
-        linesArray[i] = linesArray[i].replace('LastDeviceSetConfigurationFileName=','')
-        linesArray[i] = linesArray[i].replace('"','')
-        linesArray[i] = linesArray[i].replace('/>','')
-        linesArray[i] = os.path.basename(linesArray[i])
-        self.currentDeviceConfigFileName.setText(linesArray[i])
-      i+=1
-    plusConfigFile.close()
+#   def volumeToReconstructListUpdate(self):
+#     #GetOutputDirectory ()vtk PlusConfig
+#     import glob, os.path
+#
+#     #filePath = os.path.expanduser('~/PlusApp-2.1.2.3392-Win64/data/*.mha')
+#     #fileList = glob.glob(filePath)
+#     #i=0
+#     #while i<len(fileList):
+#     #  volumeToReconstructFile = os.path.basename(fileList[i])
+#     #  self.volumeToReconstructSelector.addItem(volumeToReconstructFile)
+#     #  i+=1
+#
+#     #find the Output Directory path using the config file PlusConfig.xml
+#     plusConfigFilePath = os.path.expanduser('~/PlusApp-2.1.2.3392-Win64/bin/PlusConfig.xml')
+#     plusConfigFile = open(plusConfigFilePath)
+#     configFileLinesArray = plusConfigFile.readlines()
+#     i=0
+#     while i < len(configFileLinesArray):
+#       if 'OutputDirector' in configFileLinesArray[i]:
+#         configFileLinesArray[i] = configFileLinesArray[i].replace('OutputDirectory=','')
+#         plusOutputDirectoryPath =  os.path.expanduser('~/PlusApp-2.1.2.3392-Win64/')
+#         configFileLinesArray[i] = configFileLinesArray[i].replace('..',plusOutputDirectoryPath)
+#         configFileLinesArray[i] = os.path.normpath(configFileLinesArray[i])
+#         outputDirectoryPath = configFileLinesArray[i]
+#         outputDirectoryPath = str(outputDirectoryPath) + '\*.mha'
+#         #print outputDirectoryPath
+#         print "/".join([str(outputDirectoryPath),'\*.mha'])
+#       i+=1
+#     plusConfigFile.close()
+#     volumeFilesList = glob.glob(outputDirectoryPath)
+#     i=0
+#     while i<len(volumeFilesList):
+#       volumeToReconstructFile = os.path.basename(volumeFilesList[i])
+#       self.volumeToReconstructSelector.addItem(volumeToReconstructFile)
+#       i+=1
+#
+#     #need to find automatically the Plus version. use PlusVersion.exe in /bin?
+#     #import subprocess
+#     #plusVersion = subprocess.Popen(r"C:\Users\meyer\PlusApp-2.1.2.3392-Win64\bin\PlusVersion.exe")
+#
+#   def onConfigFileQueried(self):
+#     #GetNewDeviceSetConfigurationFileName () vtk PlusConfig
+#     import glob, os.path
+#     plusConfigFilePath = os.path.expanduser('~/PlusApp-2.1.2.3392-Win64/bin/PlusConfig.xml')
+#     plusConfigFile = open(plusConfigFilePath)
+#     linesArray = plusConfigFile.readlines()
+#     i=0
+#     while i < len(linesArray):
+#       if 'LastDeviceSetConfigurationFileName' in linesArray[i]:
+#         linesArray[i] = linesArray[i].replace('LastDeviceSetConfigurationFileName=','')
+#         linesArray[i] = linesArray[i].replace('"','')
+#         linesArray[i] = linesArray[i].replace('/>','')
+#         linesArray[i] = os.path.basename(linesArray[i])
+#         self.currentDeviceConfigFileName.setText(linesArray[i])
+#       i+=1
+#     plusConfigFile.close()
 
   def onStartRecording(self):
     self.logic.startRecording(self.linkInputSelector.currentNode().GetID(), self.captureIDSelector.currentText, self.fileNameBox.text, self.onGenericCommandResponseReceived)
@@ -384,8 +368,11 @@ class PlusRemoteWidget:
     commandResponseElement = vtk.vtkXMLUtilities.ReadElementFromString(commandResponse)
     captureDeviceIdsListString = commandResponseElement.GetAttribute("Message")
     captureDevicesIdsList = captureDeviceIdsListString.split(",")
-    self.captureIDSelector.clear()
-    self.captureIDSelector.addItems(captureDevicesIdsList)
+    #self.captureIDSelector.clear()
+    i=0
+    for i in range(0,len(captureDevicesIdsList)):
+      if self.captureIDSelector.findText(captureDevicesIdsList[i]) == -1:
+        self.captureIDSelector.addItem(captureDevicesIdsList[i])
     self.startRecordingButton.setEnabled(True)
     self.stopRecordingButton.setEnabled(True)
 
@@ -458,6 +445,7 @@ class PlusRemoteLogic:
   def executeCommand(self, connectorNodeId, commandName, commandParameters, responseCallback):
       commandId = slicer.modules.openigtlinkremote.logic().ExecuteCommand(connectorNodeId, commandName, commandParameters)
       self.commandToMethodHashtable[commandId]={'responseCallback': responseCallback, 'connectorNodeId': connectorNodeId, 'remainingTime': 50}
+      #print self.commandToMethodHashtable[commandId]
       #if not self.timer:
       self.timer = qt.QTimer()
       self.timer.timeout.connect(self.getCommandReply)
@@ -472,7 +460,6 @@ class PlusRemoteLogic:
       if textNode or remainingTime<=0:
         # We received a response or timed out waiting for a response
         commandToMethodItem = self.commandToMethodHashtable.pop(commandId)
-        print commandToMethodItem
         responseCallback = commandToMethodItem['responseCallback']
         responseCallback(commandId, textNode)
         connectorNodeId = commandToMethodItem['connectorNodeId']
@@ -480,7 +467,6 @@ class PlusRemoteLogic:
         self.timer.stop()
       else:
         self.commandToMethodHashtable[commandId]['remainingTime'] = remainingTime
-        self.timer.stop()
     if not self.commandToMethodHashtable:
       self.timer.stop()
       self.timer = None
