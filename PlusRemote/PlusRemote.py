@@ -34,9 +34,9 @@ class PlusRemoteWidget:
     self.logic = PlusRemoteLogic()
     self.commandToMethodHashtable = {}
     self.eventToMethodHashtable = {}
+    self.connectorNode = None
     self.connectorNodeObserverTagList = []
-    self.connectorNodeStatusList = [slicer.vtkMRMLIGTLConnectorNode.STATE_WAIT_CONNECTION]
-    self.connectorNodeObserverTag = None
+    self.connectorNodeConnected = False
     if not parent:
       self.setup()
       self.parent.show()
@@ -216,43 +216,39 @@ class PlusRemoteWidget:
     self.onConnectorNodeSelected()
 
   def cleanup(self):
+    print "Cleanup is called"
     pass
 
   def onConnectorNodeSelected(self):
+
+    if self.connectorNode and self.connectorNodeObserverTagList:
+      for tag in self.connectorNodeObserverTagList:
+        self.connectorNode.RemoveObserver(tag)
+      self.connectorNodeObserverTagList = []
+
     self.connectorNode = self.linkInputSelector.currentNode()
-    self.onEventReceived(None,None)
+
+    # Force initial update
+    if self.connectorNode.GetState() == slicer.vtkMRMLIGTLConnectorNode.STATE_CONNECTED:
+      self.onConnectorNodeConnected(None, None, True)
+    else:
+      self.onConnectorNodeDisconnected(None, None, True)
+
     #self.volumeToReconstructListUpdate()
     #self.onConfigFileQueried()
 
-    if self.connectorNode and self.connectorNodeObserverTagList:
-      i=0
-      while i<len(self.connectorNodeObserverTagList):
-        self.connectorNode.RemoveObserver(self.connectorNodeObserverTagList[i])
-        del self.connectorNodeObserverTagList[i]
-        i+=1
+    # Add observers for connect/disconnect events
+    events = [ [slicer.vtkMRMLIGTLConnectorNode.ConnectedEvent, self.onConnectorNodeConnected], [slicer.vtkMRMLIGTLConnectorNode.DisconnectedEvent, self.onConnectorNodeDisconnected]]
+    for tagEventHandler in events:
+      connectorNodeObserverTag = self.connectorNode.AddObserver(tagEventHandler[0], tagEventHandler[1])
+      self.connectorNodeObserverTagList.append(connectorNodeObserverTag)
 
-    events = [slicer.vtkMRMLIGTLConnectorNode.ConnectedEvent, slicer.vtkMRMLIGTLConnectorNode.DisconnectedEvent]
-    for e in events:
-      self.connectorNodeObserverTag = self.connectorNode.AddObserver(e, self.onEventReceived)
-      self.connectorNodeObserverTagList.append(self.connectorNodeObserverTag)
-
-  def onEventReceived(self, caller, event):
-    #Add the current Node state to the connectorNodeStatusList
-    connectorStatus = self.connectorNode.GetState()
-    self.connectorNodeStatusList.append(connectorStatus)
-    #Only keep the 2 last elements to compare previous and current state
-    i=0
-    while i<len(self.connectorNodeStatusList)-2:
-      del self.connectorNodeStatusList[i]
-      i+=1
-    #print self.connectorNodeStatusList
-    if self.connectorNodeStatusList[0] != self.connectorNodeStatusList[1]:
-      if self.connectorNode.GetState() == slicer.vtkMRMLIGTLConnectorNode.STATE_CONNECTED:
-        self.onConnectorNodeConnected()
-      else:
-        self.onConnectorNodeDisconnected()
-
-  def onConnectorNodeConnected(self):
+  def onConnectorNodeConnected(self, caller, event, force=False):
+    # Multiple notifications may be sent when connecting/disconnecting,
+    # so we just if we know about the state change already
+    if self.connectorNodeConnected and not force:
+        return
+    self.connectorNodeConnected = True
     print("Server connected!")
     self.replyBox.setPlainText("IGTLConnector connected")
     self.captureIDSelector.setDisabled(False)
@@ -260,7 +256,12 @@ class PlusRemoteWidget:
     self.logic.getCaptureDeviceIds(self.linkInputSelector.currentNode().GetID(), self.onGetCaptureDeviceCommandResponseReceived)
     self.logic.getVolumeReconstructorDeviceIds(self.linkInputSelector.currentNode().GetID(), self.onGetVolumeReconstructorDeviceCommandResponseReceived)
 
-  def onConnectorNodeDisconnected(self):
+  def onConnectorNodeDisconnected(self, caller, event, force=False):
+    # Multiple notifications may be sent when connecting/disconnecting,
+    # so we just if we know about the state change already
+    if not self.connectorNodeConnected  and not force:
+        return
+    self.connectorNodeConnected = False
     print("Server disconnected!")
     self.replyBox.setPlainText("IGTLConnector not connected or missing")
     self.startRecordingButton.setEnabled(False)
@@ -361,7 +362,12 @@ class PlusRemoteWidget:
       self.replyBox.setPlainText("Command timeout: {0}".format(commandId))
 
   def onGetCaptureDeviceCommandResponseReceived(self, commandId, textNode):
+    if not textNode:
+        self.replyBox.setPlainText("GetCaptureDeviceCommand timeout: {0}".format(commandId))
+        return
+
     logic = PlusRemoteLogic()
+
     commandResponse=textNode.GetText(0)
     logic.discardCommand(commandId, self.linkInputSelector.currentNode().GetID())
 
@@ -377,6 +383,10 @@ class PlusRemoteWidget:
     self.stopRecordingButton.setEnabled(True)
 
   def onGetVolumeReconstructorDeviceCommandResponseReceived(self, commandId, textNode):
+    if not textNode:
+        self.replyBox.setPlainText("GetVolumeReconstructorDeviceCommand timeout: {0}".format(commandId))
+        return
+
     logic = PlusRemoteLogic()
     commandResponse=textNode.GetText(0)
     logic.discardCommand(commandId, self.linkInputSelector.currentNode().GetID())
