@@ -120,6 +120,12 @@ class PlusRemoteWidget:
     recordingControlsLayout.addWidget(self.stopRecordingButton,0,1)
     recordingLayout.addRow(recordingControlsLayout)
 
+    self.startStopRecordingButton = qt.QPushButton("Start/Stop Recording")
+    self.startStopRecordingButton.setCheckable(True)
+    self.startStopRecordingButton.setEnabled(False)
+    self.startStopRecordingButton.setToolTip( "Start/Stop Recording" )
+    recordingLayout.addRow(self.startStopRecordingButton)
+
     # Reconstruction
     reconstructionCollapsibleButton = ctk.ctkCollapsibleButton()
     reconstructionCollapsibleButton.text = "Reconstruction"
@@ -145,9 +151,15 @@ class PlusRemoteWidget:
     reconstructionLayout.addRow(liveReconstructionLayout)
 
     self.volumeToReconstructSelector = qt.QComboBox()
-    #self.volumeToReconstructSelector.InsertPolicy(qt.QComboBox.InsertAtTop)
-    self.volumeToReconstructSelector.setToolTip( "Pick volume to reconstruct" )
+    self.volumeToReconstructSelector.setEditable(True)
+    self.volumeToReconstructSelector.setToolTip( "Pick/set volume to reconstruct" )
     reconstructionLayout.addRow("Volume to Reconstruct: ", self.volumeToReconstructSelector)
+
+    self.displayRoiButton = qt.QToolButton()
+    notVisibleRoiIcon = qt.QIcon("C:\Users\meyer\Documents\GitHub\Slicer-3.6-ITKv4\Libs\qMRMLWidgets\Resources\Icons\VisibleOff.png")
+    self.displayRoiButton.setIcon(notVisibleRoiIcon)
+    self.displayRoiButton.setToolTip("If checked, display ROI")
+    reconstructionLayout.addRow("Display ROI: ", self.displayRoiButton)
 
     self.reconstructVolumeButton = qt.QPushButton("Reconstruct Recorded Volume")
     reconstructionLayout.addRow(self.reconstructVolumeButton)
@@ -193,16 +205,14 @@ class PlusRemoteWidget:
     self.replyBox.setReadOnly(True)
     replyLayout.addRow(self.replyBox)
 
-    self.testBox = qt.QPlainTextEdit()
-    self.testBox.setReadOnly(True)
-    replyLayout.addRow(self.testBox)
-
     # connections
 
     self.linkInputSelector.connect("nodeActivated(vtkMRMLNode*)", self.onConnectorNodeSelected)
 
     self.startRecordingButton.connect('clicked(bool)', self.onStartRecording)
     self.stopRecordingButton.connect('clicked(bool)', self.onStopRecording)
+
+    self.startStopRecordingButton.connect('toggled(bool)', self.onStartStopButtonClicked)
 
     self.startReconstructionButton.connect('clicked(bool)', self.onStartReconstruction)
     self.stopReconstructionButton.connect('clicked(bool)', self.onStopReconstruction)
@@ -219,6 +229,19 @@ class PlusRemoteWidget:
     print "Cleanup is called"
     pass
 
+  def onStartStopButtonClicked(self):
+    notVisibleRoiIcon = qt.QIcon("C:\Users\meyer\Documents\GitHub\Slicer-3.6-ITKv4\Libs\qMRMLWidgets\Resources\Icons\VisibleOff.png")
+    visibleRoiIcon = qt.QIcon("C:\Users\meyer\Documents\GitHub\Slicer-3.6-ITKv4\Libs\qMRMLWidgets\Resources\Icons\VisibleOn.png")
+    #if stateChanged == 3:
+    if self.startStopRecordingButton.isChecked() is True:
+      self.displayRoiButton.setIcon(visibleRoiIcon)
+      self.displayRoiButton.setToolTip("If checked, hide ROI")
+      self.onStartRecording()
+    else:
+      self.displayRoiButton.setIcon(notVisibleRoiIcon)
+      self.displayRoiButton.setToolTip("If checked, display ROI")
+      self.onStopRecording()
+
   def onConnectorNodeSelected(self):
 
     if self.connectorNode and self.connectorNodeObserverTagList:
@@ -234,7 +257,6 @@ class PlusRemoteWidget:
     else:
       self.onConnectorNodeDisconnected(None, None, True)
 
-    #self.volumeToReconstructListUpdate()
     #self.onConfigFileQueried()
 
     # Add observers for connect/disconnect events
@@ -268,49 +290,10 @@ class PlusRemoteWidget:
     self.stopRecordingButton.setEnabled(False)
     self.startReconstructionButton.setEnabled(False)
     self.stopReconstructionButton.setEnabled(False)
+    self.startStopRecordingButton.setEnabled(False)
     self.captureIDSelector.setDisabled(True)
     self.volumeReconstructorIDSelector.setDisabled(True)
 
-#   def volumeToReconstructListUpdate(self):
-#     #GetOutputDirectory ()vtk PlusConfig
-#     import glob, os.path
-#
-#     #filePath = os.path.expanduser('~/PlusApp-2.1.2.3392-Win64/data/*.mha')
-#     #fileList = glob.glob(filePath)
-#     #i=0
-#     #while i<len(fileList):
-#     #  volumeToReconstructFile = os.path.basename(fileList[i])
-#     #  self.volumeToReconstructSelector.addItem(volumeToReconstructFile)
-#     #  i+=1
-#
-#     #find the Output Directory path using the config file PlusConfig.xml
-#     plusConfigFilePath = os.path.expanduser('~/PlusApp-2.1.2.3392-Win64/bin/PlusConfig.xml')
-#     plusConfigFile = open(plusConfigFilePath)
-#     configFileLinesArray = plusConfigFile.readlines()
-#     i=0
-#     while i < len(configFileLinesArray):
-#       if 'OutputDirector' in configFileLinesArray[i]:
-#         configFileLinesArray[i] = configFileLinesArray[i].replace('OutputDirectory=','')
-#         plusOutputDirectoryPath =  os.path.expanduser('~/PlusApp-2.1.2.3392-Win64/')
-#         configFileLinesArray[i] = configFileLinesArray[i].replace('..',plusOutputDirectoryPath)
-#         configFileLinesArray[i] = os.path.normpath(configFileLinesArray[i])
-#         outputDirectoryPath = configFileLinesArray[i]
-#         outputDirectoryPath = str(outputDirectoryPath) + '\*.mha'
-#         #print outputDirectoryPath
-#         print "/".join([str(outputDirectoryPath),'\*.mha'])
-#       i+=1
-#     plusConfigFile.close()
-#     volumeFilesList = glob.glob(outputDirectoryPath)
-#     i=0
-#     while i<len(volumeFilesList):
-#       volumeToReconstructFile = os.path.basename(volumeFilesList[i])
-#       self.volumeToReconstructSelector.addItem(volumeToReconstructFile)
-#       i+=1
-#
-#     #need to find automatically the Plus version. use PlusVersion.exe in /bin?
-#     #import subprocess
-#     #plusVersion = subprocess.Popen(r"C:\Users\meyer\PlusApp-2.1.2.3392-Win64\bin\PlusVersion.exe")
-#
 #   def onConfigFileQueried(self):
 #     #GetNewDeviceSetConfigurationFileName () vtk PlusConfig
 #     import glob, os.path
@@ -330,11 +313,11 @@ class PlusRemoteWidget:
 
   def onStartRecording(self):
     self.logic.startRecording(self.linkInputSelector.currentNode().GetID(), self.captureIDSelector.currentText, self.fileNameBox.text, self.onGenericCommandResponseReceived)
-    self.volumeToReconstructSelector.insertItem(0,self.fileNameBox.text)
-    self.volumeToReconstructSelector.setCurrentIndex(0)
+#     self.volumeToReconstructSelector.insertItem(0,self.fileNameBox.text)
+#     self.volumeToReconstructSelector.setCurrentIndex(0)
 
   def onStopRecording(self):
-    self.logic.stopRecording(self.linkInputSelector.currentNode().GetID(), self.captureIDSelector.currentText, self.onGenericCommandResponseReceived)
+    self.logic.stopRecording(self.linkInputSelector.currentNode().GetID(), self.captureIDSelector.currentText, self.onVolumeRecorded)
 
   def onStartReconstruction(self):
     self.logic.startVolumeReconstuction(self.linkInputSelector.currentNode().GetID(), self.volumeReconstructorIDSelector.currentText, self.outputVolumeSpacingBox.value, self.onGenericCommandResponseReceived)
@@ -367,20 +350,20 @@ class PlusRemoteWidget:
         return
 
     logic = PlusRemoteLogic()
-
     commandResponse=textNode.GetText(0)
     logic.discardCommand(commandId, self.linkInputSelector.currentNode().GetID())
 
     commandResponseElement = vtk.vtkXMLUtilities.ReadElementFromString(commandResponse)
     captureDeviceIdsListString = commandResponseElement.GetAttribute("Message")
     captureDevicesIdsList = captureDeviceIdsListString.split(",")
-    #self.captureIDSelector.clear()
+
     i=0
     for i in range(0,len(captureDevicesIdsList)):
       if self.captureIDSelector.findText(captureDevicesIdsList[i]) == -1:
         self.captureIDSelector.addItem(captureDevicesIdsList[i])
     self.startRecordingButton.setEnabled(True)
     self.stopRecordingButton.setEnabled(True)
+    self.startStopRecordingButton.setEnabled(True)
 
   def onGetVolumeReconstructorDeviceCommandResponseReceived(self, commandId, textNode):
     if not textNode:
@@ -398,6 +381,21 @@ class PlusRemoteWidget:
     self.volumeReconstructorIDSelector.addItems(volumeReconstructorDeviceIdsList)
     self.startReconstructionButton.setEnabled(True)
     self.stopReconstructionButton.setEnabled(True)
+
+
+  def onVolumeRecorded(self, commandId, textNode):
+    import os.path
+    self.onGenericCommandResponseReceived(commandId,textNode)
+
+    logic = PlusRemoteLogic()
+    commandResponse=textNode.GetText(0)
+
+    commandResponseElement = vtk.vtkXMLUtilities.ReadElementFromString(commandResponse)
+    stopRecordingMessage = commandResponseElement.GetAttribute("Message")
+    volumeToReconstructFileName = os.path.basename(stopRecordingMessage)
+    self.volumeToReconstructSelector.insertItem(0,volumeToReconstructFileName)
+    self.volumeToReconstructSelector.setCurrentIndex(0)
+
 
   def onReload(self,moduleName="PlusRemote"):
     """Generic reload method for any scripted module.
@@ -502,13 +500,12 @@ class PlusRemoteLogic:
     parameters = ""
     self.executeCommand(connectorNodeId, "StopVolumeReconstruction", parameters, method)
 
-  def reconstructRecorded(self, connectorNodeId, volumeReconstructorDeviceId, fileName, method):
-    parameters = "VolumeReconstructorDeviceId=" + "\"" + volumeReconstructorDeviceId + "\"" + "InputSeqFilename=" + "\"" + fileName + "\"" + "OutputVolFilename=" + "\"" + "scoutFile.mha" +"\""
+  def reconstructRecorded(self, connectorNodeId, volumeReconstructorDeviceId, volumeToReconstructId, method):
+    parameters = "VolumeReconstructorDeviceId=" + "\"" + volumeReconstructorDeviceId + "\"" + " InputSeqFilename=" + "\"" + volumeToReconstructId + "\"" + " OutputVolFilename=" + "\"" + "scoutFile.mha" +"\""
     self.executeCommand(connectorNodeId, "ReconstructVolume", parameters, method)
 
   def startRecording(self, connectorNodeId, captureName, fileName, method):
     parameters = "CaptureDeviceId=" + "\"" + captureName + "\"" + " OutputFilename=" + "\"" + fileName + "\""
-    #print parameters
     self.executeCommand(connectorNodeId, "StartRecording", parameters, method)
 
   def stopRecording(self, connectorNodeId, captureName, method):
