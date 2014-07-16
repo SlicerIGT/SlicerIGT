@@ -41,6 +41,7 @@ class PlusRemoteWidget:
     self.outputSpacingValue = 0
     self.outputOriginValue = []
     self.outputExtentValue = []
+    self.methodFlag = ""
 
     if not parent:
       self.setup()
@@ -103,126 +104,128 @@ class PlusRemoteWidget:
     self.linkInputSelector.setToolTip( "Pick connector node" )
     connectorLayout.addRow("OpenIGTLinkConnector: ", self.linkInputSelector)
 
+    # Record and Reconstruct Parameters
+    parametersCollapsibleButton = ctk.ctkCollapsibleButton()
+    parametersCollapsibleButton.text = "Record and Reconstruct Parameters"
+    self.layout.addWidget(parametersCollapsibleButton)
+    parametersLayout = qt.QFormLayout(parametersCollapsibleButton)
+
+    self.captureIDSelector = qt.QComboBox()
+    self.captureIDSelector.setToolTip( "Pick capture device ID" )
+    parametersLayout.addRow("Capture Device ID: ", self.captureIDSelector)
+
+    self.volumeReconstructorIDSelector = qt.QComboBox()
+    self.volumeReconstructorIDSelector.setToolTip( "Pick volume reconstructor device ID" )
+    parametersLayout.addRow("Volume Reconstructor Device ID:", self.volumeReconstructorIDSelector)
+
+    self.fileNameBox = qt.QLineEdit()
+    parametersLayout.addRow("Filename: ", self.fileNameBox)
+
     # Recording
     recordingCollapsibleButton = ctk.ctkCollapsibleButton()
     recordingCollapsibleButton.text = "Recording"
     self.layout.addWidget(recordingCollapsibleButton)
     recordingLayout = qt.QFormLayout(recordingCollapsibleButton)
 
-    self.captureIDSelector = qt.QComboBox()
-    self.captureIDSelector.setToolTip( "Pick capture device ID" )
-    recordingLayout.addRow("Capture Device ID: ", self.captureIDSelector)
+    self.startRecordingIcon = qt.QIcon(self.plusRemoteModuleDirectoryPath+'/Resources/Icons/icon_Record.png')
+    self.stopRecordingIcon = qt.QIcon(self.plusRemoteModuleDirectoryPath+'/Resources/Icons/icon_Stop.png')
+    self.startStopRecordingButton = qt.QPushButton("Start Recording")
+    self.startStopRecordingButton.setCheckable(True)
+    self.startStopRecordingButton.setIcon(self.startRecordingIcon)
+    self.startStopRecordingButton.setEnabled(False)
+    self.startStopRecordingButton.setToolTip("If clicked, start recording")
+    recordingLayout.addRow(self.startStopRecordingButton)
 
-    self.fileNameBox = qt.QLineEdit()
-    recordingLayout.addRow("Filename: ", self.fileNameBox)
+     # Offline Reconstruction
+    offlineReconstructCollapsibleButton = ctk.ctkCollapsibleButton()
+    offlineReconstructCollapsibleButton.text = "Offline Reconstruction of recorded volume"
+    self.layout.addWidget(offlineReconstructCollapsibleButton)
+    offlineReconstructLayout = qt.QFormLayout(offlineReconstructCollapsibleButton)
 
-    # Move to the same row, use grid layout
+    #Move to the same row, use grid and box layouts
+    offlineReconstructControlsLayout = qt.QHBoxLayout()
+    offlineReconstructLayout.addRow(offlineReconstructControlsLayout)
 
-#     recordingControlsLayout = qt.QGridLayout()
-#
-#     self.startRecordingIcon = qt.QIcon(self.plusRemoteModuleDirectoryPath+'/Resources/Icons/icon_Record.png')
-#     self.stopRecordingIcon = qt.QIcon(self.plusRemoteModuleDirectoryPath+'/Resources/Icons/icon_Stop.png')
-#     self.startStopRecordingButton = qt.QPushButton(" Scout Scan\n Start Recording")
-#     self.startStopRecordingButton.setCheckable(True)
-#     self.startStopRecordingButton.setIcon(self.startRecordingIcon)
-#     self.startStopRecordingButton.setToolTip("If checked, start recording")
-#     self.startStopRecordingButton.setEnabled(False)
-#     recordingControlsLayout.addWidget(self.startStopRecordingButton, 0, 0)
-#
-#     self.scoutSettingsButton = ctk.ctkExpandButton()
-#     recordingControlsLayout.addWidget(self.scoutSettingsButton, 0, 1)
-#
-#     self.testButton = qt.QPushButton("testButton")
-#     recordingControlsLayout.addWidget(self.testButton, 0, 2)
-#     self.testButton.visible = False
-#
-#     recordingLayout.addRow(recordingControlsLayout)
+    self.offlineVolumeSpacingLabel = qt.QLabel()
+    self.offlineVolumeSpacingLabel.setText("Output Volume Spacing:")
+    offlineReconstructControlsLayout.addWidget(self.offlineVolumeSpacingLabel, 0, 0)
 
-    # Scout scan (record and low resolution reconstruction)
+    self.offlineVolumeSpacingBox = qt.QDoubleSpinBox()
+    self.offlineVolumeSpacingBox.setToolTip("Output volume spacing for offline reconstruction")
+    self.offlineVolumeSpacingBox.value = 3
+    offlineReconstructControlsLayout.addWidget(self.offlineVolumeSpacingBox, 0, 1)
+
+    self.offlineVolumeToReconstructLabel = qt.QLabel()
+    self.offlineVolumeToReconstructLabel.setText("Volume to reconstruct:")
+    offlineReconstructControlsLayout.addWidget(self.offlineVolumeToReconstructLabel, 0, 2)
+
+    self.offlineVolumeToReconstructSelector = qt.QComboBox()
+    self.offlineVolumeToReconstructSelector.setEditable(True)
+    self.offlineVolumeToReconstructSelector.setToolTip( "Pick/set volume to reconstruct" )
+    #self.offlineVolumeToReconstructSelector.setSizePolicy(qt.QSizePolicy.Expanding, qt.QSizePolicy.Expanding)
+    #self.offlineVolumeToReconstructSelector.SizeAdjustPolicy(qt.QComboBox.AdjustToContents)
+    offlineReconstructControlsLayout.addWidget(self.offlineVolumeToReconstructSelector, 0, 3)
+
+    self.offlineReconstructButton = qt.QPushButton("Offline Reconstruction")
+    self.offlineReconstructButton.setToolTip("If clicked, reconstruct recorded volume")
+    self.offlineReconstructButton.setEnabled(False)
+    self.offlineReconstructButton.setSizePolicy(qt.QSizePolicy.Expanding, qt.QSizePolicy.Expanding)
+    offlineReconstructLayout.addRow(self.offlineReconstructButton)
+
+    # Scout scan (record and low resolution reconstruction) and live reconstruction
+    #Scout scan part
     scoutScanCollapsibleButton = ctk.ctkCollapsibleButton()
-    scoutScanCollapsibleButton.text = "Scout Scan (Record and Reconstruct)"
+    scoutScanCollapsibleButton.text = "Scout Scan and Live Reconstruction"
     self.layout.addWidget(scoutScanCollapsibleButton)
     scoutScanLayout = qt.QFormLayout(scoutScanCollapsibleButton)
 
-    # Move to the same row, use grid layout
-    scoutScanControlsLayout = qt.QGridLayout()
+    #Move to the same row, use grid and box layouts
+    scoutScanControlsLayout = qt.QHBoxLayout()
     scoutScanLayout.addRow(scoutScanControlsLayout)
 
-    self.startRecordingIcon = qt.QIcon(self.plusRemoteModuleDirectoryPath+'/Resources/Icons/icon_Record.png')
-    self.stopRecordingIcon = qt.QIcon(self.plusRemoteModuleDirectoryPath+'/Resources/Icons/icon_Stop.png')
     self.recordAndReconstructButton = qt.QPushButton(" Scout Scan\n Start Recording")
     self.recordAndReconstructButton.setCheckable(True)
     self.recordAndReconstructButton.setIcon(self.startRecordingIcon)
     self.recordAndReconstructButton.setToolTip("If checked, start recording")
     self.recordAndReconstructButton.setEnabled(False)
+    self.recordAndReconstructButton.setSizePolicy(qt.QSizePolicy.Expanding, qt.QSizePolicy.Expanding)
     scoutScanControlsLayout.addWidget(self.recordAndReconstructButton, 0, 0)
 
     self.scoutSettingsButton = ctk.ctkExpandButton()
     scoutScanControlsLayout.addWidget(self.scoutSettingsButton, 0, 1)
 
+    scoutScanParametersControlsLayout = qt.QGridLayout()
+    scoutScanControlsLayout.addLayout(scoutScanParametersControlsLayout)
+
+    self.outputVolumeSpacingLabel = qt.QLabel()
+    self.outputVolumeSpacingLabel.setText("Output Volume Spacing:")
+    self.outputVolumeSpacingLabel.visible = False
+    scoutScanParametersControlsLayout.addWidget(self.outputVolumeSpacingLabel, 0, 0)
+
     self.outputVolumeSpacingBox = qt.QDoubleSpinBox()
-    self.outputVolumeSpacingBox.setToolTip( "Set output volume spacing" )
-    self.outputVolumeSpacingBox.value = 0.3
-    self.outputVolumeSpacingBox.setSingleStep(0.1)
-    #scoutScanLayout.addRow("Output Volume Spacing: ", self.outputVolumeSpacingBox)
-    scoutScanControlsLayout.addWidget(self.outputVolumeSpacingBox, 0, 2)
+    self.outputVolumeSpacingBox.setToolTip( "Default output volume spacing for low resolution scout scan" )
+    #self.outputVolumeSpacingBox.setReadOnly(True)
+    self.outputVolumeSpacingBox.value = 3.0
+    scoutScanParametersControlsLayout.addWidget(self.outputVolumeSpacingBox, 0, 1)
     self.outputVolumeSpacingBox.visible = False
 
-    self.otherBox = qt.QDoubleSpinBox()
-    scoutScanControlsLayout.addWidget(self.otherBox, 1, 2)
-    self.otherBox.visible = False
+    self.volumeToReconstructLabel = qt.QLabel()
+    self.volumeToReconstructLabel.setText("Volume to reconstruct:")
+    self.volumeToReconstructLabel.visible = False
+    scoutScanParametersControlsLayout.addWidget(self.volumeToReconstructLabel, 1, 0)
 
-
-    self.volumeToReconstructSelector = qt.QComboBox()
-    self.volumeToReconstructSelector.setEditable(True)
-    self.volumeToReconstructSelector.setToolTip( "Pick/set volume to reconstruct" )
-    scoutScanLayout.addRow("Volume to reconstruct:", self.volumeToReconstructSelector)
+    self.volumeToReconstructSelector = qt.QLineEdit()
+    self.volumeToReconstructSelector.readOnly = True
+    scoutScanParametersControlsLayout.addWidget(self.volumeToReconstructSelector, 1, 1)
+    self.volumeToReconstructSelector.visible = False
 
     self.reconstructVolumeButton = qt.QPushButton("Reconstruct Recorded Volume")
     scoutScanLayout.addRow(self.reconstructVolumeButton)
 
-    # Reconstruction
-    reconstructionCollapsibleButton = ctk.ctkCollapsibleButton()
-    reconstructionCollapsibleButton.text = "Live Reconstruction"
-    self.layout.addWidget(reconstructionCollapsibleButton)
-    reconstructionLayout = qt.QFormLayout(reconstructionCollapsibleButton)
+    # Live Reconstruction Part
+    liveReconstructionControlsLayout = qt.QHBoxLayout()
+    scoutScanLayout.addRow(liveReconstructionControlsLayout)
 
-    self.volumeReconstructorIDSelector = qt.QComboBox()
-    self.volumeReconstructorIDSelector.setToolTip( "Pick volume reconstructor device ID" )
-    reconstructionLayout.addRow("Volume Reconstructor Device ID: ", self.volumeReconstructorIDSelector)
-
-    self.outputSpacingROIBox = qt.QDoubleSpinBox()
-    self.outputSpacingROIBox.setToolTip( "Set output volume spacing" )
-    self.outputSpacingROIBox.value = 0.3
-    self.outputSpacingROIBox.setSingleStep(0.1)
-    reconstructionLayout.addRow("Output Volume Spacing: ", self.outputSpacingROIBox)
-
-    liveReconstructionControlsLayout = qt.QGridLayout()
-    reconstructionLayout.addRow(liveReconstructionControlsLayout)
-
-    self.outputExtentROIBoxDirection1 = qt.QDoubleSpinBox()
-    self.outputExtentROIBoxDirection1.setToolTip( "Set output extent or use displayed ROI" )
-    self.outputExtentROIBoxDirection1.value = 0.3
-    #reconstructionLayout.addRow("Output Volume Spacing: ", self.outputExtentROIBoxDirection1)
-    liveReconstructionControlsLayout.addWidget(self.outputExtentROIBoxDirection1, 0, 0)
-
-    self.outputExtentROIBoxDirection2 = qt.QDoubleSpinBox()
-    self.outputExtentROIBoxDirection2.setToolTip( "Set output extent or use displayed ROI" )
-    self.outputExtentROIBoxDirection2.value = 0.3
-    liveReconstructionControlsLayout.addWidget(self.outputExtentROIBoxDirection2, 0, 1)
-
-    self.outputExtentROIBoxDirection3 = qt.QDoubleSpinBox()
-    self.outputExtentROIBoxDirection3.setToolTip( "Set output extent or use displayed ROI" )
-    self.outputExtentROIBoxDirection3.value = 0.3
-    liveReconstructionControlsLayout.addWidget(self.outputExtentROIBoxDirection3, 0, 2)
-
-#     self.liveReconstructionExtentLabel = qt.QLabel()
-#     self.liveReconstructionExtentLabel.setText("Output Volume Extent:")
-
-    self.snapshotsBox = qt.QLineEdit()
-    self.snapshotsBox.setToolTip( "Takes snapshots every ... seconds" )
-    reconstructionLayout.addRow("Snapshots: ", self.snapshotsBox)
-
     self.startLiveReconstructionIcon = qt.QIcon(self.plusRemoteModuleDirectoryPath+'/Resources/Icons/icon_Record.png')
     self.stopLiveReconstructionIcon = qt.QIcon(self.plusRemoteModuleDirectoryPath+'/Resources/Icons/icon_Stop.png')
     self.liveReconstructionButton = qt.QPushButton("Start Live Reconstruction")
@@ -230,7 +233,15 @@ class PlusRemoteWidget:
     self.liveReconstructionButton.setIcon(self.startLiveReconstructionIcon)
     self.liveReconstructionButton.setToolTip("If checked, start live reconstruction")
     self.liveReconstructionButton.setEnabled(False)
-    reconstructionLayout.addRow(self.liveReconstructionButton)
+    self.liveReconstructionButton.setSizePolicy(qt.QSizePolicy.Expanding, qt.QSizePolicy.Expanding)
+    liveReconstructionControlsLayout.addWidget(self.liveReconstructionButton, 0, 0)
+
+    liveReconstructionParametersControlsLayout = qt.QGridLayout()
+    liveReconstructionControlsLayout.addLayout(liveReconstructionParametersControlsLayout)
+
+    self.displayRoiLabel = qt.QLabel()
+    self.displayRoiLabel.setText("ROI:")
+    liveReconstructionParametersControlsLayout.addWidget(self.displayRoiLabel, 0, 0)
 
     self.notVisibleRoiIcon = qt.QIcon(":Icons\VisibleOff.png")
     self.visibleRoiIcon = qt.QIcon(":Icons\VisibleOn.png")
@@ -238,7 +249,64 @@ class PlusRemoteWidget:
     self.displayRoiButton.setCheckable(True)
     self.displayRoiButton.setIcon(self.notVisibleRoiIcon)
     self.displayRoiButton.setToolTip("If checked, display ROI")
-    reconstructionLayout.addRow("Display ROI: ", self.displayRoiButton)
+    liveReconstructionParametersControlsLayout.addWidget(self.displayRoiButton, 0, 1)
+
+    self.outputSpacingLiveReconstructionLabel = qt.QLabel()
+    self.outputSpacingLiveReconstructionLabel.setText("Spacing:")
+    liveReconstructionParametersControlsLayout.addWidget(self.outputSpacingLiveReconstructionLabel, 1, 0)
+
+    self.outputSpacingLiveReconstructionBox = qt.QDoubleSpinBox()
+    self.outputSpacingLiveReconstructionBox.setToolTip( "Set output volume spacing for live reconstruction" )
+    self.outputSpacingLiveReconstructionBox.value = self.outputVolumeSpacingBox.value
+    self.outputSpacingLiveReconstructionBox.setSingleStep(0.1)
+    liveReconstructionParametersControlsLayout.addWidget(self.outputSpacingLiveReconstructionBox, 1, 1)
+
+    self.liveReconstructionSettingsButton = ctk.ctkExpandButton()
+    liveReconstructionControlsLayout.addWidget(self.liveReconstructionSettingsButton, 0, 2)
+
+    liveReconstructionAdvancedParametersControlsLayout = qt.QGridLayout()
+    scoutScanLayout.addRow(liveReconstructionAdvancedParametersControlsLayout)
+
+    self.outputExtentLiveReconstructionLabel = qt.QLabel()
+    self.outputExtentLiveReconstructionLabel.setText("Extent:")
+    self.outputExtentLiveReconstructionLabel.visible = False
+    liveReconstructionAdvancedParametersControlsLayout.addWidget(self.outputExtentLiveReconstructionLabel, 0, 0)
+
+    self.outputExtentROIBoxDirection1 = qt.QDoubleSpinBox()
+    self.outputExtentROIBoxDirection1.setToolTip( "Set output extent or use displayed ROI" )
+    self.outputExtentROIBoxDirection1.setReadOnly(True)
+    self.outputExtentROIBoxDirection1.setRange(0,800)
+    self.outputExtentROIBoxDirection1.visible = False
+    liveReconstructionAdvancedParametersControlsLayout.addWidget(self.outputExtentROIBoxDirection1, 0, 1)
+
+    self.outputExtentROIBoxDirection2 = qt.QDoubleSpinBox()
+    self.outputExtentROIBoxDirection2.setToolTip( "Set output extent or use displayed ROI" )
+    self.outputExtentROIBoxDirection2.setReadOnly(True)
+    self.outputExtentROIBoxDirection2.setRange(0,800)
+    self.outputExtentROIBoxDirection2.visible = False
+    liveReconstructionAdvancedParametersControlsLayout.addWidget(self.outputExtentROIBoxDirection2, 0, 2)
+
+    self.outputExtentROIBoxDirection3 = qt.QDoubleSpinBox()
+    self.outputExtentROIBoxDirection3.setToolTip( "Set output extent or use displayed ROI" )
+    self.outputExtentROIBoxDirection3.setReadOnly(True)
+    self.outputExtentROIBoxDirection3.setRange(0,800)
+    self.outputExtentROIBoxDirection3.visible = False
+    liveReconstructionAdvancedParametersControlsLayout.addWidget(self.outputExtentROIBoxDirection3, 0, 3)
+
+    self.snapshotsLabel = qt.QLabel()
+    self.snapshotsLabel.setText("Snapshots:                           every ")
+    self.snapshotsLabel.visible = False
+    liveReconstructionAdvancedParametersControlsLayout.addWidget(self.snapshotsLabel, 1, 0)
+
+    self.snapshotsBox = qt.QSpinBox()
+    self.snapshotsBox.setToolTip( "Takes snapshots every ... seconds" )
+    self.snapshotsBox.visible = False
+    liveReconstructionAdvancedParametersControlsLayout.addWidget(self.snapshotsBox, 1, 1)
+
+    self.snapshotsTimeLabel = qt.QLabel()
+    self.snapshotsTimeLabel.setText("seconds")
+    self.snapshotsTimeLabel.visible = False
+    liveReconstructionAdvancedParametersControlsLayout.addWidget(self.snapshotsTimeLabel, 1, 2)
 
     # Transform Update
     transformUpdateCollapsibleButton = ctk.ctkCollapsibleButton()
@@ -284,18 +352,20 @@ class PlusRemoteWidget:
     # connections
     self.linkInputSelector.connect("nodeActivated(vtkMRMLNode*)", self.onConnectorNodeSelected)
 
+    self.startStopRecordingButton.connect('clicked(bool)', self.onStartStopRecordingButtonClicked)
+    self.offlineReconstructButton.connect('clicked(bool)', self.onReconstVolume)
     self.recordAndReconstructButton.connect('clicked(bool)', self.onRecordAndReconstructButtonClicked)
     self.liveReconstructionButton.connect('clicked(bool)', self.onLiveReconstructionButtonClicked)
 
     self.displayRoiButton.connect('clicked(bool)', self.onDisplayRoiButtonClicked)
     self.scoutSettingsButton.connect('clicked(bool)', self.onScoutSettingsButtonClicked)
+    self.liveReconstructionSettingsButton.connect('clicked(bool)', self.onLiveReconstructionSettingsButtonClicked)
+    #self.offlineReconstructSettingsButton.connect('clicked(bool', self.onOfflineReconstructSettingsButtonClicked)
 
     self.reconstructVolumeButton.connect('clicked(bool)', self.onReconstVolume)
 
     self.updateTransformButton.connect('clicked(bool)', self.onUpdateTransform)
     self.saveTransformButton.connect('clicked(bool)', self.onSaveTransform)
-
-    self.snapshotsBox.connect('textEdited(text)', self.onSnapshotQuiered)
 
     self.layout.addStretch(1)
 
@@ -305,20 +375,62 @@ class PlusRemoteWidget:
     print "Cleanup is called"
     pass
 
+  def onStartStopRecordingButtonClicked(self):
+    self.methodFlag = "Recording"
+    if self.startStopRecordingButton.isChecked():
+      self.startStopRecordingButton.setText("Stop Recording")
+      self.startStopRecordingButton.setIcon(self.stopRecordingIcon)
+      self.startStopRecordingButton.setToolTip( "If clicked, stop recording" )
+      self.onStartRecording()
+    else:
+      self.startStopRecordingButton.setText("Start Recording")
+      self.startStopRecordingButton.setIcon(self.startRecordingIcon)
+      self.startStopRecordingButton.setToolTip( "If clicked, start recording" )
+      self.onStopRecording()
+
+#   def onOfflineReconstructButtonClicked(self):
+#     if self.offlineReconstructButton.isChecked():
+#       self.offlineReconstructButton.setText(" Stop Offline Reconstruction")
+#       self.offlineReconstructButton.setIcon(self.stopRecordingIcon)
+#       self.offlineReconstructButton.setToolTip( "If clicked, stop reconstructing recorded volume" )
+#     else:
+#       self.offlineReconstructButton.setText(" Start Offline Reconstruction")
+#       self.offlineReconstructButton.setIcon(self.startRecordingIcon)
+#       self.offlineReconstructButton.setToolTip( "If clicked, reconstruct recorded volume" )
+#       self.onReconstructRecordedVolume()
+
+#   def onOfflineReconstructSettingsButtonClicked(self, status):
+#     self.offlineVolumeSpacingBox.visible = self.offlineReconstructSettingsButton.checked
+#     self.offlineVolumeToReconstructSelector.visible = self.offlineReconstructSettingsButton.checked
+#     self.offlineVolumeSpacingBox.visible = self.offlineReconstructSettingsButton.checked
+#     self.offlineVolumeToReconstructSelector.visible = self.offlineReconstructSettingsButton.checked
+
   def onScoutSettingsButtonClicked(self, status):
     self.outputVolumeSpacingBox.visible = self.scoutSettingsButton.checked
-    self.otherBox.visible = self.scoutSettingsButton.checked
+    self.volumeToReconstructSelector.visible = self.scoutSettingsButton.checked
+    self.outputVolumeSpacingLabel.visible = self.scoutSettingsButton.checked
+    self.volumeToReconstructLabel.visible = self.scoutSettingsButton.checked
+
+  def onLiveReconstructionSettingsButtonClicked(self, status):
+    self.outputExtentLiveReconstructionLabel.visible = self.liveReconstructionSettingsButton.checked
+    self.outputExtentROIBoxDirection1.visible = self.liveReconstructionSettingsButton.checked
+    self.outputExtentROIBoxDirection2.visible = self.liveReconstructionSettingsButton.checked
+    self.outputExtentROIBoxDirection3.visible = self.liveReconstructionSettingsButton.checked
+    self.snapshotsLabel.visible = self.liveReconstructionSettingsButton.checked
+    self.snapshotsBox.visible = self.liveReconstructionSettingsButton.checked
+    self.snapshotsTimeLabel.visible = self.liveReconstructionSettingsButton.checked
 
   def onRecordAndReconstructButtonClicked(self):
+    self.methodFlag = "Scout Scan"
     if self.recordAndReconstructButton.isChecked():
       self.recordAndReconstructButton.setText(" Scout Scan\n Stop Recording and Recontruct Recorded Volume")
       self.recordAndReconstructButton.setIcon(self.stopRecordingIcon)
-      self.recordAndReconstructButton.setToolTip( "If checked, stop recording and reconstruct recorded volume" )
+      self.recordAndReconstructButton.setToolTip( "If clicked, stop recording and reconstruct recorded volume" )
       self.onStartRecording()
     else:
       self.recordAndReconstructButton.setText(" Scout Scan\n Start Recording")
       self.recordAndReconstructButton.setIcon(self.startRecordingIcon)
-      self.recordAndReconstructButton.setToolTip( "If checked, start recording" )
+      self.recordAndReconstructButton.setToolTip( "If clicked, start recording" )
       self.onStopRecording()
 
   def onLiveReconstructionButtonClicked(self):
@@ -327,12 +439,14 @@ class PlusRemoteWidget:
         self.updateVolumeExtentFromROI()
       self.liveReconstructionButton.setText("Stop Live Reconstruction")
       self.liveReconstructionButton.setIcon(self.stopLiveReconstructionIcon)
-      self.liveReconstructionButton.setToolTip( "If checked, stop live reconstruction" )
+      self.liveReconstructionButton.setToolTip( "If clicked, stop live reconstruction" )
       self.onStartReconstruction()
+      if self.snapshotsBox.value != 0:
+        self.onSnapshotQuiered()
     else:
       self.liveReconstructionButton.setText("Start Live Reconstruction")
       self.liveReconstructionButton.setIcon(self.startLiveReconstructionIcon)
-      self.liveReconstructionButton.setToolTip( "If checked, start live reconstruction" )
+      self.liveReconstructionButton.setToolTip( "If clicked, start live reconstruction" )
       self.onStopReconstruction()
 
   def onDisplayRoiButtonClicked(self):
@@ -386,9 +500,10 @@ class PlusRemoteWidget:
     self.connectorNodeConnected = False
     print("Server disconnected!")
     self.replyBox.setPlainText("IGTLConnector not connected or missing")
-    self.startReconstructionButton.setEnabled(False)
-    self.stopReconstructionButton.setEnabled(False)
     self.startStopRecordingButton.setEnabled(False)
+    self.recordAndReconstructButton.setEnabled(False)
+    self.liveReconstructionButton.setEnabled(False)
+    self.offlineReconstructButton.setEnabled(False)
     self.captureIDSelector.setDisabled(True)
     self.volumeReconstructorIDSelector.setDisabled(True)
 
@@ -422,7 +537,15 @@ class PlusRemoteWidget:
     self.logic.stopVolumeReconstruction(self.linkInputSelector.currentNode().GetID(), self.volumeReconstructorIDSelector.currentText, self.onGenericCommandResponseReceived)
 
   def onReconstVolume(self):
-    self.logic.reconstructRecorded(self.linkInputSelector.currentNode().GetID(), self.volumeReconstructorIDSelector.currentText, self.volumeToReconstructSelector.currentText, self.onVolumeReconstructed)
+    if self.methodFlag == "Scout Scan":
+        method = self.onVolumeReconstructed
+        volumeToReconstruct = self.volumeToReconstructSelector.text
+        outputSpacing = [self.outputVolumeSpacingBox.value, self.outputVolumeSpacingBox.value, self.outputVolumeSpacingBox.value]
+    else:
+        method = self.onGenericCommandResponseReceived
+        volumeToReconstruct = self.offlineVolumeToReconstructSelector.currentText
+        outputSpacing = [self.offlineVolumeSpacingBox.value, self.offlineVolumeSpacingBox.value, self.offlineVolumeSpacingBox.value]
+    self.logic.reconstructRecorded(self.linkInputSelector.currentNode().GetID(), self.volumeReconstructorIDSelector.currentText, volumeToReconstruct, outputSpacing, method)
 
   def onSnapshotQuiered(self):
     self.logic.getVolumeReconstructionSnapshot(self.linkInputSelector.currentNode().GetID(), self.volumeToReconstructSelector.currentText, self.onGenericCommandResponseReceived)
@@ -453,11 +576,10 @@ class PlusRemoteWidget:
     captureDeviceIdsListString = commandResponseElement.GetAttribute("Message")
     captureDevicesIdsList = captureDeviceIdsListString.split(",")
 
-    i=0
     for i in range(0,len(captureDevicesIdsList)):
       if self.captureIDSelector.findText(captureDevicesIdsList[i]) == -1:
         self.captureIDSelector.addItem(captureDevicesIdsList[i])
-    self.recordAndReconstructButton.setEnabled(True)
+    self.startStopRecordingButton.setEnabled(True)
 
   def onGetVolumeReconstructorDeviceCommandResponseReceived(self, commandId, textNode):
     if not textNode:
@@ -473,11 +595,14 @@ class PlusRemoteWidget:
     volumeReconstructorDeviceIdsList = volumeReconstructorDeviceIdsListString.split(",")
     self.volumeReconstructorIDSelector.clear()
     self.volumeReconstructorIDSelector.addItems(volumeReconstructorDeviceIdsList)
+    self.offlineReconstructButton.setEnabled(True)
+    self.recordAndReconstructButton.setEnabled(True)
     self.liveReconstructionButton.setEnabled(True)
 
   def onVolumeRecorded(self, commandId, textNode):
     import os.path, time
     self.onGenericCommandResponseReceived(commandId,textNode)
+    self.offlineReconstructButton.setEnabled(True)
 
     logic = PlusRemoteLogic()
     commandResponse=textNode.GetText(0)
@@ -485,10 +610,14 @@ class PlusRemoteWidget:
     commandResponseElement = vtk.vtkXMLUtilities.ReadElementFromString(commandResponse)
     stopRecordingMessage = commandResponseElement.GetAttribute("Message")
     volumeToReconstructFileName = os.path.basename(stopRecordingMessage)
-    self.volumeToReconstructSelector.insertItem(0,volumeToReconstructFileName)
-    self.volumeToReconstructSelector.setCurrentIndex(0)
+    if self.methodFlag == "Recording":
+      self.offlineVolumeToReconstructSelector.insertItem(0,volumeToReconstructFileName)
+      self.offlineVolumeToReconstructSelector.setCurrentIndex(0)
+    elif self.methodFlag == "Scout Scan":
+      self.volumeToReconstructSelector.clear()
+      self.volumeToReconstructSelector.insert(volumeToReconstructFileName)
 
-    if commandResponseElement.GetAttribute("Status") == "SUCCESS":
+    if (commandResponseElement.GetAttribute("Status") == "SUCCESS") and self.methodFlag == "Scout Scan":
       #time.sleep(5) #let Plus Server time to save the file
       self.onReconstVolume()
 
@@ -503,6 +632,17 @@ class PlusRemoteWidget:
     if (commandResponseElement.GetAttribute("Status") == "SUCCESS") and not self.roiNode:
       print("success reconstruction")
       self.onRoiInitialization()
+
+#   def updateVolumeToReconstructName(self, commandId, textNode):
+#     self.onGenericCommandResponseReceived(commandId,textNode)
+#
+#     logic = PlusRemoteLogic()
+#     commandResponse=textNode.GetText(0)
+#
+#     commandResponseElement = vtk.vtkXMLUtilities.ReadElementFromString(commandResponse)
+#     stopRecordingMessage = commandResponseElement.GetAttribute("Message")
+#     volumeToReconstructFileName = os.path.basename(stopRecordingMessage)
+#     self.volumeToReconstructSelector.insert(volumeToReconstructFileName)
 
 
   def onRoiInitialization(self):
@@ -540,9 +680,7 @@ class PlusRemoteWidget:
 #       roiOriginRAS = reconstructedVolumeNode.GetIJKToRASMatrix().MultiplyPoint(volumeVoxelsNumberList + (1,))
 #       print roiOriginRAS[:3]
 
-
   def updateVolumeExtentFromROI(self):
-
     roiCenter = [0.0, 0.0, 0.0]
     roiRadius = [0.0, 0.0, 0.0]
     roiOrigin = [0.0, 0.0, 0.0]
@@ -551,12 +689,14 @@ class PlusRemoteWidget:
 
     for i in range(0,len(roiCenter)):
         roiOrigin[i] = roiCenter[i] - roiRadius[i]
-
     self.outputOriginValue = roiOrigin
-    self.outputExtentValue = [0, int((2*roiRadius[0])/self.outputSpacingROIBox.value), 0, int((2*roiRadius[1])/self.outputSpacingROIBox.value), 0, int((2*roiRadius[2])/self.outputSpacingROIBox.value)]
-    self.outputSpacingValue = [self.outputSpacingROIBox.value, self.outputSpacingROIBox.value, self.outputSpacingROIBox.value]
-    print self.outputSpacingValue
-    print self.outputOriginValue
+    self.outputExtentValue = [0, int((2*roiRadius[0])/self.outputSpacingLiveReconstructionBox.value), 0, int((2*roiRadius[1])/self.outputSpacingLiveReconstructionBox.value), 0, int((2*roiRadius[2])/self.outputSpacingLiveReconstructionBox.value)]
+    self.outputSpacingValue = [self.outputSpacingLiveReconstructionBox.value, self.outputSpacingLiveReconstructionBox.value, self.outputSpacingLiveReconstructionBox.value]
+
+    self.outputExtentROIBoxDirection1.value = self.outputExtentValue[1]
+    self.outputExtentROIBoxDirection2.value = self.outputExtentValue[3]
+    self.outputExtentROIBoxDirection3.value = self.outputExtentValue[5]
+
     print self.outputExtentValue
 
   def onReload(self,moduleName="PlusRemote"):
@@ -610,12 +750,13 @@ class PlusRemoteWidget:
 class PlusRemoteLogic:
   def __init__(self):
     self.commandToMethodHashtable = {}
+    #self.timer = None
     pass
 
   def executeCommand(self, connectorNodeId, commandName, commandParameters, responseCallback):
       commandId = slicer.modules.openigtlinkremote.logic().ExecuteCommand(connectorNodeId, commandName, commandParameters)
       self.commandToMethodHashtable[commandId]={'responseCallback': responseCallback, 'connectorNodeId': connectorNodeId, 'remainingTime': 50}
-      #if not self.timer:
+      #if self.timer is None:
       self.timer = qt.QTimer()
       self.timer.timeout.connect(self.getCommandReply)
       self.timer.start(100)
@@ -631,7 +772,6 @@ class PlusRemoteLogic:
         commandToMethodItem = self.commandToMethodHashtable.pop(commandId)
         responseCallback = commandToMethodItem['responseCallback']
         responseCallback(commandId, textNode)
-        print responseCallback
         connectorNodeId = commandToMethodItem['connectorNodeId']
         self.discardCommand(commandId, connectorNodeId)
         self.timer.stop()
@@ -658,8 +798,8 @@ class PlusRemoteLogic:
     parameters = "VolumeReconstructorDeviceID=" + "\"" + volumeReconstructorDeviceId +"\""
     self.executeCommand(connectorNodeId, "StopVolumeReconstruction", parameters, method)
 
-  def reconstructRecorded(self, connectorNodeId, volumeReconstructorDeviceId, volumeToReconstructId, method):
-    parameters = "VolumeReconstructorDeviceId=" + "\"" + volumeReconstructorDeviceId + "\"" + " InputSeqFilename=" + "\"" + volumeToReconstructId + "\"" + " OutputVolFilename=" + "\"" + "scoutFile.mha" +"\""
+  def reconstructRecorded(self, connectorNodeId, volumeReconstructorDeviceId, volumeToReconstructId, outputSpacing, method):
+    parameters = "VolumeReconstructorDeviceId=" + "\"" + volumeReconstructorDeviceId + "\"" + " InputSeqFilename=" + "\"" + volumeToReconstructId + "\"" + " OutputSpacing=" + "\"" + "%f %f %f" % tuple(outputSpacing) + "\"" + " OutputVolFilename=" + "\"" + "scoutFile.mha" +"\""
     self.executeCommand(connectorNodeId, "ReconstructVolume", parameters, method)
 
   def startRecording(self, connectorNodeId, captureName, fileName, method):
