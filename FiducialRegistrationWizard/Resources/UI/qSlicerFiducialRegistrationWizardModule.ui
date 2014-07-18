@@ -156,7 +156,7 @@
          </sizepolicy>
         </property>
         <property name="title">
-         <string>From-&gt;To Transform</string>
+         <string>Registration result (From-&gt;To) transform</string>
         </property>
         <layout class="QVBoxLayout" name="verticalLayout_7">
          <item>
@@ -194,7 +194,7 @@
               </sizepolicy>
              </property>
              <property name="text">
-              <string>Mode:</string>
+              <string>Result transform type:</string>
              </property>
             </widget>
            </item>
