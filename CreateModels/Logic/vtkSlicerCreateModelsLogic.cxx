@@ -83,7 +83,7 @@ vtkSlicerCreateModelsLogic
 */
 void
 vtkSlicerCreateModelsLogic
-::CreateNeedle( double length, double radius, double tipRadius )
+::CreateNeedle( double length, double radius, double tipRadius, bool markers )
 {
   double tip = radius * 2.0;
   
@@ -266,18 +266,21 @@ vtkSlicerCreateModelsLogic
   
     // Add the markers model to the scene
   
-  vtkSmartPointer< vtkMRMLModelNode > markersModelNode = vtkSmartPointer< vtkMRMLModelNode >::New();
-  this->GetMRMLScene()->AddNode( markersModelNode );
-  markersModelNode->SetName( "NeedleMarkersModel" );
-  markersModelNode->SetAndObservePolyData( needleMarkersPolyData );
-  
-  vtkSmartPointer< vtkMRMLModelDisplayNode > markersDisplayNode = vtkSmartPointer< vtkMRMLModelDisplayNode >::New();
-  this->GetMRMLScene()->AddNode( markersDisplayNode );
-  markersDisplayNode->SetName( "NeedleMarkersDisplay" );
-  markersDisplayNode->SetColor( 0.0, 0.0, 0.0 );
-  
-  markersModelNode->SetAndObserveDisplayNodeID( markersDisplayNode->GetID() );
-  markersDisplayNode->SetAmbient( 0.2 );
+  if ( markers )
+  {
+    vtkSmartPointer< vtkMRMLModelNode > markersModelNode = vtkSmartPointer< vtkMRMLModelNode >::New();
+    this->GetMRMLScene()->AddNode( markersModelNode );
+    markersModelNode->SetName( "NeedleMarkersModel" );
+    markersModelNode->SetAndObservePolyData( needleMarkersPolyData );
+    
+    vtkSmartPointer< vtkMRMLModelDisplayNode > markersDisplayNode = vtkSmartPointer< vtkMRMLModelDisplayNode >::New();
+    this->GetMRMLScene()->AddNode( markersDisplayNode );
+    markersDisplayNode->SetName( "NeedleMarkersDisplay" );
+    markersDisplayNode->SetColor( 0.0, 0.0, 0.0 );
+    
+    markersModelNode->SetAndObserveDisplayNodeID( markersDisplayNode->GetID() );
+    markersDisplayNode->SetAmbient( 0.2 );
+  }
 }
 
 

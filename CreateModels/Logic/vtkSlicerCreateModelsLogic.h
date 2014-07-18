@@ -49,7 +49,7 @@ public:
   vtkTypeMacro(vtkSlicerCreateModelsLogic, vtkSlicerModuleLogic);
   void PrintSelf(ostream& os, vtkIndent indent);
   
-  void CreateNeedle( double length, double radius, double tipRadius );
+  void CreateNeedle( double length, double radius, double tipRadius, bool markers );
   void CreateCube( double x, double y, double z );
   void CreateCylinder( double h, double r );
   void CreateSphere( double radius );

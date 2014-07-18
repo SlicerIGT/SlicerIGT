@@ -87,7 +87,7 @@ qSlicerCreateModelsModuleWidget
 {
   Q_D(qSlicerCreateModelsModuleWidget);
   
-  d->logic()->CreateNeedle( d->NeedleLength->value(), d->NeedleRadius->value(), d->NeedleTipRadius->value() );
+  d->logic()->CreateNeedle( d->NeedleLength->value(), d->NeedleRadius->value(), d->NeedleTipRadius->value(), d->markersCheckBox->isChecked() );
 }
 
 
