@@ -107,7 +107,13 @@ void qSlicerSimpleMarkupsWidget
   connect( d->MarkupsFiducialNodeComboBox, SIGNAL( nodeAddedByUser( vtkMRMLNode* ) ), this, SLOT( onMarkupsFiducialNodeAdded( vtkMRMLNode* ) ) );
 
   // Use the pressed signal (otherwise we can unpress buttons without clicking them)
-  connect( d->ActiveButton, SIGNAL( clicked() ), this, SLOT( onActiveButtonClicked() ) ); 
+  connect( d->VisibilityButton, SIGNAL( clicked() ), this, SLOT( onVisibilityButtonClicked() ) );
+  d->VisibilityButton->setIcon( QIcon( ":/Icons/Small/SlicerVisible.png" ) );
+  connect( d->LockButton, SIGNAL( clicked() ), this, SLOT( onLockButtonClicked() ) );
+  d->LockButton->setIcon( QIcon( ":/Icons/Small/SlicerUnlock.png" ) );
+
+  connect( d->ActiveButton, SIGNAL( clicked() ), this, SLOT( onActiveButtonClicked() ) );
+
   connect( d->PlaceButton, SIGNAL( toggled( bool ) ), this, SLOT( onPlaceButtonClicked() ) ); 
   d->PlaceButton->setIcon( QIcon( ":/Icons/MarkupsMouseModePlace.png" ) );
 
@@ -283,6 +289,35 @@ void qSlicerSimpleMarkupsWidget
   {
     d->MarkupsFiducialTableWidget->clearSelection();
   }
+}
+
+void qSlicerSimpleMarkupsWidget
+::onVisibilityButtonClicked()
+{
+  Q_D(qSlicerSimpleMarkupsWidget);
+  vtkMRMLMarkupsNode* currentMarkupsNode = vtkMRMLMarkupsNode::SafeDownCast( d->MarkupsFiducialNodeComboBox->currentNode() );
+
+  if ( currentMarkupsNode != NULL && currentMarkupsNode->GetDisplayNode() != NULL )
+  {
+    currentMarkupsNode->GetDisplayNode()->SetVisibility( ! currentMarkupsNode->GetDisplayNode()->GetVisibility() );
+  }
+
+  this->updateWidget();
+}
+
+
+void qSlicerSimpleMarkupsWidget
+::onLockButtonClicked()
+{
+  Q_D(qSlicerSimpleMarkupsWidget);
+  vtkMRMLMarkupsNode* currentMarkupsNode = vtkMRMLMarkupsNode::SafeDownCast( d->MarkupsFiducialNodeComboBox->currentNode() );
+
+  if ( currentMarkupsNode != NULL )
+  {
+    currentMarkupsNode->SetLocked( ! currentMarkupsNode->GetLocked() );
+  }
+
+  this->updateWidget();
 }
 
 
@@ -555,6 +590,24 @@ void qSlicerSimpleMarkupsWidget
   else
   {
     d->PlaceButton->setChecked( false );
+  }
+
+  if ( currentMarkupsFiducialNode->GetDisplayNode() != NULL && currentMarkupsFiducialNode->GetDisplayNode()->GetVisibility() )
+  {
+    d->VisibilityButton->setIcon( QIcon( ":/Icons/Small/SlicerVisible.png" ) );
+  }
+  else
+  {
+    d->VisibilityButton->setIcon( QIcon( ":/Icons/Small/SlicerInvisible.png" ) );
+  }
+
+  if ( currentMarkupsFiducialNode->GetLocked() )
+  {
+    d->LockButton->setIcon( QIcon( ":/Icons/Small/SlicerLock.png" ) );
+  }
+  else
+  {
+    d->LockButton->setIcon( QIcon( ":/Icons/Small/SlicerUnlock.png" ) );
   }
 
   d->PlaceButton->blockSignals( false );

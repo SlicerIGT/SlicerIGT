@@ -70,8 +70,11 @@ public slots:
 
 protected slots:
 
+  void onVisibilityButtonClicked();
+  void onLockButtonClicked();
   void onPlaceButtonClicked();
   void onActiveButtonClicked();
+
   void onMarkupsFiducialNodeChanged();
   void onMarkupsFiducialNodeAdded( vtkMRMLNode* );
   void onMarkupsFiducialTableContextMenu(const QPoint& position);
