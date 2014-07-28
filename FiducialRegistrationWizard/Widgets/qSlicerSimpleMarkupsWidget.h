@@ -55,14 +55,12 @@ public:
 
   vtkMRMLNode* GetCurrentNode();
   void SetCurrentNode( vtkMRMLNode* currentNode );
-  void SetNodeBaseName( std::string newNodeBaseName );
+  void SetNodeBaseName( const char* newNodeBaseName );
 
   void GetNodeColor( double rgb[3] );
   void SetNodeColor( double rgb[3] );
   void SetDefaultNodeColor( double rgb[3] );
 
-  std::string GetQtStyleStringInactive();
-  std::string GetQtStyleStringActive();
 
 public slots:
 

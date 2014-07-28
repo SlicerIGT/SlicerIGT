@@ -358,25 +358,6 @@ void qSlicerFiducialRegistrationWizardModuleWidget
   d->TransformPreviewWidget->SetCurrentNode( this->mrmlScene()->GetNodeByID( fiducialRegistrationWizardNode->GetOutputTransformID() ) );
   d->RecordButton->setText( QString::fromStdString( this->GetCorrespondingFiducialString() ) );
 
-  // Depending to the current state, change the activeness and placeness for the current markups node
-  if ( d->logic()->MarkupsLogic->GetActiveListID().compare( fromFiducialListID ) == 0 && d->logic()->MarkupsLogic->GetActiveListID().compare( "" ) != 0 )
-  {
-    d->FromGroupBox->setStyleSheet( d->FromMarkupsWidget->GetQtStyleStringActive().c_str() );
-  }
-  else
-  {
-    d->FromGroupBox->setStyleSheet( d->FromMarkupsWidget->GetQtStyleStringInactive().c_str() );
-  }
-
-  if ( d->logic()->MarkupsLogic->GetActiveListID().compare( toFiducialListID ) == 0 && d->logic()->MarkupsLogic->GetActiveListID().compare( "" ) != 0 )
-  {
-    d->ToGroupBox->setStyleSheet( d->ToMarkupsWidget->GetQtStyleStringActive().c_str() );
-  }
-  else
-  {
-    d->ToGroupBox->setStyleSheet( d->ToMarkupsWidget->GetQtStyleStringInactive().c_str() );
-  }
-
   d->FromMarkupsWidget->SetCurrentNode( this->mrmlScene()->GetNodeByID( fiducialRegistrationWizardNode->GetFromFiducialListID() ) );
   d->ToMarkupsWidget->SetCurrentNode( this->mrmlScene()->GetNodeByID( fiducialRegistrationWizardNode->GetToFiducialListID() ) );
 

@@ -112,7 +112,7 @@ void qSlicerSimpleMarkupsWidget
   connect( d->LockButton, SIGNAL( clicked() ), this, SLOT( onLockButtonClicked() ) );
   d->LockButton->setIcon( QIcon( ":/Icons/Small/SlicerUnlock.png" ) );
 
-  connect( d->ActiveButton, SIGNAL( clicked() ), this, SLOT( onActiveButtonClicked() ) );
+  connect( d->ActiveButton, SIGNAL( toggled( bool ) ), this, SLOT( onActiveButtonClicked() ) );
 
   connect( d->PlaceButton, SIGNAL( toggled( bool ) ), this, SLOT( onPlaceButtonClicked() ) ); 
   d->PlaceButton->setIcon( QIcon( ":/Icons/MarkupsMouseModePlace.png" ) );
@@ -179,11 +179,11 @@ void qSlicerSimpleMarkupsWidget
 
 
 void qSlicerSimpleMarkupsWidget
-::SetNodeBaseName( std::string newNodeBaseName )
+::SetNodeBaseName( const char* newNodeBaseName )
 {
   Q_D(qSlicerSimpleMarkupsWidget);
 
-  d->MarkupsFiducialNodeComboBox->setBaseName( QString::fromStdString( newNodeBaseName ) );
+  d->MarkupsFiducialNodeComboBox->setBaseName( QString( newNodeBaseName ) );
 }
 
 
@@ -236,43 +236,6 @@ void qSlicerSimpleMarkupsWidget
   }
 
   return currentMarkupsDisplayNode->GetSelectedColor( rgb );
-}
-
-std::string qSlicerSimpleMarkupsWidget
-::GetQtStyleStringActive()
-{
-  // Get the node colour (i.e. the background colour for the highlighted fiducial list)
-  double NodeColor[ 3 ] = { 0, 0, 0 };
-  this->GetNodeColor( NodeColor );
-  int QtNodeColor[ 3 ] = { 255 * NodeColor[ 0 ], 255 * NodeColor[ 1 ], 255 * NodeColor[ 2 ] };
-
-  // Get the colour of the title (black or white)
-  // These numbers are taken from Matlab's rgb2gray command
-  double grayscaleThreshold = 0.5;
-  double grayscaleValue = 0.2989 * NodeColor[ 0 ] + 0.5870 * NodeColor[ 1 ] + 0.1140 * NodeColor[ 2 ];
-  int QtTitleColor[ 3 ] = { 0, 0, 0 };
-  if ( grayscaleValue < grayscaleThreshold )
-  {
-    QtTitleColor[ 0 ] = 255;
-    QtTitleColor[ 1 ] = 255;
-    QtTitleColor[ 2 ] = 255;
-  }
-
-  // Set the style string
-  std::stringstream styleStringstream;
-  styleStringstream << "QGroupBox { ";
-  styleStringstream << "font-weight : bold;";
-  styleStringstream << "color: rgb( " << QtTitleColor[0] << ", " << QtTitleColor[1] << ", " << QtTitleColor[2] << "); ";
-  styleStringstream << "background-color: rgb( " << QtNodeColor[0] << ", " << QtNodeColor[1] << ", " << QtNodeColor[2] << ") ";
-  styleStringstream << "}";
-  return styleStringstream.str();
-}
-
-
-std::string qSlicerSimpleMarkupsWidget
-::GetQtStyleStringInactive()
-{
-  return "QGroupBox { font-weight : normal; color : black; background-color: white }";
 }
 
 
@@ -578,10 +541,20 @@ void qSlicerSimpleMarkupsWidget
   }
 
   // Set the button indicating if this list is active
+  d->ActiveButton->blockSignals( true );
   d->PlaceButton->blockSignals( true );
 
   // Depending to the current state, change the activeness and placeness for the current markups node
   vtkMRMLInteractionNode *interactionNode = vtkMRMLInteractionNode::SafeDownCast( this->mrmlScene()->GetNodeByID( "vtkMRMLInteractionNodeSingleton" ) );
+
+  if ( this->MarkupsLogic->GetActiveListID().compare( currentMarkupsFiducialNode->GetID() ) == 0 )
+  {
+    d->ActiveButton->setChecked( Qt::Checked );
+  }
+  else
+  {
+    d->ActiveButton->setChecked( Qt::Unchecked );
+  }
 
   if ( interactionNode->GetCurrentInteractionMode() == vtkMRMLInteractionNode::Place && this->MarkupsLogic->GetActiveListID().compare( currentMarkupsFiducialNode->GetID() ) == 0 )
   {
@@ -610,6 +583,7 @@ void qSlicerSimpleMarkupsWidget
     d->LockButton->setIcon( QIcon( ":/Icons/Small/SlicerUnlock.png" ) );
   }
 
+  d->ActiveButton->blockSignals( false );
   d->PlaceButton->blockSignals( false );
 
   // Update the fiducials table
