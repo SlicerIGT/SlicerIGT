@@ -78,6 +78,25 @@
       </widget>
      </item>
      <item>
+      <widget class="ctkColorPickerButton" name="ColorButton">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="checkable">
+        <bool>true</bool>
+       </property>
+       <property name="displayColorName">
+        <bool>false</bool>
+       </property>
+       <property name="dialogOptions">
+        <set>ctkColorPickerButton::UseCTKColorDialog</set>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QPushButton" name="VisibilityButton">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
@@ -145,6 +164,11 @@
    <extends>QWidget</extends>
    <header>qSlicerWidget.h</header>
    <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>ctkColorPickerButton</class>
+   <extends>QPushButton</extends>
+   <header>ctkColorPickerButton.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

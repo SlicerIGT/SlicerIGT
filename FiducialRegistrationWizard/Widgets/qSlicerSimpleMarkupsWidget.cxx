@@ -107,6 +107,8 @@ void qSlicerSimpleMarkupsWidget
   connect( d->MarkupsFiducialNodeComboBox, SIGNAL( nodeAddedByUser( vtkMRMLNode* ) ), this, SLOT( onMarkupsFiducialNodeAdded( vtkMRMLNode* ) ) );
 
   // Use the pressed signal (otherwise we can unpress buttons without clicking them)
+  connect( d->ColorButton, SIGNAL( colorChanged( QColor ) ), this, SLOT( onColorButtonChanged( QColor ) ) );
+
   connect( d->VisibilityButton, SIGNAL( clicked() ), this, SLOT( onVisibilityButtonClicked() ) );
   d->VisibilityButton->setIcon( QIcon( ":/Icons/Small/SlicerVisible.png" ) );
   connect( d->LockButton, SIGNAL( clicked() ), this, SLOT( onLockButtonClicked() ) );
@@ -253,6 +255,24 @@ void qSlicerSimpleMarkupsWidget
     d->MarkupsFiducialTableWidget->clearSelection();
   }
 }
+
+void qSlicerSimpleMarkupsWidget
+::onColorButtonChanged( QColor qColor )
+{
+  Q_D(qSlicerSimpleMarkupsWidget);
+  vtkMRMLMarkupsNode* currentMarkupsNode = vtkMRMLMarkupsNode::SafeDownCast( d->MarkupsFiducialNodeComboBox->currentNode() );
+
+  double color[ 3 ];
+  qMRMLUtils::qColorToColor( qColor, color );
+
+  if ( currentMarkupsNode != NULL && currentMarkupsNode->GetDisplayNode() != NULL )
+  {
+    currentMarkupsNode->GetDisplayNode()->SetSelectedColor( color );
+  }
+
+  this->updateWidget();
+}
+
 
 void qSlicerSimpleMarkupsWidget
 ::onVisibilityButtonClicked()
@@ -546,6 +566,17 @@ void qSlicerSimpleMarkupsWidget
 
   // Depending to the current state, change the activeness and placeness for the current markups node
   vtkMRMLInteractionNode *interactionNode = vtkMRMLInteractionNode::SafeDownCast( this->mrmlScene()->GetNodeByID( "vtkMRMLInteractionNodeSingleton" ) );
+
+  if ( currentMarkupsFiducialNode->GetDisplayNode() != NULL  )
+  {
+    double* color;
+    QColor qColor;
+
+    color = currentMarkupsFiducialNode->GetDisplayNode()->GetSelectedColor();
+    qMRMLUtils::colorToQColor( color, qColor );
+
+    d->ColorButton->setColor( qColor );
+  }
 
   if ( this->MarkupsLogic->GetActiveListID().compare( currentMarkupsFiducialNode->GetID() ) == 0 )
   {

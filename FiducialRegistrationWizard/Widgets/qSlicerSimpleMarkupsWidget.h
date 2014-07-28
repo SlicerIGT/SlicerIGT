@@ -24,6 +24,8 @@
 // Qt includes
 #include "qSlicerWidget.h"
 
+#include "qMRMLUtils.h"
+
 // FooBar Widgets includes
 #include "qSlicerFiducialRegistrationWizardModuleWidgetsExport.h"
 #include "ui_qSlicerSimpleMarkupsWidget.h"
@@ -68,6 +70,7 @@ public slots:
 
 protected slots:
 
+  void onColorButtonChanged( QColor );
   void onVisibilityButtonClicked();
   void onLockButtonClicked();
   void onPlaceButtonClicked();
