@@ -113,6 +113,8 @@ void qSlicerSimpleMarkupsWidget
   d->VisibilityButton->setIcon( QIcon( ":/Icons/Small/SlicerVisible.png" ) );
   connect( d->LockButton, SIGNAL( clicked() ), this, SLOT( onLockButtonClicked() ) );
   d->LockButton->setIcon( QIcon( ":/Icons/Small/SlicerUnlock.png" ) );
+  connect( d->DeleteButton, SIGNAL( clicked() ), this, SLOT( onDeleteButtonClicked() ) );
+  d->DeleteButton->setIcon( QIcon( ":/Icons/MarkupsDelete.png" ) );
 
   connect( d->ActiveButton, SIGNAL( toggled( bool ) ), this, SLOT( onActiveButtonClicked() ) );
 
@@ -302,6 +304,38 @@ void qSlicerSimpleMarkupsWidget
 
   this->updateWidget();
 }
+
+
+void qSlicerSimpleMarkupsWidget
+::onDeleteButtonClicked()
+{
+  Q_D(qSlicerSimpleMarkupsWidget);
+
+  vtkMRMLMarkupsNode* currentMarkupsNode = vtkMRMLMarkupsNode::SafeDownCast( d->MarkupsFiducialNodeComboBox->currentNode() );
+
+  if ( currentMarkupsNode  == NULL )
+  {
+    return;
+  }
+
+  QItemSelectionModel* selectionModel = d->MarkupsFiducialTableWidget->selectionModel();
+  std::vector< int > deleteFiducials;
+  // Need to find selected before removing because removing automatically refreshes the table
+  for ( int i = 0; i < d->MarkupsFiducialTableWidget->rowCount(); i++ )
+  {
+    if ( selectionModel->rowIntersectsSelection( i, d->MarkupsFiducialTableWidget->rootIndex() ) )
+    {
+      deleteFiducials.push_back( i );
+    }
+  }
+  //Traversing this way should be more efficient and correct
+  for ( int i = deleteFiducials.size() - 1; i >= 0; i-- )
+  {
+    currentMarkupsNode->RemoveMarkup( deleteFiducials.at( i ) );
+  }
+
+  this->updateWidget();
+}    
 
 
 void qSlicerSimpleMarkupsWidget

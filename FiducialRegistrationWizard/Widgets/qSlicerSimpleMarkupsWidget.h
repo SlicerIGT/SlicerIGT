@@ -73,6 +73,7 @@ protected slots:
   void onColorButtonChanged( QColor );
   void onVisibilityButtonClicked();
   void onLockButtonClicked();
+  void onDeleteButtonClicked();
   void onPlaceButtonClicked();
   void onActiveButtonClicked();
 
