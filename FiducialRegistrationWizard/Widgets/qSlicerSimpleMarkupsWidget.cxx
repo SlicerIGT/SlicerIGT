@@ -20,6 +20,9 @@
 
 // FooBar Widgets includes
 #include "qSlicerSimpleMarkupsWidget.h"
+#include "qSlicerApplication.h"
+#include "qSlicerModuleManager.h"
+#include "qSlicerAbstractCoreModule.h"
 
 #include <QtGui>
 
@@ -72,22 +75,22 @@ void qSlicerSimpleMarkupsWidgetPrivate
 qSlicerSimpleMarkupsWidget
 ::qSlicerSimpleMarkupsWidget(QWidget* parentWidget) : Superclass( parentWidget ) , d_ptr( new qSlicerSimpleMarkupsWidgetPrivate(*this) )
 {
+  qSlicerAbstractCoreModule* MarkupsModule = qSlicerApplication::application()->moduleManager()->module( "Markups" );
+  if ( MarkupsModule != NULL )
+  {
+    this->MarkupsLogic = vtkSlicerMarkupsLogic::SafeDownCast( MarkupsModule->logic() );
+  }
+  else
+  {
+    this->MarkupsLogic = NULL;
+  }
+  this->setup();
 }
 
 
 qSlicerSimpleMarkupsWidget
 ::~qSlicerSimpleMarkupsWidget()
 {
-}
-
-
-qSlicerSimpleMarkupsWidget* qSlicerSimpleMarkupsWidget
-::New( vtkSlicerMarkupsLogic* newMarkupsLogic )
-{
-  qSlicerSimpleMarkupsWidget* newSimpleMarkupsWidget = new qSlicerSimpleMarkupsWidget();
-  newSimpleMarkupsWidget->MarkupsLogic = newMarkupsLogic;
-  newSimpleMarkupsWidget->setup();
-  return newSimpleMarkupsWidget;
 }
 
 

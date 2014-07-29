@@ -51,8 +51,6 @@ public:
   qSlicerSimpleMarkupsWidget(QWidget *parent=0);
   virtual ~qSlicerSimpleMarkupsWidget();
 
-  static qSlicerSimpleMarkupsWidget* New( vtkSlicerMarkupsLogic* newMarkupsLogic );
-
   vtkSlicerMarkupsLogic* MarkupsLogic;
 
   vtkMRMLNode* GetCurrentNode();

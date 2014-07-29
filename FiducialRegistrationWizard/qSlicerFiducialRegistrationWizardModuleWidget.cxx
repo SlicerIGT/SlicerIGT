@@ -149,19 +149,19 @@ void qSlicerFiducialRegistrationWizardModuleWidget
   this->Superclass::setup();
 
   // Embed widgets here
-  d->FromMarkupsWidget = qSlicerSimpleMarkupsWidget::New( d->logic()->MarkupsLogic );
+  d->FromMarkupsWidget = new qSlicerSimpleMarkupsWidget();
   d->FromMarkupsWidget->SetNodeBaseName( "From" );
   double FROM_MARKUPS_DEFAULT_COLOR[3] = { 1, 0, 0 };
   d->FromMarkupsWidget->SetDefaultNodeColor( FROM_MARKUPS_DEFAULT_COLOR );
   d->FromGroupBox->layout()->addWidget( d->FromMarkupsWidget );
 
-  d->ToMarkupsWidget = qSlicerSimpleMarkupsWidget::New( d->logic()->MarkupsLogic );
+  d->ToMarkupsWidget = new qSlicerSimpleMarkupsWidget();
   d->ToMarkupsWidget->SetNodeBaseName( "To" );
   double TO_MARKUPS_DEFAULT_COLOR[3] = { 0, 0, 1 };
   d->ToMarkupsWidget->SetDefaultNodeColor( TO_MARKUPS_DEFAULT_COLOR );
   d->ToGroupBox->layout()->addWidget( d->ToMarkupsWidget );
 
-  d->TransformPreviewWidget = qSlicerTransformPreviewWidget::New( d->logic()->GetMRMLScene() );
+  d->TransformPreviewWidget = new qSlicerTransformPreviewWidget;
   d->PreviewGroupBox->layout()->addWidget( d->TransformPreviewWidget );
 
   this->setMRMLScene( d->logic()->GetMRMLScene() );
@@ -393,7 +393,7 @@ void qSlicerFiducialRegistrationWizardModuleWidget
   vtkMRMLMarkupsFiducialNode* fromMarkupsNode = vtkMRMLMarkupsFiducialNode::SafeDownCast( d->FromMarkupsWidget->GetCurrentNode() );
   vtkMRMLMarkupsFiducialNode* toMarkupsNode = vtkMRMLMarkupsFiducialNode::SafeDownCast( d->ToMarkupsWidget->GetCurrentNode() );
 
-  if ( fromMarkupsNode != NULL && toMarkupsNode != NULL )
+  if ( activeMarkupsNode != NULL && fromMarkupsNode != NULL && toMarkupsNode != NULL )
   {
     // Adding to "From" list
     if ( strcmp( activeMarkupsNode->GetID(), fromMarkupsNode->GetID() ) == 0 )

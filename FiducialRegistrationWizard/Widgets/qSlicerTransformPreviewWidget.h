@@ -51,8 +51,6 @@ public:
   qSlicerTransformPreviewWidget(QWidget *parent=0);
   virtual ~qSlicerTransformPreviewWidget();
 
-  static qSlicerTransformPreviewWidget* New( vtkMRMLScene* scene );
-
   vtkMRMLNode* GetCurrentNode();
   void SetCurrentNode( vtkMRMLNode* currentNode );
 

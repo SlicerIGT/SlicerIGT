@@ -20,6 +20,7 @@
 
 // FooBar Widgets includes
 #include "qSlicerTransformPreviewWidget.h"
+#include "qSlicerApplication.h"
 
 #include <QtGui>
 
@@ -66,26 +67,18 @@ void qSlicerTransformPreviewWidgetPrivate
 qSlicerTransformPreviewWidget
 ::qSlicerTransformPreviewWidget(QWidget* parentWidget) : Superclass( parentWidget ) , d_ptr( new qSlicerTransformPreviewWidgetPrivate(*this) )
 {
+  // Don't set the scene here - the combo box won't work;
+  this->setup();
+  // Set the scene here
+  this->setMRMLScene( qSlicerApplication::application()->mrmlScene() );
+  // And create the connections (since we need the scene before we can create the connections)
+  this->qvtkConnect( this->mrmlScene(), vtkCommand::ModifiedEvent, this, SLOT( ObserveAllTransformableNodes() ) );
 }
 
 
 qSlicerTransformPreviewWidget
 ::~qSlicerTransformPreviewWidget()
 {
-}
-
-
-qSlicerTransformPreviewWidget* qSlicerTransformPreviewWidget
-::New( vtkMRMLScene* scene )
-{
-  qSlicerTransformPreviewWidget* newTransformPreviewWidget = new qSlicerTransformPreviewWidget();
-  // Don't set the scene here - the combo box won't work;
-  newTransformPreviewWidget->setup();
-  // Set the scene here
-  newTransformPreviewWidget->setMRMLScene( scene );
-  // And create the connections (since we need the scene before we can create the connections)
-  newTransformPreviewWidget->qvtkConnect( newTransformPreviewWidget->mrmlScene(), vtkCommand::ModifiedEvent, newTransformPreviewWidget, SLOT( ObserveAllTransformableNodes() ) );
-  return newTransformPreviewWidget;
 }
 
 
