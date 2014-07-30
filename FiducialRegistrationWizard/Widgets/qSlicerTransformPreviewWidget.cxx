@@ -73,6 +73,7 @@ qSlicerTransformPreviewWidget
   this->setMRMLScene( qSlicerApplication::application()->mrmlScene() );
   // And create the connections (since we need the scene before we can create the connections)
   this->qvtkConnect( this->mrmlScene(), vtkCommand::ModifiedEvent, this, SLOT( ObserveAllTransformableNodes() ) );
+  this->updateWidget(); // Ensure that the transform combo box is disabled (since setMRMLScene will enable the combo box)
 }
 
 
