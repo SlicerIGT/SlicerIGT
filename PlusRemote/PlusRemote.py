@@ -1,4 +1,5 @@
 from __main__ import vtk, qt, ctk, slicer
+import os.path
 #
 # PlusRemote
 #
@@ -496,7 +497,7 @@ class PlusRemoteWidget:
 
     # Force initial update
     if self.connectorNode:
-      self.onConfigFileQueried()
+      #self.onConfigFileQueried()
       if self.connectorNode.GetState() == slicer.vtkMRMLIGTLConnectorNode.STATE_CONNECTED:
         self.onConnectorNodeConnected(None, None, True)
       else:
