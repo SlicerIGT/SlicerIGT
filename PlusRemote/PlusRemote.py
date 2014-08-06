@@ -188,6 +188,7 @@ class PlusRemoteWidget:
     offlineReconstructControlsLayout.addWidget(self.outpuVolumeDeviceLabel)
 
     self.outpuVolumeDeviceBox = qt.QLineEdit()
+    self.outpuVolumeDeviceBox.setText("RecVol_Reference")
     self.outpuVolumeDeviceBox.setToolTip( "Set output volume device (optional)" )
     offlineReconstructControlsLayout.addWidget(self.outpuVolumeDeviceBox)
 
@@ -301,7 +302,7 @@ class PlusRemoteWidget:
 
     self.outputSpacingLiveReconstructionBox = qt.QDoubleSpinBox()
     self.outputSpacingLiveReconstructionBox.setToolTip( "Set output volume spacing for live reconstruction" )
-    self.outputSpacingLiveReconstructionBox.value = self.outputVolumeSpacingBox.value
+    self.outputSpacingLiveReconstructionBox.value = 1.0
     self.outputSpacingLiveReconstructionBox.setSingleStep(0.1)
     liveReconstructionParametersControlsLayout.addWidget(self.outputSpacingLiveReconstructionBox, 1, 1)
 
@@ -333,6 +334,7 @@ class PlusRemoteWidget:
     self.liveOutpuVolumeDeviceBox = qt.QLineEdit()
     self.liveOutpuVolumeDeviceBox.setToolTip( "Set output volume device (optional)" )
     self.liveOutpuVolumeDeviceBox.visible = False
+    self.liveOutpuVolumeDeviceBox.setText("liveReconstruction")
     liveReconstructionAdvancedParametersLayout.addWidget(self.liveOutpuVolumeDeviceBox, 0, 1)
 
     liveReconstructionAdvancedParametersControlsLayout = qt.QGridLayout()
@@ -564,10 +566,9 @@ class PlusRemoteWidget:
     self.recordAndReconstructStatus.setIcon(qt.QMessageBox.Information)
     self.recordAndReconstructStatus.setToolTip("Scout scan in progress")
     if self.recordAndReconstructButton.isChecked():
-      self.recordAndReconstructButton.setText("  Scout Scan\n  Stop Recording and Recontruct Recorded Volume")
+      self.recordAndReconstructButton.setText("  Scout Scan\n  Stop Recording and Reconstruct Recorded Volume")
       self.recordAndReconstructButton.setIcon(self.stopIcon)
       self.recordAndReconstructButton.setToolTip( "If clicked, stop recording and reconstruct recorded volume" )
-      self.outputSpacingLiveReconstructionBox.value = self.outputVolumeSpacingBox.value
       self.onStartRecording()
     else:
       self.onStopScoutRecording()
@@ -625,19 +626,19 @@ class PlusRemoteWidget:
       self.displayRoiButton.setToolTip("If clicked, display ROI")
       self.roiNode.SetDisplayVisibility(0)
 
-  def onConfigFileQueried(self):
-    import os.path
-    self.currentDeviceConfigFileName.clear()
-
-    plusConfigFilePath = os.path.expanduser('~/PlusApp-2.1.2.3392-Win64/bin/PlusConfig.xml')
-    plusConfigFile = open(plusConfigFilePath)
-    linesArray = plusConfigFile.readlines()
-    for i in range(0, len(linesArray)):
-      if 'LastDeviceSetConfigurationFileName' in linesArray[i]:
-        linesArray[i] = linesArray[i].replace('" />','')
-        linesArray[i] = os.path.basename(linesArray[i])
-        self.currentDeviceConfigFileName.setText(linesArray[i])
-    plusConfigFile.close()
+#   def onConfigFileQueried(self):
+#     import os.path
+#     self.currentDeviceConfigFileName.clear()
+#
+#     plusConfigFilePath = os.path.expanduser('~/PlusApp-2.1.2.3392-Win64/bin/PlusConfig.xml')
+#     plusConfigFile = open(plusConfigFilePath)
+#     linesArray = plusConfigFile.readlines()
+#     for i in range(0, len(linesArray)):
+#       if 'LastDeviceSetConfigurationFileName' in linesArray[i]:
+#         linesArray[i] = linesArray[i].replace('" />','')
+#         linesArray[i] = os.path.basename(linesArray[i])
+#         self.currentDeviceConfigFileName.setText(linesArray[i])
+#     plusConfigFile.close()
 
   def onStartRecording(self):
     self.logic.startRecording(self.linkInputSelector.currentNode().GetID(), self.captureIDSelector.currentText, self.fileNameBox.text, self.onGenericCommandResponseReceived)
@@ -651,7 +652,6 @@ class PlusRemoteWidget:
   def onStartReconstruction(self):
     liveOutputVolumeFilename = "LiveReconstructedVolume.mha"
     self.liveVolumeToReconstructFilename.setText(liveOutputVolumeFilename)
-    print self.liveOutpuVolumeDeviceBox.text
     if self.liveOutpuVolumeDeviceBox.text == "":
       liveOutputDeviceVolumeName = "liveReconstruction"
     else:
@@ -684,9 +684,9 @@ class PlusRemoteWidget:
       self.liveReconstructStatus.setIcon(qt.QMessageBox.Information)
       self.liveReconstructStatus.setToolTip("Snapshot")
       self.logic.getVolumeReconstructionSnapshot(self.linkInputSelector.currentNode().GetID(), self.volumeReconstructorIDSelector.currentText, self.fileNameBox.text, self.onSnapshotAcquiered)
+      self.snapshotCounter+=1
     else:
       self.snapshotTimer.stop()
-    self.snapshotCounter+=1
 
   def onUpdateTransform(self):
     self.logic.updateTransform(self.linkInputSelector.currentNode().GetID(), self.transformUpdateInputSelector.currentNode(), self.onGenericCommandResponseReceived)
@@ -742,7 +742,6 @@ class PlusRemoteWidget:
     self.liveReconstructStatus.setEnabled(True)
 
   def onVolumeRecorded(self, commandId, textNode):
-    import os.path
     self.onGenericCommandResponseReceived(commandId,textNode)
     self.offlineReconstructButton.setEnabled(True)
 
@@ -754,6 +753,7 @@ class PlusRemoteWidget:
     volumeToReconstructFileName = os.path.basename(stopRecordingMessage)
     self.offlineVolumeToReconstructSelector.insertItem(0,volumeToReconstructFileName)
     self.offlineVolumeToReconstructSelector.setCurrentIndex(0)
+    #self.fileNameBox.setText(volumeToReconstructFileName)
 
     if commandResponseElement.GetAttribute("Status") == "SUCCESS":
       self.recordingStatus.setIcon(qt.QMessageBox.Information)
@@ -763,7 +763,6 @@ class PlusRemoteWidget:
       self.recordingStatus.setToolTip(stopRecordingMessage)
 
   def onScoutVolumeRecorded(self, commandId, textNode):
-    import os.path
     self.onGenericCommandResponseReceived(commandId,textNode)
     self.offlineReconstructButton.setEnabled(True)
 
@@ -822,11 +821,23 @@ class PlusRemoteWidget:
 
     scoutScanVolumeNode = slicer.util.getNode('ScoutScan')
     selectionNode = slicer.app.applicationLogic().GetSelectionNode()
-    #selectionNode.SetReferenceSecondaryVolumeID(writtenNode.GetID())
+    selectionNode.SetReferenceSecondaryVolumeID(scoutScanVolumeNode.GetID())
     selectionNode.SetReferenceActiveVolumeID(scoutScanVolumeNode.GetID())
     applicationLogic = slicer.app.applicationLogic()
     applicationLogic.PropagateVolumeSelection(0)
     applicationLogic.FitSliceToAll()
+
+    #Red view: Image_Reference
+    red_logic = slicer.app.layoutManager().sliceWidget("Red").sliceLogic()
+    red_logic.GetSliceCompositeNode().SetBackgroundVolumeID(slicer.util.getNode('Image_Reference').GetID())
+
+    #3D view: Volume Rendering
+    volRenderingLogic = slicer.modules.volumerendering.logic()
+    displayNode = volRenderingLogic.CreateVolumeRenderingDisplayNode()
+    slicer.mrmlScene.AddNode(displayNode)
+    displayNode.UnRegister(volRenderingLogic)
+    volRenderingLogic.UpdateDisplayNodeFromVolumeNode(displayNode,scoutScanVolumeNode)
+    scoutScanVolumeNode.AddAndObserveDisplayNodeID(displayNode.GetID())
 
   def onSnapshotAcquiered(self, commandId, textNode):
     self.onGenericCommandResponseReceived(commandId,textNode)
@@ -834,10 +845,31 @@ class PlusRemoteWidget:
     #if self.snapshotCounter == 0:
     liveVolumeRecNode = slicer.util.getNode('liveReconstruction')
     selectionliveRecNode = slicer.app.applicationLogic().GetSelectionNode()
-    selectionliveRecNode.SetReferenceActiveVolumeID(liveVolumeRecNode.GetID())
+    #selectionliveRecNode.SetReferenceActiveVolumeID(liveVolumeRecNode.GetID())
     applicationLogic = slicer.app.applicationLogic()
     applicationLogic.PropagateVolumeSelection(0)
-    applicationLogic.FitSliceToAll()
+    #applicationLogic.FitSliceToAll()
+
+    red_logic = slicer.app.layoutManager().sliceWidget("Red").sliceLogic()
+    red_logic.GetSliceCompositeNode().SetBackgroundVolumeID(slicer.util.getNode('Image_Reference').GetID())
+
+    yellowLogic = slicer.app.layoutManager().sliceWidget('Yellow').sliceLogic()
+    yellowLogic.GetSliceCompositeNode().SetForegroundVolumeID(slicer.util.getNode('liveReconstruction').GetID())
+    yellowLogic.GetSliceCompositeNode().SetBackgroundVolumeID(slicer.util.getNode('ScoutScan').GetID())
+    yellowLogic.GetSliceCompositeNode().SetForegroundOpacity(50)
+
+    greenLogic = slicer.app.layoutManager().sliceWidget('Green').sliceLogic()
+    greenLogic.GetSliceCompositeNode().SetForegroundVolumeID(slicer.util.getNode('liveReconstruction').GetID())
+    greenLogic.GetSliceCompositeNode().SetBackgroundVolumeID(slicer.util.getNode('ScoutScan').GetID())
+    greenLogic.GetSliceCompositeNode().SetForegroundOpacity(50)
+
+    #3D view: Volume Rendering
+    volRenderingLogic = slicer.modules.volumerendering.logic()
+    displayNode = volRenderingLogic.CreateVolumeRenderingDisplayNode()
+    slicer.mrmlScene.AddNode(displayNode)
+    displayNode.UnRegister(volRenderingLogic)
+    volRenderingLogic.UpdateDisplayNodeFromVolumeNode(displayNode,liveVolumeRecNode)
+    liveVolumeRecNode.AddAndObserveDisplayNodeID(displayNode.GetID())
 
   def onVolumeLiveReconstructed(self, commandId, textNode):
     self.onGenericCommandResponseReceived(commandId,textNode)
@@ -861,11 +893,34 @@ class PlusRemoteWidget:
       liveVolumeRecName = self.liveOutpuVolumeDeviceBox.text
       liveVolumeRecNode = slicer.util.getNode(liveVolumeRecName)
     selectionliveRecNode = slicer.app.applicationLogic().GetSelectionNode()
-    #selectionNode.SetReferenceSecondaryVolumeID(writtenNode.GetID())
-    selectionliveRecNode.SetReferenceActiveVolumeID(liveVolumeRecNode.GetID())
+    #selectionliveRecNode.SetReferenceSecondaryVolumeID(writtenNode.GetID())
+    #selectionliveRecNode.SetReferenceActiveVolumeID(liveVolumeRecNode.GetID())
     applicationLogic = slicer.app.applicationLogic()
     applicationLogic.PropagateVolumeSelection(0)
-    applicationLogic.FitSliceToAll()
+    #applicationLogic.FitSliceToAll()
+
+    red_logic = slicer.app.layoutManager().sliceWidget("Red").sliceLogic()
+    red_logic.GetSliceCompositeNode().SetBackgroundVolumeID(slicer.util.getNode('Image_Reference').GetID())
+    #ImageRefNode = slicer.util.getNode('Image_Reference').GetID()
+
+    yellowLogic = slicer.app.layoutManager().sliceWidget('Yellow').sliceLogic()
+    yellowLogic.GetSliceCompositeNode().SetForegroundVolumeID(slicer.util.getNode('liveReconstruction').GetID())
+    yellowLogic.GetSliceCompositeNode().SetBackgroundVolumeID(slicer.util.getNode('ScoutScan').GetID())
+    yellowLogic.GetSliceCompositeNode().SetForegroundOpacity(50)
+
+    greenLogic = slicer.app.layoutManager().sliceWidget('Green').sliceLogic()
+    greenLogic.GetSliceCompositeNode().SetForegroundVolumeID(slicer.util.getNode('liveReconstruction').GetID())
+    greenLogic.GetSliceCompositeNode().SetBackgroundVolumeID(slicer.util.getNode('ScoutScan').GetID())
+    greenLogic.GetSliceCompositeNode().SetForegroundOpacity(50)
+
+    #3D view: Volume Rendering
+    volRenderingLogic = slicer.modules.volumerendering.logic()
+    #ImageRefNode.SetVisibility(True)
+    displayNode = volRenderingLogic.CreateVolumeRenderingDisplayNode()
+    slicer.mrmlScene.AddNode(displayNode)
+    displayNode.UnRegister(volRenderingLogic)
+    volRenderingLogic.UpdateDisplayNodeFromVolumeNode(displayNode,liveVolumeRecNode)
+    liveVolumeRecNode.AddAndObserveDisplayNodeID(displayNode.GetID())
 
   def onRoiInitialization(self):
     if self.roiNode:
