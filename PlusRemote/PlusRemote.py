@@ -311,6 +311,7 @@ class PlusRemoteWidget:
     self.scoutScanFilenameBox.readOnly = True
     self.scoutScanFilenameBox.visible = False
     self.scoutScanFilenameBox.setToolTip( "Scout scan recording filename" )
+    self.scoutScanFilenameBox.setText(self.scoutFilename)
     self.scoutScanFilenameBox.setSizePolicy(qt.QSizePolicy.Expanding, qt.QSizePolicy.Expanding)
     scoutScanParametersControlsLayout.addWidget(self.scoutScanFilenameBox)
 
@@ -691,7 +692,10 @@ class PlusRemoteWidget:
     self.scoutFilenameCompletionBox.visible = self.scoutSettingsButton.checked
 
   def completeScoutRecordingFilename(self):
-
+    if self.scoutFilenameCompletionBox.isChecked():
+      self.scoutFilename = str(self.scoutScanFilenameBox.text) + "_" + str(datetime.datetime.now().year) + str(datetime.datetime.now().month) + str(datetime.datetime.now().day) + "_" + str(datetime.datetime.now().hour) + str(datetime.datetime.now().minute) + str(datetime.datetime.now().second)
+    else:
+      self.scoutFilename = str(self.scoutScanFilenameBox.text)
 
   def onRecordAndReconstructButtonClicked(self):
     self.recordAndReconstructStatus.setIcon(qt.QMessageBox.Information)
@@ -700,7 +704,7 @@ class PlusRemoteWidget:
       self.recordAndReconstructButton.setText("  Scout Scan\n  Stop Recording and Reconstruct Recorded Volume")
       self.recordAndReconstructButton.setIcon(self.stopIcon)
       self.recordAndReconstructButton.setToolTip( "If clicked, stop recording and reconstruct recorded volume" )
-      self.onStartRecording()
+      self.onStartScoutRecording()
     else:
       self.onStopScoutRecording()
 
@@ -776,6 +780,9 @@ class PlusRemoteWidget:
   def onStartRecording(self):
     self.logic.startRecording(self.linkInputSelector.currentNode().GetID(), self.captureIDSelector.currentText, self.filename, self.onGenericCommandResponseReceived)
 
+  def onStartScoutRecording(self):
+    self.logic.startRecording(self.linkInputSelector.currentNode().GetID(), self.captureIDSelector.currentText, self.scoutFilename, self.onGenericCommandResponseReceived)
+
   def onStopRecording(self):
     self.logic.stopRecording(self.linkInputSelector.currentNode().GetID(), self.captureIDSelector.currentText, self.onVolumeRecorded)
 
@@ -810,13 +817,13 @@ class PlusRemoteWidget:
     self.recordAndReconstructStatus.setIcon(qt.QMessageBox.Information)
     self.recordAndReconstructStatus.setToolTip("Recording completed. Reconstruction in progress")
     outputSpacing = [self.outputVolumeSpacingBox.value, self.outputVolumeSpacingBox.value, self.outputVolumeSpacingBox.value]
-    self.logic.reconstructRecorded(self.linkInputSelector.currentNode().GetID(), self.volumeReconstructorIDSelector.currentText, self.scoutScanFilenameBox.text, outputSpacing, self.onScoutVolumeReconstructed, "scoutFile.mha", "ScoutScan")
+    self.logic.reconstructRecorded(self.linkInputSelector.currentNode().GetID(), self.volumeReconstructorIDSelector.currentText, self.scoutFilename, outputSpacing, self.onScoutVolumeReconstructed, "scoutFile.mha", "ScoutScan")
 
   def onSnapshotQuiered(self, stopFlag = ""):
     if self.liveReconstructionButton.isChecked():
       self.liveReconstructStatus.setIcon(qt.QMessageBox.Information)
       self.liveReconstructStatus.setToolTip("Snapshot")
-      self.logic.getVolumeReconstructionSnapshot(self.linkInputSelector.currentNode().GetID(), self.volumeReconstructorIDSelector.currentText, self.filenameBox.text, self.onSnapshotAcquiered)
+      self.logic.getVolumeReconstructionSnapshot(self.linkInputSelector.currentNode().GetID(), self.volumeReconstructorIDSelector.currentText, self.scoutFilename, self.onSnapshotAcquiered)
       self.snapshotCounter+=1
     else:
       self.snapshotTimer.stop()
