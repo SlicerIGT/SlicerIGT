@@ -1,37 +1,32 @@
-from __main__ import vtk, qt, ctk, slicer
 import os.path, datetime
+from __main__ import vtk, qt, ctk, slicer
+from slicer.ScriptedLoadableModule import *
 #
 # PlusRemote
 #
 
-class PlusRemote:
+class PlusRemote(ScriptedLoadableModule):
   def __init__(self, parent):
-    parent.title = "Plus Remote"
-    parent.categories = ["IGT"]
-    parent.contributors = ["Franklin King (Queen's University), Tamas Ungi (Queen's University)"]
-    parent.helpText = """
+    ScriptedLoadableModule.__init__(self, parent)
+    self.parent.title = "Plus Remote"
+    self.parent.categories = ["IGT"]
+    self.parent.contributors = ["Franklin King (Queen's University), Tamas Ungi (Queen's University)"]
+    self.parent.helpText = """
     This is a convenience module for sending commands through OpenIGTLink Remote to PLUS. See <a>https://www.assembla.com/spaces/plus/wiki/PlusServer_commands</a> for more information about Plus Server commands.
     """
-    parent.acknowledgementText = """
+    self.parent.acknowledgementText = """
     This work was funded by Cancer Care Ontario and the Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO)
 """
-    #parent.icon = qt.QIcon(":Icons/PlusRemote.png")
-    self.parent = parent
-
+    #parent.icon = qt.QIcon(":Icons/PlusRemote.png
 
 #
 # qPlusRemoteWidget
 #
-class PlusRemoteWidget:
+class PlusRemoteWidget(ScriptedLoadableModuleWidget):
 
   def __init__(self, parent = None):
-    if not parent:
-      self.parent = slicer.qMRMLWidget()
-      self.parent.setLayout(qt.QVBoxLayout())
-      self.parent.setMRMLScene(slicer.mrmlScene)
-    else:
-      self.parent = parent
-    self.layout = self.parent.layout()
+    ScriptedLoadableModuleWidget.__init__(self, parent)
+
     self.logic = PlusRemoteLogic()
     self.commandToMethodHashtable = {}
     self.parameterNode = None
@@ -48,38 +43,9 @@ class PlusRemoteWidget:
     self.scoutFilename = "ScoutScanRecording.mha"
     self.displayNode = None
 
-    if not parent:
-      self.setup()
-      self.parent.show()
-
   def setup(self):
     # Instantiate and connect widgets
-
-    #
-    # Reload and Test area
-    #
-    reloadCollapsibleButton = ctk.ctkCollapsibleButton()
-    reloadCollapsibleButton.text = "Reload && Test"
-    self.layout.addWidget(reloadCollapsibleButton)
-    reloadFormLayout = qt.QFormLayout(reloadCollapsibleButton)
-
-    # reload button
-    # (use this during development, but remove it when delivering
-    #  your module to users)
-    self.reloadButton = qt.QPushButton("Reload")
-    self.reloadButton.toolTip = "Reload this module."
-    self.reloadButton.name = "PlusRemote Reload"
-    reloadFormLayout.addWidget(self.reloadButton)
-    self.reloadButton.connect('clicked()', self.onReload)
-
-    # reload and test button
-    # (use this during development, but remove it when delivering
-    #  your module to users)
-    self.reloadAndTestButton = qt.QPushButton("Reload and Test")
-    self.reloadAndTestButton.toolTip = "Reload this module and then run the self tests."
-    #reloadFormLayout.addWidget(self.reloadAndTestButton)
-    #self.reloadAndTestButton.connect('clicked()', self.onReloadAndTest)
-
+    ScriptedLoadableModuleWidget.setup(self)
 
     # Module requires openigtlinkremote
     try:
@@ -333,7 +299,7 @@ class PlusRemoteWidget:
     scoutScanParametersControlsLayout.addWidget(self.scoutScanFilenameLabel)
 
     self.scoutScanFilenameBox = qt.QLineEdit()
-    self.scoutScanFilenameBox.readOnly = True
+    #self.scoutScanFilenameBox.readOnly = True
     self.scoutScanFilenameBox.visible = False
     self.scoutScanFilenameBox.setToolTip( "Scout scan recording filename" )
     self.scoutScanFilenameBox.setText(self.scoutFilename)
@@ -565,17 +531,32 @@ class PlusRemoteWidget:
     self.saveTransformButton.connect('clicked(bool)', self.onSaveTransform)
 
     self.parameterNodeSelector.connect('currentNodeIDChanged(QString)', self.onParameterSetSelected)
+    #self.linkInputSelector.connect('currentIndexChanged(QString)', self.updateParameterNodeFromGui)
+    #self.captureIDSelector.connect('currentIndexChanged(QString)', self.updateParameterNodeFromGui)
+    #self.volumeReconstructorIDSelector.connect('currentIndexChanged(QString)', self.updateParameterNodeFromGui)
+    #self.displayDefaultLayoutButton.connect('clicked(bool)', self.updateParameterNodeFromGui)
+    #self.filenameBox.connect('textEdited(QString)', self.updateParameterNodeFromGui)
+    #self.filenameCompletionBox.connect('stateChanged(int)', self.updateParameterNodeFromGui)
     self.offlineVolumeSpacingBox.connect('valueChanged(double)', self.updateParameterNodeFromGui)
+    #self.outpuVolumeDeviceBox.connect('textEdited(QString)', self.updateParameterNodeFromGui)
+    #self.offlineVolumeToReconstructSelector.connect('currentIndexChanged(QString)', self.updateParameterNodeFromGui)
+    #self.self.offlineRecDefaultLayoutBox.connect('stateChanged(int)', self.updateParameterNodeFromGui)
     self.outputVolumeSpacingBox.connect('valueChanged(double)', self.updateParameterNodeFromGui)
+    #self.scoutScanFilenameBox.connect('textEdited(QString)', self.updateParameterNodeFromGui)
+    #self.scoutFilenameCompletionBox.connect('stateChanged(int)', self.updateParameterNodeFromGui)
+    #self.scoutViewsBox.connect('stateChanged(int)', self.updateParameterNodeFromGui)
+    #self.displayRoiButton.connect('clicked(bool)', self.updateParameterNodeFromGui)
     self.outputSpacingLiveReconstructionBox.connect('valueChanged(double)', self.updateParameterNodeFromGui)
+    #self.liveOutpuVolumeDeviceBox.connect('textEdited(QString)', self.updateParameterNodeFromGui)
+    #self.outputExtentROIBoxDirection1.connect('valueChanged(double)', self.updateParameterNodeFromGui)
+    #self.outputExtentROIBoxDirection2.connect('valueChanged(double)', self.updateParameterNodeFromGui)
+    #self.outputExtentROIBoxDirection3.connect('valueChanged(double)', self.updateParameterNodeFromGui)
+    #self.snapshotsBox.connect('valueChanged(int)', self.updateParameterNodeFromGui)
+    #self.viewsBox.connect('stateChanged(int)', self.updateParameterNodeFromGui)
 
     self.layout.addStretch(1)
 
     self.onConnectorNodeSelected()
-
-  def cleanup(self):
-    print "Cleanup is called"
-    pass
 
   def onParameterSetSelected(self):
     self.parameterNode = self.parameterNodeSelector.currentNode()
@@ -698,7 +679,6 @@ class PlusRemoteWidget:
       self.scoutFilename = str(basename) + "_" + str(datetime.datetime.now().year) + self.dateTimeList['Month'] + self.dateTimeList['Day'] + "_" + self.dateTimeList['Hour'] + self.dateTimeList['Minute'] + self.dateTimeList['Second'] + ".mha"
     else:
       self.scoutFilename = str(self.scoutScanFilenameBox.text)
-    print self.scoutFilename
 
   def onOfflineReconstructSettingsButtonClicked(self):
     self.offlineVolumeSpacingLabel.visible = self.offlineReconstructSettingsButton.checked
@@ -1207,55 +1187,10 @@ class PlusRemoteWidget:
 #     else:
 #       print("hide model")
 
-  def onReload(self,moduleName="PlusRemote"):
-    """Generic reload method for any scripted module.
-    ModuleWizard will subsitute correct default moduleName.
-    """
-    import imp, sys, os, slicer
-    import vtk, qt, ctk
-    widgetName = moduleName + "Widget"
-
-    # reload the source code
-    # - set source file path
-    # - load the module to the global space
-    filePath = eval('slicer.modules.%s.path' % moduleName.lower())
-    p = os.path.dirname(filePath)
-    if not sys.path.__contains__(p):
-      sys.path.insert(0,p)
-    fp = open(filePath, "r")
-    globals()[moduleName] = imp.load_module(
-        moduleName, fp, filePath, ('.py', 'r', imp.PY_SOURCE))
-    fp.close()
-
-    # rebuild the widget
-    # - find and hide the existing widget
-    # - create a new widget in the existing parent
-    parent = slicer.util.findChildren(name='%s Reload' % moduleName)[0].parent().parent()
-    for child in parent.children():
-      try:
-        child.hide()
-      except AttributeError:
-        pass
-    # Remove spacer items
-    item = parent.layout().itemAt(0)
-    while item:
-      parent.layout().removeItem(item)
-      item = parent.layout().itemAt(0)
-
-    # delete the old widget instance
-    if hasattr(globals()['slicer'].modules, widgetName):
-      getattr(globals()['slicer'].modules, widgetName).cleanup()
-
-    # create new widget inside existing parent
-    globals()[widgetName.lower()] = eval(
-        'globals()["%s"].%s(parent)' % (moduleName, widgetName))
-    globals()[widgetName.lower()].setup()
-    setattr(globals()['slicer'].modules, widgetName, globals()[widgetName.lower()])
-
 #
 # PlusRemoteLogic
 #
-class PlusRemoteLogic:
+class PlusRemoteLogic(ScriptedLoadableModuleLogic):
   def __init__(self):
     self.commandToMethodHashtable = {}
     self.defaultCommandTimeoutSec = 30
