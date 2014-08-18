@@ -181,6 +181,12 @@ void qSlicerSimpleMarkupsWidget
   d->MarkupsFiducialNodeComboBox->setCurrentNode( currentMarkupsNode );
   connect( d->MarkupsFiducialNodeComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onMarkupsFiducialNodeChanged() ) );
 
+  // Reconnect the appropriate nodes
+  this->qvtkDisconnectAll();
+  this->ConnectInteractionAndSelectionNodes();
+  this->qvtkConnect( currentMarkupsNode, vtkCommand::ModifiedEvent, this, SLOT( updateWidget() ) );
+  this->qvtkConnect( currentMarkupsNode, vtkMRMLMarkupsNode::MarkupAddedEvent, d->MarkupsFiducialTableWidget, SLOT( scrollToBottom() ) );
+
   this->updateWidget(); // Must call this to update widget even if the node hasn't changed - this will cause the active button and table to update
 }
 
@@ -592,7 +598,8 @@ void qSlicerSimpleMarkupsWidget
     d->MarkupsFiducialTableWidget->clear();
     d->MarkupsFiducialTableWidget->setRowCount( 0 );
     d->MarkupsFiducialTableWidget->setColumnCount( 0 );
-    d->PlaceButton->setChecked( false );
+    d->ActiveButton->setChecked( Qt::Unchecked );
+    d->PlaceButton->setChecked( Qt::Unchecked );
     // This will ensure that we refresh the widget next time we move to a non-null widget (since there is guaranteed to be a modified status of larger than zero)
     return;
   }
