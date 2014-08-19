@@ -70,7 +70,7 @@
         </sizepolicy>
        </property>
        <property name="text">
-        <string>Activate</string>
+        <string/>
        </property>
        <property name="checkable">
         <bool>true</bool>

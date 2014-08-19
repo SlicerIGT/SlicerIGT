@@ -120,6 +120,7 @@ void qSlicerSimpleMarkupsWidget
   d->DeleteButton->setIcon( QIcon( ":/Icons/MarkupsDelete.png" ) );
 
   connect( d->ActiveButton, SIGNAL( toggled( bool ) ), this, SLOT( onActiveButtonClicked() ) );
+  d->ActiveButton->setIcon( QApplication::style()->standardIcon( QStyle::SP_DialogApplyButton ) );
 
   connect( d->PlaceButton, SIGNAL( toggled( bool ) ), this, SLOT( onPlaceButtonClicked() ) ); 
   d->PlaceButton->setIcon( QIcon( ":/Icons/MarkupsMouseModePlace.png" ) );
