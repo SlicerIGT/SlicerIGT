@@ -124,6 +124,8 @@ void qSlicerSimpleMarkupsWidget
   connect( d->PlaceButton, SIGNAL( toggled( bool ) ), this, SLOT( onPlaceButtonClicked() ) ); 
   d->PlaceButton->setIcon( QIcon( ":/Icons/MarkupsMouseModePlace.png" ) );
 
+  d->ExtraButtonsFrame->setVisible( d->ExpandButton->isChecked() );
+
   d->MarkupsFiducialTableWidget->setContextMenuPolicy( Qt::CustomContextMenu );
   connect( d->MarkupsFiducialTableWidget, SIGNAL( customContextMenuRequested(const QPoint&) ), this, SLOT( onMarkupsFiducialTableContextMenu(const QPoint&) ) );
   connect( d->MarkupsFiducialTableWidget, SIGNAL( cellChanged( int, int ) ), this, SLOT( onMarkupsFiducialEdited( int, int ) ) );
