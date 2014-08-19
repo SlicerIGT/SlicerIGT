@@ -1,4 +1,3 @@
-#include "vtkIGTLToMRMLAnnotationText.h"
 #include "vtkMRMLAnnotationTextNode.h"
 #include "vtkMRMLIGTLConnectorNode.h"
 #include "vtkMRMLScene.h"
@@ -11,6 +10,9 @@
 #include <vtkObjectFactory.h>
 #include <vtkXMLDataElement.h>
 #include <vtkXMLUtilities.h>
+
+// Share a single command counter across all possible logic instances.
+int vtkSlicerOpenIGTLinkRemoteLogic::CommandCounter = 0;
 
 //----------------------------------------------------------------------------
 
@@ -35,20 +37,12 @@ vtkStandardNewMacro(vtkSlicerOpenIGTLinkRemoteLogic);
 vtkSlicerOpenIGTLinkRemoteLogic::vtkSlicerOpenIGTLinkRemoteLogic()
 {
   this->Internal = new vtkInternal;
-  this->CommandConverter = vtkIGTLToMRMLAnnotationText::New();
-  this->CommandCounter = 0;
 }
 
 //----------------------------------------------------------------------------
 vtkSlicerOpenIGTLinkRemoteLogic::~vtkSlicerOpenIGTLinkRemoteLogic()
 {
   delete this->Internal;
-  
-  if ( this->CommandConverter != NULL )
-  {
-    this->CommandConverter->Delete();
-    this->CommandConverter = NULL;
-  }
 }
 
 //----------------------------------------------------------------------------
@@ -208,7 +202,7 @@ void vtkSlicerOpenIGTLinkRemoteLogic::DiscardCommand( int commandId, const char*
         continue;
       }
       connectorNode->UnregisterIncomingMRMLNode(textNode);
-      //this->GetMRMLScene()->RemoveNode(textNode); // At present this crashes Slicer as the openIGT module keeps a reference in a list and is not removed from that list with the previous function
+      this->GetMRMLScene()->RemoveNode(textNode);
     }
   }
 
@@ -225,7 +219,7 @@ void vtkSlicerOpenIGTLinkRemoteLogic::DiscardCommand( int commandId, const char*
         continue;
       }
       connectorNode->UnregisterOutgoingMRMLNode(textNode);
-      //this->GetMRMLScene()->RemoveNode(textNode);
+      this->GetMRMLScene()->RemoveNode(textNode);
     }
     commandNodes->Delete();
   }
@@ -259,9 +253,11 @@ int vtkSlicerOpenIGTLinkRemoteLogic::SendCommand( std::string strCommand, const 
   newNode->Initialize( this->GetMRMLScene() );
   newNode->SetText( 0, strCommand.c_str(), 1, 0 );
   
-  // Giving unique name to this new text node.
+  // Create a unique Id for this command message.
+  // The logic may only be used from the main thread, so there is no need
+  // for making the counter increment thread-safe.
   std::stringstream ss;
-  this->CommandCounter ++; // Create a unique Id for this command message.
+  (this->CommandCounter)++;
   ss << "CMD_" << this->CommandCounter;
   newNode->SetName( ss.str().c_str() );
   
@@ -285,10 +281,6 @@ void vtkSlicerOpenIGTLinkRemoteLogic::SetMRMLSceneInternal(vtkMRMLScene * newSce
 void vtkSlicerOpenIGTLinkRemoteLogic::RegisterNodes()
 {
   assert(this->GetMRMLScene() != 0);
-  
-  if (this->Internal->IFLogic)
-    // Register IGTL message converter.
-    this->Internal->IFLogic->RegisterMessageConverter( this->CommandConverter );
 }
 
 //----------------------------------------------------------------------------
