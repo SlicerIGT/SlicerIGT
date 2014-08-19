@@ -69,6 +69,9 @@
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
+       <property name="toolTip">
+        <string>Activate the current fiducial list.</string>
+       </property>
        <property name="text">
         <string/>
        </property>
@@ -84,6 +87,9 @@
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
+       </property>
+       <property name="toolTip">
+        <string>Select the display color.</string>
        </property>
        <property name="checkable">
         <bool>true</bool>
@@ -103,6 +109,9 @@
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
+       </property>
+       <property name="toolTip">
+        <string>Activate the current fiducial list and start place mode.</string>
        </property>
        <property name="text">
         <string/>
@@ -163,6 +172,9 @@
             <verstretch>0</verstretch>
            </sizepolicy>
           </property>
+          <property name="toolTip">
+           <string>Toggle fiducial list visibility.</string>
+          </property>
           <property name="text">
            <string/>
           </property>
@@ -176,6 +188,9 @@
             <verstretch>0</verstretch>
            </sizepolicy>
           </property>
+          <property name="toolTip">
+           <string>Lock or unlock fiducial list.</string>
+          </property>
           <property name="text">
            <string/>
           </property>
@@ -188,6 +203,9 @@
             <horstretch>0</horstretch>
             <verstretch>0</verstretch>
            </sizepolicy>
+          </property>
+          <property name="toolTip">
+           <string>Delete highlighted fiducials.</string>
           </property>
           <property name="text">
            <string/>
