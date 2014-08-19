@@ -75,7 +75,8 @@ private:
   
   vtkIGTLToMRMLAnnotationText* CommandConverter;
   
-  int CommandCounter;
+  // Counter that will be used for generation of unique command IDs
+  static int CommandCounter;
 };
 
 #endif
