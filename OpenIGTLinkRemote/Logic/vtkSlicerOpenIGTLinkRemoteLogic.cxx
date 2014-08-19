@@ -1,4 +1,3 @@
-#include "vtkIGTLToMRMLAnnotationText.h"
 #include "vtkMRMLAnnotationTextNode.h"
 #include "vtkMRMLIGTLConnectorNode.h"
 #include "vtkMRMLScene.h"
@@ -38,19 +37,12 @@ vtkStandardNewMacro(vtkSlicerOpenIGTLinkRemoteLogic);
 vtkSlicerOpenIGTLinkRemoteLogic::vtkSlicerOpenIGTLinkRemoteLogic()
 {
   this->Internal = new vtkInternal;
-  this->CommandConverter = vtkIGTLToMRMLAnnotationText::New();
 }
 
 //----------------------------------------------------------------------------
 vtkSlicerOpenIGTLinkRemoteLogic::~vtkSlicerOpenIGTLinkRemoteLogic()
 {
   delete this->Internal;
-  
-  if ( this->CommandConverter != NULL )
-  {
-    this->CommandConverter->Delete();
-    this->CommandConverter = NULL;
-  }
 }
 
 //----------------------------------------------------------------------------
@@ -289,10 +281,6 @@ void vtkSlicerOpenIGTLinkRemoteLogic::SetMRMLSceneInternal(vtkMRMLScene * newSce
 void vtkSlicerOpenIGTLinkRemoteLogic::RegisterNodes()
 {
   assert(this->GetMRMLScene() != 0);
-  
-  if (this->Internal->IFLogic)
-    // Register IGTL message converter.
-    this->Internal->IFLogic->RegisterMessageConverter( this->CommandConverter );
 }
 
 //----------------------------------------------------------------------------

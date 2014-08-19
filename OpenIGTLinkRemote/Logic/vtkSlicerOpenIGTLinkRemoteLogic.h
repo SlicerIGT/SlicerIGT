@@ -28,7 +28,6 @@
 #include <cstdlib>
 
 class vtkSlicerOpenIGTLinkIFLogic;
-class vtkIGTLToMRMLAnnotationText;
 
 /// \ingroup Slicer_QtModules_ExtensionTemplate
 class VTK_SLICER_OPENIGTLINKREMOTE_MODULE_LOGIC_EXPORT vtkSlicerOpenIGTLinkRemoteLogic :
@@ -72,9 +71,7 @@ private:
   
   class vtkInternal;
   vtkInternal* Internal;
-  
-  vtkIGTLToMRMLAnnotationText* CommandConverter;
-  
+
   // Counter that will be used for generation of unique command IDs
   static int CommandCounter;
 };

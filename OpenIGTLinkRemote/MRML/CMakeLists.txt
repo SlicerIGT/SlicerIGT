@@ -15,15 +15,15 @@ set(${KIT}_INCLUDE_DIRECTORIES
   )
 
 set(${KIT}_SRCS
-  vtkIGTLToMRMLAnnotationText.h
-  vtkIGTLToMRMLAnnotationText.cxx
+  vtkMRMLOpenIGTLinkRemoteNode.h
+  vtkMRMLOpenIGTLinkRemoteNode.cxx
   )
 
 set(${KIT}_TARGET_LIBRARIES
   ${OpenIGTLink_LIBRARIES}
   ${MRML_LIBRARIES}
-  vtkSlicerOpenIGTLinkIFModuleMRML
-  vtkSlicerAnnotationsModuleMRML
+#  vtkSlicerOpenIGTLinkIFModuleMRML
+#  vtkSlicerAnnotationsModuleMRML
   )
 
 #-----------------------------------------------------------------------------
