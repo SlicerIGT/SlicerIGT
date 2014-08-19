@@ -102,7 +102,7 @@ std::string qSlicerFiducialRegistrationWizardModuleWidget
   Q_D( qSlicerFiducialRegistrationWizardModuleWidget );
 
   std::stringstream correspondingFiducialString;
-  correspondingFiducialString << "Place Fiducial (";
+  correspondingFiducialString << "Place fiducial (";
 
   vtkMRMLMarkupsNode* activeMarkupsNode = vtkMRMLMarkupsNode::SafeDownCast( this->mrmlScene()->GetNodeByID( d->logic()->MarkupsLogic->GetActiveListID() ) );
 
@@ -339,8 +339,6 @@ void qSlicerFiducialRegistrationWizardModuleWidget
   if ( fiducialRegistrationWizardNode == NULL )
   {
     this->EnableAllWidgets( false );
-    d->FromGroupBox->setStyleSheet( "QGroupBox { font-weight : normal; background-color: white }" );
-    d->ToGroupBox->setStyleSheet( "QGroupBox { font-weight : normal; background-color: white }" );
     d->StatusLabel->setText( "No Fiducial Registration Wizard module node selected." );
     return;
   }

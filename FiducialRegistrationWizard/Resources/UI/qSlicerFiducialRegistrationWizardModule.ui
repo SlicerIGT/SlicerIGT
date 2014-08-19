@@ -56,7 +56,7 @@
          </sizepolicy>
         </property>
         <property name="title">
-         <string>From Fiducials</string>
+         <string>From fiducials</string>
         </property>
         <layout class="QVBoxLayout" name="verticalLayout_4"/>
        </widget>
@@ -70,7 +70,7 @@
          </sizepolicy>
         </property>
         <property name="title">
-         <string>To Fiducials</string>
+         <string>To fiducials</string>
         </property>
         <layout class="QVBoxLayout" name="verticalLayout_5"/>
        </widget>
@@ -78,7 +78,7 @@
       <item>
        <widget class="ctkCollapsibleGroupBox" name="PlaceFiducialGroupBox">
         <property name="title">
-         <string>Place Fiducials</string>
+         <string>Place fiducials</string>
         </property>
         <property name="collapsed">
          <bool>true</bool>
@@ -96,7 +96,7 @@
             <string>Transform for locating fiducials</string>
            </property>
            <property name="text">
-            <string>Probe transform (parents will be applied): </string>
+            <string>Probe transform (parents will be applied)</string>
            </property>
           </widget>
          </item>
@@ -140,7 +140,7 @@
             <string>Click when tracked device tip is placed at a fiducial point</string>
            </property>
            <property name="text">
-            <string>Place Fiducial</string>
+            <string>Place fiducial</string>
            </property>
           </widget>
          </item>
@@ -254,7 +254,7 @@
          </sizepolicy>
         </property>
         <property name="title">
-         <string>Preview Transform</string>
+         <string>Preview transform</string>
         </property>
         <property name="collapsed">
          <bool>true</bool>
