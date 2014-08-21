@@ -148,11 +148,11 @@ class PlusRemoteWidget(ScriptedLoadableModuleWidget):
     recordParametersControlsLayout = qt.QGridLayout()
     recordingControlsLayout.addLayout(recordParametersControlsLayout)
 
-    self.displayDefaultLayoutButton = qt.QPushButton("Show Live Image")
-    self.displayDefaultLayoutButton.visible = False
-    self.displayDefaultLayoutButton.setCheckable(True)
-    self.displayDefaultLayoutButton.setToolTip("Show live image")
-    recordParametersControlsLayout.addWidget(self.displayDefaultLayoutButton, 0, 1)
+#     self.displayDefaultLayoutButton = qt.QPushButton("Show Live Image")
+#     self.displayDefaultLayoutButton.visible = False
+#     self.displayDefaultLayoutButton.setCheckable(True)
+#     self.displayDefaultLayoutButton.setToolTip("Show live image")
+#     recordParametersControlsLayout.addWidget(self.displayDefaultLayoutButton, 0, 1)
 
     self.filenameLabel = qt.QLabel()
     self.filenameLabel.setText("Filename:")
@@ -492,10 +492,6 @@ class PlusRemoteWidget(ScriptedLoadableModuleWidget):
     self.transformUpdateInputSelector.setToolTip( "Pick transform node" )
     transformUpdateLayout.addRow("Transform node: ", self.transformUpdateInputSelector)
 
-#     self.currentDeviceConfigFileName = qt.QLineEdit()
-#     self.currentDeviceConfigFileName.setReadOnly(True)
-#     transformUpdateLayout.addRow("Current Device Set Config Filename: ", self.currentDeviceConfigFileName)
-
     self.updateTransformButton = qt.QPushButton("Update")
     transformUpdateLayout.addRow(self.updateTransformButton)
 
@@ -525,7 +521,7 @@ class PlusRemoteWidget(ScriptedLoadableModuleWidget):
     self.liveReconstructionButton.connect('clicked(bool)', self.onLiveReconstructionButtonClicked)
 
     self.displayRoiButton.connect('clicked(bool)', self.onDisplayRoiButtonClicked)
-    self.displayDefaultLayoutButton.connect('clicked(bool)', self.onDisplayDefaultLayoutButtonClicked)
+    #self.displayDefaultLayoutButton.connect('clicked(bool)', self.onDisplayDefaultLayoutButtonClicked)
     self.recordSettingsButton.connect('clicked(bool)', self.onRecordSettingsButtonClicked)
     self.offlineReconstructSettingsButton.connect('clicked(bool)', self.onOfflineReconstructSettingsButtonClicked)
     self.scoutSettingsButton.connect('clicked(bool)', self.onScoutSettingsButtonClicked)
@@ -566,7 +562,11 @@ class PlusRemoteWidget(ScriptedLoadableModuleWidget):
     self.createDefaultParameterSet()
     self.onParameterSetSelected()
 
+#
+# Parameter set saving and reloading
+#
   def createDefaultParameterSet(self):
+    #Default set created only if no parameterNode exists, to avoid creation of a new default set each time the module is reloaded
     nodesCount = slicer.mrmlScene.GetNumberOfNodesByClass('vtkMRMLScriptedModuleNode')
     if nodesCount == 0:
       self.defaultParameterNode = self.parameterNodeSelector.addNode()
@@ -582,12 +582,13 @@ class PlusRemoteWidget(ScriptedLoadableModuleWidget):
     self.updateGuiFromParameterNode()
 
   def updateGuiFromParameterNode(self):
+    #Update interface using parameter node saved values
     self.parameterNode = self.parameterNodeSelector.currentNode()
 
     self.parameterValueList = {'OfflineReconstructionSpacing': self.offlineVolumeSpacingBox, 'ScoutScanSpacing': self.outputVolumeSpacingBox, 'LiveReconstructionSpacing': self.outputSpacingLiveReconstructionBox, 'SnapshotsNumber': self.snapshotsBox, 'RoiExtent1': self.outputExtentROIBoxDirection1, 'RoiExtent2': self.outputExtentROIBoxDirection2, 'RoiExtent3': self.outputExtentROIBoxDirection3}
     for parameter in self.parameterValueList:
       if self.parameterNode.GetParameter(parameter):
-        #Block Signal to avoid call of updateParameterNodeFromGui when parameter is set programmatically
+        #Block Signal to avoid call of updateParameterNodeFromGui when parameter is set programmatically - we only want to catch when user change values
         self.parameterValueList[parameter].blockSignals(True)
         self.parameterValueList[parameter].setValue(float(self.parameterNode.GetParameter(parameter)))
       self.parameterValueList[parameter].blockSignals(False)
@@ -639,11 +640,9 @@ class PlusRemoteWidget(ScriptedLoadableModuleWidget):
       self.volumeReconstructorIDSelector.blockSignals(False)
 
       self.roiNode = self.parameterNode.GetNthNodeReference('ROI', 0)
-      #self.parameterNode.UpdateReferenceID(self.roiNode.GetID(), self.parameterNode.GetNthNodeReferenceID('ROI', 0))
-      #self.parameterNode.UpdateScene(slicer.mrmlScene)
-      #self.parameterNode.AddNodeReferenceID('ROI', 0)
 
   def updateParameterNodeFromGui(self):
+    #Update parameter node value to save when user change value in the interface
     if not self.parameterNode:
       return
     self.parametersList = {'OpenIGTLinkConnector': self.linkInputSelector.currentNodeID, 'CaptureID': self.captureIDSelector.currentText, 'CaptureIdIndex': self.captureIDSelector.currentIndex, 'VolumeReconstructor': self.volumeReconstructorIDSelector.currentText, 'VolumeReconstructorIndex': self.volumeReconstructorIDSelector.currentIndex, 'RoiDisplay': self.displayRoiButton.isChecked(), 'RoiExtent1': self.outputExtentROIBoxDirection1.value, 'RoiExtent2': self.outputExtentROIBoxDirection2.value, 'RoiExtent3': self.outputExtentROIBoxDirection3.value, 'OfflineReconstructionSpacing': self.offlineVolumeSpacingBox.value, 'OfflineVolumeToReconstruct': self.offlineVolumeToReconstructSelector.currentIndex, 'ScoutScanSpacing': self.outputVolumeSpacingBox.value, 'LiveReconstructionSpacing': self.outputSpacingLiveReconstructionBox.value, 'RecordingFilename': self.filenameBox.text, 'OfflineOutputVolumeDevice': self.outpuVolumeDeviceBox.text, 'ScoutScanFilename': self.scoutScanFilenameBox.text, 'LiveRecOutputVolumeDevice': self.liveOutpuVolumeDeviceBox.text, 'RecordingFilenameCompletion': self.filenameCompletionBox.isChecked(), 'ScoutFilenameCompletion': self.scoutFilenameCompletionBox.isChecked(), 'LiveFilenameCompletion': self.liveFilenameCompletionBox.isChecked(), 'OfflineDefaultLayout': self.offlineRecDefaultLayoutBox.isChecked(), 'ScoutDefaultLayout': self.scoutViewsBox.isChecked(), 'SnapshotsNumber': self.snapshotsBox.value, 'LiveDefaultLayout': self.viewsBox.isChecked()}
@@ -653,6 +652,9 @@ class PlusRemoteWidget(ScriptedLoadableModuleWidget):
       roiNodeID = self.roiNode.GetID()
       self.parameterNode.SetNthNodeReferenceID('ROI', 0, roiNodeID)
 
+#
+# Connector observation and actions
+#
   def onConnectorNodeSelected(self):
     if self.connectorNode and self.connectorNodeObserverTagList:
       for tag in self.connectorNodeObserverTagList:
@@ -704,6 +706,11 @@ class PlusRemoteWidget(ScriptedLoadableModuleWidget):
     self.captureIDSelector.setDisabled(True)
     self.volumeReconstructorIDSelector.setDisabled(True)
 
+#
+# Functions called when commands/setting buttons are clicked
+#
+  # 1 - Commands buttons
+
   def onStartStopRecordingButtonClicked(self):
     self.recordingStatus.setIcon(qt.QMessageBox.Information)
     self.recordingStatus.setToolTip("Recording in progress")
@@ -719,51 +726,6 @@ class PlusRemoteWidget(ScriptedLoadableModuleWidget):
       self.startStopRecordingButton.setToolTip( "If clicked, start recording" )
       self.onStopRecording()
 
-  def onRecordSettingsButtonClicked(self, status):
-    self.filenameLabel.visible = self.recordSettingsButton.checked
-    self.filenameBox.visible = self.recordSettingsButton.checked
-    self.filenameCompletionLabel.visible = self.recordSettingsButton.checked
-    self.filenameCompletionBox.visible = self.recordSettingsButton.checked
-    self.displayDefaultLayoutButton.visible = self.recordSettingsButton.checked
-
-  def completeRecordingFilename(self):
-    if self.filenameCompletionBox.isChecked():
-      self.filename = self.logic.filenameCompletion(self.filenameBox.text)
-    else:
-      self.filename = str(self.filenameBox.text)
-
-  def completeScoutRecordingFilename(self):
-    if self.scoutFilenameCompletionBox.isChecked():
-      self.filename = self.logic.filenameCompletion(self.scoutScanFilenameBox.text)
-    else:
-      self.filename = str(self.scoutScanFilenameBox.text)
-
-  def completeLiveReconstructionFilename(self):
-    if self.liveFilenameCompletionBox.isChecked():
-      self.filename = self.logic.filenameCompletion(self.liveVolumeToReconstructFilename.text)
-    else:
-      self.filename = str(self.liveVolumeToReconstructFilename.text)
-
-  def onOfflineReconstructSettingsButtonClicked(self):
-    self.offlineVolumeSpacingLabel.visible = self.offlineReconstructSettingsButton.checked
-    self.offlineVolumeSpacingBox.visible = self.offlineReconstructSettingsButton.checked
-    self.outpuVolumeDeviceLabel.visible = self.offlineReconstructSettingsButton.checked
-    self.outpuVolumeDeviceBox.visible = self.offlineReconstructSettingsButton.checked
-    self.offlineVolumeToReconstructLabel.visible = self.offlineReconstructSettingsButton.checked
-    self.offlineVolumeToReconstructSelector.visible = self.offlineReconstructSettingsButton.checked
-    self.offlineRecDefaultLayoutLabel.visible = self.offlineReconstructSettingsButton.checked
-    self.offlineRecDefaultLayoutBox.visible = self.offlineReconstructSettingsButton.checked
-
-  def onScoutSettingsButtonClicked(self, status):
-    self.outputVolumeSpacingBox.visible = self.scoutSettingsButton.checked
-    self.scoutScanFilenameBox.visible = self.scoutSettingsButton.checked
-    self.outputVolumeSpacingLabel.visible = self.scoutSettingsButton.checked
-    self.scoutScanFilenameLabel.visible = self.scoutSettingsButton.checked
-    self.scoutFilenameCompletionLabel.visible = self.scoutSettingsButton.checked
-    self.scoutFilenameCompletionBox.visible = self.scoutSettingsButton.checked
-    self.scoutViewsLabel.visible = self.scoutSettingsButton.checked
-    self.scoutViewsBox.visible = self.scoutSettingsButton.checked
-
   def onRecordAndReconstructButtonClicked(self):
     self.recordAndReconstructStatus.setIcon(qt.QMessageBox.Information)
     self.recordAndReconstructStatus.setToolTip("Scout scan in progress")
@@ -774,25 +736,6 @@ class PlusRemoteWidget(ScriptedLoadableModuleWidget):
       self.onStartScoutRecording()
     else:
       self.onStopScoutRecording()
-
-  def onLiveReconstructionSettingsButtonClicked(self, status):
-    self.outputExtentLiveReconstructionLabel.visible = self.liveReconstructionSettingsButton.checked
-    self.outputExtentROIBoxDirection1.visible = self.liveReconstructionSettingsButton.checked
-    self.outputExtentROIBoxDirection2.visible = self.liveReconstructionSettingsButton.checked
-    self.outputExtentROIBoxDirection3.visible = self.liveReconstructionSettingsButton.checked
-    self.snapshotsLabel.visible = self.liveReconstructionSettingsButton.checked
-    self.snapshotsBox.visible = self.liveReconstructionSettingsButton.checked
-    self.snapshotsTimeLabel.visible = self.liveReconstructionSettingsButton.checked
-    #self.drawModelLabel.visible = self.liveReconstructionSettingsButton.checked
-    #self.drawModelBox.visible = self.liveReconstructionSettingsButton.checked
-    self.viewsLabel.visible = self.liveReconstructionSettingsButton.checked
-    self.viewsBox.visible = self.liveReconstructionSettingsButton.checked
-    self.liveVolumeToReconstructFilename.visible = self.liveReconstructionSettingsButton.checked
-    self.liveVolumeToReconstructLabel.visible = self.liveReconstructionSettingsButton.checked
-    self.liveOutpuVolumeDeviceLabel.visible = self.liveReconstructionSettingsButton.checked
-    self.liveOutpuVolumeDeviceBox.visible = self.liveReconstructionSettingsButton.checked
-    self.liveFilenameCompletionLabel.visible = self.liveReconstructionSettingsButton.checked
-    self.liveFilenameCompletionBox.visible = self.liveReconstructionSettingsButton.checked
 
   def onLiveReconstructionButtonClicked(self):
     snapshotIntervalSec = (self.snapshotsBox.value)
@@ -823,6 +766,57 @@ class PlusRemoteWidget(ScriptedLoadableModuleWidget):
       self.liveReconstructionButton.setToolTip( "If clicked, start live reconstruction" )
       self.onStopReconstruction()
 
+  # 2 - Advanced settings buttons
+
+  def onRecordSettingsButtonClicked(self, status):
+    self.filenameLabel.visible = self.recordSettingsButton.checked
+    self.filenameBox.visible = self.recordSettingsButton.checked
+    self.filenameCompletionLabel.visible = self.recordSettingsButton.checked
+    self.filenameCompletionBox.visible = self.recordSettingsButton.checked
+    #self.displayDefaultLayoutButton.visible = self.recordSettingsButton.checked
+
+  def onOfflineReconstructSettingsButtonClicked(self):
+    self.offlineVolumeSpacingLabel.visible = self.offlineReconstructSettingsButton.checked
+    self.offlineVolumeSpacingBox.visible = self.offlineReconstructSettingsButton.checked
+    self.outpuVolumeDeviceLabel.visible = self.offlineReconstructSettingsButton.checked
+    self.outpuVolumeDeviceBox.visible = self.offlineReconstructSettingsButton.checked
+    self.offlineVolumeToReconstructLabel.visible = self.offlineReconstructSettingsButton.checked
+    self.offlineVolumeToReconstructSelector.visible = self.offlineReconstructSettingsButton.checked
+    self.offlineRecDefaultLayoutLabel.visible = self.offlineReconstructSettingsButton.checked
+    self.offlineRecDefaultLayoutBox.visible = self.offlineReconstructSettingsButton.checked
+
+  def onScoutSettingsButtonClicked(self, status):
+    self.outputVolumeSpacingBox.visible = self.scoutSettingsButton.checked
+    self.scoutScanFilenameBox.visible = self.scoutSettingsButton.checked
+    self.outputVolumeSpacingLabel.visible = self.scoutSettingsButton.checked
+    self.scoutScanFilenameLabel.visible = self.scoutSettingsButton.checked
+    self.scoutFilenameCompletionLabel.visible = self.scoutSettingsButton.checked
+    self.scoutFilenameCompletionBox.visible = self.scoutSettingsButton.checked
+    self.scoutViewsLabel.visible = self.scoutSettingsButton.checked
+    self.scoutViewsBox.visible = self.scoutSettingsButton.checked
+
+  def onLiveReconstructionSettingsButtonClicked(self, status):
+    self.outputExtentLiveReconstructionLabel.visible = self.liveReconstructionSettingsButton.checked
+    self.outputExtentROIBoxDirection1.visible = self.liveReconstructionSettingsButton.checked
+    self.outputExtentROIBoxDirection2.visible = self.liveReconstructionSettingsButton.checked
+    self.outputExtentROIBoxDirection3.visible = self.liveReconstructionSettingsButton.checked
+    self.snapshotsLabel.visible = self.liveReconstructionSettingsButton.checked
+    self.snapshotsBox.visible = self.liveReconstructionSettingsButton.checked
+    self.snapshotsTimeLabel.visible = self.liveReconstructionSettingsButton.checked
+    #self.drawModelLabel.visible = self.liveReconstructionSettingsButton.checked
+    #self.drawModelBox.visible = self.liveReconstructionSettingsButton.checked
+    self.viewsLabel.visible = self.liveReconstructionSettingsButton.checked
+    self.viewsBox.visible = self.liveReconstructionSettingsButton.checked
+    self.liveVolumeToReconstructFilename.visible = self.liveReconstructionSettingsButton.checked
+    self.liveVolumeToReconstructLabel.visible = self.liveReconstructionSettingsButton.checked
+    self.liveOutpuVolumeDeviceLabel.visible = self.liveReconstructionSettingsButton.checked
+    self.liveOutpuVolumeDeviceBox.visible = self.liveReconstructionSettingsButton.checked
+    self.liveFilenameCompletionLabel.visible = self.liveReconstructionSettingsButton.checked
+    self.liveFilenameCompletionBox.visible = self.liveReconstructionSettingsButton.checked
+
+#
+# Display functions
+#
   def onDisplayRoiButtonClicked(self):
     if self.displayRoiButton.isChecked():
       self.displayRoiButton.setIcon(self.visibleOnIcon)
@@ -841,49 +835,89 @@ class PlusRemoteWidget(ScriptedLoadableModuleWidget):
     if self.displayDefaultLayoutButton.isChecked():
       self.displayRoiButton.setToolTip("If clicked, hide live image")
       redLogic.GetSliceCompositeNode().SetBackgroundVolumeID(slicer.util.getNode('Image_Reference').GetID())
-#       imageReferenceNode = slicer.util.getNode('Image_Reference')
-#       redSliceNode = slicer.vtkMRMLSliceNode.SafeDownCast(imageReferenceNode.GetItemAsObject(0))
-#       redSliceNode.SetOrientationToReformat()
+    #Reslice it
+      #imageReferenceNode = slicer.util.getNode('Image_Reference')
+      #imageReferenceNode = slicer.mrmlScene.GetNodesByName('Image_Reference')
+#       imageReferenceMRMLNode = slicer.vtkMRMLNode.SafeDownCast(imageReferenceNode.GetItemAsObject(0))
+#       print imageReferenceMRMLNode
+      #redSliceNode = slicer.vtkMRMLSliceNode.SafeDownCast(imageReferenceNode.GetItemAsObject(0))
+      #print redSliceNode
+      #redSliceNode.SetOrientationToReformat()
+
       #vtkSlicerVolumeResliceDriverLogic SetModeForSlice( int mode, vtkMRMLSliceNode* sliceNode )
       #vtkMRMLSliceNode SetOrientation("Reformat") ou SetOrientationToReformat()
+      #qMRMLSliceControllerWidget setSliceOrientation("Reformat")
+
+      #redWidget = slicer.app.layoutManager().sliceWidget('Red')
+      #redWidget.setSliceOrientation("Reformat")
+      #controller = redWidget.sliceController()
+      #controller.showReformatWidget(True)
+
+#       driverToRASMatrix = vtk.vtkMatrix4x4()
+#       driverToRASMatrix.Identity()
+#       driverToRASTransform = vtk.vtkTransform()
+#       driverToRASTransform.SetMatrix(driverToRASMatrix)
+#       driverToRASTransform.Update()
+#       sliceToDriverTransform = vtk.vtkTransform()
+#       sliceToDriverTransform.Identity()
+#       sliceToDriverTransform.RotateZ(180)
+#       sliceToRASTransform = vtk.vtkTransform()
+#       sliceToRASTransform.Identity()
+#       sliceToRASTransform.Concatenate(driverToRASTransform )
+#       sliceToRASTransform.Concatenate(sliceToDriverTransform)
+#       sliceToRASTransform.Update()
+#       redNode = slicer.util.getNode('Image_Reference')
+#       redNode.SetSliceToRAS(sliceToRASTransform.GetMatrix())
+#       redNode.UpdateMatrices()
+
     else:
       self.displayRoiButton.setToolTip("If clicked, show live image")
       redLogic.GetSliceCompositeNode().SetBackgroundVolumeID(slicer.util.getNode('None'))
 
-#   def onConfigFileQueried(self):
-#     import os.path
-#     self.currentDeviceConfigFileName.clear()
 #
-#     plusConfigFilePath = os.path.expanduser('~/PlusApp-2.1.2.3392-Win64/bin/PlusConfig.xml')
-#     plusConfigFile = open(plusConfigFilePath)
-#     linesArray = plusConfigFile.readlines()
-#     for i in range(0, len(linesArray)):
-#       if 'LastDeviceSetConfigurationFileName' in linesArray[i]:
-#         linesArray[i] = linesArray[i].replace('" />','')
-#         linesArray[i] = os.path.basename(linesArray[i])
-#         self.currentDeviceConfigFileName.setText(linesArray[i])
-#     plusConfigFile.close()
+# Filenames completion
+#
+  def completeRecordingFilename(self):
+    if self.filenameCompletionBox.isChecked():
+      self.filename = self.logic.filenameCompletion(self.filenameBox.text)
+    else:
+      self.filename = str(self.filenameBox.text)
 
+  def completeScoutRecordingFilename(self):
+    if self.scoutFilenameCompletionBox.isChecked():
+      self.scoutFilename = self.logic.filenameCompletion(self.scoutScanFilenameBox.text)
+    else:
+      self.scoutFilename = str(self.scoutScanFilenameBox.text)
+
+  def completeLiveReconstructionFilename(self):
+    if self.liveFilenameCompletionBox.isChecked():
+      self.liveFilename = self.logic.filenameCompletion(self.liveVolumeToReconstructFilename.text)
+    else:
+      self.liveFilename = str(self.liveVolumeToReconstructFilename.text)
+
+#
+# Commands
+#
   def onStartRecording(self):
     self.completeRecordingFilename()
     self.logic.startRecording(self.linkInputSelector.currentNode().GetID(), self.captureIDSelector.currentText, self.filename, self.onGenericCommandResponseReceived)
 
+  def onStopRecording(self):
+    self.logic.stopRecording(self.linkInputSelector.currentNode().GetID(), self.captureIDSelector.currentText, self.onVolumeRecorded)
+
   def onStartScoutRecording(self):
     self.completeScoutRecordingFilename()
     self.logic.startRecording(self.linkInputSelector.currentNode().GetID(), self.captureIDSelector.currentText, self.scoutFilename, self.onGenericCommandResponseReceived)
-
-  def onStopRecording(self):
-    self.logic.stopRecording(self.linkInputSelector.currentNode().GetID(), self.captureIDSelector.currentText, self.onVolumeRecorded)
 
   def onStopScoutRecording(self):
     self.logic.stopRecording(self.linkInputSelector.currentNode().GetID(), self.captureIDSelector.currentText, self.onScoutVolumeRecorded)
 
   def onStartReconstruction(self):
     self.completeLiveReconstructionFilename()
-    self.logic.startVolumeReconstuction(self.linkInputSelector.currentNode().GetID(), self.volumeReconstructorIDSelector.currentText, self.outputSpacingValue, self.outputOriginValue, self.outputExtentValue, self.onGenericCommandResponseReceived, self.filename, self.liveOutpuVolumeDeviceBox.text)
+    self.logic.startVolumeReconstuction(self.linkInputSelector.currentNode().GetID(), self.volumeReconstructorIDSelector.currentText, self.outputSpacingValue, self.outputOriginValue, self.outputExtentValue, self.onGenericCommandResponseReceived, self.liveFilename, self.liveOutpuVolumeDeviceBox.text)
 
   def onStopReconstruction(self):
-    self.logic.stopVolumeReconstruction(self.linkInputSelector.currentNode().GetID(), self.volumeReconstructorIDSelector.currentText, self.onVolumeLiveReconstructed, self.filename, self.liveOutpuVolumeDeviceBox.text)
+    self.logic.stopVolumeReconstruction(self.linkInputSelector.currentNode().GetID(), self.volumeReconstructorIDSelector.currentText, self.onVolumeLiveReconstructed, self.liveFilename, self.liveOutpuVolumeDeviceBox.text)
 
   def onReconstVolume(self):
     self.offlineReconstructButton.setIcon(self.waitIcon)
@@ -918,6 +952,9 @@ class PlusRemoteWidget(ScriptedLoadableModuleWidget):
   def onSaveTransform(self):
     self.logic.saveTransform(self.linkInputSelector.currentNode().GetID(), self.configFileNameBox.text, self.onGenericCommandResponseReceived)
 
+#
+# Functions associated to commands
+#
   def onGenericCommandResponseReceived(self, commandId, responseNode):
     if responseNode:
       self.replyBox.clear()
@@ -941,7 +978,6 @@ class PlusRemoteWidget(ScriptedLoadableModuleWidget):
     for i in range(0,len(captureDevicesIdsList)):
       if self.captureIDSelector.findText(captureDevicesIdsList[i]) == -1:
         self.captureIDSelector.addItem(captureDevicesIdsList[i])
-    self.startStopRecordingButton.setEnabled(True)
 
   def onGetVolumeReconstructorDeviceCommandResponseReceived(self, commandId, textNode):
     if not textNode:
@@ -957,6 +993,7 @@ class PlusRemoteWidget(ScriptedLoadableModuleWidget):
     volumeReconstructorDeviceIdsList = volumeReconstructorDeviceIdsListString.split(",")
     self.volumeReconstructorIDSelector.clear()
     self.volumeReconstructorIDSelector.addItems(volumeReconstructorDeviceIdsList)
+    self.startStopRecordingButton.setEnabled(True)
     self.offlineReconstructButton.setEnabled(True)
     self.recordAndReconstructButton.setEnabled(True)
     self.liveReconstructionButton.setEnabled(True)
@@ -991,7 +1028,6 @@ class PlusRemoteWidget(ScriptedLoadableModuleWidget):
 
     logic = PlusRemoteLogic()
     commandResponse=textNode.GetText(0)
-
     commandResponseElement = vtk.vtkXMLUtilities.ReadElementFromString(commandResponse)
     stopRecordingMessage = commandResponseElement.GetAttribute("Message")
     volumeToReconstructFileName = os.path.basename(stopRecordingMessage)
@@ -1053,10 +1089,7 @@ class PlusRemoteWidget(ScriptedLoadableModuleWidget):
     self.recordAndReconstructButton.setEnabled(True)
 
     if (commandResponseElement.GetAttribute("Status") == "SUCCESS"):
-#       if self.roiNode:
-#         self.recordAndReconstructStatus.setIcon(qt.QMessageBox.Information)
-#         self.recordAndReconstructStatus.setToolTip("Scout scan completed, file saved as "+ scoutScanReconstructFileName)
-#       else:
+      #Create and initialize ROI after scout scan because low resolution scout scan is used to set a smaller ROI for the live high resolution reconstruction
       self.onRoiInitialization()
       self.recordAndReconstructStatus.setIcon(qt.QMessageBox.Information)
       self.recordAndReconstructStatus.setToolTip("Scout scan completed, file saved as "+ scoutScanReconstructFileName)
@@ -1131,6 +1164,7 @@ class PlusRemoteWidget(ScriptedLoadableModuleWidget):
     greenLogic.GetSliceCompositeNode().SetForegroundOpacity(50)
 
   def volumeRenderingDisplay(self, volumeNode):
+    #Display reconstructed volume in Slicer 3D view
     volRenderingLogic = slicer.modules.volumerendering.logic()
     if not self.displayNode:
       self.displayNode = volRenderingLogic.CreateVolumeRenderingDisplayNode()
@@ -1138,6 +1172,10 @@ class PlusRemoteWidget(ScriptedLoadableModuleWidget):
       self.displayNode.UnRegister(volRenderingLogic)
     volRenderingLogic.UpdateDisplayNodeFromVolumeNode(self.displayNode,volumeNode)
     volumeNode.AddAndObserveDisplayNodeID(self.displayNode.GetID())
+
+#
+# ROI initialization and update
+#
 
   def onRoiInitialization(self):
     if self.roiNode:
@@ -1150,6 +1188,7 @@ class PlusRemoteWidget(ScriptedLoadableModuleWidget):
     roiRadiusInit = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     bounds = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 
+    #ROI is initialized to fit scout scan reconstructed volume
     if reconstructedVolumeNode:
       reconstructedVolumeNode.GetRASBounds(bounds)
       for i in range(0,5,2):
@@ -1164,6 +1203,7 @@ class PlusRemoteWidget(ScriptedLoadableModuleWidget):
     self.updateVolumeExtentFromROI()
 
   def updateVolumeExtentFromROI(self):
+    #Update volume extent values each time user modifies the ROI, as we want volume to fit ROI for live reconstruction
     roiCenter = [0.0, 0.0, 0.0]
     roiRadius = [0.0, 0.0, 0.0]
     roiOrigin = [0.0, 0.0, 0.0]
@@ -1174,6 +1214,7 @@ class PlusRemoteWidget(ScriptedLoadableModuleWidget):
     for i in range(0,len(roiCenter)):
         roiOrigin[i] = roiCenter[i] - roiRadius[i]
     self.outputOriginValue = roiOrigin
+    #Radius in mm, extent in pixel
     self.outputExtentValue = [0, int((2*roiRadius[0])/self.outputSpacingLiveReconstructionBox.value), 0, int((2*roiRadius[1])/self.outputSpacingLiveReconstructionBox.value), 0, int((2*roiRadius[2])/self.outputSpacingLiveReconstructionBox.value)]
     self.outputSpacingValue = [self.outputSpacingLiveReconstructionBox.value, self.outputSpacingLiveReconstructionBox.value, self.outputSpacingLiveReconstructionBox.value]
 
@@ -1254,6 +1295,7 @@ class PlusRemoteLogic(ScriptedLoadableModuleLogic):
     basename = filename.replace(".mha","")
     self.dateTimeList = {'Month': str(datetime.datetime.now().month), 'Day': str(datetime.datetime.now().day), 'Hour': str(datetime.datetime.now().hour), 'Minute': str(datetime.datetime.now().minute), 'Second': str(datetime.datetime.now().second)}
     for element in self.dateTimeList:
+      #If one item is only 1 digit, complete with a zero (we want the format filename_YYYYMMDD_HHMMSS)
       if len(self.dateTimeList[element]) == 1:
         self.dateTimeList[element] = str(0) + self.dateTimeList[element]
         filename = str(basename) + "_" + str(datetime.datetime.now().year) + self.dateTimeList['Month'] + self.dateTimeList['Day'] + "_" + self.dateTimeList['Hour'] + self.dateTimeList['Minute'] + self.dateTimeList['Second'] + ".mha"
