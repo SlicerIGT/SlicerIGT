@@ -113,17 +113,17 @@ void qSlicerSimpleMarkupsWidget
   connect( d->ColorButton, SIGNAL( colorChanged( QColor ) ), this, SLOT( onColorButtonChanged( QColor ) ) );
 
   connect( d->VisibilityButton, SIGNAL( clicked() ), this, SLOT( onVisibilityButtonClicked() ) );
-  //d->VisibilityButton->setIcon( QIcon( ":/Icons/Small/SlicerVisible.png" ) );
+  d->VisibilityButton->setIcon( QIcon( ":/Icons/Small/SlicerVisible.png" ) );
   connect( d->LockButton, SIGNAL( clicked() ), this, SLOT( onLockButtonClicked() ) );
-  //d->LockButton->setIcon( QIcon( ":/Icons/Small/SlicerUnlock.png" ) );
+  d->LockButton->setIcon( QIcon( ":/Icons/Small/SlicerUnlock.png" ) );
   connect( d->DeleteButton, SIGNAL( clicked() ), this, SLOT( onDeleteButtonClicked() ) );
-  //d->DeleteButton->setIcon( QIcon( ":/Icons/MarkupsDelete.png" ) );
+  d->DeleteButton->setIcon( QIcon( ":/Icons/MarkupsDelete.png" ) );
 
   connect( d->ActiveButton, SIGNAL( toggled( bool ) ), this, SLOT( onActiveButtonClicked() ) );
-  //d->ActiveButton->setIcon( QApplication::style()->standardIcon( QStyle::SP_DialogApplyButton ) );
+  d->ActiveButton->setIcon( QApplication::style()->standardIcon( QStyle::SP_DialogApplyButton ) );
 
   connect( d->PlaceButton, SIGNAL( toggled( bool ) ), this, SLOT( onPlaceButtonClicked() ) ); 
-  //d->PlaceButton->setIcon( QIcon( ":/Icons/MarkupsMouseModePlace.png" ) );
+  d->PlaceButton->setIcon( QIcon( ":/Icons/MarkupsMouseModePlace.png" ) );
 
   d->ExtraButtonsFrame->setVisible( d->ExpandButton->isChecked() );
 
@@ -645,20 +645,20 @@ void qSlicerSimpleMarkupsWidget
 
   if ( currentMarkupsFiducialNode->GetDisplayNode() != NULL && currentMarkupsFiducialNode->GetDisplayNode()->GetVisibility() )
   {
-    //d->VisibilityButton->setIcon( QIcon( ":/Icons/Small/SlicerVisible.png" ) );
+    d->VisibilityButton->setIcon( QIcon( ":/Icons/Small/SlicerVisible.png" ) );
   }
   else
   {
-    //d->VisibilityButton->setIcon( QIcon( ":/Icons/Small/SlicerInvisible.png" ) );
+    d->VisibilityButton->setIcon( QIcon( ":/Icons/Small/SlicerInvisible.png" ) );
   }
 
   if ( currentMarkupsFiducialNode->GetLocked() )
   {
-    //d->LockButton->setIcon( QIcon( ":/Icons/Small/SlicerLock.png" ) );
+    d->LockButton->setIcon( QIcon( ":/Icons/Small/SlicerLock.png" ) );
   }
   else
   {
-    //d->LockButton->setIcon( QIcon( ":/Icons/Small/SlicerUnlock.png" ) );
+    d->LockButton->setIcon( QIcon( ":/Icons/Small/SlicerUnlock.png" ) );
   }
 
   d->ActiveButton->blockSignals( false );
