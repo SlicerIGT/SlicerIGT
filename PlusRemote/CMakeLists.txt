@@ -19,7 +19,6 @@ set(MODULE_PYTHON_RESOURCES
   Resources/Icons/icon_Wait.png
   Resources/Icons/VisibleOff.png
   Resources/Icons/VisibleOn.png
-  Resources/Icons/PlusRemote.png
   )
 
 #-----------------------------------------------------------------------------
