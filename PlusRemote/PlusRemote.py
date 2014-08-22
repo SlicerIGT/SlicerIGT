@@ -102,7 +102,8 @@ class PlusRemoteWidget(ScriptedLoadableModuleWidget):
     self.linkInputSelector.showChildNodeTypes = False
     self.linkInputSelector.setMRMLScene( slicer.mrmlScene )
     self.linkInputSelector.setToolTip( "Pick connector node" )
-    parametersLayout.addRow("OpenIGTLinkConnector: ", self.linkInputSelector)
+    parametersLayout.addRow("OpenIGTLinkConnector: ", self.linkInputSelector)
+
     parametersControlsLayout = qt.QHBoxLayout()
     parametersLayout.addRow(parametersControlsLayout)
 
@@ -973,7 +974,10 @@ class PlusRemoteWidget(ScriptedLoadableModuleWidget):
 
     commandResponseElement = vtk.vtkXMLUtilities.ReadElementFromString(commandResponse)
     captureDeviceIdsListString = commandResponseElement.GetAttribute("Message")
-    captureDevicesIdsList = captureDeviceIdsListString.split(",")
+    if captureDeviceIdsListString:
+      captureDevicesIdsList = captureDeviceIdsListString.split(",")
+    else:
+      captureDevicesIdsList = []
 
     for i in range(0,len(captureDevicesIdsList)):
       if self.captureIDSelector.findText(captureDevicesIdsList[i]) == -1:
@@ -990,7 +994,11 @@ class PlusRemoteWidget(ScriptedLoadableModuleWidget):
 
     commandResponseElement = vtk.vtkXMLUtilities.ReadElementFromString(commandResponse)
     volumeReconstructorDeviceIdsListString = commandResponseElement.GetAttribute("Message")
-    volumeReconstructorDeviceIdsList = volumeReconstructorDeviceIdsListString.split(",")
+    if volumeReconstructorDeviceIdsListString:
+      volumeReconstructorDeviceIdsList = volumeReconstructorDeviceIdsListString.split(",")
+    else:
+      volumeReconstructorDeviceIdsList = []
+
     self.volumeReconstructorIDSelector.clear()
     self.volumeReconstructorIDSelector.addItems(volumeReconstructorDeviceIdsList)
     self.startStopRecordingButton.setEnabled(True)
@@ -1362,10 +1370,12 @@ class PlusRemoteLogic(ScriptedLoadableModuleLogic):
     for i in range(0,4):
       for j in range(0,4):
         transformValue = transformValue + str(transformMatrix.GetElement(i,j)) + " "
+    # remove last character (extra space at the end)
+    transformValue = transformValue[:-1]
 
     transformDate = str(datetime.datetime.now())
 
-    parameters = "TransformName=" + "\"" + transformNode.GetName() + "\"" + " TransformValue=" + "\"" + transformValue + "\"" + "TransformDate=" + "\"" + transformDate + "\""
+    parameters = "TransformName=" + "\"" + transformNode.GetName() + "\"" + " TransformValue=" + "\"" + transformValue + "\"" + " TransformDate=" + "\"" + transformDate + "\""
     self.executeCommand(connectorNodeId, "UpdateTransform", parameters, method)
 
   def saveTransform(self, connectorNodeId, filename, method):
