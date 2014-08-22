@@ -14,6 +14,12 @@ set(MODULE_PYTHON_SCRIPTS
   )
 
 set(MODULE_PYTHON_RESOURCES
+  Resources/Icons/icon_Record.png
+  Resources/Icons/icon_Stop.png
+  Resources/Icons/icon_Wait.png
+  Resources/Icons/VisibleOff.png
+  Resources/Icons/VisibleOn.png
+  Resources/Icons/PlusRemote.png
   )
 
 #-----------------------------------------------------------------------------

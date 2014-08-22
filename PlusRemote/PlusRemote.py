@@ -17,7 +17,7 @@ class PlusRemote(ScriptedLoadableModule):
     self.parent.acknowledgementText = """
     This work was funded by Cancer Care Ontario and the Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO)
 """
-    #parent.icon = qt.QIcon(":Icons/PlusRemote.png
+    #parent.icon = qt.QIcon(slicer.modules.plusremote.path.replace("PlusRemote.py","")+'/Resources/Icons/PlusRemote.png')
 
 #
 # qPlusRemoteWidget
@@ -42,9 +42,12 @@ class PlusRemoteWidget(ScriptedLoadableModuleWidget):
     self.filename = "Recording.mha"
     self.scoutFilename = "ScoutScanRecording.mha"
     self.liveFilename = "LiveReconstructedVolume.mha"
+    self.displayRecordedNode = None
     self.displayNode = None
+    self.displayLiveNode = None
     self.defaultParameterNode = None
-    self.savedRoiNode = None
+    self.liveVisualizationSettingFlag = False
+    self.snapshotVisualizationSettingFlag = False
 
   def setup(self):
     # Instantiate and connect widgets
@@ -1067,21 +1070,23 @@ class PlusRemoteWidget(ScriptedLoadableModuleWidget):
       offlineVolumeRecName = self.outpuVolumeDeviceBox.text
       self.offlineVolumeRecNode = slicer.util.getNode(offlineVolumeRecName)
 
-      selectionNode = slicer.app.applicationLogic().GetSelectionNode()
-      selectionNode.SetReferenceSecondaryVolumeID(self.offlineVolumeRecNode.GetID())
-      selectionNode.SetReferenceActiveVolumeID(self.offlineVolumeRecNode.GetID())
-      applicationLogic = slicer.app.applicationLogic()
-      applicationLogic.PropagateVolumeSelection(0)
-      applicationLogic.FitSliceToAll()
+      #selectionNode = slicer.app.applicationLogic().GetSelectionNode()
+      #selectionNode.SetReferenceSecondaryVolumeID(self.offlineVolumeRecNode.GetID())
+      #selectionNode.SetReferenceActiveVolumeID(self.offlineVolumeRecNode.GetID())
+      #applicationLogic = slicer.app.applicationLogic()
+      #applicationLogic.PropagateVolumeSelection(0)
+      #applicationLogic.FitSliceToAll()
 
-      redLogic = slicer.app.layoutManager().sliceWidget('Red').sliceLogic()
-      redLogic.GetSliceCompositeNode().SetBackgroundVolumeID(slicer.util.getNode('Image_Reference').GetID())
+      #redLogic = slicer.app.layoutManager().sliceWidget('Red').sliceLogic()
+      #redLogic.GetSliceCompositeNode().SetBackgroundVolumeID(slicer.util.getNode('Image_Reference').GetID())
       yellowLogic = slicer.app.layoutManager().sliceWidget('Yellow').sliceLogic()
       yellowLogic.GetSliceCompositeNode().SetBackgroundVolumeID(self.offlineVolumeRecNode.GetID())
       greenLogic = slicer.app.layoutManager().sliceWidget('Green').sliceLogic()
       greenLogic.GetSliceCompositeNode().SetBackgroundVolumeID(self.offlineVolumeRecNode.GetID())
+      applicationLogic = slicer.app.applicationLogic()
+      applicationLogic.FitSliceToAll()
 
-      self.volumeRenderingDisplay(self.offlineVolumeRecNode)
+      self.recordedVolumeRenderingDisplay(self.offlineVolumeRecNode)
 
   def onScoutVolumeReconstructed(self, commandId, textNode):
     self.onGenericCommandResponseReceived(commandId,textNode)
@@ -1107,14 +1112,26 @@ class PlusRemoteWidget(ScriptedLoadableModuleWidget):
 
     if self.scoutViewsBox.isChecked():
       self.scoutScanVolumeNode = slicer.util.getNode('ScoutScan')
-      selectionNode = slicer.app.applicationLogic().GetSelectionNode()
-      selectionNode.SetReferenceActiveVolumeID(self.scoutScanVolumeNode.GetID())
+#       selectionNode = slicer.app.applicationLogic().GetSelectionNode()
+#       selectionNode.SetReferenceActiveVolumeID(self.scoutScanVolumeNode.GetID())
+#       applicationLogic = slicer.app.applicationLogic()
+#       applicationLogic.PropagateVolumeSelection(0)
+#       applicationLogic.FitSliceToAll()
+
+      scoutVolumeDisplay = self.scoutScanVolumeNode.GetDisplayNode()
+      self.window = scoutVolumeDisplay.GetWindow()
+      self.level = scoutVolumeDisplay.GetLevel()
+
+      yellowLogic = slicer.app.layoutManager().sliceWidget('Yellow').sliceLogic()
+      yellowLogic.GetSliceCompositeNode().SetBackgroundVolumeID(self.scoutScanVolumeNode.GetID())
+      greenLogic = slicer.app.layoutManager().sliceWidget('Green').sliceLogic()
+      greenLogic.GetSliceCompositeNode().SetBackgroundVolumeID(self.scoutScanVolumeNode.GetID())
       applicationLogic = slicer.app.applicationLogic()
-      applicationLogic.PropagateVolumeSelection(0)
       applicationLogic.FitSliceToAll()
+
       #Red view: Image_Reference
-      redLogic = slicer.app.layoutManager().sliceWidget('Red').sliceLogic()
-      redLogic.GetSliceCompositeNode().SetBackgroundVolumeID(slicer.util.getNode('Image_Reference').GetID())
+      #redLogic = slicer.app.layoutManager().sliceWidget('Red').sliceLogic()
+      #redLogic.GetSliceCompositeNode().SetBackgroundVolumeID(slicer.util.getNode('Image_Reference').GetID())
       #3D view
       self.volumeRenderingDisplay(self.scoutScanVolumeNode)
 
@@ -1125,8 +1142,9 @@ class PlusRemoteWidget(ScriptedLoadableModuleWidget):
       #liveVolumeRecName = self.liveOutpuVolumeDeviceBox.text
       #self.liveVolumeRecNode = slicer.util.getNode(liveVolumeRecName)
       self.liveVolumeRecNode = slicer.util.getNode('liveReconstruction')
-      self.liveVolumeReconstructionDisplay()
-      self.volumeRenderingDisplay(self.liveVolumeRecNode)
+      self.liveVolumeReconstructionDisplay(self.snapshotVisualizationSettingFlag)
+      self.liveVolumeRenderingDisplay(self.liveVolumeRecNode)
+      self.snapshotVisualizationSettingFlag = True
 
   def onVolumeLiveReconstructed(self, commandId, textNode):
     self.onGenericCommandResponseReceived(commandId,textNode)
@@ -1148,47 +1166,78 @@ class PlusRemoteWidget(ScriptedLoadableModuleWidget):
       #liveVolumeRecName = self.liveOutpuVolumeDeviceBox.text
       #self.liveVolumeRecNode = slicer.util.getNode(liveVolumeRecName)
       self.liveVolumeRecNode = slicer.util.getNode('liveReconstruction')
-      self.liveVolumeReconstructionDisplay()
-      self.volumeRenderingDisplay(self.liveVolumeRecNode)
+      self.liveVolumeReconstructionDisplay(self.snapshotVisualizationSettingFlag)
+      self.liveVolumeRenderingDisplay(self.liveVolumeRecNode)
+      self.liveVisualizationSettingFlag = True
 
-  def liveVolumeReconstructionDisplay(self):
+  def liveVolumeReconstructionDisplay(self, visualizationSettingFlag):
     self.scoutScanVolumeNode = slicer.util.getNode('ScoutScan')
     liveVolumeRecName = self.liveOutpuVolumeDeviceBox.text
     self.liveVolumeRecNode = slicer.util.getNode(liveVolumeRecName)
 
-    selectionliveRecNode = slicer.app.applicationLogic().GetSelectionNode()
-    applicationLogic = slicer.app.applicationLogic()
-    applicationLogic.PropagateVolumeSelection(0)
+    if visualizationSettingFlag == False:
+#       selectionliveRecNode = slicer.app.applicationLogic().GetSelectionNode()
+#       selectionliveRecNode.SetReferenceActiveVolumeID(self.liveVolumeRecNode.GetID())
+#       applicationLogic = slicer.app.applicationLogic()
+#       applicationLogic.PropagateVolumeSelection(0)
 
-    redLogic = slicer.app.layoutManager().sliceWidget('Red').sliceLogic()
-    redLogic.GetSliceCompositeNode().SetBackgroundVolumeID(slicer.util.getNode('Image_Reference').GetID())
-    yellowLogic = slicer.app.layoutManager().sliceWidget('Yellow').sliceLogic()
-    yellowLogic.GetSliceCompositeNode().SetForegroundVolumeID(self.liveVolumeRecNode.GetID())
-    yellowLogic.GetSliceCompositeNode().SetBackgroundVolumeID(self.scoutScanVolumeNode.GetID())
-    yellowLogic.GetSliceCompositeNode().SetForegroundOpacity(50)
-    greenLogic = slicer.app.layoutManager().sliceWidget('Green').sliceLogic()
-    greenLogic.GetSliceCompositeNode().SetForegroundVolumeID(self.liveVolumeRecNode.GetID())
-    greenLogic.GetSliceCompositeNode().SetBackgroundVolumeID(self.scoutScanVolumeNode.GetID())
-    greenLogic.GetSliceCompositeNode().SetForegroundOpacity(50)
+      liveVolumeDisplay = self.liveVolumeRecNode.GetDisplayNode()
+      liveVolumeDisplay.SetAutoWindowLevel(0)
+      liveVolumeDisplay.SetWindow(self.window)
+      liveVolumeDisplay.SetLevel(self.level)
+
+      #redLogic = slicer.app.layoutManager().sliceWidget('Red').sliceLogic()
+      #redLogic.GetSliceCompositeNode().SetBackgroundVolumeID(slicer.util.getNode('Image_Reference').GetID())
+      yellowLogic = slicer.app.layoutManager().sliceWidget('Yellow').sliceLogic()
+      yellowLogic.GetSliceCompositeNode().SetForegroundVolumeID(self.liveVolumeRecNode.GetID())
+      yellowLogic.GetSliceCompositeNode().SetBackgroundVolumeID(self.scoutScanVolumeNode.GetID())
+      yellowLogic.GetSliceCompositeNode().SetForegroundOpacity(50)
+      greenLogic = slicer.app.layoutManager().sliceWidget('Green').sliceLogic()
+      greenLogic.GetSliceCompositeNode().SetForegroundVolumeID(self.liveVolumeRecNode.GetID())
+      greenLogic.GetSliceCompositeNode().SetBackgroundVolumeID(self.scoutScanVolumeNode.GetID())
+      greenLogic.GetSliceCompositeNode().SetForegroundOpacity(50)
+
+  def recordedVolumeRenderingDisplay(self, volumeNode):
+    #Display reconstructed volume in Slicer 3D view
+    volRenderingLogic = slicer.modules.volumerendering.logic()
+    if self.displayRecordedNode:
+      return
+    else:
+      self.displayRecordedNode = volRenderingLogic.CreateVolumeRenderingDisplayNode()
+      slicer.mrmlScene.AddNode(self.displayRecordedNode)
+      self.displayRecordedNode.UnRegister(volRenderingLogic)
+      volRenderingLogic.UpdateDisplayNodeFromVolumeNode(self.displayRecordedNode,volumeNode)
+      volumeNode.AddAndObserveDisplayNodeID(self.displayRecordedNode.GetID())
 
   def volumeRenderingDisplay(self, volumeNode):
     #Display reconstructed volume in Slicer 3D view
     volRenderingLogic = slicer.modules.volumerendering.logic()
-    if not self.displayNode:
+    if self.displayNode:
+      return
+    else:
       self.displayNode = volRenderingLogic.CreateVolumeRenderingDisplayNode()
       slicer.mrmlScene.AddNode(self.displayNode)
       self.displayNode.UnRegister(volRenderingLogic)
-    volRenderingLogic.UpdateDisplayNodeFromVolumeNode(self.displayNode,volumeNode)
-    volumeNode.AddAndObserveDisplayNodeID(self.displayNode.GetID())
+      volRenderingLogic.UpdateDisplayNodeFromVolumeNode(self.displayNode,volumeNode)
+      volumeNode.AddAndObserveDisplayNodeID(self.displayNode.GetID())
+
+  def liveVolumeRenderingDisplay(self, volumeNode):
+    #Display reconstructed volume in Slicer 3D view
+    volRenderingLogic = slicer.modules.volumerendering.logic()
+    if self.displayLiveNode:
+      return
+    else:
+      self.displayLiveNode = volRenderingLogic.CreateVolumeRenderingDisplayNode()
+      slicer.mrmlScene.AddNode(self.displayLiveNode)
+      self.displayLiveNode.UnRegister(volRenderingLogic)
+      volRenderingLogic.UpdateDisplayNodeFromVolumeNode(self.displayLiveNode,volumeNode)
+      volumeNode.AddAndObserveDisplayNodeID(self.displayLiveNode.GetID())
 
 #
 # ROI initialization and update
 #
 
   def onRoiInitialization(self):
-    if self.roiNode:
-      slicer.mrmlScene.RemoveNode(self.roiNode)
-
     reconstructedNode = slicer.mrmlScene.GetNodesByName('ScoutScan')
     reconstructedVolumeNode = slicer.vtkMRMLScalarVolumeNode.SafeDownCast(reconstructedNode.GetItemAsObject(0))
 
@@ -1202,12 +1251,16 @@ class PlusRemoteWidget(ScriptedLoadableModuleWidget):
       for i in range(0,5,2):
         roiCenterInit[i] = (bounds[i+1] + bounds[i])/2
         roiRadiusInit[i] = (bounds[i+1] - bounds[i])/2
-      self.roiNode = slicer.vtkMRMLAnnotationROINode()
-      self.roiNode.SetXYZ(roiCenterInit[0], roiCenterInit[2], roiCenterInit[4])
-      self.roiNode.SetRadiusXYZ(roiRadiusInit[0], roiRadiusInit[2], roiRadiusInit[4])
-      self.roiNode.Initialize(slicer.mrmlScene)
-      self.roiNode.SetDisplayVisibility(0)
-      self.roiNode.SetInteractiveMode(1)
+      if self.roiNode:
+        self.roiNode.SetXYZ(roiCenterInit[0], roiCenterInit[2], roiCenterInit[4])
+        self.roiNode.SetRadiusXYZ(roiRadiusInit[0], roiRadiusInit[2], roiRadiusInit[4])
+      else:
+        self.roiNode = slicer.vtkMRMLAnnotationROINode()
+        self.roiNode.SetXYZ(roiCenterInit[0], roiCenterInit[2], roiCenterInit[4])
+        self.roiNode.SetRadiusXYZ(roiRadiusInit[0], roiRadiusInit[2], roiRadiusInit[4])
+        self.roiNode.Initialize(slicer.mrmlScene)
+        self.roiNode.SetDisplayVisibility(0)
+        self.roiNode.SetInteractiveMode(1)
     self.updateVolumeExtentFromROI()
 
   def updateVolumeExtentFromROI(self):
