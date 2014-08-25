@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>862</width>
-    <height>601</height>
+    <width>731</width>
+    <height>591</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -59,6 +59,7 @@
        <property name="renameEnabled">
         <bool>true</bool>
        </property>
+       <zorder>MarkupsFiducialTableWidget</zorder>
       </widget>
      </item>
      <item>
@@ -122,25 +123,118 @@
       </widget>
      </item>
      <item>
-      <widget class="ctkExpandButton" name="ExpandButton">
+      <widget class="QFrame" name="frame">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
-       <property name="locale">
-        <locale language="English" country="Canada"/>
+       <property name="frameShape">
+        <enum>QFrame::NoFrame</enum>
        </property>
-       <property name="checked">
-        <bool>false</bool>
+       <property name="frameShadow">
+        <enum>QFrame::Raised</enum>
        </property>
-       <property name="autoRaise">
-        <bool>true</bool>
-       </property>
-       <property name="mirrorOnExpand">
-        <bool>true</bool>
-       </property>
+       <layout class="QHBoxLayout" name="horizontalLayout_5">
+        <property name="margin">
+         <number>0</number>
+        </property>
+        <item>
+         <widget class="QPushButton" name="ExtraButton">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="toolTip">
+           <string>Display extra options.</string>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+          <property name="checkable">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="ctkPopupWidget" name="PopupWidget">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="effectDuration">
+           <number>0</number>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+          </property>
+          <property name="orientation">
+           <set>Qt::Horizontal</set>
+          </property>
+          <property name="active">
+           <bool>true</bool>
+          </property>
+          <property name="autoShow">
+           <bool>false</bool>
+          </property>
+          <layout class="QHBoxLayout" name="horizontalLayout_4">
+           <item>
+            <widget class="QPushButton" name="VisibilityButton">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="toolTip">
+              <string>Toggle fiducial list visibility.</string>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="LockButton">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="toolTip">
+              <string>Lock or unlock fiducial list.</string>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="DeleteButton">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="toolTip">
+              <string>Delete highlighted fiducials.</string>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+       </layout>
       </widget>
      </item>
      <item>
@@ -164,54 +258,6 @@
         <property name="margin">
          <number>0</number>
         </property>
-        <item>
-         <widget class="QPushButton" name="VisibilityButton">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="toolTip">
-           <string>Toggle fiducial list visibility.</string>
-          </property>
-          <property name="text">
-           <string/>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="LockButton">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="toolTip">
-           <string>Lock or unlock fiducial list.</string>
-          </property>
-          <property name="text">
-           <string/>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="DeleteButton">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="toolTip">
-           <string>Delete highlighted fiducials.</string>
-          </property>
-          <property name="text">
-           <string/>
-          </property>
-         </widget>
-        </item>
        </layout>
       </widget>
      </item>
@@ -248,9 +294,10 @@
    <header>ctkColorPickerButton.h</header>
   </customwidget>
   <customwidget>
-   <class>ctkExpandButton</class>
-   <extends>QToolButton</extends>
-   <header>ctkExpandButton.h</header>
+   <class>ctkPopupWidget</class>
+   <extends>QFrame</extends>
+   <header>ctkPopupWidget.h</header>
+   <container>1</container>
   </customwidget>
  </customwidgets>
  <resources/>
@@ -272,17 +319,33 @@
    </hints>
   </connection>
   <connection>
-   <sender>ExpandButton</sender>
+   <sender>ExtraButton</sender>
    <signal>toggled(bool)</signal>
-   <receiver>ExtraButtonsFrame</receiver>
-   <slot>setVisible(bool)</slot>
+   <receiver>PopupWidget</receiver>
+   <slot>showPopup(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>734</x>
+     <x>699</x>
      <y>148</y>
     </hint>
     <hint type="destinationlabel">
-     <x>803</x>
+     <x>788</x>
+     <y>148</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>PopupWidget</sender>
+   <signal>popupOpened(bool)</signal>
+   <receiver>ExtraButton</receiver>
+   <slot>setChecked(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>788</x>
+     <y>148</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>699</x>
      <y>148</y>
     </hint>
    </hints>
