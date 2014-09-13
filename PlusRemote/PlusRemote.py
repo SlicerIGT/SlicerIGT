@@ -10,14 +10,13 @@ class PlusRemote(ScriptedLoadableModule):
     ScriptedLoadableModule.__init__(self, parent)
     self.parent.title = "Plus Remote"
     self.parent.categories = ["IGT"]
-    self.parent.contributors = ["Franklin King (Queen's University), Tamas Ungi (Queen's University)"]
+    self.parent.contributors = ["Amelie Meyer (PerkLab, Queen's University), Franklin King (PerkLab, Queen's University), Tamas Ungi (PerkLab, Queen's University), Andras Lasso (PerkLab, Queen's University)"]
     self.parent.helpText = """
-    This is a convenience module for sending commands through OpenIGTLink Remote to PLUS. See <a>https://www.assembla.com/spaces/plus/wiki/PlusServer_commands</a> for more information about Plus Server commands.
-    """
-    self.parent.acknowledgementText = """
-    This work was funded by Cancer Care Ontario and the Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO)
+This is a convenience module for sending commands a <a href="www.plustoolkit.org">PLUS server</a> for recording data and reconstruction of 3D volumes from tracked 2D image slices.
 """
-    #parent.icon = qt.QIcon(slicer.modules.plusremote.path.replace("PlusRemote.py","")+'/Resources/Icons/PlusRemote.png')
+    self.parent.acknowledgementText = """
+This work was funded by Cancer Care Ontario Applied Cancer Research Unit (ACRU) and the Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO) grants.
+"""
 
 #
 # qPlusRemoteWidget
