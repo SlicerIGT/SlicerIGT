@@ -68,14 +68,16 @@ class PlusRemoteWidget(ScriptedLoadableModuleWidget):
     self.visibleOffIcon = qt.QIcon(":Icons\VisibleOff.png")
     self.visibleOnIcon = qt.QIcon(":Icons\VisibleOn.png")
 
-    # Parameters sets
+    # Parameter sets
     defaultParametersCollapsibleButton = ctk.ctkCollapsibleButton()
-    defaultParametersCollapsibleButton.text = "Parameters Sets"
+    defaultParametersCollapsibleButton.text = "Parameter set"
+    defaultParametersCollapsibleButton.collapsed = True
     self.layout.addWidget(defaultParametersCollapsibleButton)
     defaultParametersLayout = qt.QFormLayout(defaultParametersCollapsibleButton)
 
     self.parameterNodeSelector = slicer.qMRMLNodeComboBox()
     self.parameterNodeSelector.nodeTypes = ( ("vtkMRMLScriptedModuleNode"), "" )
+    self.parameterNodeSelector.addAttribute( "vtkMRMLScriptedModuleNode", "ModuleName", "PlusRemote" )
     self.parameterNodeSelector.selectNodeUponCreation = True
     self.parameterNodeSelector.addEnabled = True
     self.parameterNodeSelector.renameEnabled = True
@@ -83,10 +85,10 @@ class PlusRemoteWidget(ScriptedLoadableModuleWidget):
     self.parameterNodeSelector.noneEnabled = False
     self.parameterNodeSelector.showHidden = True
     self.parameterNodeSelector.showChildNodeTypes = False
-    self.parameterNodeSelector.baseName = "Default Parameter Set"
+    self.parameterNodeSelector.baseName = "PlusRemote"
     self.parameterNodeSelector.setMRMLScene( slicer.mrmlScene )
-    self.parameterNodeSelector.setToolTip( "Pick parameters set" )
-    defaultParametersLayout.addRow("Parameters Set: ", self.parameterNodeSelector)
+    self.parameterNodeSelector.setToolTip( "Pick parameter set" )
+    defaultParametersLayout.addRow("Parameter set: ", self.parameterNodeSelector)
 
     # Parameters
     parametersCollapsibleButton = ctk.ctkCollapsibleButton()
@@ -570,8 +572,8 @@ class PlusRemoteWidget(ScriptedLoadableModuleWidget):
 #
   def createDefaultParameterSet(self):
     #Default set created only if no parameterNode exists, to avoid creation of a new default set each time the module is reloaded
-    nodesCount = slicer.mrmlScene.GetNumberOfNodesByClass('vtkMRMLScriptedModuleNode')
-    if nodesCount == 0:
+    existingParameterNodes = self.logic.getAllParameterNodes()
+    if not existingParameterNodes:
       self.defaultParameterNode = self.parameterNodeSelector.addNode()
 
   def onParameterSetSelected(self):
@@ -673,7 +675,7 @@ class PlusRemoteWidget(ScriptedLoadableModuleWidget):
       else:
         self.onConnectorNodeDisconnected(None, None, True)
 
-    # Add observers for connect/disconnect events
+      # Add observers for connect/disconnect events
       events = [[slicer.vtkMRMLIGTLConnectorNode.ConnectedEvent, self.onConnectorNodeConnected], [slicer.vtkMRMLIGTLConnectorNode.DisconnectedEvent, self.onConnectorNodeDisconnected]]
       for tagEventHandler in events:
         connectorNodeObserverTag = self.connectorNode.AddObserver(tagEventHandler[0], tagEventHandler[1])
@@ -970,9 +972,8 @@ class PlusRemoteWidget(ScriptedLoadableModuleWidget):
         self.replyBox.setPlainText("GetCaptureDeviceCommand timeout: {0}".format(commandId))
         return
 
-    logic = PlusRemoteLogic()
     commandResponse=textNode.GetText(0)
-    logic.discardCommand(commandId, self.linkInputSelector.currentNode().GetID())
+    self.logic.discardCommand(commandId, self.linkInputSelector.currentNode().GetID())
 
     commandResponseElement = vtk.vtkXMLUtilities.ReadElementFromString(commandResponse)
     captureDeviceIdsListString = commandResponseElement.GetAttribute("Message")
@@ -990,9 +991,8 @@ class PlusRemoteWidget(ScriptedLoadableModuleWidget):
         self.replyBox.setPlainText("GetVolumeReconstructorDeviceCommand timeout: {0}".format(commandId))
         return
 
-    logic = PlusRemoteLogic()
     commandResponse=textNode.GetText(0)
-    logic.discardCommand(commandId, self.linkInputSelector.currentNode().GetID())
+    self.logic.discardCommand(commandId, self.linkInputSelector.currentNode().GetID())
 
     commandResponseElement = vtk.vtkXMLUtilities.ReadElementFromString(commandResponse)
     volumeReconstructorDeviceIdsListString = commandResponseElement.GetAttribute("Message")
@@ -1016,7 +1016,6 @@ class PlusRemoteWidget(ScriptedLoadableModuleWidget):
     self.onGenericCommandResponseReceived(commandId,textNode)
     self.offlineReconstructButton.setEnabled(True)
 
-    logic = PlusRemoteLogic()
     commandResponse=textNode.GetText(0)
 
     commandResponseElement = vtk.vtkXMLUtilities.ReadElementFromString(commandResponse)
@@ -1036,7 +1035,6 @@ class PlusRemoteWidget(ScriptedLoadableModuleWidget):
     self.onGenericCommandResponseReceived(commandId,textNode)
     self.offlineReconstructButton.setEnabled(True)
 
-    logic = PlusRemoteLogic()
     commandResponse=textNode.GetText(0)
     commandResponseElement = vtk.vtkXMLUtilities.ReadElementFromString(commandResponse)
     stopRecordingMessage = commandResponseElement.GetAttribute("Message")
@@ -1048,15 +1046,20 @@ class PlusRemoteWidget(ScriptedLoadableModuleWidget):
   def onVolumeReconstructed(self, commandId, textNode):
     self.onGenericCommandResponseReceived(commandId,textNode)
 
-    logic = PlusRemoteLogic()
-    commandResponse=textNode.GetText(0)
-    commandResponseElement = vtk.vtkXMLUtilities.ReadElementFromString(commandResponse)
-    offlineReconstMessage = commandResponseElement.GetAttribute("Message")
-
     self.offlineReconstructButton.setIcon(self.recordIcon)
     self.offlineReconstructButton.setText("Offline Reconstruction")
     self.offlineReconstructButton.setEnabled(True)
     self.offlineReconstructButton.setChecked(False)
+
+    if not textNode:
+      # volume reconstruction command timed out
+      self.offlineReconstructStatus.setIcon(qt.QMessageBox.Critical)
+      self.offlineReconstructStatus.setToolTip("Timeout while waiting for volume reconstruction result")
+      return
+
+    commandResponse=textNode.GetText(0)
+    commandResponseElement = vtk.vtkXMLUtilities.ReadElementFromString(commandResponse)
+    offlineReconstMessage = commandResponseElement.GetAttribute("Message")
 
     if (commandResponseElement.GetAttribute("Status") == "SUCCESS"):
       self.offlineReconstructStatus.setIcon(qt.QMessageBox.Information)
@@ -1069,15 +1072,6 @@ class PlusRemoteWidget(ScriptedLoadableModuleWidget):
       offlineVolumeRecName = self.outpuVolumeDeviceBox.text
       self.offlineVolumeRecNode = slicer.util.getNode(offlineVolumeRecName)
 
-      #selectionNode = slicer.app.applicationLogic().GetSelectionNode()
-      #selectionNode.SetReferenceSecondaryVolumeID(self.offlineVolumeRecNode.GetID())
-      #selectionNode.SetReferenceActiveVolumeID(self.offlineVolumeRecNode.GetID())
-      #applicationLogic = slicer.app.applicationLogic()
-      #applicationLogic.PropagateVolumeSelection(0)
-      #applicationLogic.FitSliceToAll()
-
-      #redLogic = slicer.app.layoutManager().sliceWidget('Red').sliceLogic()
-      #redLogic.GetSliceCompositeNode().SetBackgroundVolumeID(slicer.util.getNode('Image_Reference').GetID())
       yellowLogic = slicer.app.layoutManager().sliceWidget('Yellow').sliceLogic()
       yellowLogic.GetSliceCompositeNode().SetBackgroundVolumeID(self.offlineVolumeRecNode.GetID())
       greenLogic = slicer.app.layoutManager().sliceWidget('Green').sliceLogic()
@@ -1090,7 +1084,6 @@ class PlusRemoteWidget(ScriptedLoadableModuleWidget):
   def onScoutVolumeReconstructed(self, commandId, textNode):
     self.onGenericCommandResponseReceived(commandId,textNode)
 
-    logic = PlusRemoteLogic()
     commandResponse=textNode.GetText(0)
     commandResponseElement = vtk.vtkXMLUtilities.ReadElementFromString(commandResponse)
     scoutScanMessage = commandResponseElement.GetAttribute("Message")
@@ -1148,7 +1141,6 @@ class PlusRemoteWidget(ScriptedLoadableModuleWidget):
   def onVolumeLiveReconstructed(self, commandId, textNode):
     self.onGenericCommandResponseReceived(commandId,textNode)
 
-    logic = PlusRemoteLogic()
     commandResponse=textNode.GetText(0)
     commandResponseElement = vtk.vtkXMLUtilities.ReadElementFromString(commandResponse)
     liveReconstructMessage = commandResponseElement.GetAttribute("Message")
@@ -1337,7 +1329,12 @@ class PlusRemoteWidget(ScriptedLoadableModuleWidget):
 # PlusRemoteLogic
 #
 class PlusRemoteLogic(ScriptedLoadableModuleLogic):
-  def __init__(self):
+  def __init__(self, parent = None):
+    ScriptedLoadableModuleLogic.__init__(self, parent)
+
+    # Allow having multiple parameter nodes in the scene
+    self.isSingletonParameterNode = False
+
     self.commandToMethodHashtable = {}
     self.defaultCommandTimeoutSec = 30
     self.timerIntervalSec = 0.1
