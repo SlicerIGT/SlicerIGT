@@ -244,7 +244,9 @@ void
 qSlicerBreachWarningModuleWidget
 ::onPlaySoundClicked()
 {
-  QSound::play(":/ComputerErrorAlert.wav");
+  Q_D(qSlicerBreachWarningModuleWidget);
+  const QString presetFileName = QString::fromStdString(d->logic()->GetModuleShareDirectory()+"/alarm.wav");
+  QSound::play(presetFileName);
 }
 
 

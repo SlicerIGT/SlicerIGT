@@ -1,6 +1,5 @@
 <!DOCTYPE RCC><RCC version="1.0">
   <qresource>
     <file>Icons/BreachWarning.png</file>
-	<file>ComputerErrorAlert.wav</file>
   </qresource>
 </RCC>

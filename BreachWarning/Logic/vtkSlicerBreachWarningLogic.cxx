@@ -40,6 +40,9 @@
 #include <vtkTransform.h>
 #include <vtkTransformPolyDataFilter.h>
 
+//Qt includes
+#include <QDir>
+
 // STD includes
 #include <cassert>
 #include <sstream>
@@ -55,7 +58,8 @@ vtkStandardNewMacro(vtkSlicerBreachWarningLogic);
 vtkSlicerBreachWarningLogic
 ::vtkSlicerBreachWarningLogic()
 : LastToolState( UNDEFINED ),
-  CurrentToolState( UNDEFINED )
+  CurrentToolState( UNDEFINED ),
+  BreachSound(NULL)
 {
 }
 
@@ -99,6 +103,10 @@ void vtkSlicerBreachWarningLogic::RegisterNodes()
   }
 
   this->GetMRMLScene()->RegisterNodeClass( vtkSmartPointer< vtkMRMLBreachWarningNode >::New() );
+  if(BreachSound==NULL)
+  {
+    BreachSound=new QSound( QDir::toNativeSeparators( QString::fromStdString( GetModuleShareDirectory()+"/alarm.wav" ) ) );
+  }
 }
 
 
@@ -211,7 +219,22 @@ void
 vtkSlicerBreachWarningLogic
 ::PlaySound()
 {
-  
+  //QSound::play(":/ComputerErrorAlert.wav");
+  if ( this->CurrentToolState == INSIDE )
+  {
+    if(BreachSound->isFinished())
+    {
+      BreachSound->setLoops(2);
+      BreachSound->play();
+    }
+  }
+  if ( this->CurrentToolState == OUTSIDE )
+  {
+    //if(BreachSound->isFinished())
+    //{
+      BreachSound->stop();
+    //}
+  }
 }
 
 

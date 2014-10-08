@@ -39,6 +39,10 @@
 #include <vtkPoints.h>
 #include "vtkSmartPointer.h"
 
+//Qt includes
+#include <QSound>
+#include <QPointer>
+
 // For referencing own MRML node
 class vtkMRMLBreachWarningNode;
 
@@ -46,7 +50,6 @@ class vtkMRMLBreachWarningNode;
 class vtkMRMLMarkupsFiducialNode;
 class vtkMRMLModelNode;
 class vtkMRMLLinearTransformNode;
-
 
 // STD includes
 #include <cstdlib>
@@ -114,6 +117,7 @@ private:
   vtkMRMLBreachWarningNode* ModuleNode;
   ToolState LastToolState;
   ToolState CurrentToolState;
+  QPointer<QSound>  BreachSound; 
 };
 
 #endif
