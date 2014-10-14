@@ -86,7 +86,15 @@ public:
   double GetWarningColorComponent( int c, vtkMRMLBreachWarningNode* moduleNode );
   
   void SetOriginalColor( double red, double green, double blue, double alpha, vtkMRMLBreachWarningNode* moduleNode );
+
   double GetOriginalColorComponent( int c, vtkMRMLBreachWarningNode* moduleNode );
+
+  vtkSetMacro(PlayWarningSound, int);
+
+  vtkGetMacro(PlayWarningSound, int);
+
+  vtkBooleanMacro(PlayWarningSound, int);
+
 
   vtkSlicerMarkupsLogic* MarkupsLogic;
 
@@ -118,6 +126,10 @@ private:
   ToolState LastToolState;
   ToolState CurrentToolState;
   QPointer<QSound>  BreachSound; 
+  /// Indicates if the warning sound is to be played.
+  /// True by default.
+  /// \sa SetPlayWarningSound(), GetPlayWarningSound(), PlayWarningSoundOn(), PlayWarningSoundOff()
+  int PlayWarningSound;
 };
 
 #endif

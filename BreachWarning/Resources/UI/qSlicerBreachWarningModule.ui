@@ -18,7 +18,7 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="ctkCollapsibleButton" name="CTKCollapsibleButton">
+    <widget class="ctkCollapsibleButton" name="CTKCollapsibleButton" native="true">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
        <horstretch>0</horstretch>
@@ -31,11 +31,8 @@
        <height>130</height>
       </size>
      </property>
-     <property name="text">
+     <property name="text" stdset="0">
       <string>Display</string>
-     </property>
-     <property name="contentsFrameShape">
-      <enum>QFrame::NoFrame</enum>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_3">
       <item>
@@ -50,22 +47,22 @@
            </widget>
           </item>
           <item row="0" column="1">
-           <widget class="qMRMLNodeComboBox" name="ModelNodeComboBox">
+           <widget class="qMRMLNodeComboBox" name="ModelNodeComboBox" native="true">
             <property name="enabled">
              <bool>true</bool>
             </property>
-            <property name="nodeTypes">
+            <property name="nodeTypes" stdset="0">
              <stringlist>
               <string>vtkMRMLModelNode</string>
              </stringlist>
             </property>
-            <property name="noneEnabled">
+            <property name="noneEnabled" stdset="0">
              <bool>true</bool>
             </property>
-            <property name="addEnabled">
+            <property name="addEnabled" stdset="0">
              <bool>false</bool>
             </property>
-            <property name="removeEnabled">
+            <property name="removeEnabled" stdset="0">
              <bool>false</bool>
             </property>
            </widget>
@@ -78,22 +75,22 @@
            </widget>
           </item>
           <item row="1" column="1">
-           <widget class="qMRMLNodeComboBox" name="ToolComboBox">
+           <widget class="qMRMLNodeComboBox" name="ToolComboBox" native="true">
             <property name="enabled">
              <bool>true</bool>
             </property>
-            <property name="nodeTypes">
+            <property name="nodeTypes" stdset="0">
              <stringlist>
               <string>vtkMRMLLinearTransformNode</string>
              </stringlist>
             </property>
-            <property name="noneEnabled">
+            <property name="noneEnabled" stdset="0">
              <bool>true</bool>
             </property>
-            <property name="addEnabled">
+            <property name="addEnabled" stdset="0">
              <bool>false</bool>
             </property>
-            <property name="removeEnabled">
+            <property name="removeEnabled" stdset="0">
              <bool>false</bool>
             </property>
            </widget>
@@ -116,18 +113,18 @@
     </widget>
    </item>
    <item>
-    <widget class="ctkCollapsibleButton" name="CollapsibleButton_2">
-     <property name="text">
+    <widget class="ctkCollapsibleButton" name="CollapsibleButton_2" native="true">
+     <property name="text" stdset="0">
       <string>Sound</string>
-     </property>
-     <property name="contentsFrameShape">
-      <enum>QFrame::StyledPanel</enum>
      </property>
      <layout class="QGridLayout" name="gridLayout_3">
       <item row="0" column="0">
-       <widget class="QPushButton" name="soundPushButton">
+       <widget class="QCheckBox" name="SoundCheckBox">
         <property name="text">
          <string>Play warning sound</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
         </property>
        </widget>
       </item>
@@ -135,33 +132,30 @@
     </widget>
    </item>
    <item>
-    <widget class="ctkCollapsibleButton" name="CollapsibleButton">
-     <property name="text">
+    <widget class="ctkCollapsibleButton" name="CollapsibleButton" native="true">
+     <property name="text" stdset="0">
       <string>Advanced options</string>
      </property>
-     <property name="collapsed">
+     <property name="collapsed" stdset="0">
       <bool>true</bool>
-     </property>
-     <property name="contentsFrameShape">
-      <enum>QFrame::StyledPanel</enum>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_5">
       <item>
        <layout class="QGridLayout" name="gridLayout_2">
         <item row="0" column="1">
-         <widget class="qMRMLNodeComboBox" name="ModuleNodeComboBox">
+         <widget class="qMRMLNodeComboBox" name="ModuleNodeComboBox" native="true">
           <property name="enabled">
            <bool>true</bool>
           </property>
-          <property name="nodeTypes">
+          <property name="nodeTypes" stdset="0">
            <stringlist>
             <string>vtkMRMLBreachWarningNode</string>
            </stringlist>
           </property>
-          <property name="renameEnabled">
+          <property name="renameEnabled" stdset="0">
            <bool>true</bool>
           </property>
-          <property name="selectNodeUponCreation">
+          <property name="selectNodeUponCreation" stdset="0">
            <bool>false</bool>
           </property>
          </widget>

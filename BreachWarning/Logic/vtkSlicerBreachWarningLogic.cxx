@@ -59,7 +59,8 @@ vtkSlicerBreachWarningLogic
 ::vtkSlicerBreachWarningLogic()
 : LastToolState( UNDEFINED ),
   CurrentToolState( UNDEFINED ),
-  BreachSound(NULL)
+  BreachSound(NULL),
+  PlayWarningSound(1)
 {
 }
 
@@ -219,7 +220,6 @@ void
 vtkSlicerBreachWarningLogic
 ::PlaySound()
 {
-  //QSound::play(":/ComputerErrorAlert.wav");
   if ( this->CurrentToolState == INSIDE )
   {
     if(BreachSound->isFinished())
@@ -230,10 +230,7 @@ vtkSlicerBreachWarningLogic
   }
   if ( this->CurrentToolState == OUTSIDE )
   {
-    //if(BreachSound->isFinished())
-    //{
       BreachSound->stop();
-    //}
   }
 }
 
@@ -377,6 +374,9 @@ vtkSlicerBreachWarningLogic
   
   this->UpdateToolState( bwNode );
   this->UpdateModelColor( bwNode );
-  this->PlaySound();
+  if(PlayWarningSound==true)
+  {
+    this->PlaySound();
+  }
 }
 

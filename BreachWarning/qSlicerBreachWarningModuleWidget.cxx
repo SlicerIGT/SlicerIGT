@@ -110,7 +110,7 @@ qSlicerBreachWarningModuleWidget
   connect( d->ModelNodeComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onModelNodeChanged() ) );
   connect( d->ToolComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onToolTransformChanged() ) );
   connect( d->ColorPickerButton, SIGNAL( colorChanged( QColor ) ), this, SLOT( UpdateWarningColor( QColor ) ) );
-  connect( d->soundPushButton, SIGNAL( clicked() ), this, SLOT( onPlaySoundClicked() ) );
+  connect(d->SoundCheckBox, SIGNAL(toggled(bool)), this, SLOT(PlayWarningSound(bool)));
   
   this->UpdateFromMRMLNode();
 }
@@ -242,11 +242,10 @@ qSlicerBreachWarningModuleWidget
 
 void
 qSlicerBreachWarningModuleWidget
-::onPlaySoundClicked()
+::PlayWarningSound(bool playWarningSound)
 {
   Q_D(qSlicerBreachWarningModuleWidget);
-  const QString presetFileName = QString::fromStdString(d->logic()->GetModuleShareDirectory()+"/alarm.wav");
-  QSound::play(presetFileName);
+  d->logic()->SetPlayWarningSound(playWarningSound);
 }
 
 
