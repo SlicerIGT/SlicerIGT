@@ -53,6 +53,8 @@ public:
   
   qSlicerReslicePropertyWidget( vtkSlicerVolumeResliceDriverLogic* logic, QWidget *parent = 0);
   virtual ~qSlicerReslicePropertyWidget();
+
+  void showAdvanced( int show );
   
   
 public slots:
@@ -67,6 +69,8 @@ protected slots:
   
   void setDriverNode(vtkMRMLNode * newNode);
   void onModeChanged(int);
+  void onRotationChanged(double);
+  void onFlipChanged(int);
   void onLogicModified();
   
   

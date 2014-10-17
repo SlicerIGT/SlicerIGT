@@ -43,6 +43,7 @@ public slots:
   void onNodeAddedEvent(vtkObject* scene, vtkObject* node);
   void onNodeRemovedEvent(vtkObject* scene, vtkObject* node);
   void onLayoutChanged(int);
+  void onAdvancedCheckBoxChanged( int );
 
 protected:
   QScopedPointer<qSlicerVolumeResliceDriverModuleWidgetPrivate> d_ptr;

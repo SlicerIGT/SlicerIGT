@@ -150,6 +150,26 @@ qSlicerReslicePropertyWidget
 
 
 void qSlicerReslicePropertyWidget
+::showAdvanced( int show )
+{
+  Q_D(qSlicerReslicePropertyWidget);
+  
+  if ( show )
+  {
+    d->rotationSlider->show();
+    d->rotationLabel->show();
+    d->flipCheckBox->show();
+  }
+  else
+  {
+    d->rotationSlider->hide();
+    d->rotationLabel->hide();
+    d->flipCheckBox->hide();
+  }
+}
+
+
+void qSlicerReslicePropertyWidget
 ::setSliceViewName( const QString& newSliceViewName )
 {
   Q_D(qSlicerReslicePropertyWidget);
@@ -180,6 +200,8 @@ void qSlicerReslicePropertyWidget
   
   QObject::disconnect(d->driverNodeSelector, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(setDriverNode(vtkMRMLNode*)));
   QObject::disconnect(d->modeComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(onModeChanged(int)));
+  QObject::disconnect(d->rotationSlider, SIGNAL(valueChanged(double)), this, SLOT(onRotationChanged(double)));
+  QObject::disconnect(d->flipCheckBox, SIGNAL(stateChanged(int)), this, SLOT(onFlipChanged(int)));
   
   d->sliceNode = newSliceNode;
   
@@ -190,6 +212,8 @@ void qSlicerReslicePropertyWidget
   
   QObject::connect(d->driverNodeSelector, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(setDriverNode(vtkMRMLNode*)));
   QObject::connect(d->modeComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(onModeChanged(int)));
+  QObject::connect(d->rotationSlider, SIGNAL(valueChanged(double)), this, SLOT(onRotationChanged(double)));
+  QObject::connect(d->flipCheckBox, SIGNAL(stateChanged(int)), this, SLOT(onFlipChanged(int)));
 }
 
 
@@ -239,6 +263,27 @@ void qSlicerReslicePropertyWidget
   this->Logic->SetModeForSlice( m, d->sliceNode );
 
 }
+
+
+
+void qSlicerReslicePropertyWidget
+::onRotationChanged(double r)
+{
+  Q_D(qSlicerReslicePropertyWidget);
+
+  this->Logic->SetRotationForSlice( r, d->sliceNode );
+}
+
+
+
+void qSlicerReslicePropertyWidget
+::onFlipChanged(int f)
+{
+  Q_D(qSlicerReslicePropertyWidget);
+
+  this->Logic->SetFlipForSlice( f, d->sliceNode );
+}
+
 
 
 void qSlicerReslicePropertyWidget

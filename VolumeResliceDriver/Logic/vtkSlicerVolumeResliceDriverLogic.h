@@ -27,6 +27,8 @@ class vtkMRMLSliceNode;
 //#define VOLUMERESLICEDRIVER_METHOD_ATTRIBUTE "VolumeResliceDriver.Method"
 //#define VOLUMERESLICEDRIVER_ORIENTATION_ATTRIBUTE "VolumeResliceDriver.Orientation"
 #define VOLUMERESLICEDRIVER_MODE_ATTRIBUTE "VolumeResliceDriver.Mode"
+#define VOLUMERESLICEDRIVER_ROTATION_ATTRIBUTE "VolumeResliceDriver.Rotation"
+#define VOLUMERESLICEDRIVER_FLIP_ATTRIBUTE "VolumeResliceDriver.Flip"
 
 
 
@@ -47,13 +49,14 @@ public:
     MODE_CORONAL,
     MODE_INPLANE,
     MODE_INPLANE90,
-    MODE_TRANSVERSE,
-    MODE_TRANSVERSE180
+    MODE_TRANSVERSE
   };
 
   /// Set attributes of MRML slice nodes to define reslice driver.
   void SetDriverForSlice( std::string nodeID, vtkMRMLSliceNode* sliceNode );
   void SetModeForSlice( int mode, vtkMRMLSliceNode* sliceNode );
+  void SetRotationForSlice( double rotation, vtkMRMLSliceNode* sliceNode );
+  void SetFlipForSlice( bool flip, vtkMRMLSliceNode* sliceNode );
   
 protected:
   

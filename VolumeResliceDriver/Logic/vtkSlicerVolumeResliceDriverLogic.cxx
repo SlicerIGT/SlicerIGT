@@ -118,6 +118,38 @@ void vtkSlicerVolumeResliceDriverLogic
 
 
 void vtkSlicerVolumeResliceDriverLogic
+::SetRotationForSlice( double rotation, vtkMRMLSliceNode* sliceNode )
+{
+  if ( sliceNode == NULL )
+    {
+    return;
+    }
+  
+  std::stringstream rotationSs;
+  rotationSs << rotation;
+  sliceNode->SetAttribute( VOLUMERESLICEDRIVER_ROTATION_ATTRIBUTE, rotationSs.str().c_str() );
+
+  this->UpdateSliceIfObserved( sliceNode );
+}
+
+
+void vtkSlicerVolumeResliceDriverLogic
+::SetFlipForSlice( bool flip, vtkMRMLSliceNode* sliceNode )
+{
+  if ( sliceNode == NULL )
+    {
+    return;
+    }
+  
+  std::stringstream flipSs;
+  flipSs << flip;
+  sliceNode->SetAttribute( VOLUMERESLICEDRIVER_FLIP_ATTRIBUTE, flipSs.str().c_str() );
+
+  this->UpdateSliceIfObserved( sliceNode );
+}
+
+
+void vtkSlicerVolumeResliceDriverLogic
 ::AddObservedNode( vtkMRMLTransformableNode* node )
 {
   for ( unsigned int i = 0; i < this->ObservedNodes.size(); ++ i )
@@ -180,7 +212,7 @@ void vtkSlicerVolumeResliceDriverLogic
 {
   assert(this->GetMRMLScene() != 0);
   
-  // Check if any of the slice nodes contain driver transoforms that need to be observed.
+  // Check if any of the slice nodes contain driver transforms that need to be observed.
   
   vtkCollection* sliceNodes = this->GetMRMLScene()->GetNodesByClass( "vtkMRMLSliceNode" );
   vtkCollectionIterator* sliceIt = vtkCollectionIterator::New();
@@ -527,7 +559,13 @@ void vtkSlicerVolumeResliceDriverLogic
 void vtkSlicerVolumeResliceDriverLogic
 ::UpdateSlice( vtkMatrix4x4* driverToRASMatrix, vtkMRMLSliceNode* sliceNode )
 {
-  int mode= MODE_NONE;
+  // Default values determining the default SliceToDriver transform.
+  int mode = MODE_NONE;
+  int rotation = 0;
+  int flip = 0;
+
+
+  // Default values for SliceToDriver can be modified by driver node attributes. Read them.
 
   const char* modeCC = sliceNode->GetAttribute( VOLUMERESLICEDRIVER_MODE_ATTRIBUTE );
   if ( modeCC != NULL )
@@ -536,60 +574,102 @@ void vtkSlicerVolumeResliceDriverLogic
     modeSS >> mode;
   }
 
+  const char* rotationCC = sliceNode->GetAttribute( VOLUMERESLICEDRIVER_ROTATION_ATTRIBUTE );
+  if ( rotationCC != NULL )
+  {
+    std::stringstream rotationSS( rotationCC );
+    rotationSS >> rotation;
+  }
+
+  const char* flipCC = sliceNode->GetAttribute( VOLUMERESLICEDRIVER_FLIP_ATTRIBUTE );
+  if ( flipCC != NULL )
+  {
+    std::stringstream flipSS( flipCC );
+    flipSS >> flip;
+  }
+
+  
   float px = driverToRASMatrix->Element[0][3];
   float py = driverToRASMatrix->Element[1][3];
   float pz = driverToRASMatrix->Element[2][3];
   
-  
+
   vtkSmartPointer< vtkTransform > driverToRASTransform = vtkSmartPointer< vtkTransform >::New();
   driverToRASTransform->SetMatrix( driverToRASMatrix );
   driverToRASTransform->Update();
   
+  double driverToRasTranslationVector[ 3 ];
+  driverToRASTransform->GetPosition( driverToRasTranslationVector );
+  vtkSmartPointer< vtkTransform > driverToRasTranslation = vtkSmartPointer< vtkTransform >::New();
+  driverToRasTranslation->Identity();
+  driverToRasTranslation->Translate( driverToRasTranslationVector );
+  driverToRasTranslation->Update();
+
+  double driverToRasOrientationVector[ 4 ];
+  driverToRASTransform->GetOrientationWXYZ( driverToRasOrientationVector );
+  vtkSmartPointer< vtkTransform > driverToRasRotation = vtkSmartPointer< vtkTransform >::New();
+  driverToRasRotation->Identity();
+  driverToRasRotation->RotateWXYZ( driverToRasOrientationVector[ 0 ], driverToRasOrientationVector[ 1 ],
+    driverToRasOrientationVector[ 2 ], driverToRasOrientationVector[ 3 ] );
+  driverToRasRotation->Update();
+
   vtkSmartPointer< vtkTransform > sliceToDriverTransform = vtkSmartPointer< vtkTransform >::New();
   sliceToDriverTransform->Identity();
   
+  vtkSmartPointer< vtkTransform > sliceToRASTransform = vtkSmartPointer< vtkTransform >::New();
+  sliceToRASTransform->Identity();
+
   switch (mode)
     {
     case MODE_AXIAL:
-      sliceNode->SetOrientationToAxial();
-      sliceNode->JumpSlice(px, py, pz);
-      sliceNode->UpdateMatrices();
-      return;
+      sliceToRASTransform->Concatenate( driverToRasTranslation );
+      sliceToRASTransform->RotateZ( rotation + 180.0);
+      sliceToRASTransform->RotateX( flip * 180.0 + 180.0 );
+      sliceToRASTransform->Update();
       break;
     case MODE_SAGITTAL:
-      sliceNode->SetOrientationToSagittal();
-      sliceNode->JumpSlice(px, py, pz);
-      sliceNode->UpdateMatrices();
-      return;
+      sliceToRASTransform->Concatenate( driverToRasTranslation );
+      sliceToRASTransform->RotateX( rotation - 90.0);
+      sliceToRASTransform->RotateZ( flip * 180.0 + 180.0 );
+      sliceToRASTransform->RotateY( 90 ); // Frist, rotate to sagittal plane.
+      sliceToRASTransform->Update();
       break;
     case MODE_CORONAL:
-      sliceNode->SetOrientationToCoronal();
-      sliceNode->JumpSlice(px, py, pz);
-      sliceNode->UpdateMatrices();
-      return;
+      sliceToRASTransform->Concatenate( driverToRasTranslation );
+      sliceToRASTransform->RotateY( rotation + 180.0); // Third, rotate.
+      sliceToRASTransform->RotateX( flip * 180.0 + 180.0); // Second, flip.
+      sliceToRASTransform->RotateX( 90 ); // First, rotate to coronal plane.
+      sliceToRASTransform->Update();
       break;
     case MODE_INPLANE:
       sliceToDriverTransform->RotateX( -90 );
       sliceToDriverTransform->RotateY( 90 );
+      sliceToDriverTransform->RotateZ( rotation );
+      sliceToDriverTransform->RotateX( flip * 180.0 );
+      sliceToRASTransform->Concatenate( driverToRASTransform );
+      sliceToRASTransform->Concatenate( sliceToDriverTransform );
+      sliceToRASTransform->Update();
       break;
     case MODE_INPLANE90:
       sliceToDriverTransform->RotateX( -90 );
+      sliceToDriverTransform->RotateZ( rotation );
+      sliceToDriverTransform->RotateX( flip * 180.0 );
+      sliceToRASTransform->Concatenate( driverToRASTransform );
+      sliceToRASTransform->Concatenate( sliceToDriverTransform );
+      sliceToRASTransform->Update();
       break;
     case MODE_TRANSVERSE:
-      break;
-    case MODE_TRANSVERSE180:
-      sliceToDriverTransform->RotateZ( 180 );
+      sliceToDriverTransform->RotateZ( rotation );
+      sliceToDriverTransform->RotateX( flip * 180.0 );
+      sliceToRASTransform->Concatenate( driverToRASTransform );
+      sliceToRASTransform->Concatenate( sliceToDriverTransform );
+      sliceToRASTransform->Update();
       break;
     default: //     case MODE_NONE:
       return;
       break;
     };
   
-  vtkSmartPointer< vtkTransform > sliceToRASTransform = vtkSmartPointer< vtkTransform >::New();
-  sliceToRASTransform->Identity();
-  sliceToRASTransform->Concatenate( driverToRASTransform );
-  sliceToRASTransform->Concatenate( sliceToDriverTransform );
-  sliceToRASTransform->Update();
   
   sliceNode->SetSliceToRAS( sliceToRASTransform->GetMatrix() );
   sliceNode->UpdateMatrices();

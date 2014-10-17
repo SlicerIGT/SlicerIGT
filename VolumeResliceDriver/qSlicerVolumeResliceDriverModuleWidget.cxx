@@ -64,6 +64,7 @@ public:
 
   typedef std::map<vtkSmartPointer<vtkMRMLNode>, qSlicerReslicePropertyWidget* > WidgetMapType;
   WidgetMapType WidgetMap;
+  int showAdvanced;
 };
 
 
@@ -73,7 +74,7 @@ public:
 
 qSlicerVolumeResliceDriverModuleWidgetPrivate
 ::qSlicerVolumeResliceDriverModuleWidgetPrivate( qSlicerVolumeResliceDriverModuleWidget& object )
- : q_ptr(&object)
+ : q_ptr(&object), showAdvanced( 0 )
 {
 }
 
@@ -112,6 +113,7 @@ void qSlicerVolumeResliceDriverModuleWidgetPrivate
     QColor layoutColor = QColor::fromRgbF(sn->GetLayoutColor()[0], sn->GetLayoutColor()[1], sn->GetLayoutColor()[2]);
     widget->setSliceViewColor( layoutColor );
     widget->setLayoutBehavior( qMRMLViewControllerBar::Panel );
+    widget->showAdvanced( this->showAdvanced );
     resliceLayout->addWidget(widget);
     this->WidgetMap[n] = widget;
     
@@ -168,6 +170,8 @@ void qSlicerVolumeResliceDriverModuleWidget::setup()
   Q_D(qSlicerVolumeResliceDriverModuleWidget);
   d->setupUi(this);
   this->Superclass::setup();
+
+  connect( d->advancedCheckBox, SIGNAL( stateChanged( int ) ), this, SLOT( onAdvancedCheckBoxChanged( int ) ) );
 }
 
 
@@ -333,3 +337,16 @@ void qSlicerVolumeResliceDriverModuleWidget::onLayoutChanged(int)
     }
 }
 
+
+void qSlicerVolumeResliceDriverModuleWidget::onAdvancedCheckBoxChanged( int state )
+{
+  Q_D(qSlicerVolumeResliceDriverModuleWidget);
+
+  d->showAdvanced = state;
+
+  qSlicerVolumeResliceDriverModuleWidgetPrivate::WidgetMapType::iterator cit;
+  for (cit = d->WidgetMap.begin(); cit != d->WidgetMap.end(); ++cit)
+    {
+    (*cit).second->showAdvanced( d->showAdvanced );
+    }
+}
