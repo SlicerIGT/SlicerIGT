@@ -10,12 +10,12 @@ from slicer.ScriptedLoadableModule import *
 class FiducialsToModelRegistration(ScriptedLoadableModule):
   def __init__(self, parent):
     ScriptedLoadableModule.__init__(self, parent)
-    self.parent.title = "FiducialsToModelRegistration" # TODO make this more human readable by adding spaces
-    self.parent.categories = ["Examples"]
+    self.parent.title = "Fiducials-Model Registration" # TODO make this more human readable by adding spaces
+    self.parent.categories = ["IGT"]
     self.parent.dependencies = []
-    self.parent.contributors = ["John Doe (AnyWare Corp.)"] # replace with "Firstname Lastname (Organization)"
+    self.parent.contributors = ["Tamas Ungi (Queen's University"] # replace with "Firstname Lastname (Organization)"
     self.parent.helpText = """
-    This is an example of scripted loadable module bundled in an extension.
+    This module applies Iterative Closest Points registration from a fiducial list to a model surface.
     """
     self.parent.acknowledgementText = """
     This file was originally developed by Jean-Christophe Fillion-Robin, Kitware Inc.
@@ -104,7 +104,6 @@ class FiducialsToModelRegistrationWidget(ScriptedLoadableModuleWidget):
     self.screenshotScaleFactorSliderWidget.maximum = 50.0
     self.screenshotScaleFactorSliderWidget.value = 1.0
     self.screenshotScaleFactorSliderWidget.setToolTip("Set scale factor for the screen shots.")
-    #parametersFormLayout.addRow("Screenshot scale factor", self.screenshotScaleFactorSliderWidget)
 
     #
     # Apply Button
@@ -113,6 +112,34 @@ class FiducialsToModelRegistrationWidget(ScriptedLoadableModuleWidget):
     self.applyButton.toolTip = "Run the algorithm."
     self.applyButton.enabled = False
     parametersFormLayout.addRow(self.applyButton)
+
+    #
+    # Advanced parameters
+    #
+    advancedCollapsibleButton = ctk.ctkCollapsibleButton()
+    advancedCollapsibleButton.text = "Advanced"
+    self.layout.addWidget(advancedCollapsibleButton)
+
+    # Layout
+    advancedCollapsibleButton.collapsed = True
+    advancedFormLayout = qt.QFormLayout(advancedCollapsibleButton)
+
+    #
+    # Transform type selector
+    #
+    self.typeSelector = qt.QComboBox()
+    self.typeSelector.insertItem( 0, "Rigid" )
+    self.typeSelector.insertItem( 1, "Similarity" )
+    self.typeSelector.insertItem( 2, "Affine" )
+    advancedFormLayout.addRow("Transform type: ", self.typeSelector)
+
+    #
+    # Iteration selector
+    #
+    self.iterationSpin = qt.QSpinBox()
+    self.iterationSpin.setMaximum( 1000 )
+    self.iterationSpin.setValue( 100 )
+    advancedFormLayout.addRow("Number of iterations:", self.iterationSpin)
 
     # connections
     self.applyButton.connect('clicked(bool)', self.onApplyButton)
@@ -123,6 +150,7 @@ class FiducialsToModelRegistrationWidget(ScriptedLoadableModuleWidget):
     # Add vertical spacer
     self.layout.addStretch(1)
 
+
   def cleanup(self):
     pass
 
@@ -131,10 +159,11 @@ class FiducialsToModelRegistrationWidget(ScriptedLoadableModuleWidget):
 
   def onApplyButton(self):
     logic = FiducialsToModelRegistrationLogic()
-    enableScreenshotsFlag = self.enableScreenshotsFlagCheckBox.checked
-    screenshotScaleFactor = int(self.screenshotScaleFactorSliderWidget.value)
-    print("Run the algorithm")
-    logic.run(self.inputFiducialSelector.currentNode(), self.inputModelSelector.currentNode(), self.outputSelector.currentNode(), enableScreenshotsFlag,screenshotScaleFactor)
+    logic.run(self.inputFiducialSelector.currentNode(), \
+              self.inputModelSelector.currentNode(), \
+              self.outputSelector.currentNode(), \
+              self.typeSelector.currentIndex, \
+              self.iterationSpin.value )
 
 
 #
@@ -149,23 +178,7 @@ class FiducialsToModelRegistrationLogic(ScriptedLoadableModuleLogic):
   requiring an instance of the Widget
   """
 
-  def hasImageData(self,volumeNode):
-    """This is a dummy logic method that
-    returns true if the passed in volume
-    node has valid image data
-    """
-    if not volumeNode:
-      print('no volume node')
-      return False
-    if volumeNode.GetImageData() == None:
-      print('no image data')
-      return False
-    return True
-
-  def run(self, inputFiducials, inputModel, outputTransform, enableScreenshots=0, screenshotScaleFactor=1):
-    """
-    Run the actual algorithm
-    """
+  def run(self, inputFiducials, inputModel, outputTransform, transformType=0, numIterations=100 ):
 
     self.delayDisplay('Running the aglorithm')
 
@@ -176,15 +189,13 @@ class FiducialsToModelRegistrationLogic(ScriptedLoadableModuleLogic):
     icpTransform.SetSource( fiducialsPolyData )
     icpTransform.SetTarget( inputModel.GetPolyData() )
     icpTransform.GetLandmarkTransform().SetModeToRigidBody()
-    icpTransform.SetMaximumNumberOfIterations( 100 )
+    if transformType == 1:
+      icpTransform.GetLandmarkTransform().SetModeToSimilarity()
+    if transformType == 2:
+      icpTransform.GetLandmarkTransform().SetModeToAffine()
+    icpTransform.SetMaximumNumberOfIterations( numIterations )
     icpTransform.Modified()
     icpTransform.Update()
-
-    print 'Number of source points'
-    print fiducialsPolyData.GetNumberOfPoints()
-
-    print "The resulting transform is"
-    print icpTransform.GetMatrix()
 
     outputTransform.SetMatrixTransformToParent( icpTransform.GetMatrix() )
 
