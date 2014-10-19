@@ -1,5 +1,6 @@
 import os
 import unittest
+import math
 from __main__ import vtk, qt, ctk, slicer
 from slicer.ScriptedLoadableModule import *
 
@@ -45,6 +46,10 @@ class FiducialsToModelRegistrationWidget(ScriptedLoadableModuleWidget):
     #
     # input fiducial list selector
     #
+    fiducialWarningLabel = qt.QLabel( "Note: Parent transforms of fiducials are not used. Fiducials should be defined in the coordinate system that is being registered." )
+    fiducialWarningLabel.setWordWrap( True )
+    parametersFormLayout.addRow(fiducialWarningLabel)
+
     self.inputFiducialSelector = slicer.qMRMLNodeComboBox()
     self.inputFiducialSelector.nodeTypes = ( ("vtkMRMLMarkupsFiducialNode"), "" )
     self.inputFiducialSelector.selectNodeUponCreation = True
@@ -114,6 +119,18 @@ class FiducialsToModelRegistrationWidget(ScriptedLoadableModuleWidget):
     parametersFormLayout.addRow(self.applyButton)
 
     #
+    # Output panel
+    #
+    outputCollapsibleButton = ctk.ctkCollapsibleButton()
+    outputCollapsibleButton.text = "Output"
+    self.layout.addWidget( outputCollapsibleButton )
+    outputFormLayout = qt.QFormLayout( outputCollapsibleButton )
+
+    self.outputLine = qt.QLineEdit()
+    self.outputLine.setReadOnly( True )
+    outputFormLayout.addRow( "Mean distance after registration:", self.outputLine )
+
+    #
     # Advanced parameters
     #
     advancedCollapsibleButton = ctk.ctkCollapsibleButton()
@@ -159,12 +176,14 @@ class FiducialsToModelRegistrationWidget(ScriptedLoadableModuleWidget):
 
   def onApplyButton(self):
     logic = FiducialsToModelRegistrationLogic()
-    logic.run(self.inputFiducialSelector.currentNode(), \
-              self.inputModelSelector.currentNode(), \
-              self.outputSelector.currentNode(), \
-              self.typeSelector.currentIndex, \
-              self.iterationSpin.value )
 
+    inputFiducials = self.inputFiducialSelector.currentNode()
+    inputModel = self.inputModelSelector.currentNode()
+    outputTransform = self.outputSelector.currentNode()
+
+    logic.run(inputFiducials, inputModel, outputTransform, self.typeSelector.currentIndex, self.iterationSpin.value )
+
+    self.outputLine.setText( logic.ComputeMeanDistance(inputFiducials, inputModel, outputTransform) )
 
 #
 # FiducialsToModelRegistrationLogic
@@ -180,7 +199,7 @@ class FiducialsToModelRegistrationLogic(ScriptedLoadableModuleLogic):
 
   def run(self, inputFiducials, inputModel, outputTransform, transformType=0, numIterations=100 ):
 
-    self.delayDisplay('Running the aglorithm')
+    self.delayDisplay('Running iterative closest point registration')
 
     fiducialsPolyData = vtk.vtkPolyData()
     self.FiducialsToPolyData(inputFiducials, fiducialsPolyData)
@@ -200,6 +219,33 @@ class FiducialsToModelRegistrationLogic(ScriptedLoadableModuleLogic):
     outputTransform.SetMatrixTransformToParent( icpTransform.GetMatrix() )
 
     return True
+
+
+  def ComputeMeanDistance(self, inputFiducials, inputModel, transform ):
+    surfacePoints = vtk.vtkPoints()
+    cellId = vtk.mutable(0)
+    subId = vtk.mutable(0)
+    dist2 = vtk.mutable(0.0)
+    locator = vtk.vtkCellLocator()
+    locator.SetDataSet( inputModel.GetPolyData() )
+    locator.SetNumberOfCellsPerBucket( 1 )
+    locator.BuildLocator()
+    totalDistance = 0.0
+
+    n = inputFiducials.GetNumberOfFiducials()
+    m = vtk.vtkMath()
+    for fiducialIndex in range( 0, n ):
+      originalPoint = [0, 0, 0]
+      inputFiducials.GetNthFiducialPosition( fiducialIndex, originalPoint )
+      transformedPoint = [0, 0, 0]
+      transform.GetTransformToParent().TransformVector( originalPoint, transformedPoint )
+      #transformedPoints.InsertNextPoint( transformedPoint )
+      surfacePoint = [0, 0, 0]
+      locator.FindClosestPoint( transformedPoint, surfacePoint, cellId, subId, dist2 )
+      totalDistance = totalDistance + math.sqrt( m.Distance2BetweenPoints( transformedPoint, surfacePoint ) )
+
+    return ( totalDistance / n )
+
 
   def FiducialsToPolyData(self, fiducials, polyData):
 
