@@ -237,12 +237,15 @@ class FiducialsToModelRegistrationLogic(ScriptedLoadableModuleLogic):
     for fiducialIndex in range( 0, n ):
       originalPoint = [0, 0, 0]
       inputFiducials.GetNthFiducialPosition( fiducialIndex, originalPoint )
-      transformedPoint = [0, 0, 0]
-      transform.GetTransformToParent().TransformVector( originalPoint, transformedPoint )
+      transformedPoint = [0, 0, 0, 1]
+      #transform.GetTransformToParent().TransformVector( originalPoint, transformedPoint )
+      originalPoint.append(1)
+      transform.GetTransformToParent().MultiplyPoint( originalPoint, transformedPoint )      
       #transformedPoints.InsertNextPoint( transformedPoint )
       surfacePoint = [0, 0, 0]
+      transformedPoint.pop()
       locator.FindClosestPoint( transformedPoint, surfacePoint, cellId, subId, dist2 )
-      totalDistance = totalDistance + math.sqrt( m.Distance2BetweenPoints( transformedPoint, surfacePoint ) )
+      totalDistance = totalDistance + math.sqrt(dist2)
 
     return ( totalDistance / n )
 
