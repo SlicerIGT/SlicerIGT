@@ -53,6 +53,7 @@ protected slots:
   void PostProcessMarkupsWidgets();
 
   void onRecordButtonClicked();
+  void onUpdateButtonClicked();
 
 protected:
   QScopedPointer<qSlicerFiducialRegistrationWizardModuleWidgetPrivate> d_ptr;

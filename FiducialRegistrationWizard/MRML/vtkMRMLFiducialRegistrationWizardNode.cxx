@@ -63,6 +63,7 @@ vtkMRMLFiducialRegistrationWizardNode
   this->AddNodeReferenceRole( TO_FIDUCIAL_LIST_REFERENCE_ROLE );
   this->AddNodeReferenceRole( OUTPUT_TRANSFORM_REFERENCE_ROLE );
   this->RegistrationMode = "Rigid";
+  this->UpdateMode = "Automatic";
 
   this->Modified();
 }
@@ -104,6 +105,7 @@ void vtkMRMLFiducialRegistrationWizardNode
   vtkIndent indent(nIndent);
   
   of << indent << " RegistrationMode=\"" << this->RegistrationMode << "\"";
+  of << indent << " UpdateMode=\"" << this->UpdateMode << "\"";
 }
 
 
@@ -125,6 +127,10 @@ void vtkMRMLFiducialRegistrationWizardNode::ReadXMLAttributes( const char** atts
     {
       this->RegistrationMode = std::string( attValue );
     }
+    if ( ! strcmp( attName, "UpdateMode" ) )
+    {
+      this->UpdateMode = std::string( attValue );
+    }
 
   }
 
@@ -145,6 +151,7 @@ void vtkMRMLFiducialRegistrationWizardNode
   // Note: It seems that the WriteXML function copies the node then writes the copied node to file
   // So, anything we want in the MRML file we must copy here (I don't think we need to copy other things)
   this->RegistrationMode = node->RegistrationMode;
+  this->UpdateMode = node->UpdateMode;
   this->Modified();
 }
 
@@ -155,6 +162,7 @@ void vtkMRMLFiducialRegistrationWizardNode
 {
   vtkMRMLNode::PrintSelf(os,indent); // This will take care of referenced nodes
   os << indent << "RegistrationMode: " << this->RegistrationMode << "\n";
+  os << indent << "UpdateMode: " << this->UpdateMode << "\n";
 }
 
 
@@ -280,6 +288,27 @@ void vtkMRMLFiducialRegistrationWizardNode
     this->RegistrationMode = newRegistrationMode;
   }
   if ( this->GetRegistrationMode() != newRegistrationMode && modifyType == DefaultModify || modifyType == AlwaysModify ) 
+  {
+    this->Modified();
+  }
+}
+
+
+std::string vtkMRMLFiducialRegistrationWizardNode
+::GetUpdateMode()
+{
+  return this->UpdateMode;
+}
+
+
+void vtkMRMLFiducialRegistrationWizardNode
+::SetUpdateMode( std::string newUpdateMode, int modifyType )
+{
+  if ( this->GetUpdateMode() != newUpdateMode )
+  {
+    this->UpdateMode = newUpdateMode;
+  }
+  if ( this->GetUpdateMode() != newUpdateMode && modifyType == DefaultModify || modifyType == AlwaysModify ) 
   {
     this->Modified();
   }

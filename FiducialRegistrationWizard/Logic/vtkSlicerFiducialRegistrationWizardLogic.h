@@ -69,6 +69,8 @@ public:
 
   void ProcessMRMLNodesEvents( vtkObject* caller, unsigned long event, void* callData );
   void ProcessMRMLSceneEvents( vtkObject* caller, unsigned long event, void* callData );
+
+  void CalculateTransform( vtkMRMLNode* node );
   
   std::string GetOutputMessage( std::string nodeID );
   
@@ -87,7 +89,6 @@ private:
   vtkSlicerFiducialRegistrationWizardLogic(const vtkSlicerFiducialRegistrationWizardLogic&); // Not implemented
   void operator=(const vtkSlicerFiducialRegistrationWizardLogic&);               // Not implemented
 
-  void CalculateTransform( vtkMRMLNode* node );
   double CalculateRegistrationError( vtkPoints* fromPoints, vtkPoints* toPoints, vtkLinearTransform* transform );
   bool CheckCollinear( vtkPoints* points );
 

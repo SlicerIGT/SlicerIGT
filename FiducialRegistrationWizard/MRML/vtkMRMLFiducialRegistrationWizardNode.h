@@ -72,12 +72,14 @@ public:
   void SetToFiducialListID( std::string newToFiducialListID, int modifyType = DefaultModify );
   void SetOutputTransformID( std::string newOutputTransformID, int modifyType = DefaultModify );
   void SetRegistrationMode( std::string newRegistrationMode, int modifyType = DefaultModify );
+  void SetUpdateMode( std::string newUpdateMode, int modifyType = DefaultModify );
 
   std::string GetProbeTransformID();
   std::string GetFromFiducialListID();
   std::string GetToFiducialListID();
   std::string GetOutputTransformID();
   std::string GetRegistrationMode();
+  std::string GetUpdateMode();
 
   std::string GetNodeReferenceIDString( std::string referenceRole );
 
@@ -87,6 +89,7 @@ public:
 
 private:
   std::string RegistrationMode;
+  std::string UpdateMode;
 
 };  
 

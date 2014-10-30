@@ -177,7 +177,7 @@ void vtkSlicerFiducialRegistrationWizardLogic
   vtkMRMLFiducialRegistrationWizardNode* fiducialRegistrationWizardNode = vtkMRMLFiducialRegistrationWizardNode::SafeDownCast( node );
   if ( fiducialRegistrationWizardNode == NULL )
   {
-    this->SetOutputMessage( fiducialRegistrationWizardNode->GetID(), "Failed to find module node." ); // Note: This should never happen
+    this->SetOutputMessage( fiducialRegistrationWizardNode->GetID(), "Failed to find module node." ); // Note: This should only happen if the user clicks the button
     return;
   }
 
@@ -351,7 +351,7 @@ void vtkSlicerFiducialRegistrationWizardLogic
 {
   vtkMRMLFiducialRegistrationWizardNode* callerNode = vtkMRMLFiducialRegistrationWizardNode::SafeDownCast( caller );
   // The caller must be a vtkMRMLFiducialRegistrationWizardNode
-  if ( callerNode != NULL )
+  if ( callerNode != NULL && strcmp( callerNode->GetUpdateMode().c_str(), "Automatic" ) == 0 )
   {
     this->CalculateTransform( callerNode ); // Will create modified event to update widget
   }
@@ -372,7 +372,10 @@ void vtkSlicerFiducialRegistrationWizardLogic
     fiducialRegistrationWizardNode->AddObserver( vtkCommand::ModifiedEvent, ( vtkCommand* ) this->GetMRMLNodesCallbackCommand() );
     fiducialRegistrationWizardNode->UpdateScene( this->GetMRMLScene() );
     fiducialRegistrationWizardNode->ObserveAllReferenceNodes(); // This will update
-    this->CalculateTransform( fiducialRegistrationWizardNode ); // Will create modified event to update widget
+    if ( strcmp( fiducialRegistrationWizardNode->GetUpdateMode().c_str(), "Automatic" ) == 0 )
+    {
+      this->CalculateTransform( fiducialRegistrationWizardNode ); // Will create modified event to update widget
+    }
   }
 
 }

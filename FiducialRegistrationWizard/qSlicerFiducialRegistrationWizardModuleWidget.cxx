@@ -96,6 +96,17 @@ void qSlicerFiducialRegistrationWizardModuleWidget
 }
 
 
+void qSlicerFiducialRegistrationWizardModuleWidget
+::onUpdateButtonClicked()
+{
+  Q_D( qSlicerFiducialRegistrationWizardModuleWidget );
+  
+  vtkMRMLFiducialRegistrationWizardNode* fiducialRegistrationWizardNode = vtkMRMLFiducialRegistrationWizardNode::SafeDownCast( d->ModuleNodeComboBox->currentNode() );
+  d->logic()->CalculateTransform( fiducialRegistrationWizardNode );
+}
+
+
+
 std::string qSlicerFiducialRegistrationWizardModuleWidget
 ::GetCorrespondingFiducialString()
 {
@@ -173,6 +184,7 @@ void qSlicerFiducialRegistrationWizardModuleWidget
 
   // These connections will do work (after being updated from the node)
   connect( d->RecordButton, SIGNAL( clicked() ), this, SLOT( onRecordButtonClicked() ) );
+  connect( d->UpdateButton, SIGNAL( clicked() ), this, SLOT( onUpdateButtonClicked() ) );
 
   // Watch the logic - it is updated whenver the mrml node is updated
   this->qvtkConnect( d->logic(), vtkCommand::ModifiedEvent, this, SLOT( UpdateFromMRMLNode() ) );
@@ -191,6 +203,7 @@ void qSlicerFiducialRegistrationWizardModuleWidget
   connect( d->OutputTransformComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( UpdateToMRMLNode() ) );
   connect( d->RigidRadioButton, SIGNAL( toggled( bool ) ), this, SLOT( UpdateToMRMLNode() ) );
   connect( d->SimilarityRadioButton, SIGNAL( toggled( bool ) ), this, SLOT( UpdateToMRMLNode() ) );
+  connect( d->AutoUpdateCheckBox, SIGNAL( toggled( bool ) ), this, SLOT( UpdateToMRMLNode() ) );
 
   connect( d->FromMarkupsWidget, SIGNAL( markupsFiducialNodeChanged() ), this, SLOT( UpdateToMRMLNode() ) );
   connect( d->FromMarkupsWidget, SIGNAL( markupsFiducialActivated() ), this, SLOT( UpdateToMRMLNode() ) );
@@ -213,6 +226,7 @@ void qSlicerFiducialRegistrationWizardModuleWidget
   disconnect( d->OutputTransformComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( UpdateToMRMLNode() ) );
   disconnect( d->RigidRadioButton, SIGNAL( toggled( bool ) ), this, SLOT( UpdateToMRMLNode() ) );
   disconnect( d->SimilarityRadioButton, SIGNAL( toggled( bool ) ), this, SLOT( UpdateToMRMLNode() ) );
+  disconnect( d->AutoUpdateCheckBox, SIGNAL( toggled( bool ) ), this, SLOT( UpdateToMRMLNode() ) );
 
   disconnect( d->FromMarkupsWidget, SIGNAL( markupsFiducialNodeChanged() ), this, SLOT( UpdateToMRMLNode() ) );
   disconnect( d->FromMarkupsWidget, SIGNAL( markupsFiducialActivated() ), this, SLOT( UpdateToMRMLNode() ) );
@@ -321,6 +335,15 @@ void qSlicerFiducialRegistrationWizardModuleWidget
     fiducialRegistrationWizardNode->SetRegistrationMode( "Rigid", vtkMRMLFiducialRegistrationWizardNode::NeverModify );
   }
 
+  if ( d->AutoUpdateCheckBox->isChecked() )
+  {
+    fiducialRegistrationWizardNode->SetUpdateMode( "Automatic", vtkMRMLFiducialRegistrationWizardNode::NeverModify );
+  }
+  else
+  {
+    fiducialRegistrationWizardNode->SetUpdateMode( "Manual", vtkMRMLFiducialRegistrationWizardNode::NeverModify );
+  }
+
   this->qvtkBlockAll( false );
 
   // The modified event will be blocked... Now allow it to happen
@@ -369,6 +392,15 @@ void qSlicerFiducialRegistrationWizardModuleWidget
   {
     d->RigidRadioButton->setChecked( Qt::Checked );
     d->SimilarityRadioButton->setChecked( Qt::Unchecked );
+  }
+
+  if ( fiducialRegistrationWizardNode->GetUpdateMode().compare( "Automatic" ) == 0 )
+  {
+    d->AutoUpdateCheckBox->setChecked( Qt::Checked );
+  }
+  else
+  {
+    d->AutoUpdateCheckBox->setChecked( Qt::Unchecked );
   }
 
   // Unblock all singals from firing
