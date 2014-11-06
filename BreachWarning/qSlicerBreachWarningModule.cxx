@@ -74,7 +74,7 @@ qSlicerBreachWarningModule::~qSlicerBreachWarningModule()
 //-----------------------------------------------------------------------------
 QString qSlicerBreachWarningModule::helpText()const
 {
-  return "For help on how to use this module visit: <a href='https://www.assembla.com/spaces/slicerigt'>SlicerIGT</a>";
+  return "For help on how to use this module visit: <a href='http://www.slicerigt.org/'>SlicerIGT</a>";
 }
 
 //-----------------------------------------------------------------------------

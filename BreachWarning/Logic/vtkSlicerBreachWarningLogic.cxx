@@ -104,6 +104,7 @@ void vtkSlicerBreachWarningLogic::RegisterNodes()
   }
 
   this->GetMRMLScene()->RegisterNodeClass( vtkSmartPointer< vtkMRMLBreachWarningNode >::New() );
+
   if(BreachSound==NULL)
   {
     BreachSound=new QSound( QDir::toNativeSeparators( QString::fromStdString( GetModuleShareDirectory()+"/alarm.wav" ) ) );
