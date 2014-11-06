@@ -270,7 +270,6 @@ vtkMRMLBreachWarningNode
 }
 
 
-
 double
 vtkMRMLBreachWarningNode
 ::GetOriginalColorComponent( int c )
@@ -285,6 +284,23 @@ vtkMRMLBreachWarningNode
     return 0.0;
   }
 }
+
+
+void
+vtkMRMLBreachWarningNode
+::SetDisplayWarningColor(int displayWarningColor )
+{
+  this->DisplayWarningColor = displayWarningColor;
+}
+
+
+int
+vtkMRMLBreachWarningNode
+::GetDisplayWarningColor()
+{
+  return this->DisplayWarningColor;
+}
+
 
 
 

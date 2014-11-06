@@ -111,6 +111,7 @@ qSlicerBreachWarningModuleWidget
   connect( d->ToolComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onToolTransformChanged() ) );
   connect( d->ColorPickerButton, SIGNAL( colorChanged( QColor ) ), this, SLOT( UpdateWarningColor( QColor ) ) );
   connect(d->SoundCheckBox, SIGNAL(toggled(bool)), this, SLOT(PlayWarningSound(bool)));
+  connect(d->colorCheckBox, SIGNAL(toggled(bool)), this, SLOT(DisplayWarningColor(bool)));
   
   this->UpdateFromMRMLNode();
 }
@@ -248,6 +249,21 @@ qSlicerBreachWarningModuleWidget
   d->logic()->SetPlayWarningSound(playWarningSound);
 }
 
+
+
+void
+qSlicerBreachWarningModuleWidget
+::DisplayWarningColor(bool displayWarningColor)
+{
+  Q_D(qSlicerBreachWarningModuleWidget);
+  vtkMRMLBreachWarningNode* moduleNode = vtkMRMLBreachWarningNode::SafeDownCast( d->ModuleNodeComboBox->currentNode() );
+  if ( moduleNode == NULL )
+  {
+    qCritical( "Transform node should not be changed when no module node selected" );
+    return;
+  }
+  d->logic()->SetDisplayWarningColor(displayWarningColor, moduleNode);
+}
 
 
 void

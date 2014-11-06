@@ -51,6 +51,7 @@ protected slots:
   void onModelNodeChanged();
   void onToolTransformChanged();
   void PlayWarningSound(bool warningSound);
+  void DisplayWarningColor(bool displayWarningColor);
   void UpdateWarningColor( QColor newColor );
   void UpdateFromMRMLNode();
 

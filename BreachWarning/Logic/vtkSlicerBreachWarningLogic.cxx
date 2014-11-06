@@ -197,7 +197,16 @@ vtkSlicerBreachWarningLogic
   }
   
   vtkMRMLModelNode* modelNode = bwNode->GetWatchedModelNode();
-  
+ 
+  if(bwNode->GetDisplayWarningColor()==0)
+  {
+    double r = bwNode->GetOriginalColorComponent( 0 );
+    double g = bwNode->GetOriginalColorComponent( 1 );
+    double b = bwNode->GetOriginalColorComponent( 2 );
+    modelNode->GetDisplayNode()->SetColor( r, g, b );
+    return;
+  }
+
   if ( this->CurrentToolState == INSIDE )
   {
     double r = bwNode->GetWarningColorComponent( 0 );
@@ -338,7 +347,7 @@ void
 vtkSlicerBreachWarningLogic
 ::SetOriginalColor( double red, double green, double blue, double alpha, vtkMRMLBreachWarningNode* moduleNode )
 {
-  ModuleNode->SetOriginalColor( red, green, blue, alpha );
+  moduleNode->SetOriginalColor( red, green, blue, alpha );
 }
 
 
@@ -355,7 +364,20 @@ vtkSlicerBreachWarningLogic
   return moduleNode->GetOriginalColorComponent( c );
 }
 
+void 
+vtkSlicerBreachWarningLogic
+::SetDisplayWarningColor(int displayWarningColor, vtkMRMLBreachWarningNode* moduleNode )
+{
+  moduleNode->SetDisplayWarningColor(displayWarningColor);
+  this->UpdateModelColor( moduleNode );
+}
 
+int 
+vtkSlicerBreachWarningLogic
+::GetDisplayWarningColor( vtkMRMLBreachWarningNode* moduleNode )
+{
+  return moduleNode->GetDisplayWarningColor();
+}
 
 void
 vtkSlicerBreachWarningLogic

@@ -46,7 +46,6 @@
 // For referencing own MRML node
 class vtkMRMLBreachWarningNode;
 
-
 class vtkMRMLMarkupsFiducialNode;
 class vtkMRMLModelNode;
 class vtkMRMLLinearTransformNode;
@@ -55,8 +54,6 @@ class vtkMRMLLinearTransformNode;
 #include <cstdlib>
 
 #include "vtkSlicerBreachWarningModuleLogicExport.h"
-
-
 
 
 /// \ingroup Slicer_QtModules_BreachWarning
@@ -86,15 +83,14 @@ public:
   double GetWarningColorComponent( int c, vtkMRMLBreachWarningNode* moduleNode );
   
   void SetOriginalColor( double red, double green, double blue, double alpha, vtkMRMLBreachWarningNode* moduleNode );
-
   double GetOriginalColorComponent( int c, vtkMRMLBreachWarningNode* moduleNode );
 
+  void SetDisplayWarningColor(int displayWarningColor, vtkMRMLBreachWarningNode* moduleNode);
+  int GetDisplayWarningColor( vtkMRMLBreachWarningNode* moduleNode );
+
   vtkSetMacro(PlayWarningSound, int);
-
   vtkGetMacro(PlayWarningSound, int);
-
   vtkBooleanMacro(PlayWarningSound, int);
-
 
   vtkSlicerMarkupsLogic* MarkupsLogic;
 
@@ -115,7 +111,6 @@ protected:
   void UpdateModelColor( vtkMRMLBreachWarningNode* bwNode );
   void PlaySound();
 
-
 private:
   vtkSlicerBreachWarningLogic(const vtkSlicerBreachWarningLogic&); // Not implemented
   void operator=(const vtkSlicerBreachWarningLogic&);               // Not implemented
@@ -126,6 +121,7 @@ private:
   ToolState LastToolState;
   ToolState CurrentToolState;
   QPointer<QSound>  BreachSound; 
+
   /// Indicates if the warning sound is to be played.
   /// True by default.
   /// \sa SetPlayWarningSound(), GetPlayWarningSound(), PlayWarningSoundOn(), PlayWarningSoundOff()

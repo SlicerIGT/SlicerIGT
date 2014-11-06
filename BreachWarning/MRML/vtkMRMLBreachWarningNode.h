@@ -73,6 +73,9 @@ public:
   void SetOriginalColor( double r, double g, double b, double a );
   double GetOriginalColorComponent( int c );
 
+  void SetDisplayWarningColor(int displayWarningColor );
+  int GetDisplayWarningColor();
+
   // Watched model defines the risk area that needs to be avoided.
 
   vtkMRMLModelNode* GetWatchedModelNode();
@@ -94,6 +97,7 @@ private:
   double WarningColor[ 4 ];
   double OriginalColor[ 4 ];
   bool ToolInsideModel;
+  int DisplayWarningColor;
 
 };  
 

@@ -109,6 +109,16 @@
         </item>
        </layout>
       </item>
+      <item>
+       <widget class="QCheckBox" name="colorCheckBox">
+        <property name="text">
+         <string>Display warning color</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
      </layout>
     </widget>
    </item>
