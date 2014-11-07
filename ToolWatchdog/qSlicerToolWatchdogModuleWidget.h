@@ -40,11 +40,21 @@ public:
 
 public slots:
 
+  virtual void setMRMLScene( vtkMRMLScene* scene );
+  void onSceneImportedEvent();
+
+protected slots:
+
+  void onModuleNodeChanged();
+
+  void onToolTransformChanged();
+  void UpdateFromMRMLNode();
 
 protected:
   QScopedPointer<qSlicerToolWatchdogModuleWidgetPrivate> d_ptr;
 
   virtual void setup();
+  virtual void enter();
 
 private:
   Q_DECLARE_PRIVATE(qSlicerToolWatchdogModuleWidget);

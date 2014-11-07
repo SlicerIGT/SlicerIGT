@@ -28,6 +28,17 @@
 #include "vtkSlicerModuleLogic.h"
 
 // MRML includes
+#include "vtkMRML.h"
+#include "vtkMRMLNode.h"
+#include "vtkMRMLScene.h"
+#include <vtkLandmarkTransform.h>
+#include "vtkSmartPointer.h"
+
+// For referencing own MRML node
+class vtkMRMLToolWatchdogNode;
+
+
+class vtkMRMLLinearTransformNode;
 
 // STD includes
 #include <cstdlib>
@@ -45,6 +56,10 @@ public:
   vtkTypeMacro(vtkSlicerToolWatchdogLogic, vtkSlicerModuleLogic);
   void PrintSelf(ostream& os, vtkIndent indent);
 
+  void SetObservedTransformNode( vtkMRMLLinearTransformNode* newTransform, vtkMRMLToolWatchdogNode* moduleNode );
+
+  void ProcessMRMLNodesEvents( vtkObject* caller, unsigned long event, void* callData );
+
 protected:
   vtkSlicerToolWatchdogLogic();
   virtual ~vtkSlicerToolWatchdogLogic();
@@ -55,6 +70,7 @@ protected:
   virtual void UpdateFromMRMLScene();
   virtual void OnMRMLSceneNodeAdded(vtkMRMLNode* node);
   virtual void OnMRMLSceneNodeRemoved(vtkMRMLNode* node);
+
 private:
 
   vtkSlicerToolWatchdogLogic(const vtkSlicerToolWatchdogLogic&); // Not implemented
