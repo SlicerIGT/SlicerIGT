@@ -22,7 +22,6 @@
 #include "vtkMRMLBreachWarningNode.h"
 #include "vtkMRMLLinearTransformNode.h"
 #include "vtkMRMLMarkupsDisplayNode.h"
-//#include "vtkMRMLDisplayableNode.h"
 #include "vtkMRMLModelNode.h"
 #include "vtkMRMLScene.h"
 
