@@ -45,7 +45,6 @@ set(MODULE_UI_SRCS
 set(MODULE_TARGET_LIBRARIES
   vtkSlicer${MODULE_NAME}ModuleMRML
   vtkSlicer${MODULE_NAME}ModuleLogic
-  vtkSlicerMarkupsModuleMRML
   )
 
 set(MODULE_RESOURCES

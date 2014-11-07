@@ -21,7 +21,8 @@
 // MRML includes
 #include "vtkMRMLBreachWarningNode.h"
 #include "vtkMRMLLinearTransformNode.h"
-#include "vtkMRMLMarkupsFiducialNode.h"
+#include "vtkMRMLMarkupsDisplayNode.h"
+//#include "vtkMRMLDisplayableNode.h"
 #include "vtkMRMLModelNode.h"
 #include "vtkMRMLScene.h"
 
@@ -397,7 +398,7 @@ vtkSlicerBreachWarningLogic
   
   this->UpdateToolState( bwNode );
   this->UpdateModelColor( bwNode );
-  if(PlayWarningSound==true)
+  if(PlayWarningSound==1)
   {
     this->PlaySound();
   }

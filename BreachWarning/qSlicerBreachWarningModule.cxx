@@ -63,7 +63,7 @@ QStringList qSlicerBreachWarningModule::categories()const
 //-----------------------------------------------------------------------------
 QStringList qSlicerBreachWarningModule::dependencies() const
 {
-  return QStringList() << "Markups";
+  return QStringList();
 }
 
 //-----------------------------------------------------------------------------
@@ -103,14 +103,6 @@ QIcon qSlicerBreachWarningModule::icon()const
 void qSlicerBreachWarningModule::setup()
 {
   this->Superclass::setup();
-
-  vtkSlicerBreachWarningLogic* BreachWarningLogic = vtkSlicerBreachWarningLogic::SafeDownCast( this->logic() );
-  qSlicerAbstractCoreModule* MarkupsModule = qSlicerCoreApplication::application()->moduleManager()->module("Markups");
-
-  if ( MarkupsModule )
-  {
-    BreachWarningLogic->MarkupsLogic = vtkSlicerMarkupsLogic::SafeDownCast( MarkupsModule->logic() );
-  }
 }
 
 //-----------------------------------------------------------------------------

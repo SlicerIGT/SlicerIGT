@@ -28,13 +28,11 @@
 
 // Slicer includes
 #include "vtkSlicerModuleLogic.h"
-#include "vtkSlicerMarkupsLogic.h"
 
 // MRML includes
 #include "vtkMRML.h"
 #include "vtkMRMLNode.h"
 #include "vtkMRMLScene.h"
-#include <vtkMRMLMarkupsFiducialNode.h>
 #include <vtkLandmarkTransform.h>
 #include <vtkPoints.h>
 #include "vtkSmartPointer.h"
@@ -46,7 +44,6 @@
 // For referencing own MRML node
 class vtkMRMLBreachWarningNode;
 
-class vtkMRMLMarkupsFiducialNode;
 class vtkMRMLModelNode;
 class vtkMRMLLinearTransformNode;
 
@@ -91,8 +88,6 @@ public:
   vtkSetMacro(PlayWarningSound, int);
   vtkGetMacro(PlayWarningSound, int);
   vtkBooleanMacro(PlayWarningSound, int);
-
-  vtkSlicerMarkupsLogic* MarkupsLogic;
 
   void ProcessMRMLNodesEvents( vtkObject* caller, unsigned long event, void* callData );
   
