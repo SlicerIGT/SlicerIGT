@@ -169,5 +169,21 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>qSlicerToolWatchdogModuleWidget</sender>
+   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+   <receiver>ToolComboBox</receiver>
+   <slot>setMRMLScene(vtkMRMLScene*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>316</x>
+     <y>3</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>322</x>
+     <y>75</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
 </ui>

@@ -77,6 +77,40 @@ void vtkSlicerToolWatchdogLogic::RegisterNodes()
 
 }
 
+
+
+void vtkSlicerToolWatchdogLogic::UpdateToolState( vtkMRMLToolWatchdogNode* toolWatchdogNode )
+{
+  if ( toolWatchdogNode == NULL )
+  {
+    return;
+  }
+
+  vtkMRMLLinearTransformNode* toolToRasNode = toolWatchdogNode->GetToolTransformNode();
+
+  if ( toolToRasNode == NULL )
+  {
+    return;
+  }
+
+
+  //vtkSmartPointer< vtkMatrix4x4 > ToolToRASMatrix = vtkSmartPointer< vtkMatrix4x4 >::New();
+  //toolToRasNode->GetMatrixTransformToWorld( ToolToRASMatrix );
+  unsigned long timeStamp = toolToRasNode->GetTransformToWorldMTime();
+toolWatchdogNode->SetLastTimeStamp(timeStamp);
+vtkWarningMacro("Time stamp"<<timeStamp);
+
+
+
+  //double Origin[ 4 ] = { 0.0, 0.0, 0.0, 1.0 };
+  //double P0[ 4 ] = { 0.0, 0.0, 0.0, 1.0 };
+
+  //ToolToRASMatrix->MultiplyPoint( Origin, P0 );
+
+
+}
+
+
 //---------------------------------------------------------------------------
 void vtkSlicerToolWatchdogLogic::UpdateFromMRMLScene()
 {
@@ -142,15 +176,15 @@ vtkSlicerToolWatchdogLogic
     return;
   }
 
-  vtkMRMLToolWatchdogNode* bwNode = vtkMRMLToolWatchdogNode::SafeDownCast( callerNode );
-  if ( bwNode == NULL )
+  vtkMRMLToolWatchdogNode* toolWatchdogNode = vtkMRMLToolWatchdogNode::SafeDownCast( callerNode );
+  if ( toolWatchdogNode == NULL )
   {
     return;
   }
 
   UpdateFromMRMLScene();
-  //this->UpdateToolState( bwNode );
-  //this->UpdateModelColor( bwNode );
+  this->UpdateToolState( toolWatchdogNode );
+  //this->UpdateModelColor( toolWatchdogNode );
   //if(PlayWarningSound==true)
   //{
   //  this->PlaySound();
