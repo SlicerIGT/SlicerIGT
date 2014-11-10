@@ -23,6 +23,7 @@
 
 #include "qSlicerToolWatchdogModuleExport.h"
 
+class QTimer;
 class qSlicerToolWatchdogModuleWidgetPrivate;
 class vtkMRMLNode;
 
@@ -49,6 +50,7 @@ protected slots:
 
   void onToolTransformChanged();
   void UpdateFromMRMLNode();
+  void OnTimeout();
 
 protected:
   QScopedPointer<qSlicerToolWatchdogModuleWidgetPrivate> d_ptr;
@@ -59,6 +61,9 @@ protected:
 private:
   Q_DECLARE_PRIVATE(qSlicerToolWatchdogModuleWidget);
   Q_DISABLE_COPY(qSlicerToolWatchdogModuleWidget);
+
+  QTimer* Timer;
+
 };
 
 #endif

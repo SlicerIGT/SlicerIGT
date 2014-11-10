@@ -17,6 +17,7 @@ limitations under the License.
 
 // Qt includes
 #include <QDebug>
+#include <QTimer>
 
 // SlicerQt includes
 #include "qSlicerToolWatchdogModuleWidget.h"
@@ -38,8 +39,6 @@ protected:
 public:
   qSlicerToolWatchdogModuleWidgetPrivate( qSlicerToolWatchdogModuleWidget& object );
   vtkSlicerToolWatchdogLogic* logic() const;
-
-  bool ModuleWindowInitialized;
 };
 
 //-----------------------------------------------------------------------------
@@ -48,7 +47,6 @@ public:
 //-----------------------------------------------------------------------------
 qSlicerToolWatchdogModuleWidgetPrivate::qSlicerToolWatchdogModuleWidgetPrivate( qSlicerToolWatchdogModuleWidget& object )
 : q_ptr( &object )
-, ModuleWindowInitialized( false )
 {
 }
 
@@ -68,11 +66,13 @@ qSlicerToolWatchdogModuleWidget::qSlicerToolWatchdogModuleWidget(QWidget* _paren
 : Superclass( _parent )
 , d_ptr( new qSlicerToolWatchdogModuleWidgetPrivate ( *this ) )
 {
+  this->Timer = new QTimer( this );
 }
 
 //-----------------------------------------------------------------------------
 qSlicerToolWatchdogModuleWidget::~qSlicerToolWatchdogModuleWidget()
 {
+    this->Timer->stop();
 }
 
 //-----------------------------------------------------------------------------
@@ -86,8 +86,10 @@ void qSlicerToolWatchdogModuleWidget::setup()
   this->setMRMLScene( d->logic()->GetMRMLScene() );
 
   connect( d->ModuleNodeComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onModuleNodeChanged() ) );
-
   connect( d->ToolComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onToolTransformChanged() ) );
+
+  connect( this->Timer, SIGNAL( timeout() ), this, SLOT( OnTimeout() ) );
+
 
   this->UpdateFromMRMLNode();
 }
@@ -186,6 +188,7 @@ void qSlicerToolWatchdogModuleWidget::onToolTransformChanged()
   else
   {
     d->logic()->SetObservedTransformNode( vtkMRMLLinearTransformNode::SafeDownCast( currentNode ), moduleNode );
+    this->Timer->start( 1000 );
   }
 }
 
@@ -204,8 +207,8 @@ qSlicerToolWatchdogModuleWidget
     return;
   }
 
-  vtkMRMLToolWatchdogNode* bwNode = vtkMRMLToolWatchdogNode::SafeDownCast( currentNode );
-  if ( bwNode == NULL )
+  vtkMRMLToolWatchdogNode* toolWatchdogNode = vtkMRMLToolWatchdogNode::SafeDownCast( currentNode );
+  if ( toolWatchdogNode == NULL )
   {
     qCritical( "Selected node not a valid module node" );
     return;
@@ -213,13 +216,67 @@ qSlicerToolWatchdogModuleWidget
 
   d->ToolComboBox->setEnabled( true );
 
-  if ( bwNode->GetToolTransformNode() != NULL )
+  if ( toolWatchdogNode->GetToolTransformNode() != NULL )
   {
-    d->ToolComboBox->setCurrentNodeID( QString::fromStdString( bwNode->GetToolTransformNode()->GetID() ) );
+    d->ToolComboBox->setCurrentNodeID( QString::fromStdString( toolWatchdogNode->GetToolTransformNode()->GetID() ) );
   }
   else
   {
     d->ToolComboBox->setCurrentNodeID( "" );
   }
 
+  if ( toolWatchdogNode->GetTransformStatus() == 0 )
+  {
+    QPalette p = d->label_6->palette();
+    p.setColor(QPalette::Background, Qt::red);
+    d->label_6->setPalette(p);
+  }
+  else
+  {
+    QPalette p = d->label_6->palette();
+    p.setColor(QPalette::Background, Qt::blue);
+    d->label_6->setPalette(p);
+  }
+
 }
+
+
+void qSlicerToolWatchdogModuleWidget
+::OnTimeout()
+{
+Q_D( qSlicerToolWatchdogModuleWidget );
+
+vtkMRMLNode* currentNode = d->ModuleNodeComboBox->currentNode();
+if ( currentNode == NULL )
+{
+  d->ToolComboBox->setCurrentNodeID( "" );
+  d->ToolComboBox->setEnabled( false );
+  return;
+}
+
+vtkMRMLToolWatchdogNode* toolWatchdogNode = vtkMRMLToolWatchdogNode::SafeDownCast( currentNode );
+if ( toolWatchdogNode == NULL )
+{
+  qCritical( "Selected node not a valid module node" );
+  return;
+}
+
+d->logic()->UpdateToolState( toolWatchdogNode );
+
+if ( toolWatchdogNode->GetTransformStatus() == 0 )
+{
+  QPalette p = d->label_6->palette();
+  p.setColor(QPalette::Background, Qt::red);
+  d->label_6->setPalette(p);
+}
+else
+{
+  QPalette p = d->label_6->palette();
+  p.setColor(QPalette::Background, Qt::blue);
+  d->label_6->setPalette(p);
+}
+
+
+
+}
+

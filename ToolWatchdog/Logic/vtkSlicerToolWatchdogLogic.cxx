@@ -87,18 +87,28 @@ void vtkSlicerToolWatchdogLogic::UpdateToolState( vtkMRMLToolWatchdogNode* toolW
   }
 
   vtkMRMLLinearTransformNode* toolToRasNode = toolWatchdogNode->GetToolTransformNode();
-
   if ( toolToRasNode == NULL )
   {
     return;
   }
 
-
   //vtkSmartPointer< vtkMatrix4x4 > ToolToRASMatrix = vtkSmartPointer< vtkMatrix4x4 >::New();
   //toolToRasNode->GetMatrixTransformToWorld( ToolToRASMatrix );
   unsigned long timeStamp = toolToRasNode->GetTransformToWorldMTime();
-toolWatchdogNode->SetLastTimeStamp(timeStamp);
-vtkWarningMacro("Time stamp"<<timeStamp);
+
+  if(timeStamp==toolWatchdogNode->GetLastTimeStamp())
+  {
+    toolWatchdogNode->SetTransformStatus(OUT_OF_DATE);
+    vtkWarningMacro("Time stamp is out of date"<<timeStamp);
+  }
+  else
+  {
+    toolWatchdogNode->SetTransformStatus(UP_TO_DATE);
+    toolWatchdogNode->SetLastTimeStamp(timeStamp);
+  }
+
+
+
 
 
 
@@ -183,7 +193,7 @@ vtkSlicerToolWatchdogLogic
   }
 
   UpdateFromMRMLScene();
-  this->UpdateToolState( toolWatchdogNode );
+  //this->UpdateToolState( toolWatchdogNode );
   //this->UpdateModelColor( toolWatchdogNode );
   //if(PlayWarningSound==true)
   //{

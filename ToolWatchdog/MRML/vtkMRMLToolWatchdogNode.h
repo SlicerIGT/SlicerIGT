@@ -66,6 +66,9 @@ public:
     vtkGetMacro( LastTimeStamp, unsigned long );
     vtkSetMacro( LastTimeStamp, unsigned long );
 
+    vtkGetMacro( TransformStatus, int);
+    vtkSetMacro( TransformStatus, int );
+
   // Tool transform is interpreted as ToolTip-to-RAS. The origin of ToolTip 
   // coordinate system is the tip of the surgical tool that needs to avoid the
   // risk area.
@@ -78,6 +81,7 @@ public:
 
 private:
   unsigned long LastTimeStamp;
+  int TransformStatus;
 
 };  
 
