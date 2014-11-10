@@ -23,6 +23,7 @@ set( SlicerIGT_Modules
   CollectFiducials
   CreateModels
   FiducialRegistrationWizard
+  FiducialsToModelRegistration
   OpenIGTLinkRemote
   PathExplorer
   PivotCalibration
