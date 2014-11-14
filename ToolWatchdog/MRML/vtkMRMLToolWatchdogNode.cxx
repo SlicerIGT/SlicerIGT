@@ -131,13 +131,13 @@ vtkMRMLToolWatchdogNode
 {
   vtkMRMLNode::PrintSelf(os,indent); // This will take care of referenced nodes
 
-  os << indent << "ToolTipTransformID: " << this->GetToolTransformNode()->GetID() << std::endl;
+  os << indent << "ToolTipTransformID: " << this->GetTransformNode()->GetID() << std::endl;
 }
 
 
 vtkMRMLLinearTransformNode*
 vtkMRMLToolWatchdogNode
-::GetToolTransformNode()
+::GetTransformNode()
 {
   vtkMRMLLinearTransformNode* ltNode = vtkMRMLLinearTransformNode::SafeDownCast( this->GetNodeReference( TOOL_ROLE ) );
   return ltNode;
@@ -164,7 +164,7 @@ vtkMRMLToolWatchdogNode
   vtkMRMLNode* callerNode = vtkMRMLNode::SafeDownCast( caller );
   if ( callerNode == NULL ) return;
 
-  const char* ObservedTransformNodeId = this->GetToolTransformNode()->GetID();
+  const char* ObservedTransformNodeId = this->GetTransformNode()->GetID();
   if ( strcmp( ObservedTransformNodeId, callerNode->GetID() ) == 0 )
   {
     this->Modified(); // This will tell the logic to update

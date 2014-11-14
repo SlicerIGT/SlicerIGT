@@ -86,7 +86,7 @@ void vtkSlicerToolWatchdogLogic::UpdateToolState( vtkMRMLToolWatchdogNode* toolW
     return;
   }
 
-  vtkMRMLLinearTransformNode* toolToRasNode = toolWatchdogNode->GetToolTransformNode();
+  vtkMRMLLinearTransformNode* toolToRasNode = toolWatchdogNode->GetTransformNode();
   if ( toolToRasNode == NULL )
   {
     return;

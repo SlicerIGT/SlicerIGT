@@ -73,7 +73,7 @@ public:
   // coordinate system is the tip of the surgical tool that needs to avoid the
   // risk area.
 
-  vtkMRMLLinearTransformNode* GetToolTransformNode();
+  vtkMRMLLinearTransformNode* GetTransformNode();
   void SetAndObserveToolTransformNodeId( const char* nodeId );
 
   

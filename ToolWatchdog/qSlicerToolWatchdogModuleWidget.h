@@ -23,9 +23,13 @@
 
 #include "qSlicerToolWatchdogModuleExport.h"
 
+
+
 class QTimer;
 class qSlicerToolWatchdogModuleWidgetPrivate;
 class vtkMRMLNode;
+//class QHash;
+ #include <QHash>
 
 /// \ingroup Slicer_QtModules_ExtensionTemplate
 class Q_SLICER_QTMODULES_TOOLWATCHDOG_EXPORT qSlicerToolWatchdogModuleWidget :
@@ -39,6 +43,8 @@ public:
   qSlicerToolWatchdogModuleWidget(QWidget *parent=0);
   virtual ~qSlicerToolWatchdogModuleWidget();
 
+  void SetCurrentNode( vtkMRMLNode* currentNode );
+
 public slots:
 
   virtual void setMRMLScene( vtkMRMLScene* scene );
@@ -48,9 +54,16 @@ protected slots:
 
   void onModuleNodeChanged();
 
-  void onToolTransformChanged();
+  void onTransformChanged();
   void UpdateFromMRMLNode();
   void OnTimeout();
+
+  void onDeleteButtonClicked();
+  void onTransformNodeAdded( );
+  void onTransformsTableContextMenu(const QPoint& position);
+  void updateWidget();
+  //void onTransformsEdited( int row, int column );
+
 
 protected:
   QScopedPointer<qSlicerToolWatchdogModuleWidgetPrivate> d_ptr;
@@ -63,6 +76,9 @@ private:
   Q_DISABLE_COPY(qSlicerToolWatchdogModuleWidget);
 
   QTimer* Timer;
+
+  QHash<QString, int> * TransformRowNumberHash;
+
 
 };
 

@@ -166,7 +166,7 @@ class ToolWatchdogSelfTestTest(ScriptedLoadableModuleTest):
     transform = slicer.vtkMRMLLinearTransformNode()
     transform.SetName(slicer.mrmlScene.GenerateUniqueName("ToolTipToRAS"))
     slicer.mrmlScene.AddNode(transform)
-    watchdogToolNodeCombobox = slicer.util.findChildren(widget=watchdogWidget, name='ToolComboBox')[0]  
+    watchdogToolNodeCombobox = slicer.util.findChildren(widget=watchdogWidget, name='TransformComboBox')[0]  
     watchdogToolNodeCombobox.setCurrentNodeID(transform.GetID())
     print(  watchdogToolNodeCombobox.nodeTypes )
 
