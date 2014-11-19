@@ -88,6 +88,7 @@ class FiducialsToModelRegistrationWidget(ScriptedLoadableModuleWidget):
     self.outputSelector.noneEnabled = False
     self.outputSelector.showHidden = False
     self.outputSelector.showChildNodeTypes = False
+    self.outputSelector.renameEnabled = True
     self.outputSelector.setMRMLScene( slicer.mrmlScene )
     self.outputSelector.setToolTip( "Pick the output to the algorithm." )
     parametersFormLayout.addRow("Output transform: ", self.outputSelector)
