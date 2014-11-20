@@ -68,6 +68,7 @@ protected slots:
 protected:
   QScopedPointer<qSlicerToolWatchdogModuleWidgetPrivate> d_ptr;
 
+  void updateTable();
   virtual void setup();
   virtual void enter();
 

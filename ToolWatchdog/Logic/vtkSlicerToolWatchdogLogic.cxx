@@ -65,19 +65,22 @@ void vtkSlicerToolWatchdogLogic::SetMRMLSceneInternal(vtkMRMLScene * newScene)
 void vtkSlicerToolWatchdogLogic::RegisterNodes()
 {
   assert(this->GetMRMLScene() != 0);
-
   if( ! this->GetMRMLScene() )
   {
     vtkWarningMacro( "MRML scene not yet created" );
     return;
   }
-
   this->GetMRMLScene()->RegisterNodeClass( vtkSmartPointer< vtkMRMLToolWatchdogNode >::New() );
-
-
 }
 
-
+void vtkSlicerToolWatchdogLogic::AddTransformNode( vtkMRMLToolWatchdogNode* toolWatchdogNode, vtkMRMLNode *mrmlNode)
+{
+  if ( toolWatchdogNode == NULL )
+  {
+    return;
+  }
+  toolWatchdogNode->addTransformNode(mrmlNode);
+}
 
 void vtkSlicerToolWatchdogLogic::UpdateToolState( vtkMRMLToolWatchdogNode* toolWatchdogNode )
 {
@@ -85,39 +88,27 @@ void vtkSlicerToolWatchdogLogic::UpdateToolState( vtkMRMLToolWatchdogNode* toolW
   {
     return;
   }
+  std::vector<WatchedTransform> * toolToRasVectorPtr = toolWatchdogNode->GetTransformNodes();
 
-  vtkMRMLLinearTransformNode* toolToRasNode = toolWatchdogNode->GetTransformNode();
-  if ( toolToRasNode == NULL )
+  if ( toolToRasVectorPtr==NULL )
   {
     return;
   }
-
-  //vtkSmartPointer< vtkMatrix4x4 > ToolToRASMatrix = vtkSmartPointer< vtkMatrix4x4 >::New();
-  //toolToRasNode->GetMatrixTransformToWorld( ToolToRASMatrix );
-  unsigned long timeStamp = toolToRasNode->GetTransformToWorldMTime();
-
-  if(timeStamp==toolWatchdogNode->GetLastTimeStamp())
-  {
-    toolWatchdogNode->SetTransformStatus(OUT_OF_DATE);
-    vtkWarningMacro("Time stamp is out of date"<<timeStamp);
-  }
-  else
-  {
-    toolWatchdogNode->SetTransformStatus(UP_TO_DATE);
-    toolWatchdogNode->SetLastTimeStamp(timeStamp);
-  }
-
-
-
-
-
-
-  //double Origin[ 4 ] = { 0.0, 0.0, 0.0, 1.0 };
-  //double P0[ 4 ] = { 0.0, 0.0, 0.0, 1.0 };
-
-  //ToolToRASMatrix->MultiplyPoint( Origin, P0 );
-
-
+  
+   for (std::vector<WatchedTransform>::iterator it = toolToRasVectorPtr->begin() ; it != toolToRasVectorPtr->end(); ++it)
+   {
+     unsigned long timeStamp = (*it).transform->GetTransformToWorldMTime();
+     if(timeStamp ==(*it).LastTimeStamp )
+     {
+       (*it).status=OUT_OF_DATE;
+       vtkWarningMacro("Time stamp is out of date"<<timeStamp);
+     }
+     else
+     {
+       (*it).status=UP_TO_DATE;
+       (*it).LastTimeStamp=timeStamp;
+     }
+   }
 }
 
 

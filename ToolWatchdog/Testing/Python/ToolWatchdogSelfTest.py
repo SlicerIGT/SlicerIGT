@@ -162,18 +162,28 @@ class ToolWatchdogSelfTestTest(ScriptedLoadableModuleTest):
     mainWindow.moduleSelector().selectModule('ToolWatchdog')
     watchdogWidget = slicer.modules.toolwatchdog.widgetRepresentation()
 
-    # Create transform node, add it to the scene and set it in the toolComboBox
-    transform = slicer.vtkMRMLLinearTransformNode()
-    transform.SetName(slicer.mrmlScene.GenerateUniqueName("ToolTipToRAS"))
-    slicer.mrmlScene.AddNode(transform)
+    i=0
+    transforms=[]
     watchdogToolNodeCombobox = slicer.util.findChildren(widget=watchdogWidget, name='TransformComboBox')[0]  
-    watchdogToolNodeCombobox.setCurrentNodeID(transform.GetID())
-    print(  watchdogToolNodeCombobox.nodeTypes )
+    watchdogToolAddTransformButton = slicer.util.findChildren(widget=watchdogWidget, name='AddTransformButton')[0]
 
+    while i<3:
+        # Create transform node, add it to the scene and set it in the toolComboBox
+        transformName = "Tool_"+str(i)
+        transforms.append(slicer.vtkMRMLLinearTransformNode())
+        transforms[i].SetName(slicer.mrmlScene.GenerateUniqueName(transformName))
+        slicer.mrmlScene.AddNode(transforms[i])
+        watchdogToolNodeCombobox.setCurrentNodeID(transforms[i].GetID())
+        watchdogToolAddTransformButton.click()
+        i=i+1
+
+    self.delayDisplay('Wait...',1100)
+    print(  watchdogToolNodeCombobox.nodeTypes )
+    
     #add several transform put them on the tool watchdog list
 
     #verify if the tool watchdog incitator is updateing according to the transform update
-    n=100
+    n=50
     b=0
     while b<2:
         b=b+1
@@ -181,14 +191,14 @@ class ToolWatchdogSelfTestTest(ScriptedLoadableModuleTest):
         while a < n:
             a=a+2
             toParent = vtk.vtkMatrix4x4()
-            transform.GetMatrixTransformToParent(toParent)
+            transforms[b].GetMatrixTransformToParent(toParent)
             toParent.SetElement(0 ,3, a)
-            transform.SetMatrixTransformToParent(toParent)
-            if a>=50:
-                if a==60:
-                    self.delayDisplay('Transform should be up tp date until watchdog time',6000)
-                self.delayDisplay('Transform should be up tp date',100)
+            transforms[b].SetMatrixTransformToParent(toParent)
+            if a>=n/2:
+                if a==(n/2+10):
+                    self.delayDisplay('Tool_'+str(b)+' should be up to date until watchdog time',6000)
+                self.delayDisplay('Tool_'+str(b)+ 'should be up to date',100)
         self.delayDisplay('wait...',1100)
-        self.delayDisplay('Transform should be out of date',5000)
+        self.delayDisplay('Tools should be out of date',5000)
 
     self.delayDisplay('Test passed!')
