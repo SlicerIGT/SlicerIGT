@@ -23,13 +23,11 @@
 
 #include "qSlicerToolWatchdogModuleExport.h"
 
-
+#include <QHash>
 
 class QTimer;
 class qSlicerToolWatchdogModuleWidgetPrivate;
 class vtkMRMLNode;
-//class QHash;
- #include <QHash>
 
 /// \ingroup Slicer_QtModules_ExtensionTemplate
 class Q_SLICER_QTMODULES_TOOLWATCHDOG_EXPORT qSlicerToolWatchdogModuleWidget :

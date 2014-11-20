@@ -160,6 +160,26 @@ vtkMRMLToolWatchdogNode
   WatchedTransfroms.push_back(tempWatchTransform);
 }
 
+
+void 
+vtkMRMLToolWatchdogNode
+::RemoveTransform(QString transformName)
+{
+  int index=0;
+  for (std::vector<WatchedTransform>::iterator it = WatchedTransfroms.begin() ; it != WatchedTransfroms.end(); ++it)
+  {
+    QString transName((*it).transform->GetName());
+    if(transName.compare(transformName)==0)
+    {
+      it = WatchedTransfroms.begin();
+      WatchedTransfroms.erase(it+index);
+      break;
+    }
+    index++;
+  }
+}
+
+
 void
 vtkMRMLToolWatchdogNode
 ::SetAndObserveToolTransformNodeId( const char* nodeId )

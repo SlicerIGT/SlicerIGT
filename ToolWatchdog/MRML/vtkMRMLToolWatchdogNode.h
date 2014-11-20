@@ -29,7 +29,10 @@
 // ToolWatchdog includes
 #include "vtkSlicerToolWatchdogModuleMRMLExport.h"
 
+#include <QString>
+
 class vtkMRMLLinearTransformNode;
+
 struct WatchedTransform{
   vtkMRMLLinearTransformNode* transform;
   int status;
@@ -63,6 +66,8 @@ public:
   virtual void ReadXMLAttributes( const char** atts );
   virtual void WriteXML( ostream& of, int indent );
   virtual void Copy( vtkMRMLNode *node );
+
+
   
 protected:
 
@@ -82,6 +87,7 @@ public:
   vtkMRMLLinearTransformNode* GetTransformNode();
   std::vector<WatchedTransform>* GetTransformNodes();
   void addTransformNode( vtkMRMLNode *mrmlNode);
+  void RemoveTransform(QString transformName);
   void SetAndObserveToolTransformNodeId( const char* nodeId );
   
   void ProcessMRMLEvents( vtkObject *caller, unsigned long event, void *callData );

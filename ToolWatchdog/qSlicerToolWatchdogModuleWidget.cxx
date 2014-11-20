@@ -108,7 +108,7 @@ void qSlicerToolWatchdogModuleWidget::setup()
   connect( this->Timer, SIGNAL( timeout() ), this, SLOT( OnTimeout() ) );
 
   d->TransformsTableWidget->setContextMenuPolicy( Qt::CustomContextMenu );
-  connect( d->TransformsTableWidget, SIGNAL( customContextMenuRequested(const QPoint&) ), this, SLOT( onMarkupsFiducialTableContextMenu(const QPoint&) ) );
+  connect( d->TransformsTableWidget, SIGNAL( customContextMenuRequested(const QPoint&) ), this, SLOT( onTransformsTableContextMenu(const QPoint&) ) );
   connect( d->TransformsTableWidget, SIGNAL( cellChanged( int, int ) ), this, SLOT( onMarkupsFiducialEdited( int, int ) ) );
   this->UpdateFromMRMLNode();
 }
@@ -306,7 +306,6 @@ void  qSlicerToolWatchdogModuleWidget
     d->TransformComboBox->setEnabled( false );
     return;
   }
-
   vtkMRMLToolWatchdogNode* toolWatchdogNode = vtkMRMLToolWatchdogNode::SafeDownCast( currentNode );
 
   if ( toolWatchdogNode == NULL )
@@ -425,9 +424,19 @@ void qSlicerToolWatchdogModuleWidget
   QAction* selectedAction = trasnformsMenu->exec( globalPosition );
 
   int currentTrasform = d->TransformsTableWidget->currentRow();
-  vtkMRMLTransformNode* currentNode = vtkMRMLTransformNode::SafeDownCast( d->TransformComboBox->currentNode() );
-
+  //vtkMRMLTransformNode* currentNode = vtkMRMLTransformNode::SafeDownCast( d->TransformComboBox->currentNode() );
+  vtkMRMLNode* currentNode = d->ModuleNodeComboBox->currentNode();
   if ( currentNode == NULL )
+  {
+    d->TransformComboBox->setCurrentNodeID( "" );
+    d->TransformComboBox->setEnabled( false );
+    return;
+  }
+  vtkMRMLToolWatchdogNode* toolWatchdogNode = vtkMRMLToolWatchdogNode::SafeDownCast( currentNode );
+
+
+
+  if ( toolWatchdogNode == NULL )
   {
     return;
   }
@@ -435,7 +444,7 @@ void qSlicerToolWatchdogModuleWidget
   //// Only do this for non-null node
   //if ( selectedAction == activateAction )
   //{
-  //  this->MarkupsLogic->SetActiveListID( currentNode ); // If there are other widgets, they are responsible for updating themselves
+  //  this->MarkupsLogic->SetActiveListID( toolWatchdogNode ); // If there are other widgets, they are responsible for updating themselves
   //  emit markupsFiducialNodeChanged();
   //}
 
@@ -451,11 +460,14 @@ void qSlicerToolWatchdogModuleWidget
         deleteFiducials.push_back( i );
       }
     }
-    ////Traversing this way should be more efficient and correct
-    //for ( int i = deleteFiducials.size() - 1; i >= 0; i-- )
-    //{
-    //  currentNode->RemoveMarkup( deleteFiducials.at( i ) );
-    //}
+    //Traversing this way should be more efficient and correct
+    QString transformKey;
+    for ( int i = deleteFiducials.size() - 1; i >= 0; i-- )
+    {
+      transformKey=TransformRowNumberHash->key(deleteFiducials.at( i ));
+      toolWatchdogNode->RemoveTransform( transformKey );
+      TransformRowNumberHash->remove(transformKey);
+    }
   }
 
 
@@ -463,15 +475,15 @@ void qSlicerToolWatchdogModuleWidget
   {
     if ( currentTrasform > 0 )
     {
-      //currentNode->SwapMarkups( currentTrasform, currentTrasform - 1 );
+      //toolWatchdogNode->SwapMarkups( currentTrasform, currentTrasform - 1 );
     }
   }
 
   if ( selectedAction == downAction )
   {
-    //if ( currentTrasform < currentNode->GetNumberOfFiducials() - 1 )
+    //if ( currentTrasform < toolWatchdogNode->GetNumberOfFiducials() - 1 )
     //{
-    //  currentNode->SwapMarkups( currentTrasform, currentTrasform + 1 );
+    //  toolWatchdogNode->SwapMarkups( currentTrasform, currentTrasform + 1 );
     //}
   }
 
