@@ -165,8 +165,8 @@ void
 vtkMRMLToolWatchdogNode
 ::RemoveTransform(int row)
 {
-std::list<WatchedTransform>::iterator it = WatchedTransfroms.begin();
-advance (it,row);
+  std::list<WatchedTransform>::iterator it = WatchedTransfroms.begin();
+  advance (it,row);
   WatchedTransfroms.erase(it);
 
   //int index=0;
@@ -182,6 +182,31 @@ advance (it,row);
   //  index++;
   //}
 }
+
+void 
+vtkMRMLToolWatchdogNode
+::SwapMarkups( int trasformA, int trasformB )
+{
+  std::list<WatchedTransform>::iterator itA = WatchedTransfroms.begin();
+  advance (itA,trasformA);
+  std::list<WatchedTransform>::iterator itB = WatchedTransfroms.begin();
+  advance (itB,trasformB);
+
+  WatchedTransform transformTemp;
+  transformTemp.status=itA->status;
+  transformTemp.transform=itA->transform;
+  transformTemp.LastTimeStamp=itA->LastTimeStamp;
+
+  itA->status=itB->status;
+  itA->transform=itB->transform;
+  itA->LastTimeStamp=itB->LastTimeStamp;
+
+  itB->status=transformTemp.status;
+  itB->transform=transformTemp.transform;
+  itB->LastTimeStamp=transformTemp.LastTimeStamp;
+}
+
+
 
 bool 
 vtkMRMLToolWatchdogNode

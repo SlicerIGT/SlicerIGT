@@ -469,16 +469,16 @@ void qSlicerToolWatchdogModuleWidget
   {
     if ( currentTrasform > 0 )
     {
-      //toolWatchdogNode->SwapMarkups( currentTrasform, currentTrasform - 1 );
+      toolWatchdogNode->SwapMarkups( currentTrasform, currentTrasform - 1 );
     }
   }
 
   if ( selectedAction == downAction )
   {
-    //if ( currentTrasform < toolWatchdogNode->GetNumberOfFiducials() - 1 )
-    //{
-    //  toolWatchdogNode->SwapMarkups( currentTrasform, currentTrasform + 1 );
-    //}
+    if ( currentTrasform < toolWatchdogNode->GetNumberOfTransforms()- 1 )
+    {
+      toolWatchdogNode->SwapMarkups( currentTrasform, currentTrasform + 1 );
+    }
   }
 
   if ( selectedAction == jumpAction )

@@ -88,6 +88,7 @@ public:
   std::list<WatchedTransform>* GetTransformNodes();
   void AddTransformNode( vtkMRMLNode *mrmlNode);
   void RemoveTransform(int row);
+  void SwapMarkups( int trasformA, int trasformB );
   void SetAndObserveToolTransformNodeId( const char* nodeId );
 
   bool HasTransform(char * transformName);
