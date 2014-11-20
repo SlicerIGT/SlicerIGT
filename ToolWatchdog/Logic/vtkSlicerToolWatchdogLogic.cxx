@@ -79,7 +79,7 @@ void vtkSlicerToolWatchdogLogic::AddTransformNode( vtkMRMLToolWatchdogNode* tool
   {
     return;
   }
-  toolWatchdogNode->addTransformNode(mrmlNode);
+  toolWatchdogNode->AddTransformNode(mrmlNode);
 }
 
 void vtkSlicerToolWatchdogLogic::UpdateToolState( vtkMRMLToolWatchdogNode* toolWatchdogNode )
@@ -88,27 +88,27 @@ void vtkSlicerToolWatchdogLogic::UpdateToolState( vtkMRMLToolWatchdogNode* toolW
   {
     return;
   }
-  std::vector<WatchedTransform> * toolToRasVectorPtr = toolWatchdogNode->GetTransformNodes();
+  std::list<WatchedTransform> * toolToRasVectorPtr = toolWatchdogNode->GetTransformNodes();
 
   if ( toolToRasVectorPtr==NULL )
   {
     return;
   }
-  
-   for (std::vector<WatchedTransform>::iterator it = toolToRasVectorPtr->begin() ; it != toolToRasVectorPtr->end(); ++it)
-   {
-     unsigned long timeStamp = (*it).transform->GetTransformToWorldMTime();
-     if(timeStamp ==(*it).LastTimeStamp )
-     {
-       (*it).status=OUT_OF_DATE;
-       vtkWarningMacro("Time stamp is out of date"<<timeStamp);
-     }
-     else
-     {
-       (*it).status=UP_TO_DATE;
-       (*it).LastTimeStamp=timeStamp;
-     }
-   }
+
+  for (std::list<WatchedTransform>::iterator it = toolToRasVectorPtr->begin() ; it != toolToRasVectorPtr->end(); ++it)
+  {
+    unsigned long timeStamp = (*it).transform->GetTransformToWorldMTime();
+    if(timeStamp ==(*it).LastTimeStamp )
+    {
+      (*it).status=OUT_OF_DATE;
+      vtkWarningMacro("Time stamp is out of date"<<timeStamp);
+    }
+    else
+    {
+      (*it).status=UP_TO_DATE;
+      (*it).LastTimeStamp=timeStamp;
+    }
+  }
 }
 
 

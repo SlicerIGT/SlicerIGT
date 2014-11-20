@@ -18,7 +18,7 @@
 #include <ctime>
 #include <iostream>
 #include <utility>
-#include <vector>
+#include <list>
 
 #include "vtkMRMLNode.h"
 #include "vtkMRMLScene.h"
@@ -85,15 +85,18 @@ public:
   // risk area.
 
   vtkMRMLLinearTransformNode* GetTransformNode();
-  std::vector<WatchedTransform>* GetTransformNodes();
-  void addTransformNode( vtkMRMLNode *mrmlNode);
-  void RemoveTransform(QString transformName);
+  std::list<WatchedTransform>* GetTransformNodes();
+  void AddTransformNode( vtkMRMLNode *mrmlNode);
+  void RemoveTransform(int row);
   void SetAndObserveToolTransformNodeId( const char* nodeId );
+
+  bool HasTransform(char * transformName);
+  int GetNumberOfTransforms();
   
   void ProcessMRMLEvents( vtkObject *caller, unsigned long event, void *callData );
 
 private:
-  std::vector< WatchedTransform > WatchedTransfroms;
+  std::list< WatchedTransform > WatchedTransfroms;
 
 
 };  

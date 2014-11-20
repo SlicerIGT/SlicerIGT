@@ -144,7 +144,7 @@ vtkMRMLToolWatchdogNode
 }
 
 
-std::vector<WatchedTransform> * 
+std::list<WatchedTransform> * 
 vtkMRMLToolWatchdogNode
 ::GetTransformNodes()
 {
@@ -153,7 +153,7 @@ vtkMRMLToolWatchdogNode
 
 void
 vtkMRMLToolWatchdogNode
-::addTransformNode( vtkMRMLNode *mrmlNode)
+::AddTransformNode( vtkMRMLNode *mrmlNode)
 {
   WatchedTransform tempWatchTransform;
   tempWatchTransform.transform=vtkMRMLLinearTransformNode::SafeDownCast(mrmlNode);
@@ -163,22 +163,48 @@ vtkMRMLToolWatchdogNode
 
 void 
 vtkMRMLToolWatchdogNode
-::RemoveTransform(QString transformName)
+::RemoveTransform(int row)
 {
-  int index=0;
-  for (std::vector<WatchedTransform>::iterator it = WatchedTransfroms.begin() ; it != WatchedTransfroms.end(); ++it)
-  {
-    QString transName((*it).transform->GetName());
-    if(transName.compare(transformName)==0)
-    {
-      it = WatchedTransfroms.begin();
-      WatchedTransfroms.erase(it+index);
-      break;
-    }
-    index++;
-  }
+std::list<WatchedTransform>::iterator it = WatchedTransfroms.begin();
+advance (it,row);
+  WatchedTransfroms.erase(it);
+
+  //int index=0;
+  //for (std::list<WatchedTransform>::iterator it = WatchedTransfroms.begin() ; it != WatchedTransfroms.end(); ++it)
+  //{
+  //  QString transName((*it).transform->GetName());
+  //  if(transName.compare(transformName)==0)
+  //  {
+  //    it = WatchedTransfroms.begin();
+  //    WatchedTransfroms.erase(it+index);
+  //    break;
+  //  }
+  //  index++;
+  //}
 }
 
+bool 
+vtkMRMLToolWatchdogNode
+::HasTransform(char * transformName)
+{
+  //QString transName(transformName);
+  for (std::list<WatchedTransform>::iterator it = WatchedTransfroms.begin() ; it != WatchedTransfroms.end(); ++it)
+  {
+    QString transNameTemp((*it).transform->GetName());
+    if(transNameTemp.compare(transformName)==0)
+    {
+      return true;
+    }
+  }
+  return false;
+}
+
+int 
+vtkMRMLToolWatchdogNode
+::GetNumberOfTransforms()
+{
+  return WatchedTransfroms.size();
+}
 
 void
 vtkMRMLToolWatchdogNode

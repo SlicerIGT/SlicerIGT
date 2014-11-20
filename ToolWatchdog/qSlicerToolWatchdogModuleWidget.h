@@ -23,8 +23,6 @@
 
 #include "qSlicerToolWatchdogModuleExport.h"
 
-#include <QHash>
-
 class QTimer;
 class qSlicerToolWatchdogModuleWidgetPrivate;
 class vtkMRMLNode;
@@ -75,10 +73,6 @@ private:
   Q_DISABLE_COPY(qSlicerToolWatchdogModuleWidget);
 
   QTimer* Timer;
-
-  QHash<QString, int> * TransformRowNumberHash;
-
-
 };
 
 #endif

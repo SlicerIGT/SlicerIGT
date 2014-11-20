@@ -80,7 +80,6 @@ qSlicerToolWatchdogModuleWidget::qSlicerToolWatchdogModuleWidget(QWidget* _paren
 , d_ptr( new qSlicerToolWatchdogModuleWidgetPrivate ( *this ) )
 {
   this->Timer = new QTimer( this );
-  this->TransformRowNumberHash=  new QHash<QString, int>;
 }
 
 //-----------------------------------------------------------------------------
@@ -102,8 +101,8 @@ void qSlicerToolWatchdogModuleWidget::setup()
   connect( d->ModuleNodeComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onModuleNodeChanged() ) );
   connect( d->TransformComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onTransformChanged() ) );
 
-
   connect( d->AddTransformButton, SIGNAL( clicked() ), this, SLOT( onTransformNodeAdded() ) );
+  connect( d->DeleteTransformButton, SIGNAL( clicked() ), this, SLOT( onDeleteButtonClicked()) );
 
   connect( this->Timer, SIGNAL( timeout() ), this, SLOT( OnTimeout() ) );
 
@@ -236,6 +235,7 @@ void qSlicerToolWatchdogModuleWidget::onTransformChanged()
   {
     d->logic()->SetObservedTransformNode( vtkMRMLLinearTransformNode::SafeDownCast( currentNode ), moduleNode );
     this->Timer->start( 1000 );
+    updateWidget();
   }
 }
 
@@ -273,18 +273,6 @@ qSlicerToolWatchdogModuleWidget
   }
 
   updateTable();
-  //if ( toolWatchdogNode->GetTransformStatus() == 0 )
-  //{
-  //  QPalette p = d->label_6->palette();
-  //  p.setColor(QPalette::Background, Qt::red);
-  //  d->label_6->setPalette(p);
-  //}
-  //else
-  //{
-  //  QPalette p = d->label_6->palette();
-  //  p.setColor(QPalette::Background, Qt::blue);
-  //  d->label_6->setPalette(p);
-  //}
 }
 
 
@@ -315,16 +303,15 @@ void  qSlicerToolWatchdogModuleWidget
   }
   d->logic()->UpdateToolState( toolWatchdogNode );
 
-  std::vector<WatchedTransform> *toolToRasVectorPtr = toolWatchdogNode->GetTransformNodes();
+  std::list<WatchedTransform> *toolsVectorPtr = toolWatchdogNode->GetTransformNodes();
 
-  if ( toolToRasVectorPtr == NULL )
+  if ( toolsVectorPtr == NULL )
   {
     return;
   }
-
-  for (std::vector<WatchedTransform>::iterator it = toolToRasVectorPtr->begin() ; it != toolToRasVectorPtr->end(); ++it)
+   int row=0;
+  for (std::list<WatchedTransform>::iterator it = toolsVectorPtr->begin() ; it != toolsVectorPtr->end(); ++it)
   {
-    int row=(*TransformRowNumberHash).value((*it).transform->GetName());
     d->TransformsTableWidget->blockSignals( true );
     QTableWidgetItem* status = new QTableWidgetItem( QString::number( (*it).LastTimeStamp ) );
     d->TransformsTableWidget->setItem( row, 1, status );
@@ -339,6 +326,7 @@ void  qSlicerToolWatchdogModuleWidget
        d->TransformsTableWidget->item( row, 1)->setBackground(Qt::blue);
     }
     d->TransformsTableWidget->blockSignals( false );
+    row++;
   }
 }
 
@@ -348,13 +336,12 @@ void  qSlicerToolWatchdogModuleWidget
   Q_D( qSlicerToolWatchdogModuleWidget);
 
   //vtkMRMLTransformNode* currentTransformNode = vtkMRMLMarkupsNode::SafeDownCast( d->TransformComboBox->currentNode() );
-
   //if ( currentTransformNode  == NULL )
   //{
   //  return;
   //}
-
   QItemSelectionModel* selectionModel = d->TransformsTableWidget->selectionModel();
+
   std::vector< int > deleteFiducials;
   // Need to find selected before removing because removing automatically refreshes the table
   for ( int i = 0; i < d->TransformsTableWidget->rowCount(); i++ )
@@ -365,14 +352,26 @@ void  qSlicerToolWatchdogModuleWidget
     }
   }
 
-  ////Traversing this way should be more efficient and correct
-  //for ( int i = deleteFiducials.size() - 1; i >= 0; i-- )
-  //{
-  //  currentMarkupsNode->RemoveMarkup( deleteFiducials.at( i ) );
-  //}
+  vtkMRMLNode* currentNode = d->ModuleNodeComboBox->currentNode();
+  if ( currentNode == NULL )
+  {
+    d->TransformComboBox->setCurrentNodeID( "" );
+    d->TransformComboBox->setEnabled( false );
+    return;
+  }
+  vtkMRMLToolWatchdogNode* toolWatchdogNode = vtkMRMLToolWatchdogNode::SafeDownCast( currentNode );
+  if ( toolWatchdogNode == NULL )
+  {
+    return;
+  }
+  //Traversing this way should be more efficient and correct
+  QString transformKey;
+  for ( int i = deleteFiducials.size() - 1; i >= 0; i-- )
+  {
+    toolWatchdogNode->RemoveTransform(deleteFiducials.at( i ));
+  }
   this->updateWidget();
 }
-
 
 void qSlicerToolWatchdogModuleWidget
 ::onTransformNodeAdded( )
@@ -393,10 +392,9 @@ void qSlicerToolWatchdogModuleWidget
   }
 
   vtkMRMLTransformNode* currentTransformNode = vtkMRMLTransformNode::SafeDownCast(d->TransformComboBox->currentNode());
-  this->TransformRowNumberHash->insert(QString(currentTransformNode->GetName()), this->TransformRowNumberHash->size());
-
-  this->updateWidget();
   d->logic()->AddTransformNode(toolWatchdogNode, currentTransformNode ); // Make sure there is an associated display node
+  this->updateWidget();
+
 
   //this->onMarkupsFiducialNodeChanged();
 }
@@ -434,8 +432,6 @@ void qSlicerToolWatchdogModuleWidget
   }
   vtkMRMLToolWatchdogNode* toolWatchdogNode = vtkMRMLToolWatchdogNode::SafeDownCast( currentNode );
 
-
-
   if ( toolWatchdogNode == NULL )
   {
     return;
@@ -464,9 +460,7 @@ void qSlicerToolWatchdogModuleWidget
     QString transformKey;
     for ( int i = deleteFiducials.size() - 1; i >= 0; i-- )
     {
-      transformKey=TransformRowNumberHash->key(deleteFiducials.at( i ));
-      toolWatchdogNode->RemoveTransform( transformKey );
-      TransformRowNumberHash->remove(transformKey);
+      toolWatchdogNode->RemoveTransform(deleteFiducials.at( i ));
     }
   }
 
@@ -500,7 +494,19 @@ void qSlicerToolWatchdogModuleWidget
 ::updateWidget()
 {
   Q_D(qSlicerToolWatchdogModuleWidget);
-  
+  vtkMRMLNode* currentModuleNode = d->ModuleNodeComboBox->currentNode();
+  if ( currentModuleNode == NULL )
+  {
+    d->TransformComboBox->setCurrentNodeID( "" );
+    d->TransformComboBox->setEnabled( false );
+    return;
+  }
+  vtkMRMLToolWatchdogNode* toolWatchdogNode = vtkMRMLToolWatchdogNode::SafeDownCast( currentModuleNode );
+  if ( toolWatchdogNode == NULL )
+  {
+    qCritical( "Selected node not a valid module node" );
+    return;
+  }
   vtkMRMLTransformNode* currentTransformNode = vtkMRMLTransformNode::SafeDownCast( d->TransformComboBox->currentNode() );
   if ( currentTransformNode == NULL )
   {
@@ -511,15 +517,18 @@ void qSlicerToolWatchdogModuleWidget
     // This will ensure that we refresh the widget next time we move to a non-null widget (since there is guaranteed to be a modified status of larger than zero)
     return;
   }
+
   // Set the button indicating if this list is active
   d->AddTransformButton->blockSignals( true );
-  if ( this->TransformRowNumberHash->contains(currentTransformNode->GetName()))
+  if ( toolWatchdogNode->HasTransform(currentTransformNode->GetName()))
   {
-    d->AddTransformButton->setChecked( Qt::Unchecked );
+    //d->AddTransformButton->setChecked( Qt::Unchecked );
+    d->AddTransformButton->setEnabled(false);
   }
   else
   {
-    d->AddTransformButton->setChecked( Qt::Checked );
+    //d->AddTransformButton->setChecked( Qt::Checked );
+    d->AddTransformButton->setEnabled(true);
   }
   d->AddTransformButton->blockSignals( false );
 
@@ -529,7 +538,7 @@ void qSlicerToolWatchdogModuleWidget
   d->TransformsTableWidget->clear();
   QStringList MarkupsTableHeaders;
   MarkupsTableHeaders << "Label" << "Status";
-  d->TransformsTableWidget->setRowCount( TransformRowNumberHash->size() );
+  d->TransformsTableWidget->setRowCount( toolWatchdogNode->GetNumberOfTransforms() );
   d->TransformsTableWidget->setColumnCount( TRANSFORMS_COLUMNS );
   d->TransformsTableWidget->setHorizontalHeaderLabels( MarkupsTableHeaders );
   d->TransformsTableWidget->horizontalHeader()->setResizeMode( QHeaderView::Stretch );
@@ -537,15 +546,6 @@ void qSlicerToolWatchdogModuleWidget
   std::string fiducialLabel = "";
 
   updateTable();
-  //QHashIterator<QString, int> i(*TransformRowNumberHash);
-  //while (i.hasNext()) {
-  //  i.next();
-  //  QTableWidgetItem* labelItem = new QTableWidgetItem( i.key() );
-  //  QTableWidgetItem* status = new QTableWidgetItem( QString::number( i.value() ) );
-  //  d->TransformsTableWidget->setItem( i.value(), 0, labelItem );
-  //  d->TransformsTableWidget->setItem( i.value(), 1, status );
-  //  d->TransformsTableWidget->item( i.value(), 1)->setBackground(Qt::red);
-  //}
 
   d->TransformsTableWidget->blockSignals( false );
 
