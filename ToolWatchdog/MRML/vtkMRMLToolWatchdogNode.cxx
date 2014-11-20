@@ -144,6 +144,21 @@ vtkMRMLToolWatchdogNode
 }
 
 
+std::vector<WatchedTransform> * 
+vtkMRMLToolWatchdogNode
+::GetTransformNodes()
+{
+  return &WatchedTransfroms;
+}
+
+void
+vtkMRMLToolWatchdogNode
+::addTransformNode( vtkMRMLNode *mrmlNode)
+{
+  WatchedTransform tempWatchTransform;
+  tempWatchTransform.transform=vtkMRMLLinearTransformNode::SafeDownCast(mrmlNode);
+  WatchedTransfroms.push_back(tempWatchTransform);
+}
 
 void
 vtkMRMLToolWatchdogNode

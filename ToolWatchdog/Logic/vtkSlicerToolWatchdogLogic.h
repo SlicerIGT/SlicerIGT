@@ -66,6 +66,7 @@ public:
 
 
   void ProcessMRMLNodesEvents( vtkObject* caller, unsigned long event, void* callData );
+  void AddTransformNode( vtkMRMLToolWatchdogNode* toolWatchdogNode, vtkMRMLNode *mrmlNode);
   void UpdateToolState( vtkMRMLToolWatchdogNode* toolWatchdogNode );
 
 

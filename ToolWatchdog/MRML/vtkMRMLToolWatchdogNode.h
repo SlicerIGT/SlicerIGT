@@ -30,7 +30,19 @@
 #include "vtkSlicerToolWatchdogModuleMRMLExport.h"
 
 class vtkMRMLLinearTransformNode;
+struct WatchedTransform{
+  vtkMRMLLinearTransformNode* transform;
+  int status;
+  unsigned long LastTimeStamp;
 
+  WatchedTransform()
+  {
+    transform=NULL;
+    status=0;
+    LastTimeStamp=0;
+  }
+
+};
 
 class
 VTK_SLICER_TOOLWATCHDOG_MODULE_MRML_EXPORT
@@ -54,34 +66,29 @@ public:
   
 protected:
 
-  // Constructor/desctructor methods
+  // Constructor/destructor methods
 
   vtkMRMLToolWatchdogNode();
   virtual ~vtkMRMLToolWatchdogNode();
   vtkMRMLToolWatchdogNode ( const vtkMRMLToolWatchdogNode& );
   void operator=( const vtkMRMLToolWatchdogNode& );
- 
   
 public:
-    vtkGetMacro( LastTimeStamp, unsigned long );
-    vtkSetMacro( LastTimeStamp, unsigned long );
-
-    vtkGetMacro( TransformStatus, int);
-    vtkSetMacro( TransformStatus, int );
 
   // Tool transform is interpreted as ToolTip-to-RAS. The origin of ToolTip 
   // coordinate system is the tip of the surgical tool that needs to avoid the
   // risk area.
 
   vtkMRMLLinearTransformNode* GetTransformNode();
+  std::vector<WatchedTransform>* GetTransformNodes();
+  void addTransformNode( vtkMRMLNode *mrmlNode);
   void SetAndObserveToolTransformNodeId( const char* nodeId );
-
   
   void ProcessMRMLEvents( vtkObject *caller, unsigned long event, void *callData );
 
 private:
-  unsigned long LastTimeStamp;
-  int TransformStatus;
+  std::vector< WatchedTransform > WatchedTransfroms;
+
 
 };  
 

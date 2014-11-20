@@ -272,26 +272,33 @@ qSlicerToolWatchdogModuleWidget
     d->TransformComboBox->setCurrentNodeID( "" );
   }
 
-  if ( toolWatchdogNode->GetTransformStatus() == 0 )
-  {
-    QPalette p = d->label_6->palette();
-    p.setColor(QPalette::Background, Qt::red);
-    d->label_6->setPalette(p);
-  }
-  else
-  {
-    QPalette p = d->label_6->palette();
-    p.setColor(QPalette::Background, Qt::blue);
-    d->label_6->setPalette(p);
-  }
+  updateTable();
+  //if ( toolWatchdogNode->GetTransformStatus() == 0 )
+  //{
+  //  QPalette p = d->label_6->palette();
+  //  p.setColor(QPalette::Background, Qt::red);
+  //  d->label_6->setPalette(p);
+  //}
+  //else
+  //{
+  //  QPalette p = d->label_6->palette();
+  //  p.setColor(QPalette::Background, Qt::blue);
+  //  d->label_6->setPalette(p);
+  //}
 }
 
 
 void qSlicerToolWatchdogModuleWidget
 ::OnTimeout()
 {
-  Q_D( qSlicerToolWatchdogModuleWidget );
+  updateTable();
+}
 
+
+void  qSlicerToolWatchdogModuleWidget
+::updateTable()
+{
+  Q_D( qSlicerToolWatchdogModuleWidget );
   vtkMRMLNode* currentNode = d->ModuleNodeComboBox->currentNode();
   if ( currentNode == NULL )
   {
@@ -301,29 +308,40 @@ void qSlicerToolWatchdogModuleWidget
   }
 
   vtkMRMLToolWatchdogNode* toolWatchdogNode = vtkMRMLToolWatchdogNode::SafeDownCast( currentNode );
+
   if ( toolWatchdogNode == NULL )
   {
     qCritical( "Selected node not a valid module node" );
     return;
   }
-
   d->logic()->UpdateToolState( toolWatchdogNode );
 
-  if ( toolWatchdogNode->GetTransformStatus() == 0 )
+  std::vector<WatchedTransform> *toolToRasVectorPtr = toolWatchdogNode->GetTransformNodes();
+
+  if ( toolToRasVectorPtr == NULL )
   {
-    QPalette p = d->label_6->palette();
-    p.setColor(QPalette::Background, Qt::red);
-    d->label_6->setPalette(p);
+    return;
   }
-  else
+
+  for (std::vector<WatchedTransform>::iterator it = toolToRasVectorPtr->begin() ; it != toolToRasVectorPtr->end(); ++it)
   {
-    QPalette p = d->label_6->palette();
-    p.setColor(QPalette::Background, Qt::blue);
-    d->label_6->setPalette(p);
+    int row=(*TransformRowNumberHash).value((*it).transform->GetName());
+    d->TransformsTableWidget->blockSignals( true );
+    QTableWidgetItem* status = new QTableWidgetItem( QString::number( (*it).LastTimeStamp ) );
+    d->TransformsTableWidget->setItem( row, 1, status );
+    QTableWidgetItem* labelItem = new QTableWidgetItem( (*it).transform->GetName() );
+    d->TransformsTableWidget->setItem( row, 0, labelItem );
+    if((*it).status==0)
+    {
+       d->TransformsTableWidget->item( row, 1)->setBackground(Qt::red);
+    }
+    else
+    {
+       d->TransformsTableWidget->item( row, 1)->setBackground(Qt::blue);
+    }
+    d->TransformsTableWidget->blockSignals( false );
   }
 }
-
-
 
 void  qSlicerToolWatchdogModuleWidget
 ::onDeleteButtonClicked()
@@ -362,11 +380,24 @@ void qSlicerToolWatchdogModuleWidget
 {
   Q_D(qSlicerToolWatchdogModuleWidget);
 
+  vtkMRMLNode* currentNode = d->ModuleNodeComboBox->currentNode();
+  if ( currentNode == NULL )
+  {
+    return;
+  }
+
+  vtkMRMLToolWatchdogNode* toolWatchdogNode = vtkMRMLToolWatchdogNode::SafeDownCast( currentNode );
+  if ( toolWatchdogNode == NULL )
+  {
+    qCritical( "Selected node not a valid module node" );
+    return;
+  }
+
   vtkMRMLTransformNode* currentTransformNode = vtkMRMLTransformNode::SafeDownCast(d->TransformComboBox->currentNode());
   this->TransformRowNumberHash->insert(QString(currentTransformNode->GetName()), this->TransformRowNumberHash->size());
 
   this->updateWidget();
-  //d->logic()->AddNewDisplayNodeForMarkupsNode( newTransformNode ); // Make sure there is an associated display node
+  d->logic()->AddTransformNode(toolWatchdogNode, currentTransformNode ); // Make sure there is an associated display node
 
   //this->onMarkupsFiducialNodeChanged();
 }
@@ -458,8 +489,8 @@ void qSlicerToolWatchdogModuleWidget
 {
   Q_D(qSlicerToolWatchdogModuleWidget);
   
-  vtkMRMLTransformNode* currentMarkupsFiducialNode = vtkMRMLTransformNode::SafeDownCast( d->TransformComboBox->currentNode() );
-  if ( currentMarkupsFiducialNode == NULL )
+  vtkMRMLTransformNode* currentTransformNode = vtkMRMLTransformNode::SafeDownCast( d->TransformComboBox->currentNode() );
+  if ( currentTransformNode == NULL )
   {
     d->TransformsTableWidget->clear();
     d->TransformsTableWidget->setRowCount( 0 );
@@ -470,7 +501,7 @@ void qSlicerToolWatchdogModuleWidget
   }
   // Set the button indicating if this list is active
   d->AddTransformButton->blockSignals( true );
-  if ( this->TransformRowNumberHash->contains(currentMarkupsFiducialNode->GetName()))
+  if ( this->TransformRowNumberHash->contains(currentTransformNode->GetName()))
   {
     d->AddTransformButton->setChecked( Qt::Unchecked );
   }
@@ -493,16 +524,16 @@ void qSlicerToolWatchdogModuleWidget
 
   std::string fiducialLabel = "";
 
-  QHashIterator<QString, int> i(*TransformRowNumberHash);
-
-  while (i.hasNext()) {
-    i.next();
-    QTableWidgetItem* labelItem = new QTableWidgetItem( i.key() );
-    QTableWidgetItem* status = new QTableWidgetItem( QString::number( i.value() ) );
-    d->TransformsTableWidget->setItem( i.value(), 0, labelItem );
-    d->TransformsTableWidget->setItem( i.value(), 1, status );
-    d->TransformsTableWidget->item( i.value(), 1)->setBackground(Qt::red);
-  }
+  updateTable();
+  //QHashIterator<QString, int> i(*TransformRowNumberHash);
+  //while (i.hasNext()) {
+  //  i.next();
+  //  QTableWidgetItem* labelItem = new QTableWidgetItem( i.key() );
+  //  QTableWidgetItem* status = new QTableWidgetItem( QString::number( i.value() ) );
+  //  d->TransformsTableWidget->setItem( i.value(), 0, labelItem );
+  //  d->TransformsTableWidget->setItem( i.value(), 1, status );
+  //  d->TransformsTableWidget->item( i.value(), 1)->setBackground(Qt::red);
+  //}
 
   d->TransformsTableWidget->blockSignals( false );
 
