@@ -26,6 +26,7 @@
 class QTimer;
 class qSlicerToolWatchdogModuleWidgetPrivate;
 class vtkMRMLNode;
+class qMRMLToolWatchdogToolBar;
 
 /// \ingroup Slicer_QtModules_ExtensionTemplate
 class Q_SLICER_QTMODULES_TOOLWATCHDOG_EXPORT qSlicerToolWatchdogModuleWidget :
@@ -73,6 +74,7 @@ private:
   Q_DISABLE_COPY(qSlicerToolWatchdogModuleWidget);
 
   QTimer* Timer;
+  qMRMLToolWatchdogToolBar * watchdogToolbar;
 };
 
 #endif

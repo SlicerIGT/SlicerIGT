@@ -201,4 +201,18 @@ class ToolWatchdogSelfTestTest(ScriptedLoadableModuleTest):
         self.delayDisplay('wait...',1100)
         self.delayDisplay('Tools should be out of date',5000)
 
+    #this add a toolbar but is not needed
+    #actionIcon = self.parent.icon
+    #a = qt.QAction(actionIcon, 'Download Sample Data', slicer.util.mainWindow())
+    #a.setToolTip('Go to the SampleData module to download data from the network')
+    #a.connect('triggered()', self.select)
+    #mainWin = slicer.util.mainWindow()
+    #newToolBar = qt.QToolBar
+    #mainWin.addToolBar(newToolBar)
+    #fileMenu = slicer.util.lookupTopLevelWidget('FileMenu')
+    #if fileMenu:
+    #  for action in fileMenu.actions():
+    #    if action.text == 'Save':
+    #      fileMenu.insertAction(action,a)
+    
     self.delayDisplay('Test passed!')

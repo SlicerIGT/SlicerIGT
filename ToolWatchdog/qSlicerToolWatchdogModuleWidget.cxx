@@ -30,6 +30,7 @@ limitations under the License.
 
 // SlicerQt includes
 #include "qSlicerToolWatchdogModuleWidget.h"
+#include "qMRMLToolWatchdogToolBar.h"
 #include "ui_qSlicerToolWatchdogModuleWidget.h"
 
 #include "vtkSlicerToolWatchdogLogic.h"
@@ -126,8 +127,32 @@ qSlicerToolWatchdogModuleWidget
     return;
   }
 
-  // Create a module MRML node if there is none in the scene.
 
+  //// Lookup reference of 'PythonConsole' widget
+  //foreach(QWidget * widget, qApp->topLevelWidgets())
+  //{
+  //  if(widget->objectName().compare(QLatin1String("pythonConsole")) == 0)
+  //  {
+  //    this->PythonConsole = QPointer<ctkPythonConsole>(qobject_cast<ctkPythonConsole*>(widget));
+  //    break;
+  //  }
+  //}
+QMainWindow* window;
+  foreach(QWidget * widget, qApp->topLevelWidgets())
+  {
+    window = qobject_cast<QMainWindow*>(widget);
+    if (window)
+    {
+      break;
+    }
+  }
+
+
+  watchdogToolbar = new qMRMLToolWatchdogToolBar (window);
+window->addToolBar(watchdogToolbar);
+
+  // Create a module MRML node if there is none in the scene.
+//this->topLevelWidget()
   vtkMRMLNode* node = this->mrmlScene()->GetNthNodeByClass(0, "vtkMRMLToolWatchdogNode");
   if ( node == NULL )
   {
@@ -481,10 +506,10 @@ void qSlicerToolWatchdogModuleWidget
     }
   }
 
-  if ( selectedAction == jumpAction )
-  {
-    //this->MarkupsLogic->JumpSlicesToNthPointInMarkup( this->GetCurrentNode()->GetID(), currentTrasform );
-  }
+  //if ( selectedAction == jumpAction )
+  //{
+  //  //this->MarkupsLogic->JumpSlicesToNthPointInMarkup( this->GetCurrentNode()->GetID(), currentTrasform );
+  //}
 
   this->updateWidget();
 }
