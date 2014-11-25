@@ -201,7 +201,20 @@ class ToolWatchdogSelfTestTest(ScriptedLoadableModuleTest):
         self.delayDisplay('wait...',1100)
         self.delayDisplay('Tools should be out of date',5000)
 
-    #this add a toolbar but is not needed
+    watchdogToolTransformsTableWidget = slicer.util.findChildren(widget=watchdogWidget, name='TransformsTableWidget')[0]
+    square = qt.QRect()
+    watchdogToolDeleteTransformButton = slicer.util.findChildren(widget=watchdogWidget, name='DeleteTransformButton')[0]
+    square.setTopLeft(qt.QPoint(0,0))
+    square.setBottomRight(qt.QPoint(0,0))
+    i=0
+    while i<3:
+        watchdogToolTransformsTableWidget.setSelection(square,3)
+        watchdogToolDeleteTransformButton.click()
+        i=i+1
+    self.delayDisplay('Deleted',5000/speed)
+
+
+    #this adds a toolbar but is not needed
     #actionIcon = self.parent.icon
     #a = qt.QAction(actionIcon, 'Download Sample Data', slicer.util.mainWindow())
     #a.setToolTip('Go to the SampleData module to download data from the network')
