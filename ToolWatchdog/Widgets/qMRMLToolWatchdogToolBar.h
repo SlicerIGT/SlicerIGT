@@ -57,6 +57,8 @@ public:
 public slots:
   virtual void setMRMLScene(vtkMRMLScene* newScene);
   void setActiveMRMLThreeDViewNode(vtkMRMLViewNode * newActiveMRMLThreeDViewNode);
+  void onTransformNodeAdded( );
+
 
 signals:
   void screenshotButtonClicked();

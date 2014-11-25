@@ -61,7 +61,6 @@ protected slots:
   void updateWidget();
   //void onTransformsEdited( int row, int column );
 
-
 protected:
   QScopedPointer<qSlicerToolWatchdogModuleWidgetPrivate> d_ptr;
 
@@ -74,7 +73,7 @@ private:
   Q_DISABLE_COPY(qSlicerToolWatchdogModuleWidget);
 
   QTimer* Timer;
-  qMRMLToolWatchdogToolBar * watchdogToolbar;
+  qMRMLToolWatchdogToolBar * WatchdogToolbar;
 };
 
 #endif

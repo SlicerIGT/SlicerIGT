@@ -22,6 +22,8 @@
 #include <QMenu>
 #include <QInputDialog>
 #include <QToolButton>
+#include <QLabel>
+#include <QList>
 
 // qMRML includes
 #include "qMRMLToolWatchdogToolBar.h"
@@ -48,9 +50,9 @@ public:
   qMRMLToolWatchdogToolBarPrivate(qMRMLToolWatchdogToolBar& object);
   void init();
   void setMRMLScene(vtkMRMLScene* newScene);
-  QAction*                         ScreenshotAction;
-  QAction*                         SceneViewAction;
-  qMRMLSceneViewMenu*              SceneViewMenu;
+  QList<QLabel*>*                         LabelsListPtr;
+  //QAction*                         SceneViewAction;
+  //qMRMLSceneViewMenu*              SceneViewMenu;
 
   // TODO In LayoutManager, use GetActive/IsActive flag ...
   vtkWeakPointer<vtkMRMLViewNode>  ActiveMRMLThreeDViewNode;
@@ -61,6 +63,7 @@ public slots:
   void OnMRMLSceneEndBatchProcessing();
   void updateWidgetFromMRML();
   void createSceneView();
+  void onTransformNodeAdded( );
 };
 
 //--------------------------------------------------------------------------
@@ -70,9 +73,9 @@ public slots:
 qMRMLToolWatchdogToolBarPrivate::qMRMLToolWatchdogToolBarPrivate(qMRMLToolWatchdogToolBar& object)
   : q_ptr(&object)
 {
-  this->ScreenshotAction = 0;
-  this->SceneViewAction = 0;
-  this->SceneViewMenu = 0;
+  this->LabelsListPtr = NULL;
+  //this->SceneViewAction = 0;
+  //this->SceneViewMenu = 0;
 }
 
 // --------------------------------------------------------------------------
@@ -81,7 +84,7 @@ void qMRMLToolWatchdogToolBarPrivate::updateWidgetFromMRML()
   Q_Q(qMRMLToolWatchdogToolBar);
   // Enable buttons
   q->setEnabled(this->MRMLScene != 0);
-  this->ScreenshotAction->setEnabled(this->ActiveMRMLThreeDViewNode != 0);
+  //this->LabelsList->setEnabled(this->ActiveMRMLThreeDViewNode != 0);
 }
 
 //---------------------------------------------------------------------------
@@ -90,38 +93,41 @@ void qMRMLToolWatchdogToolBarPrivate::init()
   Q_Q(qMRMLToolWatchdogToolBar);
 
   // Screenshot button
-  this->ScreenshotAction = new QAction(q);
-  this->ScreenshotAction->setIcon(QIcon(":/Icons/ViewToolWatchdog.png"));
-  this->ScreenshotAction->setText(q->tr("Screenshot"));
-  this->ScreenshotAction->setToolTip(q->tr(
-    "ToolWatchdog a screenshot of the full layout, 3D view or slice views. Use File, Save to save the image. Edit in the Annotations module."));
-  QObject::connect(this->ScreenshotAction, SIGNAL(triggered()),
-                   q, SIGNAL(screenshotButtonClicked()));
-  q->addAction(this->ScreenshotAction);
+  if(this->LabelsListPtr == NULL)
+  {
+    this->LabelsListPtr = new QList<QLabel*>;
+    QLabel* transformLabel = new QLabel(q);
+    transformLabel->setToolTip(q->tr("Each square indicates the state of the tools watched by the ToolWatchdog module"));
+    transformLabel->setText("Tools watched:");
+    //this->LabelsList->setIcon(QIcon("ViewToolWatchdog.png"));
+    this->LabelsListPtr->push_front(transformLabel);
+    //QObject::connect(this->LabelsListPtr, SIGNAL(triggered()),
+    //                 q, SIGNAL(screenshotButtonClicked()));
+    q->addWidget(this->LabelsListPtr->front());
+  }
+  //// Scene View buttons
+  //this->SceneViewAction = new QAction(q);
+  //this->SceneViewAction->setIcon(QIcon(":/Icons/ViewCamera.png"));
+  //this->SceneViewAction->setText(q->tr("Scene view"));
+  //this->SceneViewAction->setToolTip(q->tr("ToolWatchdog and name a scene view."));
+  //QObject::connect(this->SceneViewAction, SIGNAL(triggered()),
+  //                 q, SIGNAL(sceneViewButtonClicked()));
+  //q->addAction(this->SceneViewAction);
 
-  // Scene View buttons
-  this->SceneViewAction = new QAction(q);
-  this->SceneViewAction->setIcon(QIcon(":/Icons/ViewCamera.png"));
-  this->SceneViewAction->setText(q->tr("Scene view"));
-  this->SceneViewAction->setToolTip(q->tr("ToolWatchdog and name a scene view."));
-  QObject::connect(this->SceneViewAction, SIGNAL(triggered()),
-                   q, SIGNAL(sceneViewButtonClicked()));
-  q->addAction(this->SceneViewAction);
-
-  // Scene view menu
-  QToolButton* sceneViewMenuButton = new QToolButton(q);
-  sceneViewMenuButton->setText(q->tr("Restore view"));
-  sceneViewMenuButton->setIcon(QIcon(":/Icons/ViewCameraSelect.png"));
-  sceneViewMenuButton->setToolTip(QObject::tr("Restore or delete saved scene views."));
-  this->SceneViewMenu = new qMRMLSceneViewMenu(sceneViewMenuButton);
-  sceneViewMenuButton->setMenu(this->SceneViewMenu);
-  sceneViewMenuButton->setPopupMode(QToolButton::InstantPopup);
-  //QObject::connect(q, SIGNAL(mrmlSceneChanged(vtkMRMLScene*)),
-  //                 this->SceneViewMenu, SLOT(setMRMLScene(vtkMRMLScene*)));
-  q->addWidget(sceneViewMenuButton);
-  QObject::connect(q, SIGNAL(toolButtonStyleChanged(Qt::ToolButtonStyle)),
-                  sceneViewMenuButton,
-                  SLOT(setToolButtonStyle(Qt::ToolButtonStyle)));
+  //// Scene view menu
+  //QToolButton* sceneViewMenuButton = new QToolButton(q);
+  //sceneViewMenuButton->setText(q->tr("Restore view"));
+  //sceneViewMenuButton->setIcon(QIcon(":/Icons/ViewCameraSelect.png"));
+  //sceneViewMenuButton->setToolTip(QObject::tr("Restore or delete saved scene views."));
+  //this->SceneViewMenu = new qMRMLSceneViewMenu(sceneViewMenuButton);
+  //sceneViewMenuButton->setMenu(this->SceneViewMenu);
+  //sceneViewMenuButton->setPopupMode(QToolButton::InstantPopup);
+  ////QObject::connect(q, SIGNAL(mrmlSceneChanged(vtkMRMLScene*)),
+  ////                 this->SceneViewMenu, SLOT(setMRMLScene(vtkMRMLScene*)));
+  //q->addWidget(sceneViewMenuButton);
+  //QObject::connect(q, SIGNAL(toolButtonStyleChanged(Qt::ToolButtonStyle)),
+  //                sceneViewMenuButton,
+  //                SLOT(setToolButtonStyle(Qt::ToolButtonStyle)));
 }
 // --------------------------------------------------------------------------
 void qMRMLToolWatchdogToolBarPrivate::setMRMLScene(vtkMRMLScene* newScene)
@@ -140,11 +146,12 @@ void qMRMLToolWatchdogToolBarPrivate::setMRMLScene(vtkMRMLScene* newScene)
 */
   this->MRMLScene = newScene;
 
-  this->SceneViewMenu->setMRMLScene(newScene);
+  //this->SceneViewMenu->setMRMLScene(newScene);
 
   // Update UI
   this->updateWidgetFromMRML();
 }
+
 
 // --------------------------------------------------------------------------
 void qMRMLToolWatchdogToolBarPrivate::OnMRMLSceneStartBatchProcessing()
@@ -182,6 +189,36 @@ void qMRMLToolWatchdogToolBarPrivate::createSceneView()
   vtkMRMLSceneViewNode * newSceneViewNode = vtkMRMLSceneViewNode::SafeDownCast(newNode);
   newSceneViewNode->StoreScene();
 }
+// --------------------------------------------------------------------------
+void qMRMLToolWatchdogToolBarPrivate
+::onTransformNodeAdded( )
+{
+  Q_Q(qMRMLToolWatchdogToolBar);
+  QLabel* transformLabel = new QLabel(q);
+  transformLabel->setToolTip(q->tr("Tool in row %1").arg(this->LabelsListPtr->size()));
+  transformLabel->setText(QString::number(this->LabelsListPtr->size()));
+  //transformLabel->foregroundColor(Qt::red);
+  //transformLabel->setBackgroundColor(Qt::red);
+  //transformLabel->setPaletteBackgroundColor(Qt::red);
+//transformLabel->setPicture()
+
+  //QPalette p = transformLabel->palette();
+  //p.setColor(QPalette::Background, Qt::red);
+  //transformLabel->setPalette(p);
+  //transformLabel->setMargin(1);
+  transformLabel->setAlignment(Qt::AlignCenter);
+  transformLabel->setStyleSheet("QLabel { background-color: blue; min-width: 2em; max-height: 2em;}");
+//transformLabel->setMinimumSize()
+
+
+
+  //this->LabelsList->setIcon(QIcon("ViewToolWatchdog.png"));
+  this->LabelsListPtr->push_front(transformLabel);
+  //QObject::connect(this->LabelsListPtr, SIGNAL(triggered()),
+  //                 q, SIGNAL(screenshotButtonClicked()));
+  q->addWidget(this->LabelsListPtr->front());
+}
+
 
 // --------------------------------------------------------------------------
 // qMRMLToolWatchdogToolBar methods
@@ -203,6 +240,14 @@ qMRMLToolWatchdogToolBar::qMRMLToolWatchdogToolBar(QWidget* _parent)
   Q_D(qMRMLToolWatchdogToolBar);
   d->init();
 }
+
+void qMRMLToolWatchdogToolBar
+::onTransformNodeAdded( )
+{
+  Q_D(qMRMLToolWatchdogToolBar);
+  d->onTransformNodeAdded();
+}
+
 
 //---------------------------------------------------------------------------
 qMRMLToolWatchdogToolBar::~qMRMLToolWatchdogToolBar()

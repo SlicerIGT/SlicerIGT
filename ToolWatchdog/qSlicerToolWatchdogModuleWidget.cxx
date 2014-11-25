@@ -79,6 +79,7 @@ vtkSlicerToolWatchdogLogic* qSlicerToolWatchdogModuleWidgetPrivate::logic() cons
 qSlicerToolWatchdogModuleWidget::qSlicerToolWatchdogModuleWidget(QWidget* _parent)
 : Superclass( _parent )
 , d_ptr( new qSlicerToolWatchdogModuleWidgetPrivate ( *this ) )
+,WatchdogToolbar(NULL)
 {
   this->Timer = new QTimer( this );
 }
@@ -97,12 +98,29 @@ void qSlicerToolWatchdogModuleWidget::setup()
   d->setupUi(this);
   this->Superclass::setup();
 
+  if(WatchdogToolbar==NULL)
+  {
+    QMainWindow* window;
+    foreach(QWidget * widget, qApp->topLevelWidgets())
+    {
+      window = qobject_cast<QMainWindow*>(widget);
+      if (window)
+      {
+        break;
+      }
+    }
+    WatchdogToolbar = new qMRMLToolWatchdogToolBar (window);
+    window->addToolBar(WatchdogToolbar);
+  }
+
   this->setMRMLScene( d->logic()->GetMRMLScene() );
 
   connect( d->ModuleNodeComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onModuleNodeChanged() ) );
   connect( d->TransformComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onTransformChanged() ) );
 
   connect( d->AddTransformButton, SIGNAL( clicked() ), this, SLOT( onTransformNodeAdded() ) );
+  connect(d->AddTransformButton, SIGNAL( clicked() ),WatchdogToolbar, SLOT( onTransformNodeAdded() ));
+
   connect( d->DeleteTransformButton, SIGNAL( clicked() ), this, SLOT( onDeleteButtonClicked()) );
 
   connect( this->Timer, SIGNAL( timeout() ), this, SLOT( OnTimeout() ) );
@@ -126,30 +144,6 @@ qSlicerToolWatchdogModuleWidget
     qCritical() << "Invalid scene!";
     return;
   }
-
-
-  //// Lookup reference of 'PythonConsole' widget
-  //foreach(QWidget * widget, qApp->topLevelWidgets())
-  //{
-  //  if(widget->objectName().compare(QLatin1String("pythonConsole")) == 0)
-  //  {
-  //    this->PythonConsole = QPointer<ctkPythonConsole>(qobject_cast<ctkPythonConsole*>(widget));
-  //    break;
-  //  }
-  //}
-QMainWindow* window;
-  foreach(QWidget * widget, qApp->topLevelWidgets())
-  {
-    window = qobject_cast<QMainWindow*>(widget);
-    if (window)
-    {
-      break;
-    }
-  }
-
-
-  watchdogToolbar = new qMRMLToolWatchdogToolBar (window);
-window->addToolBar(watchdogToolbar);
 
   // Create a module MRML node if there is none in the scene.
 //this->topLevelWidget()
@@ -419,8 +413,6 @@ void qSlicerToolWatchdogModuleWidget
   vtkMRMLTransformNode* currentTransformNode = vtkMRMLTransformNode::SafeDownCast(d->TransformComboBox->currentNode());
   d->logic()->AddTransformNode(toolWatchdogNode, currentTransformNode ); // Make sure there is an associated display node
   this->updateWidget();
-
-
   //this->onMarkupsFiducialNodeChanged();
 }
 
