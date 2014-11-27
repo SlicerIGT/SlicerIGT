@@ -131,33 +131,35 @@ vtkMRMLToolWatchdogNode
 {
   vtkMRMLNode::PrintSelf(os,indent); // This will take care of referenced nodes
 
-  os << indent << "ToolTipTransformID: " << this->GetTransformNode()->GetID() << std::endl;
+  os << indent << "ToolTipTransformID: " << this->GetToolNode()->GetID() << std::endl;
 }
 
 
-vtkMRMLLinearTransformNode*
+vtkMRMLNode*
 vtkMRMLToolWatchdogNode
-::GetTransformNode()
+::GetToolNode()
 {
-  vtkMRMLLinearTransformNode* ltNode = vtkMRMLLinearTransformNode::SafeDownCast( this->GetNodeReference( TOOL_ROLE ) );
+  vtkMRMLNode* ltNode = vtkMRMLNode::SafeDownCast( this->GetNodeReference( TOOL_ROLE ) );
   return ltNode;
 }
 
 
-std::list<WatchedTransform> * 
+std::list<WatchedTool> * 
 vtkMRMLToolWatchdogNode
-::GetTransformNodes()
+::GetToolNodes()
 {
-  return &WatchedTransfroms;
+  return &WatchedTools;
 }
 
 void
 vtkMRMLToolWatchdogNode
 ::AddTransformNode( vtkMRMLNode *mrmlNode)
 {
-  WatchedTransform tempWatchTransform;
-  tempWatchTransform.transform=vtkMRMLLinearTransformNode::SafeDownCast(mrmlNode);
-  WatchedTransfroms.push_back(tempWatchTransform);
+  WatchedTool tempWatchedTool;
+  //tempWatchTransform.tool=vtkMRMLLinearTransformNode::SafeDownCast(mrmlNode);
+  tempWatchedTool.tool=mrmlNode;
+  //tempWatchedTool.LastTimeStamp=mrmlNode->GetMTime();
+  WatchedTools.push_back(tempWatchedTool);
 }
 
 
@@ -165,9 +167,9 @@ void
 vtkMRMLToolWatchdogNode
 ::RemoveTransform(int row)
 {
-  std::list<WatchedTransform>::iterator it = WatchedTransfroms.begin();
+  std::list<WatchedTool>::iterator it = WatchedTools.begin();
   advance (it,row);
-  WatchedTransfroms.erase(it);
+  WatchedTools.erase(it);
 
   //int index=0;
   //for (std::list<WatchedTransform>::iterator it = WatchedTransfroms.begin() ; it != WatchedTransfroms.end(); ++it)
@@ -187,22 +189,22 @@ void
 vtkMRMLToolWatchdogNode
 ::SwapMarkups( int trasformA, int trasformB )
 {
-  std::list<WatchedTransform>::iterator itA = WatchedTransfroms.begin();
+  std::list<WatchedTool>::iterator itA = WatchedTools.begin();
   advance (itA,trasformA);
-  std::list<WatchedTransform>::iterator itB = WatchedTransfroms.begin();
+  std::list<WatchedTool>::iterator itB = WatchedTools.begin();
   advance (itB,trasformB);
 
-  WatchedTransform transformTemp;
+  WatchedTool transformTemp;
   transformTemp.status=itA->status;
-  transformTemp.transform=itA->transform;
+  transformTemp.tool=itA->tool;
   transformTemp.LastTimeStamp=itA->LastTimeStamp;
 
   itA->status=itB->status;
-  itA->transform=itB->transform;
+  itA->tool=itB->tool;
   itA->LastTimeStamp=itB->LastTimeStamp;
 
   itB->status=transformTemp.status;
-  itB->transform=transformTemp.transform;
+  itB->tool=transformTemp.tool;
   itB->LastTimeStamp=transformTemp.LastTimeStamp;
 }
 
@@ -213,9 +215,10 @@ vtkMRMLToolWatchdogNode
 ::HasTransform(char * transformName)
 {
   //QString transName(transformName);
-  for (std::list<WatchedTransform>::iterator it = WatchedTransfroms.begin() ; it != WatchedTransfroms.end(); ++it)
+  for (std::list<WatchedTool>::iterator it = WatchedTools.begin() ; it != WatchedTools.end(); ++it)
   {
-    QString transNameTemp((*it).transform->GetName());
+    QString transNameTemp((*it).tool->GetName());
+    
     if(transNameTemp.compare(transformName)==0)
     {
       return true;
@@ -228,7 +231,7 @@ int
 vtkMRMLToolWatchdogNode
 ::GetNumberOfTransforms()
 {
-  return WatchedTransfroms.size();
+  return WatchedTools.size();
 }
 
 void
@@ -250,7 +253,7 @@ vtkMRMLToolWatchdogNode
   vtkMRMLNode* callerNode = vtkMRMLNode::SafeDownCast( caller );
   if ( callerNode == NULL ) return;
 
-  const char* ObservedTransformNodeId = this->GetTransformNode()->GetID();
+  const char* ObservedTransformNodeId = this->GetToolNode()->GetID();
   if ( strcmp( ObservedTransformNodeId, callerNode->GetID() ) == 0 )
   {
     this->Modified(); // This will tell the logic to update

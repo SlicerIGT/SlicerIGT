@@ -21,6 +21,7 @@
 // MRML includes
 #include "vtkMRMLToolWatchdogNode.h"
 #include "vtkMRMLLinearTransformNode.h"
+#include "vtkMRMLVolumeNode.h"
 #include <vtkMRMLScene.h>
 
 
@@ -88,16 +89,31 @@ void vtkSlicerToolWatchdogLogic::UpdateToolState( vtkMRMLToolWatchdogNode* toolW
   {
     return;
   }
-  std::list<WatchedTransform> * toolToRasVectorPtr = toolWatchdogNode->GetTransformNodes();
+  std::list<WatchedTool> * toolToRasVectorPtr = toolWatchdogNode->GetToolNodes();
 
   if ( toolToRasVectorPtr==NULL )
   {
     return;
   }
 
-  for (std::list<WatchedTransform>::iterator it = toolToRasVectorPtr->begin() ; it != toolToRasVectorPtr->end(); ++it)
+  for (std::list<WatchedTool>::iterator it = toolToRasVectorPtr->begin() ; it != toolToRasVectorPtr->end(); ++it)
   {
-    unsigned long timeStamp = (*it).transform->GetTransformToWorldMTime();
+    unsigned long timeStamp = 0; 
+
+    vtkMRMLLinearTransformNode* transform=vtkMRMLLinearTransformNode::SafeDownCast((*it).tool);
+    if (transform!=NULL)
+    {
+      timeStamp = transform->GetTransformToWorldMTime();
+    }
+    else
+    {
+      vtkMRMLVolumeNode* volume = vtkMRMLVolumeNode::SafeDownCast((*it).tool);
+      if(volume!=NULL)
+      {
+        timeStamp = volume->GetMTime();
+      }
+    }
+
     if(timeStamp ==(*it).LastTimeStamp )
     {
       (*it).status=OUT_OF_DATE;

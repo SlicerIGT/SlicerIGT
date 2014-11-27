@@ -50,7 +50,7 @@ public:
   qMRMLToolWatchdogToolBarPrivate(qMRMLToolWatchdogToolBar& object);
   void init();
   void setMRMLScene(vtkMRMLScene* newScene);
-  QList<QAction*>*                         LabelsListPtr;
+  QList<QAction*>*                         ActionsListPtr;
   //QAction*                         SceneViewAction;
   //qMRMLSceneViewMenu*              SceneViewMenu;
 
@@ -72,7 +72,7 @@ public slots:
 qMRMLToolWatchdogToolBarPrivate::qMRMLToolWatchdogToolBarPrivate(qMRMLToolWatchdogToolBar& object)
   : q_ptr(&object)
 {
-  this->LabelsListPtr = NULL;
+  this->ActionsListPtr = NULL;
   //this->SceneViewAction = 0;
   //this->SceneViewMenu = 0;
 }
@@ -92,14 +92,14 @@ void qMRMLToolWatchdogToolBarPrivate::init()
   Q_Q(qMRMLToolWatchdogToolBar);
 
   // Screenshot button
-  if(this->LabelsListPtr == NULL)
+  if(this->ActionsListPtr == NULL)
   {
-    this->LabelsListPtr = new QList<QAction*>;
+    this->ActionsListPtr = new QList<QAction*>;
     QLabel* transformLabel = new QLabel(q);
     transformLabel->setToolTip(q->tr("Each square indicates the state of the tools watched by the ToolWatchdog module"));
     transformLabel->setText("Tools watched:");
     //this->LabelsList->setIcon(QIcon("ViewToolWatchdog.png"));
-    this->LabelsListPtr->push_back(q->addWidget(transformLabel));
+    this->ActionsListPtr->push_back(q->addWidget(transformLabel));
     //QObject::connect(this->LabelsListPtr, SIGNAL(triggered()),
     //                 q, SIGNAL(screenshotButtonClicked()));
     
@@ -217,12 +217,12 @@ void qMRMLToolWatchdogToolBar
   Q_D(qMRMLToolWatchdogToolBar);
 
   QLabel* transformLabel = new QLabel(this);
-  transformLabel->setToolTip(this->tr("Tool in row %1").arg(d->LabelsListPtr->size()));
-  transformLabel->setText(QString::number(d->LabelsListPtr->size()));
+  transformLabel->setToolTip(this->tr("Tool in row %1").arg(d->ActionsListPtr->size()));
+  transformLabel->setText(QString::number(d->ActionsListPtr->size()));
 
   transformLabel->setAlignment(Qt::AlignCenter);
   transformLabel->setStyleSheet("QLabel { background-color: blue; min-width: 2em; max-height: 2em;}");
-  d->LabelsListPtr->push_back(this->addWidget(transformLabel));
+  d->ActionsListPtr->push_back(this->addWidget(transformLabel));
   //QObject::connect(this->LabelsListPtr, SIGNAL(triggered()),
   //                 this, SIGNAL(screenshotButtonClicked()));
   
@@ -233,8 +233,8 @@ void qMRMLToolWatchdogToolBar
 ::TransformNodeDeleted()
 {
   Q_D(qMRMLToolWatchdogToolBar);
-  this->removeAction(d->LabelsListPtr->back());
-  d->LabelsListPtr->pop_back();
+  this->removeAction(d->ActionsListPtr->back());
+  d->ActionsListPtr->pop_back();
 }
 
 
@@ -242,17 +242,17 @@ void qMRMLToolWatchdogToolBar
 ::SetNodeStatus(int row, bool status )
 {
   Q_D(qMRMLToolWatchdogToolBar);
-  if(d->LabelsListPtr!= NULL)
+  if(d->ActionsListPtr!= NULL)
   {
-    if(d->LabelsListPtr->size()>1&&row+1<d->LabelsListPtr->size())
+    if(d->ActionsListPtr->size()>1&&row+1<d->ActionsListPtr->size())
     {
       if(status)
       {
-        this->widgetForAction(d->LabelsListPtr->at(row+1))->setStyleSheet("QLabel { background-color: blue; min-width: 2em; max-height: 2em;}");
+        this->widgetForAction(d->ActionsListPtr->at(row+1))->setStyleSheet("QLabel { background-color: blue; min-width: 2em; max-height: 2em;}");
       }
       else
       {
-        this->widgetForAction(d->LabelsListPtr->at(row+1))->setStyleSheet("QLabel { background-color: red; min-width: 2em; max-height: 2em;}");
+        this->widgetForAction(d->ActionsListPtr->at(row+1))->setStyleSheet("QLabel { background-color: red; min-width: 2em; max-height: 2em;}");
       }
     }
   }

@@ -282,9 +282,9 @@ qSlicerToolWatchdogModuleWidget
 
   d->TransformComboBox->setEnabled( true );
 
-  if ( toolWatchdogNode->GetTransformNode() != NULL )
+  if ( toolWatchdogNode->GetToolNode() != NULL )
   {
-    d->TransformComboBox->setCurrentNodeID( QString::fromStdString( toolWatchdogNode->GetTransformNode()->GetID() ) );
+    d->TransformComboBox->setCurrentNodeID( QString::fromStdString( toolWatchdogNode->GetToolNode()->GetID() ) );
   }
   else
   {
@@ -322,19 +322,19 @@ void  qSlicerToolWatchdogModuleWidget
   }
   d->logic()->UpdateToolState( toolWatchdogNode );
 
-  std::list<WatchedTransform> *toolsVectorPtr = toolWatchdogNode->GetTransformNodes();
+  std::list<WatchedTool> *toolsVectorPtr = toolWatchdogNode->GetToolNodes();
 
   if ( toolsVectorPtr == NULL )
   {
     return;
   }
    int row=0;
-  for (std::list<WatchedTransform>::iterator it = toolsVectorPtr->begin() ; it != toolsVectorPtr->end(); ++it)
+  for (std::list<WatchedTool>::iterator it = toolsVectorPtr->begin() ; it != toolsVectorPtr->end(); ++it)
   {
     d->TransformsTableWidget->blockSignals( true );
     QTableWidgetItem* status = new QTableWidgetItem( QString::number( (*it).LastTimeStamp ) );
     d->TransformsTableWidget->setItem( row, 1, status );
-    QTableWidgetItem* labelItem = new QTableWidgetItem( (*it).transform->GetName() );
+    QTableWidgetItem* labelItem = new QTableWidgetItem( (*it).tool->GetName() );
     WatchdogToolbar->SetNodeStatus(row,(*it).status);
     d->TransformsTableWidget->setItem( row, 0, labelItem );
     if((*it).status==0)
@@ -484,7 +484,6 @@ void qSlicerToolWatchdogModuleWidget
       WatchdogToolbar->TransformNodeDeleted();
     }
   }
-
 
   if ( selectedAction == upAction )
   {
