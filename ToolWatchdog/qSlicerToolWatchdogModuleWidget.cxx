@@ -391,6 +391,7 @@ void  qSlicerToolWatchdogModuleWidget
     toolWatchdogNode->RemoveTransform(deleteFiducials.at( i ));
   }
   this->updateWidget();
+  WatchdogToolbar->TransformNodeDeleted();
 }
 
 void qSlicerToolWatchdogModuleWidget
@@ -480,6 +481,7 @@ void qSlicerToolWatchdogModuleWidget
     for ( int i = deleteFiducials.size() - 1; i >= 0; i-- )
     {
       toolWatchdogNode->RemoveTransform(deleteFiducials.at( i ));
+      WatchdogToolbar->TransformNodeDeleted();
     }
   }
 
