@@ -63,7 +63,6 @@ public slots:
   void OnMRMLSceneEndBatchProcessing();
   void updateWidgetFromMRML();
   void createSceneView();
-  void onTransformNodeAdded( );
 };
 
 //--------------------------------------------------------------------------
@@ -100,10 +99,10 @@ void qMRMLToolWatchdogToolBarPrivate::init()
     transformLabel->setToolTip(q->tr("Each square indicates the state of the tools watched by the ToolWatchdog module"));
     transformLabel->setText("Tools watched:");
     //this->LabelsList->setIcon(QIcon("ViewToolWatchdog.png"));
-    this->LabelsListPtr->push_front(transformLabel);
+    this->LabelsListPtr->push_back(transformLabel);
     //QObject::connect(this->LabelsListPtr, SIGNAL(triggered()),
     //                 q, SIGNAL(screenshotButtonClicked()));
-    q->addWidget(this->LabelsListPtr->front());
+    q->addWidget(this->LabelsListPtr->back());
   }
   //// Scene View buttons
   //this->SceneViewAction = new QAction(q);
@@ -189,36 +188,6 @@ void qMRMLToolWatchdogToolBarPrivate::createSceneView()
   vtkMRMLSceneViewNode * newSceneViewNode = vtkMRMLSceneViewNode::SafeDownCast(newNode);
   newSceneViewNode->StoreScene();
 }
-// --------------------------------------------------------------------------
-void qMRMLToolWatchdogToolBarPrivate
-::onTransformNodeAdded( )
-{
-  Q_Q(qMRMLToolWatchdogToolBar);
-  QLabel* transformLabel = new QLabel(q);
-  transformLabel->setToolTip(q->tr("Tool in row %1").arg(this->LabelsListPtr->size()));
-  transformLabel->setText(QString::number(this->LabelsListPtr->size()));
-  //transformLabel->foregroundColor(Qt::red);
-  //transformLabel->setBackgroundColor(Qt::red);
-  //transformLabel->setPaletteBackgroundColor(Qt::red);
-//transformLabel->setPicture()
-
-  //QPalette p = transformLabel->palette();
-  //p.setColor(QPalette::Background, Qt::red);
-  //transformLabel->setPalette(p);
-  //transformLabel->setMargin(1);
-  transformLabel->setAlignment(Qt::AlignCenter);
-  transformLabel->setStyleSheet("QLabel { background-color: blue; min-width: 2em; max-height: 2em;}");
-//transformLabel->setMinimumSize()
-
-
-
-  //this->LabelsList->setIcon(QIcon("ViewToolWatchdog.png"));
-  this->LabelsListPtr->push_front(transformLabel);
-  //QObject::connect(this->LabelsListPtr, SIGNAL(triggered()),
-  //                 q, SIGNAL(screenshotButtonClicked()));
-  q->addWidget(this->LabelsListPtr->front());
-}
-
 
 // --------------------------------------------------------------------------
 // qMRMLToolWatchdogToolBar methods
@@ -242,11 +211,47 @@ qMRMLToolWatchdogToolBar::qMRMLToolWatchdogToolBar(QWidget* _parent)
 }
 
 void qMRMLToolWatchdogToolBar
-::onTransformNodeAdded( )
+::TransformNodeAdded( )
 {
   Q_D(qMRMLToolWatchdogToolBar);
-  d->onTransformNodeAdded();
+
+  QLabel* transformLabel = new QLabel(this);
+  transformLabel->setToolTip(this->tr("Tool in row %1").arg(d->LabelsListPtr->size()));
+  transformLabel->setText(QString::number(d->LabelsListPtr->size()));
+
+  transformLabel->setAlignment(Qt::AlignCenter);
+  transformLabel->setStyleSheet("QLabel { background-color: blue; min-width: 2em; max-height: 2em;}");
+ d->LabelsListPtr->push_back(transformLabel);
+  //QObject::connect(this->LabelsListPtr, SIGNAL(triggered()),
+  //                 this, SIGNAL(screenshotButtonClicked()));
+  this->addWidget(d->LabelsListPtr->back());
 }
+
+void qMRMLToolWatchdogToolBar
+::SetNodeStatus(int row, bool status )
+{
+  Q_D(qMRMLToolWatchdogToolBar);
+  if(d->LabelsListPtr!= NULL)
+  {
+    if(d->LabelsListPtr->size()>1&&row+1<d->LabelsListPtr->size())
+    {
+      if(status)
+      {
+        d->LabelsListPtr->at(row+1)->setStyleSheet("QLabel { background-color: blue; min-width: 2em; max-height: 2em;}");
+      }
+      else
+      {
+        d->LabelsListPtr->at(row+1)->setStyleSheet("QLabel { background-color: red; min-width: 2em; max-height: 2em;}");
+      }
+    }
+  }
+  return;
+  
+  //QObject::connect(this->LabelsListPtr, SIGNAL(triggered()),
+  //                 this, SIGNAL(screenshotButtonClicked()));
+  //this->addWidget(d->LabelsListPtr->back());
+}
+
 
 
 //---------------------------------------------------------------------------

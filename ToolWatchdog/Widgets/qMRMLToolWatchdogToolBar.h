@@ -54,10 +54,13 @@ public:
   qMRMLToolWatchdogToolBar(QWidget* parent = 0);
   virtual ~qMRMLToolWatchdogToolBar();
 
+  void TransformNodeAdded( );
+  void SetNodeStatus(int row, bool status );
+
 public slots:
   virtual void setMRMLScene(vtkMRMLScene* newScene);
   void setActiveMRMLThreeDViewNode(vtkMRMLViewNode * newActiveMRMLThreeDViewNode);
-  void onTransformNodeAdded( );
+
 
 
 signals:

@@ -119,7 +119,7 @@ void qSlicerToolWatchdogModuleWidget::setup()
   connect( d->TransformComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onTransformChanged() ) );
 
   connect( d->AddTransformButton, SIGNAL( clicked() ), this, SLOT( onTransformNodeAdded() ) );
-  connect(d->AddTransformButton, SIGNAL( clicked() ),WatchdogToolbar, SLOT( onTransformNodeAdded() ));
+  //connect(d->AddTransformButton, SIGNAL( clicked() ),WatchdogToolbar, SLOT( onTransformNodeAdded() ));
 
   connect( d->DeleteTransformButton, SIGNAL( clicked() ), this, SLOT( onDeleteButtonClicked()) );
 
@@ -335,6 +335,7 @@ void  qSlicerToolWatchdogModuleWidget
     QTableWidgetItem* status = new QTableWidgetItem( QString::number( (*it).LastTimeStamp ) );
     d->TransformsTableWidget->setItem( row, 1, status );
     QTableWidgetItem* labelItem = new QTableWidgetItem( (*it).transform->GetName() );
+    WatchdogToolbar->SetNodeStatus(row,(*it).status);
     d->TransformsTableWidget->setItem( row, 0, labelItem );
     if((*it).status==0)
     {
@@ -413,6 +414,7 @@ void qSlicerToolWatchdogModuleWidget
   vtkMRMLTransformNode* currentTransformNode = vtkMRMLTransformNode::SafeDownCast(d->TransformComboBox->currentNode());
   d->logic()->AddTransformNode(toolWatchdogNode, currentTransformNode ); // Make sure there is an associated display node
   this->updateWidget();
+  WatchdogToolbar->TransformNodeAdded();
   //this->onMarkupsFiducialNodeChanged();
 }
 

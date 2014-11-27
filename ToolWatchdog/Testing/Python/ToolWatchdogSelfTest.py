@@ -155,7 +155,6 @@ class ToolWatchdogSelfTestTest(ScriptedLoadableModuleTest):
     """
 
     self.delayDisplay("Starting the test")
-
     scene = slicer.mrmlScene
     mainWindow = slicer.util.mainWindow()
 
@@ -177,7 +176,8 @@ class ToolWatchdogSelfTestTest(ScriptedLoadableModuleTest):
         watchdogToolAddTransformButton.click()
         i=i+1
 
-    self.delayDisplay('Wait...',1100)
+    speed=3
+    self.delayDisplay('Wait...',1100/speed)
     print(  watchdogToolNodeCombobox.nodeTypes )
     
     #add several transform put them on the tool watchdog list
@@ -196,10 +196,10 @@ class ToolWatchdogSelfTestTest(ScriptedLoadableModuleTest):
             transforms[b].SetMatrixTransformToParent(toParent)
             if a>=n/2:
                 if a==(n/2+10):
-                    self.delayDisplay('Tool_'+str(b)+' should be up to date until watchdog time',6000)
+                    self.delayDisplay('Tool_'+str(b)+' should be up to date until watchdog time',6000/speed)
                 self.delayDisplay('Tool_'+str(b)+ 'should be up to date',100)
-        self.delayDisplay('wait...',1100)
-        self.delayDisplay('Tools should be out of date',5000)
+        self.delayDisplay('wait...',1100/speed)
+        self.delayDisplay('Tools should be out of date',5000/speed)
 
     watchdogToolTransformsTableWidget = slicer.util.findChildren(widget=watchdogWidget, name='TransformsTableWidget')[0]
     square = qt.QRect()
