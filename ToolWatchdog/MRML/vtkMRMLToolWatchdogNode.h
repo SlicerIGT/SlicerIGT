@@ -31,11 +31,11 @@
 
 #include <QString>
 
-class vtkMRMLLinearTransformNode;
-class vtkMRMLVolumeNode;
+//class vtkMRMLLinearTransformNode;
+class vtkMRMLDisplayableNode;
 
 struct WatchedTool{
-  vtkMRMLNode* tool;
+  vtkMRMLDisplayableNode* tool;
   //vtkMRMLVolumeNode* volume;
   int status;
   unsigned long LastTimeStamp;
@@ -86,15 +86,15 @@ public:
   // coordinate system is the tip of the surgical tool that needs to avoid the
   // risk area.
 
-  vtkMRMLNode* GetToolNode();
+  vtkMRMLDisplayableNode* GetToolNode();
   std::list<WatchedTool>* GetToolNodes();
-  void AddTransformNode( vtkMRMLNode *mrmlNode);
-  void RemoveTransform(int row);
+  void AddToolNode( vtkMRMLDisplayableNode *mrmlNode);
+  void RemoveTool(int row);
   void SwapMarkups( int trasformA, int trasformB );
-  void SetAndObserveToolTransformNodeId( const char* nodeId );
+  void SetAndObserveToolNodeId( const char* nodeId );
 
-  bool HasTransform(char * transformName);
-  int GetNumberOfTransforms();
+  bool HasTool(char * transformName);
+  int GetNumberOfTools();
   
   void ProcessMRMLEvents( vtkObject *caller, unsigned long event, void *callData );
 

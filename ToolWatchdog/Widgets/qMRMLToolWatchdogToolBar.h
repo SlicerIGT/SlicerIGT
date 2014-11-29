@@ -54,8 +54,8 @@ public:
   qMRMLToolWatchdogToolBar(QWidget* parent = 0);
   virtual ~qMRMLToolWatchdogToolBar();
 
-  void TransformNodeAdded();
-  void TransformNodeDeleted();
+  void ToolNodeAdded();
+  void ToolNodeDeleted();
   void SetNodeStatus(int row, bool status );
 
 public slots:

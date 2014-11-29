@@ -197,7 +197,7 @@ class ToolWatchdogSelfTestTest(ScriptedLoadableModuleTest):
             if a>=n/2:
                 if a==(n/2+10):
                     self.delayDisplay('Tool_'+str(b)+' should be up to date until watchdog time',6000/speed)
-                self.delayDisplay('Tool_'+str(b)+ 'should be up to date',100)
+                self.delayDisplay('Tool_'+str(b)+ ' should be up to date',100)
         self.delayDisplay('wait...',1100/speed)
         self.delayDisplay('Tools should be out of date',5000/speed)
 

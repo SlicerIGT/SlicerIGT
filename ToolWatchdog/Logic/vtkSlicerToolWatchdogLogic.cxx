@@ -20,8 +20,8 @@
 
 // MRML includes
 #include "vtkMRMLToolWatchdogNode.h"
-#include "vtkMRMLLinearTransformNode.h"
-#include "vtkMRMLVolumeNode.h"
+#include "vtkMRMLDisplayableNode.h"
+//#include "vtkMRMLVolumeNode.h"
 #include <vtkMRMLScene.h>
 
 
@@ -74,13 +74,13 @@ void vtkSlicerToolWatchdogLogic::RegisterNodes()
   this->GetMRMLScene()->RegisterNodeClass( vtkSmartPointer< vtkMRMLToolWatchdogNode >::New() );
 }
 
-void vtkSlicerToolWatchdogLogic::AddTransformNode( vtkMRMLToolWatchdogNode* toolWatchdogNode, vtkMRMLNode *mrmlNode)
+void vtkSlicerToolWatchdogLogic::AddToolNode( vtkMRMLToolWatchdogNode* toolWatchdogNode, vtkMRMLDisplayableNode *toolNode)
 {
   if ( toolWatchdogNode == NULL )
   {
     return;
   }
-  toolWatchdogNode->AddTransformNode(mrmlNode);
+  toolWatchdogNode->AddToolNode(toolNode);
 }
 
 void vtkSlicerToolWatchdogLogic::UpdateToolState( vtkMRMLToolWatchdogNode* toolWatchdogNode )
@@ -100,20 +100,26 @@ void vtkSlicerToolWatchdogLogic::UpdateToolState( vtkMRMLToolWatchdogNode* toolW
   {
     unsigned long timeStamp = 0; 
 
-    vtkMRMLLinearTransformNode* transform=vtkMRMLLinearTransformNode::SafeDownCast((*it).tool);
-    if (transform!=NULL)
+    //vtkMRMLDisplayableNode* transform=vtkMRMLDisplayableNode::SafeDownCast((*it).tool);
+    //if (transform!=NULL)
+    //{
+    //  timeStamp = transform->GetTransformToWorldMTime();
+    //}
+    //else
+    //{
+    //  vtkMRMLVolumeNode* volume = vtkMRMLVolumeNode::SafeDownCast((*it).tool);
+    //  if(volume!=NULL)
+    //  {
+    //    timeStamp = volume->GetMTime();
+    //  }
+    //}
+    if((*it).tool== NULL)
     {
-      timeStamp = transform->GetTransformToWorldMTime();
+      return;
     }
-    else
-    {
-      vtkMRMLVolumeNode* volume = vtkMRMLVolumeNode::SafeDownCast((*it).tool);
-      if(volume!=NULL)
-      {
-        timeStamp = volume->GetMTime();
-      }
-    }
-
+     
+    timeStamp=(*it).tool->GetMTime();
+    
     if(timeStamp ==(*it).LastTimeStamp )
     {
       (*it).status=OUT_OF_DATE;
@@ -124,6 +130,7 @@ void vtkSlicerToolWatchdogLogic::UpdateToolState( vtkMRMLToolWatchdogNode* toolW
       (*it).status=UP_TO_DATE;
       (*it).LastTimeStamp=timeStamp;
     }
+
   }
 }
 
@@ -172,15 +179,15 @@ void vtkSlicerToolWatchdogLogic
 
 void
 vtkSlicerToolWatchdogLogic
-::SetObservedTransformNode( vtkMRMLLinearTransformNode* newTransform, vtkMRMLToolWatchdogNode* moduleNode )
+::SetObservedToolNode( vtkMRMLDisplayableNode* newTool, vtkMRMLToolWatchdogNode* moduleNode )
 {
-  if ( newTransform == NULL || moduleNode == NULL )
+  if ( newTool == NULL || moduleNode == NULL )
   {
     vtkWarningMacro( "SetObservedTransformNode: Transform or module node invalid" );
     return;
   }
 
-  moduleNode->SetAndObserveToolTransformNodeId( newTransform->GetID() );
+  moduleNode->SetAndObserveToolNodeId( newTool->GetID() );
 }
 
 void

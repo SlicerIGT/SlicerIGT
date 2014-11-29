@@ -212,17 +212,17 @@ qMRMLToolWatchdogToolBar::qMRMLToolWatchdogToolBar(QWidget* _parent)
 
 
 void qMRMLToolWatchdogToolBar
-::TransformNodeAdded()
+::ToolNodeAdded()
 {
   Q_D(qMRMLToolWatchdogToolBar);
 
-  QLabel* transformLabel = new QLabel(this);
-  transformLabel->setToolTip(this->tr("Tool in row %1").arg(d->ActionsListPtr->size()));
-  transformLabel->setText(QString::number(d->ActionsListPtr->size()));
+  QLabel* toolLabel = new QLabel(this);
+  toolLabel->setToolTip(this->tr("Tool in row %1").arg(d->ActionsListPtr->size()));
+  toolLabel->setText(QString::number(d->ActionsListPtr->size()));
 
-  transformLabel->setAlignment(Qt::AlignCenter);
-  transformLabel->setStyleSheet("QLabel { background-color: blue; min-width: 2em; max-height: 2em;}");
-  d->ActionsListPtr->push_back(this->addWidget(transformLabel));
+  toolLabel->setAlignment(Qt::AlignCenter);
+  toolLabel->setStyleSheet("QLabel { background-color: blue; min-width: 2em; max-height: 2em;}");
+  d->ActionsListPtr->push_back(this->addWidget(toolLabel));
   //QObject::connect(this->LabelsListPtr, SIGNAL(triggered()),
   //                 this, SIGNAL(screenshotButtonClicked()));
   
@@ -230,7 +230,7 @@ void qMRMLToolWatchdogToolBar
 
 
 void qMRMLToolWatchdogToolBar
-::TransformNodeDeleted()
+::ToolNodeDeleted()
 {
   Q_D(qMRMLToolWatchdogToolBar);
   this->removeAction(d->ActionsListPtr->back());

@@ -38,7 +38,7 @@
 class vtkMRMLToolWatchdogNode;
 
 
-class vtkMRMLLinearTransformNode;
+class vtkMRMLDisplayableNode;
 
 // STD includes
 #include <cstdlib>
@@ -62,11 +62,11 @@ public:
   vtkTypeMacro(vtkSlicerToolWatchdogLogic, vtkSlicerModuleLogic);
   void PrintSelf(ostream& os, vtkIndent indent);
 
-  void SetObservedTransformNode( vtkMRMLLinearTransformNode* newTransform, vtkMRMLToolWatchdogNode* moduleNode );
+  void SetObservedToolNode( vtkMRMLDisplayableNode* newTransform, vtkMRMLToolWatchdogNode* moduleNode );
 
 
   void ProcessMRMLNodesEvents( vtkObject* caller, unsigned long event, void* callData );
-  void AddTransformNode( vtkMRMLToolWatchdogNode* toolWatchdogNode, vtkMRMLNode *mrmlNode);
+  void AddToolNode( vtkMRMLToolWatchdogNode* toolWatchdogNode, vtkMRMLDisplayableNode *mrmlNode);
   void UpdateToolState( vtkMRMLToolWatchdogNode* toolWatchdogNode );
 
 

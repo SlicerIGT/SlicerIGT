@@ -32,11 +32,10 @@ limitations under the License.
 #include "qSlicerToolWatchdogModuleWidget.h"
 #include "qMRMLToolWatchdogToolBar.h"
 #include "ui_qSlicerToolWatchdogModuleWidget.h"
-
+#include "vtkMRMLDisplayableNode.h"
 #include "vtkSlicerToolWatchdogLogic.h"
 
 #include "vtkMRMLToolWatchdogNode.h"
-#include "vtkMRMLLinearTransformNode.h"
 
 int TRANSFORM_LABEL_COLUMN = 0;
 int TRANSFORM_TIMESTAMP_COLUMN = 1;
@@ -116,18 +115,15 @@ void qSlicerToolWatchdogModuleWidget::setup()
   this->setMRMLScene( d->logic()->GetMRMLScene() );
 
   connect( d->ModuleNodeComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onModuleNodeChanged() ) );
-  connect( d->TransformComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onTransformChanged() ) );
-
-  connect( d->AddTransformButton, SIGNAL( clicked() ), this, SLOT( onTransformNodeAdded() ) );
-  //connect(d->AddTransformButton, SIGNAL( clicked() ),WatchdogToolbar, SLOT( onTransformNodeAdded() ));
-
-  connect( d->DeleteTransformButton, SIGNAL( clicked() ), this, SLOT( onDeleteButtonClicked()) );
-
+  connect( d->ToolComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onToolChanged() ) );
+  connect( d->AddToolButton, SIGNAL( clicked() ), this, SLOT( onToolNodeAdded() ) );
+  //connect(d->AddToolButton, SIGNAL( clicked() ),WatchdogToolbar, SLOT( onTransformNodeAdded() ));
+  connect( d->DeleteToolButton, SIGNAL( clicked() ), this, SLOT( onDeleteButtonClicked()) );
   connect( this->Timer, SIGNAL( timeout() ), this, SLOT( OnTimeout() ) );
 
-  d->TransformsTableWidget->setContextMenuPolicy( Qt::CustomContextMenu );
-  connect( d->TransformsTableWidget, SIGNAL( customContextMenuRequested(const QPoint&) ), this, SLOT( onTransformsTableContextMenu(const QPoint&) ) );
-  connect( d->TransformsTableWidget, SIGNAL( cellChanged( int, int ) ), this, SLOT( onMarkupsFiducialEdited( int, int ) ) );
+  d->ToolsTableWidget->setContextMenuPolicy( Qt::CustomContextMenu );
+  connect( d->ToolsTableWidget, SIGNAL( customContextMenuRequested(const QPoint&) ), this, SLOT( onToolsTableContextMenu(const QPoint&) ) );
+  connect( d->ToolsTableWidget, SIGNAL( cellChanged( int, int ) ), this, SLOT( onMarkupsFiducialEdited( int, int ) ) );
   this->UpdateFromMRMLNode();
 }
 
@@ -188,7 +184,7 @@ qSlicerToolWatchdogModuleWidget
 //{
 //  Q_D(qSlicerToolWatchdogModuleWidget);
 //
-//  return d->TransformComboBox->currentNode();
+//  return d->ToolComboBox->currentNode();
 //}
 
 
@@ -197,17 +193,17 @@ void qSlicerToolWatchdogModuleWidget
 {
   Q_D(qSlicerToolWatchdogModuleWidget);
 
-  vtkMRMLTransformNode* currentTransformNode = vtkMRMLTransformNode::SafeDownCast( currentNode );
+  vtkMRMLDisplayableNode* currentDisplayableNode = vtkMRMLDisplayableNode::SafeDownCast( currentNode );
 
   // Don't change the active fiducial list if the current node is changed programmatically
-  disconnect( d->TransformComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onTransformChanged() ) );
-  d->TransformComboBox->setCurrentNode( currentTransformNode );
-  connect( d->TransformComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onTransformChanged() ) );
+  disconnect( d->ToolComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onToolChanged() ) );
+  d->ToolComboBox->setCurrentNode( currentDisplayableNode );
+  connect( d->ToolComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onToolChanged() ) );
 
   // Reconnect the appropriate nodes
   this->qvtkDisconnectAll();
   //this->ConnectInteractionAndSelectionNodes();
-  this->qvtkConnect( currentTransformNode, vtkCommand::ModifiedEvent, this, SLOT( updateWidget() ) );
+  this->qvtkConnect( currentDisplayableNode, vtkCommand::ModifiedEvent, this, SLOT( updateWidget() ) );
   //this->qvtkConnect( currentTransformNode, vtkMRMLTransformNode::MarkupAddedEvent, d->TransformsTableWidget, SLOT( scrollToBottom() ) );
 
   this->updateWidget(); // Must call this to update widget even if the node hasn't changed - this will cause the active button and table to update
@@ -234,25 +230,25 @@ qSlicerToolWatchdogModuleWidget
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerToolWatchdogModuleWidget::onTransformChanged()
+void qSlicerToolWatchdogModuleWidget::onToolChanged()
 {
   Q_D( qSlicerToolWatchdogModuleWidget );
 
   vtkMRMLToolWatchdogNode* moduleNode = vtkMRMLToolWatchdogNode::SafeDownCast( d->ModuleNodeComboBox->currentNode() );
   if ( moduleNode == NULL )
   {
-    qCritical( "Transform node should not be changed when no module node selected" );
+    qCritical( "Tool node should not be changed when no module node selected" );
     return;
   }
 
-  vtkMRMLNode* currentNode = d->TransformComboBox->currentNode();
+  vtkMRMLNode* currentNode = d->ToolComboBox->currentNode();
   if ( currentNode == NULL )
   {
-    d->logic()->SetObservedTransformNode( NULL, moduleNode );
+    d->logic()->SetObservedToolNode( NULL, moduleNode );
   }
   else
   {
-    d->logic()->SetObservedTransformNode( vtkMRMLLinearTransformNode::SafeDownCast( currentNode ), moduleNode );
+    d->logic()->SetObservedToolNode( vtkMRMLDisplayableNode::SafeDownCast( currentNode ), moduleNode );
     this->Timer->start( 1000 );
     updateWidget();
   }
@@ -268,8 +264,8 @@ qSlicerToolWatchdogModuleWidget
   vtkMRMLNode* currentNode = d->ModuleNodeComboBox->currentNode();
   if ( currentNode == NULL )
   {
-    d->TransformComboBox->setCurrentNodeID( "" );
-    d->TransformComboBox->setEnabled( false );
+    d->ToolComboBox->setCurrentNodeID( "" );
+    d->ToolComboBox->setEnabled( false );
     return;
   }
 
@@ -280,15 +276,15 @@ qSlicerToolWatchdogModuleWidget
     return;
   }
 
-  d->TransformComboBox->setEnabled( true );
+  d->ToolComboBox->setEnabled( true );
 
   if ( toolWatchdogNode->GetToolNode() != NULL )
   {
-    d->TransformComboBox->setCurrentNodeID( QString::fromStdString( toolWatchdogNode->GetToolNode()->GetID() ) );
+    d->ToolComboBox->setCurrentNodeID( QString::fromStdString( toolWatchdogNode->GetToolNode()->GetID() ) );
   }
   else
   {
-    d->TransformComboBox->setCurrentNodeID( "" );
+    d->ToolComboBox->setCurrentNodeID( "" );
   }
 
   updateTable();
@@ -298,6 +294,7 @@ qSlicerToolWatchdogModuleWidget
 void qSlicerToolWatchdogModuleWidget
 ::OnTimeout()
 {
+  //updateWidget();
   updateTable();
 }
 
@@ -309,8 +306,8 @@ void  qSlicerToolWatchdogModuleWidget
   vtkMRMLNode* currentNode = d->ModuleNodeComboBox->currentNode();
   if ( currentNode == NULL )
   {
-    d->TransformComboBox->setCurrentNodeID( "" );
-    d->TransformComboBox->setEnabled( false );
+    d->ToolComboBox->setCurrentNodeID( "" );
+    d->ToolComboBox->setEnabled( false );
     return;
   }
   vtkMRMLToolWatchdogNode* toolWatchdogNode = vtkMRMLToolWatchdogNode::SafeDownCast( currentNode );
@@ -323,29 +320,34 @@ void  qSlicerToolWatchdogModuleWidget
   d->logic()->UpdateToolState( toolWatchdogNode );
 
   std::list<WatchedTool> *toolsVectorPtr = toolWatchdogNode->GetToolNodes();
-
-  if ( toolsVectorPtr == NULL )
+  int numberTools= toolsVectorPtr->size();
+  if ( toolsVectorPtr == NULL || numberTools!= d->ToolsTableWidget->rowCount())
   {
     return;
   }
    int row=0;
   for (std::list<WatchedTool>::iterator it = toolsVectorPtr->begin() ; it != toolsVectorPtr->end(); ++it)
   {
-    d->TransformsTableWidget->blockSignals( true );
+    if((*it).tool==NULL)
+    {
+      return;
+    }
+    d->ToolsTableWidget->blockSignals( true );
     QTableWidgetItem* status = new QTableWidgetItem( QString::number( (*it).LastTimeStamp ) );
-    d->TransformsTableWidget->setItem( row, 1, status );
+    d->ToolsTableWidget->setItem( row, 1, status );
+
     QTableWidgetItem* labelItem = new QTableWidgetItem( (*it).tool->GetName() );
     WatchdogToolbar->SetNodeStatus(row,(*it).status);
-    d->TransformsTableWidget->setItem( row, 0, labelItem );
+    d->ToolsTableWidget->setItem( row, 0, labelItem );
     if((*it).status==0)
     {
-       d->TransformsTableWidget->item( row, 1)->setBackground(Qt::red);
+       d->ToolsTableWidget->item( row, 1)->setBackground(Qt::red);
     }
     else
     {
-       d->TransformsTableWidget->item( row, 1)->setBackground(Qt::blue);
+       d->ToolsTableWidget->item( row, 1)->setBackground(Qt::blue);
     }
-    d->TransformsTableWidget->blockSignals( false );
+    d->ToolsTableWidget->blockSignals( false );
     row++;
   }
 }
@@ -355,18 +357,18 @@ void  qSlicerToolWatchdogModuleWidget
 {
   Q_D( qSlicerToolWatchdogModuleWidget);
 
-  //vtkMRMLTransformNode* currentTransformNode = vtkMRMLMarkupsNode::SafeDownCast( d->TransformComboBox->currentNode() );
+  //vtkMRMLTransformNode* currentTransformNode = vtkMRMLMarkupsNode::SafeDownCast( d->ToolComboBox->currentNode() );
   //if ( currentTransformNode  == NULL )
   //{
   //  return;
   //}
-  QItemSelectionModel* selectionModel = d->TransformsTableWidget->selectionModel();
+  QItemSelectionModel* selectionModel = d->ToolsTableWidget->selectionModel();
 
   std::vector< int > deleteFiducials;
   // Need to find selected before removing because removing automatically refreshes the table
-  for ( int i = 0; i < d->TransformsTableWidget->rowCount(); i++ )
+  for ( int i = 0; i < d->ToolsTableWidget->rowCount(); i++ )
   {
-    if ( selectionModel->rowIntersectsSelection( i, d->TransformsTableWidget->rootIndex() ) )
+    if ( selectionModel->rowIntersectsSelection( i, d->ToolsTableWidget->rootIndex() ) )
     {
       deleteFiducials.push_back( i );
     }
@@ -375,8 +377,8 @@ void  qSlicerToolWatchdogModuleWidget
   vtkMRMLNode* currentNode = d->ModuleNodeComboBox->currentNode();
   if ( currentNode == NULL )
   {
-    d->TransformComboBox->setCurrentNodeID( "" );
-    d->TransformComboBox->setEnabled( false );
+    d->ToolComboBox->setCurrentNodeID( "" );
+    d->ToolComboBox->setEnabled( false );
     return;
   }
   vtkMRMLToolWatchdogNode* toolWatchdogNode = vtkMRMLToolWatchdogNode::SafeDownCast( currentNode );
@@ -385,20 +387,20 @@ void  qSlicerToolWatchdogModuleWidget
     return;
   }
   //Traversing this way should be more efficient and correct
-  QString transformKey;
+  QString toolKey;
   for ( int i = deleteFiducials.size() - 1; i >= 0; i-- )
   {
-    toolWatchdogNode->RemoveTransform(deleteFiducials.at( i ));
+    toolWatchdogNode->RemoveTool(deleteFiducials.at( i ));
+    WatchdogToolbar->ToolNodeDeleted();
   }
   this->updateWidget();
-  WatchdogToolbar->TransformNodeDeleted();
+ 
 }
 
 void qSlicerToolWatchdogModuleWidget
-::onTransformNodeAdded( )
+::onToolNodeAdded( )
 {
   Q_D(qSlicerToolWatchdogModuleWidget);
-
   vtkMRMLNode* currentNode = d->ModuleNodeComboBox->currentNode();
   if ( currentNode == NULL )
   {
@@ -412,21 +414,26 @@ void qSlicerToolWatchdogModuleWidget
     return;
   }
 
-  vtkMRMLTransformNode* currentTransformNode = vtkMRMLTransformNode::SafeDownCast(d->TransformComboBox->currentNode());
-  d->logic()->AddTransformNode(toolWatchdogNode, currentTransformNode ); // Make sure there is an associated display node
+  vtkMRMLDisplayableNode* currentToolNode = vtkMRMLDisplayableNode::SafeDownCast(d->ToolComboBox->currentNode());
+  if ( currentToolNode  == NULL )
+  {
+    return;
+  }
+
+  d->logic()->AddToolNode(toolWatchdogNode, currentToolNode ); // Make sure there is an associated display node
   this->updateWidget();
-  WatchdogToolbar->TransformNodeAdded();
+  WatchdogToolbar->ToolNodeAdded();
   //this->onMarkupsFiducialNodeChanged();
 }
 
 void qSlicerToolWatchdogModuleWidget
-::onTransformsTableContextMenu(const QPoint& position)
+::onToolsTableContextMenu(const QPoint& position)
 {
   Q_D(qSlicerToolWatchdogModuleWidget);
 
-  QPoint globalPosition = d->TransformsTableWidget->viewport()->mapToGlobal( position );
+  QPoint globalPosition = d->ToolsTableWidget->viewport()->mapToGlobal( position );
 
-  QMenu* trasnformsMenu = new QMenu( d->TransformsTableWidget );
+  QMenu* trasnformsMenu = new QMenu( d->ToolsTableWidget );
   QAction* activateAction = new QAction( "Make transform list active", trasnformsMenu );
   QAction* deleteAction = new QAction( "Delete highlighted transforms", trasnformsMenu );
   QAction* upAction = new QAction( "Move current transform up", trasnformsMenu );
@@ -441,13 +448,13 @@ void qSlicerToolWatchdogModuleWidget
 
   QAction* selectedAction = trasnformsMenu->exec( globalPosition );
 
-  int currentTrasform = d->TransformsTableWidget->currentRow();
-  //vtkMRMLTransformNode* currentNode = vtkMRMLTransformNode::SafeDownCast( d->TransformComboBox->currentNode() );
+  int currentTrasform = d->ToolsTableWidget->currentRow();
+  //vtkMRMLTransformNode* currentNode = vtkMRMLTransformNode::SafeDownCast( d->ToolComboBox->currentNode() );
   vtkMRMLNode* currentNode = d->ModuleNodeComboBox->currentNode();
   if ( currentNode == NULL )
   {
-    d->TransformComboBox->setCurrentNodeID( "" );
-    d->TransformComboBox->setEnabled( false );
+    d->ToolComboBox->setCurrentNodeID( "" );
+    d->ToolComboBox->setEnabled( false );
     return;
   }
   vtkMRMLToolWatchdogNode* toolWatchdogNode = vtkMRMLToolWatchdogNode::SafeDownCast( currentNode );
@@ -466,12 +473,12 @@ void qSlicerToolWatchdogModuleWidget
 
   if ( selectedAction == deleteAction )
   {
-    QItemSelectionModel* selectionModel = d->TransformsTableWidget->selectionModel();
+    QItemSelectionModel* selectionModel = d->ToolsTableWidget->selectionModel();
     std::vector< int > deleteFiducials;
     // Need to find selected before removing because removing automatically refreshes the table
-    for ( int i = 0; i < d->TransformsTableWidget->rowCount(); i++ )
+    for ( int i = 0; i < d->ToolsTableWidget->rowCount(); i++ )
     {
-      if ( selectionModel->rowIntersectsSelection( i, d->TransformsTableWidget->rootIndex() ) )
+      if ( selectionModel->rowIntersectsSelection( i, d->ToolsTableWidget->rootIndex() ) )
       {
         deleteFiducials.push_back( i );
       }
@@ -480,8 +487,8 @@ void qSlicerToolWatchdogModuleWidget
     QString transformKey;
     for ( int i = deleteFiducials.size() - 1; i >= 0; i-- )
     {
-      toolWatchdogNode->RemoveTransform(deleteFiducials.at( i ));
-      WatchdogToolbar->TransformNodeDeleted();
+      toolWatchdogNode->RemoveTool(deleteFiducials.at( i ));
+      WatchdogToolbar->ToolNodeDeleted();
     }
   }
 
@@ -495,7 +502,7 @@ void qSlicerToolWatchdogModuleWidget
 
   if ( selectedAction == downAction )
   {
-    if ( currentTrasform < toolWatchdogNode->GetNumberOfTransforms()- 1 )
+    if ( currentTrasform < toolWatchdogNode->GetNumberOfTools()- 1 )
     {
       toolWatchdogNode->SwapMarkups( currentTrasform, currentTrasform + 1 );
     }
@@ -517,8 +524,8 @@ void qSlicerToolWatchdogModuleWidget
   vtkMRMLNode* currentModuleNode = d->ModuleNodeComboBox->currentNode();
   if ( currentModuleNode == NULL )
   {
-    d->TransformComboBox->setCurrentNodeID( "" );
-    d->TransformComboBox->setEnabled( false );
+    d->ToolComboBox->setCurrentNodeID( "" );
+    d->ToolComboBox->setEnabled( false );
     return;
   }
   vtkMRMLToolWatchdogNode* toolWatchdogNode = vtkMRMLToolWatchdogNode::SafeDownCast( currentModuleNode );
@@ -527,47 +534,42 @@ void qSlicerToolWatchdogModuleWidget
     qCritical( "Selected node not a valid module node" );
     return;
   }
-  vtkMRMLTransformNode* currentTransformNode = vtkMRMLTransformNode::SafeDownCast( d->TransformComboBox->currentNode() );
-  if ( currentTransformNode == NULL )
+  vtkMRMLDisplayableNode* currentToolNode = vtkMRMLDisplayableNode::SafeDownCast( d->ToolComboBox->currentNode() );
+  if ( currentToolNode == NULL )
   {
-    d->TransformsTableWidget->clear();
-    d->TransformsTableWidget->setRowCount( 0 );
-    d->TransformsTableWidget->setColumnCount( 0 );
-    d->AddTransformButton->setChecked( Qt::Unchecked );
+    d->ToolsTableWidget->clear();
+    d->ToolsTableWidget->setRowCount( 0 );
+    d->ToolsTableWidget->setColumnCount( 0 );
+    d->AddToolButton->setChecked( Qt::Unchecked );
     // This will ensure that we refresh the widget next time we move to a non-null widget (since there is guaranteed to be a modified status of larger than zero)
     return;
   }
 
   // Set the button indicating if this list is active
-  d->AddTransformButton->blockSignals( true );
-  if ( toolWatchdogNode->HasTransform(currentTransformNode->GetName()))
+  d->AddToolButton->blockSignals( true );
+  if ( toolWatchdogNode->HasTool(currentToolNode->GetName()))
   {
-    //d->AddTransformButton->setChecked( Qt::Unchecked );
-    d->AddTransformButton->setEnabled(false);
+    d->AddToolButton->setEnabled(false);
   }
   else
   {
-    //d->AddTransformButton->setChecked( Qt::Checked );
-    d->AddTransformButton->setEnabled(true);
+    d->AddToolButton->setEnabled(true);
   }
-  d->AddTransformButton->blockSignals( false );
+  d->AddToolButton->blockSignals( false );
 
   // Update the fiducials table
-  d->TransformsTableWidget->blockSignals( true );
-
-  d->TransformsTableWidget->clear();
+  d->ToolsTableWidget->blockSignals( true );
+  d->ToolsTableWidget->clear();
   QStringList MarkupsTableHeaders;
   MarkupsTableHeaders << "Label" << "Status";
-  d->TransformsTableWidget->setRowCount( toolWatchdogNode->GetNumberOfTransforms() );
-  d->TransformsTableWidget->setColumnCount( TRANSFORMS_COLUMNS );
-  d->TransformsTableWidget->setHorizontalHeaderLabels( MarkupsTableHeaders );
-  d->TransformsTableWidget->horizontalHeader()->setResizeMode( QHeaderView::Stretch );
-
+  d->ToolsTableWidget->setRowCount( toolWatchdogNode->GetNumberOfTools() );
+  d->ToolsTableWidget->setColumnCount( TRANSFORMS_COLUMNS );
+  d->ToolsTableWidget->setHorizontalHeaderLabels( MarkupsTableHeaders );
+  d->ToolsTableWidget->horizontalHeader()->setResizeMode( QHeaderView::Stretch );
   std::string fiducialLabel = "";
-
   updateTable();
 
-  d->TransformsTableWidget->blockSignals( false );
+  d->ToolsTableWidget->blockSignals( false );
 
   //emit updateFinished();
 }

@@ -51,13 +51,13 @@ protected slots:
 
   void onModuleNodeChanged();
 
-  void onTransformChanged();
+  void onToolChanged();
   void UpdateFromMRMLNode();
   void OnTimeout();
 
   void onDeleteButtonClicked();
-  void onTransformNodeAdded( );
-  void onTransformsTableContextMenu(const QPoint& position);
+  void onToolNodeAdded( );
+  void onToolsTableContextMenu(const QPoint& position);
   void updateWidget();
   //void onTransformsEdited( int row, int column );
 

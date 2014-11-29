@@ -135,11 +135,11 @@ vtkMRMLToolWatchdogNode
 }
 
 
-vtkMRMLNode*
+vtkMRMLDisplayableNode*
 vtkMRMLToolWatchdogNode
 ::GetToolNode()
 {
-  vtkMRMLNode* ltNode = vtkMRMLNode::SafeDownCast( this->GetNodeReference( TOOL_ROLE ) );
+  vtkMRMLDisplayableNode* ltNode = vtkMRMLDisplayableNode::SafeDownCast( this->GetNodeReference( TOOL_ROLE ) );
   return ltNode;
 }
 
@@ -153,11 +153,16 @@ vtkMRMLToolWatchdogNode
 
 void
 vtkMRMLToolWatchdogNode
-::AddTransformNode( vtkMRMLNode *mrmlNode)
+::AddToolNode( vtkMRMLDisplayableNode* toolAdded)
 {
   WatchedTool tempWatchedTool;
-  //tempWatchTransform.tool=vtkMRMLLinearTransformNode::SafeDownCast(mrmlNode);
-  tempWatchedTool.tool=mrmlNode;
+  //vtkMRMLDisplayableNode *toolAdded=vtkMRMLDisplayableNode::SafeDownCast(mrmlNode);
+  if(toolAdded==NULL)
+  {
+    return;
+  }
+  tempWatchedTool.tool=toolAdded;
+  //tempWatchedTool.tool=mrmlNode;
   //tempWatchedTool.LastTimeStamp=mrmlNode->GetMTime();
   WatchedTools.push_back(tempWatchedTool);
 }
@@ -165,7 +170,7 @@ vtkMRMLToolWatchdogNode
 
 void 
 vtkMRMLToolWatchdogNode
-::RemoveTransform(int row)
+::RemoveTool(int row)
 {
   std::list<WatchedTool>::iterator it = WatchedTools.begin();
   advance (it,row);
@@ -212,11 +217,15 @@ vtkMRMLToolWatchdogNode
 
 bool 
 vtkMRMLToolWatchdogNode
-::HasTransform(char * transformName)
+::HasTool(char * transformName)
 {
   //QString transName(transformName);
   for (std::list<WatchedTool>::iterator it = WatchedTools.begin() ; it != WatchedTools.end(); ++it)
   {
+    if((*it).tool== NULL)
+    {
+      continue;
+    }
     QString transNameTemp((*it).tool->GetName());
     
     if(transNameTemp.compare(transformName)==0)
@@ -229,14 +238,14 @@ vtkMRMLToolWatchdogNode
 
 int 
 vtkMRMLToolWatchdogNode
-::GetNumberOfTransforms()
+::GetNumberOfTools()
 {
   return WatchedTools.size();
 }
 
 void
 vtkMRMLToolWatchdogNode
-::SetAndObserveToolTransformNodeId( const char* nodeId )
+::SetAndObserveToolNodeId( const char* nodeId )
 {
   vtkNew<vtkIntArray> events;
   events->InsertNextValue( vtkCommand::ModifiedEvent );
