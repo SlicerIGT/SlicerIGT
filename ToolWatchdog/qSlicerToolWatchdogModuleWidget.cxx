@@ -294,7 +294,6 @@ qSlicerToolWatchdogModuleWidget
 void qSlicerToolWatchdogModuleWidget
 ::OnTimeout()
 {
-  //updateWidget();
   updateTable();
 }
 
