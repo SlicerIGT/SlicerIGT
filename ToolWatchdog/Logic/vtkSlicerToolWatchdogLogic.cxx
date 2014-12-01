@@ -200,8 +200,8 @@ vtkSlicerToolWatchdogLogic
     return;
   }
 
-  UpdateFromMRMLScene();
-  //this->UpdateToolState( toolWatchdogNode );
+  //UpdateFromMRMLScene();
+  this->UpdateToolState( toolWatchdogNode );
   //this->UpdateModelColor( toolWatchdogNode );
   //if(PlayWarningSound==true)
   //{
