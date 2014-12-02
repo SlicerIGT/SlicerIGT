@@ -29,6 +29,8 @@ set(MODULE_INCLUDE_DIRECTORIES
   #${MRMLCore_INCLUDE_DIRS}
   #${MRMLLogic_INCLUDE_DIRS}
   #${MRMLDisplayableManager_INCLUDE_DIRS}
+  #${qSlicerApp_INCLUDE_DIRS}
+  #${SlicerApp_INCLUDE_DIRECTORIES}
   ${qMRMLToolWatchdogModuleWidgets_INCLUDE_DIRS}
   )
 
@@ -58,6 +60,7 @@ set(MODULE_TARGET_LIBRARIES
   qMRMLWidgets
   MRMLLogic
   MRMLDisplayableManager
+  qSlicerBaseQTCore
   )
 
 set(MODULE_RESOURCES

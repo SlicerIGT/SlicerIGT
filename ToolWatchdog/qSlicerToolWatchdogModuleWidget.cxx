@@ -18,14 +18,14 @@ limitations under the License.
 // Qt includes
 #include <QDebug>
 #include <QTimer>
-//#include <QHash>
+#include <QMenu>
 #include <QtGui>
 
-//#include "qSlicerApplication.h"
-//#include "qSlicerModuleManager.h"
+//#include "qSlicerAppMainWindow.h"
+#include "qSlicerModuleManager.h"
 //#include "qSlicerAbstractCoreModule.h"
 
-
+#include "qSlicerApplication.h"
 
 
 // SlicerQt includes
@@ -81,6 +81,40 @@ qSlicerToolWatchdogModuleWidget::qSlicerToolWatchdogModuleWidget(QWidget* _paren
 ,WatchdogToolbar(NULL)
 {
   this->Timer = new QTimer( this );
+
+  if(WatchdogToolbar==NULL)
+  {
+    //qSlicerAppMainWindow* window;
+    //foreach(QWidget * widget, qApp->topLevelWidgets())
+    //{
+    //  window = qobject_cast<qSlicerAppMainWindow*>(widget);
+    //  if (window)
+    //  {
+    //    break;
+    //  }
+    //}
+    // 
+    QMainWindow* window = qSlicerApplication::application()->mainWindow();
+
+    WatchdogToolbar = new qMRMLToolWatchdogToolBar (window);
+    window->addToolBar(WatchdogToolbar);
+    WatchdogToolbar->setWindowTitle(QApplication::translate("qSlicerAppMainWindow", "Tool Watchdog", 0, QApplication::UnicodeUTF8));
+    foreach (QMenu* toolBarMenu,window->findChildren<QMenu*>())
+    {
+      if(toolBarMenu->objectName()==QString("WindowToolBarsMenu"))
+      {
+        QList<QAction*> toolBarMenuActions= toolBarMenu->actions();
+        //toolBarMenu->defaultAction() would be bbetter to use but Slicer App should set the default action
+        toolBarMenu->insertAction(toolBarMenuActions.at(toolBarMenuActions.size()-1),this->WatchdogToolbar->toggleViewAction());
+      }
+
+    }
+
+
+    //window->toobar
+  }
+
+
 }
 
 //-----------------------------------------------------------------------------
@@ -97,20 +131,6 @@ void qSlicerToolWatchdogModuleWidget::setup()
   d->setupUi(this);
   this->Superclass::setup();
 
-  if(WatchdogToolbar==NULL)
-  {
-    QMainWindow* window;
-    foreach(QWidget * widget, qApp->topLevelWidgets())
-    {
-      window = qobject_cast<QMainWindow*>(widget);
-      if (window)
-      {
-        break;
-      }
-    }
-    WatchdogToolbar = new qMRMLToolWatchdogToolBar (window);
-    window->addToolBar(WatchdogToolbar);
-  }
 
   this->setMRMLScene( d->logic()->GetMRMLScene() );
 
@@ -163,6 +183,8 @@ qSlicerToolWatchdogModuleWidget
   {
     d->ModuleNodeComboBox->setCurrentNodeID( node->GetID() );
   }
+
+
 
   this->Superclass::enter();
 }
