@@ -52,6 +52,7 @@ protected:
 public:
   qSlicerToolWatchdogModuleWidgetPrivate( qSlicerToolWatchdogModuleWidget& object );
   vtkSlicerToolWatchdogLogic* logic() const;
+  qMRMLToolWatchdogToolBar * WatchdogToolbar;
 };
 
 //-----------------------------------------------------------------------------
@@ -61,6 +62,25 @@ public:
 qSlicerToolWatchdogModuleWidgetPrivate::qSlicerToolWatchdogModuleWidgetPrivate( qSlicerToolWatchdogModuleWidget& object )
 : q_ptr( &object )
 {
+  this->WatchdogToolbar=NULL;
+  if(this->WatchdogToolbar==NULL)
+  {
+    QMainWindow* window = qSlicerApplication::application()->mainWindow();
+    this->WatchdogToolbar = new qMRMLToolWatchdogToolBar (window);
+    window->addToolBar(this->WatchdogToolbar);
+    this->WatchdogToolbar->setWindowTitle(QApplication::translate("qSlicerAppMainWindow", "Tool Watchdog", 0, QApplication::UnicodeUTF8));
+    foreach (QMenu* toolBarMenu,window->findChildren<QMenu*>())
+    {
+      if(toolBarMenu->objectName()==QString("WindowToolBarsMenu"))
+      {
+        QList<QAction*> toolBarMenuActions= toolBarMenu->actions();
+        //toolBarMenu->defaultAction() would be bbetter to use but Slicer App should set the default action
+        toolBarMenu->insertAction(toolBarMenuActions.at(toolBarMenuActions.size()-1),this->WatchdogToolbar->toggleViewAction());
+        break;
+      }
+    }
+  }
+
 }
 
 
@@ -78,41 +98,9 @@ vtkSlicerToolWatchdogLogic* qSlicerToolWatchdogModuleWidgetPrivate::logic() cons
 qSlicerToolWatchdogModuleWidget::qSlicerToolWatchdogModuleWidget(QWidget* _parent)
 : Superclass( _parent )
 , d_ptr( new qSlicerToolWatchdogModuleWidgetPrivate ( *this ) )
-,WatchdogToolbar(NULL)
 {
   this->Timer = new QTimer( this );
-
-  if(WatchdogToolbar==NULL)
-  {
-    //qSlicerAppMainWindow* window;
-    //foreach(QWidget * widget, qApp->topLevelWidgets())
-    //{
-    //  window = qobject_cast<qSlicerAppMainWindow*>(widget);
-    //  if (window)
-    //  {
-    //    break;
-    //  }
-    //}
-    // 
-    QMainWindow* window = qSlicerApplication::application()->mainWindow();
-
-    WatchdogToolbar = new qMRMLToolWatchdogToolBar (window);
-    window->addToolBar(WatchdogToolbar);
-    WatchdogToolbar->setWindowTitle(QApplication::translate("qSlicerAppMainWindow", "Tool Watchdog", 0, QApplication::UnicodeUTF8));
-    foreach (QMenu* toolBarMenu,window->findChildren<QMenu*>())
-    {
-      if(toolBarMenu->objectName()==QString("WindowToolBarsMenu"))
-      {
-        QList<QAction*> toolBarMenuActions= toolBarMenu->actions();
-        //toolBarMenu->defaultAction() would be bbetter to use but Slicer App should set the default action
-        toolBarMenu->insertAction(toolBarMenuActions.at(toolBarMenuActions.size()-1),this->WatchdogToolbar->toggleViewAction());
-      }
-
-    }
-
-
-    //window->toobar
-  }
+  //Q_D(qSlicerToolWatchdogModuleWidget);
 
 
 }
@@ -358,7 +346,7 @@ void  qSlicerToolWatchdogModuleWidget
     d->ToolsTableWidget->setItem( row, 1, status );
 
     QTableWidgetItem* labelItem = new QTableWidgetItem( (*it).tool->GetName() );
-    WatchdogToolbar->SetNodeStatus(row,(*it).status);
+    d->WatchdogToolbar->SetNodeStatus(row,(*it).status);
     d->ToolsTableWidget->setItem( row, 0, labelItem );
     if((*it).status==0)
     {
@@ -412,7 +400,7 @@ void  qSlicerToolWatchdogModuleWidget
   for ( int i = deleteFiducials.size() - 1; i >= 0; i-- )
   {
     toolWatchdogNode->RemoveTool(deleteFiducials.at( i ));
-    WatchdogToolbar->ToolNodeDeleted();
+    d->WatchdogToolbar->ToolNodeDeleted();
   }
   this->updateWidget();
  
@@ -443,7 +431,7 @@ void qSlicerToolWatchdogModuleWidget
 
   d->logic()->AddToolNode(toolWatchdogNode, currentToolNode ); // Make sure there is an associated display node
   this->updateWidget();
-  WatchdogToolbar->ToolNodeAdded();
+  d->WatchdogToolbar->ToolNodeAdded();
   //this->onMarkupsFiducialNodeChanged();
 }
 
@@ -509,7 +497,7 @@ void qSlicerToolWatchdogModuleWidget
     for ( int i = deleteFiducials.size() - 1; i >= 0; i-- )
     {
       toolWatchdogNode->RemoveTool(deleteFiducials.at( i ));
-      WatchdogToolbar->ToolNodeDeleted();
+      d->WatchdogToolbar->ToolNodeDeleted();
     }
   }
 

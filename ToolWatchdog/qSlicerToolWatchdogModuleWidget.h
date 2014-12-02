@@ -73,7 +73,6 @@ private:
   Q_DISABLE_COPY(qSlicerToolWatchdogModuleWidget);
 
   QTimer* Timer;
-  qMRMLToolWatchdogToolBar * WatchdogToolbar;
 };
 
 #endif
