@@ -53,7 +53,8 @@ public:
   qMRMLToolWatchdogToolBar(const QString& title, QWidget* parent = 0);
   qMRMLToolWatchdogToolBar(QWidget* parent = 0);
   virtual ~qMRMLToolWatchdogToolBar();
-
+  
+  void SetFirstlabel(char * watchDogNodeName);
   void ToolNodeAdded(char * toolName);
   void SwapToolNodes(int toolA, int toolB );
   void ToolNodeDeleted();

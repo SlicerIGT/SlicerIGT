@@ -210,6 +210,16 @@ qMRMLToolWatchdogToolBar::qMRMLToolWatchdogToolBar(QWidget* _parent)
   d->init();
 }
 
+void qMRMLToolWatchdogToolBar
+::SetFirstlabel(char * watchDogNodeName)
+{
+  Q_D(qMRMLToolWatchdogToolBar);
+  QString tooltip("Each square indicates the state of the tools watched by the ToolWatchdog module: ");
+  tooltip.append(watchDogNodeName);
+  QLabel* firstLabel = (QLabel*)this->widgetForAction(d->ActionsListPtr->at(0));
+  firstLabel->setToolTip( tooltip );
+  firstLabel->setText(QString(watchDogNodeName).mid(4,11));
+}
 
 void qMRMLToolWatchdogToolBar
 ::ToolNodeAdded(char * toolName)
@@ -275,7 +285,7 @@ void qMRMLToolWatchdogToolBar
     {
       if(status)
       {
-        this->widgetForAction(d->ActionsListPtr->at(row+1))->setStyleSheet("QLabel { background-color: green; min-width: 2em; max-height: 2em;}");
+        this->widgetForAction(d->ActionsListPtr->at(row+1))->setStyleSheet("QLabel { background-color: rgb(45,224,90); min-width: 2em; max-height: 2em;}");
       }
       else
       {

@@ -50,6 +50,10 @@ public slots:
 protected slots:
 
   void onModuleNodeChanged();
+  void onModuleNodeAddedByUser(vtkMRMLNode* nodeAdded);
+  void onNodeAboutToBeRemoved(vtkMRMLNode* nodeToBeRemoved);
+
+
 
   void onToolChanged();
   void UpdateFromMRMLNode();
