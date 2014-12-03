@@ -212,21 +212,38 @@ qMRMLToolWatchdogToolBar::qMRMLToolWatchdogToolBar(QWidget* _parent)
 
 
 void qMRMLToolWatchdogToolBar
-::ToolNodeAdded()
+::ToolNodeAdded(char * toolName)
 {
   Q_D(qMRMLToolWatchdogToolBar);
 
   QLabel* toolLabel = new QLabel(this);
   toolLabel->setToolTip(this->tr("Tool in row %1").arg(d->ActionsListPtr->size()));
-  toolLabel->setText(QString::number(d->ActionsListPtr->size()));
+  toolLabel->setText(QString(toolName).left(6));
 
   toolLabel->setAlignment(Qt::AlignCenter);
-  toolLabel->setStyleSheet("QLabel { background-color: blue; min-width: 2em; max-height: 2em;}");
+  toolLabel->setStyleSheet("QLabel { background-color: green; min-width: 2em; max-height: 2em;}");
   d->ActionsListPtr->push_back(this->addWidget(toolLabel));
   //QObject::connect(this->LabelsListPtr, SIGNAL(triggered()),
   //                 this, SIGNAL(screenshotButtonClicked()));
   
 }
+void qMRMLToolWatchdogToolBar
+::SwapToolNodes(int toolA, int toolB )
+{
+  Q_D(qMRMLToolWatchdogToolBar);
+
+  //d->ActionsListPtr->swap(toolA+1,toolB+1);
+  QLabel* toolLabelA = (QLabel*)this->widgetForAction(d->ActionsListPtr->at(toolA+1));
+  QLabel* toolLabelB = (QLabel*)this->widgetForAction(d->ActionsListPtr->at(toolB+1));
+  QString TempLabel = toolLabelA->text();
+  toolLabelA->setText(toolLabelB->text());
+  toolLabelB->setText(TempLabel);
+  //this->widgetForAction(d->ActionsListPtr->at(toolA+1))->setIconText(this->widgetForAction(d->ActionsListPtr->at(toolB+1))->iconText());
+  //this->widgetForAction(d->ActionsListPtr->at(toolB+1))->SetIconText(toolLabel);
+
+}
+
+
 
 
 void qMRMLToolWatchdogToolBar
@@ -239,6 +256,16 @@ void qMRMLToolWatchdogToolBar
 
 
 void qMRMLToolWatchdogToolBar
+::DeleteToolNode(int row)
+{
+  Q_D(qMRMLToolWatchdogToolBar);
+  this->removeAction(d->ActionsListPtr->at(row+1));
+  d->ActionsListPtr->removeAt(row+1);
+}
+
+
+
+void qMRMLToolWatchdogToolBar
 ::SetNodeStatus(int row, bool status )
 {
   Q_D(qMRMLToolWatchdogToolBar);
@@ -248,7 +275,7 @@ void qMRMLToolWatchdogToolBar
     {
       if(status)
       {
-        this->widgetForAction(d->ActionsListPtr->at(row+1))->setStyleSheet("QLabel { background-color: blue; min-width: 2em; max-height: 2em;}");
+        this->widgetForAction(d->ActionsListPtr->at(row+1))->setStyleSheet("QLabel { background-color: green; min-width: 2em; max-height: 2em;}");
       }
       else
       {

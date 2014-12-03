@@ -254,11 +254,11 @@ void qSlicerToolWatchdogModuleWidget::onToolChanged()
   vtkMRMLNode* currentNode = d->ToolComboBox->currentNode();
   if ( currentNode == NULL )
   {
-    d->logic()->SetObservedToolNode( NULL, moduleNode );
+    //d->logic()->SetObservedToolNode( NULL, moduleNode );
   }
   else
   {
-    d->logic()->SetObservedToolNode( vtkMRMLDisplayableNode::SafeDownCast( currentNode ), moduleNode );
+    //d->logic()->SetObservedToolNode( vtkMRMLDisplayableNode::SafeDownCast( currentNode ), moduleNode );
     this->Timer->start( 1000 );
     updateWidget();
   }
@@ -288,16 +288,16 @@ qSlicerToolWatchdogModuleWidget
 
   d->ToolComboBox->setEnabled( true );
 
-  if ( toolWatchdogNode->GetToolNode() != NULL )
-  {
-    d->ToolComboBox->setCurrentNodeID( QString::fromStdString( toolWatchdogNode->GetToolNode()->GetID() ) );
-  }
-  else
-  {
-    d->ToolComboBox->setCurrentNodeID( "" );
-  }
+  //if ( toolWatchdogNode->GetToolNode() != NULL )
+  //{
+  //  d->ToolComboBox->setCurrentNodeID( QString::fromStdString( toolWatchdogNode->GetToolNode()->GetID() ) );
+  //}
+  //else
+  //{
+  //  d->ToolComboBox->setCurrentNodeID( "" );
+  //}
 
-  updateTable();
+  updateWidget();
 }
 
 
@@ -354,7 +354,7 @@ void  qSlicerToolWatchdogModuleWidget
     }
     else
     {
-       d->ToolsTableWidget->item( row, 1)->setBackground(Qt::blue);
+       d->ToolsTableWidget->item( row, 1)->setBackground(Qt::green);
     }
     d->ToolsTableWidget->blockSignals( false );
     row++;
@@ -431,7 +431,7 @@ void qSlicerToolWatchdogModuleWidget
 
   d->logic()->AddToolNode(toolWatchdogNode, currentToolNode ); // Make sure there is an associated display node
   this->updateWidget();
-  d->WatchdogToolbar->ToolNodeAdded();
+  d->WatchdogToolbar->ToolNodeAdded(currentToolNode->GetName());
   //this->onMarkupsFiducialNodeChanged();
 }
 
@@ -497,7 +497,7 @@ void qSlicerToolWatchdogModuleWidget
     for ( int i = deleteFiducials.size() - 1; i >= 0; i-- )
     {
       toolWatchdogNode->RemoveTool(deleteFiducials.at( i ));
-      d->WatchdogToolbar->ToolNodeDeleted();
+      d->WatchdogToolbar->DeleteToolNode(deleteFiducials.at( i ));
     }
   }
 
@@ -506,6 +506,7 @@ void qSlicerToolWatchdogModuleWidget
     if ( currentTrasform > 0 )
     {
       toolWatchdogNode->SwapMarkups( currentTrasform, currentTrasform - 1 );
+      d->WatchdogToolbar->SwapToolNodes(currentTrasform, currentTrasform - 1);
     }
   }
 
@@ -514,6 +515,7 @@ void qSlicerToolWatchdogModuleWidget
     if ( currentTrasform < toolWatchdogNode->GetNumberOfTools()- 1 )
     {
       toolWatchdogNode->SwapMarkups( currentTrasform, currentTrasform + 1 );
+      d->WatchdogToolbar->SwapToolNodes(currentTrasform, currentTrasform + 1);
     }
   }
 

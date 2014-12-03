@@ -217,7 +217,7 @@ vtkMRMLToolWatchdogNode
 
 bool 
 vtkMRMLToolWatchdogNode
-::HasTool(char * transformName)
+::HasTool(char * toolName)
 {
   //QString transName(transformName);
   for (std::list<WatchedTool>::iterator it = WatchedTools.begin() ; it != WatchedTools.end(); ++it)
@@ -226,9 +226,9 @@ vtkMRMLToolWatchdogNode
     {
       continue;
     }
-    QString transNameTemp((*it).tool->GetName());
+    QString toolNameTemp((*it).tool->GetName());
     
-    if(transNameTemp.compare(transformName)==0)
+    if(toolNameTemp.compare(toolName)==0)
     {
       return true;
     }
