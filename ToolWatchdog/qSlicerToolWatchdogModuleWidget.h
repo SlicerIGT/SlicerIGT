@@ -51,8 +51,8 @@ protected slots:
 
   void onModuleNodeChanged();
   void onModuleNodeAddedByUser(vtkMRMLNode* nodeAdded);
-  void onNodeAboutToBeRemoved(vtkMRMLNode* nodeToBeRemoved);
-
+  void onModuleNodeAboutToBeRemoved(vtkMRMLNode* nodeToBeRemoved);
+  void onVisibilityButtonClicked();
 
 
   void onToolChanged();

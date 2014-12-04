@@ -109,12 +109,17 @@ void qSlicerToolWatchdogModuleWidget::setup()
   connect( d->ModuleNodeComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onModuleNodeChanged() ) );
 
   connect( d->ModuleNodeComboBox, SIGNAL(nodeAddedByUser(vtkMRMLNode* )), this, SLOT(onModuleNodeAddedByUser(vtkMRMLNode* ) ) );
-  connect( d->ModuleNodeComboBox, SIGNAL(nodeAboutToBeRemoved(vtkMRMLNode* )), this, SLOT(onNodeAboutToBeRemoved(vtkMRMLNode* ) ) );
+  connect( d->ModuleNodeComboBox, SIGNAL(nodeAboutToBeRemoved(vtkMRMLNode* )), this, SLOT(onModuleNodeAboutToBeRemoved(vtkMRMLNode* ) ) );
+
+  connect( d->VisibilityButton, SIGNAL( clicked() ), this, SLOT( onVisibilityButtonClicked() ) );
+  d->VisibilityButton->setIcon( QIcon( ":/Icons/Small/SlicerVisible.png" ) );
+
 
   connect( d->ToolComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onToolChanged() ) );
   connect( d->AddToolButton, SIGNAL( clicked() ), this, SLOT( onToolNodeAdded() ) );
   //connect(d->AddToolButton, SIGNAL( clicked() ), WatchdogToolbar, SLOT( onTransformNodeAdded() ));
   connect( d->DeleteToolButton, SIGNAL( clicked() ), this, SLOT( onDeleteButtonClicked()) );
+  d->DeleteToolButton->setIcon( QIcon( ":/Icons/MarkupsDelete.png" ) );
   connect( this->Timer, SIGNAL( timeout() ), this, SLOT( OnTimeout() ) );
 
   d->ToolsTableWidget->setContextMenuPolicy( Qt::CustomContextMenu );
@@ -317,7 +322,7 @@ void qSlicerToolWatchdogModuleWidget
 
 
 void qSlicerToolWatchdogModuleWidget
-::onNodeAboutToBeRemoved(vtkMRMLNode* nodeToBeRemoved)
+::onModuleNodeAboutToBeRemoved(vtkMRMLNode* nodeToBeRemoved)
 {
   Q_D( qSlicerToolWatchdogModuleWidget );
   if(nodeToBeRemoved==NULL)
@@ -356,18 +361,47 @@ void qSlicerToolWatchdogModuleWidget
   d->ToolsTableWidget->clear();
   d->ToolsTableWidget->setRowCount( 0 );
   d->ToolsTableWidget->setColumnCount( 0 );
+}
 
 
 
 
-  //watchdogToolbar->SetFirstlabel(nodeToBeRemoved->GetName());
-  //d->WatchdogToolbarHash->insert(QString(watchdogNodeAdded->GetID()), watchdogToolbar);
-  //window->addToolBar(watchdogToolbar);
-  //watchdogToolbar->setWindowTitle(QApplication::translate("qSlicerAppMainWindow", watchdogNodeAdded->GetName(), 0, QApplication::UnicodeUTF8));
+void qSlicerToolWatchdogModuleWidget
+::onVisibilityButtonClicked()
+{
+  Q_D( qSlicerToolWatchdogModuleWidget );
+
+  vtkMRMLToolWatchdogNode* watchdogModuleNode = vtkMRMLToolWatchdogNode::SafeDownCast( d->ModuleNodeComboBox->currentNode() );
+  if ( watchdogModuleNode == NULL )
+  {
+    qCritical( "Tool node should not be changed when no module node selected" );
+    return;
+  }
 
 
+  if(d->WatchdogToolbarHash==NULL)
+  {
+    return;
+  }
+
+  QMainWindow* window = qSlicerApplication::application()->mainWindow();
+  qMRMLToolWatchdogToolBar *watchdogToolbar = d->WatchdogToolbarHash->value(watchdogModuleNode->GetID());
+  watchdogToolbar->toggleViewAction()->toggle();
+  
+  if(watchdogToolbar->isVisible())
+  {
+    d->VisibilityButton->setIcon( QIcon( ":/Icons/Small/SlicerInvisible.png" ) );
+    watchdogToolbar->setVisible(false);
+  }
+  else
+  {
+    d->VisibilityButton->setIcon( QIcon( ":/Icons/Small/SlicerVisible.png" ) );
+    watchdogToolbar->setVisible(true);
+  }
+  //watchdogToolbar->visibilityChanged();
 
 }
+
 
 
 //-----------------------------------------------------------------------------

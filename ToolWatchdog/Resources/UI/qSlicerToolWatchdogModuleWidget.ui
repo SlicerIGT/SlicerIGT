@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>525</width>
-    <height>314</height>
+    <width>584</width>
+    <height>385</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -24,60 +24,83 @@
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_3">
       <item>
-       <layout class="QVBoxLayout" name="verticalLayout_1">
-        <item>
-         <layout class="QGridLayout" name="gridLayout_1">
-          <item row="0" column="0">
-           <widget class="QLabel" name="label_3">
-            <property name="text">
-             <string>Model to watch:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="0">
-           <widget class="QLabel" name="label_1">
-            <property name="text">
-             <string>Tools to be watched:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="1">
-           <widget class="qMRMLNodeComboBox" name="ToolComboBox" native="true">
-            <property name="enabled">
-             <bool>true</bool>
-            </property>
-            <property name="nodeTypes" stdset="0">
-             <stringlist>
-              <string>vtkMRMLLinearTransformNode</string>
-              <string>vtkMRMLVolumeNode</string>
-             </stringlist>
-            </property>
-            <property name="noneEnabled" stdset="0">
-             <bool>true</bool>
-            </property>
-            <property name="addEnabled" stdset="0">
-             <bool>false</bool>
-            </property>
-            <property name="removeEnabled" stdset="0">
-             <bool>false</bool>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="0">
-           <widget class="QPushButton" name="DeleteToolButton">
-            <property name="text">
-             <string>Delete Tool</string>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="1">
-           <widget class="QPushButton" name="AddToolButton">
-            <property name="text">
-             <string>Add Tool</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
+       <layout class="QGridLayout" name="gridLayout_1" columnstretch="0,0,0,0,0">
+        <item row="0" column="1">
+         <widget class="qMRMLNodeComboBox" name="ToolComboBox" native="true">
+          <property name="enabled">
+           <bool>true</bool>
+          </property>
+          <property name="nodeTypes" stdset="0">
+           <stringlist>
+            <string>vtkMRMLLinearTransformNode</string>
+            <string>vtkMRMLVolumeNode</string>
+           </stringlist>
+          </property>
+          <property name="noneEnabled" stdset="0">
+           <bool>true</bool>
+          </property>
+          <property name="addEnabled" stdset="0">
+           <bool>false</bool>
+          </property>
+          <property name="removeEnabled" stdset="0">
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="0">
+         <widget class="QLabel" name="label_3">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="text">
+           <string>Observe:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="3">
+         <spacer name="horizontalSpacer">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeType">
+           <enum>QSizePolicy::Minimum</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item row="0" column="2">
+         <widget class="QPushButton" name="AddToolButton">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="text">
+           <string>Add Tool</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="4">
+         <widget class="QPushButton" name="DeleteToolButton">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
         </item>
        </layout>
       </item>
@@ -98,6 +121,35 @@
         <layout class="QVBoxLayout" name="verticalLayout_5">
          <item>
           <layout class="QGridLayout" name="gridLayout_2">
+           <item row="0" column="0">
+            <widget class="QLabel" name="label_4">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string>Active module node: </string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="2">
+            <widget class="QPushButton" name="VisibilityButton">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="toolTip">
+              <string>Toggle fiducial list visibility.</string>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
+           </item>
            <item row="0" column="1">
             <widget class="qMRMLNodeComboBox" name="ModuleNodeComboBox" native="true">
              <property name="enabled">
@@ -113,13 +165,6 @@
              </property>
              <property name="selectNodeUponCreation" stdset="0">
               <bool>false</bool>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="0">
-            <widget class="QLabel" name="label_4">
-             <property name="text">
-              <string>Active module node: </string>
              </property>
             </widget>
            </item>
