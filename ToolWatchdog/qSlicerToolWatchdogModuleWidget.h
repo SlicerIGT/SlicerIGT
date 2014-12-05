@@ -57,6 +57,9 @@ protected slots:
   void UpdateFromMRMLNode();
   void OnTimeout();
 
+
+  void onDownButtonClicked();
+  void onUpButtonClicked();
   void onDeleteButtonClicked();
   void onToolNodeAdded( );
   void onToolsTableContextMenu(const QPoint& position);

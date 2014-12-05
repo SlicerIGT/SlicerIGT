@@ -120,6 +120,10 @@ void qSlicerToolWatchdogModuleWidget::setup()
   //connect(d->AddToolButton, SIGNAL( clicked() ), WatchdogToolbar, SLOT( onTransformNodeAdded() ));
   connect( d->DeleteToolButton, SIGNAL( clicked() ), this, SLOT( onDeleteButtonClicked()) );
   d->DeleteToolButton->setIcon( QIcon( ":/Icons/MarkupsDelete.png" ) );
+  connect( d->UpToolButton, SIGNAL( clicked() ), this, SLOT( onUpButtonClicked()) );
+  d->UpToolButton->setIcon( QIcon( ":/Icons/Up.png" ) );
+  connect( d->DownToolButton, SIGNAL( clicked() ), this, SLOT( onDownButtonClicked()) );
+  d->DownToolButton->setIcon( QIcon( ":/Icons/Down.png" ) );
   connect( this->Timer, SIGNAL( timeout() ), this, SLOT( OnTimeout() ) );
 
   d->ToolsTableWidget->setContextMenuPolicy( Qt::CustomContextMenu );
@@ -553,6 +557,58 @@ void  qSlicerToolWatchdogModuleWidget
   }
 }
 
+
+void  qSlicerToolWatchdogModuleWidget
+::onDownButtonClicked()
+{
+  Q_D( qSlicerToolWatchdogModuleWidget);
+  vtkMRMLNode* currentNode = d->ModuleNodeComboBox->currentNode();
+  if ( currentNode == NULL )
+  {
+    d->ToolComboBox->setCurrentNodeID( "" );
+    d->ToolComboBox->setEnabled( false );
+    return;
+  }
+  vtkMRMLToolWatchdogNode* toolWatchdogNode = vtkMRMLToolWatchdogNode::SafeDownCast( currentNode );
+  if ( toolWatchdogNode == NULL )
+  {
+    return;
+  }
+  int currentTool = d->ToolsTableWidget->currentRow();
+  if ( currentTool < toolWatchdogNode->GetNumberOfTools()- 1 )
+  {
+    toolWatchdogNode->SwapMarkups( currentTool, currentTool + 1 );
+    d->WatchdogToolbarHash->value(QString(toolWatchdogNode->GetID()))->SwapToolNodes(currentTool, currentTool + 1);
+  }
+}
+
+void  qSlicerToolWatchdogModuleWidget
+::onUpButtonClicked()
+{
+  Q_D( qSlicerToolWatchdogModuleWidget);
+  vtkMRMLNode* currentNode = d->ModuleNodeComboBox->currentNode();
+  if ( currentNode == NULL )
+  {
+    d->ToolComboBox->setCurrentNodeID( "" );
+    d->ToolComboBox->setEnabled( false );
+    return;
+  }
+  vtkMRMLToolWatchdogNode* toolWatchdogNode = vtkMRMLToolWatchdogNode::SafeDownCast( currentNode );
+  if ( toolWatchdogNode == NULL )
+  {
+    return;
+  }
+  int currentTool = d->ToolsTableWidget->currentRow();
+  if ( currentTool > 0 )
+  {
+    toolWatchdogNode->SwapMarkups( currentTool, currentTool - 1 );
+    d->WatchdogToolbarHash->value(QString(toolWatchdogNode->GetID()))->SwapToolNodes(currentTool, currentTool - 1);
+  }
+
+}
+
+
+
 void  qSlicerToolWatchdogModuleWidget
 ::onDeleteButtonClicked()
 {
@@ -649,7 +705,7 @@ void qSlicerToolWatchdogModuleWidget
 
   QAction* selectedAction = trasnformsMenu->exec( globalPosition );
 
-  int currentTrasform = d->ToolsTableWidget->currentRow();
+  int currentTool = d->ToolsTableWidget->currentRow();
   //vtkMRMLTransformNode* currentNode = vtkMRMLTransformNode::SafeDownCast( d->ToolComboBox->currentNode() );
   vtkMRMLNode* currentNode = d->ModuleNodeComboBox->currentNode();
   if ( currentNode == NULL )
@@ -695,25 +751,25 @@ void qSlicerToolWatchdogModuleWidget
 
   if ( selectedAction == upAction )
   {
-    if ( currentTrasform > 0 )
+    if ( currentTool > 0 )
     {
-      toolWatchdogNode->SwapMarkups( currentTrasform, currentTrasform - 1 );
-      d->WatchdogToolbarHash->value(QString(toolWatchdogNode->GetID()))->SwapToolNodes(currentTrasform, currentTrasform - 1);
+      toolWatchdogNode->SwapMarkups( currentTool, currentTool - 1 );
+      d->WatchdogToolbarHash->value(QString(toolWatchdogNode->GetID()))->SwapToolNodes(currentTool, currentTool - 1);
     }
   }
 
   if ( selectedAction == downAction )
   {
-    if ( currentTrasform < toolWatchdogNode->GetNumberOfTools()- 1 )
+    if ( currentTool < toolWatchdogNode->GetNumberOfTools()- 1 )
     {
-      toolWatchdogNode->SwapMarkups( currentTrasform, currentTrasform + 1 );
-      d->WatchdogToolbarHash->value(QString(toolWatchdogNode->GetID()))->SwapToolNodes(currentTrasform, currentTrasform + 1);
+      toolWatchdogNode->SwapMarkups( currentTool, currentTool + 1 );
+      d->WatchdogToolbarHash->value(QString(toolWatchdogNode->GetID()))->SwapToolNodes(currentTool, currentTool + 1);
     }
   }
 
   //if ( selectedAction == jumpAction )
   //{
-  //  //this->MarkupsLogic->JumpSlicesToNthPointInMarkup( this->GetCurrentNode()->GetID(), currentTrasform );
+  //  //this->MarkupsLogic->JumpSlicesToNthPointInMarkup( this->GetCurrentNode()->GetID(), currentTool );
   //}
 
   this->updateWidget();

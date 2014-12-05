@@ -98,7 +98,7 @@ void qMRMLToolWatchdogToolBarPrivate::init()
     QLabel* transformLabel = new QLabel(q);
     transformLabel->setToolTip(q->tr("Each square indicates the state of the tools watched by the ToolWatchdog module"));
     transformLabel->setText("Tools watched:");
-    //this->LabelsList->setIcon(QIcon("ViewToolWatchdog.png"));
+    //this->LabelsList->setIcon(QIcon(":/Icons/ToolWatchdog.png"));
     this->ActionsListPtr->push_back(q->addWidget(transformLabel));
     //QObject::connect(this->LabelsListPtr, SIGNAL(triggered()),
     //                 q, SIGNAL(screenshotButtonClicked()));

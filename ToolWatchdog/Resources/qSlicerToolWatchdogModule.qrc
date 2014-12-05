@@ -1,5 +1,7 @@
 <!DOCTYPE RCC><RCC version="1.0">
   <qresource>
     <file>Icons/ToolWatchdog.png</file>
+    <file>Icons/Up.png</file>
+    <file>Icons/Down.png</file>
   </qresource>
 </RCC>
