@@ -53,8 +53,6 @@ protected slots:
   void onModuleNodeAddedByUser(vtkMRMLNode* nodeAdded);
   void onModuleNodeAboutToBeRemoved(vtkMRMLNode* nodeToBeRemoved);
   void onVisibilityButtonClicked();
-
-
   void onToolChanged();
   void UpdateFromMRMLNode();
   void OnTimeout();
@@ -63,11 +61,13 @@ protected slots:
   void onToolNodeAdded( );
   void onToolsTableContextMenu(const QPoint& position);
   void updateWidget();
+  void onVisibilityChanged( bool visible );
   //void onTransformsEdited( int row, int column );
 
 protected:
   QScopedPointer<qSlicerToolWatchdogModuleWidgetPrivate> d_ptr;
 
+  void updateToolbars();
   void updateTable();
   virtual void setup();
   virtual void enter();
