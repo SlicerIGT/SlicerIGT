@@ -114,7 +114,7 @@ void vtkSlicerToolWatchdogLogic::UpdateToolState( vtkMRMLToolWatchdogNode* toolW
       timeStamp=(*it).tool->GetMTime();
     }
     
-    if(timeStamp ==(*it).LastTimeStamp )
+    if(timeStamp ==(*it).lastTimeStamp )
     {
       (*it).status=OUT_OF_DATE;
       vtkWarningMacro("Time stamp is out of date"<<timeStamp);
@@ -122,7 +122,7 @@ void vtkSlicerToolWatchdogLogic::UpdateToolState( vtkMRMLToolWatchdogNode* toolW
     else
     {
       (*it).status=UP_TO_DATE;
-      (*it).LastTimeStamp=timeStamp;
+      (*it).lastTimeStamp=timeStamp;
     }
 
   }

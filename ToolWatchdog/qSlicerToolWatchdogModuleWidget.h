@@ -27,6 +27,7 @@ class QTimer;
 class qSlicerToolWatchdogModuleWidgetPrivate;
 class vtkMRMLNode;
 class qMRMLToolWatchdogToolBar;
+class QTableWidgetItem;
 
 /// \ingroup Slicer_QtModules_ExtensionTemplate
 class Q_SLICER_QTMODULES_TOOLWATCHDOG_EXPORT qSlicerToolWatchdogModuleWidget :
@@ -56,7 +57,8 @@ protected slots:
   void onToolChanged();
   void UpdateFromMRMLNode();
   void OnTimeout();
-
+  void onTableItemDoubleClicked(QTableWidgetItem *);
+  void onCurrentCellChanged(int currentRow, int currentColumn);
 
   void onDownButtonClicked();
   void onUpButtonClicked();
@@ -80,6 +82,7 @@ private:
   Q_DISABLE_COPY(qSlicerToolWatchdogModuleWidget);
 
   QTimer* Timer;
+  int CurrentCellPosition[2];
 };
 
 #endif

@@ -38,13 +38,15 @@ struct WatchedTool{
   vtkMRMLDisplayableNode* tool;
   //vtkMRMLVolumeNode* volume;
   int status;
-  unsigned long LastTimeStamp;
+  unsigned long lastTimeStamp;
+  std::string label;
 
   WatchedTool()
   {
     tool=NULL;
     status=0;
-    LastTimeStamp=0;
+    lastTimeStamp=0;
+    label = "label";
   }
 
 };
@@ -86,7 +88,7 @@ public:
   // coordinate system is the tip of the surgical tool that needs to avoid the
   // risk area.
 
-  vtkMRMLDisplayableNode* GetToolNode();
+  WatchedTool* GetToolNode(int currentRow);
   std::list<WatchedTool>* GetToolNodes();
   void AddToolNode( vtkMRMLDisplayableNode *mrmlNode);
   void RemoveTool(int row);

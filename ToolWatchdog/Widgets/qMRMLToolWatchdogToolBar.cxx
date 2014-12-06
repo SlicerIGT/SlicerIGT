@@ -222,13 +222,13 @@ void qMRMLToolWatchdogToolBar
 }
 
 void qMRMLToolWatchdogToolBar
-::ToolNodeAdded(char * toolName)
+::ToolNodeAdded(char * label)
 {
   Q_D(qMRMLToolWatchdogToolBar);
 
   QLabel* toolLabel = new QLabel(this);
   toolLabel->setToolTip(this->tr("Tool in row %1").arg(d->ActionsListPtr->size()));
-  toolLabel->setText(QString(toolName).left(6));
+  toolLabel->setText(QString(label).left(6));
 
   toolLabel->setAlignment(Qt::AlignCenter);
   toolLabel->setStyleSheet("QLabel { background-color: green; min-width: 2em; max-height: 2em;}");
@@ -300,6 +300,20 @@ void qMRMLToolWatchdogToolBar
   //this->addWidget(d->LabelsListPtr->back());
 }
 
+void qMRMLToolWatchdogToolBar
+::SetNodeLabel(int row,const char * toolLabel)
+{
+  Q_D(qMRMLToolWatchdogToolBar);
+  if(d->ActionsListPtr!= NULL)
+  {
+    if(d->ActionsListPtr->size()>1&&row+1<d->ActionsListPtr->size())
+    {
+      QLabel* label= (QLabel*)(this->widgetForAction(d->ActionsListPtr->at(row+1)));
+      label->setText(QString(toolLabel));
+    }
+  }
+  return;
+}
 
 
 //---------------------------------------------------------------------------

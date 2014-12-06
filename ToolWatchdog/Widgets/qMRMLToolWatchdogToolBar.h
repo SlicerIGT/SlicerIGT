@@ -60,6 +60,7 @@ public:
   void ToolNodeDeleted();
   void DeleteToolNode(int row);
   void SetNodeStatus(int row, bool status );
+  void SetNodeLabel(int row, const char * toolLabel);
 
 public slots:
   virtual void setMRMLScene(vtkMRMLScene* newScene);

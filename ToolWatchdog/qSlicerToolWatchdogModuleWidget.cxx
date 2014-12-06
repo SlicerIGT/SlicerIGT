@@ -39,8 +39,10 @@ limitations under the License.
 #include "vtkMRMLToolWatchdogNode.h"
 
 int TOOL_LABEL_COLUMN = 0;
-int TOOL_TIMESTAMP_COLUMN = 1;
-int TOOL_COLUMNS = 2;
+int TOOL_NAME_COLUMN = 1;
+int TOOL_SOUND_COLUMN = 2;
+int TOOL_TIMESTAMP_COLUMN = 3;
+int TOOL_COLUMNS = 4;
 
 //-----------------------------------------------------------------------------
 /// \ingroup Slicer_QtModules_ExtensionTemplate
@@ -125,6 +127,9 @@ void qSlicerToolWatchdogModuleWidget::setup()
   connect( d->DownToolButton, SIGNAL( clicked() ), this, SLOT( onDownButtonClicked()) );
   d->DownToolButton->setIcon( QIcon( ":/Icons/Down.png" ) );
   connect( this->Timer, SIGNAL( timeout() ), this, SLOT( OnTimeout() ) );
+
+  connect(d->ToolsTableWidget, SIGNAL(itemDoubleClicked(QTableWidgetItem *)), this, SLOT( onTableItemDoubleClicked(QTableWidgetItem *) ));
+
 
   d->ToolsTableWidget->setContextMenuPolicy( Qt::CustomContextMenu );
   connect( d->ToolsTableWidget, SIGNAL( customContextMenuRequested(const QPoint&) ), this, SLOT( onToolsTableContextMenu(const QPoint&) ) );
@@ -245,6 +250,59 @@ qSlicerToolWatchdogModuleWidget
 {
   this->enter();
 }
+
+
+void qSlicerToolWatchdogModuleWidget
+::onCurrentCellChanged(int currentRow, int currentColumn)
+{
+  if(CurrentCellPosition[0]!=currentRow && CurrentCellPosition[1]!=currentColumn)
+  {
+    return;
+  }
+  Q_D( qSlicerToolWatchdogModuleWidget );
+  
+  vtkMRMLNode* currentNode = d->ModuleNodeComboBox->currentNode();
+  if ( currentNode == NULL )
+  {
+    return;
+  }
+
+  vtkMRMLToolWatchdogNode* toolWatchdogNode = vtkMRMLToolWatchdogNode::SafeDownCast( currentNode );
+  if ( toolWatchdogNode == NULL )
+  {
+    qCritical( "Selected node not a valid module node" );
+    return;
+  }
+
+  vtkMRMLDisplayableNode* currentToolNode = vtkMRMLDisplayableNode::SafeDownCast(d->ToolComboBox->currentNode());
+  if ( currentToolNode  == NULL )
+  {
+    return;
+  }
+  toolWatchdogNode->GetToolNode(currentRow)->label=d->ToolsTableWidget->item(currentRow,currentColumn)->text().toStdString();
+   
+  d->WatchdogToolbarHash->value(QString(toolWatchdogNode->GetID()))->SetNodeLabel(currentRow, toolWatchdogNode->GetToolNode(currentRow)->label.c_str());
+  this->updateWidget();
+
+  disconnect( d->ToolsTableWidget, SIGNAL( cellChanged( int , int ) ), this, SLOT( onCurrentCellChanged( int, int ) ) );
+
+}
+
+void
+qSlicerToolWatchdogModuleWidget
+::onTableItemDoubleClicked(QTableWidgetItem *)
+{
+  Q_D( qSlicerToolWatchdogModuleWidget );
+
+
+//d->ToolsTableWidget->item(currentRow,currentColumn)
+CurrentCellPosition[0]=d->ToolsTableWidget->currentRow();
+CurrentCellPosition[1]=d->ToolsTableWidget->currentColumn();
+
+connect( d->ToolsTableWidget, SIGNAL( cellChanged( int , int ) ), this, SLOT( onCurrentCellChanged( int , int ) ) );
+
+}
+
 
 
 
@@ -376,7 +434,6 @@ void qSlicerToolWatchdogModuleWidget
     return;
   }
 
-
   if(d->WatchdogToolbarHash==NULL)
   {
     return;
@@ -402,7 +459,7 @@ void qSlicerToolWatchdogModuleWidget
 
 
 
-//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------TODO. THIS MIGHT NOT BE NEEDED!!!
 void qSlicerToolWatchdogModuleWidget::onToolChanged()
 {
   Q_D( qSlicerToolWatchdogModuleWidget );
@@ -527,7 +584,7 @@ void  qSlicerToolWatchdogModuleWidget
   
   std::list<WatchedTool> *toolsVectorPtr = toolWatchdogNode->GetToolNodes();
   int numberTools= toolsVectorPtr->size();
-  if ( toolsVectorPtr == NULL || numberTools!= d->ToolsTableWidget->rowCount())
+  if ( toolsVectorPtr == NULL || numberTools != d->ToolsTableWidget->rowCount())
   {
     return;
   }
@@ -539,18 +596,18 @@ void  qSlicerToolWatchdogModuleWidget
       return;
     }
     d->ToolsTableWidget->blockSignals( true );
-    QTableWidgetItem* lastTimeStampStatus = new QTableWidgetItem( QString::number( (*it).LastTimeStamp ) );
-    d->ToolsTableWidget->setItem( row, 1, lastTimeStampStatus );
+    QTableWidgetItem* lastTimeStampStatus = new QTableWidgetItem( QString::number( (*it).lastTimeStamp ) );
+    d->ToolsTableWidget->setItem( row, TOOL_TIMESTAMP_COLUMN, lastTimeStampStatus );
 
-    QTableWidgetItem* labelItem = new QTableWidgetItem( (*it).tool->GetName() );
-    d->ToolsTableWidget->setItem( row, 0, labelItem );
+    //QTableWidgetItem* labelItem = new QTableWidgetItem( (*it).tool->GetName() );
+    //d->ToolsTableWidget->setItem( row, 0, labelItem );
     if((*it).status==0)
     {
-       d->ToolsTableWidget->item( row, 1)->setBackground(Qt::red);
+       d->ToolsTableWidget->item( row, TOOL_TIMESTAMP_COLUMN)->setBackground(Qt::red);
     }
     else
     {
-       d->ToolsTableWidget->item( row, 1)->setBackground(QBrush(QColor(45,224,90)));
+       d->ToolsTableWidget->item( row, TOOL_TIMESTAMP_COLUMN)->setBackground(QBrush(QColor(45,224,90)));
     }
     d->ToolsTableWidget->blockSignals( false );
     row++;
@@ -580,6 +637,7 @@ void  qSlicerToolWatchdogModuleWidget
     toolWatchdogNode->SwapMarkups( currentTool, currentTool + 1 );
     d->WatchdogToolbarHash->value(QString(toolWatchdogNode->GetID()))->SwapToolNodes(currentTool, currentTool + 1);
   }
+  updateWidget();
 }
 
 void  qSlicerToolWatchdogModuleWidget
@@ -604,7 +662,7 @@ void  qSlicerToolWatchdogModuleWidget
     toolWatchdogNode->SwapMarkups( currentTool, currentTool - 1 );
     d->WatchdogToolbarHash->value(QString(toolWatchdogNode->GetID()))->SwapToolNodes(currentTool, currentTool - 1);
   }
-
+  updateWidget();
 }
 
 
@@ -820,12 +878,36 @@ void qSlicerToolWatchdogModuleWidget
   d->ToolsTableWidget->blockSignals( true );
   d->ToolsTableWidget->clear();
   QStringList MarkupsTableHeaders;
-  MarkupsTableHeaders << "Label" << "Status";
+  MarkupsTableHeaders << "Label" << "Name" << "Sound" << "Status";
   d->ToolsTableWidget->setRowCount( toolWatchdogNode->GetNumberOfTools() );
   d->ToolsTableWidget->setColumnCount( TOOL_COLUMNS );
   d->ToolsTableWidget->setHorizontalHeaderLabels( MarkupsTableHeaders );
   d->ToolsTableWidget->horizontalHeader()->setResizeMode( QHeaderView::Stretch );
   std::string fiducialLabel = "";
+
+
+  std::list<WatchedTool> *toolsVectorPtr = toolWatchdogNode->GetToolNodes();
+  int numberTools= toolsVectorPtr->size();
+  if ( toolsVectorPtr == NULL || numberTools != d->ToolsTableWidget->rowCount())
+  {
+    return;
+  }
+  int row=0;
+  for (std::list<WatchedTool>::iterator it = toolsVectorPtr->begin() ; it != toolsVectorPtr->end(); ++it)
+  {
+    if((*it).tool==NULL)
+    {
+      return;
+    }
+    d->ToolsTableWidget->blockSignals( true );
+    QTableWidgetItem* nameItem = new QTableWidgetItem( (*it).tool->GetName() );
+    QTableWidgetItem* labelItem = new QTableWidgetItem( (*it).label.c_str() );
+    d->ToolsTableWidget->setItem( row, TOOL_NAME_COLUMN, nameItem );
+    d->ToolsTableWidget->setItem( row, TOOL_LABEL_COLUMN, labelItem );
+    d->ToolsTableWidget->setItem(row, TOOL_SOUND_COLUMN, nameItem );
+    row++;
+  }
+
   updateToolbars();
   updateTable();
 

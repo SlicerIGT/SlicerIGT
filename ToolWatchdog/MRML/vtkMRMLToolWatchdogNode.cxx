@@ -131,16 +131,19 @@ vtkMRMLToolWatchdogNode
 {
   vtkMRMLNode::PrintSelf(os,indent); // This will take care of referenced nodes
 
-  os << indent << "ToolTipTransformID: " << this->GetToolNode()->GetID() << std::endl;
+  os << indent << "ToolTipTransformID: " << /*this->GetToolNode()->GetID() <<*/ std::endl;
 }
 
 
-vtkMRMLDisplayableNode*
+WatchedTool *
 vtkMRMLToolWatchdogNode
-::GetToolNode()
+::GetToolNode(int currentRow)
 {
-  vtkMRMLDisplayableNode* ltNode = vtkMRMLDisplayableNode::SafeDownCast( this->GetNodeReference( TOOL_ROLE ) );
-  return ltNode;
+  //vtkMRMLDisplayableNode* ltNode = vtkMRMLDisplayableNode::SafeDownCast( this->GetNodeReference( TOOL_ROLE ) );
+  std::list<WatchedTool>::iterator it = WatchedTools.begin();
+  advance (it,currentRow);
+  WatchedTool * watchedTool = &(*it);
+  return watchedTool;
 }
 
 
@@ -162,6 +165,7 @@ vtkMRMLToolWatchdogNode
     return;
   }
   tempWatchedTool.tool=toolAdded;
+  tempWatchedTool.label=QString(toolAdded->GetName()).left(6).toStdString();
   //tempWatchedTool.tool=mrmlNode;
   //tempWatchedTool.LastTimeStamp=mrmlNode->GetMTime();
   WatchedTools.push_back(tempWatchedTool);
@@ -192,25 +196,28 @@ vtkMRMLToolWatchdogNode
 
 void 
 vtkMRMLToolWatchdogNode
-::SwapMarkups( int trasformA, int trasformB )
+::SwapMarkups( int toolA, int toolB )
 {
   std::list<WatchedTool>::iterator itA = WatchedTools.begin();
-  advance (itA,trasformA);
+  advance (itA,toolA);
   std::list<WatchedTool>::iterator itB = WatchedTools.begin();
-  advance (itB,trasformB);
+  advance (itB,toolB);
 
-  WatchedTool transformTemp;
-  transformTemp.status=itA->status;
-  transformTemp.tool=itA->tool;
-  transformTemp.LastTimeStamp=itA->LastTimeStamp;
+  WatchedTool toolTemp;
+  toolTemp.status=itA->status;
+  toolTemp.tool=itA->tool;
+  toolTemp.lastTimeStamp=itA->lastTimeStamp;
+  toolTemp.label=itA->label;
 
   itA->status=itB->status;
   itA->tool=itB->tool;
-  itA->LastTimeStamp=itB->LastTimeStamp;
+  itA->lastTimeStamp=itB->lastTimeStamp;
+  itA->label=itB->label;
 
-  itB->status=transformTemp.status;
-  itB->tool=transformTemp.tool;
-  itB->LastTimeStamp=transformTemp.LastTimeStamp;
+  itB->status=toolTemp.status;
+  itB->tool=toolTemp.tool;
+  itB->lastTimeStamp=toolTemp.lastTimeStamp;
+  itB->label=toolTemp.label;
 }
 
 
@@ -259,12 +266,12 @@ void
 vtkMRMLToolWatchdogNode
 ::ProcessMRMLEvents( vtkObject *caller, unsigned long event, void *callData )
 {
-  vtkMRMLNode* callerNode = vtkMRMLNode::SafeDownCast( caller );
-  if ( callerNode == NULL ) return;
+  //vtkMRMLNode* callerNode = vtkMRMLNode::SafeDownCast( caller );
+  //if ( callerNode == NULL ) return;
 
-  const char* ObservedTransformNodeId = this->GetToolNode()->GetID();
-  if ( strcmp( ObservedTransformNodeId, callerNode->GetID() ) == 0 )
-  {
-    this->Modified(); // This will tell the logic to update
-  }
+  //const char* ObservedTransformNodeId = this->GetToolNode()->GetID();
+  //if ( strcmp( ObservedTransformNodeId, callerNode->GetID() ) == 0 )
+  //{
+  //  this->Modified(); // This will tell the logic to update
+  //}
 }
