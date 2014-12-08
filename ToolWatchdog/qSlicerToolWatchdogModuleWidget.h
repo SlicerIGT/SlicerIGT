@@ -59,6 +59,7 @@ protected slots:
   void OnTimeout();
   void onTableItemDoubleClicked(QTableWidgetItem *);
   void onCurrentCellChanged(int currentRow, int currentColumn);
+  void onStatusRefreshRateSpinBoxChanged(int statusRefeshRate);
 
   void onDownButtonClicked();
   void onUpButtonClicked();

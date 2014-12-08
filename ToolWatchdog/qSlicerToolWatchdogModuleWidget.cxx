@@ -116,6 +116,7 @@ void qSlicerToolWatchdogModuleWidget::setup()
   connect( d->VisibilityButton, SIGNAL( clicked() ), this, SLOT( onVisibilityButtonClicked() ) );
   d->VisibilityButton->setChecked(true);//d->VisibilityButton->setIcon( QIcon( ":/Icons/Small/SlicerVisible.png" ) );
 
+  connect( d->StatusRefreshRateSpinBox, SIGNAL( valueChanged(int) ), this, SLOT( onStatusRefreshRateSpinBoxChanged(int) ) );
 
   connect( d->ToolComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onToolChanged() ) );
   connect( d->AddToolButton, SIGNAL( clicked() ), this, SLOT( onToolNodeAdded() ) );
@@ -250,6 +251,16 @@ qSlicerToolWatchdogModuleWidget
 {
   this->enter();
 }
+
+
+void qSlicerToolWatchdogModuleWidget
+::onStatusRefreshRateSpinBoxChanged(int statusRefeshRate)
+{
+this->Timer->stop();
+this->Timer->start( 1000.0/((double)statusRefeshRate) );
+updateWidget();
+}
+
 
 
 void qSlicerToolWatchdogModuleWidget
