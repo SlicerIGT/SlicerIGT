@@ -632,7 +632,7 @@ void  qSlicerToolWatchdogModuleWidget
     return;
   }
   int currentTool = d->ToolsTableWidget->currentRow();
-  if ( currentTool < toolWatchdogNode->GetNumberOfTools()- 1 )
+  if ( currentTool < toolWatchdogNode->GetNumberOfTools()- 1 && currentTool>=0 )
   {
     toolWatchdogNode->SwapMarkups( currentTool, currentTool + 1 );
     d->WatchdogToolbarHash->value(QString(toolWatchdogNode->GetID()))->SwapToolNodes(currentTool, currentTool + 1);
