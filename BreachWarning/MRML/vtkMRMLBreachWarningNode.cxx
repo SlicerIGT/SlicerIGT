@@ -49,7 +49,7 @@ vtkMRMLBreachWarningNode
   
   this->AddNodeReferenceRole( MODEL_ROLE );
   this->AddNodeReferenceRole( TOOL_ROLE );
-  
+  this->DisplayWarningColor=1;
   for ( int i = 0; i < 4; ++ i )
   {
     this->WarningColor[ i ] = 0.0;

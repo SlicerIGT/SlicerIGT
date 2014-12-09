@@ -81,6 +81,7 @@ qSlicerBreachWarningModuleWidget
   : Superclass( _parent )
   , d_ptr( new qSlicerBreachWarningModuleWidgetPrivate( *this ) )
 {
+
 }
 
 
