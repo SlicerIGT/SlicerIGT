@@ -618,14 +618,16 @@ void  qSlicerToolWatchdogModuleWidget
     //d->ToolsTableWidget->setItem( row, 0, labelItem );
     if((*it).status==0)
     {
-      QTableWidgetItem* lastElapsedTimeStatus = new QTableWidgetItem( QString::number( floor(ElapsedTimeSec-(*it).lastElapsedTimeStamp) ) );
-      d->ToolsTableWidget->setItem( row, TOOL_TIMESTAMP_COLUMN, lastElapsedTimeStatus );
+      //QTableWidgetItem* lastElapsedTimeStatus = new QTableWidgetItem( QString::number( floor(ElapsedTimeSec-(*it).lastElapsedTimeStamp) ) );
+      //d->ToolsTableWidget->setItem( row, TOOL_TIMESTAMP_COLUMN, lastElapsedTimeStatus );
       d->ToolsTableWidget->item( row, TOOL_TIMESTAMP_COLUMN)->setBackground(Qt::red);
+      QString disconnectedString ("Disconnected ");
+      disconnectedString += QString::number( floor(ElapsedTimeSec-(*it).lastElapsedTimeStamp) )+ " [s] ";
+      d->ToolsTableWidget->item( row, TOOL_TIMESTAMP_COLUMN)->setText(disconnectedString);
     }
     else
     {
-      QTableWidgetItem* lastElapsedTimeStatus = new QTableWidgetItem( "" );
-      d->ToolsTableWidget->setItem( row, TOOL_TIMESTAMP_COLUMN, lastElapsedTimeStatus ); 
+      d->ToolsTableWidget->item( row, TOOL_TIMESTAMP_COLUMN)->setText("");
       d->ToolsTableWidget->item( row, TOOL_TIMESTAMP_COLUMN)->setBackground(QBrush(QColor(45,224,90)));
     }
     d->ToolsTableWidget->blockSignals( false );
@@ -921,6 +923,9 @@ void qSlicerToolWatchdogModuleWidget
     d->ToolsTableWidget->blockSignals( true );
     QTableWidgetItem* nameItem = new QTableWidgetItem( (*it).tool->GetName() );
     QTableWidgetItem* labelItem = new QTableWidgetItem( (*it).label.c_str() );
+    QTableWidgetItem* lastElapsedTimeStatus = new QTableWidgetItem( "" );
+    lastElapsedTimeStatus->setTextAlignment(Qt::AlignCenter);
+    d->ToolsTableWidget->setItem( row, TOOL_TIMESTAMP_COLUMN, lastElapsedTimeStatus );
     d->ToolsTableWidget->setItem( row, TOOL_NAME_COLUMN, nameItem );
     d->ToolsTableWidget->setItem( row, TOOL_LABEL_COLUMN, labelItem );
     d->ToolsTableWidget->setItem(row, TOOL_SOUND_COLUMN, nameItem );
