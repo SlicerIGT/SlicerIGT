@@ -39,6 +39,7 @@ struct WatchedTool{
   //vtkMRMLVolumeNode* volume;
   int status;
   unsigned long lastTimeStamp;
+  unsigned long lastElapsedTimeStamp;
   std::string label;
 
   WatchedTool()
@@ -47,6 +48,7 @@ struct WatchedTool{
     status=0;
     lastTimeStamp=0;
     label = "label";
+    lastElapsedTimeStamp=0;
   }
 
 };

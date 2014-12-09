@@ -83,7 +83,7 @@ void vtkSlicerToolWatchdogLogic::AddToolNode( vtkMRMLToolWatchdogNode* toolWatch
   toolWatchdogNode->AddToolNode(toolNode);
 }
 
-void vtkSlicerToolWatchdogLogic::UpdateToolState( vtkMRMLToolWatchdogNode* toolWatchdogNode )
+void vtkSlicerToolWatchdogLogic::UpdateToolState( vtkMRMLToolWatchdogNode* toolWatchdogNode, unsigned long ElapsedTimeSec  )
 {
   if ( toolWatchdogNode == NULL )
   {
@@ -123,6 +123,7 @@ void vtkSlicerToolWatchdogLogic::UpdateToolState( vtkMRMLToolWatchdogNode* toolW
     {
       (*it).status=UP_TO_DATE;
       (*it).lastTimeStamp=timeStamp;
+      (*it).lastElapsedTimeStamp=ElapsedTimeSec;
     }
 
   }
@@ -201,7 +202,7 @@ vtkSlicerToolWatchdogLogic
   }
 
   //UpdateFromMRMLScene();
-  this->UpdateToolState( toolWatchdogNode );
+  //this->UpdateToolState( toolWatchdogNode, ElapsedTime );
   //this->UpdateModelColor( toolWatchdogNode );
   //if(PlayWarningSound==true)
   //{

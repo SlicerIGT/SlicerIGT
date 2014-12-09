@@ -83,7 +83,9 @@ private:
   Q_DISABLE_COPY(qSlicerToolWatchdogModuleWidget);
 
   QTimer* Timer;
+  double StatusRefreshTimeSec;
   int CurrentCellPosition[2];
+  double ElapsedTimeSec;
 };
 
 #endif

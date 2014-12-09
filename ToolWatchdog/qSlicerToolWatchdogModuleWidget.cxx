@@ -86,9 +86,9 @@ qSlicerToolWatchdogModuleWidget::qSlicerToolWatchdogModuleWidget(QWidget* _paren
 , d_ptr( new qSlicerToolWatchdogModuleWidgetPrivate ( *this ) )
 {
   this->Timer = new QTimer( this );
+  ElapsedTimeSec=0;
+  StatusRefreshTimeSec=0.25;
   //Q_D(qSlicerToolWatchdogModuleWidget);
-
-
 }
 
 //-----------------------------------------------------------------------------
@@ -254,11 +254,12 @@ qSlicerToolWatchdogModuleWidget
 
 
 void qSlicerToolWatchdogModuleWidget
-::onStatusRefreshRateSpinBoxChanged(int statusRefeshRate)
+::onStatusRefreshRateSpinBoxChanged(int statusRefeshRateHz)
 {
-this->Timer->stop();
-this->Timer->start( 1000.0/((double)statusRefeshRate) );
-updateWidget();
+  this->Timer->stop();
+  StatusRefreshTimeSec=1/((double)statusRefeshRateHz);
+  this->Timer->start( 1000.0*StatusRefreshTimeSec);
+  updateWidget();
 }
 
 
@@ -489,8 +490,8 @@ void qSlicerToolWatchdogModuleWidget::onToolChanged()
   }
   else
   {
-    //d->logic()->SetObservedToolNode( vtkMRMLDisplayableNode::SafeDownCast( currentNode ), moduleNode );
-    this->Timer->start( 1000 );
+    //default refresh rate 4 [Hz]
+    this->Timer->start( 250 );
     updateWidget();
   }
 }
@@ -535,7 +536,11 @@ qSlicerToolWatchdogModuleWidget
 void qSlicerToolWatchdogModuleWidget
 ::OnTimeout()
 {
-  //updateWidget();
+  if(ElapsedTimeSec>=10000000000000-1.0)
+  {
+    ElapsedTimeSec=0.0;
+  }
+  ElapsedTimeSec = ElapsedTimeSec+StatusRefreshTimeSec;//updateWidget();
   updateToolbars();
   updateTable();
 }
@@ -553,7 +558,7 @@ void  qSlicerToolWatchdogModuleWidget
     vtkMRMLToolWatchdogNode* toolWatchdogNode = vtkMRMLToolWatchdogNode::SafeDownCast( (*it) );
     if(d->WatchdogToolbarHash->value(QString(toolWatchdogNode->GetID()))->isVisible())
     {
-      d->logic()->UpdateToolState( toolWatchdogNode );
+      d->logic()->UpdateToolState( toolWatchdogNode, (unsigned long) ElapsedTimeSec );
       std::list<WatchedTool>* toolsVectorPtr = toolWatchdogNode->GetToolNodes();
       int numberTools= toolsVectorPtr->size();
       if ( toolsVectorPtr == NULL /*|| numberTools!= d->ToolsTableWidget->rowCount()*/)
@@ -607,18 +612,21 @@ void  qSlicerToolWatchdogModuleWidget
       return;
     }
     d->ToolsTableWidget->blockSignals( true );
-    QTableWidgetItem* lastTimeStampStatus = new QTableWidgetItem( QString::number( (*it).lastTimeStamp ) );
-    d->ToolsTableWidget->setItem( row, TOOL_TIMESTAMP_COLUMN, lastTimeStampStatus );
+
 
     //QTableWidgetItem* labelItem = new QTableWidgetItem( (*it).tool->GetName() );
     //d->ToolsTableWidget->setItem( row, 0, labelItem );
     if((*it).status==0)
     {
-       d->ToolsTableWidget->item( row, TOOL_TIMESTAMP_COLUMN)->setBackground(Qt::red);
+      QTableWidgetItem* lastElapsedTimeStatus = new QTableWidgetItem( QString::number( floor(ElapsedTimeSec-(*it).lastElapsedTimeStamp) ) );
+      d->ToolsTableWidget->setItem( row, TOOL_TIMESTAMP_COLUMN, lastElapsedTimeStatus );
+      d->ToolsTableWidget->item( row, TOOL_TIMESTAMP_COLUMN)->setBackground(Qt::red);
     }
     else
     {
-       d->ToolsTableWidget->item( row, TOOL_TIMESTAMP_COLUMN)->setBackground(QBrush(QColor(45,224,90)));
+      QTableWidgetItem* lastElapsedTimeStatus = new QTableWidgetItem( "" );
+      d->ToolsTableWidget->setItem( row, TOOL_TIMESTAMP_COLUMN, lastElapsedTimeStatus ); 
+      d->ToolsTableWidget->item( row, TOOL_TIMESTAMP_COLUMN)->setBackground(QBrush(QColor(45,224,90)));
     }
     d->ToolsTableWidget->blockSignals( false );
     row++;
