@@ -209,8 +209,7 @@ qSlicerToolWatchdogModuleWidget
 
   this->Superclass::setMRMLScene( scene );
 }
-
-
+ 
 //vtkMRMLNode* qSlicerToolWatchdogModuleWidget
 //::GetCurrentNode()
 //{

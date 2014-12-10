@@ -166,8 +166,8 @@ class ToolWatchdogSelfTestTest(ScriptedLoadableModuleTest):
     watchdogWidget = slicer.modules.toolwatchdog.widgetRepresentation()
 
     tools=[]
-    watchdogToolNodeCombobox = slicer.util.findChildren(widget=watchdogWidget, name='ToolComboBox')[0]  
-    watchdogToolAddToolButton = slicer.util.findChildren(widget=watchdogWidget, name='AddToolButton')[0]
+    toolNodeCombobox = slicer.util.findChildren(widget=watchdogWidget, name='ToolComboBox')[0]  
+    addToolButton = slicer.util.findChildren(widget=watchdogWidget, name='AddToolButton')[0]
     #if plus server connected open IGTLink
     if(self.UsePlusServer):
         openIGTLinkIFWidget = slicer.modules.openigtlinkif.widgetRepresentation()
@@ -180,58 +180,78 @@ class ToolWatchdogSelfTestTest(ScriptedLoadableModuleTest):
         mainWindow.moduleSelector().selectModule('ToolWatchdog')
         i=0
         while i<3:
-            watchdogToolNodeCombobox.setCurrentNodeIndex(i)
-            watchdogToolAddToolButton.click()
+            toolNodeCombobox.setCurrentNodeIndex(i)
+            addToolButton.click()
             i=i+1
     
-    #add several transforms put them on the tool watchdog list
-    i=0
-    while i<3:
-        # Create transform node, add it to the scene and set it in the toolComboBox
-        transformName = "Tool_"+str(i)
-        tools.append(slicer.vtkMRMLLinearTransformNode())
-        tools[i].SetName(slicer.mrmlScene.GenerateUniqueName(transformName))
-        slicer.mrmlScene.AddNode(tools[i])
-        watchdogToolNodeCombobox.setCurrentNodeID(tools[i].GetID())
-        watchdogToolAddToolButton.click()
-        i=i+1
+    #Create two watchdog modules
+    moduleNodes=[]
+    moduleCombobox = slicer.util.findChildren(widget=watchdogWidget, name='ModuleNodeComboBox')[0]
+    moduleNodes.append(moduleCombobox.currentNode())
+    moduleNodes.append(moduleCombobox.addNode())
+    a=1
+    while a>=0:
+        moduleCombobox.setCurrentNodeID(moduleNodes[a].GetID())
+        #add several transforms put them on the tool watchdog list
+        i=0
+        while i<3:
+            # Create transform node, add it to the scene and set it in the toolComboBox
+            if(a==1):
+                transformName = "Tool_"+str(i)
+                tools.append(slicer.vtkMRMLLinearTransformNode())
+                tools[i].SetName(slicer.mrmlScene.GenerateUniqueName(transformName))
+                slicer.mrmlScene.AddNode(tools[i])
+            toolNodeCombobox.setCurrentNodeID(tools[i].GetID())
+            addToolButton.click()
+            i=i+1
+        a=a-1
 
-    self.delayDisplay('Wait...', 1100/self.Speed)
-    print( watchdogToolNodeCombobox.nodeTypes )
+    #This should change the label at tool bar but double click does not work
+    toolsTableWidget = slicer.util.findChildren(widget=watchdogWidget, name='ToolsTableWidget')[0]
+    label=toolsTableWidget.itemAt(0,0)
+    label.setText("Holas")
+    square = qt.QRect()
+    square.setTopLeft(qt.QPoint(0,0))
+    square.setBottomRight(qt.QPoint(0,0))
+    toolsTableWidget.setSelection(square,3)
+    toolsTableWidget.cellDoubleClicked(0,0)
+    toolsTableWidget.cellChanged (0,0)
+
+    self.delayDisplay('Wait...', 3100/self.Speed)
+    print( toolNodeCombobox.nodeTypes )
 
     #Get gui widgets, move two nodes items in the list 
-    watchdogToolToolsTableWidget = slicer.util.findChildren(widget=watchdogWidget, name='ToolsTableWidget')[0]
-    watchdogToolToolsTableWidget.selectRow(3)
+    toolsTableWidget.selectRow(3)
     self.delayDisplay('Table selection up 3rd row...', 2100)
-    watchdogToolUpToolButton = slicer.util.findChildren(widget=watchdogWidget, name='UpToolButton')[0]
-    watchdogToolUpToolButton.click()
-    watchdogToolDownToolButton = slicer.util.findChildren(widget=watchdogWidget, name='DownToolButton')[0]
-    watchdogToolToolsTableWidget.selectRow(0)
+    toolUpToolButton = slicer.util.findChildren(widget=watchdogWidget, name='UpToolButton')[0]
+    toolUpToolButton.click()
+    toolDownToolButton = slicer.util.findChildren(widget=watchdogWidget, name='DownToolButton')[0]
+    toolsTableWidget.selectRow(0)
     self.delayDisplay('Table selection down first element...', 2100)
-    watchdogToolDownToolButton.click()
+    toolDownToolButton.click()
 
     #if PlusServer used delete two of the nodes and move the one left to the bottom of the list
-    watchdogToolDeleteToolButton = slicer.util.findChildren(widget=watchdogWidget, name='DeleteToolButton')[0]
+    deleteToolButton = slicer.util.findChildren(widget=watchdogWidget, name='DeleteToolButton')[0]
     if(self.UsePlusServer):
         i=0
         while i<3:
-            watchdogToolToolsTableWidget.selectRow(i*2)
-            watchdogToolDeleteToolButton.click()
+            toolsTableWidget.selectRow(i*2)
+            deleteToolButton.click()
             i=i+1
         i=0
         while i<3:
-            watchdogToolToolsTableWidget.selectRow(i)
-            watchdogToolDownToolButton.click()
+            toolsTableWidget.selectRow(i)
+            toolDownToolButton.click()
             i=i+1
 
     #put the status labels in a container to check if they update correctly
     i=0
     it=[]
     while i<3:
-        it.append(watchdogToolToolsTableWidget.item(i,3))
+        it.append(toolsTableWidget.item(i,3))
         i=i+1
     if(self.UsePlusServer):
-        it.append(watchdogToolToolsTableWidget.item(4,3))
+        it.append(toolsTableWidget.item(4,3))
 
     #verify if the tool watchdog indicator is updating according to the transform update
     n=50
@@ -263,7 +283,18 @@ class ToolWatchdogSelfTestTest(ScriptedLoadableModuleTest):
             i=i+1
     
     #Delete all items on the list
-    watchdogToolToolsTableWidget.selectAll()
-    watchdogToolDeleteToolButton.click()
+    toolsTableWidget.selectAll()
+    deleteToolButton.click()
+
+    #remove second module node
+    moduleCombobox.setCurrentNodeID(moduleNodes[1].GetID())
+    moduleCombobox.removeCurrentNode()
+    
     self.delayDisplay('Deleted',5000/self.Speed)
     self.delayDisplay('Test passed!')
+
+
+
+
+
+
