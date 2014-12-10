@@ -27,7 +27,6 @@ class QTimer;
 class qSlicerToolWatchdogModuleWidgetPrivate;
 class vtkMRMLNode;
 class qMRMLToolWatchdogToolBar;
-class QTableWidgetItem;
 
 /// \ingroup Slicer_QtModules_ExtensionTemplate
 class Q_SLICER_QTMODULES_TOOLWATCHDOG_EXPORT qSlicerToolWatchdogModuleWidget :
@@ -51,13 +50,16 @@ public slots:
 protected slots:
 
   void onModuleNodeChanged();
+  void updateFromMRMLNode();
+
   void onModuleNodeAddedByUser(vtkMRMLNode* nodeAdded);
   void onModuleNodeAboutToBeRemoved(vtkMRMLNode* nodeToBeRemoved);
   void onVisibilityButtonClicked();
-  void onToolChanged();
-  void UpdateFromMRMLNode();
-  void OnTimeout();
-  void onTableItemDoubleClicked(QTableWidgetItem *);
+  
+
+
+  void onTimeout();
+  void onTableItemDoubleClicked();
   void onCurrentCellChanged(int currentRow, int currentColumn);
   void onStatusRefreshRateSpinBoxChanged(int statusRefeshRate);
 
@@ -67,8 +69,9 @@ protected slots:
   void onToolNodeAdded( );
   void onToolsTableContextMenu(const QPoint& position);
   void updateWidget();
+  //void onToolChanged();
+
   void onVisibilityChanged( bool visible );
-  //void onTransformsEdited( int row, int column );
 
 protected:
   QScopedPointer<qSlicerToolWatchdogModuleWidgetPrivate> d_ptr;

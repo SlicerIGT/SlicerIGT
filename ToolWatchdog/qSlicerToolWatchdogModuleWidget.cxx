@@ -22,12 +22,8 @@ limitations under the License.
 #include <QtGui>
 #include <QHash>
 
-//#include "qSlicerAppMainWindow.h"
 #include "qSlicerModuleManager.h"
-//#include "qSlicerAbstractCoreModule.h"
-
 #include "qSlicerApplication.h"
-
 
 // SlicerQt includes
 #include "qSlicerToolWatchdogModuleWidget.h"
@@ -37,6 +33,8 @@ limitations under the License.
 #include "vtkSlicerToolWatchdogLogic.h"
 
 #include "vtkMRMLToolWatchdogNode.h"
+
+#include <limits>
 
 int TOOL_LABEL_COLUMN = 0;
 int TOOL_NAME_COLUMN = 1;
@@ -70,7 +68,6 @@ qSlicerToolWatchdogModuleWidgetPrivate::qSlicerToolWatchdogModuleWidgetPrivate( 
 }
 
 
-
 vtkSlicerToolWatchdogLogic* qSlicerToolWatchdogModuleWidgetPrivate::logic() const
 {
   Q_Q( const qSlicerToolWatchdogModuleWidget );
@@ -88,7 +85,8 @@ qSlicerToolWatchdogModuleWidget::qSlicerToolWatchdogModuleWidget(QWidget* _paren
   this->Timer = new QTimer( this );
   ElapsedTimeSec=0;
   StatusRefreshTimeSec=0.25;
-  //Q_D(qSlicerToolWatchdogModuleWidget);
+  CurrentCellPosition[0]=0;
+  CurrentCellPosition[1]=0;
 }
 
 //-----------------------------------------------------------------------------
@@ -107,7 +105,7 @@ void qSlicerToolWatchdogModuleWidget::setup()
 
 
   this->setMRMLScene( d->logic()->GetMRMLScene() );
-
+  
   connect( d->ModuleNodeComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onModuleNodeChanged() ) );
 
   connect( d->ModuleNodeComboBox, SIGNAL(nodeAddedByUser(vtkMRMLNode* )), this, SLOT(onModuleNodeAddedByUser(vtkMRMLNode* ) ) );
@@ -118,7 +116,8 @@ void qSlicerToolWatchdogModuleWidget::setup()
 
   connect( d->StatusRefreshRateSpinBox, SIGNAL( valueChanged(int) ), this, SLOT( onStatusRefreshRateSpinBoxChanged(int) ) );
 
-  connect( d->ToolComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onToolChanged() ) );
+  connect( d->ToolComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( updateWidget() ) );
+
   connect( d->AddToolButton, SIGNAL( clicked() ), this, SLOT( onToolNodeAdded() ) );
   //connect(d->AddToolButton, SIGNAL( clicked() ), WatchdogToolbar, SLOT( onTransformNodeAdded() ));
   connect( d->DeleteToolButton, SIGNAL( clicked() ), this, SLOT( onDeleteButtonClicked()) );
@@ -127,15 +126,16 @@ void qSlicerToolWatchdogModuleWidget::setup()
   d->UpToolButton->setIcon( QIcon( ":/Icons/Up.png" ) );
   connect( d->DownToolButton, SIGNAL( clicked() ), this, SLOT( onDownButtonClicked()) );
   d->DownToolButton->setIcon( QIcon( ":/Icons/Down.png" ) );
-  connect( this->Timer, SIGNAL( timeout() ), this, SLOT( OnTimeout() ) );
+  connect( this->Timer, SIGNAL( timeout() ), this, SLOT( onTimeout() ) );
 
-  connect(d->ToolsTableWidget, SIGNAL(itemDoubleClicked(QTableWidgetItem *)), this, SLOT( onTableItemDoubleClicked(QTableWidgetItem *) ));
+  connect(d->ToolsTableWidget, SIGNAL(itemDoubleClicked(QTableWidgetItem *)), this, SLOT( onTableItemDoubleClicked() ));
 
 
   d->ToolsTableWidget->setContextMenuPolicy( Qt::CustomContextMenu );
   connect( d->ToolsTableWidget, SIGNAL( customContextMenuRequested(const QPoint&) ), this, SLOT( onToolsTableContextMenu(const QPoint&) ) );
   connect( d->ToolsTableWidget, SIGNAL( cellChanged( int, int ) ), this, SLOT( onMarkupsFiducialEdited( int, int ) ) );
-  this->UpdateFromMRMLNode();
+  this->updateFromMRMLNode();
+  this->Timer->start( 1000.0*StatusRefreshTimeSec );
 }
 
 
@@ -220,28 +220,28 @@ qSlicerToolWatchdogModuleWidget
 //}
 
 
-void qSlicerToolWatchdogModuleWidget
-::SetCurrentNode( vtkMRMLNode* currentNode )
-{
-  Q_D(qSlicerToolWatchdogModuleWidget);
-  if(currentNode==NULL)
-  {
-    return;
-  }
-
-  vtkMRMLDisplayableNode* currentDisplayableNode = vtkMRMLDisplayableNode::SafeDownCast( currentNode );
-  // Don't change the active fiducial list if the current node is changed programmatically
-  disconnect( d->ToolComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onToolChanged() ) );
-  d->ToolComboBox->setCurrentNode( currentDisplayableNode );
-  connect( d->ToolComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onToolChanged() ) );
-  // Reconnect the appropriate nodes
-  this->qvtkDisconnectAll();
-  //this->ConnectInteractionAndSelectionNodes();
-  this->qvtkConnect( currentDisplayableNode, vtkCommand::ModifiedEvent, this, SLOT( updateWidget() ) );
-  //this->qvtkConnect( currentTransformNode, vtkMRMLTransformNode::MarkupAddedEvent, d->TransformsTableWidget, SLOT( scrollToBottom() ) );
-
-  this->updateWidget(); // Must call this to update widget even if the node hasn't changed - this will cause the active button and table to update
-}
+//void qSlicerToolWatchdogModuleWidget
+//::SetCurrentNode( vtkMRMLNode* currentNode )
+//{
+//  Q_D(qSlicerToolWatchdogModuleWidget);
+//  if(currentNode==NULL)
+//  {
+//    return;
+//  }
+//
+//  vtkMRMLDisplayableNode* currentDisplayableNode = vtkMRMLDisplayableNode::SafeDownCast( currentNode );
+//  // Don't change the active fiducial list if the current node is changed programmatically
+//  disconnect( d->ToolComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( updateWidget() ) );
+//  d->ToolComboBox->setCurrentNode( currentDisplayableNode );
+//  connect( d->ToolComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( updateWidget() ) );
+//  // Reconnect the appropriate nodes
+//  this->qvtkDisconnectAll();
+//  //this->ConnectInteractionAndSelectionNodes();
+//  this->qvtkConnect( currentDisplayableNode, vtkCommand::ModifiedEvent, this, SLOT( updateWidget() ) );
+//  //this->qvtkConnect( currentTransformNode, vtkMRMLTransformNode::MarkupAddedEvent, d->TransformsTableWidget, SLOT( scrollToBottom() ) );
+//
+//  this->updateWidget(); // Must call this to update widget even if the node hasn't changed - this will cause the active button and table to update
+//}
 
 
 
@@ -292,27 +292,21 @@ void qSlicerToolWatchdogModuleWidget
     return;
   }
   toolWatchdogNode->GetToolNode(currentRow)->label=d->ToolsTableWidget->item(currentRow,currentColumn)->text().toStdString();
-   
   d->WatchdogToolbarHash->value(QString(toolWatchdogNode->GetID()))->SetNodeLabel(currentRow, toolWatchdogNode->GetToolNode(currentRow)->label.c_str());
   this->updateWidget();
-
   disconnect( d->ToolsTableWidget, SIGNAL( cellChanged( int , int ) ), this, SLOT( onCurrentCellChanged( int, int ) ) );
-
 }
 
 void
 qSlicerToolWatchdogModuleWidget
-::onTableItemDoubleClicked(QTableWidgetItem *)
+::onTableItemDoubleClicked()
 {
   Q_D( qSlicerToolWatchdogModuleWidget );
+  //d->ToolsTableWidget->item(currentRow,currentColumn)
+  CurrentCellPosition[0]=d->ToolsTableWidget->currentRow();
+  CurrentCellPosition[1]=d->ToolsTableWidget->currentColumn();
 
-
-//d->ToolsTableWidget->item(currentRow,currentColumn)
-CurrentCellPosition[0]=d->ToolsTableWidget->currentRow();
-CurrentCellPosition[1]=d->ToolsTableWidget->currentColumn();
-
-connect( d->ToolsTableWidget, SIGNAL( cellChanged( int , int ) ), this, SLOT( onCurrentCellChanged( int , int ) ) );
-
+  connect( d->ToolsTableWidget, SIGNAL( cellChanged( int , int ) ), this, SLOT( onCurrentCellChanged( int , int ) ) );
 }
 
 
@@ -323,8 +317,7 @@ qSlicerToolWatchdogModuleWidget
 ::onModuleNodeChanged()
 {
   Q_D( qSlicerToolWatchdogModuleWidget );
-
-  this->UpdateFromMRMLNode();
+  this->updateFromMRMLNode();
 }
 
 void qSlicerToolWatchdogModuleWidget
@@ -336,7 +329,6 @@ void qSlicerToolWatchdogModuleWidget
   //  qCritical() << "Invalid scene!";
   //  return;
   //}
-
   //// Create a module MRML node if there is none in the scene.
   ////this->topLevelWidget()
   //vtkMRMLNode* node = this->mrmlScene()->GetNthNodeByClass(0, "vtkMRMLToolWatchdogNode");
@@ -384,7 +376,7 @@ void qSlicerToolWatchdogModuleWidget
       break;
     }
   }
-  this->UpdateFromMRMLNode();
+  this->updateFromMRMLNode();
 }
 
 
@@ -424,7 +416,7 @@ void qSlicerToolWatchdogModuleWidget
     }
   }
 
-  this->UpdateFromMRMLNode();
+  this->updateFromMRMLNode();
   updateWidget();
   d->ToolsTableWidget->clear();
   d->ToolsTableWidget->setRowCount( 0 );
@@ -471,35 +463,34 @@ void qSlicerToolWatchdogModuleWidget
 
 
 
-//-----------------------------------------------------------------------------TODO. THIS MIGHT NOT BE NEEDED!!!
-void qSlicerToolWatchdogModuleWidget::onToolChanged()
-{
-  Q_D( qSlicerToolWatchdogModuleWidget );
-
-  vtkMRMLToolWatchdogNode* moduleNode = vtkMRMLToolWatchdogNode::SafeDownCast( d->ModuleNodeComboBox->currentNode() );
-  if ( moduleNode == NULL )
-  {
-    qCritical( "Tool node should not be changed when no module node selected" );
-    return;
-  }
-
-  vtkMRMLNode* currentNode = d->ToolComboBox->currentNode();
-  if ( currentNode == NULL )
-  {
-    //d->logic()->SetObservedToolNode( NULL, moduleNode );
-  }
-  else
-  {
-    //default refresh rate 4 [Hz]
-    this->Timer->start( 250 );
-    updateWidget();
-  }
-}
+////-----------------------------------------------------------------------------TODO. THIS MIGHT NOT BE NEEDED!!!
+//void qSlicerToolWatchdogModuleWidget::onToolChanged()
+//{
+//  Q_D( qSlicerToolWatchdogModuleWidget );
+//
+//  vtkMRMLToolWatchdogNode* moduleNode = vtkMRMLToolWatchdogNode::SafeDownCast( d->ModuleNodeComboBox->currentNode() );
+//  if ( moduleNode == NULL )
+//  {
+//    qCritical( "Tool node should not be changed when no module node selected" );
+//    return;
+//  }
+//
+//  vtkMRMLNode* currentNode = d->ToolComboBox->currentNode();
+//  if ( currentNode == NULL )
+//  {
+//    return;
+//    //d->logic()->SetObservedToolNode( NULL, moduleNode );
+//  }
+//
+//  //default refresh rate 4 [Hz]
+//  //this->Timer->start( 250 );
+//  updateWidget();
+//}
 
 
 void
 qSlicerToolWatchdogModuleWidget
-::UpdateFromMRMLNode()
+::updateFromMRMLNode()
 {
   Q_D( qSlicerToolWatchdogModuleWidget );
 
@@ -534,9 +525,9 @@ qSlicerToolWatchdogModuleWidget
 
 
 void qSlicerToolWatchdogModuleWidget
-::OnTimeout()
+::onTimeout()
 {
-  if(ElapsedTimeSec>=10000000000000-1.0)
+  if(ElapsedTimeSec>=std::numeric_limits<double>::max()-1.0)
   {
     ElapsedTimeSec=0.0;
   }
