@@ -18,8 +18,8 @@
 
 ==============================================================================*/
 
-#ifndef __qMRMLToolWatchdogToolBar_h
-#define __qMRMLToolWatchdogToolBar_h
+#ifndef __qMRMLWatchdogToolBar_h
+#define __qMRMLWatchdogToolBar_h
 
 // Qt includes
 //#include <QSignalMapper>
@@ -33,14 +33,14 @@
 
 // qMRMLWidget includes
 #include "qMRMLWidget.h"
-#include "qMRMLToolWatchdogModuleWidgetsExport.h"
+#include "qMRMLWatchdogModuleWidgetsExport.h"
 
-class qMRMLToolWatchdogToolBarPrivate;
+class qMRMLWatchdogToolBarPrivate;
 class vtkMRMLNode;
 class vtkMRMLScene;
 class vtkMRMLViewNode;
 
-class QMRML_MODULE_TOOLWATCHDOG_WIDGETS_EXPORT qMRMLToolWatchdogToolBar : public QToolBar
+class QMRML_MODULE_WATCHDOG_WIDGETS_EXPORT qMRMLWatchdogToolBar : public QToolBar
 {
   Q_OBJECT
   QVTK_OBJECT
@@ -50,9 +50,9 @@ public:
 
   /// Constructor
   /// Title is the name of the toolbar (can appear using right click on the toolbar area)
-  qMRMLToolWatchdogToolBar(const QString& title, QWidget* parent = 0);
-  qMRMLToolWatchdogToolBar(QWidget* parent = 0);
-  virtual ~qMRMLToolWatchdogToolBar();
+  qMRMLWatchdogToolBar(const QString& title, QWidget* parent = 0);
+  qMRMLWatchdogToolBar(QWidget* parent = 0);
+  virtual ~qMRMLWatchdogToolBar();
   
   void SetFirstlabel(char * watchDogNodeName);
   void ToolNodeAdded(char * toolName);
@@ -74,11 +74,11 @@ signals:
   void mrmlSceneChanged(vtkMRMLScene*);
 
 protected:
-  QScopedPointer<qMRMLToolWatchdogToolBarPrivate> d_ptr;
+  QScopedPointer<qMRMLWatchdogToolBarPrivate> d_ptr;
 
 private:
-  Q_DECLARE_PRIVATE(qMRMLToolWatchdogToolBar);
-  Q_DISABLE_COPY(qMRMLToolWatchdogToolBar);
+  Q_DECLARE_PRIVATE(qMRMLWatchdogToolBar);
+  Q_DISABLE_COPY(qMRMLWatchdogToolBar);
 };
 
 #endif

@@ -1,6 +1,6 @@
 
-// ToolWatchdog MRML includes
-#include "vtkMRMLToolWatchdogNode.h"
+// Watchdog MRML includes
+#include "vtkMRMLWatchdogNode.h"
 
 // Other MRML includes
 #include "vtkMRMLModelNode.h"
@@ -22,23 +22,23 @@
 #include <QString>
 
 //// Constants
-//static const char* TOOL_ROLE = "ToolWatchdogTransformNode";
+//static const char* TOOL_ROLE = "WatchdogTransformNode";
 
-vtkMRMLToolWatchdogNode* vtkMRMLToolWatchdogNode
+vtkMRMLWatchdogNode* vtkMRMLWatchdogNode
 ::New()
 {
   // First try to create the object from the vtkObjectFactory
-  vtkObject* ret = vtkObjectFactory::CreateInstance( "vtkMRMLToolWatchdogNode" );
+  vtkObject* ret = vtkObjectFactory::CreateInstance( "vtkMRMLWatchdogNode" );
   if( ret )
     {
-      return ( vtkMRMLToolWatchdogNode* )ret;
+      return ( vtkMRMLWatchdogNode* )ret;
     }
   // If the factory was unable to create the object, then create it here.
-  return new vtkMRMLToolWatchdogNode;
+  return new vtkMRMLWatchdogNode;
 }
 
-vtkMRMLToolWatchdogNode
-::vtkMRMLToolWatchdogNode()
+vtkMRMLWatchdogNode
+::vtkMRMLWatchdogNode()
 {
   this->HideFromEditorsOff();
   this->SetSaveWithScene( true );
@@ -46,27 +46,27 @@ vtkMRMLToolWatchdogNode
   //this->AddNodeReferenceRole( TOOL_ROLE );
 }
 
-vtkMRMLToolWatchdogNode
-::~vtkMRMLToolWatchdogNode()
+vtkMRMLWatchdogNode
+::~vtkMRMLWatchdogNode()
 {
 }
 
 vtkMRMLNode*
-vtkMRMLToolWatchdogNode
+vtkMRMLWatchdogNode
 ::CreateNodeInstance()
 {
   // First try to create the object from the vtkObjectFactory
-  vtkObject* ret = vtkObjectFactory::CreateInstance( "vtkMRMLToolWatchdogNode" );
+  vtkObject* ret = vtkObjectFactory::CreateInstance( "vtkMRMLWatchdogNode" );
   if( ret )
     {
-      return ( vtkMRMLToolWatchdogNode* )ret;
+      return ( vtkMRMLWatchdogNode* )ret;
     }
   // If the factory was unable to create the object, then create it here.
-  return new vtkMRMLToolWatchdogNode;
+  return new vtkMRMLWatchdogNode;
 }
 
 void
-vtkMRMLToolWatchdogNode
+vtkMRMLWatchdogNode
 ::WriteXML( ostream& of, int nIndent )
 {
   Superclass::WriteXML(of, nIndent); // This will take care of referenced nodes
@@ -74,7 +74,7 @@ vtkMRMLToolWatchdogNode
 }
 
 void
-vtkMRMLToolWatchdogNode
+vtkMRMLWatchdogNode
 ::ReadXMLAttributes( const char** atts )
 {
   Superclass::ReadXMLAttributes(atts); // This will take care of referenced nodes
@@ -99,16 +99,16 @@ vtkMRMLToolWatchdogNode
 }
 
 void
-vtkMRMLToolWatchdogNode
+vtkMRMLWatchdogNode
 ::Copy( vtkMRMLNode *anode )
 {  
   Superclass::Copy( anode ); // This will take care of referenced nodes
-  vtkMRMLToolWatchdogNode *node = ( vtkMRMLToolWatchdogNode* ) anode;
+  vtkMRMLWatchdogNode *node = ( vtkMRMLWatchdogNode* ) anode;
   this->Modified();
 }
 
 void
-vtkMRMLToolWatchdogNode
+vtkMRMLWatchdogNode
 ::PrintSelf( ostream& os, vtkIndent indent )
 {
   vtkMRMLNode::PrintSelf(os,indent); // This will take care of referenced nodes
@@ -121,7 +121,7 @@ vtkMRMLToolWatchdogNode
 }
 
 WatchedTool *
-vtkMRMLToolWatchdogNode
+vtkMRMLWatchdogNode
 ::GetToolNode(int currentRow)
 {
   //vtkMRMLDisplayableNode* ltNode = vtkMRMLDisplayableNode::SafeDownCast( this->GetNodeReference( TOOL_ROLE ) );
@@ -132,14 +132,14 @@ vtkMRMLToolWatchdogNode
 }
 
 std::list<WatchedTool> * 
-vtkMRMLToolWatchdogNode
+vtkMRMLWatchdogNode
 ::GetToolNodes()
 {
   return &WatchedTools;
 }
 
 void
-vtkMRMLToolWatchdogNode
+vtkMRMLWatchdogNode
 ::AddToolNode( vtkMRMLDisplayableNode* toolAdded)
 {
   WatchedTool tempWatchedTool;
@@ -156,7 +156,7 @@ vtkMRMLToolWatchdogNode
 }
 
 void 
-vtkMRMLToolWatchdogNode
+vtkMRMLWatchdogNode
 ::RemoveTool(int row)
 {
   std::list<WatchedTool>::iterator it = WatchedTools.begin();
@@ -178,7 +178,7 @@ vtkMRMLToolWatchdogNode
 }
 
 void 
-vtkMRMLToolWatchdogNode
+vtkMRMLWatchdogNode
 ::SwapTools( int toolA, int toolB )
 {
   std::list<WatchedTool>::iterator itA = WatchedTools.begin();
@@ -204,7 +204,7 @@ vtkMRMLToolWatchdogNode
 }
 
 bool 
-vtkMRMLToolWatchdogNode
+vtkMRMLWatchdogNode
 ::HasTool(char * toolName)
 {
   for (std::list<WatchedTool>::iterator it = WatchedTools.begin() ; it != WatchedTools.end(); ++it)
@@ -224,14 +224,14 @@ vtkMRMLToolWatchdogNode
 }
 
 int 
-vtkMRMLToolWatchdogNode
+vtkMRMLWatchdogNode
 ::GetNumberOfTools()
 {
   return WatchedTools.size();
 }
 
 //void
-//vtkMRMLToolWatchdogNode
+//vtkMRMLWatchdogNode
 //::SetAndObserveToolNodeId( const char* nodeId )
 //{
 //  vtkNew<vtkIntArray> events;
@@ -243,7 +243,7 @@ vtkMRMLToolWatchdogNode
 
 
 //void
-//vtkMRMLToolWatchdogNode
+//vtkMRMLWatchdogNode
 //::ProcessMRMLEvents( vtkObject *caller, unsigned long event, void *callData )
 //{
 //  //vtkMRMLNode* callerNode = vtkMRMLNode::SafeDownCast( caller );

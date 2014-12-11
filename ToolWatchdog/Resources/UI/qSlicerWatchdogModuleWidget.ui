@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>qSlicerToolWatchdogModuleWidget</class>
- <widget class="qSlicerWidget" name="qSlicerToolWatchdogModuleWidget">
+ <class>qSlicerWatchdogModuleWidget</class>
+ <widget class="qSlicerWidget" name="qSlicerWatchdogModuleWidget">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -167,7 +167,7 @@
              </property>
              <property name="nodeTypes" stdset="0">
               <stringlist>
-               <string>vtkMRMLToolWatchdogNode</string>
+               <string>vtkMRMLWatchdogNode</string>
               </stringlist>
              </property>
              <property name="renameEnabled" stdset="0">
@@ -263,7 +263,7 @@
  <resources/>
  <connections>
   <connection>
-   <sender>qSlicerToolWatchdogModuleWidget</sender>
+   <sender>qSlicerWatchdogModuleWidget</sender>
    <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
    <receiver>ModuleNodeComboBox</receiver>
    <slot>setMRMLScene(vtkMRMLScene*)</slot>
@@ -279,7 +279,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>qSlicerToolWatchdogModuleWidget</sender>
+   <sender>qSlicerWatchdogModuleWidget</sender>
    <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
    <receiver>ToolComboBox</receiver>
    <slot>setMRMLScene(vtkMRMLScene*)</slot>

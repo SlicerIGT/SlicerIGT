@@ -1,7 +1,7 @@
 
 #-----------------------------------------------------------------------------
-set(MODULE_NAME "ToolWatchdog")
-set(MODULE_TITLE "ToolWatchdog")
+set(MODULE_NAME "Watchdog")
+set(MODULE_TITLE "Watchdog")
 
 string(TOUPPER ${MODULE_NAME} MODULE_NAME_UPPER)
 
@@ -31,7 +31,7 @@ set(MODULE_INCLUDE_DIRECTORIES
   #${MRMLDisplayableManager_INCLUDE_DIRS}
   #${qSlicerApp_INCLUDE_DIRS}
   #${SlicerApp_INCLUDE_DIRECTORIES}
-  ${qMRMLToolWatchdogModuleWidgets_INCLUDE_DIRS}
+  ${qMRMLWatchdogModuleWidgets_INCLUDE_DIRS}
   )
 
 set(MODULE_SRCS

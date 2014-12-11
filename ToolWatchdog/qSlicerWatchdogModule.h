@@ -15,19 +15,19 @@
 
 ==============================================================================*/
 
-#ifndef __qSlicerToolWatchdogModule_h
-#define __qSlicerToolWatchdogModule_h
+#ifndef __qSlicerWatchdogModule_h
+#define __qSlicerWatchdogModule_h
 
 // SlicerQt includes
 #include "qSlicerLoadableModule.h"
 
-#include "qSlicerToolWatchdogModuleExport.h"
+#include "qSlicerWatchdogModuleExport.h"
 
-class qSlicerToolWatchdogModulePrivate;
+class qSlicerWatchdogModulePrivate;
 
 /// \ingroup Slicer_QtModules_ExtensionTemplate
-class Q_SLICER_QTMODULES_TOOLWATCHDOG_EXPORT
-qSlicerToolWatchdogModule
+class Q_SLICER_QTMODULES_WATCHDOG_EXPORT
+qSlicerWatchdogModule
   : public qSlicerLoadableModule
 {
   Q_OBJECT
@@ -36,8 +36,8 @@ qSlicerToolWatchdogModule
 public:
 
   typedef qSlicerLoadableModule Superclass;
-  explicit qSlicerToolWatchdogModule(QObject *parent=0);
-  virtual ~qSlicerToolWatchdogModule();
+  explicit qSlicerWatchdogModule(QObject *parent=0);
+  virtual ~qSlicerWatchdogModule();
 
   qSlicerGetTitleMacro(QTMODULE_TITLE);
 
@@ -62,11 +62,11 @@ protected:
   virtual vtkMRMLAbstractLogic* createLogic();
 
 protected:
-  QScopedPointer<qSlicerToolWatchdogModulePrivate> d_ptr;
+  QScopedPointer<qSlicerWatchdogModulePrivate> d_ptr;
 
 private:
-  Q_DECLARE_PRIVATE(qSlicerToolWatchdogModule);
-  Q_DISABLE_COPY(qSlicerToolWatchdogModule);
+  Q_DECLARE_PRIVATE(qSlicerWatchdogModule);
+  Q_DISABLE_COPY(qSlicerWatchdogModule);
 
 };
 

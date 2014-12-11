@@ -12,8 +12,8 @@ set(${KIT}_INCLUDE_DIRECTORIES
 # Sources
 
 set(${KIT}_SRCS
-  vtkMRMLToolWatchdogNode.cxx
-  vtkMRMLToolWatchdogNode.h
+  vtkMRMLWatchdogNode.cxx
+  vtkMRMLWatchdogNode.h
   )
 
 SET (${KIT}_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} CACHE INTERNAL "" FORCE)
