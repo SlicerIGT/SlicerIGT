@@ -197,6 +197,12 @@ vtkSlicerBreachWarningLogic
   }
   
   vtkMRMLModelNode* modelNode = bwNode->GetWatchedModelNode();
+
+  if ( modelNode == NULL )
+  {
+    return;
+  }
+
  
   if(bwNode->GetDisplayWarningColor()==0)
   {
