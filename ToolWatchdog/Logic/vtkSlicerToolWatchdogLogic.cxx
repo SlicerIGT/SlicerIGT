@@ -182,7 +182,7 @@ vtkSlicerToolWatchdogLogic
     return;
   }
 
-  moduleNode->SetAndObserveToolNodeId( newTool->GetID() );
+  //moduleNode->SetAndObserveToolNodeId( newTool->GetID() );
 }
 
 void

@@ -29,14 +29,10 @@
 // ToolWatchdog includes
 #include "vtkSlicerToolWatchdogModuleMRMLExport.h"
 
-#include <QString>
-
-//class vtkMRMLLinearTransformNode;
 class vtkMRMLDisplayableNode;
 
 struct WatchedTool{
   vtkMRMLDisplayableNode* tool;
-  //vtkMRMLVolumeNode* volume;
   int status;
   unsigned long lastTimeStamp;
   unsigned long lastElapsedTimeStamp;
@@ -50,7 +46,6 @@ struct WatchedTool{
     label = "label";
     lastElapsedTimeStamp=0;
   }
-
 };
 
 class
@@ -63,7 +58,6 @@ public:
   vtkTypeMacro( vtkMRMLToolWatchdogNode, vtkMRMLNode );
   
   // Standard MRML node methods  
-
   static vtkMRMLToolWatchdogNode *New();  
 
   virtual vtkMRMLNode* CreateNodeInstance();
@@ -73,12 +67,9 @@ public:
   virtual void WriteXML( ostream& of, int indent );
   virtual void Copy( vtkMRMLNode *node );
 
-
-  
 protected:
 
   // Constructor/destructor methods
-
   vtkMRMLToolWatchdogNode();
   virtual ~vtkMRMLToolWatchdogNode();
   vtkMRMLToolWatchdogNode ( const vtkMRMLToolWatchdogNode& );
@@ -86,26 +77,30 @@ protected:
   
 public:
 
-  // Tool transform is interpreted as ToolTip-to-RAS. The origin of ToolTip 
-  // coordinate system is the tip of the surgical tool that needs to avoid the
-  // risk area.
+  // Tool is interpreted as displayable node. It check the time stamp with a frequency determined
+  // by the QTimer in the widget and set the status to 1 if the time stamp has changed compared
+  // to the last time stamp saved.
 
+  /// Gets the specified tool watched from the tools' list
   WatchedTool* GetToolNode(int currentRow);
+  /// Gets the list of tools 
   std::list<WatchedTool>* GetToolNodes();
+  /// Adds the displayble node into the tools list, adding label, status, and last time stamp information.
   void AddToolNode( vtkMRMLDisplayableNode *mrmlNode);
+  /// Removes the specified tool watched from the tools' list
   void RemoveTool(int row);
-  void SwapMarkups( int trasformA, int trasformB );
-  void SetAndObserveToolNodeId( const char* nodeId );
-
-  bool HasTool(char * transformName);
+  /// Swaps the specified tools watched from the tools' list
+  void SwapTools( int toolA, int toolB );
+  /// Returns True if the list of tools already contains the tool name
+  bool HasTool(char * toolName);
+  /// Returns the size of the list of tools
   int GetNumberOfTools();
-  
-  void ProcessMRMLEvents( vtkObject *caller, unsigned long event, void *callData );
+
+  //void SetAndObserveToolNodeId( const char* nodeId );
+  //void ProcessMRMLEvents( vtkObject *caller, unsigned long event, void *callData );
 
 private:
   std::list< WatchedTool > WatchedTools;
-
-
 };  
 
 #endif

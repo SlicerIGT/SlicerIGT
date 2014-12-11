@@ -552,7 +552,7 @@ void  qSlicerToolWatchdogModuleWidget
   int currentTool = d->ToolsTableWidget->currentRow();
   if ( currentTool < toolWatchdogNode->GetNumberOfTools()- 1 && currentTool>=0 )
   {
-    toolWatchdogNode->SwapMarkups( currentTool, currentTool + 1 );
+    toolWatchdogNode->SwapTools( currentTool, currentTool + 1 );
     d->WatchdogToolbarHash->value(QString(toolWatchdogNode->GetID()))->SwapToolNodes(currentTool, currentTool + 1);
   }
   updateWidget();
@@ -577,7 +577,7 @@ void  qSlicerToolWatchdogModuleWidget
   int currentTool = d->ToolsTableWidget->currentRow();
   if ( currentTool > 0 )
   {
-    toolWatchdogNode->SwapMarkups( currentTool, currentTool - 1 );
+    toolWatchdogNode->SwapTools( currentTool, currentTool - 1 );
     d->WatchdogToolbarHash->value(QString(toolWatchdogNode->GetID()))->SwapToolNodes(currentTool, currentTool - 1);
   }
   updateWidget();
@@ -724,7 +724,7 @@ void qSlicerToolWatchdogModuleWidget
   {
     if ( currentTool > 0 )
     {
-      toolWatchdogNode->SwapMarkups( currentTool, currentTool - 1 );
+      toolWatchdogNode->SwapTools( currentTool, currentTool - 1 );
       d->WatchdogToolbarHash->value(QString(toolWatchdogNode->GetID()))->SwapToolNodes(currentTool, currentTool - 1);
     }
   }
@@ -733,7 +733,7 @@ void qSlicerToolWatchdogModuleWidget
   {
     if ( currentTool < toolWatchdogNode->GetNumberOfTools()- 1 )
     {
-      toolWatchdogNode->SwapMarkups( currentTool, currentTool + 1 );
+      toolWatchdogNode->SwapTools( currentTool, currentTool + 1 );
       d->WatchdogToolbarHash->value(QString(toolWatchdogNode->GetID()))->SwapToolNodes(currentTool, currentTool + 1);
     }
   }
