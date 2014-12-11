@@ -4,13 +4,13 @@ from __main__ import vtk, qt, ctk, slicer
 from slicer.ScriptedLoadableModule import *
 
 #
-# ToolWatchdogSelfTest
+# WatchdogSelfTest
 # 
 
-class ToolWatchdogSelfTest(ScriptedLoadableModule):
+class WatchdogSelfTest(ScriptedLoadableModule):
   def __init__(self, parent):
     ScriptedLoadableModule.__init__(self, parent)
-    self.parent.title = "ToolWatchdogSelfTest" # TODO make this more human readable by adding spaces
+    self.parent.title = "WatchdogSelfTest" # TODO make this more human readable by adding spaces
     self.parent.categories = ["Testing.IGT Tests"]
     self.parent.dependencies = []
     self.parent.contributors = ["Tamas Ungi (Queen's University) Jaime Garcia-Guevara (Queen's University)"]
@@ -23,10 +23,10 @@ class ToolWatchdogSelfTest(ScriptedLoadableModule):
 """
 
 #
-# ToolWatchdogSelfTestWidget
+# WatchdogSelfTestWidget
 #
 
-class ToolWatchdogSelfTestWidget(ScriptedLoadableModuleWidget):
+class WatchdogSelfTestWidget(ScriptedLoadableModuleWidget):
 
   def setup(self):
     ScriptedLoadableModuleWidget.setup(self)
@@ -40,7 +40,7 @@ class ToolWatchdogSelfTestWidget(ScriptedLoadableModuleWidget):
     self.speedSpinBox = qt.QSpinBox()
     self.speedSpinBox
     self.speedSpinBox.toolTip = "Speed to execute the test."
-    self.speedSpinBox.name = "ToolWatchdogSelfTest Speed"
+    self.speedSpinBox.name = "WatchdogSelfTest Speed"
     self.speedSpinBox.setValue(3)
     hLayout =qt.QHBoxLayout()
     hLayout.addStretch(1)
@@ -78,21 +78,21 @@ class ToolWatchdogSelfTestWidget(ScriptedLoadableModuleWidget):
     pass
 
   def onApplyButton(self):
-    logic = ToolWatchdogSelfTestLogic()
+    logic = WatchdogSelfTestLogic()
     print("Run the algorithm")
     logic.run()
 
-  def onReload(self,moduleName="ToolWatchdogSelfTest"):
+  def onReload(self,moduleName="WatchdogSelfTest"):
     """Generic reload method for any scripted module.
     ModuleWizard will subsitute correct default moduleName.
     """
     globals()[moduleName] = slicer.util.reloadScriptedModule(moduleName)
 
-  def setSpeed(self,moduleName="ToolWatchdogSelfTest"):
+  def setSpeed(self,moduleName="WatchdogSelfTest"):
     globals()[moduleName] = slicer.util.reloadScriptedModule(moduleName)
 
 
-  def onReloadAndTest(self,moduleName="ToolWatchdogSelfTest"):
+  def onReloadAndTest(self,moduleName="WatchdogSelfTest"):
     try:
       self.onReload()
       evalString = 'globals()["%s"].%sTest()' % (moduleName, moduleName)
@@ -107,9 +107,9 @@ class ToolWatchdogSelfTestWidget(ScriptedLoadableModuleWidget):
           "Reload and Test", 'Exception!\n\n' + str(e) + "\n\nSee Python Console for Stack Trace")
 
 #
-# ToolWatchdogSelfTestLogic
+# WatchdogSelfTestLogic
 #
-class ToolWatchdogSelfTestLogic(ScriptedLoadableModuleLogic):
+class WatchdogSelfTestLogic(ScriptedLoadableModuleLogic):
   """This class should implement all the actual
   computation done by your module.  The interface
   should be such that other python code can import
@@ -123,9 +123,9 @@ class ToolWatchdogSelfTestLogic(ScriptedLoadableModuleLogic):
     print("Test the algorith logic here, not implemented yet")
 
 #
-# ToolWatchdogSelfTestTest
+# WatchdogSelfTestTest
 #
-class ToolWatchdogSelfTestTest(ScriptedLoadableModuleTest):
+class WatchdogSelfTestTest(ScriptedLoadableModuleTest):
   """
   This is the test case for your scripted module.
   """
@@ -144,9 +144,9 @@ class ToolWatchdogSelfTestTest(ScriptedLoadableModuleTest):
     """Run as few or as many tests as needed here.
     """
     self.setUp()
-    self.test_ToolWatchdogSelfTest1()
+    self.test_WatchdogSelfTest1()
 
-  def test_ToolWatchdogSelfTest1(self):
+  def test_WatchdogSelfTest1(self):
     """ Ideally you should have several levels of tests.  At the lowest level
     tests sould exercise the functionality of the logic with different inputs
     (both valid and invalid).  At higher levels your tests should emulate the
@@ -162,7 +162,7 @@ class ToolWatchdogSelfTestTest(ScriptedLoadableModuleTest):
     scene = slicer.mrmlScene
     mainWindow = slicer.util.mainWindow()
 
-    mainWindow.moduleSelector().selectModule('ToolWatchdog')
+    mainWindow.moduleSelector().selectModule('Watchdog')
     watchdogWidget = slicer.modules.toolwatchdog.widgetRepresentation()
 
     tools=[]
@@ -177,7 +177,7 @@ class ToolWatchdogSelfTestTest(ScriptedLoadableModuleTest):
         openIGTLinkIFStatusCheckbox = slicer.util.findChildren(widget=openIGTLinkIFWidget, name='ConnectorStateCheckBox')[0]
         openIGTLinkIFStatusCheckbox.click()
         self.delayDisplay('Wait...to add IGT link',3000)
-        mainWindow.moduleSelector().selectModule('ToolWatchdog')
+        mainWindow.moduleSelector().selectModule('Watchdog')
         i=0
         while i<3:
             toolNodeCombobox.setCurrentNodeIndex(i)

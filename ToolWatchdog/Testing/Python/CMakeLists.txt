@@ -1,5 +1,5 @@
 #-----------------------------------------------------------------------------
-set(MODULE_NAME ToolWatchdogSelfTest)
+set(MODULE_NAME WatchdogSelfTest)
 
 #-----------------------------------------------------------------------------
 set(MODULE_PYTHON_SCRIPTS

@@ -15,14 +15,14 @@
 
 ==============================================================================*/
 
-// .NAME vtkSlicerToolWatchdogLogic - slicer logic class for volumes manipulation
+// .NAME vtkSlicerWatchdogLogic - slicer logic class for volumes manipulation
 // .SECTION Description
 // This class manages the logic associated with reading, saving,
 // and changing propertied of the volumes
 
 
-#ifndef __vtkSlicerToolWatchdogLogic_h
-#define __vtkSlicerToolWatchdogLogic_h
+#ifndef __vtkSlicerWatchdogLogic_h
+#define __vtkSlicerWatchdogLogic_h
 
 // Slicer includes
 #include "vtkSlicerModuleLogic.h"
@@ -35,7 +35,7 @@
 #include "vtkSmartPointer.h"
 
 // For referencing own MRML node
-class vtkMRMLToolWatchdogNode;
+class vtkMRMLWatchdogNode;
 
 
 class vtkMRMLDisplayableNode;
@@ -43,11 +43,11 @@ class vtkMRMLDisplayableNode;
 // STD includes
 #include <cstdlib>
 
-#include "vtkSlicerToolWatchdogModuleLogicExport.h"
+#include "vtkSlicerWatchdogModuleLogicExport.h"
 
 
 /// \ingroup Slicer_QtModules_ExtensionTemplate
-class VTK_SLICER_TOOLWATCHDOG_MODULE_LOGIC_EXPORT vtkSlicerToolWatchdogLogic :
+class VTK_SLICER_WATCHDOG_MODULE_LOGIC_EXPORT vtkSlicerWatchdogLogic :
   public vtkSlicerModuleLogic
 {
 public:
@@ -58,21 +58,21 @@ public:
     UP_TO_DATE
   };
 
-  static vtkSlicerToolWatchdogLogic *New();
-  vtkTypeMacro(vtkSlicerToolWatchdogLogic, vtkSlicerModuleLogic);
+  static vtkSlicerWatchdogLogic *New();
+  vtkTypeMacro(vtkSlicerWatchdogLogic, vtkSlicerModuleLogic);
   void PrintSelf(ostream& os, vtkIndent indent);
 
-  //void SetObservedToolNode( vtkMRMLDisplayableNode* newTransform, vtkMRMLToolWatchdogNode* moduleNode );
+  //void SetObservedToolNode( vtkMRMLDisplayableNode* newTransform, vtkMRMLWatchdogNode* moduleNode );
   //void ProcessMRMLNodesEvents( vtkObject* caller, unsigned long event, void* callData );
 
   /// Adds a tool to the list in the respective toolwatchdog node
-  void AddToolNode( vtkMRMLToolWatchdogNode* toolWatchdogNode, vtkMRMLDisplayableNode *mrmlNode);
+  void AddToolNode( vtkMRMLWatchdogNode* toolWatchdogNode, vtkMRMLDisplayableNode *mrmlNode);
   /// Updates the state of the tool observed according to the timestamp. The elapsedTime is stored to keep track of time that tools have been disconnected.
-  void UpdateToolStatus( vtkMRMLToolWatchdogNode* toolWatchdogNode, unsigned long ElapsedTimeSec );
+  void UpdateToolStatus( vtkMRMLWatchdogNode* toolWatchdogNode, unsigned long ElapsedTimeSec );
 
 protected:
-  vtkSlicerToolWatchdogLogic();
-  virtual ~vtkSlicerToolWatchdogLogic();
+  vtkSlicerWatchdogLogic();
+  virtual ~vtkSlicerWatchdogLogic();
 
   virtual void SetMRMLSceneInternal(vtkMRMLScene* newScene);
   /// Register MRML Node classes to Scene. Gets called automatically when the MRMLScene is attached to this logic class.
@@ -83,8 +83,8 @@ protected:
 
 private:
 
-  vtkSlicerToolWatchdogLogic(const vtkSlicerToolWatchdogLogic&); // Not implemented
-  void operator=(const vtkSlicerToolWatchdogLogic&); // Not implemented
+  vtkSlicerWatchdogLogic(const vtkSlicerWatchdogLogic&); // Not implemented
+  void operator=(const vtkSlicerWatchdogLogic&); // Not implemented
 };
 
 #endif

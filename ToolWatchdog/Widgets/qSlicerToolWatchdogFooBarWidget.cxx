@@ -19,54 +19,54 @@
 ==============================================================================*/
 
 // FooBar Widgets includes
-#include "qSlicerToolWatchdogFooBarWidget.h"
-#include "ui_qSlicerToolWatchdogFooBarWidget.h"
+#include "qSlicerWatchdogFooBarWidget.h"
+#include "ui_qSlicerWatchdogFooBarWidget.h"
 
 //-----------------------------------------------------------------------------
-/// \ingroup Slicer_QtModules_ToolWatchdog
-class qSlicerToolWatchdogFooBarWidgetPrivate
-  : public Ui_qSlicerToolWatchdogFooBarWidget
+/// \ingroup Slicer_QtModules_Watchdog
+class qSlicerWatchdogFooBarWidgetPrivate
+  : public Ui_qSlicerWatchdogFooBarWidget
 {
-  Q_DECLARE_PUBLIC(qSlicerToolWatchdogFooBarWidget);
+  Q_DECLARE_PUBLIC(qSlicerWatchdogFooBarWidget);
 protected:
-  qSlicerToolWatchdogFooBarWidget* const q_ptr;
+  qSlicerWatchdogFooBarWidget* const q_ptr;
 
 public:
-  qSlicerToolWatchdogFooBarWidgetPrivate(
-    qSlicerToolWatchdogFooBarWidget& object);
-  virtual void setupUi(qSlicerToolWatchdogFooBarWidget*);
+  qSlicerWatchdogFooBarWidgetPrivate(
+    qSlicerWatchdogFooBarWidget& object);
+  virtual void setupUi(qSlicerWatchdogFooBarWidget*);
 };
 
 // --------------------------------------------------------------------------
-qSlicerToolWatchdogFooBarWidgetPrivate
-::qSlicerToolWatchdogFooBarWidgetPrivate(
-  qSlicerToolWatchdogFooBarWidget& object)
+qSlicerWatchdogFooBarWidgetPrivate
+::qSlicerWatchdogFooBarWidgetPrivate(
+  qSlicerWatchdogFooBarWidget& object)
   : q_ptr(&object)
 {
 }
 
 // --------------------------------------------------------------------------
-void qSlicerToolWatchdogFooBarWidgetPrivate
-::setupUi(qSlicerToolWatchdogFooBarWidget* widget)
+void qSlicerWatchdogFooBarWidgetPrivate
+::setupUi(qSlicerWatchdogFooBarWidget* widget)
 {
-  this->Ui_qSlicerToolWatchdogFooBarWidget::setupUi(widget);
+  this->Ui_qSlicerWatchdogFooBarWidget::setupUi(widget);
 }
 
 //-----------------------------------------------------------------------------
-// qSlicerToolWatchdogFooBarWidget methods
+// qSlicerWatchdogFooBarWidget methods
 
 //-----------------------------------------------------------------------------
-qSlicerToolWatchdogFooBarWidget
-::qSlicerToolWatchdogFooBarWidget(QWidget* parentWidget)
+qSlicerWatchdogFooBarWidget
+::qSlicerWatchdogFooBarWidget(QWidget* parentWidget)
   : Superclass( parentWidget )
-  , d_ptr( new qSlicerToolWatchdogFooBarWidgetPrivate(*this) )
+  , d_ptr( new qSlicerWatchdogFooBarWidgetPrivate(*this) )
 {
-  Q_D(qSlicerToolWatchdogFooBarWidget);
+  Q_D(qSlicerWatchdogFooBarWidget);
   d->setupUi(this);
 }
 
 //-----------------------------------------------------------------------------
-qSlicerToolWatchdogFooBarWidget
-::~qSlicerToolWatchdogFooBarWidget()
+qSlicerWatchdogFooBarWidget
+::~qSlicerWatchdogFooBarWidget()
 {
 }

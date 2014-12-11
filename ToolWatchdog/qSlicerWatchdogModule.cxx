@@ -18,61 +18,61 @@
 // Qt includes
 #include <QtPlugin>
 
-// ToolWatchdog Logic includes
-#include <vtkSlicerToolWatchdogLogic.h>
+// Watchdog Logic includes
+#include <vtkSlicerWatchdogLogic.h>
 
-// ToolWatchdog includes
-#include "qSlicerToolWatchdogModule.h"
-#include "qSlicerToolWatchdogModuleWidget.h"
+// Watchdog includes
+#include "qSlicerWatchdogModule.h"
+#include "qSlicerWatchdogModuleWidget.h"
 
 //-----------------------------------------------------------------------------
-Q_EXPORT_PLUGIN2(qSlicerToolWatchdogModule, qSlicerToolWatchdogModule);
+Q_EXPORT_PLUGIN2(qSlicerWatchdogModule, qSlicerWatchdogModule);
 
 //-----------------------------------------------------------------------------
 /// \ingroup Slicer_QtModules_ExtensionTemplate
-class qSlicerToolWatchdogModulePrivate
+class qSlicerWatchdogModulePrivate
 {
 public:
-  qSlicerToolWatchdogModulePrivate();
+  qSlicerWatchdogModulePrivate();
 };
 
 //-----------------------------------------------------------------------------
-// qSlicerToolWatchdogModulePrivate methods
+// qSlicerWatchdogModulePrivate methods
 
 //-----------------------------------------------------------------------------
-qSlicerToolWatchdogModulePrivate::qSlicerToolWatchdogModulePrivate()
+qSlicerWatchdogModulePrivate::qSlicerWatchdogModulePrivate()
 {
 }
 
 //-----------------------------------------------------------------------------
-// qSlicerToolWatchdogModule methods
+// qSlicerWatchdogModule methods
 
 //-----------------------------------------------------------------------------
-qSlicerToolWatchdogModule::qSlicerToolWatchdogModule(QObject* _parent)
+qSlicerWatchdogModule::qSlicerWatchdogModule(QObject* _parent)
   : Superclass(_parent)
-  , d_ptr(new qSlicerToolWatchdogModulePrivate)
+  , d_ptr(new qSlicerWatchdogModulePrivate)
 {
 }
 
 //-----------------------------------------------------------------------------
-qSlicerToolWatchdogModule::~qSlicerToolWatchdogModule()
+qSlicerWatchdogModule::~qSlicerWatchdogModule()
 {
 }
 
 //-----------------------------------------------------------------------------
-QString qSlicerToolWatchdogModule::helpText() const
+QString qSlicerWatchdogModule::helpText() const
 {
   return "For help on how to use this module visit: <a href='http://www.slicerigt.org/'>SlicerIGT</a>";
 }
 
 //-----------------------------------------------------------------------------
-QString qSlicerToolWatchdogModule::acknowledgementText() const
+QString qSlicerWatchdogModule::acknowledgementText() const
 {
   return "This work was was funded by Cancer Care Ontario and the Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO)";
 }
 
 //-----------------------------------------------------------------------------
-QStringList qSlicerToolWatchdogModule::contributors() const
+QStringList qSlicerWatchdogModule::contributors() const
 {
   QStringList moduleContributors;
   moduleContributors << QString("Jaime Garcia-Guevara (Queen's University)");
@@ -81,38 +81,38 @@ QStringList qSlicerToolWatchdogModule::contributors() const
 }
 
 //-----------------------------------------------------------------------------
-QIcon qSlicerToolWatchdogModule::icon() const
+QIcon qSlicerWatchdogModule::icon() const
 {
-  return QIcon(":/Icons/ToolWatchdog.png");
+  return QIcon(":/Icons/Watchdog.png");
 }
 
 //-----------------------------------------------------------------------------
-QStringList qSlicerToolWatchdogModule::categories() const
+QStringList qSlicerWatchdogModule::categories() const
 {
   return QStringList() << "IGT";
 }
 
 //-----------------------------------------------------------------------------
-QStringList qSlicerToolWatchdogModule::dependencies() const
+QStringList qSlicerWatchdogModule::dependencies() const
 {
   return QStringList();
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerToolWatchdogModule::setup()
+void qSlicerWatchdogModule::setup()
 {
   this->Superclass::setup();
 }
 
 //-----------------------------------------------------------------------------
-qSlicerAbstractModuleRepresentation* qSlicerToolWatchdogModule
+qSlicerAbstractModuleRepresentation* qSlicerWatchdogModule
 ::createWidgetRepresentation()
 {
-  return new qSlicerToolWatchdogModuleWidget;
+  return new qSlicerWatchdogModuleWidget;
 }
 
 //-----------------------------------------------------------------------------
-vtkMRMLAbstractLogic* qSlicerToolWatchdogModule::createLogic()
+vtkMRMLAbstractLogic* qSlicerWatchdogModule::createLogic()
 {
-  return vtkSlicerToolWatchdogLogic::New();
+  return vtkSlicerWatchdogLogic::New();
 }

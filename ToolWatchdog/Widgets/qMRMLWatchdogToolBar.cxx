@@ -26,7 +26,7 @@
 #include <QList>
 
 // qMRML includes
-#include "qMRMLToolWatchdogToolBar.h"
+#include "qMRMLWatchdogToolBar.h"
 #include "qMRMLSceneViewMenu.h"
 #include "qMRMLNodeFactory.h"
 
@@ -40,14 +40,14 @@
 #include <vtkWeakPointer.h>
 
 //-----------------------------------------------------------------------------
-class qMRMLToolWatchdogToolBarPrivate
+class qMRMLWatchdogToolBarPrivate
 {
   QVTK_OBJECT
-  Q_DECLARE_PUBLIC(qMRMLToolWatchdogToolBar);
+  Q_DECLARE_PUBLIC(qMRMLWatchdogToolBar);
 protected:
-  qMRMLToolWatchdogToolBar* const q_ptr;
+  qMRMLWatchdogToolBar* const q_ptr;
 public:
-  qMRMLToolWatchdogToolBarPrivate(qMRMLToolWatchdogToolBar& object);
+  qMRMLWatchdogToolBarPrivate(qMRMLWatchdogToolBar& object);
   void init();
   void setMRMLScene(vtkMRMLScene* newScene);
   QList<QAction*>*                         ActionsListPtr;
@@ -66,10 +66,10 @@ public slots:
 };
 
 //--------------------------------------------------------------------------
-// qMRMLToolWatchdogToolBarPrivate methods
+// qMRMLWatchdogToolBarPrivate methods
 
 //---------------------------------------------------------------------------
-qMRMLToolWatchdogToolBarPrivate::qMRMLToolWatchdogToolBarPrivate(qMRMLToolWatchdogToolBar& object)
+qMRMLWatchdogToolBarPrivate::qMRMLWatchdogToolBarPrivate(qMRMLWatchdogToolBar& object)
   : q_ptr(&object)
 {
   this->ActionsListPtr = NULL;
@@ -78,27 +78,27 @@ qMRMLToolWatchdogToolBarPrivate::qMRMLToolWatchdogToolBarPrivate(qMRMLToolWatchd
 }
 
 // --------------------------------------------------------------------------
-void qMRMLToolWatchdogToolBarPrivate::updateWidgetFromMRML()
+void qMRMLWatchdogToolBarPrivate::updateWidgetFromMRML()
 {
-  Q_Q(qMRMLToolWatchdogToolBar);
+  Q_Q(qMRMLWatchdogToolBar);
   // Enable buttons
   q->setEnabled(this->MRMLScene != 0);
   //this->LabelsList->setEnabled(this->ActiveMRMLThreeDViewNode != 0);
 }
 
 //---------------------------------------------------------------------------
-void qMRMLToolWatchdogToolBarPrivate::init()
+void qMRMLWatchdogToolBarPrivate::init()
 {
-  Q_Q(qMRMLToolWatchdogToolBar);
+  Q_Q(qMRMLWatchdogToolBar);
 
   // Screenshot button
   if(this->ActionsListPtr == NULL)
   {
     this->ActionsListPtr = new QList<QAction*>;
     QLabel* transformLabel = new QLabel(q);
-    transformLabel->setToolTip(q->tr("Each square indicates the state of the tools watched by the ToolWatchdog module"));
+    transformLabel->setToolTip(q->tr("Each square indicates the state of the tools watched by the Watchdog module"));
     transformLabel->setText("Tools watched:");
-    //this->LabelsList->setIcon(QIcon(":/Icons/ToolWatchdog.png"));
+    //this->LabelsList->setIcon(QIcon(":/Icons/Watchdog.png"));
     this->ActionsListPtr->push_back(q->addWidget(transformLabel));
     //QObject::connect(this->LabelsListPtr, SIGNAL(triggered()),
     //                 q, SIGNAL(screenshotButtonClicked()));
@@ -108,7 +108,7 @@ void qMRMLToolWatchdogToolBarPrivate::init()
   //this->SceneViewAction = new QAction(q);
   //this->SceneViewAction->setIcon(QIcon(":/Icons/ViewCamera.png"));
   //this->SceneViewAction->setText(q->tr("Scene view"));
-  //this->SceneViewAction->setToolTip(q->tr("ToolWatchdog and name a scene view."));
+  //this->SceneViewAction->setToolTip(q->tr("Watchdog and name a scene view."));
   //QObject::connect(this->SceneViewAction, SIGNAL(triggered()),
   //                 q, SIGNAL(sceneViewButtonClicked()));
   //q->addAction(this->SceneViewAction);
@@ -129,7 +129,7 @@ void qMRMLToolWatchdogToolBarPrivate::init()
   //                SLOT(setToolButtonStyle(Qt::ToolButtonStyle)));
 }
 // --------------------------------------------------------------------------
-void qMRMLToolWatchdogToolBarPrivate::setMRMLScene(vtkMRMLScene* newScene)
+void qMRMLWatchdogToolBarPrivate::setMRMLScene(vtkMRMLScene* newScene)
 {
   if (newScene == this->MRMLScene)
     {
@@ -153,22 +153,22 @@ void qMRMLToolWatchdogToolBarPrivate::setMRMLScene(vtkMRMLScene* newScene)
 
 
 // --------------------------------------------------------------------------
-void qMRMLToolWatchdogToolBarPrivate::OnMRMLSceneStartBatchProcessing()
+void qMRMLWatchdogToolBarPrivate::OnMRMLSceneStartBatchProcessing()
 {
-  Q_Q(qMRMLToolWatchdogToolBar);
+  Q_Q(qMRMLWatchdogToolBar);
   q->setEnabled(false);
 }
 
 // --------------------------------------------------------------------------
-void qMRMLToolWatchdogToolBarPrivate::OnMRMLSceneEndBatchProcessing()
+void qMRMLWatchdogToolBarPrivate::OnMRMLSceneEndBatchProcessing()
 {
   this->updateWidgetFromMRML();
 }
 
 // --------------------------------------------------------------------------
-void qMRMLToolWatchdogToolBarPrivate::createSceneView()
+void qMRMLWatchdogToolBarPrivate::createSceneView()
 {
-  Q_Q(qMRMLToolWatchdogToolBar);
+  Q_Q(qMRMLWatchdogToolBar);
 
   // Ask user for a name
   bool ok = false;
@@ -190,41 +190,41 @@ void qMRMLToolWatchdogToolBarPrivate::createSceneView()
 }
 
 // --------------------------------------------------------------------------
-// qMRMLToolWatchdogToolBar methods
+// qMRMLWatchdogToolBar methods
 
 // --------------------------------------------------------------------------
-qMRMLToolWatchdogToolBar::qMRMLToolWatchdogToolBar(const QString& title, QWidget* parentWidget)
+qMRMLWatchdogToolBar::qMRMLWatchdogToolBar(const QString& title, QWidget* parentWidget)
   :Superclass(title, parentWidget)
-   , d_ptr(new qMRMLToolWatchdogToolBarPrivate(*this))
+   , d_ptr(new qMRMLWatchdogToolBarPrivate(*this))
 {
-  Q_D(qMRMLToolWatchdogToolBar);
+  Q_D(qMRMLWatchdogToolBar);
   d->init();
 }
 
 // --------------------------------------------------------------------------
-qMRMLToolWatchdogToolBar::qMRMLToolWatchdogToolBar(QWidget* _parent)
+qMRMLWatchdogToolBar::qMRMLWatchdogToolBar(QWidget* _parent)
   : Superclass(_parent)
-  , d_ptr(new qMRMLToolWatchdogToolBarPrivate(*this))
+  , d_ptr(new qMRMLWatchdogToolBarPrivate(*this))
 {
-  Q_D(qMRMLToolWatchdogToolBar);
+  Q_D(qMRMLWatchdogToolBar);
   d->init();
 }
 
-void qMRMLToolWatchdogToolBar
+void qMRMLWatchdogToolBar
 ::SetFirstlabel(char * watchDogNodeName)
 {
-  Q_D(qMRMLToolWatchdogToolBar);
-  QString tooltip("Each square indicates the state of the tools watched by the ToolWatchdog module: ");
+  Q_D(qMRMLWatchdogToolBar);
+  QString tooltip("Each square indicates the state of the tools watched by the Watchdog module: ");
   tooltip.append(watchDogNodeName);
   QLabel* firstLabel = (QLabel*)this->widgetForAction(d->ActionsListPtr->at(0));
   firstLabel->setToolTip( tooltip );
   firstLabel->setText(QString(watchDogNodeName).mid(4,11));
 }
 
-void qMRMLToolWatchdogToolBar
+void qMRMLWatchdogToolBar
 ::ToolNodeAdded(char * label)
 {
-  Q_D(qMRMLToolWatchdogToolBar);
+  Q_D(qMRMLWatchdogToolBar);
 
   QLabel* toolLabel = new QLabel(this);
   toolLabel->setToolTip(this->tr("Tool in row %1").arg(d->ActionsListPtr->size()));
@@ -237,10 +237,10 @@ void qMRMLToolWatchdogToolBar
   //                 this, SIGNAL(screenshotButtonClicked()));
   
 }
-void qMRMLToolWatchdogToolBar
+void qMRMLWatchdogToolBar
 ::SwapToolNodes(int toolA, int toolB )
 {
-  Q_D(qMRMLToolWatchdogToolBar);
+  Q_D(qMRMLWatchdogToolBar);
 
   //d->ActionsListPtr->swap(toolA+1,toolB+1);
   QLabel* toolLabelA = (QLabel*)this->widgetForAction(d->ActionsListPtr->at(toolA+1));
@@ -256,29 +256,29 @@ void qMRMLToolWatchdogToolBar
 
 
 
-void qMRMLToolWatchdogToolBar
+void qMRMLWatchdogToolBar
 ::ToolNodeDeleted()
 {
-  Q_D(qMRMLToolWatchdogToolBar);
+  Q_D(qMRMLWatchdogToolBar);
   this->removeAction(d->ActionsListPtr->back());
   d->ActionsListPtr->pop_back();
 }
 
 
-void qMRMLToolWatchdogToolBar
+void qMRMLWatchdogToolBar
 ::DeleteToolNode(int row)
 {
-  Q_D(qMRMLToolWatchdogToolBar);
+  Q_D(qMRMLWatchdogToolBar);
   this->removeAction(d->ActionsListPtr->at(row+1));
   d->ActionsListPtr->removeAt(row+1);
 }
 
 
 
-void qMRMLToolWatchdogToolBar
+void qMRMLWatchdogToolBar
 ::SetNodeStatus(int row, bool status )
 {
-  Q_D(qMRMLToolWatchdogToolBar);
+  Q_D(qMRMLWatchdogToolBar);
   if(d->ActionsListPtr!= NULL)
   {
     if(d->ActionsListPtr->size()>1&&row+1<d->ActionsListPtr->size())
@@ -300,10 +300,10 @@ void qMRMLToolWatchdogToolBar
   //this->addWidget(d->LabelsListPtr->back());
 }
 
-void qMRMLToolWatchdogToolBar
+void qMRMLWatchdogToolBar
 ::SetNodeLabel(int row,const char * toolLabel)
 {
-  Q_D(qMRMLToolWatchdogToolBar);
+  Q_D(qMRMLWatchdogToolBar);
   if(d->ActionsListPtr!= NULL)
   {
     if(d->ActionsListPtr->size()>1&&row+1<d->ActionsListPtr->size())
@@ -317,22 +317,22 @@ void qMRMLToolWatchdogToolBar
 
 
 //---------------------------------------------------------------------------
-qMRMLToolWatchdogToolBar::~qMRMLToolWatchdogToolBar()
+qMRMLWatchdogToolBar::~qMRMLWatchdogToolBar()
 {
 }
 
 // --------------------------------------------------------------------------
-void qMRMLToolWatchdogToolBar::setMRMLScene(vtkMRMLScene* scene)
+void qMRMLWatchdogToolBar::setMRMLScene(vtkMRMLScene* scene)
 {
-  Q_D(qMRMLToolWatchdogToolBar);
+  Q_D(qMRMLWatchdogToolBar);
   d->setMRMLScene(scene);
 }
 
 // --------------------------------------------------------------------------
-void qMRMLToolWatchdogToolBar::setActiveMRMLThreeDViewNode(
+void qMRMLWatchdogToolBar::setActiveMRMLThreeDViewNode(
   vtkMRMLViewNode * newActiveMRMLThreeDViewNode)
 {
-  Q_D(qMRMLToolWatchdogToolBar);
+  Q_D(qMRMLWatchdogToolBar);
   d->ActiveMRMLThreeDViewNode = newActiveMRMLThreeDViewNode;
   d->updateWidgetFromMRML();
 }

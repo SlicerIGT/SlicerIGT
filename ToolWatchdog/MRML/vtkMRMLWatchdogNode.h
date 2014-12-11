@@ -6,14 +6,14 @@
   or http://www.slicer.org/copyright/copyright.txt for details.
 
   Program:   3D Slicer
-  Module:    $RCSfile: vtkMRMLToolWatchdogNode.h,v $
+  Module:    $RCSfile: vtkMRMLWatchdogNode.h,v $
   Date:      $Date: 2006/03/19 17:12:28 $
   Version:   $Revision: 1.6 $
 
 =========================================================================auto=*/
 
-#ifndef __vtkMRMLToolWatchdogNode_h
-#define __vtkMRMLToolWatchdogNode_h
+#ifndef __vtkMRMLWatchdogNode_h
+#define __vtkMRMLWatchdogNode_h
 
 #include <ctime>
 #include <iostream>
@@ -26,8 +26,8 @@
 #include "vtkObjectBase.h"
 #include "vtkObjectFactory.h"
 
-// ToolWatchdog includes
-#include "vtkSlicerToolWatchdogModuleMRMLExport.h"
+// Watchdog includes
+#include "vtkSlicerWatchdogModuleMRMLExport.h"
 
 class vtkMRMLDisplayableNode;
 
@@ -49,19 +49,19 @@ struct WatchedTool{
 };
 
 class
-VTK_SLICER_TOOLWATCHDOG_MODULE_MRML_EXPORT
-vtkMRMLToolWatchdogNode
+VTK_SLICER_WATCHDOG_MODULE_MRML_EXPORT
+vtkMRMLWatchdogNode
 : public vtkMRMLNode
 {
 public:
   
-  vtkTypeMacro( vtkMRMLToolWatchdogNode, vtkMRMLNode );
+  vtkTypeMacro( vtkMRMLWatchdogNode, vtkMRMLNode );
   
   // Standard MRML node methods  
-  static vtkMRMLToolWatchdogNode *New();  
+  static vtkMRMLWatchdogNode *New();  
 
   virtual vtkMRMLNode* CreateNodeInstance();
-  virtual const char* GetNodeTagName() { return "ToolWatchdog"; };
+  virtual const char* GetNodeTagName() { return "Watchdog"; };
   void PrintSelf( ostream& os, vtkIndent indent );
   virtual void ReadXMLAttributes( const char** atts );
   virtual void WriteXML( ostream& of, int indent );
@@ -70,10 +70,10 @@ public:
 protected:
 
   // Constructor/destructor methods
-  vtkMRMLToolWatchdogNode();
-  virtual ~vtkMRMLToolWatchdogNode();
-  vtkMRMLToolWatchdogNode ( const vtkMRMLToolWatchdogNode& );
-  void operator=( const vtkMRMLToolWatchdogNode& );
+  vtkMRMLWatchdogNode();
+  virtual ~vtkMRMLWatchdogNode();
+  vtkMRMLWatchdogNode ( const vtkMRMLWatchdogNode& );
+  void operator=( const vtkMRMLWatchdogNode& );
   
 public:
 

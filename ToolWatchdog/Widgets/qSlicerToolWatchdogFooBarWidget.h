@@ -18,35 +18,35 @@
 
 ==============================================================================*/
 
-#ifndef __qSlicerToolWatchdogFooBarWidget_h
-#define __qSlicerToolWatchdogFooBarWidget_h
+#ifndef __qSlicerWatchdogFooBarWidget_h
+#define __qSlicerWatchdogFooBarWidget_h
 
 // Qt includes
 #include <QWidget>
 
 // FooBar Widgets includes
-#include "qSlicerToolWatchdogModuleWidgetsExport.h"
+#include "qSlicerWatchdogModuleWidgetsExport.h"
 
-class qSlicerToolWatchdogFooBarWidgetPrivate;
+class qSlicerWatchdogFooBarWidgetPrivate;
 
-/// \ingroup Slicer_QtModules_ToolWatchdog
-class Q_SLICER_MODULE_TOOLWATCHDOG_WIDGETS_EXPORT qSlicerToolWatchdogFooBarWidget
+/// \ingroup Slicer_QtModules_Watchdog
+class Q_SLICER_MODULE_WATCHDOG_WIDGETS_EXPORT qSlicerWatchdogFooBarWidget
   : public QWidget
 {
   Q_OBJECT
 public:
   typedef QWidget Superclass;
-  qSlicerToolWatchdogFooBarWidget(QWidget *parent=0);
-  virtual ~qSlicerToolWatchdogFooBarWidget();
+  qSlicerWatchdogFooBarWidget(QWidget *parent=0);
+  virtual ~qSlicerWatchdogFooBarWidget();
 
 protected slots:
 
 protected:
-  QScopedPointer<qSlicerToolWatchdogFooBarWidgetPrivate> d_ptr;
+  QScopedPointer<qSlicerWatchdogFooBarWidgetPrivate> d_ptr;
 
 private:
-  Q_DECLARE_PRIVATE(qSlicerToolWatchdogFooBarWidget);
-  Q_DISABLE_COPY(qSlicerToolWatchdogFooBarWidget);
+  Q_DECLARE_PRIVATE(qSlicerWatchdogFooBarWidget);
+  Q_DISABLE_COPY(qSlicerWatchdogFooBarWidget);
 };
 
 #endif

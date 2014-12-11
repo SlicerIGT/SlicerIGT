@@ -15,21 +15,21 @@
 
 ==============================================================================*/
 
-#ifndef __qSlicerToolWatchdogModuleWidget_h
-#define __qSlicerToolWatchdogModuleWidget_h
+#ifndef __qSlicerWatchdogModuleWidget_h
+#define __qSlicerWatchdogModuleWidget_h
 
 // SlicerQt includes
 #include "qSlicerAbstractModuleWidget.h"
 
-#include "qSlicerToolWatchdogModuleExport.h"
+#include "qSlicerWatchdogModuleExport.h"
 
 class QTimer;
-class qSlicerToolWatchdogModuleWidgetPrivate;
+class qSlicerWatchdogModuleWidgetPrivate;
 class vtkMRMLNode;
-class qMRMLToolWatchdogToolBar;
+class qMRMLWatchdogToolBar;
 
 /// \ingroup Slicer_QtModules_ExtensionTemplate
-class Q_SLICER_QTMODULES_TOOLWATCHDOG_EXPORT qSlicerToolWatchdogModuleWidget :
+class Q_SLICER_QTMODULES_WATCHDOG_EXPORT qSlicerWatchdogModuleWidget :
   public qSlicerAbstractModuleWidget
 {
   Q_OBJECT
@@ -37,8 +37,8 @@ class Q_SLICER_QTMODULES_TOOLWATCHDOG_EXPORT qSlicerToolWatchdogModuleWidget :
 public:
 
   typedef qSlicerAbstractModuleWidget Superclass;
-  qSlicerToolWatchdogModuleWidget(QWidget *parent=0);
-  virtual ~qSlicerToolWatchdogModuleWidget();
+  qSlicerWatchdogModuleWidget(QWidget *parent=0);
+  virtual ~qSlicerWatchdogModuleWidget();
 
   //void SetCurrentNode( vtkMRMLNode* currentNode );
 
@@ -57,10 +57,10 @@ protected slots:
   void updateFromMRMLNode();
 
   /// Update the selection node from the combobox
-  void onToolWatchdogNodeChanged();
+  void onWatchdogNodeChanged();
   /// When the user clicks in the combobox to create a new watchdog node,
   /// inserts a new toolbar
-  void onToolWatchdogNodeAddedByUser(vtkMRMLNode* nodeAdded);
+  void onWatchdogNodeAddedByUser(vtkMRMLNode* nodeAdded);
   /// Remove the tool bar when removed toolWatchdog if the node is active
   void onModuleNodeAboutToBeRemoved(vtkMRMLNode* nodeToBeRemoved);
   ///Turn ON or OFF the tool bar visibility and the current watchdog node
@@ -91,7 +91,7 @@ protected slots:
   //void onToolChanged();
 
 protected:
-  QScopedPointer<qSlicerToolWatchdogModuleWidgetPrivate> d_ptr;
+  QScopedPointer<qSlicerWatchdogModuleWidgetPrivate> d_ptr;
 
   /// Updates all the active toolbars accordingly to their respective watchdog nodes states
   void updateToolbars();
@@ -104,8 +104,8 @@ protected:
   virtual void enter();
 
 private:
-  Q_DECLARE_PRIVATE(qSlicerToolWatchdogModuleWidget);
-  Q_DISABLE_COPY(qSlicerToolWatchdogModuleWidget);
+  Q_DECLARE_PRIVATE(qSlicerWatchdogModuleWidget);
+  Q_DISABLE_COPY(qSlicerWatchdogModuleWidget);
 
   QTimer* Timer;
   double StatusRefreshTimeSec;
