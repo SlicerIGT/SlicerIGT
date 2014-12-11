@@ -459,7 +459,7 @@ void  qSlicerToolWatchdogModuleWidget
     vtkMRMLToolWatchdogNode* toolWatchdogNode = vtkMRMLToolWatchdogNode::SafeDownCast( (*it) );
     if(d->WatchdogToolbarHash->value(QString(toolWatchdogNode->GetID()))->isVisible())
     {
-      d->logic()->UpdateToolState( toolWatchdogNode, (unsigned long) ElapsedTimeSec );
+      d->logic()->UpdateToolStatus( toolWatchdogNode, (unsigned long) ElapsedTimeSec );
       std::list<WatchedTool>* toolsVectorPtr = toolWatchdogNode->GetToolNodes();
       int numberTools= toolsVectorPtr->size();
       if ( toolsVectorPtr == NULL /*|| numberTools!= d->ToolsTableWidget->rowCount()*/)

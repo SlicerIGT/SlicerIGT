@@ -83,7 +83,7 @@ void vtkSlicerToolWatchdogLogic::AddToolNode( vtkMRMLToolWatchdogNode* toolWatch
   toolWatchdogNode->AddToolNode(toolNode);
 }
 
-void vtkSlicerToolWatchdogLogic::UpdateToolState( vtkMRMLToolWatchdogNode* toolWatchdogNode, unsigned long ElapsedTimeSec  )
+void vtkSlicerToolWatchdogLogic::UpdateToolStatus( vtkMRMLToolWatchdogNode* toolWatchdogNode, unsigned long ElapsedTimeSec  )
 {
   if ( toolWatchdogNode == NULL )
   {
@@ -172,41 +172,41 @@ void vtkSlicerToolWatchdogLogic
 }
 
 
-void
-vtkSlicerToolWatchdogLogic
-::SetObservedToolNode( vtkMRMLDisplayableNode* newTool, vtkMRMLToolWatchdogNode* moduleNode )
-{
-  if ( newTool == NULL || moduleNode == NULL )
-  {
-    vtkWarningMacro( "SetObservedTransformNode: Transform or module node invalid" );
-    return;
-  }
+//void
+//vtkSlicerToolWatchdogLogic
+//::SetObservedToolNode( vtkMRMLDisplayableNode* newTool, vtkMRMLToolWatchdogNode* moduleNode )
+//{
+//  if ( newTool == NULL || moduleNode == NULL )
+//  {
+//    vtkWarningMacro( "SetObservedTransformNode: Transform or module node invalid" );
+//    return;
+//  }
+//
+//  //moduleNode->SetAndObserveToolNodeId( newTool->GetID() );
+//}
 
-  //moduleNode->SetAndObserveToolNodeId( newTool->GetID() );
-}
-
-void
-vtkSlicerToolWatchdogLogic
-::ProcessMRMLNodesEvents( vtkObject* caller, unsigned long event, void* callData )
-{
-  vtkMRMLNode* callerNode = vtkMRMLNode::SafeDownCast( caller );
-  if ( callerNode == NULL )
-  {
-    return;
-  }
-
-  vtkMRMLToolWatchdogNode* toolWatchdogNode = vtkMRMLToolWatchdogNode::SafeDownCast( callerNode );
-  if ( toolWatchdogNode == NULL )
-  {
-    return;
-  }
-
-  //UpdateFromMRMLScene();
-  //this->UpdateToolState( toolWatchdogNode, ElapsedTime );
-  //this->UpdateModelColor( toolWatchdogNode );
-  //if(PlayWarningSound==true)
-  //{
-  //  this->PlaySound();
-  //}
-}
+//void
+//vtkSlicerToolWatchdogLogic
+//::ProcessMRMLNodesEvents( vtkObject* caller, unsigned long event, void* callData )
+//{
+//  vtkMRMLNode* callerNode = vtkMRMLNode::SafeDownCast( caller );
+//  if ( callerNode == NULL )
+//  {
+//    return;
+//  }
+//
+//  vtkMRMLToolWatchdogNode* toolWatchdogNode = vtkMRMLToolWatchdogNode::SafeDownCast( callerNode );
+//  if ( toolWatchdogNode == NULL )
+//  {
+//    return;
+//  }
+//
+//  //UpdateFromMRMLScene();
+//  //this->UpdateToolState( toolWatchdogNode, ElapsedTime );
+//  //this->UpdateModelColor( toolWatchdogNode );
+//  //if(PlayWarningSound==true)
+//  //{
+//  //  this->PlaySound();
+//  //}
+//}
 

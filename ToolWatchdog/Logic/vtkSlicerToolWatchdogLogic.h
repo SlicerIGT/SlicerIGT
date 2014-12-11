@@ -31,7 +31,7 @@
 #include "vtkMRML.h"
 #include "vtkMRMLNode.h"
 #include "vtkMRMLScene.h"
-#include <vtkLandmarkTransform.h>
+//#include <vtkLandmarkTransform.h>
 #include "vtkSmartPointer.h"
 
 // For referencing own MRML node
@@ -62,13 +62,13 @@ public:
   vtkTypeMacro(vtkSlicerToolWatchdogLogic, vtkSlicerModuleLogic);
   void PrintSelf(ostream& os, vtkIndent indent);
 
-  void SetObservedToolNode( vtkMRMLDisplayableNode* newTransform, vtkMRMLToolWatchdogNode* moduleNode );
+  //void SetObservedToolNode( vtkMRMLDisplayableNode* newTransform, vtkMRMLToolWatchdogNode* moduleNode );
+  //void ProcessMRMLNodesEvents( vtkObject* caller, unsigned long event, void* callData );
 
-
-  void ProcessMRMLNodesEvents( vtkObject* caller, unsigned long event, void* callData );
+  /// Adds a tool to the list in the respective toolwatchdog node
   void AddToolNode( vtkMRMLToolWatchdogNode* toolWatchdogNode, vtkMRMLDisplayableNode *mrmlNode);
-  void UpdateToolState( vtkMRMLToolWatchdogNode* toolWatchdogNode, unsigned long ElapsedTimeSec );
-
+  /// Updates the state of the tool observed according to the timestamp. The elapsedTime is stored to keep track of time that tools have been disconnected.
+  void UpdateToolStatus( vtkMRMLToolWatchdogNode* toolWatchdogNode, unsigned long ElapsedTimeSec );
 
 protected:
   vtkSlicerToolWatchdogLogic();
