@@ -55,6 +55,8 @@ vtkMRMLBreachWarningNode
     this->WarningColor[ i ] = 0.0;
     this->OriginalColor[ i ] = 0.0;
   }
+  this->ToolInsideModel = false;
+
 }
 
 
@@ -208,9 +210,11 @@ vtkMRMLBreachWarningNode
   for ( int i = 0; i < 4; ++ i )
   {
     this->WarningColor[ i ] = node->WarningColor[ i ];
+    this->OriginalColor[ i ] = node->OriginalColor[ i ];
   }
 
   this->ToolInsideModel = node->ToolInsideModel;
+  this->DisplayWarningColor = node->DisplayWarningColor;
   
   this->Modified();
 }
@@ -302,7 +306,7 @@ vtkMRMLBreachWarningNode
 }
 
 
-
+ 
 
 vtkMRMLModelNode*
 vtkMRMLBreachWarningNode

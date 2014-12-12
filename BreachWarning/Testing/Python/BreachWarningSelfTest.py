@@ -33,30 +33,30 @@ class BreachWarningSelfTestWidget(ScriptedLoadableModuleWidget):
     ScriptedLoadableModuleWidget.setup(self)
     # Instantiate and connect widgets ...
 
-    #
-    # Reload and Test area
-    #
-    reloadCollapsibleButton = ctk.ctkCollapsibleButton()
-    reloadCollapsibleButton.text = "Reload && Test"
-    self.layout.addWidget(reloadCollapsibleButton)
-    reloadFormLayout = qt.QFormLayout(reloadCollapsibleButton)
+    ##
+    ## Reload and Test area
+    ##
+    #reloadCollapsibleButton = ctk.ctkCollapsibleButton()
+    #reloadCollapsibleButton.text = "Reload && Test"
+    #self.layout.addWidget(reloadCollapsibleButton)
+    #reloadFormLayout = qt.QFormLayout(reloadCollapsibleButton)
 
-    # reload button
-    # (use this during development, but remove it when delivering
-    #  your module to users)
-    self.reloadButton = qt.QPushButton("Reload")
-    self.reloadButton.toolTip = "Reload this module."
-    self.reloadButton.name = "BreachWarningSelfTest Reload"
-    reloadFormLayout.addWidget(self.reloadButton)
-    self.reloadButton.connect('clicked()', self.onReload)
+    ## reload button
+    ## (use this during development, but remove it when delivering
+    ##  your module to users)
+    #self.reloadButton = qt.QPushButton("Reload")
+    #self.reloadButton.toolTip = "Reload this module."
+    #self.reloadButton.name = "BreachWarningSelfTest Reload"
+    #reloadFormLayout.addWidget(self.reloadButton)
+    #self.reloadButton.connect('clicked()', self.onReload)
 
-    # reload and test button
-    # (use this during development, but remove it when delivering
-    #  your module to users)
-    self.reloadAndTestButton = qt.QPushButton("Reload and Test")
-    self.reloadAndTestButton.toolTip = "Reload this module and then run the self tests."
-    reloadFormLayout.addWidget(self.reloadAndTestButton)
-    self.reloadAndTestButton.connect('clicked()', self.onReloadAndTest)
+    ## reload and test button
+    ## (use this during development, but remove it when delivering
+    ##  your module to users)
+    #self.reloadAndTestButton = qt.QPushButton("Reload and Test")
+    #self.reloadAndTestButton.toolTip = "Reload this module and then run the self tests."
+    #reloadFormLayout.addWidget(self.reloadAndTestButton)
+    #self.reloadAndTestButton.connect('clicked()', self.onReloadAndTest)
 
     #
     # Parameters Area
@@ -164,6 +164,8 @@ class BreachWarningSelfTestTest(ScriptedLoadableModuleTest):
     createModelsWidget = slicer.modules.createmodels.widgetRepresentation()
     createSphereButton = slicer.util.findChildren(widget=createModelsWidget, className='QPushButton', name='CreateSphereButton')[0]
     createSphereButton.click()
+    createCylinderButton = slicer.util.findChildren(widget=createModelsWidget, className='QPushButton')[1]
+    createCylinderButton.click()
 
     mainWindow.moduleSelector().selectModule('BreachWarning')
     bwWidget = slicer.modules.breachwarning.widgetRepresentation()
@@ -172,52 +174,93 @@ class BreachWarningSelfTestTest(ScriptedLoadableModuleTest):
     color = qt.QColor(255,0,0,1)
     bwColorPickerButton.setColor(color)
 
-    modelNode = slicer.util.getNode(pattern="SphereModel")
+    modelNodes=[]
+    modelNodes.append(slicer.util.getNode(pattern="SphereModel"))
+    modelNodes.append(slicer.util.getNode(pattern="CylinderModel"))
     bwModelNodeCombobox = slicer.util.findChildren(widget=bwWidget, name='ModelNodeComboBox')[0]
-    bwModelNodeCombobox.setCurrentNodeID(modelNode.GetID())
+    bwModelNodeCombobox.setCurrentNodeID(modelNodes[0].GetID())
 
-    # Create transform node
-    transform = slicer.vtkMRMLLinearTransformNode()
-    transform.SetName(slicer.mrmlScene.GenerateUniqueName("ToolTipToRAS"))
-    slicer.mrmlScene.AddNode(transform)
     bwToolNodeCombobox = slicer.util.findChildren(widget=bwWidget, name='ToolComboBox')[0]  
-    bwToolNodeCombobox.setCurrentNodeID(transform.GetID())
+    # Create transforms node
+    i=0
+    transforms=[]
+    while i<2:
+        transforms.append(slicer.vtkMRMLLinearTransformNode())
+        transformName = "Tool_"+str(i)
+        transforms[i].SetName(slicer.mrmlScene.GenerateUniqueName(transformName))
+        slicer.mrmlScene.AddNode(transforms[i])
+        i=i+1
+    bwToolNodeCombobox.setCurrentNodeID(transforms[0].GetID())
 
-    self.delayDisplay('At the begining is inside',1000)
-    colorD=modelNode.GetDisplayNode().GetColor()
+    #Modify second transform to be outside
+    toParent1 = vtk.vtkMatrix4x4()
+    transforms[1].GetMatrixTransformToParent(toParent1)
+    toParent1.SetElement(0 ,3, 100)
+    transforms[1].SetMatrixTransformToParent(toParent1)
+
+
+    self.delayDisplay('At the begining Tool_1 is inside the sphere',3000)
+    colorD=modelNodes[0].GetDisplayNode().GetColor()
     if colorD != (1.0, 0.0, 0.0):
-        print("Error begin not same color INSIDE")
+        print("1) Error begin not same color INSIDE")
     print (colorD)
             
-    a=0
-    n=20
-    while a < n:
-        a=a+2
-        toParent = vtk.vtkMatrix4x4()
-        transform.GetMatrixTransformToParent(toParent)
-        toParent.SetElement(0 ,3, a)
-        transform.SetMatrixTransformToParent(toParent)
-        if a>=10:
-            if a==10:
-                self.delayDisplay('It should be outside',3000)
-            colorD=modelNode.GetDisplayNode().GetColor()
-            if colorD == (1.0, 0.0, 0.0,):
-                print("Error not same color OUTSIDE")
-            print(colorD) 
-    n=0
-    while a > n:
-        a=a-2
-        toParent = vtk.vtkMatrix4x4()
-        transform.GetMatrixTransformToParent(toParent)
-        toParent.SetElement(0 ,3, a)
-        transform.SetMatrixTransformToParent(toParent)
 
-        if a<10:
-            if a==8:
-                self.delayDisplay('Now it should be inside',3000)
-            colorD=modelNode.GetDisplayNode().GetColor()
-            if colorD != (1.0, 0.0, 0.0):
-                print("Error not same color INSIDE")
-            print(colorD) 
+
+    numberOfModels=1
+    while numberOfModels>=0:
+        bwModelNodeCombobox.setCurrentNodeIndex(numberOfModels)
+
+       #switch tools
+        i=1
+        while i>=0:
+            bwToolNodeCombobox.setCurrentNodeID(transforms[i].GetID())
+            colorD=modelNodes[numberOfModels].GetDisplayNode().GetColor()
+            if(i==0):
+                if colorD != (1.0, 0.0, 0.0):
+                    print("2) Error begin not same color INSIDE "+'Tool_'+str( i))
+                self.delayDisplay('Switch tools while outside '+'Tool_'+str( i),3000)
+            if (i==1):
+                if colorD == (1.0, 0.0, 0.0):
+                    print("3) Error begin not same color OUTSIDE "+'Tool_'+str( i))
+                self.delayDisplay('Switch tools while inside '+'Tool_'+str( i),3000)
+            i=i-1
+
+        self.delayDisplay('Switch model while the tool it is inside ',3000)
+        a=0
+        n=20
+
+        limits=[]
+        limits.append(10)
+        limits.append(12)
+        while a < n:
+            a=a+2
+            toParent = vtk.vtkMatrix4x4()
+            transforms[0].GetMatrixTransformToParent(toParent)
+            toParent.SetElement(0 ,3, a)
+            transforms[0].SetMatrixTransformToParent(toParent)
+            if a>=limits[numberOfModels]:
+                if a==limits[numberOfModels]:
+                    self.delayDisplay('It should be outside Model_'+str(numberOfModels),3000)
+                colorD=modelNodes[numberOfModels].GetDisplayNode().GetColor()
+                if colorD == (1.0, 0.0, 0.0,):
+                    print('4) Error not same color OUTSIDE Model_' +str(numberOfModels))
+                print(colorD) 
+        n=0
+        while a > n:
+            a=a-2
+            toParent = vtk.vtkMatrix4x4()
+            transforms[0].GetMatrixTransformToParent(toParent)
+            toParent.SetElement(0 ,3, a)
+            transforms[0].SetMatrixTransformToParent(toParent)
+
+            if a<10:
+                if a==8:
+                    self.delayDisplay('Now it should be inside Model_'+str(numberOfModels),3000)
+                colorD=modelNodes[numberOfModels].GetDisplayNode().GetColor()
+                if colorD != (1.0, 0.0, 0.0):
+                    print("5) Error not same color INSIDE Model_" +str(numberOfModels))
+                print(colorD) 
+        numberOfModels=numberOfModels-1
 
     self.delayDisplay('Test passed!')

@@ -300,12 +300,27 @@ vtkSlicerBreachWarningLogic
     vtkWarningMacro( "SetWatchedModelNode: Model or module node not specified" );
     return;
   }
-  
+
+  vtkMRMLModelNode* previousModel;
+  double previousOriginalColor[ 3 ];
+  //if(this->CurrentToolState == INSIDE/*moduleNode->GetToolInsideModel()*/)
+  //{
+    for (int i =0; i<3; i++)
+    {
+      previousOriginalColor[i]=moduleNode->GetOriginalColorComponent(i);
+    }
+    previousModel=moduleNode->GetWatchedModelNode();
+  //}
+
   double originalColor[ 3 ];
   newModel->GetDisplayNode()->GetColor( originalColor );
   moduleNode->SetOriginalColor( originalColor[ 0 ], originalColor[ 1 ], originalColor[ 2 ], 1.0 );
-
   moduleNode->SetWatchedModelNodeID( newModel->GetID() );
+
+  if(/*this->CurrentToolState == INSIDE moduleNode->GetToolInsideModel() && */  previousModel!= NULL)
+  {
+    previousModel->GetDisplayNode()->SetColor(previousOriginalColor[0],previousOriginalColor[1],previousOriginalColor[2]);
+  }
 }
 
 
