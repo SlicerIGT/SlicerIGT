@@ -193,7 +193,7 @@ class BreachWarningSelfTestTest(ScriptedLoadableModuleTest):
     transforms[1].SetMatrixTransformToParent(toParent1)
 
 
-    self.delayDisplay('At the begining Tool_1 is inside the sphere',3000/self.Speed)
+    self.delayDisplay('At the begining Tool_1 is INSIDE the sphere',3000/self.Speed)
     colorD=modelNodes[0].GetDisplayNode().GetColor()
     if colorD != (1.0, 0.0, 0.0):
         print("1) Error begin not same color INSIDE")
@@ -213,13 +213,14 @@ class BreachWarningSelfTestTest(ScriptedLoadableModuleTest):
             if(i==0):
                 if colorD != (1.0, 0.0, 0.0):
                     print("2) Error begin not same color INSIDE "+'Tool_'+str( i))
+                self.delayDisplay('Switch tools while INSIDE '+'Tool_'+str( i),3000/self.Speed)
             if (i==1):
                 if colorD == (1.0, 0.0, 0.0):
                     print("3) Error begin not same color OUTSIDE "+'Tool_'+str( i))
-            self.delayDisplay('Switch tools while inside out '+'Tool_'+str( i),3000/self.Speed)
+                self.delayDisplay('Switch tools while OUTSIDE '+'Tool_'+str( i),3000/self.Speed)
             i=i-1
 
-        self.delayDisplay('Switch model while the tool it is inside ',3000/self.Speed)
+        self.delayDisplay('Switch model while the tool it is INSIDE ',3000/self.Speed)
         a=0
         n=20
 
@@ -234,7 +235,7 @@ class BreachWarningSelfTestTest(ScriptedLoadableModuleTest):
             transforms[0].SetMatrixTransformToParent(toParent)
             if a>=limits[numberOfModels]:
                 if a==limits[numberOfModels]:
-                    self.delayDisplay('It should be outside Model_'+str(numberOfModels),3000/self.Speed)
+                    self.delayDisplay('It should be OUTSIDE Model_'+str(numberOfModels),3000/self.Speed)
                 colorD=modelNodes[numberOfModels].GetDisplayNode().GetColor()
                 if colorD == (1.0, 0.0, 0.0,):
                     print('4) Error not same color OUTSIDE Model_' +str(numberOfModels))
@@ -249,7 +250,7 @@ class BreachWarningSelfTestTest(ScriptedLoadableModuleTest):
 
             if a<10:
                 if a==8:
-                    self.delayDisplay('Now it should be inside Model_'+str(numberOfModels),3000/self.Speed)
+                    self.delayDisplay('Now it should be INSIDE Model_'+str(numberOfModels),3000/self.Speed)
                 colorD=modelNodes[numberOfModels].GetDisplayNode().GetColor()
                 if colorD != (1.0, 0.0, 0.0):
                     print("5) Error not same color INSIDE Model_" +str(numberOfModels))
