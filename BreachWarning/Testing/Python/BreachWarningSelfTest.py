@@ -33,30 +33,18 @@ class BreachWarningSelfTestWidget(ScriptedLoadableModuleWidget):
     ScriptedLoadableModuleWidget.setup(self)
     # Instantiate and connect widgets ...
 
-    ##
-    ## Reload and Test area
-    ##
-    #reloadCollapsibleButton = ctk.ctkCollapsibleButton()
-    #reloadCollapsibleButton.text = "Reload && Test"
-    #self.layout.addWidget(reloadCollapsibleButton)
-    #reloadFormLayout = qt.QFormLayout(reloadCollapsibleButton)
-
-    ## reload button
-    ## (use this during development, but remove it when delivering
-    ##  your module to users)
-    #self.reloadButton = qt.QPushButton("Reload")
-    #self.reloadButton.toolTip = "Reload this module."
-    #self.reloadButton.name = "BreachWarningSelfTest Reload"
-    #reloadFormLayout.addWidget(self.reloadButton)
-    #self.reloadButton.connect('clicked()', self.onReload)
-
-    ## reload and test button
-    ## (use this during development, but remove it when delivering
-    ##  your module to users)
-    #self.reloadAndTestButton = qt.QPushButton("Reload and Test")
-    #self.reloadAndTestButton.toolTip = "Reload this module and then run the self tests."
-    #reloadFormLayout.addWidget(self.reloadAndTestButton)
-    #self.reloadAndTestButton.connect('clicked()', self.onReloadAndTest)
+    speedLabel = qt.QLabel()
+    speedLabel.setText("Speed to execute the test")
+    self.speedSpinBox = qt.QSpinBox()
+    self.speedSpinBox
+    self.speedSpinBox.toolTip = "Speed to execute the test."
+    self.speedSpinBox.name = "WatchdogSelfTest Speed"
+    self.speedSpinBox.setValue(3)
+    hLayout =qt.QHBoxLayout()
+    hLayout.addStretch(1)
+    hLayout.addWidget(speedLabel)
+    hLayout.addWidget(self.speedSpinBox)
+    self.layout.addLayout(hLayout)
 
     #
     # Parameters Area
@@ -95,11 +83,15 @@ class BreachWarningSelfTestWidget(ScriptedLoadableModuleWidget):
     """
     globals()[moduleName] = slicer.util.reloadScriptedModule(moduleName)
 
+  def setSpeed(self,moduleName="BreachWarningSelfTest"):
+    globals()[moduleName] = slicer.util.reloadScriptedModule(moduleName)
+
   def onReloadAndTest(self,moduleName="BreachWarningSelfTest"):
     try:
       self.onReload()
       evalString = 'globals()["%s"].%sTest()' % (moduleName, moduleName)
       tester = eval(evalString)
+      tester.setSpeed(self.speedSpinBox.value)
       tester.runTest()
     except Exception, e:
       import traceback
@@ -131,6 +123,8 @@ class BreachWarningSelfTestTest(ScriptedLoadableModuleTest):
   """
   This is the test case for your scripted module.
   """
+  def setSpeed(self, speed=3):
+    self.Speed=speed
 
   def setUp(self):
     """ Do whatever is needed to reset the state - typically a scene clear will be enough.
@@ -199,7 +193,7 @@ class BreachWarningSelfTestTest(ScriptedLoadableModuleTest):
     transforms[1].SetMatrixTransformToParent(toParent1)
 
 
-    self.delayDisplay('At the begining Tool_1 is inside the sphere',3000)
+    self.delayDisplay('At the begining Tool_1 is inside the sphere',3000/self.Speed)
     colorD=modelNodes[0].GetDisplayNode().GetColor()
     if colorD != (1.0, 0.0, 0.0):
         print("1) Error begin not same color INSIDE")
@@ -219,14 +213,13 @@ class BreachWarningSelfTestTest(ScriptedLoadableModuleTest):
             if(i==0):
                 if colorD != (1.0, 0.0, 0.0):
                     print("2) Error begin not same color INSIDE "+'Tool_'+str( i))
-                self.delayDisplay('Switch tools while outside '+'Tool_'+str( i),3000)
             if (i==1):
                 if colorD == (1.0, 0.0, 0.0):
                     print("3) Error begin not same color OUTSIDE "+'Tool_'+str( i))
-                self.delayDisplay('Switch tools while inside '+'Tool_'+str( i),3000)
+            self.delayDisplay('Switch tools while inside out '+'Tool_'+str( i),3000/self.Speed)
             i=i-1
 
-        self.delayDisplay('Switch model while the tool it is inside ',3000)
+        self.delayDisplay('Switch model while the tool it is inside ',3000/self.Speed)
         a=0
         n=20
 
@@ -241,7 +234,7 @@ class BreachWarningSelfTestTest(ScriptedLoadableModuleTest):
             transforms[0].SetMatrixTransformToParent(toParent)
             if a>=limits[numberOfModels]:
                 if a==limits[numberOfModels]:
-                    self.delayDisplay('It should be outside Model_'+str(numberOfModels),3000)
+                    self.delayDisplay('It should be outside Model_'+str(numberOfModels),3000/self.Speed)
                 colorD=modelNodes[numberOfModels].GetDisplayNode().GetColor()
                 if colorD == (1.0, 0.0, 0.0,):
                     print('4) Error not same color OUTSIDE Model_' +str(numberOfModels))
@@ -256,7 +249,7 @@ class BreachWarningSelfTestTest(ScriptedLoadableModuleTest):
 
             if a<10:
                 if a==8:
-                    self.delayDisplay('Now it should be inside Model_'+str(numberOfModels),3000)
+                    self.delayDisplay('Now it should be inside Model_'+str(numberOfModels),3000/self.Speed)
                 colorD=modelNodes[numberOfModels].GetDisplayNode().GetColor()
                 if colorD != (1.0, 0.0, 0.0):
                     print("5) Error not same color INSIDE Model_" +str(numberOfModels))
