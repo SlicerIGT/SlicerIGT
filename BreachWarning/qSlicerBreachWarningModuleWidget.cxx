@@ -327,10 +327,10 @@ qSlicerBreachWarningModuleWidget
   {
     d->ModelNodeComboBox->setCurrentNodeID( "" );
   }
-  
-  d->ColorPickerButton->setColor( QColor( 
-    d->logic()->GetWarningColorComponent( 0, bwNode ),
-    d->logic()->GetWarningColorComponent( 1, bwNode ),
-    d->logic()->GetWarningColorComponent( 2, bwNode ) ) );
+  QColor nodeWarningColor (1,1,1);
+nodeWarningColor.setRgbF(d->logic()->GetWarningColorComponent( 0, bwNode ),
+                          d->logic()->GetWarningColorComponent( 1, bwNode ),
+                          d->logic()->GetWarningColorComponent( 2, bwNode ) );
+  d->ColorPickerButton->setColor(nodeWarningColor);
   
 }
