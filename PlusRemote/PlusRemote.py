@@ -1025,6 +1025,11 @@ class PlusRemoteWidget(ScriptedLoadableModuleWidget):
     self.onGenericCommandResponseReceived(commandId,textNode)
     self.offlineReconstructButton.setEnabled(True)
 
+    if not textNode:
+      self.recordingStatus.setIcon(qt.QMessageBox.Critical)
+      self.recordingStatus.setToolTip("Timeout while waiting for volume reconstruction result")
+      return
+
     commandResponse=textNode.GetText(0)
 
     commandResponseElement = vtk.vtkXMLUtilities.ReadElementFromString(commandResponse)
@@ -1043,6 +1048,11 @@ class PlusRemoteWidget(ScriptedLoadableModuleWidget):
   def onScoutVolumeRecorded(self, commandId, textNode):
     self.onGenericCommandResponseReceived(commandId,textNode)
     self.offlineReconstructButton.setEnabled(True)
+
+    if not textNode:
+      self.offlineReconstructStatus.setIcon(qt.QMessageBox.Critical)
+      self.offlineReconstructStatus.setToolTip("Timeout while waiting for volume reconstruction result")
+      return
 
     commandResponse=textNode.GetText(0)
     commandResponseElement = vtk.vtkXMLUtilities.ReadElementFromString(commandResponse)
@@ -1086,6 +1096,11 @@ class PlusRemoteWidget(ScriptedLoadableModuleWidget):
 
   def onScoutVolumeReconstructed(self, commandId, textNode):
     self.onGenericCommandResponseReceived(commandId,textNode)
+
+    if not textNode:
+      self.recordAndReconstructStatus.setIcon(qt.QMessageBox.Critical)
+      self.recordAndReconstructStatus.setToolTip("Timeout while waiting for scout volume reconstruction result")
+      return
 
     commandResponse=textNode.GetText(0)
     commandResponseElement = vtk.vtkXMLUtilities.ReadElementFromString(commandResponse)
