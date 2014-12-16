@@ -894,19 +894,19 @@ class PlusRemoteWidget(ScriptedLoadableModuleWidget):
 #
   def generateRecordingOutputFilename(self):
     if self.filenameCompletionBox.isChecked():
-      return self.logic.filenameCompletion(self.filenameBox.text)
+      return self.logic.addTimestampToFilename(self.filenameBox.text)
     else:
       return str(self.filenameBox.text)
 
   def generateScoutRecordingOutputFilename(self):
     if self.scoutFilenameCompletionBox.isChecked():
-      return self.logic.filenameCompletion(self.scoutScanRecordingLineEdit.text)
+      return self.logic.addTimestampToFilename(self.scoutScanRecordingLineEdit.text)
     else:
       return str(self.scoutScanRecordingLineEdit.text)
 
   def getLiveReconstructionOutputFilename(self):
     if self.liveFilenameCompletionBox.isChecked():
-      return self.logic.filenameCompletion(self.liveVolumeToReconstructFilename.text)
+      return self.logic.addTimestampToFilename(self.liveVolumeToReconstructFilename.text)
     else:
       return str(self.liveVolumeToReconstructFilename.text)
 
@@ -1342,16 +1342,16 @@ class PlusRemoteLogic(ScriptedLoadableModuleLogic):
       if not parameterNode.GetParameter(parameter):
         parameterNode.SetParameter(parameter, str(parameterList[parameter]))
 
-  def filenameCompletion(self, filename):
-    basename = filename.replace(".mha","")
-    self.dateTimeList = {'Month': str(datetime.datetime.now().month), 'Day': str(datetime.datetime.now().day), 'Hour': str(datetime.datetime.now().hour), 'Minute': str(datetime.datetime.now().minute), 'Second': str(datetime.datetime.now().second)}
-    for element in self.dateTimeList:
-      #If one item is only 1 digit, complete with a zero (we want the format filename_YYYYMMDD_HHMMSS)
-      if len(self.dateTimeList[element]) == 1:
-        self.dateTimeList[element] = str(0) + self.dateTimeList[element]
-        filename = str(basename) + "_" + str(datetime.datetime.now().year) + self.dateTimeList['Month'] + self.dateTimeList['Day'] + "_" + self.dateTimeList['Hour'] + self.dateTimeList['Minute'] + self.dateTimeList['Second'] + ".mha"
-    return filename
-
+  def addTimestampToFilename(self, filename):
+    import re
+    import time
+    # Get timestamp, for example: 20140528_133802
+    timestamp = time.strftime("%Y%m%d_%H%M%S")
+    # Add timestamp to filename:
+    # - if .mha or .mhd extension specified: find the last occurrence ($) of .mhd or .mha and insert timestamp before that
+    # - if no extension found then append timestamp to the end
+    return re.sub('(\.mh[ad]$)|$','{0}\g<0>'.format(timestamp),filename, 1, re.IGNORECASE)
+    
   def executeCommand(self, connectorNodeId, commandName, commandParameters, responseCallback):
       commandId = slicer.modules.openigtlinkremote.logic().ExecuteCommand(connectorNodeId, commandName, commandParameters)
       self.commandToMethodHashtable[commandId]={'responseCallback': responseCallback, 'connectorNodeId': connectorNodeId, 'remainingTime': self.defaultCommandTimeoutSec/self.timerIntervalSec}
