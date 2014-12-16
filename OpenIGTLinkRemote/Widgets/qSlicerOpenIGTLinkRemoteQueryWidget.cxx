@@ -31,7 +31,7 @@
 #include "vtkMRMLIGTLQueryNode.h"
 #include "vtkMRMLImageMetaListNode.h"
 #include "vtkMRMLLabelMetaListNode.h"
-#include "vtkMRMLPointMetaListNode.h"
+//#include "vtkMRMLPointMetaListNode.h" TODO: fix this by not relying on vtkMRMLPointMetaListNode
 #include "vtkMRMLAnnotationHierarchyNode.h"
 #include "vtkMRMLAnnotationFiducialNode.h"
 #include "vtkMRMLScalarVolumeNode.h"
@@ -339,7 +339,7 @@ void qSlicerOpenIGTLinkRemoteQueryWidget::onQueryResponseReceived()
   vtkMRMLNode* qNode = scene->GetNodeByID(d->queryNode->GetResponseDataNodeID());
   vtkMRMLImageMetaListNode* imgQueryNode; 
   vtkMRMLLabelMetaListNode* lbQueryNode; 
-  vtkMRMLPointMetaListNode* ptQueryNode;
+//  vtkMRMLPointMetaListNode* ptQueryNode; TODO: fix this by not relying on vtkMRMLPointMetaListNode
 
   if ( (imgQueryNode = vtkMRMLImageMetaListNode::SafeDownCast(qNode)) )
     {
@@ -393,6 +393,7 @@ void qSlicerOpenIGTLinkRemoteQueryWidget::onQueryResponseReceived()
       d->remoteDataListTable->setItem(i, 2, ownerItem);
       }
     }
+  /* TODO: fix this by not relying on vtkMRMLPointMetaListNode
   else if( (ptQueryNode = vtkMRMLPointMetaListNode::SafeDownCast(qNode)) )
     {
     std::vector<std::string> ptGroupIds;
@@ -401,6 +402,7 @@ void qSlicerOpenIGTLinkRemoteQueryWidget::onQueryResponseReceived()
     for (unsigned int i = 0; i < ptGroupIds.size(); i++)
       d->remoteDataListTable->setItem(i, 0, new QTableWidgetItem(ptGroupIds[i].c_str()));
     }
+  */
 }
 
 
@@ -455,6 +457,7 @@ void qSlicerOpenIGTLinkRemoteQueryWidget::onGetImageComplete(vtkObject* qNode, v
 void qSlicerOpenIGTLinkRemoteQueryWidget::getPointList(std::string id)
 {
   Q_D(qSlicerOpenIGTLinkRemoteQueryWidget);
+  /* TODO: fix this by not relying on vtkMRMLPointMetaListNode
   typedef vtkMRMLPointMetaListNode::PointMetaElement ElemType;
   vtkMRMLNode* qNode = this->mrmlScene()->GetNodeByID(d->queryNode->GetResponseDataNodeID());
   vtkMRMLPointMetaListNode* ptQueryNode = vtkMRMLPointMetaListNode::SafeDownCast(qNode);
@@ -503,6 +506,7 @@ void qSlicerOpenIGTLinkRemoteQueryWidget::getPointList(std::string id)
     fiduNode->Delete();
     }
   parent->Delete();
+  */
 }
 
 
