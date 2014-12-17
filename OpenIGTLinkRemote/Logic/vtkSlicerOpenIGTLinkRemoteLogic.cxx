@@ -1,6 +1,7 @@
 #include "vtkMRMLAnnotationTextNode.h"
 #include "vtkMRMLIGTLConnectorNode.h"
 #include "vtkMRMLScene.h"
+#include "vtkMRMLTextNode.h"
 #include "vtkSlicerOpenIGTLinkIFLogic.h"
 #include "vtkSlicerOpenIGTLinkRemoteLogic.h"
 #include <cassert>
@@ -10,6 +11,7 @@
 #include <vtkObjectFactory.h>
 #include <vtkXMLDataElement.h>
 #include <vtkXMLUtilities.h>
+
 
 // Share a single command counter across all possible logic instances.
 int vtkSlicerOpenIGTLinkRemoteLogic::CommandCounter = 0;
@@ -280,7 +282,12 @@ void vtkSlicerOpenIGTLinkRemoteLogic::SetMRMLSceneInternal(vtkMRMLScene * newSce
 //----------------------------------------------------------------------------
 void vtkSlicerOpenIGTLinkRemoteLogic::RegisterNodes()
 {
-  assert(this->GetMRMLScene() != 0);
+  if (this->GetMRMLScene()==NULL)
+  {
+    vtkErrorMacro("Scene is invalid");
+    return;
+  }
+  this->GetMRMLScene()->RegisterNodeClass(vtkSmartPointer<vtkMRMLTextNode>::New());
 }
 
 //----------------------------------------------------------------------------
