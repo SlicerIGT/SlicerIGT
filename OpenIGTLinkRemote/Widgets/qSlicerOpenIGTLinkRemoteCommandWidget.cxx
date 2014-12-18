@@ -34,8 +34,7 @@ public:
 
 
 //-----------------------------------------------------------------------------
-// qSlicerOpenIGTLinkRemoteCommandWidgetPrivate methods
-
+// Private class
 
 
 qSlicerOpenIGTLinkRemoteCommandWidgetPrivate
@@ -63,6 +62,7 @@ void qSlicerOpenIGTLinkRemoteCommandWidget::setup()
 }
 
 
+// ==================================================================================
 // qSlicerOpenIGTLinkRemoteCommandWidget methods
 
 // Constructor
@@ -71,18 +71,6 @@ qSlicerOpenIGTLinkRemoteCommandWidget
   : Superclass( _parent )
   , d_ptr( new qSlicerOpenIGTLinkRemoteCommandWidgetPrivate( *this ) )
 {
-  qSlicerAbstractCoreModule* remoteModule = qSlicerApplication::application()->moduleManager()->module( "OpenIGTLinkRemote" );
-  if ( remoteModule != NULL )
-  {
-    this->CommandLogic = vtkSlicerOpenIGTLinkRemoteLogic::SafeDownCast( remoteModule->logic() );
-    this->CommandLogic->Register( this );
-  }
-  else
-  {
-    this->CommandLogic = NULL;
-    qWarning( "OpenIGTLinkRemote module logic not found!" );
-  }
-  
   this->Timer = new QTimer( this );
   this->LastCommandId = 0;
   this->setup();
@@ -95,7 +83,7 @@ qSlicerOpenIGTLinkRemoteCommandWidget
   this->Timer->stop();
   if ( this->CommandLogic != NULL )
   {
-    this->CommandLogic->UnRegister( this );
+    this->CommandLogic->UnRegister(NULL);
     this->CommandLogic = NULL;
   }
 }
@@ -198,12 +186,15 @@ void qSlicerOpenIGTLinkRemoteCommandWidget
 
 
 void qSlicerOpenIGTLinkRemoteCommandWidget
-::setCommandLogic(vtkSlicerOpenIGTLinkRemoteLogic* newCommandLogic)
+::setCommandLogic(vtkMRMLAbstractLogic* newCommandLogic)
 {
-  if ( this->CommandLogic != newCommandLogic )
+  if ( newCommandLogic == NULL )
   {
-    this->CommandLogic = newCommandLogic;
+    qWarning( "Trying to set NULL as logic" );
   }
+  
+  this->CommandLogic = vtkSlicerOpenIGTLinkRemoteLogic::SafeDownCast( newCommandLogic );
+  this->CommandLogic->Register(NULL);
 }
 
 
