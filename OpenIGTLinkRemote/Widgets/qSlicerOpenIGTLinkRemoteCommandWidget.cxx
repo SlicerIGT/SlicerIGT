@@ -4,6 +4,9 @@
 #include <QTimer>
 
 // SlicerQt includes
+#include "qSlicerApplication.h"
+#include "qSlicerModuleManager.h"
+#include "qSlicerAbstractCoreModule.h"
 #include "qSlicerOpenIGTLinkRemoteCommandWidget.h"
 #include "ui_qSlicerOpenIGTLinkRemoteCommandWidget.h"
 
@@ -49,6 +52,7 @@ vtkSlicerOpenIGTLinkRemoteLogic * qSlicerOpenIGTLinkRemoteCommandWidgetPrivate
   return vtkSlicerOpenIGTLinkRemoteLogic::SafeDownCast( q->CommandLogic );
 }
 
+
 void qSlicerOpenIGTLinkRemoteCommandWidget::setup()
 {
   Q_D(qSlicerOpenIGTLinkRemoteCommandWidget);
@@ -59,7 +63,6 @@ void qSlicerOpenIGTLinkRemoteCommandWidget::setup()
 }
 
 
-//-----------------------------------------------------------------------------
 // qSlicerOpenIGTLinkRemoteCommandWidget methods
 
 // Constructor
@@ -68,17 +71,35 @@ qSlicerOpenIGTLinkRemoteCommandWidget
   : Superclass( _parent )
   , d_ptr( new qSlicerOpenIGTLinkRemoteCommandWidgetPrivate( *this ) )
 {
-  this->CommandLogic = vtkSlicerOpenIGTLinkRemoteLogic::New();
+  // this->CommandLogic = vtkSlicerOpenIGTLinkRemoteLogic::New();
+  
+  qSlicerAbstractCoreModule* remoteModule = qSlicerApplication::application()->moduleManager()->module( "OpenIGTLinkRemote" );
+  if ( remoteModule != NULL )
+  {
+    this->CommandLogic = vtkSlicerOpenIGTLinkRemoteLogic::SafeDownCast( remoteModule->logic() );
+  }
+  else
+  {
+    this->CommandLogic = NULL;
+    qWarning( "OpenIGTLinkRemote module logic not found!" );
+  }
+  
   this->Timer = new QTimer( this );
   this->LastCommandId = 0;
   this->setup();
 }
 
-qSlicerOpenIGTLinkRemoteCommandWidget::~qSlicerOpenIGTLinkRemoteCommandWidget()
+
+qSlicerOpenIGTLinkRemoteCommandWidget
+::~qSlicerOpenIGTLinkRemoteCommandWidget()
 {
   this->Timer->stop();
-  this->CommandLogic->Delete();
+  if ( this->CommandLogic != NULL )
+  {
+    this->CommandLogic = NULL;
+  }
 }
+
 
 void qSlicerOpenIGTLinkRemoteCommandWidget
 ::OnSendCommandClicked()
@@ -160,16 +181,34 @@ void qSlicerOpenIGTLinkRemoteCommandWidget
 }
 
 
-//-----------------------------------------------------------------------------
-void qSlicerOpenIGTLinkRemoteCommandWidget::setMRMLScene(vtkMRMLScene *newScene)
+void qSlicerOpenIGTLinkRemoteCommandWidget
+::setMRMLScene(vtkMRMLScene *newScene)
 {
   Q_D(qSlicerOpenIGTLinkRemoteCommandWidget);
-  this->CommandLogic->SetMRMLScene(newScene);
-
+  
+  
+  if ( this->CommandLogic->GetMRMLScene() != newScene )
+  {
+    this->CommandLogic->SetMRMLScene(newScene);
+  }
+  
+  
   this->Superclass::setMRMLScene(newScene);
 }
 
-void qSlicerOpenIGTLinkRemoteCommandWidget::setIFLogic(vtkSlicerOpenIGTLinkIFLogic* ifLogic)
+
+void qSlicerOpenIGTLinkRemoteCommandWidget
+::setCommandLogic(vtkSlicerOpenIGTLinkRemoteLogic* newCommandLogic)
+{
+  if ( this->CommandLogic != newCommandLogic )
+  {
+    this->CommandLogic = newCommandLogic;
+  }
+}
+
+
+void qSlicerOpenIGTLinkRemoteCommandWidget
+::setIFLogic(vtkSlicerOpenIGTLinkIFLogic* ifLogic)
 {
   this->CommandLogic->SetIFLogic(ifLogic);
 }

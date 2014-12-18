@@ -43,6 +43,7 @@ public:
   virtual ~qSlicerOpenIGTLinkRemoteCommandWidget();
 
   void setMRMLScene(vtkMRMLScene *scene);
+  void setCommandLogic(vtkSlicerOpenIGTLinkRemoteLogic* newCommandLogic);
   void setIFLogic(vtkSlicerOpenIGTLinkIFLogic *logic);
 
 

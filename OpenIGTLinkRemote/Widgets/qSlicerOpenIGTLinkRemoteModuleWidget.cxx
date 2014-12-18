@@ -68,12 +68,12 @@ void qSlicerOpenIGTLinkRemoteModuleWidget::setup()
 //-----------------------------------------------------------------------------
 void qSlicerOpenIGTLinkRemoteModuleWidget::setMRMLScene(vtkMRMLScene *newScene)
 {
+  this->Superclass::setMRMLScene(newScene);
+  
   Q_D(qSlicerOpenIGTLinkRemoteModuleWidget);
 
   d->queryWidget->setMRMLScene(newScene);
   d->commandWidget->setMRMLScene(newScene);
-  
-  this->Superclass::setMRMLScene(newScene);
 }
 
 

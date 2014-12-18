@@ -45,9 +45,6 @@ protected:
   vtkMRMLTextNode(const vtkMRMLTextNode&);
   void operator=(const vtkMRMLTextNode&);
 
-  std::string GenerateVirtualNodePostfix();
-  std::string GetVirtualNodePostfixFromRoot(vtkMRMLSequenceNode* rootNode);
-
 protected:
   std::string Text;
 
