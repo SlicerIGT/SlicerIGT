@@ -191,10 +191,18 @@ void qSlicerOpenIGTLinkRemoteCommandWidget
   if ( newCommandLogic == NULL )
   {
     qWarning( "Trying to set NULL as logic" );
+    return;
   }
   
   this->CommandLogic = vtkSlicerOpenIGTLinkRemoteLogic::SafeDownCast( newCommandLogic );
-  this->CommandLogic->Register(NULL);
+  if ( this->CommandLogic != NULL )
+  {
+    this->CommandLogic->Register(NULL);
+  }
+  else
+  {
+    qWarning( "Logic is not an OpenIGTLinkRemoteLogic type!" );
+  }
 }
 
 
