@@ -71,12 +71,11 @@ qSlicerOpenIGTLinkRemoteCommandWidget
   : Superclass( _parent )
   , d_ptr( new qSlicerOpenIGTLinkRemoteCommandWidgetPrivate( *this ) )
 {
-  // this->CommandLogic = vtkSlicerOpenIGTLinkRemoteLogic::New();
-  
   qSlicerAbstractCoreModule* remoteModule = qSlicerApplication::application()->moduleManager()->module( "OpenIGTLinkRemote" );
   if ( remoteModule != NULL )
   {
     this->CommandLogic = vtkSlicerOpenIGTLinkRemoteLogic::SafeDownCast( remoteModule->logic() );
+    this->CommandLogic->Register( this );
   }
   else
   {
@@ -96,6 +95,7 @@ qSlicerOpenIGTLinkRemoteCommandWidget
   this->Timer->stop();
   if ( this->CommandLogic != NULL )
   {
+    this->CommandLogic->UnRegister( this );
     this->CommandLogic = NULL;
   }
 }
@@ -189,7 +189,7 @@ void qSlicerOpenIGTLinkRemoteCommandWidget
   
   if ( this->CommandLogic->GetMRMLScene() != newScene )
   {
-    this->CommandLogic->SetMRMLScene(newScene);
+    qWarning( "Incosistent MRML scene in OpenIGTLinkRemote logic" );
   }
   
   
