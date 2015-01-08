@@ -83,7 +83,7 @@ qSlicerWatchdogModuleWidget::qSlicerWatchdogModuleWidget(QWidget* _parent)
 {
   this->Timer = new QTimer( this );
   ElapsedTimeSec=0.0;
-  StatusRefreshTimeSec=0.25;
+  StatusRefreshTimeSec=0.20;
   CurrentCellPosition[0]=0;
   CurrentCellPosition[1]=0;
 }
@@ -209,11 +209,11 @@ qSlicerWatchdogModuleWidget
 }
 
 void qSlicerWatchdogModuleWidget
-::onStatusRefreshRateSpinBoxChanged(int statusRefeshRateHz)
+::onStatusRefreshRateSpinBoxChanged(int statusRefeshRateMiliSec)
 {
   this->Timer->stop();
-  StatusRefreshTimeSec=1/((double)statusRefeshRateHz);
-  this->Timer->start( 1000.0*StatusRefreshTimeSec);
+  StatusRefreshTimeSec=((double)statusRefeshRateMiliSec)/1000;
+  this->Timer->start(statusRefeshRateMiliSec);
   updateWidget();
 }
 

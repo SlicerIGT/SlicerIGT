@@ -197,23 +197,23 @@
            <item row="2" column="1">
             <widget class="QLabel" name="label">
              <property name="text">
-              <string>Status refresh rate [Hz]</string>
+              <string>Status refresh rate [ms]</string>
              </property>
             </widget>
            </item>
            <item row="2" column="2">
             <widget class="QSpinBox" name="StatusRefreshRateSpinBox">
              <property name="minimum">
-              <number>1</number>
+              <number>25</number>
              </property>
              <property name="maximum">
-              <number>100</number>
+              <number>2000</number>
              </property>
              <property name="singleStep">
-              <number>2</number>
+              <number>25</number>
              </property>
              <property name="value">
-              <number>4</number>
+              <number>200</number>
              </property>
             </widget>
            </item>
