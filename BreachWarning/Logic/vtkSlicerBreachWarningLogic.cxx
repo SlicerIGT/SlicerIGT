@@ -62,6 +62,7 @@ vtkSlicerBreachWarningLogic
   BreachSound(NULL),
   PlayWarningSound(1)
 {
+
 }
 
 
@@ -240,7 +241,7 @@ vtkSlicerBreachWarningLogic
   {
     if(BreachSound->isFinished())
     {
-      BreachSound->setLoops(2);
+      BreachSound->setLoops(1);
       BreachSound->play();
     }
   }
@@ -305,11 +306,11 @@ vtkSlicerBreachWarningLogic
   double previousOriginalColor[ 3 ];
   if(this->CurrentToolState == INSIDE/*moduleNode->GetToolInsideModel()*/)
   {
-  for (int i =0; i<3; i++)
-  {
-    previousOriginalColor[i]=moduleNode->GetOriginalColorComponent(i);
-  }
-  previousModel=moduleNode->GetWatchedModelNode();
+    for (int i =0; i<3; i++)
+    {
+      previousOriginalColor[i]=moduleNode->GetOriginalColorComponent(i);
+    }
+    previousModel=moduleNode->GetWatchedModelNode();
   }
 
   if(this->CurrentToolState == OUTSIDE || this->CurrentToolState == UNDEFINED)
