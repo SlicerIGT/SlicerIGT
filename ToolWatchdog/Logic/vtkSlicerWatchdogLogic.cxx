@@ -149,8 +149,18 @@ void vtkSlicerWatchdogLogic
   if ( node->IsA( "vtkMRMLWatchdogNode" ) )
   {
     vtkDebugMacro( "OnMRMLSceneNodeAdded: Module node added." );
+
     vtkUnObserveMRMLNodeMacro( node ); // Remove previous observers.
     vtkObserveMRMLNodeMacro( node );
+
+    vtkMRMLWatchdogNode* watchdogNode =vtkMRMLWatchdogNode::SafeDownCast(node);
+    vtkWarningMacro( "OnMRMLSceneNodeAdded: Module node added. Number of tools" <<watchdogNode->GetNumberOfTools());
+    for (int i = 0; i< watchdogNode->GetNumberOfTools(); i++)
+    {
+      vtkMRMLDisplayableNode* dispNode= vtkMRMLDisplayableNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(watchdogNode->GetToolNode(i)->id));
+      watchdogNode->GetToolNode(i)->tool=dispNode;
+      vtkWarningMacro(" tool "<< watchdogNode->GetToolNode(i)->tool<<" ID "<< watchdogNode->GetToolNode(i)->id)
+    }
   }
 }
 

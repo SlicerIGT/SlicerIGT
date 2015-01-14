@@ -71,6 +71,19 @@ vtkMRMLWatchdogNode
 {
   Superclass::WriteXML(of, nIndent); // This will take care of referenced nodes
   vtkIndent indent(nIndent);
+
+  of << indent << " NumberOfWatchedTools=\"" << WatchedTools.size() << "\"";
+ int i =1;
+  for (std::list<WatchedTool>::iterator it = WatchedTools.begin() ; it != WatchedTools.end(); ++it)
+  {
+    if((*it).tool== NULL)
+    {
+      continue;
+    }
+    of << indent << " WatchedToolName" << i<<"=\""<<(*it).tool->GetName() << "\"";
+    of << indent << " WatchedToolID" << i<<"=\""<< (*it).tool->GetID() << "\"";
+    i++;
+  }
 }
 
 void
@@ -88,14 +101,59 @@ vtkMRMLWatchdogNode
     attName  = *(atts++);
     attValue = *(atts++);
     
-    if ( ! strcmp( attName, "WarningColorR" ) )
+    if ( ! strcmp( attName, "NumberOfWatchedTools" ) )
     {
-      std::stringstream ss;
-      ss << attValue;
-      double r = 0.0;
-      ss >> r;
+      std::stringstream ssV;
+      ssV << attValue;
+      int r = 0;
+      ssV >> r;
+      vtkWarningMacro("Number of watched tools read "<< r );
+      //vtkCollection* toolsAdded=this->GetScene()->GetNodesByName(attValue /*ss.str().c_str()*/);
+      for (int i =0; i<r; i++)
+      {
+        WatchedTool tempWatchedTool;
+        std::stringstream ss;
+        ss<<"WatchedToolName";
+        ss << i+1;
+        attName  = *(atts++);
+        attValue = *(atts++);
+        vtkWarningMacro("WatchedToolName read "<< ss.str().c_str() << " atName = "<< attName<< " atValue = "<< attValue);
+        if ( ! strcmp( attName, ss.str().c_str() ) )
+        {
+          tempWatchedTool.label=QString(attValue).toStdString();
+          vtkWarningMacro("WatchedToolLabel value"<< tempWatchedTool.label.c_str() );
+        }
+        else 
+        {
+          vtkWarningMacro("WatchedToolName read "<< attName<< " different than expected = " << ss.str().c_str() );
+          continue;
+        }
+        std::stringstream ssA;
+        ssA<<"WatchedToolID";
+        ssA << i+1;
+        attName  = *(atts++);
+        attValue = *(atts++);
+        vtkWarningMacro("WatchedToolID read "<< ssA.str().c_str() << " atName = " << attName << " atValue = " << attValue);
+        if ( ! strcmp( attName, ssA.str().c_str()) )
+        {
+          //std::stringstream ss;
+          //ss << attValue;
+          //this->GetScene()->GetNodeByID(attValue /*ss.str().c_str()*/);
+          tempWatchedTool.id=QString(attValue).toStdString();
+          vtkWarningMacro("WatchedToolID value"<< tempWatchedTool.id.c_str() );
+          //tempWatchedTool.tool=mrmlNode;
+          //tempWatchedTool.LastTimeStamp=mrmlNode->GetMTime();
+          WatchedTools.push_back(tempWatchedTool);
+        }
+        else 
+        {
+          vtkWarningMacro("WatchedToolID read "<< attName<< " different than expected = " << ssA.str().c_str() );
+          continue;
+        }
+      }
     }
   }
+  vtkWarningMacro("Number of tools read"<<GetNumberOfTools());
 }
 
 void
@@ -150,9 +208,12 @@ vtkMRMLWatchdogNode
   }
   tempWatchedTool.tool=toolAdded;
   tempWatchedTool.label=QString(toolAdded->GetName()).left(6).toStdString();
+  tempWatchedTool.id=toolAdded->GetID();
   //tempWatchedTool.tool=mrmlNode;
   //tempWatchedTool.LastTimeStamp=mrmlNode->GetMTime();
   WatchedTools.push_back(tempWatchedTool);
+
+  vtkWarningMacro("number of tools "<<GetNumberOfTools());
 }
 
 void 
@@ -191,16 +252,19 @@ vtkMRMLWatchdogNode
   toolTemp.tool=itA->tool;
   toolTemp.lastTimeStamp=itA->lastTimeStamp;
   toolTemp.label=itA->label;
+  toolTemp.id=itA->id;
 
   itA->status=itB->status;
   itA->tool=itB->tool;
   itA->lastTimeStamp=itB->lastTimeStamp;
   itA->label=itB->label;
+  itA->id=itB->id;
 
   itB->status=toolTemp.status;
   itB->tool=toolTemp.tool;
   itB->lastTimeStamp=toolTemp.lastTimeStamp;
   itB->label=toolTemp.label;
+  itB->id=toolTemp.id;
 }
 
 bool 

@@ -37,6 +37,7 @@ struct WatchedTool{
   unsigned long lastTimeStamp;
   unsigned long lastElapsedTimeStamp;
   std::string label;
+  std::string id;
 
   WatchedTool()
   {
@@ -44,6 +45,7 @@ struct WatchedTool{
     status=0;
     lastTimeStamp=0;
     label = "label";
+    id = "";
     lastElapsedTimeStamp=0;
   }
 };

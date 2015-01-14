@@ -55,7 +55,7 @@ public:
   virtual ~qMRMLWatchdogToolBar();
   
   void SetFirstlabel(char * watchDogNodeName);
-  void ToolNodeAdded(char * toolName);
+  void ToolNodeAdded(const char * toolName);
   void SwapToolNodes(int toolA, int toolB );
   void ToolNodeDeleted();
   void DeleteToolNode(int row);

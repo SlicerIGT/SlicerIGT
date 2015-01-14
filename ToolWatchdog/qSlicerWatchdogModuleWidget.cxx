@@ -148,7 +148,7 @@ qSlicerWatchdogModuleWidget
   }
 
   // Create a module MRML node if there is none in the scene.
-//this->topLevelWidget()
+  //this->topLevelWidget()
   vtkMRMLNode* node = this->mrmlScene()->GetNthNodeByClass(0, "vtkMRMLWatchdogNode");
   if ( node == NULL )
   {
@@ -189,6 +189,26 @@ qSlicerWatchdogModuleWidget
         break;
       }
     }
+
+    vtkMRMLWatchdogNode* watchdogNode =vtkMRMLWatchdogNode::SafeDownCast(node);
+    for(int i = 0; i<watchdogNode->GetNumberOfTools(); i++)
+    {
+      d->WatchdogToolbarHash->value(QString(watchdogNode->GetID()))->ToolNodeAdded(watchdogNode->GetToolNode(i)->label.c_str());
+
+      qCritical( "inserted tool label " );
+      qCritical() << watchdogNode->GetToolNode(i)->label.c_str();
+      qCritical( "Tool ID " );
+      qCritical() << watchdogNode->GetToolNode(i)->id.c_str();
+
+      qCritical( "BEFORE Tool display node " );
+      qCritical() << watchdogNode->GetToolNode(i)->tool;
+
+      vtkMRMLDisplayableNode* dispNode= vtkMRMLDisplayableNode::SafeDownCast(this->mrmlScene()->GetNodeByID(watchdogNode->GetToolNode(i)->id));
+      watchdogNode->GetToolNode(i)->tool=dispNode;
+
+      qCritical( "AFTER Tool display node " );
+      qCritical() << watchdogNode->GetToolNode(i)->tool;
+    }
   }
   this->Superclass::enter();
 }
@@ -206,6 +226,7 @@ qSlicerWatchdogModuleWidget
 ::onSceneImportedEvent()
 {
   this->enter();
+  this->updateWidget();
 }
 
 void qSlicerWatchdogModuleWidget
@@ -461,7 +482,7 @@ void  qSlicerWatchdogModuleWidget
     {
       d->logic()->UpdateToolStatus( watchdogNode, (unsigned long) ElapsedTimeSec );
       std::list<WatchedTool>* toolsVectorPtr = watchdogNode->GetToolNodes();
-      int numberTools= toolsVectorPtr->size();
+      int numberTools = toolsVectorPtr->size();
       if ( toolsVectorPtr == NULL /*|| numberTools!= d->ToolsTableWidget->rowCount()*/)
       {
         return;

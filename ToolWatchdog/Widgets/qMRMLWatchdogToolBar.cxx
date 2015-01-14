@@ -222,7 +222,7 @@ void qMRMLWatchdogToolBar
 }
 
 void qMRMLWatchdogToolBar
-::ToolNodeAdded(char * label)
+::ToolNodeAdded(const char * label)
 {
   Q_D(qMRMLWatchdogToolBar);
 
