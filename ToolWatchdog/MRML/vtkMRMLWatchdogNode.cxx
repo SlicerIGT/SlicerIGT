@@ -27,6 +27,7 @@
 vtkMRMLWatchdogNode* vtkMRMLWatchdogNode
 ::New()
 {
+  
   // First try to create the object from the vtkObjectFactory
   vtkObject* ret = vtkObjectFactory::CreateInstance( "vtkMRMLWatchdogNode" );
   if( ret )
@@ -34,12 +35,14 @@ vtkMRMLWatchdogNode* vtkMRMLWatchdogNode
       return ( vtkMRMLWatchdogNode* )ret;
     }
   // If the factory was unable to create the object, then create it here.
+  //vtkWarningMacro("New watchdog node!");
   return new vtkMRMLWatchdogNode;
 }
 
 vtkMRMLWatchdogNode
 ::vtkMRMLWatchdogNode()
 {
+  vtkWarningMacro("Initialize watchdog node!");
   this->HideFromEditorsOff();
   this->SetSaveWithScene( true );
   
@@ -55,6 +58,7 @@ vtkMRMLNode*
 vtkMRMLWatchdogNode
 ::CreateNodeInstance()
 {
+  vtkWarningMacro("Create watchdog node instance!");
   // First try to create the object from the vtkObjectFactory
   vtkObject* ret = vtkObjectFactory::CreateInstance( "vtkMRMLWatchdogNode" );
   if( ret )

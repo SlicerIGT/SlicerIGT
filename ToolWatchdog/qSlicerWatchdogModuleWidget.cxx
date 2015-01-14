@@ -64,6 +64,7 @@ qSlicerWatchdogModuleWidgetPrivate::qSlicerWatchdogModuleWidgetPrivate( qSlicerW
 : q_ptr( &object )
 {
   this->WatchdogToolbarHash=NULL;
+  qCritical() << "Initialize watchdog widget private!";
 
 }
 
@@ -81,6 +82,7 @@ qSlicerWatchdogModuleWidget::qSlicerWatchdogModuleWidget(QWidget* _parent)
 : Superclass( _parent )
 , d_ptr( new qSlicerWatchdogModuleWidgetPrivate ( *this ) )
 {
+  qCritical() << "Initialize watchdog widget!";
   this->Timer = new QTimer( this );
   ElapsedTimeSec=0.0;
   StatusRefreshTimeSec=0.20;
@@ -98,7 +100,8 @@ qSlicerWatchdogModuleWidget::~qSlicerWatchdogModuleWidget()
 void qSlicerWatchdogModuleWidget::setup()
 {
   Q_D(qSlicerWatchdogModuleWidget);
-  
+  qCritical() << "Setup watchdog widget!";
+
   d->setupUi(this);
   this->Superclass::setup();
 
@@ -140,6 +143,7 @@ qSlicerWatchdogModuleWidget
 ::enter()
 {
   Q_D(qSlicerWatchdogModuleWidget);
+  qCritical() << "Enter watchdog widget!";
 
   if ( this->mrmlScene() == NULL )
   {

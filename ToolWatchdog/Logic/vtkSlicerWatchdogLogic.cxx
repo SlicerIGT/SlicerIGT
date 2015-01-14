@@ -39,6 +39,7 @@ vtkStandardNewMacro(vtkSlicerWatchdogLogic);
 //----------------------------------------------------------------------------
 vtkSlicerWatchdogLogic::vtkSlicerWatchdogLogic()
 {
+  vtkWarningMacro("Initialize watchdog logic!");
 }
 
 //----------------------------------------------------------------------------
@@ -55,6 +56,7 @@ void vtkSlicerWatchdogLogic::PrintSelf(ostream& os, vtkIndent indent)
 //---------------------------------------------------------------------------
 void vtkSlicerWatchdogLogic::SetMRMLSceneInternal(vtkMRMLScene * newScene)
 {
+  vtkWarningMacro("set scene internal watchdog logic!");
   vtkNew<vtkIntArray> events;
   events->InsertNextValue(vtkMRMLScene::NodeAddedEvent);
   events->InsertNextValue(vtkMRMLScene::NodeRemovedEvent);
@@ -65,6 +67,7 @@ void vtkSlicerWatchdogLogic::SetMRMLSceneInternal(vtkMRMLScene * newScene)
 //-----------------------------------------------------------------------------
 void vtkSlicerWatchdogLogic::RegisterNodes()
 {
+  vtkWarningMacro("Register Nodes watchdog logic!");
   assert(this->GetMRMLScene() != 0);
   if( ! this->GetMRMLScene() )
   {
