@@ -17,7 +17,6 @@ limitations under the License.
 
 // Qt includes
 #include <QDebug>
-#include <QTimer>
 #include <QMenu>
 #include <QtGui>
 #include <QHash>
@@ -33,6 +32,9 @@ limitations under the License.
 #include "vtkSlicerWatchdogLogic.h"
 
 #include "vtkMRMLWatchdogNode.h"
+
+#include <vtkCollection.h>
+#include <vtkCollectionIterator.h>
 
 #include <limits>
 
@@ -130,7 +132,7 @@ void qSlicerWatchdogModuleWidget::setup()
   connect(d->ToolsTableWidget, SIGNAL(itemDoubleClicked(QTableWidgetItem *)), this, SLOT( onTableItemDoubleClicked() ));
   d->ToolsTableWidget->setContextMenuPolicy( Qt::CustomContextMenu );
   connect( d->ToolsTableWidget, SIGNAL( customContextMenuRequested(const QPoint&) ), this, SLOT( onToolsTableContextMenu(const QPoint&) ) );
-  connect( d->ToolsTableWidget, SIGNAL( cellChanged( int, int ) ), this, SLOT( onMarkupsFiducialEdited( int, int ) ) );
+  //connect( d->ToolsTableWidget, SIGNAL( cellChanged( int, int ) ), this, SLOT( onMarkupsFiducialEdited( int, int ) ) );
 
   connect( this->Timer, SIGNAL( timeout() ), this, SLOT( onTimeout() ) );
   this->Timer->start( 1000.0*StatusRefreshTimeSec );
@@ -193,27 +195,22 @@ qSlicerWatchdogModuleWidget
         break;
       }
     }
+  }
 
-    vtkMRMLWatchdogNode* watchdogNode =vtkMRMLWatchdogNode::SafeDownCast(node);
-    for(int i = 0; i<watchdogNode->GetNumberOfTools(); i++)
+  vtkCollection* watchdogNodes = this->mrmlScene()->GetNodesByClass( "vtkMRMLWatchdogNode" );
+  vtkCollectionIterator* watchdogNodeIt = vtkCollectionIterator::New();
+  watchdogNodeIt->SetCollection( watchdogNodes );
+  for ( watchdogNodeIt->InitTraversal(); ! watchdogNodeIt->IsDoneWithTraversal(); watchdogNodeIt->GoToNextItem() )
+  {
+    vtkMRMLWatchdogNode* watchdogNode = vtkMRMLWatchdogNode::SafeDownCast( watchdogNodeIt->GetCurrentObject() );
+    if ( watchdogNode != NULL)
     {
-      d->WatchdogToolbarHash->value(QString(watchdogNode->GetID()))->ToolNodeAdded(watchdogNode->GetToolNode(i)->label.c_str());
-
-      qCritical( "inserted tool label " );
-      qCritical() << watchdogNode->GetToolNode(i)->label.c_str();
-      qCritical( "Tool ID " );
-      qCritical() << watchdogNode->GetToolNode(i)->id.c_str();
-
-      qCritical( "BEFORE Tool display node " );
-      qCritical() << watchdogNode->GetToolNode(i)->tool;
-
-      vtkMRMLDisplayableNode* dispNode= vtkMRMLDisplayableNode::SafeDownCast(this->mrmlScene()->GetNodeByID(watchdogNode->GetToolNode(i)->id));
-      watchdogNode->GetToolNode(i)->tool=dispNode;
-
-      qCritical( "AFTER Tool display node " );
-      qCritical() << watchdogNode->GetToolNode(i)->tool;
+      qCritical( "Enter: connect toolbar with visibility changed ");
+      connect(watchdogNode->WatchdogToolbar, SIGNAL(visibilityChanged(bool)), this, SLOT( onToolbarVisibilityChanged(bool)) );
     }
   }
+  watchdogNodeIt->Delete();
+  watchdogNodes->Delete();
   this->Superclass::enter();
 }
 

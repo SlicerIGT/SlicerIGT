@@ -5,6 +5,11 @@
 // Other MRML includes
 #include "vtkMRMLModelNode.h"
 #include "vtkMRMLNode.h"
+
+#include "qMRMLWatchdogToolBar.h"
+#include "QMainWindow.h"
+#include <QMenu>
+#include "qSlicerApplication.h"
 //#include "vtkMRMLTransformNode.h"
 //#include "vtkMRMLLinearTransformNode.h"
 //#include "vtkMRMLDisplayNode.h"
@@ -45,6 +50,10 @@ vtkMRMLWatchdogNode
   vtkWarningMacro("Initialize watchdog node!");
   this->HideFromEditorsOff();
   this->SetSaveWithScene( true );
+  this->WatchdogToolbar=NULL;
+
+
+
   
   //this->AddNodeReferenceRole( TOOL_ROLE );
 }
@@ -52,6 +61,7 @@ vtkMRMLWatchdogNode
 vtkMRMLWatchdogNode
 ::~vtkMRMLWatchdogNode()
 {
+  this->WatchdogToolbar=NULL;
 }
 
 vtkMRMLNode*
@@ -59,8 +69,13 @@ vtkMRMLWatchdogNode
 ::CreateNodeInstance()
 {
   vtkWarningMacro("Create watchdog node instance!");
+
+
   // First try to create the object from the vtkObjectFactory
   vtkObject* ret = vtkObjectFactory::CreateInstance( "vtkMRMLWatchdogNode" );
+
+
+
   if( ret )
     {
       return ( vtkMRMLWatchdogNode* )ret;
@@ -90,10 +105,44 @@ vtkMRMLWatchdogNode
   }
 }
 
+
+void
+vtkMRMLWatchdogNode
+::SetName( const char * name )
+{
+  Superclass::SetName( name );
+  vtkWarningMacro("Set Name");
+  //vtkMRMLWatchdogNode* node =( vtkMRMLWatchdogNode* )ret;
+  if(this->WatchdogToolbar==NULL)
+  {
+    QMainWindow* window = qSlicerApplication::application()->mainWindow();
+    this->WatchdogToolbar = new qMRMLWatchdogToolBar (window);
+    window->addToolBar(this->WatchdogToolbar);
+    this->WatchdogToolbar->setWindowTitle(QApplication::translate("qSlicerAppMainWindow",this->GetName(), 0, QApplication::UnicodeUTF8));
+    foreach (QMenu* toolBarMenu,window->findChildren<QMenu*>())
+    {
+      if(toolBarMenu->objectName()==QString("WindowToolBarsMenu"))
+      {
+        QList<QAction*> toolBarMenuActions= toolBarMenu->actions();
+        //toolBarMenu->defaultAction() would be bbetter to use but Slicer App should set the default action
+        toolBarMenu->insertAction(toolBarMenuActions.at(toolBarMenuActions.size()-1),this->WatchdogToolbar->toggleViewAction());
+        //This might be connected in widget
+        //connect(watchdogToolbar, SIGNAL(visibilityChanged(bool)), this, SLOT( onToolbarVisibilityChanged(bool)) );
+        break;
+      }
+    }
+  }
+
+  this->WatchdogToolbar->SetFirstlabel(this->GetName());
+}
+
+
 void
 vtkMRMLWatchdogNode
 ::ReadXMLAttributes( const char** atts )
 {
+  
+  
   Superclass::ReadXMLAttributes(atts); // This will take care of referenced nodes
 
   // Read all MRML node attributes from two arrays of names and values
@@ -147,6 +196,7 @@ vtkMRMLWatchdogNode
           vtkWarningMacro("WatchedToolID value"<< tempWatchedTool.id.c_str() );
           //tempWatchedTool.tool=mrmlNode;
           //tempWatchedTool.LastTimeStamp=mrmlNode->GetMTime();
+          this->WatchdogToolbar->ToolNodeAdded(tempWatchedTool.label.c_str());
           WatchedTools.push_back(tempWatchedTool);
         }
         else 
@@ -157,7 +207,9 @@ vtkMRMLWatchdogNode
       }
     }
   }
-  vtkWarningMacro("Number of tools read"<<GetNumberOfTools());
+  vtkWarningMacro("XML atts number of tools read "<<GetNumberOfTools());
+
+
 }
 
 void

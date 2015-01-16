@@ -29,7 +29,10 @@
 // Watchdog includes
 #include "vtkSlicerWatchdogModuleMRMLExport.h"
 
+#include <vtkTimerLog.h>
+
 class vtkMRMLDisplayableNode;
+class qMRMLWatchdogToolBar;
 
 struct WatchedTool{
   vtkMRMLDisplayableNode* tool;
@@ -68,6 +71,7 @@ public:
   virtual void ReadXMLAttributes( const char** atts );
   virtual void WriteXML( ostream& of, int indent );
   virtual void Copy( vtkMRMLNode *node );
+  virtual void SetName( const char * name );
 
 protected:
 
@@ -100,9 +104,11 @@ public:
 
   //void SetAndObserveToolNodeId( const char* nodeId );
   //void ProcessMRMLEvents( vtkObject *caller, unsigned long event, void *callData );
+  qMRMLWatchdogToolBar * WatchdogToolbar;
 
 private:
   std::list< WatchedTool > WatchedTools;
+
 };  
 
 #endif
