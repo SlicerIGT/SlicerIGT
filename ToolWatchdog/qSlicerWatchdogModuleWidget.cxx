@@ -330,24 +330,28 @@ void qSlicerWatchdogModuleWidget
   //{
   //  return;
   //}
-  QMainWindow* window = qSlicerApplication::application()->mainWindow();
-  qMRMLWatchdogToolBar *watchdogToolbar = new qMRMLWatchdogToolBar (window);
-  watchdogToolbar->SetFirstlabel(nodeAdded->GetName());
-  watchdogNodeAdded->WatchdogToolbar= watchdogToolbar;
-  //d->WatchdogToolbarHash->insert(QString(watchdogNodeAdded->GetID()), watchdogToolbar);
-  window->addToolBar(watchdogToolbar);
-  watchdogToolbar->setWindowTitle(QApplication::translate("qSlicerAppMainWindow", watchdogNodeAdded->GetName(), 0, QApplication::UnicodeUTF8));
-  foreach (QMenu* toolBarMenu,window->findChildren<QMenu*>())
-  {
-    if(toolBarMenu->objectName()==QString("WindowToolBarsMenu"))
-    {
-      QList<QAction*> toolBarMenuActions= toolBarMenu->actions();
-      //toolBarMenu->defaultAction() would be bbetter to use but Slicer App should set the default action
-      toolBarMenu->insertAction(toolBarMenuActions.at(toolBarMenuActions.size()-1),watchdogToolbar->toggleViewAction());
-      connect(watchdogToolbar, SIGNAL(visibilityChanged(bool)), this, SLOT( onToolbarVisibilityChanged(bool)) );
-      break;
-    }
-  }
+  //QMainWindow* window = qSlicerApplication::application()->mainWindow();
+  //qMRMLWatchdogToolBar *watchdogToolbar = new qMRMLWatchdogToolBar (window);
+  //watchdogToolbar->SetFirstlabel(nodeAdded->GetName());
+  //watchdogNodeAdded->WatchdogToolbar= watchdogToolbar;
+  ////d->WatchdogToolbarHash->insert(QString(watchdogNodeAdded->GetID()), watchdogToolbar);
+  //window->addToolBar(watchdogToolbar);
+  //watchdogToolbar->setWindowTitle(QApplication::translate("qSlicerAppMainWindow", watchdogNodeAdded->GetName(), 0, QApplication::UnicodeUTF8));
+  //foreach (QMenu* toolBarMenu,window->findChildren<QMenu*>())
+  //{
+  //  if(toolBarMenu->objectName()==QString("WindowToolBarsMenu"))
+  //  {
+  //    QList<QAction*> toolBarMenuActions= toolBarMenu->actions();
+  //    //toolBarMenu->defaultAction() would be bbetter to use but Slicer App should set the default action
+  //    toolBarMenu->insertAction(toolBarMenuActions.at(toolBarMenuActions.size()-1),watchdogToolbar->toggleViewAction());
+  //    connect(watchdogToolbar, SIGNAL(visibilityChanged(bool)), this, SLOT( onToolbarVisibilityChanged(bool)) );
+  //    break;
+  //  }
+  //}
+
+  connect(watchdogNodeAdded->WatchdogToolbar, SIGNAL(visibilityChanged(bool)), this, SLOT( onToolbarVisibilityChanged(bool)) );
+
+
   this->updateFromMRMLNode();
 }
 
@@ -485,7 +489,7 @@ void  qSlicerWatchdogModuleWidget
   for (it = watchdogNodesList.begin(); it != watchdogNodesList.end(); ++it)
   {
     vtkMRMLWatchdogNode* watchdogNode = vtkMRMLWatchdogNode::SafeDownCast( (*it) );
-    if(watchdogNode->WatchdogToolbar->isVisible())
+    if(watchdogNode->WatchdogToolbar && watchdogNode->WatchdogToolbar->isVisible())
     //if(d->WatchdogToolbarHash->value(QString(watchdogNode->GetID()))->isVisible())
     {
       d->logic()->UpdateToolStatus( watchdogNode, (unsigned long) ElapsedTimeSec );
@@ -609,7 +613,7 @@ void  qSlicerWatchdogModuleWidget
   if ( currentTool > 0 )
   {
     watchdogNode->SwapTools( currentTool, currentTool - 1 );
-    watchdogNode->WatchdogToolbar->SwapToolNodes(currentTool, currentTool + 1);
+    watchdogNode->WatchdogToolbar->SwapToolNodes(currentTool, currentTool - 1);
     //d->WatchdogToolbarHash->value(QString(watchdogNode->GetID()))->SwapToolNodes(currentTool, currentTool - 1);
   }
   updateWidget();
@@ -863,7 +867,7 @@ void qSlicerWatchdogModuleWidget
   d->ToolsTableWidget->blockSignals( false );
 
   //qMRMLWatchdogToolBar *watchdogToolbar = d->WatchdogToolbarHash->value(watchdogNode->GetID());
-  if(watchdogNode->WatchdogToolbar->isVisible())
+  if(watchdogNode->WatchdogToolbar && watchdogNode->WatchdogToolbar->isVisible())
   {
     d->ToolbarVisibilityCheckBox->setChecked(true);//d->VisibilityButton->setIcon( QIcon( ":/Icons/Small/SlicerVisible.png" ) );
   }
@@ -887,7 +891,7 @@ void qSlicerWatchdogModuleWidget
   }
   vtkMRMLWatchdogNode* watchdogNode = vtkMRMLWatchdogNode::SafeDownCast( currentModuleNode );
   //qMRMLWatchdogToolBar *watchdogToolbar = d->WatchdogToolbarHash->value(watchdogNode->GetID());
-  if(watchdogNode->WatchdogToolbar->isVisible())
+  if(watchdogNode->WatchdogToolbar && watchdogNode->WatchdogToolbar->isVisible())
   {
     d->ToolbarVisibilityCheckBox->setChecked(true);//d->VisibilityButton->setIcon( QIcon( ":/Icons/Small/SlicerVisible.png" ) );
   }
