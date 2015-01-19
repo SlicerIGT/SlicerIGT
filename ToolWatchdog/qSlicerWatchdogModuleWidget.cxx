@@ -783,6 +783,9 @@ void qSlicerWatchdogModuleWidget
   {
     d->ToolComboBox->setCurrentNodeID( "" );
     d->ToolComboBox->setEnabled( false );
+    d->ToolsTableWidget->clear();
+    d->ToolsTableWidget->setRowCount( 0 );
+    d->ToolsTableWidget->setColumnCount( 0 );
     return;
   }
   vtkMRMLWatchdogNode* watchdogNode = vtkMRMLWatchdogNode::SafeDownCast( currentModuleNode );
@@ -792,25 +795,27 @@ void qSlicerWatchdogModuleWidget
     return;
   }
   vtkMRMLDisplayableNode* currentToolNode = vtkMRMLDisplayableNode::SafeDownCast( d->ToolComboBox->currentNode() );
+  d->AddToolButton->blockSignals( true );
   if ( currentToolNode == NULL )
   {
-    d->ToolsTableWidget->clear();
-    d->ToolsTableWidget->setRowCount( 0 );
-    d->ToolsTableWidget->setColumnCount( 0 );
+
     d->AddToolButton->setChecked( Qt::Unchecked );
     // This will ensure that we refresh the widget next time we move to a non-null widget (since there is guaranteed to be a modified status of larger than zero)
-    return;
-  }
-
-  // Set the button indicating if this list is active
-  d->AddToolButton->blockSignals( true );
-  if ( watchdogNode->HasTool(currentToolNode->GetName()))
-  {
+    //return;
     d->AddToolButton->setEnabled(false);
   }
   else
   {
-    d->AddToolButton->setEnabled(true);
+    // Set the button indicating if this list is active
+
+    if ( !watchdogNode->HasTool(currentToolNode->GetName()))
+    {
+      d->AddToolButton->setEnabled(true);
+    }
+    else
+    {
+      d->AddToolButton->setEnabled(false);
+    }
   }
   d->AddToolButton->blockSignals( false );
 
