@@ -107,10 +107,10 @@ private:
   Q_DECLARE_PRIVATE(qSlicerWatchdogModuleWidget);
   Q_DISABLE_COPY(qSlicerWatchdogModuleWidget);
 
-  QTimer* Timer;
-  double StatusRefreshTimeSec;
+  //QTimer* Timer;
+  //double StatusRefreshTimeSec;
   int CurrentCellPosition[2];
-  double ElapsedTimeSec;
+  //double ElapsedTimeSec;
 };
 
 #endif

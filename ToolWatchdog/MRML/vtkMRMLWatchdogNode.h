@@ -92,7 +92,7 @@ public:
   /// Gets the list of tools 
   std::list<WatchedTool>* GetToolNodes();
   /// Adds the displayble node into the tools list, adding label, status, and last time stamp information.
-  void AddToolNode( vtkMRMLDisplayableNode *mrmlNode);
+  int AddToolNode( vtkMRMLDisplayableNode *mrmlNode);
   /// Removes the specified tool watched from the tools' list
   void RemoveTool(int row);
   /// Swaps the specified tools watched from the tools' list

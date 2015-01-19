@@ -28,9 +28,10 @@ limitations under the License.
 #include "qSlicerWatchdogModuleWidget.h"
 #include "qMRMLWatchdogToolBar.h"
 #include "ui_qSlicerWatchdogModuleWidget.h"
+
 #include "vtkMRMLDisplayableNode.h"
 #include "vtkSlicerWatchdogLogic.h"
-
+#include "QVTKSlicerWatchdogLogicInternal.h"
 #include "vtkMRMLWatchdogNode.h"
 
 #include <vtkCollection.h>
@@ -85,9 +86,9 @@ qSlicerWatchdogModuleWidget::qSlicerWatchdogModuleWidget(QWidget* _parent)
 , d_ptr( new qSlicerWatchdogModuleWidgetPrivate ( *this ) )
 {
   qCritical() << "Initialize watchdog widget!";
-  this->Timer = new QTimer( this );
-  ElapsedTimeSec=0.0;
-  StatusRefreshTimeSec=0.20;
+  //this->Timer = new QTimer( this );
+  //ElapsedTimeSec=0.0;
+  //StatusRefreshTimeSec=0.20;
   CurrentCellPosition[0]=0;
   CurrentCellPosition[1]=0;
 }
@@ -95,7 +96,7 @@ qSlicerWatchdogModuleWidget::qSlicerWatchdogModuleWidget(QWidget* _parent)
 //-----------------------------------------------------------------------------
 qSlicerWatchdogModuleWidget::~qSlicerWatchdogModuleWidget()
 {
-    this->Timer->stop();
+  //this->Timer->stop();
 }
 
 //-----------------------------------------------------------------------------
@@ -108,7 +109,7 @@ void qSlicerWatchdogModuleWidget::setup()
   this->Superclass::setup();
 
   this->setMRMLScene( d->logic()->GetMRMLScene() );
-  
+
   connect( d->ModuleNodeComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onWatchdogNodeChanged() ) );
 
   connect( d->ModuleNodeComboBox, SIGNAL(nodeAddedByUser(vtkMRMLNode* )), this, SLOT(onWatchdogNodeAddedByUser(vtkMRMLNode* ) ) );
@@ -134,8 +135,8 @@ void qSlicerWatchdogModuleWidget::setup()
   connect( d->ToolsTableWidget, SIGNAL( customContextMenuRequested(const QPoint&) ), this, SLOT( onToolsTableContextMenu(const QPoint&) ) );
   //connect( d->ToolsTableWidget, SIGNAL( cellChanged( int, int ) ), this, SLOT( onMarkupsFiducialEdited( int, int ) ) );
 
-  connect( this->Timer, SIGNAL( timeout() ), this, SLOT( onTimeout() ) );
-  this->Timer->start( 1000.0*StatusRefreshTimeSec );
+  connect( d->logic()->GetQVTKLogicInternal(), SIGNAL( updateWidget() ), this, SLOT( onTimeout() ) );
+  //this->Timer->start( 1000.0*StatusRefreshTimeSec );
 
   this->updateFromMRMLNode();
 }
@@ -174,7 +175,7 @@ qSlicerWatchdogModuleWidget
   {
     d->ModuleNodeComboBox->setCurrentNodeID( node->GetID() );
   }
- 
+
   //if(d->WatchdogToolbarHash==NULL)
   //{
   //  QMainWindow* window = qSlicerApplication::application()->mainWindow();
@@ -233,9 +234,11 @@ qSlicerWatchdogModuleWidget
 void qSlicerWatchdogModuleWidget
 ::onStatusRefreshRateSpinBoxChanged(int statusRefeshRateMiliSec)
 {
-  this->Timer->stop();
-  StatusRefreshTimeSec=((double)statusRefeshRateMiliSec)/1000;
-  this->Timer->start(statusRefeshRateMiliSec);
+  Q_D( qSlicerWatchdogModuleWidget );
+  //this->Timer->stop();
+  d->logic()->SetStatusRefreshTimeMiliSec(statusRefeshRateMiliSec);
+  //StatusRefreshTimeSec=((double)statusRefeshRateMiliSec)/1000;
+  //this->Timer->start(statusRefeshRateMiliSec);
   updateWidget();
 }
 
@@ -415,7 +418,6 @@ void qSlicerWatchdogModuleWidget
   //{
   //  return;
   //}
-
   QMainWindow* window = qSlicerApplication::application()->mainWindow();
   qMRMLWatchdogToolBar *watchdogToolbar =watchdogNode->WatchdogToolbar;
   //qMRMLWatchdogToolBar *watchdogToolbar = d->WatchdogToolbarHash->value(watchdogNode->GetID());
@@ -470,12 +472,12 @@ qSlicerWatchdogModuleWidget
 void qSlicerWatchdogModuleWidget
 ::onTimeout()
 {
-  if(ElapsedTimeSec>=std::numeric_limits<double>::max()-1.0)
-  {
-    ElapsedTimeSec=0.0;
-  }
-  ElapsedTimeSec = ElapsedTimeSec+StatusRefreshTimeSec;//updateWidget();
-  updateToolbars();
+  //if(ElapsedTimeSec>=std::numeric_limits<double>::max()-1.0)
+  //{
+  //  ElapsedTimeSec=0.0;
+  //}
+  //ElapsedTimeSec = ElapsedTimeSec+StatusRefreshTimeSec;//updateWidget();
+  //updateToolbars();
   updateTable();
 }
 
@@ -490,9 +492,9 @@ void  qSlicerWatchdogModuleWidget
   {
     vtkMRMLWatchdogNode* watchdogNode = vtkMRMLWatchdogNode::SafeDownCast( (*it) );
     if(watchdogNode->WatchdogToolbar && watchdogNode->WatchdogToolbar->isVisible())
-    //if(d->WatchdogToolbarHash->value(QString(watchdogNode->GetID()))->isVisible())
+      //if(d->WatchdogToolbarHash->value(QString(watchdogNode->GetID()))->isVisible())
     {
-      d->logic()->UpdateToolStatus( watchdogNode, (unsigned long) ElapsedTimeSec );
+      //d->logic()->UpdateToolStatus( watchdogNode/*, (unsigned long) ElapsedTimeSec */);
       std::list<WatchedTool>* toolsVectorPtr = watchdogNode->GetToolNodes();
       int numberTools = toolsVectorPtr->size();
       if ( toolsVectorPtr == NULL /*|| numberTools!= d->ToolsTableWidget->rowCount()*/)
@@ -554,7 +556,7 @@ void  qSlicerWatchdogModuleWidget
       //d->ToolsTableWidget->setItem( row, TOOL_TIMESTAMP_COLUMN, lastElapsedTimeStatus );
       d->ToolsTableWidget->item( row, TOOL_TIMESTAMP_COLUMN)->setBackground(Qt::red);
       QString disconnectedString ("Disconnected ");
-      disconnectedString += QString::number( floor(ElapsedTimeSec-(*it).lastElapsedTimeStamp) )+ " [s] ";
+      disconnectedString += QString::number( floor(d->logic()->GetElapsedTimeSec()-(*it).lastElapsedTimeStamp) )+ " [s] ";
       d->ToolsTableWidget->item( row, TOOL_TIMESTAMP_COLUMN)->setText(disconnectedString);
     }
     else
@@ -847,7 +849,7 @@ void qSlicerWatchdogModuleWidget
     d->ToolsTableWidget->setItem(row, TOOL_SOUND_COLUMN, nameItem );
     row++;
   }
-  updateToolbars();
+  //updateToolbars();
   updateTable();
   d->ToolsTableWidget->blockSignals( false );
 

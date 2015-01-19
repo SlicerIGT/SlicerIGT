@@ -252,14 +252,14 @@ vtkMRMLWatchdogNode
   return &WatchedTools;
 }
 
-void
+int 
 vtkMRMLWatchdogNode
 ::AddToolNode( vtkMRMLDisplayableNode* toolAdded)
 {
   WatchedTool tempWatchedTool;
   if(toolAdded==NULL)
   {
-    return;
+    return 0;
   }
   tempWatchedTool.tool=toolAdded;
   tempWatchedTool.label=QString(toolAdded->GetName()).left(6).toStdString();
@@ -270,6 +270,7 @@ vtkMRMLWatchdogNode
   WatchdogToolbar->ToolNodeAdded(toolAdded->GetName());
 
   vtkWarningMacro("number of tools "<<GetNumberOfTools());
+  return GetNumberOfTools();
 }
 
 void 

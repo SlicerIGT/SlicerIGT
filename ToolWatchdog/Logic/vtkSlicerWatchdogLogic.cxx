@@ -1,17 +1,17 @@
 /*==============================================================================
 
-  Program: 3D Slicer
+Program: 3D Slicer
 
-  Portions (c) Copyright Brigham and Women's Hospital (BWH) All Rights Reserved.
+Portions (c) Copyright Brigham and Women's Hospital (BWH) All Rights Reserved.
 
-  See COPYRIGHT.txt
-  or http://www.slicer.org/copyright/copyright.txt for details.
+See COPYRIGHT.txt
+or http://www.slicer.org/copyright/copyright.txt for details.
 
-  Unless required by applicable law or agreed to in writing, software
-  distributed under the License is distributed on an "AS IS" BASIS,
-  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  See the License for the specific language governing permissions and
-  limitations under the License.
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 
 ==============================================================================*/
 
@@ -66,6 +66,7 @@ QVTKSlicerWatchdogLogicInternal::~QVTKSlicerWatchdogLogicInternal()
 void QVTKSlicerWatchdogLogicInternal::onTimerEvent()
 {
   Parent->TimerEvent();
+  emit updateWidget();
 }
 
 
@@ -131,10 +132,14 @@ void vtkSlicerWatchdogLogic::AddToolNode( vtkMRMLWatchdogNode* watchdogNode, vtk
   {
     return;
   }
-  watchdogNode->AddToolNode(toolNode);
+
+  if(watchdogNode->AddToolNode(toolNode)&& !this->Internal->Timer->isActive())
+  {
+    this->Internal->Timer->start( 1000.0*StatusRefreshTimeSec );
+  }
 }
 
-void vtkSlicerWatchdogLogic::UpdateToolStatus( vtkMRMLWatchdogNode* watchdogNode, unsigned long ElapsedTimeSec  )
+void vtkSlicerWatchdogLogic::UpdateToolStatus( vtkMRMLWatchdogNode* watchdogNode/*, unsigned long ElapsedTimeSec */ )
 {
   if ( watchdogNode == NULL )
   {
@@ -154,7 +159,7 @@ void vtkSlicerWatchdogLogic::UpdateToolStatus( vtkMRMLWatchdogNode* watchdogNode
     {
       return;
     }
-     
+
     vtkMRMLTransformNode* transform=vtkMRMLTransformNode::SafeDownCast((*it).tool);
     if (transform!=NULL)
     {
@@ -164,7 +169,7 @@ void vtkSlicerWatchdogLogic::UpdateToolStatus( vtkMRMLWatchdogNode* watchdogNode
     {
       timeStamp=(*it).tool->GetMTime();
     }
-    
+
     if(timeStamp ==(*it).lastTimeStamp )
     {
       (*it).status=OUT_OF_DATE;
@@ -180,6 +185,18 @@ void vtkSlicerWatchdogLogic::UpdateToolStatus( vtkMRMLWatchdogNode* watchdogNode
   }
 }
 
+QVTKSlicerWatchdogLogicInternal* vtkSlicerWatchdogLogic::GetQVTKLogicInternal()
+{
+  return this->Internal;
+}
+
+
+void vtkSlicerWatchdogLogic::SetStatusRefreshTimeMiliSec( double statusRefeshRateMiliSec)
+{
+  this->Internal->Timer->stop();
+  StatusRefreshTimeSec=((double)statusRefeshRateMiliSec)/1000;
+  this->Internal->Timer->start(statusRefeshRateMiliSec);
+}
 void  vtkSlicerWatchdogLogic::TimerEvent()
 {
   //vtkWarningMacro("Timer event");
@@ -197,7 +214,7 @@ void  vtkSlicerWatchdogLogic::TimerEvent()
     vtkMRMLWatchdogNode* watchdogNode = vtkMRMLWatchdogNode::SafeDownCast( watchdogNodeIt->GetCurrentObject() );
     if(watchdogNode->WatchdogToolbar->isVisible())
     {
-      this->UpdateToolStatus( watchdogNode, (unsigned long) ElapsedTimeSec );
+      this->UpdateToolStatus( watchdogNode/*, (unsigned long) ElapsedTimeSec */);
       std::list<WatchedTool>* toolsVectorPtr = watchdogNode->GetToolNodes();
       int numberTools = toolsVectorPtr->size();
       if ( toolsVectorPtr == NULL /*|| numberTools!= d->ToolsTableWidget->rowCount()*/)
@@ -233,7 +250,7 @@ void vtkSlicerWatchdogLogic::UpdateFromMRMLScene()
 void vtkSlicerWatchdogLogic::OnMRMLSceneEndImport()
 {
   assert(this->GetMRMLScene() != 0);
-vtkWarningMacro( "OnMRMLSceneEndImport");
+  vtkWarningMacro( "OnMRMLSceneEndImport");
   vtkCollection* watchdogNodes = this->GetMRMLScene()->GetNodesByClass( "vtkMRMLWatchdogNode" );
   vtkCollectionIterator* watchdogNodeIt = vtkCollectionIterator::New();
   watchdogNodeIt->SetCollection( watchdogNodes );

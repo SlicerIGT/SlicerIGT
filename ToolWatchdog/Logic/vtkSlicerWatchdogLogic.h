@@ -36,12 +36,7 @@
 
 // For referencing own MRML node
 class vtkMRMLWatchdogNode;
-
-
 class vtkMRMLDisplayableNode;
-
-
-
 class QVTKSlicerWatchdogLogicInternal;
 
 // STD includes
@@ -75,8 +70,11 @@ public:
   /// Adds a tool to the list in the respective toolwatchdog node
   void AddToolNode( vtkMRMLWatchdogNode* toolWatchdogNode, vtkMRMLDisplayableNode *mrmlNode);
   /// Updates the state of the tool observed according to the timestamp. The elapsedTime is stored to keep track of time that tools have been disconnected.
-  void UpdateToolStatus( vtkMRMLWatchdogNode* toolWatchdogNode, unsigned long ElapsedTimeSec );
+  void UpdateToolStatus( vtkMRMLWatchdogNode* toolWatchdogNode/*, unsigned long ElapsedTimeSec */);
   void TimerEvent();
+  vtkGetMacro(ElapsedTimeSec, double);
+  void SetStatusRefreshTimeMiliSec( double statusRefeshRateMiliSec);
+  QVTKSlicerWatchdogLogicInternal* GetQVTKLogicInternal();
 
 protected:
   vtkSlicerWatchdogLogic();
@@ -91,16 +89,13 @@ protected:
   virtual void OnMRMLSceneNodeRemoved(vtkMRMLNode* node);
 
 
-
 private:
 
   vtkSlicerWatchdogLogic(const vtkSlicerWatchdogLogic&); // Not implemented
   void operator=(const vtkSlicerWatchdogLogic&); // Not implemented
-
-  QVTKSlicerWatchdogLogicInternal* Internal;
   double StatusRefreshTimeSec;
   double ElapsedTimeSec;
-
+  QVTKSlicerWatchdogLogicInternal* Internal;
 
 };
 
