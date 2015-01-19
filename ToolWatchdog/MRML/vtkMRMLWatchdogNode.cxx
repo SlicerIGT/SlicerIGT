@@ -279,7 +279,7 @@ vtkMRMLWatchdogNode
   std::list<WatchedTool>::iterator it = WatchedTools.begin();
   advance (it,row);
   WatchedTools.erase(it);
-
+  WatchdogToolbar->DeleteToolNode(row);
   //int index=0;
   //for (std::list<WatchedTransform>::iterator it = WatchedTransfroms.begin() ; it != WatchedTransfroms.end(); ++it)
   //{
@@ -321,6 +321,7 @@ vtkMRMLWatchdogNode
   itB->lastTimeStamp=toolTemp.lastTimeStamp;
   itB->label=toolTemp.label;
   itB->id=toolTemp.id;
+  WatchdogToolbar->SwapToolNodes(toolA, toolB );
 }
 
 bool 

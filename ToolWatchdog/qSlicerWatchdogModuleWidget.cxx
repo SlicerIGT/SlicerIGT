@@ -587,8 +587,6 @@ void  qSlicerWatchdogModuleWidget
   if ( currentTool < watchdogNode->GetNumberOfTools()- 1 && currentTool>=0 )
   {
     watchdogNode->SwapTools( currentTool, currentTool + 1 );
-    watchdogNode->WatchdogToolbar->SwapToolNodes(currentTool, currentTool + 1);
-    //d->WatchdogToolbarHash->value(QString(watchdogNode->GetID()))->SwapToolNodes(currentTool, currentTool + 1);
   }
   updateWidget();
 }
@@ -613,8 +611,6 @@ void  qSlicerWatchdogModuleWidget
   if ( currentTool > 0 )
   {
     watchdogNode->SwapTools( currentTool, currentTool - 1 );
-    watchdogNode->WatchdogToolbar->SwapToolNodes(currentTool, currentTool - 1);
-    //d->WatchdogToolbarHash->value(QString(watchdogNode->GetID()))->SwapToolNodes(currentTool, currentTool - 1);
   }
   updateWidget();
 }
@@ -656,8 +652,6 @@ void  qSlicerWatchdogModuleWidget
   for ( int i = deleteFiducials.size() - 1; i >= 0; i-- )
   {
     watchdogNode->RemoveTool(deleteFiducials.at( i ));
-    watchdogNode->WatchdogToolbar->DeleteToolNode(deleteFiducials.at( i ));
-    //d->WatchdogToolbarHash->value(QString(watchdogNode->GetID()))->DeleteToolNode(deleteFiducials.at( i ));
   }
   this->updateWidget();
 }
@@ -754,8 +748,6 @@ void qSlicerWatchdogModuleWidget
     for ( int i = deleteFiducials.size() - 1; i >= 0; i-- )
     {
       watchdogNode->RemoveTool(deleteFiducials.at( i ));
-      watchdogNode->WatchdogToolbar->DeleteToolNode(deleteFiducials.at( i ));
-      //d->WatchdogToolbarHash->value(QString(watchdogNode->GetID()))->DeleteToolNode(deleteFiducials.at( i ));
     }
   }
 
@@ -764,8 +756,6 @@ void qSlicerWatchdogModuleWidget
     if ( currentTool > 0 )
     {
       watchdogNode->SwapTools( currentTool, currentTool - 1 );
-      watchdogNode->WatchdogToolbar->SwapToolNodes(currentTool, currentTool - 1);
-      //d->WatchdogToolbarHash->value(QString(watchdogNode->GetID()))->SwapToolNodes(currentTool, currentTool - 1);
     }
   }
 
@@ -774,8 +764,6 @@ void qSlicerWatchdogModuleWidget
     if ( currentTool < watchdogNode->GetNumberOfTools()- 1 )
     {
       watchdogNode->SwapTools( currentTool, currentTool + 1 );
-      watchdogNode->WatchdogToolbar->SwapToolNodes(currentTool, currentTool + 1);
-      //d->WatchdogToolbarHash->value(QString(watchdogNode->GetID()))->SwapToolNodes(currentTool, currentTool + 1);
     }
   }
 
