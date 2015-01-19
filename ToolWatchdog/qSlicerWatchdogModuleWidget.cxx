@@ -681,9 +681,6 @@ void qSlicerWatchdogModuleWidget
 
   d->logic()->AddToolNode(watchdogNode, currentToolNode ); // Make sure there is an associated display node
   this->updateWidget();
-  watchdogNode->WatchdogToolbar->ToolNodeAdded(currentToolNode->GetName());
-  //d->WatchdogToolbarHash->value(QString(watchdogNode->GetID()))->ToolNodeAdded(currentToolNode->GetName());
-  //this->onMarkupsFiducialNodeChanged();
 }
 
 void qSlicerWatchdogModuleWidget

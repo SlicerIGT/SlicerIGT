@@ -189,7 +189,7 @@ vtkMRMLWatchdogNode
         vtkWarningMacro("WatchedToolID read "<< ssA.str().c_str() << " atName = " << attName << " atValue = " << attValue);
         if ( ! strcmp( attName, ssA.str().c_str()) )
         {
-          //std::stringstream ss;
+          //READ XML might be using AddToolNode( vtkMRMLDisplayableNode* toolAdded)
           //ss << attValue;
           //this->GetScene()->GetNodeByID(attValue /*ss.str().c_str()*/);
           tempWatchedTool.id=QString(attValue).toStdString();
@@ -257,7 +257,6 @@ vtkMRMLWatchdogNode
 ::AddToolNode( vtkMRMLDisplayableNode* toolAdded)
 {
   WatchedTool tempWatchedTool;
-  //vtkMRMLDisplayableNode *toolAdded=vtkMRMLDisplayableNode::SafeDownCast(mrmlNode);
   if(toolAdded==NULL)
   {
     return;
@@ -265,9 +264,10 @@ vtkMRMLWatchdogNode
   tempWatchedTool.tool=toolAdded;
   tempWatchedTool.label=QString(toolAdded->GetName()).left(6).toStdString();
   tempWatchedTool.id=toolAdded->GetID();
-  //tempWatchedTool.tool=mrmlNode;
   //tempWatchedTool.LastTimeStamp=mrmlNode->GetMTime();
   WatchedTools.push_back(tempWatchedTool);
+
+  WatchdogToolbar->ToolNodeAdded(toolAdded->GetName());
 
   vtkWarningMacro("number of tools "<<GetNumberOfTools());
 }
