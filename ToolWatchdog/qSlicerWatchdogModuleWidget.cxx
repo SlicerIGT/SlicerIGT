@@ -333,9 +333,10 @@ void qSlicerWatchdogModuleWidget
     return;
   }
 
+  qCritical("NODE TO BE REMOVED");
   disconnect(watchdogNodeToBeRemoved->WatchdogToolbar, SIGNAL(visibilityChanged(bool)), this, SLOT( onToolbarVisibilityChanged(bool)) );
 
-  watchdogNodeToBeRemoved->RemoveToolbar();
+  //watchdogNodeToBeRemoved->RemoveToolbar();
 
   this->updateFromMRMLNode();
   updateWidget();

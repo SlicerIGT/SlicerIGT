@@ -301,6 +301,13 @@ void vtkSlicerWatchdogLogic
 
   if ( node->IsA( "vtkMRMLWatchdogNode" ) )
   {
+    vtkMRMLWatchdogNode* watchdogNodeToBeRemoved = vtkMRMLWatchdogNode::SafeDownCast( node );
+    if(watchdogNodeToBeRemoved==NULL)
+    {
+      return;
+    }
+    watchdogNodeToBeRemoved->RemoveToolbar();
+
     vtkDebugMacro( "OnMRMLSceneNodeRemoved" );
     vtkUnObserveMRMLNodeMacro( node );
   }

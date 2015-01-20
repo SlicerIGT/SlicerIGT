@@ -272,6 +272,7 @@ vtkMRMLWatchdogNode
   vtkWarningMacro("Initilize toolBAR");
   if(this->WatchdogToolbar==NULL)
   {
+    vtkWarningMacro("Initilize toolBAR");
     QMainWindow* window = qSlicerApplication::application()->mainWindow();
     this->WatchdogToolbar = new qMRMLWatchdogToolBar (window);
     window->addToolBar(this->WatchdogToolbar);
