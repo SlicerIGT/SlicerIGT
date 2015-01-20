@@ -102,6 +102,8 @@ public:
   /// Returns the size of the list of tools
   int GetNumberOfTools();
 
+  void InitializeToolbar();
+  void RemoveToolbar();
   //void SetAndObserveToolNodeId( const char* nodeId );
   //void ProcessMRMLEvents( vtkObject *caller, unsigned long event, void *callData );
   qMRMLWatchdogToolBar * WatchdogToolbar;

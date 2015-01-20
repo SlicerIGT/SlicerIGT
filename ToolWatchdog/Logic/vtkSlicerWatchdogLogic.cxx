@@ -41,17 +41,11 @@ limitations under the License.
 
 #include "qMRMLWatchdogToolBar.h"
 
-
 #include "QVTKSlicerWatchdogLogicInternal.h"
 
 // STD includes
 #include <cassert>
 #include <limits>
-
-
-
-
-
 
 QVTKSlicerWatchdogLogicInternal::QVTKSlicerWatchdogLogicInternal(vtkSlicerWatchdogLogic* p)
 : Parent(p)
@@ -69,8 +63,6 @@ void QVTKSlicerWatchdogLogicInternal::onTimerEvent()
   emit updateWidget();
 }
 
-
-
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSlicerWatchdogLogic);
 
@@ -84,7 +76,8 @@ vtkSlicerWatchdogLogic::vtkSlicerWatchdogLogic()
 //----------------------------------------------------------------------------
 vtkSlicerWatchdogLogic::~vtkSlicerWatchdogLogic()
 {
-  //this->Timer->stop();
+  this->Internal->Timer->stop();
+  QObject::connect( this->Internal->Timer, SIGNAL( timeout() ), this->Internal, SLOT( onTimerEvent() ) );
 }
 
 //----------------------------------------------------------------------------
@@ -123,7 +116,6 @@ void vtkSlicerWatchdogLogic::RegisterNodes()
   StatusRefreshTimeSec=0.20;
 
   QObject::connect( this->Internal->Timer, SIGNAL( timeout() ), this->Internal, SLOT( onTimerEvent() ) );
-
 }
 
 void vtkSlicerWatchdogLogic::AddToolNode( vtkMRMLWatchdogNode* watchdogNode, vtkMRMLDisplayableNode *toolNode)
@@ -173,7 +165,7 @@ void vtkSlicerWatchdogLogic::UpdateToolStatus( vtkMRMLWatchdogNode* watchdogNode
     if(timeStamp ==(*it).lastTimeStamp )
     {
       (*it).status=OUT_OF_DATE;
-      vtkWarningMacro("Time stamp is out of date"<<timeStamp);
+      vtkDebugMacro("Time stamp is out of date"<<timeStamp);
     }
     else
     {
@@ -189,7 +181,6 @@ QVTKSlicerWatchdogLogicInternal* vtkSlicerWatchdogLogic::GetQVTKLogicInternal()
 {
   return this->Internal;
 }
-
 
 void vtkSlicerWatchdogLogic::SetStatusRefreshTimeMiliSec( double statusRefeshRateMiliSec)
 {
@@ -237,9 +228,6 @@ void  vtkSlicerWatchdogLogic::TimerEvent()
   watchdogNodes->Delete();
 }
 
-
-
-
 //---------------------------------------------------------------------------
 void vtkSlicerWatchdogLogic::UpdateFromMRMLScene()
 {
@@ -260,11 +248,14 @@ void vtkSlicerWatchdogLogic::OnMRMLSceneEndImport()
     vtkMRMLWatchdogNode* watchdogNode = vtkMRMLWatchdogNode::SafeDownCast( watchdogNodeIt->GetCurrentObject() );
     if ( watchdogNode != NULL)
     {
+      watchdogNode->InitializeToolbar();
+      
       vtkWarningMacro( "OnMRMLSceneEndImport: Module node added. Number of tools " <<watchdogNode->GetNumberOfTools());
       for (int i = 0; i< watchdogNode->GetNumberOfTools(); i++)
       {
         vtkMRMLDisplayableNode* dispNode= vtkMRMLDisplayableNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(watchdogNode->GetToolNode(i)->id));
         watchdogNode->GetToolNode(i)->tool=dispNode;
+        watchdogNode->WatchdogToolbar->ToolNodeAdded(watchdogNode->GetToolNode(i)->label.c_str());
         vtkWarningMacro(" tool "<< watchdogNode->GetToolNode(i)->tool<<" ID "<< watchdogNode->GetToolNode(i)->id);
         hasTools=1;
       }
@@ -292,7 +283,7 @@ void vtkSlicerWatchdogLogic
 
   if ( node->IsA( "vtkMRMLWatchdogNode" ) )
   {
-    vtkWarningMacro( "OnMRMLSceneNodeAdded: Module node added. Number of tools" );
+    vtkWarningMacro( "OnMRMLSceneNodeAdded: Module node added."<< node->GetName() );
     vtkUnObserveMRMLNodeMacro( node ); // Remove previous observers.
     vtkObserveMRMLNodeMacro( node );
   }

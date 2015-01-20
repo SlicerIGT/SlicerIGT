@@ -176,28 +176,6 @@ qSlicerWatchdogModuleWidget
     d->ModuleNodeComboBox->setCurrentNodeID( node->GetID() );
   }
 
-  //if(d->WatchdogToolbarHash==NULL)
-  //{
-  //  QMainWindow* window = qSlicerApplication::application()->mainWindow();
-  //  qMRMLWatchdogToolBar *watchdogToolbar = new qMRMLWatchdogToolBar (window);
-  //  watchdogToolbar->SetFirstlabel(node->GetName());
-  //  d->WatchdogToolbarHash = new QHash<QString, qMRMLWatchdogToolBar *>;
-  //  d->WatchdogToolbarHash->insert(QString(node->GetID()), watchdogToolbar);
-  //  window->addToolBar(watchdogToolbar);
-  //  watchdogToolbar->setWindowTitle(QApplication::translate("qSlicerAppMainWindow", node->GetName(), 0, QApplication::UnicodeUTF8));
-  //  foreach (QMenu* toolBarMenu,window->findChildren<QMenu*>())
-  //  {
-  //    if(toolBarMenu->objectName()==QString("WindowToolBarsMenu"))
-  //    {
-  //      QList<QAction*> toolBarMenuActions= toolBarMenu->actions();
-  //      //toolBarMenu->defaultAction() would be bbetter to use but Slicer App should set the default action
-  //      toolBarMenu->insertAction(toolBarMenuActions.at(toolBarMenuActions.size()-1),watchdogToolbar->toggleViewAction());
-  //      connect(watchdogToolbar, SIGNAL(visibilityChanged(bool)), this, SLOT( onToolbarVisibilityChanged(bool)) );
-  //      break;
-  //    }
-  //  }
-  //}
-
   vtkCollection* watchdogNodes = this->mrmlScene()->GetNodesByClass( "vtkMRMLWatchdogNode" );
   vtkCollectionIterator* watchdogNodeIt = vtkCollectionIterator::New();
   watchdogNodeIt->SetCollection( watchdogNodes );
@@ -206,12 +184,14 @@ qSlicerWatchdogModuleWidget
     vtkMRMLWatchdogNode* watchdogNode = vtkMRMLWatchdogNode::SafeDownCast( watchdogNodeIt->GetCurrentObject() );
     if ( watchdogNode != NULL)
     {
+      watchdogNode->InitializeToolbar();
       qCritical( "Enter: connect toolbar with visibility changed ");
       connect(watchdogNode->WatchdogToolbar, SIGNAL(visibilityChanged(bool)), this, SLOT( onToolbarVisibilityChanged(bool)) );
     }
   }
   watchdogNodeIt->Delete();
   watchdogNodes->Delete();
+
   this->Superclass::enter();
 }
 
@@ -329,28 +309,8 @@ void qSlicerWatchdogModuleWidget
   {
     return;
   }
-  //if(d->WatchdogToolbarHash==NULL)
-  //{
-  //  return;
-  //}
-  //QMainWindow* window = qSlicerApplication::application()->mainWindow();
-  //qMRMLWatchdogToolBar *watchdogToolbar = new qMRMLWatchdogToolBar (window);
-  //watchdogToolbar->SetFirstlabel(nodeAdded->GetName());
-  //watchdogNodeAdded->WatchdogToolbar= watchdogToolbar;
-  ////d->WatchdogToolbarHash->insert(QString(watchdogNodeAdded->GetID()), watchdogToolbar);
-  //window->addToolBar(watchdogToolbar);
-  //watchdogToolbar->setWindowTitle(QApplication::translate("qSlicerAppMainWindow", watchdogNodeAdded->GetName(), 0, QApplication::UnicodeUTF8));
-  //foreach (QMenu* toolBarMenu,window->findChildren<QMenu*>())
-  //{
-  //  if(toolBarMenu->objectName()==QString("WindowToolBarsMenu"))
-  //  {
-  //    QList<QAction*> toolBarMenuActions= toolBarMenu->actions();
-  //    //toolBarMenu->defaultAction() would be bbetter to use but Slicer App should set the default action
-  //    toolBarMenu->insertAction(toolBarMenuActions.at(toolBarMenuActions.size()-1),watchdogToolbar->toggleViewAction());
-  //    connect(watchdogToolbar, SIGNAL(visibilityChanged(bool)), this, SLOT( onToolbarVisibilityChanged(bool)) );
-  //    break;
-  //  }
-  //}
+
+  watchdogNodeAdded->InitializeToolbar();
 
   connect(watchdogNodeAdded->WatchdogToolbar, SIGNAL(visibilityChanged(bool)), this, SLOT( onToolbarVisibilityChanged(bool)) );
 
@@ -366,36 +326,17 @@ void qSlicerWatchdogModuleWidget
   {
     return;
   }
-  vtkMRMLWatchdogNode* watchdogNodeAdded = vtkMRMLWatchdogNode::SafeDownCast( nodeToBeRemoved );
-  if(watchdogNodeAdded==NULL)
+
+  vtkMRMLWatchdogNode* watchdogNodeToBeRemoved = vtkMRMLWatchdogNode::SafeDownCast( nodeToBeRemoved );
+  if(watchdogNodeToBeRemoved==NULL)
   {
     return;
   }
-  //if(d->WatchdogToolbarHash==NULL)
-  //{
-  //  return;
-  //}
 
-  QMainWindow* window = qSlicerApplication::application()->mainWindow();
+  disconnect(watchdogNodeToBeRemoved->WatchdogToolbar, SIGNAL(visibilityChanged(bool)), this, SLOT( onToolbarVisibilityChanged(bool)) );
 
-  qMRMLWatchdogToolBar *watchdogToolbar =watchdogNodeAdded->WatchdogToolbar;
-  //qMRMLWatchdogToolBar *watchdogToolbar = d->WatchdogToolbarHash->value(nodeToBeRemoved->GetID());
-  window->removeToolBar(watchdogToolbar);
-  foreach (QMenu* toolBarMenu,window->findChildren<QMenu*>())
-  {
-    if(toolBarMenu->objectName()==QString("WindowToolBarsMenu"))
-    {
-      QList<QAction*> toolBarMenuActions= toolBarMenu->actions();
-      //watchdogToolbar->toggleViewAction()->name()
-      //toolBarMenuActions.remove(watchdogToolbar->toggleViewAction());
-      toolBarMenu->removeAction(watchdogToolbar->toggleViewAction());
-      disconnect(watchdogToolbar, SIGNAL(visibilityChanged(bool)), this, SLOT( onToolbarVisibilityChanged(bool)) );
-      //toolBarMenu->defaultAction() would be bbetter to use but Slicer App should set the default action
-      //toolBarMenu->insertAction(toolBarMenuActions.at(toolBarMenuActions.size()-1),watchdogToolbar->toggleViewAction());
-      break;
-    }
-  }
-  watchdogNodeAdded->WatchdogToolbar=NULL;
+  watchdogNodeToBeRemoved->RemoveToolbar();
+
   this->updateFromMRMLNode();
   updateWidget();
   d->ToolsTableWidget->clear();

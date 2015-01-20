@@ -228,7 +228,7 @@ void qMRMLWatchdogToolBar
 
   QLabel* toolLabel = new QLabel(this);
   toolLabel->setToolTip(this->tr("Tool in row %1").arg(d->ActionsListPtr->size()));
-  toolLabel->setText(QString(label).left(6));
+  toolLabel->setText(label);
 
   toolLabel->setAlignment(Qt::AlignCenter);
   toolLabel->setStyleSheet("QLabel { background-color: green; min-width: 2em; max-height: 2em;}");
