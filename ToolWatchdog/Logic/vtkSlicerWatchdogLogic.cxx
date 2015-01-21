@@ -33,8 +33,6 @@ limitations under the License.
 #include <vtkCollection.h>
 #include <vtkCollectionIterator.h>
 
-
-
 #include <QtCore/QObject>
 #include <QEvent>
 #include <QTimer>

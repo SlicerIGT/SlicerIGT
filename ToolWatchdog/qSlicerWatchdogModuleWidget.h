@@ -23,10 +23,8 @@
 
 #include "qSlicerWatchdogModuleExport.h"
 
-class QTimer;
 class qSlicerWatchdogModuleWidgetPrivate;
 class vtkMRMLNode;
-class qMRMLWatchdogToolBar;
 
 /// \ingroup Slicer_QtModules_ExtensionTemplate
 class Q_SLICER_QTMODULES_WATCHDOG_EXPORT qSlicerWatchdogModuleWidget :
@@ -94,7 +92,7 @@ protected:
   QScopedPointer<qSlicerWatchdogModuleWidgetPrivate> d_ptr;
 
   /// Updates all the active toolbars accordingly to their respective watchdog nodes states
-  void updateToolbars();
+  //void updateToolbars();
   /// Updates the current watchdog node table
   void updateTable();
   /// Connects the gui signals
@@ -107,10 +105,7 @@ private:
   Q_DECLARE_PRIVATE(qSlicerWatchdogModuleWidget);
   Q_DISABLE_COPY(qSlicerWatchdogModuleWidget);
 
-  //QTimer* Timer;
-  //double StatusRefreshTimeSec;
   int CurrentCellPosition[2];
-  //double ElapsedTimeSec;
 };
 
 #endif

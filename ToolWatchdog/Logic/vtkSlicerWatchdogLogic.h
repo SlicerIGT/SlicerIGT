@@ -44,10 +44,6 @@ class QVTKSlicerWatchdogLogicInternal;
 
 #include "vtkSlicerWatchdogModuleLogicExport.h"
 
-
-
-
-
 /// \ingroup Slicer_QtModules_ExtensionTemplate
 class VTK_SLICER_WATCHDOG_MODULE_LOGIC_EXPORT vtkSlicerWatchdogLogic :
   public vtkSlicerModuleLogic
