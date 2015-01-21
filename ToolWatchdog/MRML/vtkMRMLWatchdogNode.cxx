@@ -10,9 +10,6 @@
 #include "QMainWindow.h"
 #include <QMenu>
 #include "qSlicerApplication.h"
-//#include "vtkMRMLTransformNode.h"
-//#include "vtkMRMLLinearTransformNode.h"
-//#include "vtkMRMLDisplayNode.h"
 
 // VTK includes
 #include <vtkDoubleArray.h>
@@ -20,7 +17,6 @@
 #include <vtkSmartPointer.h>
 #include <vtkNew.h>
 #include <vtkIntArray.h>
-#include <vtkCommand.h>
 
 // Other includes
 #include <sstream>
@@ -208,7 +204,6 @@ WatchedTool *
 vtkMRMLWatchdogNode
 ::GetToolNode(int currentRow)
 {
-  //vtkMRMLDisplayableNode* ltNode = vtkMRMLDisplayableNode::SafeDownCast( this->GetNodeReference( TOOL_ROLE ) );
   std::list<WatchedTool>::iterator it = WatchedTools.begin();
   advance (it,currentRow);
   WatchedTool * watchedTool = &(*it);
@@ -337,18 +332,21 @@ vtkMRMLWatchdogNode
   toolTemp.lastTimeStamp=itA->lastTimeStamp;
   toolTemp.label=itA->label;
   toolTemp.id=itA->id;
+  toolTemp.lastElapsedTimeStamp=itA->lastElapsedTimeStamp;
 
   itA->status=itB->status;
   itA->tool=itB->tool;
   itA->lastTimeStamp=itB->lastTimeStamp;
   itA->label=itB->label;
   itA->id=itB->id;
+  itA->lastElapsedTimeStamp=itB->lastElapsedTimeStamp;
 
   itB->status=toolTemp.status;
   itB->tool=toolTemp.tool;
   itB->lastTimeStamp=toolTemp.lastTimeStamp;
   itB->label=toolTemp.label;
   itB->id=toolTemp.id;
+  itB->lastElapsedTimeStamp=toolTemp.lastElapsedTimeStamp;
   WatchdogToolbar->SwapToolNodes(toolA, toolB );
 }
 
