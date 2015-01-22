@@ -37,6 +37,7 @@ class qMRMLWatchdogToolBar;
 struct WatchedTool{
   vtkMRMLDisplayableNode* tool;
   int status;
+  int sound;
   unsigned long lastTimeStamp;
   unsigned long lastElapsedTimeStamp;
   std::string label;
@@ -47,6 +48,7 @@ struct WatchedTool{
     tool=NULL;
     status=0;
     lastTimeStamp=0;
+    sound=0;
     label = "label";
     id = "";
     lastElapsedTimeStamp=0;

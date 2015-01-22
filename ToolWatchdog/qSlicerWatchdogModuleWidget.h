@@ -87,6 +87,8 @@ protected slots:
   /// Updates the toolbar visibility checkbox accordingly to the toolbar visibility, in case is deactivated from the menu
   void onToolbarVisibilityChanged( bool visible );
   //void onToolChanged();
+  
+  void onSoundCheckBoxStateChanged(int state);
 
 protected:
   QScopedPointer<qSlicerWatchdogModuleWidgetPrivate> d_ptr;

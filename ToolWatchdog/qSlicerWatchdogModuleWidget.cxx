@@ -124,10 +124,11 @@ void qSlicerWatchdogModuleWidget::setup()
   d->DownToolButton->setIcon( QIcon( ":/Icons/Down.png" ) );
 
   connect(d->ToolsTableWidget, SIGNAL(itemDoubleClicked(QTableWidgetItem *)), this, SLOT( onTableItemDoubleClicked() ));
+
   d->ToolsTableWidget->setContextMenuPolicy( Qt::CustomContextMenu );
   connect( d->ToolsTableWidget, SIGNAL( customContextMenuRequested(const QPoint&) ), this, SLOT( onToolsTableContextMenu(const QPoint&) ) );
 
-  connect( d->logic()->GetQVTKLogicInternal(), SIGNAL( updateWidget() ), this, SLOT( onTimeout() ) );
+  connect( d->logic()->GetQVTKLogicInternal(), SIGNAL( updateTable() ), this, SLOT( onTimeout() ) );
 
   this->updateFromMRMLNode();
 }
@@ -399,6 +400,10 @@ void qSlicerWatchdogModuleWidget
 {
   updateTable();
 }
+
+
+
+
 
 //void  qSlicerWatchdogModuleWidget
 //::updateToolbars()
@@ -701,7 +706,6 @@ void qSlicerWatchdogModuleWidget
   d->AddToolButton->blockSignals( true );
   if ( currentToolNode == NULL )
   {
-
     d->AddToolButton->setChecked( Qt::Unchecked );
     // This will ensure that we refresh the widget next time we move to a non-null widget (since there is guaranteed to be a modified status of larger than zero)
     //return;
@@ -723,6 +727,13 @@ void qSlicerWatchdogModuleWidget
 
   // Update the fiducials table
   d->ToolsTableWidget->blockSignals( true );
+
+for (int row=0; row<d->ToolsTableWidget->rowCount(); row++)
+{
+  QCheckBox *soundCheckBox = dynamic_cast <QCheckBox *> (d->ToolsTableWidget->cellWidget(row,TOOL_SOUND_COLUMN));
+  disconnect(soundCheckBox, SIGNAL(stateChanged(int)), this, SLOT(onSoundCheckBoxStateChanged(int)));
+}
+
   d->ToolsTableWidget->clear();
   QStringList MarkupsTableHeaders;
   MarkupsTableHeaders << "Label" << "Name" << "Sound" << "Status";
@@ -745,15 +756,30 @@ void qSlicerWatchdogModuleWidget
     {
       return;
     }
-    d->ToolsTableWidget->blockSignals( true );
+    //d->ToolsTableWidget->blockSignals( true );
     QTableWidgetItem* nameItem = new QTableWidgetItem( (*it).tool->GetName() );
     QTableWidgetItem* labelItem = new QTableWidgetItem( (*it).label.c_str() );
     QTableWidgetItem* lastElapsedTimeStatus = new QTableWidgetItem( "" );
     lastElapsedTimeStatus->setTextAlignment(Qt::AlignCenter);
+
+    QCheckBox *pCheckBox = new QCheckBox();
+    pCheckBox->setAccessibleName(QString::number(row));
+    if((*it).sound)
+    {
+      pCheckBox->setCheckState(Qt::Checked);
+    }
+    else
+    {
+      pCheckBox->setCheckState(Qt::Unchecked);
+    }
+    pCheckBox->setStyleSheet("margin-left:50%; margin-right:50%;");
+    connect(pCheckBox, SIGNAL(stateChanged(int)), this, SLOT(onSoundCheckBoxStateChanged(int)));
+
     d->ToolsTableWidget->setItem( row, TOOL_TIMESTAMP_COLUMN, lastElapsedTimeStatus );
     d->ToolsTableWidget->setItem( row, TOOL_NAME_COLUMN, nameItem );
     d->ToolsTableWidget->setItem( row, TOOL_LABEL_COLUMN, labelItem );
-    d->ToolsTableWidget->setItem(row, TOOL_SOUND_COLUMN, nameItem );
+    d->ToolsTableWidget->setCellWidget(row,TOOL_SOUND_COLUMN, pCheckBox);
+
     row++;
   }
   updateTable();
@@ -769,6 +795,47 @@ void qSlicerWatchdogModuleWidget
   }
   //emit updateFinished();
 }
+
+
+
+void qSlicerWatchdogModuleWidget
+::onSoundCheckBoxStateChanged(int state)
+{
+  Q_D(qSlicerWatchdogModuleWidget);
+
+  vtkMRMLNode* currentNode = d->ModuleNodeComboBox->currentNode();
+  if ( currentNode == NULL )
+  {
+    d->ToolComboBox->setCurrentNodeID( "" );
+    d->ToolComboBox->setEnabled( false );
+    return;
+  }
+  vtkMRMLWatchdogNode* watchdogNode = vtkMRMLWatchdogNode::SafeDownCast( currentNode );
+
+  if ( watchdogNode == NULL )
+  {
+    return;
+  }
+  QCheckBox *pCheckBox = dynamic_cast <QCheckBox *>(QObject::sender());
+  int cbRow = pCheckBox->accessibleName().toInt();
+  if(cbRow>=0&&cbRow<watchdogNode->GetNumberOfTools())
+  {
+    qCritical("Changed state checkbox current cell position = %d", cbRow);
+    watchdogNode->GetToolNode(cbRow)->sound=state;
+  }
+  //int currentTool = d->ToolsTableWidget->currentRow();
+  //QTableWidgetItem *pCheckBox = dynamic_cast <QTableWidgetItem *>(QObject::sender());
+  //for(int row =0; row<watchdogNode->GetNumberOfTools();row++)
+  //{
+  //  QCheckBox *tCheckBox=d->ToolsTableWidget->cellWidget(row,TOOL_SOUND_COLUMN);
+  //  if(==pCheckBox)
+  //  {
+  //    break;
+  //    cbRow=pCheckBox->name()).toUInt();
+  //  }
+  //}
+}
+
 
 void qSlicerWatchdogModuleWidget
 ::onToolbarVisibilityChanged( bool visible )

@@ -85,3 +85,13 @@ slicerMacroBuildQtModule(
 if(BUILD_TESTING)
   add_subdirectory(Testing)
 endif()
+
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/Resources/alarmWatchdog.wav
+  ${SlicerIGT_BINARY_DIR}/${Slicer_QTLOADABLEMODULES_SHARE_DIR}/${MODULE_NAME}/alarmWatchdog.wav
+  COPYONLY)
+
+install(
+  FILES ${Slicer_DIR}/${Slicer_QTLOADABLEMODULES_SHARE_DIR}/${MODULE_NAME}/alarmWatchdog.wav
+  DESTINATION ${Slicer_INSTALL_QTLOADABLEMODULES_SHARE_DIR}/${MODULE_NAME} COMPONENT Runtime)
+

@@ -34,6 +34,10 @@
 //#include <vtkLandmarkTransform.h>
 #include "vtkSmartPointer.h"
 
+
+#include <QSound>
+#include <QPointer>
+
 // For referencing own MRML node
 class vtkMRMLWatchdogNode;
 class vtkMRMLDisplayableNode;
@@ -91,7 +95,9 @@ private:
   void operator=(const vtkSlicerWatchdogLogic&); // Not implemented
   double StatusRefreshTimeSec;
   double ElapsedTimeSec;
+  double LastSoundElapsedTime;
   QVTKSlicerWatchdogLogicInternal* Internal;
+  QPointer<QSound>  BreachSound;
 
 };
 

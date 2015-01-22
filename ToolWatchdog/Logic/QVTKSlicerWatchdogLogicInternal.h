@@ -41,7 +41,7 @@ public slots:
     void onTimerEvent();
 
 signals:
-    void updateWidget();
+    void updateTable();
 
 public:
   vtkSlicerWatchdogLogic* Parent;

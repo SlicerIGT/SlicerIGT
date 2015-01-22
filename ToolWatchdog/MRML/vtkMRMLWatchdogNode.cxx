@@ -333,6 +333,7 @@ vtkMRMLWatchdogNode
   toolTemp.label=itA->label;
   toolTemp.id=itA->id;
   toolTemp.lastElapsedTimeStamp=itA->lastElapsedTimeStamp;
+  toolTemp.sound=itA->sound;
 
   itA->status=itB->status;
   itA->tool=itB->tool;
@@ -340,6 +341,7 @@ vtkMRMLWatchdogNode
   itA->label=itB->label;
   itA->id=itB->id;
   itA->lastElapsedTimeStamp=itB->lastElapsedTimeStamp;
+  itA->sound=itB->sound;
 
   itB->status=toolTemp.status;
   itB->tool=toolTemp.tool;
@@ -347,6 +349,7 @@ vtkMRMLWatchdogNode
   itB->label=toolTemp.label;
   itB->id=toolTemp.id;
   itB->lastElapsedTimeStamp=toolTemp.lastElapsedTimeStamp;
+  itB->sound=toolTemp.sound;
   WatchdogToolbar->SwapToolNodes(toolA, toolB );
 }
 
