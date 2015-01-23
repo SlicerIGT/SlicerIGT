@@ -62,7 +62,6 @@ vtkSlicerBreachWarningLogic
   BreachSound(NULL),
   PlayWarningSound(1)
 {
-
 }
 
 

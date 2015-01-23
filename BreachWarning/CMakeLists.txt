@@ -76,7 +76,7 @@ configure_file(
   COPYONLY)
 
 install(
-  FILES ${Slicer_DIR}/${Slicer_QTLOADABLEMODULES_SHARE_DIR}/${MODULE_NAME}/alarm.wav
+  FILES ${CMAKE_CURRENT_SOURCE_DIR}/Resources/alarm.wav
   DESTINATION ${Slicer_INSTALL_QTLOADABLEMODULES_SHARE_DIR}/${MODULE_NAME} COMPONENT Runtime)
 
 

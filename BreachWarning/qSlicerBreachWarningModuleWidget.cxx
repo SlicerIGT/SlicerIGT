@@ -18,7 +18,6 @@
 
 // Qt includes
 #include <QtGui>
-#include <QSound>
 
 // SlicerQt includes
 #include "qSlicerBreachWarningModuleWidget.h"
