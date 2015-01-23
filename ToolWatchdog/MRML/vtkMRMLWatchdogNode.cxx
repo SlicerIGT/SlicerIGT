@@ -89,6 +89,7 @@ vtkMRMLWatchdogNode
       continue;
     }
     of << indent << " WatchedToolName" << i<<"=\""<<(*it).tool->GetName() << "\"";
+    of << indent << " WatchedToolSoundActivated" << i<<"=\""<< (*it).sound << "\"";
     of << indent << " WatchedToolID" << i<<"=\""<< (*it).tool->GetID() << "\"";
     i++;
   }
@@ -122,10 +123,10 @@ vtkMRMLWatchdogNode
     attValue = *(atts++);
     if ( ! strcmp( attName, "NumberOfWatchedTools" ) )
     {
-      std::stringstream ssV;
-      ssV << attValue;
+      std::stringstream nameString;
+      nameString << attValue;
       int r = 0;
-      ssV >> r;
+      nameString >> r;
       vtkWarningMacro("Number of watched tools read "<< r );
       //vtkCollection* toolsAdded=this->GetScene()->GetNodesByName(attValue /*ss.str().c_str()*/);
       for (int i =0; i<r; i++)
@@ -147,13 +148,30 @@ vtkMRMLWatchdogNode
           vtkWarningMacro("WatchedToolName read "<< attName<< " different than expected = " << ss.str().c_str() );
           continue;
         }
-        std::stringstream ssA;
-        ssA<<"WatchedToolID";
-        ssA << i+1;
+
+        std::stringstream soundString;
+        soundString<<"WatchedToolSoundActivated";
+        soundString << i+1;
         attName  = *(atts++);
+        vtkWarningMacro("WatchedToolSoundActivated read "<< soundString.str().c_str() << " atName = " << attName << " atValue = " << attValue);
+        if ( ! strcmp( attName, soundString.str().c_str()) )
+        {
+          attValue = *(atts++);
+          tempWatchedTool.sound=QString(attValue).toInt();
+          vtkWarningMacro("WatchedToolSoundActivated value"<< tempWatchedTool.id.c_str() );
+          attName  = *(atts++);
+        }
+        else 
+        {
+          vtkWarningMacro("There was not sound activated read "<< attName<< " different than expected = " << soundString.str().c_str() );
+        }
+
+        std::stringstream IdString;
+        IdString<<"WatchedToolID";
+        IdString << i+1;
         attValue = *(atts++);
-        vtkWarningMacro("WatchedToolID read "<< ssA.str().c_str() << " atName = " << attName << " atValue = " << attValue);
-        if ( ! strcmp( attName, ssA.str().c_str()) )
+        vtkWarningMacro("WatchedToolID read "<< IdString.str().c_str() << " atName = " << attName << " atValue = " << attValue);
+        if ( ! strcmp( attName, IdString.str().c_str()) )
         {
           //READ XML might be using AddToolNode( vtkMRMLDisplayableNode* toolAdded)
           //ss << attValue;
@@ -167,7 +185,7 @@ vtkMRMLWatchdogNode
         }
         else 
         {
-          vtkWarningMacro("WatchedToolID read "<< attName<< " different than expected = " << ssA.str().c_str() );
+          vtkWarningMacro("WatchedToolID read "<< attName<< " different than expected = " << IdString.str().c_str() );
           continue;
         }
       }
