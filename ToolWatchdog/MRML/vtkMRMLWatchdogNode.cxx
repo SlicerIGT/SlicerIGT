@@ -35,14 +35,14 @@ vtkMRMLWatchdogNode* vtkMRMLWatchdogNode
       return ( vtkMRMLWatchdogNode* )ret;
     }
   // If the factory was unable to create the object, then create it here.
-  //vtkWarningMacro("New watchdog node!");
+  //vtkDebugMacro("New watchdog node!");
   return new vtkMRMLWatchdogNode;
 }
 
 vtkMRMLWatchdogNode
 ::vtkMRMLWatchdogNode()
 {
-  vtkWarningMacro("Initialize watchdog node!");
+  //vtkDebugMacro("Initialize watchdog node!");
   this->HideFromEditorsOff();
   this->SetSaveWithScene( true );
   this->WatchdogToolbar=NULL;
@@ -52,7 +52,7 @@ vtkMRMLWatchdogNode
 vtkMRMLWatchdogNode
 ::~vtkMRMLWatchdogNode()
 {
-  ////vtkWarningMacro("DELETE WATCHDOG NODE : "<< this->GetName());
+  //vtkDebugMacro("DELETE WATCHDOG NODE : "<< this->GetName());
   //this->RemoveToolbar();
   this->WatchdogToolbar=NULL;
 }
@@ -61,8 +61,7 @@ vtkMRMLNode*
 vtkMRMLWatchdogNode
 ::CreateNodeInstance()
 {
-  vtkWarningMacro("Create watchdog node instance!");
-
+  //vtkDebugMacro("Create watchdog node instance!");
   // First try to create the object from the vtkObjectFactory
   vtkObject* ret = vtkObjectFactory::CreateInstance( "vtkMRMLWatchdogNode" );
   if( ret )
@@ -100,7 +99,7 @@ vtkMRMLWatchdogNode
 ::SetName( const char * name )
 {
   Superclass::SetName( name );
-  vtkWarningMacro("Set Name: "<< name);
+  //vtkDebugMacro("Set Name: "<< name);
   //this->InitializeToolbar();
 }
 
@@ -127,7 +126,7 @@ vtkMRMLWatchdogNode
       nameString << attValue;
       int r = 0;
       nameString >> r;
-      vtkWarningMacro("Number of watched tools read "<< r );
+      vtkDebugMacro("Number of watched tools read "<< r );
       //vtkCollection* toolsAdded=this->GetScene()->GetNodesByName(attValue /*ss.str().c_str()*/);
       for (int i =0; i<r; i++)
       {
@@ -137,11 +136,11 @@ vtkMRMLWatchdogNode
         ss << i+1;
         attName  = *(atts++);
         attValue = *(atts++);
-        vtkWarningMacro("WatchedToolName read "<< ss.str().c_str() << " atName = "<< attName<< " atValue = "<< attValue);
+        vtkDebugMacro("WatchedToolName read "<< ss.str().c_str() << " atName = "<< attName<< " atValue = "<< attValue);
         if ( ! strcmp( attName, ss.str().c_str() ) )
         {
           tempWatchedTool.label=QString(attValue).left(6).toStdString();
-          vtkWarningMacro("WatchedToolLabel value"<< tempWatchedTool.label.c_str() );
+          vtkDebugMacro("WatchedToolLabel value"<< tempWatchedTool.label.c_str() );
         }
         else 
         {
@@ -153,12 +152,12 @@ vtkMRMLWatchdogNode
         soundString<<"WatchedToolSoundActivated";
         soundString << i+1;
         attName  = *(atts++);
-        vtkWarningMacro("WatchedToolSoundActivated read "<< soundString.str().c_str() << " atName = " << attName << " atValue = " << attValue);
+        vtkDebugMacro("WatchedToolSoundActivated read "<< soundString.str().c_str() << " atName = " << attName << " atValue = " << attValue);
         if ( ! strcmp( attName, soundString.str().c_str()) )
         {
           attValue = *(atts++);
           tempWatchedTool.sound=QString(attValue).toInt();
-          vtkWarningMacro("WatchedToolSoundActivated value"<< tempWatchedTool.id.c_str() );
+          vtkDebugMacro("WatchedToolSoundActivated value"<< tempWatchedTool.id.c_str() );
           attName  = *(atts++);
         }
         else 
@@ -170,14 +169,14 @@ vtkMRMLWatchdogNode
         IdString<<"WatchedToolID";
         IdString << i+1;
         attValue = *(atts++);
-        vtkWarningMacro("WatchedToolID read "<< IdString.str().c_str() << " atName = " << attName << " atValue = " << attValue);
+        vtkDebugMacro("WatchedToolID read "<< IdString.str().c_str() << " atName = " << attName << " atValue = " << attValue);
         if ( ! strcmp( attName, IdString.str().c_str()) )
         {
           //READ XML might be using AddToolNode( vtkMRMLDisplayableNode* toolAdded)
           //ss << attValue;
           //this->GetScene()->GetNodeByID(attValue /*ss.str().c_str()*/);
           tempWatchedTool.id=QString(attValue).toStdString();
-          vtkWarningMacro("WatchedToolID value"<< tempWatchedTool.id.c_str() );
+          vtkDebugMacro("WatchedToolID value"<< tempWatchedTool.id.c_str() );
           //tempWatchedTool.tool=mrmlNode;
           //tempWatchedTool.LastTimeStamp=mrmlNode->GetMTime();
           //this->WatchdogToolbar->ToolNodeAdded(tempWatchedTool.label.c_str());
@@ -191,7 +190,7 @@ vtkMRMLWatchdogNode
       }
     }
   }
-  vtkWarningMacro("XML atts number of tools read "<<GetNumberOfTools());
+  vtkDebugMacro("XML atts number of tools read "<<GetNumberOfTools());
 
 
 }
@@ -252,7 +251,7 @@ vtkMRMLWatchdogNode
 
   WatchdogToolbar->ToolNodeAdded(tempWatchedTool.label.c_str());
 
-  vtkWarningMacro("number of tools "<<GetNumberOfTools());
+  vtkDebugMacro("New number of tools "<<GetNumberOfTools());
   return GetNumberOfTools();
 }
 
@@ -282,10 +281,10 @@ void
 vtkMRMLWatchdogNode
 ::InitializeToolbar()
 {
-  vtkWarningMacro("Initilize toolBAR");
+  //vtkDebugMacro("Initilize toolBAR");
   if(this->WatchdogToolbar==NULL)
   {
-    vtkWarningMacro("Initilize toolBAR");
+    //vtkDebugMacro("Initilize toolBAR");
     QMainWindow* window = qSlicerApplication::application()->mainWindow();
     this->WatchdogToolbar = new qMRMLWatchdogToolBar (window);
     window->addToolBar(this->WatchdogToolbar);

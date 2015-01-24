@@ -65,7 +65,7 @@ public:
 qSlicerWatchdogModuleWidgetPrivate::qSlicerWatchdogModuleWidgetPrivate( qSlicerWatchdogModuleWidget& object )
 : q_ptr( &object )
 {
-  qCritical() << "Initialize watchdog widget private!";
+  //QDebug() << "Initialize watchdog widget private!";
 }
 
 vtkSlicerWatchdogLogic* qSlicerWatchdogModuleWidgetPrivate::logic() const
@@ -82,7 +82,7 @@ qSlicerWatchdogModuleWidget::qSlicerWatchdogModuleWidget(QWidget* _parent)
 : Superclass( _parent )
 , d_ptr( new qSlicerWatchdogModuleWidgetPrivate ( *this ) )
 {
-  qCritical() << "Initialize watchdog widget!";
+  //QDebug() << "Initialize watchdog widget!";
   CurrentCellPosition[0]=0;
   CurrentCellPosition[1]=0;
 }
@@ -96,7 +96,7 @@ qSlicerWatchdogModuleWidget::~qSlicerWatchdogModuleWidget()
 void qSlicerWatchdogModuleWidget::setup()
 {
   Q_D(qSlicerWatchdogModuleWidget);
-  qCritical() << "Setup watchdog widget!";
+  //QDebug() << "Setup watchdog widget!";
 
   d->setupUi(this);
   this->Superclass::setup();
@@ -138,7 +138,7 @@ qSlicerWatchdogModuleWidget
 ::enter()
 {
   Q_D(qSlicerWatchdogModuleWidget);
-  qCritical() << "Enter watchdog widget!";
+  //QDebug() << "Enter watchdog widget!";
 
   if ( this->mrmlScene() == NULL )
   {
@@ -177,7 +177,7 @@ qSlicerWatchdogModuleWidget
     if ( watchdogNode != NULL)
     {
       watchdogNode->InitializeToolbar();
-      qCritical( "Enter: connect toolbar with visibility changed ");
+      //QDebug( "Enter: connect toolbar with visibility changed ");
       connect(watchdogNode->WatchdogToolbar, SIGNAL(visibilityChanged(bool)), this, SLOT( onToolbarVisibilityChanged(bool)) );
     }
   }
@@ -321,7 +321,7 @@ void qSlicerWatchdogModuleWidget
     return;
   }
 
-  qCritical("NODE TO BE REMOVED");
+  //QDebug("NODE TO BE REMOVED");
   disconnect(watchdogNodeToBeRemoved->WatchdogToolbar, SIGNAL(visibilityChanged(bool)), this, SLOT( onToolbarVisibilityChanged(bool)) );
 
   //watchdogNodeToBeRemoved->RemoveToolbar();
@@ -820,7 +820,7 @@ void qSlicerWatchdogModuleWidget
   int cbRow = pCheckBox->accessibleName().toInt();
   if(cbRow>=0&&cbRow<watchdogNode->GetNumberOfTools())
   {
-    qCritical("Changed state checkbox current cell position = %d", cbRow);
+    //QDebug("Changed state checkbox current cell position = %d", cbRow);
     watchdogNode->GetToolNode(cbRow)->sound=state;
   }
   //int currentTool = d->ToolsTableWidget->currentRow();

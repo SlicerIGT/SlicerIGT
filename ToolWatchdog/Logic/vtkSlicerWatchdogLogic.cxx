@@ -70,7 +70,7 @@ vtkStandardNewMacro(vtkSlicerWatchdogLogic);
 vtkSlicerWatchdogLogic::vtkSlicerWatchdogLogic()
 :  BreachSound(NULL)
 {
-  vtkWarningMacro("Initialize watchdog logic!");
+  //vtkDebugMacro("Initialize watchdog logic!");
   this->Internal = new QVTKSlicerWatchdogLogicInternal(this);
 }
 
@@ -90,7 +90,7 @@ void vtkSlicerWatchdogLogic::PrintSelf(ostream& os, vtkIndent indent)
 //---------------------------------------------------------------------------
 void vtkSlicerWatchdogLogic::SetMRMLSceneInternal(vtkMRMLScene * newScene)
 {
-  vtkWarningMacro("set scene internal watchdog logic!");
+  //vtkDebugMacro("set scene internal watchdog logic!");
   vtkNew<vtkIntArray> events;
   events->InsertNextValue(vtkMRMLScene::NodeAddedEvent);
   events->InsertNextValue(vtkMRMLScene::NodeRemovedEvent);
@@ -102,7 +102,7 @@ void vtkSlicerWatchdogLogic::SetMRMLSceneInternal(vtkMRMLScene * newScene)
 //-----------------------------------------------------------------------------
 void vtkSlicerWatchdogLogic::RegisterNodes()
 {
-  vtkWarningMacro("Register Nodes watchdog logic!");
+  //vtkDebugMacro("Register Nodes watchdog logic!");
   assert(this->GetMRMLScene() != 0);
   if( ! this->GetMRMLScene() )
   {
@@ -196,7 +196,7 @@ void vtkSlicerWatchdogLogic::SetStatusRefreshTimeMiliSec( double statusRefeshRat
 }
 void  vtkSlicerWatchdogLogic::TimerEvent()
 {
-  //vtkWarningMacro("Timer event");
+  //vtkDebugMacro("Timer event");
   if(ElapsedTimeSec>=std::numeric_limits<double>::max()-1.0)
   {
     ElapsedTimeSec=0.0;
@@ -260,7 +260,6 @@ void vtkSlicerWatchdogLogic::UpdateFromMRMLScene()
 void vtkSlicerWatchdogLogic::OnMRMLSceneEndImport()
 {
   assert(this->GetMRMLScene() != 0);
-  vtkWarningMacro( "OnMRMLSceneEndImport");
   vtkCollection* watchdogNodes = this->GetMRMLScene()->GetNodesByClass( "vtkMRMLWatchdogNode" );
   vtkCollectionIterator* watchdogNodeIt = vtkCollectionIterator::New();
   watchdogNodeIt->SetCollection( watchdogNodes );
@@ -272,13 +271,13 @@ void vtkSlicerWatchdogLogic::OnMRMLSceneEndImport()
     {
       watchdogNode->InitializeToolbar();
       
-      vtkWarningMacro( "OnMRMLSceneEndImport: Module node added. Number of tools " <<watchdogNode->GetNumberOfTools());
+      vtkDebugMacro( "OnMRMLSceneEndImport: Module node added. Number of tools " <<watchdogNode->GetNumberOfTools());
       for (int i = 0; i< watchdogNode->GetNumberOfTools(); i++)
       {
         vtkMRMLDisplayableNode* dispNode= vtkMRMLDisplayableNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(watchdogNode->GetToolNode(i)->id));
         watchdogNode->GetToolNode(i)->tool=dispNode;
         watchdogNode->WatchdogToolbar->ToolNodeAdded(watchdogNode->GetToolNode(i)->label.c_str());
-        vtkWarningMacro(" tool "<< watchdogNode->GetToolNode(i)->tool<<" ID "<< watchdogNode->GetToolNode(i)->id);
+        vtkDebugMacro(" tool "<< watchdogNode->GetToolNode(i)->tool<<" ID "<< watchdogNode->GetToolNode(i)->id);
         hasTools=1;
       }
     }
@@ -305,7 +304,7 @@ void vtkSlicerWatchdogLogic
 
   if ( node->IsA( "vtkMRMLWatchdogNode" ) )
   {
-    vtkWarningMacro( "OnMRMLSceneNodeAdded: Module node added."<< node->GetName() );
+    vtkDebugMacro( "OnMRMLSceneNodeAdded: Module node added."<< node->GetName() );
     vtkUnObserveMRMLNodeMacro( node ); // Remove previous observers.
     vtkObserveMRMLNodeMacro( node );
   }
