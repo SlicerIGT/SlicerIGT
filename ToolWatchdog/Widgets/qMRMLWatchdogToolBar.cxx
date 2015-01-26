@@ -98,6 +98,7 @@ void qMRMLWatchdogToolBarPrivate::init()
     QLabel* transformLabel = new QLabel(q);
     transformLabel->setToolTip(q->tr("Each square indicates the state of the tools watched by the Watchdog module"));
     transformLabel->setText("Tools watched:");
+    transformLabel->setMargin(2);
     //this->LabelsList->setIcon(QIcon(":/Icons/Watchdog.png"));
     this->ActionsListPtr->push_back(q->addWidget(transformLabel));
     //QObject::connect(this->LabelsListPtr, SIGNAL(triggered()),
@@ -232,11 +233,13 @@ void qMRMLWatchdogToolBar
 
   toolLabel->setAlignment(Qt::AlignCenter);
   toolLabel->setStyleSheet("QLabel { background-color: green; min-width: 2em; max-height: 2em;}");
+  toolLabel->setMargin(4);
   d->ActionsListPtr->push_back(this->addWidget(toolLabel));
   //QObject::connect(this->LabelsListPtr, SIGNAL(triggered()),
   //                 this, SIGNAL(screenshotButtonClicked()));
   
 }
+
 void qMRMLWatchdogToolBar
 ::SwapToolNodes(int toolA, int toolB )
 {
@@ -250,11 +253,7 @@ void qMRMLWatchdogToolBar
   toolLabelB->setText(TempLabel);
   //this->widgetForAction(d->ActionsListPtr->at(toolA+1))->setIconText(this->widgetForAction(d->ActionsListPtr->at(toolB+1))->iconText());
   //this->widgetForAction(d->ActionsListPtr->at(toolB+1))->SetIconText(toolLabel);
-
 }
-
-
-
 
 void qMRMLWatchdogToolBar
 ::ToolNodeDeleted()
