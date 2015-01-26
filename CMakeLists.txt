@@ -28,6 +28,7 @@ set( SlicerIGT_Modules
   PathExplorer
   PivotCalibration
   PlusRemote
+  ToolWatchdog
   TransformFusion
   UltrasoundSnapshots
   VolumeResliceDriver
@@ -36,7 +37,6 @@ set( SlicerIGT_Modules
 if( SLICERIGT_ENABLE_EXPERIMENTAL_MODULES )
   set( SlicerIGT_Modules
     ${SlicerIGT_Modules}
-    ToolWatchdog
     # Put experimental modules names here
   )
 endif( SLICERIGT_ENABLE_EXPERIMENTAL_MODULES )
