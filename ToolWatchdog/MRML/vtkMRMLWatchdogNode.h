@@ -37,7 +37,7 @@ class qMRMLWatchdogToolBar;
 struct WatchedTool{
   vtkMRMLDisplayableNode* tool;
   int status;
-  int sound;
+  int playSound;
   unsigned long lastTimeStamp;
   unsigned long lastElapsedTimeStamp;
   std::string label;
@@ -48,7 +48,7 @@ struct WatchedTool{
     tool=NULL;
     status=0;
     lastTimeStamp=0;
-    sound=0;
+    playSound=0;
     label = "label";
     id = "";
     lastElapsedTimeStamp=0;
@@ -73,7 +73,6 @@ public:
   virtual void ReadXMLAttributes( const char** atts );
   virtual void WriteXML( ostream& of, int indent );
   virtual void Copy( vtkMRMLNode *node );
-  virtual void SetName( const char * name );
 
 protected:
 
@@ -86,14 +85,14 @@ protected:
 public:
 
   // Tool is interpreted as displayable node. It check the time stamp with a frequency determined
-  // by the QTimer in the widget and set the status to 1 if the time stamp has changed compared
+  // by the QTimer in the watchdog logic and set the status to 1 if the time stamp has changed compared
   // to the last time stamp saved.
 
   /// Gets the specified tool watched from the tools' list
   WatchedTool* GetToolNode(int currentRow);
   /// Gets the list of tools 
   std::list<WatchedTool>* GetToolNodes();
-  /// Adds the displayble node into the tools list, adding label, status, and last time stamp information.
+  /// Adds the displayble node into the tools list, adding label, status,id, and last time stamp information.
   int AddToolNode( vtkMRMLDisplayableNode *mrmlNode);
   /// Removes the specified tool watched from the tools' list
   void RemoveTool(int row);
@@ -103,13 +102,12 @@ public:
   bool HasTool(char * toolName);
   /// Returns the size of the list of tools
   int GetNumberOfTools();
-
+  /// If there is not a watchdog toolbar widget in the QMainWindow. It will add add one for every watchdog node 
   void InitializeToolbar();
+ /// It removes the  watchdog toolbar widget from the QMainWindow.
   void RemoveToolbar();
-  //void SetAndObserveToolNodeId( const char* nodeId );
-  //void ProcessMRMLEvents( vtkObject *caller, unsigned long event, void *callData );
-  qMRMLWatchdogToolBar * WatchdogToolbar;
 
+  qMRMLWatchdogToolBar * WatchdogToolbar;
 private:
   std::list< WatchedTool > WatchedTools;
 

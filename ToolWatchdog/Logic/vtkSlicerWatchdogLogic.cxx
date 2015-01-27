@@ -20,16 +20,11 @@ limitations under the License.
 
 // MRML includes
 #include "vtkMRMLWatchdogNode.h"
-#include "vtkMRMLDisplayableNode.h"
 #include "vtkMRMLTransformNode.h"
-#include <vtkMRMLScene.h>
-
 
 // VTK includes
 #include <vtkIntArray.h>
 #include <vtkNew.h>
-#include <vtkObjectFactory.h>
-
 #include <vtkCollection.h>
 #include <vtkCollectionIterator.h>
 
@@ -137,7 +132,7 @@ void vtkSlicerWatchdogLogic::AddToolNode( vtkMRMLWatchdogNode* watchdogNode, vtk
   }
 }
 
-void vtkSlicerWatchdogLogic::UpdateToolStatus( vtkMRMLWatchdogNode* watchdogNode/*, unsigned long ElapsedTimeSec */ )
+void vtkSlicerWatchdogLogic::UpdateToolStatus( vtkMRMLWatchdogNode* watchdogNode )
 {
   if ( watchdogNode == NULL )
   {
@@ -194,6 +189,7 @@ void vtkSlicerWatchdogLogic::SetStatusRefreshTimeMiliSec( double statusRefeshRat
   StatusRefreshTimeSec=((double)statusRefeshRateMiliSec)/1000;
   this->Internal->Timer->start(statusRefeshRateMiliSec);
 }
+
 void  vtkSlicerWatchdogLogic::TimerEvent()
 {
   //vtkDebugMacro("Timer event");
@@ -212,7 +208,7 @@ void  vtkSlicerWatchdogLogic::TimerEvent()
     vtkMRMLWatchdogNode* watchdogNode = vtkMRMLWatchdogNode::SafeDownCast( watchdogNodeIt->GetCurrentObject() );
     if(watchdogNode->WatchdogToolbar->isVisible())
     {
-      this->UpdateToolStatus( watchdogNode/*, (unsigned long) ElapsedTimeSec */);
+      this->UpdateToolStatus( watchdogNode);
       std::list<WatchedTool>* toolsVectorPtr = watchdogNode->GetToolNodes();
       int numberTools = toolsVectorPtr->size();
       if ( toolsVectorPtr == NULL /*|| numberTools!= d->ToolsTableWidget->rowCount()*/)
@@ -228,7 +224,7 @@ void  vtkSlicerWatchdogLogic::TimerEvent()
         }
         watchdogNode->WatchdogToolbar->SetNodeStatus(row,(*itTool).status);
         if(LastSoundElapsedTime>=2.0)
-        if((*itTool).sound && !(*itTool).status)
+        if((*itTool).playSound && !(*itTool).status)
         {
           LastSoundElapsedTime=0;
           if(BreachSound->isFinished())
@@ -288,7 +284,6 @@ void vtkSlicerWatchdogLogic::OnMRMLSceneEndImport()
   {
     this->Internal->Timer->start( 1000.0*StatusRefreshTimeSec );
   }
-
   this->Modified();
 }
 
@@ -333,42 +328,3 @@ void vtkSlicerWatchdogLogic
     vtkUnObserveMRMLNodeMacro( node );
   }
 }
-
-//void
-//vtkSlicerWatchdogLogic
-//::SetObservedToolNode( vtkMRMLDisplayableNode* newTool, vtkMRMLWatchdogNode* moduleNode )
-//{
-//  if ( newTool == NULL || moduleNode == NULL )
-//  {
-//    vtkWarningMacro( "SetObservedTransformNode: Transform or module node invalid" );
-//    return;
-//  }
-//
-//  //moduleNode->SetAndObserveToolNodeId( newTool->GetID() );
-//}
-
-//void
-//vtkSlicerWatchdogLogic
-//::ProcessMRMLNodesEvents( vtkObject* caller, unsigned long event, void* callData )
-//{
-//  vtkMRMLNode* callerNode = vtkMRMLNode::SafeDownCast( caller );
-//  if ( callerNode == NULL )
-//  {
-//    return;
-//  }
-//
-//  vtkMRMLWatchdogNode* watchdogNode = vtkMRMLWatchdogNode::SafeDownCast( callerNode );
-//  if ( watchdogNode == NULL )
-//  {
-//    return;
-//  }
-//
-//  //UpdateFromMRMLScene();
-//  //this->UpdateToolState( watchdogNode, ElapsedTime );
-//  //this->UpdateModelColor( watchdogNode );
-//  //if(PlayWarningSound==true)
-//  //{
-//  //  this->PlaySound();
-//  //}
-//}
-

@@ -1,9 +1,9 @@
 
 // Watchdog MRML includes
 #include "vtkMRMLWatchdogNode.h"
+#include "vtkMRMLDisplayableNode.h"
 
 // Other MRML includes
-#include "vtkMRMLModelNode.h"
 #include "vtkMRMLNode.h"
 
 #include "qMRMLWatchdogToolBar.h"
@@ -11,19 +11,9 @@
 #include <QMenu>
 #include "qSlicerApplication.h"
 
-// VTK includes
-#include <vtkDoubleArray.h>
-#include <vtkMath.h>
-#include <vtkSmartPointer.h>
-#include <vtkNew.h>
-#include <vtkIntArray.h>
-
 // Other includes
 #include <sstream>
 #include <QString>
-
-//// Constants
-//static const char* TOOL_ROLE = "WatchdogTransformNode";
 
 vtkMRMLWatchdogNode* vtkMRMLWatchdogNode
 ::New()
@@ -46,7 +36,6 @@ vtkMRMLWatchdogNode
   this->HideFromEditorsOff();
   this->SetSaveWithScene( true );
   this->WatchdogToolbar=NULL;
-  //this->AddNodeReferenceRole( TOOL_ROLE );
 }
 
 vtkMRMLWatchdogNode
@@ -88,19 +77,10 @@ vtkMRMLWatchdogNode
       continue;
     }
     of << indent << " WatchedToolName" << i<<"=\""<<(*it).tool->GetName() << "\"";
-    of << indent << " WatchedToolSoundActivated" << i<<"=\""<< (*it).sound << "\"";
+    of << indent << " WatchedToolSoundActivated" << i<<"=\""<< (*it).playSound << "\"";
     of << indent << " WatchedToolID" << i<<"=\""<< (*it).tool->GetID() << "\"";
     i++;
   }
-}
-
-void
-vtkMRMLWatchdogNode
-::SetName( const char * name )
-{
-  Superclass::SetName( name );
-  //vtkDebugMacro("Set Name: "<< name);
-  //this->InitializeToolbar();
 }
 
 
@@ -113,7 +93,6 @@ vtkMRMLWatchdogNode
   // Read all MRML node attributes from two arrays of names and values
   const char* attName;
   const char* attValue;
-
   //this->InitializeToolbar();
 
   while (*atts != NULL)
@@ -126,8 +105,7 @@ vtkMRMLWatchdogNode
       nameString << attValue;
       int r = 0;
       nameString >> r;
-      vtkDebugMacro("Number of watched tools read "<< r );
-      //vtkCollection* toolsAdded=this->GetScene()->GetNodesByName(attValue /*ss.str().c_str()*/);
+      //vtkDebugMacro("Number of watched tools read "<< r );
       for (int i =0; i<r; i++)
       {
         WatchedTool tempWatchedTool;
@@ -140,7 +118,6 @@ vtkMRMLWatchdogNode
         if ( ! strcmp( attName, ss.str().c_str() ) )
         {
           tempWatchedTool.label=QString(attValue).left(6).toStdString();
-          vtkDebugMacro("WatchedToolLabel value"<< tempWatchedTool.label.c_str() );
         }
         else 
         {
@@ -156,8 +133,7 @@ vtkMRMLWatchdogNode
         if ( ! strcmp( attName, soundString.str().c_str()) )
         {
           attValue = *(atts++);
-          tempWatchedTool.sound=QString(attValue).toInt();
-          vtkDebugMacro("WatchedToolSoundActivated value"<< tempWatchedTool.id.c_str() );
+          tempWatchedTool.playSound=QString(attValue).toInt();
           attName  = *(atts++);
         }
         else 
@@ -172,14 +148,7 @@ vtkMRMLWatchdogNode
         vtkDebugMacro("WatchedToolID read "<< IdString.str().c_str() << " atName = " << attName << " atValue = " << attValue);
         if ( ! strcmp( attName, IdString.str().c_str()) )
         {
-          //READ XML might be using AddToolNode( vtkMRMLDisplayableNode* toolAdded)
-          //ss << attValue;
-          //this->GetScene()->GetNodeByID(attValue /*ss.str().c_str()*/);
           tempWatchedTool.id=QString(attValue).toStdString();
-          vtkDebugMacro("WatchedToolID value"<< tempWatchedTool.id.c_str() );
-          //tempWatchedTool.tool=mrmlNode;
-          //tempWatchedTool.LastTimeStamp=mrmlNode->GetMTime();
-          //this->WatchdogToolbar->ToolNodeAdded(tempWatchedTool.label.c_str());
           WatchedTools.push_back(tempWatchedTool);
         }
         else 
@@ -191,8 +160,6 @@ vtkMRMLWatchdogNode
     }
   }
   vtkDebugMacro("XML atts number of tools read "<<GetNumberOfTools());
-
-
 }
 
 void
@@ -259,22 +226,13 @@ void
 vtkMRMLWatchdogNode
 ::RemoveTool(int row)
 {
-  std::list<WatchedTool>::iterator it = WatchedTools.begin();
-  advance (it,row);
-  WatchedTools.erase(it);
-  WatchdogToolbar->DeleteToolNode(row);
-  //int index=0;
-  //for (std::list<WatchedTransform>::iterator it = WatchedTransfroms.begin() ; it != WatchedTransfroms.end(); ++it)
-  //{
-  //  QString transName((*it).transform->GetName());
-  //  if(transName.compare(transformName)==0)
-  //  {
-  //    it = WatchedTransfroms.begin();
-  //    WatchedTransfroms.erase(it+index);
-  //    break;
-  //  }
-  //  index++;
-  //}
+  if(row>=0 && row<WatchedTools.size())
+  {
+    std::list<WatchedTool>::iterator it = WatchedTools.begin();
+    advance (it,row);
+    WatchedTools.erase(it);
+    WatchdogToolbar->DeleteToolNode(row);
+  }
 }
 
 void 
@@ -296,12 +254,9 @@ vtkMRMLWatchdogNode
         QList<QAction*> toolBarMenuActions= toolBarMenu->actions();
         //toolBarMenu->defaultAction() would be bbetter to use but Slicer App should set the default action
         toolBarMenu->insertAction(toolBarMenuActions.at(toolBarMenuActions.size()-1),this->WatchdogToolbar->toggleViewAction());
-        //This might be connected in widget
-        //connect(watchdogToolbar, SIGNAL(visibilityChanged(bool)), this, SLOT( onToolbarVisibilityChanged(bool)) );
         break;
       }
     }
-
     this->WatchdogToolbar->SetFirstlabel(this->GetName());
   }
 }
@@ -321,11 +276,7 @@ vtkMRMLWatchdogNode
       if(toolBarMenu->objectName()==QString("WindowToolBarsMenu"))
       {
         QList<QAction*> toolBarMenuActions= toolBarMenu->actions();
-        //this->WatchdogToolbar->toggleViewAction()->name()
-        //toolBarMenuActions.remove(this->WatchdogToolbar->toggleViewAction());
         toolBarMenu->removeAction(this->WatchdogToolbar->toggleViewAction());
-        //toolBarMenu->defaultAction() would be bbetter to use but Slicer App should set the default action
-        //toolBarMenu->insertAction(toolBarMenuActions.at(toolBarMenuActions.size()-1),this->WatchdogToolbar->toggleViewAction());
         break;
       }
     }
@@ -350,7 +301,7 @@ vtkMRMLWatchdogNode
   toolTemp.label=itA->label;
   toolTemp.id=itA->id;
   toolTemp.lastElapsedTimeStamp=itA->lastElapsedTimeStamp;
-  toolTemp.sound=itA->sound;
+  toolTemp.playSound=itA->playSound;
 
   itA->status=itB->status;
   itA->tool=itB->tool;
@@ -358,7 +309,7 @@ vtkMRMLWatchdogNode
   itA->label=itB->label;
   itA->id=itB->id;
   itA->lastElapsedTimeStamp=itB->lastElapsedTimeStamp;
-  itA->sound=itB->sound;
+  itA->playSound=itB->playSound;
 
   itB->status=toolTemp.status;
   itB->tool=toolTemp.tool;
@@ -366,7 +317,7 @@ vtkMRMLWatchdogNode
   itB->label=toolTemp.label;
   itB->id=toolTemp.id;
   itB->lastElapsedTimeStamp=toolTemp.lastElapsedTimeStamp;
-  itB->sound=toolTemp.sound;
+  itB->playSound=toolTemp.playSound;
   WatchdogToolbar->SwapToolNodes(toolA, toolB );
 }
 
@@ -396,29 +347,3 @@ vtkMRMLWatchdogNode
 {
   return WatchedTools.size();
 }
-
-//void
-//vtkMRMLWatchdogNode
-//::SetAndObserveToolNodeId( const char* nodeId )
-//{
-//  vtkNew<vtkIntArray> events;
-//  events->InsertNextValue( vtkCommand::ModifiedEvent );
-//  events->InsertNextValue( vtkMRMLLinearTransformNode::TransformModifiedEvent );
-//  this->SetAndObserveNodeReferenceID( TOOL_ROLE, nodeId, events.GetPointer() );
-//}
-
-
-
-//void
-//vtkMRMLWatchdogNode
-//::ProcessMRMLEvents( vtkObject *caller, unsigned long event, void *callData )
-//{
-//  //vtkMRMLNode* callerNode = vtkMRMLNode::SafeDownCast( caller );
-//  //if ( callerNode == NULL ) return;
-//
-//  //const char* ObservedTransformNodeId = this->GetToolNode()->GetID();
-//  //if ( strcmp( ObservedTransformNodeId, callerNode->GetID() ) == 0 )
-//  //{
-//  //  this->Modified(); // This will tell the logic to update
-//  //}
-//}
