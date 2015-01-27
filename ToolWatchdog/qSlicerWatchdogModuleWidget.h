@@ -38,8 +38,6 @@ public:
   qSlicerWatchdogModuleWidget(QWidget *parent=0);
   virtual ~qSlicerWatchdogModuleWidget();
 
-  //void SetCurrentNode( vtkMRMLNode* currentNode );
-
 public slots:
 
   /// Update the table after a scene is set
@@ -57,14 +55,13 @@ protected slots:
   /// Update the selection node from the combobox
   void onWatchdogNodeChanged();
   /// When the user clicks in the combobox to create a new watchdog node,
-  /// inserts a new toolbar
+  /// initializes a new toolbar
   void onWatchdogNodeAddedByUser(vtkMRMLNode* nodeAdded);
-  /// Remove the tool bar when removed toolWatchdog if the node is active
+  /// Clean up the table when toolWatchdog node is about to be removed
   void onModuleNodeAboutToBeRemoved(vtkMRMLNode* nodeToBeRemoved);
   ///Turn ON or OFF the tool bar visibility and the current watchdog node
   void onToolbarVisibilityButtonClicked();
-
-  /// Updates toolbar(s), table and displayable nodes observed everytime the timer shots
+  /// Update table every time the logic timer shots
   void onTimeout();
   /// When the label column is clicked it connects the cellChanged signal, to update the toolbar accordingly
   void onTableItemDoubleClicked();
@@ -72,22 +69,21 @@ protected slots:
   void onCurrentCellChanged(int currentRow, int currentColumn);
   /// Updates the timer accordingly with the refreshing rate
   void onStatusRefreshRateSpinBoxChanged(int statusRefeshRate);
-  /// Swaps the current table row with the down row 
+  /// Swaps the current table row with the down row
   void onDownButtonClicked();
-  /// Swaps the current table row with the upper row 
+  /// Swaps the current table row with the upper row
   void onUpButtonClicked();
   /// Deletes the current selected row(s)
   void onDeleteButtonClicked();
-  /// Adds the observed tool to the toolbar and to the watchdog node
+  /// Adds the tool to the watchdog node
   void onToolNodeAdded( );
-  /// Moves up/down row. Deletes slected row(s)
+  /// Moves up/down row. Deletes selected row(s)
   void onToolsTableContextMenu(const QPoint& position);
   /// Deletes and creates a table. Updates gui accordingly to node state
   void updateWidget();
   /// Updates the toolbar visibility checkbox accordingly to the toolbar visibility, in case is deactivated from the menu
   void onToolbarVisibilityChanged( bool visible );
-  //void onToolChanged();
-  
+  /// Sets the playSound option of the displayable node accordingly to the table checkbox
   void onSoundCheckBoxStateChanged(int state);
 
 protected:

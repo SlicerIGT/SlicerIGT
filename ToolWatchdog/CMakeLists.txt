@@ -26,11 +26,6 @@ set(MODULE_INCLUDE_DIRECTORIES
   ${CMAKE_CURRENT_BINARY_DIR}/Logic
   ${CMAKE_CURRENT_SOURCE_DIR}/Widgets
   ${CMAKE_CURRENT_BINARY_DIR}/Widgets
-  #${MRMLCore_INCLUDE_DIRS}
-  #${MRMLLogic_INCLUDE_DIRS}
-  #${MRMLDisplayableManager_INCLUDE_DIRS}
-  #${qSlicerApp_INCLUDE_DIRS}
-  #${SlicerApp_INCLUDE_DIRECTORIES}
   ${qMRMLWatchdogModuleWidgets_INCLUDE_DIRS}
   )
 
@@ -53,10 +48,8 @@ set(MODULE_UI_SRCS
 set(MODULE_TARGET_LIBRARIES
   vtkSlicer${MODULE_NAME}ModuleMRML
   vtkSlicer${MODULE_NAME}ModuleLogic
-  qMRML${MODULE_NAME}ModuleWidgets#qSlicer${MODULE_NAME}ModuleWidgets
+  qMRML${MODULE_NAME}ModuleWidgets
   ${QT_LIBRARIES}
-  #${CTK_LIBRARIES}
-  #vtkSlicer${MODULE_NAME}ModuleLogic
   qMRMLWidgets
   MRMLLogic
   MRMLDisplayableManager

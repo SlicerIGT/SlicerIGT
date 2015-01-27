@@ -31,10 +31,8 @@
 #include "vtkMRML.h"
 #include "vtkMRMLNode.h"
 #include "vtkMRMLScene.h"
-//#include <vtkLandmarkTransform.h>
-#include "vtkSmartPointer.h"
 
-
+//#include "vtkSmartPointer.h"
 #include <QSound>
 #include <QPointer>
 
@@ -64,13 +62,13 @@ public:
   vtkTypeMacro(vtkSlicerWatchdogLogic, vtkSlicerModuleLogic);
   void PrintSelf(ostream& os, vtkIndent indent);
 
-  //void SetObservedToolNode( vtkMRMLDisplayableNode* newTransform, vtkMRMLWatchdogNode* moduleNode );
-  //void ProcessMRMLNodesEvents( vtkObject* caller, unsigned long event, void* callData );
-
   /// Adds a tool to the list in the respective toolwatchdog node
   void AddToolNode( vtkMRMLWatchdogNode* toolWatchdogNode, vtkMRMLDisplayableNode *mrmlNode);
-  /// Updates the state of the tool observed according to the timestamp. The elapsedTime is stored to keep track of time that tools have been disconnected.
-  void UpdateToolStatus( vtkMRMLWatchdogNode* toolWatchdogNode/*, unsigned long ElapsedTimeSec */);
+  /// Updates the state of the tool observed according to the timestamp. The elapsedTime is stored to keep track of time 
+  ///that tools have been disconnected.
+  void UpdateToolStatus( vtkMRMLWatchdogNode* toolWatchdogNode);
+  ///Every time the timer is reached this method updates the tools status, the elapsed time and play the beep sound if 
+  ///any watched tool (with playSound activated) is out-dated.
   void TimerEvent();
   vtkGetMacro(ElapsedTimeSec, double);
   void SetStatusRefreshTimeMiliSec( double statusRefeshRateMiliSec);
@@ -84,6 +82,7 @@ protected:
   /// Register MRML Node classes to Scene. Gets called automatically when the MRMLScene is attached to this logic class.
   virtual void RegisterNodes();
   virtual void UpdateFromMRMLScene();
+  ///When a scene has been imported it will set the tools watched, the watchdog toolbar, and start up the timer.
   virtual void OnMRMLSceneEndImport();
   virtual void OnMRMLSceneNodeAdded(vtkMRMLNode* node);
   virtual void OnMRMLSceneNodeRemoved(vtkMRMLNode* node);
