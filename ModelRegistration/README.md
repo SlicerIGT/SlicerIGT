@@ -1,2 +1,4 @@
-# ModelRegistration
-Perform iterative closest point (ICP) registration between two surface models
+ModelRegistration
+============================
+
+ICP registration that computes transform between two models.
