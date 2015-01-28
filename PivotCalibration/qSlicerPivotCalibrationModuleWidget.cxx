@@ -196,7 +196,7 @@ void qSlicerPivotCalibrationModuleWidget::onPivotDelayTimeout()
     d->CountdownLabel->setText(ss2.str().c_str());
     
     this->pivotDelayTimer->stop();
-    d->logic()->setRecordingState(true);
+    d->logic()->SetRecordingState(true);
     this->pivotSamplingTimer->start();
   }
 }
@@ -243,7 +243,7 @@ void qSlicerPivotCalibrationModuleWidget::onSpinDelayTimeout()
     d->CountdownLabel->setText(ss2.str().c_str());
     
     this->spinDelayTimer->stop();
-    d->logic()->setRecordingState(true);
+    d->logic()->SetRecordingState(true);
     this->spinSamplingTimer->start();
   }
 }
@@ -276,7 +276,7 @@ void qSlicerPivotCalibrationModuleWidget::onPivotStop()
 {
   Q_D(qSlicerPivotCalibrationModuleWidget);
   
-  d->logic()->setRecordingState(false);
+  d->logic()->SetRecordingState(false);
   d->logic()->ComputePivotCalibration();
   
   vtkMRMLLinearTransformNode* outputTransform = vtkMRMLLinearTransformNode::SafeDownCast(d->OutputComboBox->currentNode());
@@ -287,19 +287,17 @@ void qSlicerPivotCalibrationModuleWidget::onPivotStop()
   vtkMatrix4x4* outputMatrix = outputTransform->GetMatrixTransformToParent();
 #endif
 
-  outputMatrix->Identity(); // Make this identity - spin calibration assumes it is the identity for simplicity
-  outputMatrix->SetElement(0,3,d->logic()->Translation[0]);
-  outputMatrix->SetElement(1,3,d->logic()->Translation[1]);
-  outputMatrix->SetElement(2,3,d->logic()->Translation[2]);
+  d->logic()->GetToolTipToToolMatrix( outputMatrix );
+
 #ifdef TRANSFORM_NODE_MATRIX_COPY_REQUIRED
   outputTransform->SetMatrixTransformToParent(outputMatrix);
 #endif
   
   std::stringstream ss;
-  ss << d->logic()->RMSE;
+  ss << d->logic()->GetPivotRMSE();
   d->rmseLabel->setText(ss.str().c_str());
   
-  d->logic()->ClearSamples();
+  d->logic()->ClearToolToReferenceMatrices();
 
   d->startSpinButton->setEnabled( true );
 }
@@ -310,38 +308,34 @@ void qSlicerPivotCalibrationModuleWidget::onSpinStop()
 {
   Q_D(qSlicerPivotCalibrationModuleWidget);
   
-  d->logic()->setRecordingState(false);
+  d->logic()->SetRecordingState(false);
   d->logic()->ComputeSpinCalibration();
 
   if ( d->snapCheckBox->checkState() == Qt::Checked )
   {
     d->logic()->SnapRotationRightAngle();
   }
-  
+
   vtkMRMLLinearTransformNode* outputTransform = vtkMRMLLinearTransformNode::SafeDownCast(d->OutputComboBox->currentNode());
+#ifdef TRANSFORM_NODE_MATRIX_COPY_REQUIRED
+  vtkSmartPointer<vtkMatrix4x4> outputMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+  outputTransform->GetMatrixTransformToParent(outputMatrix);
+#else
   vtkMatrix4x4* outputMatrix = outputTransform->GetMatrixTransformToParent();
+#endif
 
-  vtkSmartPointer< vtkMatrix4x4 > XShaftToStylusTip = vtkSmartPointer< vtkMatrix4x4 >::New();
-  XShaftToStylusTip->SetElement( 0, 0, d->logic()->Rotation.get( 0, 0 ) );
-  XShaftToStylusTip->SetElement( 0, 1, d->logic()->Rotation.get( 0, 1 ) );
-  XShaftToStylusTip->SetElement( 0, 2, d->logic()->Rotation.get( 0, 2 ) );
-  XShaftToStylusTip->SetElement( 1, 0, d->logic()->Rotation.get( 1, 0 ) );
-  XShaftToStylusTip->SetElement( 1, 1, d->logic()->Rotation.get( 1, 1 ) );
-  XShaftToStylusTip->SetElement( 1, 2, d->logic()->Rotation.get( 1, 2 ) );
-  XShaftToStylusTip->SetElement( 2, 0, d->logic()->Rotation.get( 2, 0 ) );
-  XShaftToStylusTip->SetElement( 2, 1, d->logic()->Rotation.get( 2, 1 ) );
-  XShaftToStylusTip->SetElement( 2, 2, d->logic()->Rotation.get( 2, 2 ) );
+  d->logic()->GetToolTipToToolMatrix( outputMatrix );
 
-  vtkSmartPointer< vtkMatrix4x4 > XShaftToStylus = vtkSmartPointer< vtkMatrix4x4 >::New();
-  vtkMatrix4x4::Multiply4x4( outputMatrix, XShaftToStylusTip, XShaftToStylus );
-  outputMatrix->DeepCopy( XShaftToStylus );
-  
+#ifdef TRANSFORM_NODE_MATRIX_COPY_REQUIRED
+  outputTransform->SetMatrixTransformToParent(outputMatrix);
+#endif
+   
   // Set the rmse label for the circle fitting rms error
   std::stringstream ss;
-  ss << d->logic()->RMSE;
+  ss << d->logic()->GetSpinRMSE();
   d->rmseLabel->setText(ss.str().c_str());
   
-  d->logic()->ClearSamples();
+  d->logic()->ClearToolToReferenceMatrices();
 }
 
 

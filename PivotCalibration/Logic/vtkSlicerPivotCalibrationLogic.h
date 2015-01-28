@@ -48,35 +48,33 @@ public:
   vtkTypeMacro(vtkSlicerPivotCalibrationLogic, vtkSlicerModuleLogic);
   void PrintSelf(ostream& os, vtkIndent indent);
 
+  void ProcessMRMLNodesEvents( vtkObject* caller, unsigned long event, void* callData );
+
   void InitializeObserver(vtkMRMLNode*);
-  void AddSample(vtkMatrix4x4*);
+  void AddToolToReferenceMatrix(vtkMatrix4x4*);
+
   void ComputePivotCalibration();
-  void ComputeSpinCalibration();
+  void ComputeSpinCalibration(); //Note: The neede orientation protocol assumes that the shaft of the tool lies along the positive x-axis
 
   void SnapRotationRightAngle();
+
+  // Getters for the output
+  void GetToolTipToToolTranslation( vtkMatrix4x4* );
+  void GetToolTipToToolRotation( vtkMatrix4x4* );
+  void GetToolTipToToolMatrix( vtkMatrix4x4* );
+
+  double GetPivotRMSE();
+  double GetSpinRMSE();
   
-  void ProcessMRMLNodesEvents( vtkObject* caller, unsigned long event, void* callData );
+  void SetRecordingState(bool);
+  bool GetRecordingState();
   
-  //Move to protected, add accessors
-  double PivotPosition[3];
-  double Translation[3];
-  double RMSE;
-  vnl_matrix<double> Rotation;
-  
-  void setRecordingState(bool);
-  
-  void ClearSamples();
+  void ClearToolToReferenceMatrices();
   
   
 protected:
   vtkSlicerPivotCalibrationLogic();
   virtual ~vtkSlicerPivotCalibrationLogic();
-
-  std::vector<vtkMatrix4x4*> transforms;
-  
-  const char* transformId;
-  
-  bool recordingState;
   
   virtual void SetMRMLSceneInternal(vtkMRMLScene* newScene);
   /// Register MRML Node classes to Scene. Gets called automatically when the MRMLScene is attached to this logic class.
@@ -94,6 +92,19 @@ private:
 
   vtkSlicerPivotCalibrationLogic(const vtkSlicerPivotCalibrationLogic&); // Not implemented
   void operator=(const vtkSlicerPivotCalibrationLogic&);               // Not implemented
+
+  //Move to protected, add accessors
+  vtkMatrix4x4* ToolTipToToolMatrix;
+  double PivotRMSE;
+  double SpinRMSE;
+
+  std::vector< vtkMatrix4x4* > ToolToReferenceMatrices;
+  
+  const char* ObservedTransformID;
+  
+  bool RecordingState;
+
+
 };
 
 #endif
