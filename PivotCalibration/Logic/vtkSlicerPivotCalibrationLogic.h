@@ -28,7 +28,6 @@
 
 // MRML includes
 #include "vtkMRMLSliceNode.h"
-#include "qMRMLSliceWidget.h"
 
 // STD includes
 #include <cstdlib>
@@ -48,8 +47,7 @@ public:
   static vtkSlicerPivotCalibrationLogic *New();
   vtkTypeMacro(vtkSlicerPivotCalibrationLogic, vtkSlicerModuleLogic);
   void PrintSelf(ostream& os, vtkIndent indent);
-  
-  void initializeViewer(qMRMLSliceWidget* widget);
+
   void InitializeObserver(vtkMRMLNode*);
   void AddSample(vtkMatrix4x4*);
   void ComputePivotCalibration();
