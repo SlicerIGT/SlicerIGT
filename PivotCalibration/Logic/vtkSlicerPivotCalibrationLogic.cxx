@@ -230,15 +230,15 @@ void vtkSlicerPivotCalibrationLogic::ComputeSpinCalibration()
   for ( int i = 0; i < ToolPoints_Reference.rows(); i++ )
   {
     vnl_vector<double> currentToolPoint_Reference = ToolPoints_Reference.get_row( i ) - meanToolPoint_Reference;
-    vnl_vector<double> currentToolTip_Projection( 2, 0.0 );
-    currentToolTip_Projection.put( 0, dot_product( currentToolPoint_Reference, basisVector1_Projection ) );
-    currentToolTip_Projection.put( 1, dot_product( currentToolPoint_Reference, basisVector2_Projection ) );
+    vnl_vector<double> currentToolPoint_Projection( 2, 0.0 );
+    currentToolPoint_Projection.put( 0, dot_product( currentToolPoint_Reference, basisVector1_Projection ) );
+    currentToolPoint_Projection.put( 1, dot_product( currentToolPoint_Reference, basisVector2_Projection ) );
 
-    ToolCircleMatrix_Projection.put( i, 0, 2 * currentToolTip_Projection.get( 0 ) );
-    ToolCircleMatrix_Projection.put( i, 1, 2 * currentToolTip_Projection.get( 1 ) );
+    ToolCircleMatrix_Projection.put( i, 0, 2 * currentToolPoint_Reference.get( 0 ) );
+    ToolCircleMatrix_Projection.put( i, 1, 2 * currentToolPoint_Reference.get( 1 ) );
     ToolCircleMatrix_Projection.put( i, 2, 1 );
 
-    ToolCircleVector_Projection.put( i, currentToolTip_Projection.get( 0 ) * currentToolTip_Projection.get( 0 ) + currentToolTip_Projection.get( 1 ) * currentToolTip_Projection.get( 1 ) );
+    ToolCircleVector_Projection.put( i, currentToolPoint_Projection.get( 0 ) * currentToolPoint_Projection.get( 0 ) + currentToolPoint_Projection.get( 1 ) * currentToolPoint_Projection.get( 1 ) );
   }
 
   // Solve the system
@@ -256,20 +256,20 @@ void vtkSlicerPivotCalibrationLogic::ComputeSpinCalibration()
   double arrayToolRotationCentre_Reference[ 4 ] = { ToolRotationCentre_Reference[ 0 ], ToolRotationCentre_Reference[ 1 ], ToolRotationCentre_Reference[ 2 ], 1 };
   double arrayToolRotationCentre_ToolTip[ 4 ] = { 0, 0, 0, 1 };
 
-  vtkSmartPointer< vtkMatrix4x4 > ReferenceToToolTipTransform = vtkSmartPointer< vtkMatrix4x4 >::New();
-  vtkSmartPointer< vtkMatrix4x4 > ReferenceToToolTransform = vtkSmartPointer< vtkMatrix4x4 >::New();
-  vtkSmartPointer< vtkMatrix4x4 > ToolToToolTipTransform = vtkSmartPointer< vtkMatrix4x4 >::New();
-  ToolToToolTipTransform->DeepCopy( this->ToolTipToToolMatrix );
-  ToolToToolTipTransform->Invert();
+  vtkSmartPointer< vtkMatrix4x4 > ReferenceToToolTipMatrix = vtkSmartPointer< vtkMatrix4x4 >::New();
+  vtkSmartPointer< vtkMatrix4x4 > ReferenceToToolMatrix = vtkSmartPointer< vtkMatrix4x4 >::New();
+  vtkSmartPointer< vtkMatrix4x4 > ToolToToolTipMatrix = vtkSmartPointer< vtkMatrix4x4 >::New();
+  this->GetToolTipToToolTranslation( ToolToToolTipMatrix );
+  ToolToToolTipMatrix->Invert();
 
   for ( int i = 0; i < this->ToolToReferenceMatrices.size(); i++ )
   {
-    ReferenceToToolTransform->DeepCopy( this->ToolToReferenceMatrices.at( i ) );
-    ReferenceToToolTransform->Invert();
-    vtkMatrix4x4::Multiply4x4( ToolToToolTipTransform, ReferenceToToolTransform, ReferenceToToolTipTransform );
+    ReferenceToToolMatrix->DeepCopy( this->ToolToReferenceMatrices.at( i ) );
+    ReferenceToToolMatrix->Invert();
+    vtkMatrix4x4::Multiply4x4( ToolToToolTipMatrix, ReferenceToToolMatrix, ReferenceToToolTipMatrix );
     
     double currentArrayToolRotationCentre_ToolTip[ 4 ] = { 0, 0, 0, 1 };
-    ReferenceToToolTipTransform->MultiplyPoint( arrayToolRotationCentre_Reference, currentArrayToolRotationCentre_ToolTip );
+    ReferenceToToolTipMatrix->MultiplyPoint( arrayToolRotationCentre_Reference, currentArrayToolRotationCentre_ToolTip );
 
     arrayToolRotationCentre_ToolTip[ 0 ] += currentArrayToolRotationCentre_ToolTip[ 0 ];
     arrayToolRotationCentre_ToolTip[ 1 ] += currentArrayToolRotationCentre_ToolTip[ 1 ];
