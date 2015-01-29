@@ -35,7 +35,7 @@
       <item row="0" column="0">
        <widget class="QLabel" name="label">
         <property name="text">
-         <string>Input (StylusToReference)</string>
+         <string>Input (ToolToReference)</string>
         </property>
        </widget>
       </item>
@@ -51,7 +51,7 @@
       <item row="1" column="0">
        <widget class="QLabel" name="label_2">
         <property name="text">
-         <string>Output (StylusTipToStylus)</string>
+         <string>Output (ToolTipToTool)</string>
         </property>
        </widget>
       </item>
@@ -102,8 +102,11 @@
       </item>
       <item>
        <widget class="QLabel" name="label_5">
+        <property name="layoutDirection">
+         <enum>Qt::LeftToRight</enum>
+        </property>
         <property name="text">
-         <string>Data collection will start and end afer specified time.</string>
+         <string>Data collection will start and end after specified time.</string>
         </property>
        </widget>
       </item>
