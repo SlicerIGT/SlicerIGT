@@ -66,7 +66,9 @@ protected:
 public:
     
   vtkGetMacro( ToolInsideModel, bool );
-  
+  vtkGetMacro( ClosestDistanceToModelFromToolTransform, double );
+  vtkSetMacro( ClosestDistanceToModelFromToolTransform, double );
+
   void SetWarningColor( double r, double g, double b, double a );
   double GetWarningColorComponent( int c );
   
@@ -98,6 +100,9 @@ private:
   double OriginalColor[ 4 ];
   bool ToolInsideModel;
   int DisplayWarningColor;
+  // It is the closest distance to the model from the tool transform. If the distance is negative
+  // the transform is inside the model.
+  double ClosestDistanceToModelFromToolTransform;
 
 };  
 

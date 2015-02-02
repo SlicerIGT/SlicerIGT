@@ -40,6 +40,8 @@
 #include <vtkTransform.h>
 #include <vtkTransformPolyDataFilter.h>
 
+#include <vtkImplicitPolyDataDistance.h>
+
 //Qt includes
 #include <QDir>
 
@@ -138,7 +140,8 @@ vtkSlicerBreachWarningLogic
   }
   
   vtkSmartPointer< vtkSelectEnclosedPoints > EnclosedFilter = vtkSmartPointer< vtkSelectEnclosedPoints >::New();
-  
+  vtkImplicitPolyDataDistance *implicitDistanceFilter = vtkImplicitPolyDataDistance::New();
+
   // Transform the body poly data if there is a parent transform.
 
   vtkMRMLTransformNode* bodyParentTransform = modelNode->GetParentTransformNode();
@@ -157,10 +160,15 @@ vtkSlicerBreachWarningLogic
     bodyToRasFilter->Update();
 
     EnclosedFilter->Initialize( bodyToRasFilter->GetOutput() );
+
+    implicitDistanceFilter->SetInput( bodyToRasFilter->GetOutput() );
   }
   else
   {
     EnclosedFilter->Initialize( body );
+
+    implicitDistanceFilter->SetInput( body );
+
   }
   
   vtkSmartPointer< vtkMatrix4x4 > ToolToRASMatrix = vtkSmartPointer< vtkMatrix4x4 >::New();
@@ -183,6 +191,10 @@ vtkSlicerBreachWarningLogic
   {
     this->CurrentToolState = OUTSIDE;
   }
+
+  bwNode->SetClosestDistanceToModelFromToolTransform(implicitDistanceFilter->EvaluateFunction( P0 ));
+  vtkWarningMacro("Closes Distance to model from transform "<< bwNode->GetClosestDistanceToModelFromToolTransform());
+  implicitDistanceFilter->Delete();
 }
 
 
@@ -367,6 +379,13 @@ vtkSlicerBreachWarningLogic
   return moduleNode->GetWarningColorComponent( c );
 }
 
+
+double
+vtkSlicerBreachWarningLogic
+::GetClosestDistanceToModelFromToolTransform( vtkMRMLBreachWarningNode* moduleNode )
+{
+  return moduleNode->GetClosestDistanceToModelFromToolTransform();
+}
 
 
 void

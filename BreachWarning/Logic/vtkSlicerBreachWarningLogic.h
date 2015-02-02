@@ -75,6 +75,8 @@ public:
   
   void SetWatchedModelNode( vtkMRMLModelNode* newModel, vtkMRMLBreachWarningNode* moduleNode );
   void SetObservedTransformNode( vtkMRMLLinearTransformNode* newTransform, vtkMRMLBreachWarningNode* moduleNode );
+  
+  double GetClosestDistanceToModelFromToolTransform( vtkMRMLBreachWarningNode* moduleNode );
 
   void SetWarningColor( double red, double green, double blue, double alpha, vtkMRMLBreachWarningNode* moduleNode );
   double GetWarningColorComponent( int c, vtkMRMLBreachWarningNode* moduleNode );
