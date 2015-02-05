@@ -27,7 +27,7 @@
 #include <vtkMatrix4x4.h>
 
 // MRML includes
-#include "vtkMRMLSliceNode.h"
+#include "vtkMRMLLinearTransformNode.h"
 
 // STD includes
 #include <cstdlib>
@@ -50,8 +50,8 @@ public:
 
   void ProcessMRMLNodesEvents( vtkObject* caller, unsigned long event, void* callData );
 
-  void InitializeObserver(vtkMRMLNode*);
-  void AddToolToReferenceMatrix(vtkMatrix4x4*);
+  void InitializeObserver( vtkMRMLLinearTransformNode* );
+  void AddToolToReferenceMatrix( vtkMatrix4x4* );
 
   void ComputePivotCalibration();
   void ComputeSpinCalibration(); //Note: The neede orientation protocol assumes that the shaft of the tool lies along the positive x-axis
