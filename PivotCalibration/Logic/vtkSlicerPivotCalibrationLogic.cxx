@@ -98,16 +98,18 @@ void vtkSlicerPivotCalibrationLogic::ProcessMRMLNodesEvents(vtkObject* caller, u
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerPivotCalibrationLogic::InitializeObserver(vtkMRMLNode* node)
+void vtkSlicerPivotCalibrationLogic::InitializeObserver( vtkMRMLLinearTransformNode* transformNode )
 {
-  if (node != NULL)
+  // Stop observing the previously observed node
+  this->ObservedTransformID = "";
+  if ( transformNode == NULL )
   {
-    vtkMRMLLinearTransformNode* transformNode = vtkMRMLLinearTransformNode::SafeDownCast(node);
-    
-    this->ObservedTransformID = transformNode->GetID();
-    
-    node->AddObserver(vtkMRMLLinearTransformNode::TransformModifiedEvent, (vtkCommand*) this->GetMRMLNodesCallbackCommand());
+    vtkWarningMacro( "vtkSlicerPivotCalibrationLogic::InitializeObserver: Invalid transform node received!" );
+    return;
   }
+    
+  this->ObservedTransformID = transformNode->GetID();    
+  transformNode->AddObserver( vtkMRMLLinearTransformNode::TransformModifiedEvent, (vtkCommand*) this->GetMRMLNodesCallbackCommand() );
 }
 
 //---------------------------------------------------------------------------
