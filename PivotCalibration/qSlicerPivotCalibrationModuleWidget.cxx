@@ -110,7 +110,7 @@ void qSlicerPivotCalibrationModuleWidget::initializeObserver(vtkMRMLNode* node)
   Q_D(qSlicerPivotCalibrationModuleWidget);
   
   vtkMRMLLinearTransformNode* transformNode = vtkMRMLLinearTransformNode::SafeDownCast( node );
-  d->logic()->InitializeObserver( transformNode );
+  d->logic()->SetAndObserveTransformNode( transformNode );
 }
 
 

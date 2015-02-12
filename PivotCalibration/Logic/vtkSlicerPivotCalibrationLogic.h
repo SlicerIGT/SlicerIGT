@@ -50,7 +50,7 @@ public:
 
   void ProcessMRMLNodesEvents( vtkObject* caller, unsigned long event, void* callData );
 
-  void InitializeObserver( vtkMRMLLinearTransformNode* );
+  void SetAndObserveTransformNode( vtkMRMLLinearTransformNode* );
   void AddToolToReferenceMatrix( vtkMatrix4x4* );
 
   void ComputePivotCalibration();
@@ -100,7 +100,7 @@ private:
 
   std::vector< vtkMatrix4x4* > ToolToReferenceMatrices;
   
-  const char* ObservedTransformID;
+  vtkMRMLLinearTransformNode* ObservedTransformNode;
   
   bool RecordingState;
 

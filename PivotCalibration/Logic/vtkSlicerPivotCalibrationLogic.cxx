@@ -48,6 +48,7 @@ vtkStandardNewMacro(vtkSlicerPivotCalibrationLogic);
 vtkSlicerPivotCalibrationLogic::vtkSlicerPivotCalibrationLogic()
 {
   this->ToolTipToToolMatrix = vtkMatrix4x4::New();
+  this->ObservedTransformNode = NULL;
 }
 
 //----------------------------------------------------------------------------
@@ -81,7 +82,7 @@ void vtkSlicerPivotCalibrationLogic::ProcessMRMLNodesEvents(vtkObject* caller, u
   if (caller != NULL)
   {
     vtkMRMLLinearTransformNode* transformNode = vtkMRMLLinearTransformNode::SafeDownCast(caller);
-    if ( event = vtkMRMLLinearTransformNode::TransformModifiedEvent && this->RecordingState == true && transformNode->GetID() == this->ObservedTransformID)
+    if ( event = vtkMRMLLinearTransformNode::TransformModifiedEvent && this->RecordingState == true && transformNode->GetID() == this->ObservedTransformNode->GetID() )
     {
 #ifdef TRANSFORM_NODE_MATRIX_COPY_REQUIRED
       vtkMatrix4x4* matrixCopy = vtkMatrix4x4::New();
@@ -98,18 +99,11 @@ void vtkSlicerPivotCalibrationLogic::ProcessMRMLNodesEvents(vtkObject* caller, u
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerPivotCalibrationLogic::InitializeObserver( vtkMRMLLinearTransformNode* transformNode )
+void vtkSlicerPivotCalibrationLogic::SetAndObserveTransformNode( vtkMRMLLinearTransformNode* transformNode )
 {
-  // Stop observing the previously observed node
-  this->ObservedTransformID = "";
-  if ( transformNode == NULL )
-  {
-    vtkWarningMacro( "vtkSlicerPivotCalibrationLogic::InitializeObserver: Invalid transform node received!" );
-    return;
-  }
-    
-  this->ObservedTransformID = transformNode->GetID();    
-  transformNode->AddObserver( vtkMRMLLinearTransformNode::TransformModifiedEvent, (vtkCommand*) this->GetMRMLNodesCallbackCommand() );
+  vtkNew<vtkIntArray> events;
+  events->InsertNextValue( vtkMRMLLinearTransformNode::TransformModifiedEvent );
+  vtkSetAndObserveMRMLNodeEventsMacro( this->ObservedTransformNode, transformNode, events.GetPointer() );
 }
 
 //---------------------------------------------------------------------------
