@@ -56,6 +56,7 @@ vtkSlicerPivotCalibrationLogic::~vtkSlicerPivotCalibrationLogic()
 {
   this->ClearToolToReferenceMatrices();
   this->ToolTipToToolMatrix->Delete();
+  this->SetAndObserveTransformNode( NULL ); // Remove the observer
 }
 
 //----------------------------------------------------------------------------
@@ -82,7 +83,7 @@ void vtkSlicerPivotCalibrationLogic::ProcessMRMLNodesEvents(vtkObject* caller, u
   if (caller != NULL)
   {
     vtkMRMLLinearTransformNode* transformNode = vtkMRMLLinearTransformNode::SafeDownCast(caller);
-    if ( event = vtkMRMLLinearTransformNode::TransformModifiedEvent && this->RecordingState == true && transformNode->GetID() == this->ObservedTransformNode->GetID() )
+    if ( event = vtkMRMLLinearTransformNode::TransformModifiedEvent && this->RecordingState == true && strcmp( transformNode->GetID(), this->ObservedTransformNode->GetID() ) == 0 )
     {
 #ifdef TRANSFORM_NODE_MATRIX_COPY_REQUIRED
       vtkMatrix4x4* matrixCopy = vtkMatrix4x4::New();
