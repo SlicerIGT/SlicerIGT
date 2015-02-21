@@ -138,7 +138,6 @@ qSlicerOpenIGTLinkRemoteQueryWidget::qSlicerOpenIGTLinkRemoteQueryWidget(QWidget
   d->queryNode = vtkMRMLIGTLQueryNode::New();
   qvtkConnect(d->queryNode, vtkMRMLIGTLQueryNode::ResponseEvent,
             this, SLOT(onQueryResponseReceived()));
-  d->queryNode->SetNoNameQuery(1);
 }
 
 
@@ -232,7 +231,7 @@ void qSlicerOpenIGTLinkRemoteQueryWidget::startTracking()
     return;
 
   d->queryNode->SetIGTLName("TDATA");
-  d->queryNode->SetNoNameQuery(1);
+  d->queryNode->SetIGTLDeviceName("");
   d->queryNode->SetQueryStatus(vtkMRMLIGTLQueryNode::STATUS_PREPARED);
   d->queryNode->SetQueryType(vtkMRMLIGTLQueryNode::TYPE_START);
   d->connectorNode->PushQuery((vtkMRMLIGTLQueryNode*)d->queryNode);
@@ -249,7 +248,7 @@ void qSlicerOpenIGTLinkRemoteQueryWidget::stopTracking()
     return;
 
   d->queryNode->SetIGTLName("TDATA");
-  d->queryNode->SetNoNameQuery(1);
+  d->queryNode->SetIGTLDeviceName("");
   d->queryNode->SetQueryStatus(vtkMRMLIGTLQueryNode::STATUS_PREPARED);
   d->queryNode->SetQueryType(vtkMRMLIGTLQueryNode::TYPE_STOP);
   d->connectorNode->PushQuery((vtkMRMLIGTLQueryNode*)d->queryNode);
@@ -305,7 +304,7 @@ void qSlicerOpenIGTLinkRemoteQueryWidget::onImageReceived(vtkObject* vtkNotUsed(
     return;
     }
   
-  vtkMRMLNode* listNode = scene->GetNodeByID(d->queryNode->GetResponseDataNodeID());
+  vtkMRMLNode* listNode = d->queryNode->GetResponseDataNode();
   vtkMRMLImageMetaListNode* imgListNode;
   if ( !(imgListNode = vtkMRMLImageMetaListNode::SafeDownCast(listNode)) )
     {
@@ -336,7 +335,7 @@ void qSlicerOpenIGTLinkRemoteQueryWidget::onQueryResponseReceived()
   if (!this->mrmlScene() || !d->queryNode)
     return;
 
-  vtkMRMLNode* qNode = scene->GetNodeByID(d->queryNode->GetResponseDataNodeID());
+  vtkMRMLNode* qNode = d->queryNode->GetResponseDataNode();
   vtkMRMLImageMetaListNode* imgQueryNode; 
   vtkMRMLLabelMetaListNode* lbQueryNode; 
 //  vtkMRMLPointMetaListNode* ptQueryNode; TODO: fix this by not relying on vtkMRMLPointMetaListNode
@@ -412,9 +411,9 @@ void qSlicerOpenIGTLinkRemoteQueryWidget::getImage(std::string name)
   Q_D(qSlicerOpenIGTLinkRemoteQueryWidget);
   vtkMRMLIGTLQueryNode* node = vtkMRMLIGTLQueryNode::New();
   node->SetIGTLName("IMAGE");
+  node->SetIGTLDeviceName(name.c_str());
   node->SetQueryStatus(vtkMRMLIGTLQueryNode::STATUS_PREPARED);
   node->SetQueryType(vtkMRMLIGTLQueryNode::TYPE_GET);
-  node->SetName(name.c_str());
   this->mrmlScene()->AddNode(node);
   d->connectorNode->PushQuery(node);
   d->nodesToRemove.push_back(node->GetID());
@@ -459,7 +458,7 @@ void qSlicerOpenIGTLinkRemoteQueryWidget::getPointList(std::string id)
   Q_D(qSlicerOpenIGTLinkRemoteQueryWidget);
   /* TODO: fix this by not relying on vtkMRMLPointMetaListNode
   typedef vtkMRMLPointMetaListNode::PointMetaElement ElemType;
-  vtkMRMLNode* qNode = this->mrmlScene()->GetNodeByID(d->queryNode->GetResponseDataNodeID());
+  vtkMRMLNode* qNode = d->queryNode->GetResponseDataNode();
   vtkMRMLPointMetaListNode* ptQueryNode = vtkMRMLPointMetaListNode::SafeDownCast(qNode);
   
   if(!ptQueryNode)

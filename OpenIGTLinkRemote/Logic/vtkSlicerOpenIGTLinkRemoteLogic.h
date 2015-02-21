@@ -27,6 +27,7 @@
 #include "vtkSlicerOpenIGTLinkRemoteModuleLogicExport.h"
 #include <cstdlib>
 
+class vtkMRMLIGTLQueryNode;
 class vtkSlicerOpenIGTLinkIFLogic;
 
 /// \ingroup Slicer_QtModules_ExtensionTemplate
@@ -34,11 +35,11 @@ class VTK_SLICER_OPENIGTLINKREMOTE_MODULE_LOGIC_EXPORT vtkSlicerOpenIGTLinkRemot
   public vtkSlicerModuleLogic
 {
 public:
-  enum REPLY_RESULT
+  enum COMMAND_RESULT
   {
-    REPLY_SUCCESS,
-    REPLY_FAIL,
-    REPLY_WAITING
+    COMMAND_SUCCESS,
+    COMMAND_FAIL,
+    COMMAND_WAITING
   };
   
   static vtkSlicerOpenIGTLinkRemoteLogic *New();
@@ -47,12 +48,36 @@ public:
   
   void SetIFLogic( vtkSlicerOpenIGTLinkIFLogic* ifLogic );
   
-  int ExecuteCommand( const char* connectorNodeId, const char* commandName, const char* attributes );
-  REPLY_RESULT GetCommandReply( int commandId, std::string &message, std::string &attributes);
-  void DiscardCommand( int commandId, const char* connectorNodeId );
+  /// Creates a command query node and corresponding response node.
+  /// It is recommended to reuse the same query node for multiple commands
+  /// to avoid the overhead of creating and deleting nodes in the scene at each
+  /// command execution.
+  vtkMRMLIGTLQueryNode* CreateCommandQueryNode();
   
-  int SendCommand( std::string strCommand, const char* connectorNodeId );
+  /// Deletes a command query node and corresponding response node
+  void DeleteCommandQueryNode(vtkMRMLIGTLQueryNode* commandQueryNode);
+
+  /// Sends a command defined by name and set of attributes
+  /// @param commandQueryNode Query node that can be used to monitor the status of the command and retrieve the command response.
+  /// @param connectorNodeId Identifies the IGTL connector node that will send this command message.
+  /// @param commandName Will translate to Name parameter in the Command element (root) of the command message XML text.
+  /// @param attributes A string in name1="value1" name2="value2" ... format. It will be placed in the Command XML element.
+  /// @returns true on success
+  bool SendCommand(vtkMRMLIGTLQueryNode* commandQueryNode, const char* connectorNodeId, const char* commandName, const char* attributes);
   
+  /// Sends a command defined by an XML string
+  /// @param commandQueryNode Query node that can be used to monitor the status of the command and retrieve the command response.
+  /// @param connectorNodeId Identifies the IGTL connector node that will send the command message to the server.
+  /// @param strCommand XML string that will be sent in the command IGTL message.
+  /// @returns true on success
+  bool SendCommandXML(vtkMRMLIGTLQueryNode* commandQueryNode, const char* connectorNodeId, const char* commandXml);
+
+  /// Retrieves command response
+  COMMAND_RESULT GetCommandResponse(vtkMRMLIGTLQueryNode* commandQueryNode, std::string &message, std::string &attributes);
+
+  /// Cancels command (removes command from the query queue of the association connector).
+  /// If command response arrives after the command is cancelled the query node will ignore it.
+  void CancelCommand(vtkMRMLIGTLQueryNode* commandQueryNode);
   
 protected:
   vtkSlicerOpenIGTLinkRemoteLogic();

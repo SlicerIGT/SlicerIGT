@@ -1,5 +1,5 @@
-#include "vtkMRMLAnnotationTextNode.h"
 #include "vtkMRMLIGTLConnectorNode.h"
+#include "vtkMRMLIGTLQueryNode.h"
 #include "vtkMRMLScene.h"
 #include "vtkMRMLTextNode.h"
 #include "vtkSlicerOpenIGTLinkIFLogic.h"
@@ -11,7 +11,6 @@
 #include <vtkObjectFactory.h>
 #include <vtkXMLDataElement.h>
 #include <vtkXMLUtilities.h>
-
 
 // Share a single command counter across all possible logic instances.
 int vtkSlicerOpenIGTLinkRemoteLogic::CommandCounter = 0;
@@ -59,214 +58,230 @@ void vtkSlicerOpenIGTLinkRemoteLogic::SetIFLogic( vtkSlicerOpenIGTLinkIFLogic* i
   this->Internal->IFLogic = ifLogic;
 }
 
-/**
- * @param connectorNodeId Identifies the IGTL connector node that will send this command message.
- * @param commandName Will translate to Name parameter in the Command element (root) of the command message XML text.
- * @param attributes A string in name1="value1" name2="value2" ... format. It will be placed in the Command XML element.
- * @returns CommandId number that identifies this command and its response. Returns 0 on error.
- */
-int vtkSlicerOpenIGTLinkRemoteLogic::ExecuteCommand( const char* connectorNodeId, const char* commandName, const char* attributes )
+//----------------------------------------------------------------------------
+vtkMRMLIGTLQueryNode* vtkSlicerOpenIGTLinkRemoteLogic::CreateCommandQueryNode()
 {
-  std::string messageString = std::string("<Command Name=\"") + (commandName?commandName:"") + "\" " + (attributes?attributes:"") + " />";
-  return this->SendCommand( messageString, connectorNodeId );
+  if ( this->GetMRMLScene() == NULL)
+  {
+    vtkErrorMacro("vtkSlicerOpenIGTLinkRemoteLogic::CreateCommandQueryNode failed: invalid scene");
+    return NULL;
+  }
+  vtkSmartPointer< vtkMRMLIGTLQueryNode > queryNode = vtkSmartPointer< vtkMRMLIGTLQueryNode >::New();
+  queryNode->SetHideFromEditors(true);
+  queryNode->SetSaveWithScene(false);
+  this->GetMRMLScene()->AddNode(queryNode);
+
+  // Also create the response node. It allows the node to be hidden and excluded from saving with the scene.
+  vtkSmartPointer< vtkMRMLTextNode > responseNode = vtkSmartPointer< vtkMRMLTextNode >::New();
+  responseNode->SetHideFromEditors(true);
+  responseNode->SetSaveWithScene(false);
+  this->GetMRMLScene()->AddNode(responseNode);
+
+  queryNode->SetResponseDataNodeID(responseNode->GetID());
+
+  return queryNode;
 }
 
-/**
- * @returns status of the command reply
- */
-vtkSlicerOpenIGTLinkRemoteLogic::REPLY_RESULT vtkSlicerOpenIGTLinkRemoteLogic::GetCommandReply( int commandId, std::string &message, std::string &attributes)
+//----------------------------------------------------------------------------
+void vtkSlicerOpenIGTLinkRemoteLogic::DeleteCommandQueryNode(vtkMRMLIGTLQueryNode* commandQueryNode)
+{
+  if ( this->GetMRMLScene() == NULL)
+  {
+    vtkErrorMacro("vtkSlicerOpenIGTLinkRemoteLogic::DiscardCommand failed: invalid scene");
+    return;
+  }
+
+  if (commandQueryNode==NULL)
+  {
+    vtkErrorMacro("vtkSlicerOpenIGTLinkRemoteLogic::DiscardCommand failed: invalid queryNode");
+    return;
+  }
+
+  // Delete response node
+  vtkMRMLNode* responseNode = commandQueryNode->GetResponseDataNode();
+  if (responseNode != NULL)
+  {
+    this->GetMRMLScene()->RemoveNode(responseNode);
+  }
+
+  // Delete query node
+  this->GetMRMLScene()->RemoveNode(commandQueryNode);
+}
+
+//----------------------------------------------------------------------------
+bool vtkSlicerOpenIGTLinkRemoteLogic::SendCommand(vtkMRMLIGTLQueryNode* commandQueryNode, const char* connectorNodeId, const char* commandName, const char* attributes)
+{
+  std::string messageString = std::string("<Command Name=\"") + (commandName?commandName:"") + "\" " + (attributes?attributes:"") + " />";
+  return this->SendCommandXML(commandQueryNode, connectorNodeId, messageString.c_str());
+}
+
+//----------------------------------------------------------------------------
+bool vtkSlicerOpenIGTLinkRemoteLogic::SendCommandXML(vtkMRMLIGTLQueryNode* commandQueryNode, const char* connectorNodeId, const char* commandXml)
+{
+  if ( this->GetMRMLScene() == NULL )
+  {
+    vtkErrorMacro( "MRML Scene is invalid" );
+    return false;
+  }
+  
+  vtkMRMLIGTLConnectorNode* connectorNode = vtkMRMLIGTLConnectorNode::SafeDownCast( this->GetMRMLScene()->GetNodeByID( connectorNodeId ) );
+  if ( connectorNode == NULL )
+  {
+    vtkErrorMacro( "SendCommand could not cast MRML node to IGTLConnectorNode." );
+    return false;
+  }
+  if ( commandQueryNode == NULL )
+  {
+    vtkErrorMacro( "SendCommand failed: commandQueryNode is invalid" );
+    return false;
+  }
+
+  // Create a unique Id for this command message.
+  // The logic may only be used from the main thread, so there is no need
+  // for making the counter increment thread-safe.
+  (this->CommandCounter)++;
+  std::stringstream commandDeviceName;
+  commandDeviceName << "CMD_" << this->CommandCounter;
+  std::stringstream responseDeviceName;
+  responseDeviceName << "ACK_" << this->CommandCounter;
+
+  commandQueryNode->SetIGTLName("STRING");
+  commandQueryNode->SetIGTLDeviceName( responseDeviceName.str().c_str() );
+  commandQueryNode->SetQueryStatus(vtkMRMLIGTLQueryNode::STATUS_PREPARED);
+  commandQueryNode->SetQueryType(vtkMRMLIGTLQueryNode::TYPE_NOT_DEFINED);
+  commandQueryNode->SetAttribute("CommandDeviceName", commandDeviceName.str().c_str());
+  commandQueryNode->SetAttribute("CommandString", commandXml);
+
+  // Also update the corresponding response data node ID's name to avoid creation of a new response node
+  // (the existing response node will be updated).
+  vtkMRMLTextNode* responseDataNode = vtkMRMLTextNode::SafeDownCast(commandQueryNode->GetResponseDataNode());
+  if (responseDataNode!=NULL)
+  {
+    responseDataNode->SetName(responseDeviceName.str().c_str());
+    responseDataNode->SetText(NULL);
+  }
+  
+  // Sends the command string and register the query node
+  connectorNode->PushQuery(commandQueryNode);
+  
+  return true;
+}
+
+//----------------------------------------------------------------------------
+vtkSlicerOpenIGTLinkRemoteLogic::COMMAND_RESULT vtkSlicerOpenIGTLinkRemoteLogic::GetCommandResponse(vtkMRMLIGTLQueryNode* queryNode, std::string &message, std::string &attributes)
 {
   message.clear();
   attributes.clear();
 
-  if ( this->GetMRMLScene() == NULL )
+  if ( this->GetMRMLScene() == NULL)
   {
-    return REPLY_FAIL;
+    vtkErrorMacro("vtkSlicerOpenIGTLinkRemoteLogic::GetCommandResponse failed: invalid scene");
+    return COMMAND_FAIL;
   }
-  
-  std::stringstream ss;
-  ss << "ACK_" << commandId;
-  vtkSmartPointer<vtkCollection> replyNodes = vtkSmartPointer<vtkCollection>::Take(this->GetMRMLScene()->GetNodesByName( ss.str().c_str() ));
-  
-/*
 
-    // If there are some custom attributes, then return all attributes as attibuteName=attributeValue pairs
-    // (otherwise just return the Data attribute value as a simple string)
-    if (!attributes.empty())
-    {
-      message = "Data=\""+message+"\" "+attributes;
-    }
-
-
-*/
-
-  int replyCount = replyNodes->GetNumberOfItems();
-  if ( replyCount < 1 )
+  if (queryNode==NULL)
   {
-    return REPLY_WAITING;
+    vtkErrorMacro("vtkSlicerOpenIGTLinkRemoteLogic::GetCommandResponse failed: invalid queryNode");
+    return COMMAND_FAIL;
   }
-  
-  vtkMRMLAnnotationTextNode* textNode = vtkMRMLAnnotationTextNode::SafeDownCast( replyNodes->GetItemAsObject( 0 ) );
+
+  if (queryNode->GetQueryStatus()==vtkMRMLIGTLQueryNode::STATUS_NOT_DEFINED
+    || queryNode->GetQueryStatus()==vtkMRMLIGTLQueryNode::STATUS_ERROR
+    || queryNode->GetQueryStatus()==vtkMRMLIGTLQueryNode::STATUS_EXPIRED)
+  {
+    return COMMAND_FAIL;
+  }
+
+  if (queryNode->GetQueryStatus()==vtkMRMLIGTLQueryNode::STATUS_PREPARED
+    || queryNode->GetQueryStatus()==vtkMRMLIGTLQueryNode::STATUS_WAITING)
+  {
+    return COMMAND_WAITING;
+  }
+
+  // We've successfully received a command response
+
+  vtkMRMLTextNode* textNode = vtkMRMLTextNode::SafeDownCast( queryNode->GetResponseDataNode() );
   if ( textNode == NULL )
   {
-    vtkErrorMacro( "Could not cast reply node to vtkMRMLAnnotationTextNode!" );
-    return REPLY_FAIL;
-  }
-  
-  std::string reply = std::string( textNode->GetText( 0 ).c_str() );
-  
-  REPLY_RESULT status = REPLY_FAIL;  
-  
-  vtkSmartPointer<vtkXMLDataElement> replyElement = vtkSmartPointer<vtkXMLDataElement>::Take( vtkXMLUtilities::ReadElementFromString(reply.c_str()) );
-  if (replyElement != NULL)
+    vtkErrorMacro( "Could not retrieve response node as vtkMRMLTextNode" );
+    return COMMAND_FAIL;
+  }  
+  std::string response = textNode->GetText() ? textNode->GetText() : "";  
+  vtkSmartPointer<vtkXMLDataElement> responseElement;
+  if (!response.empty())
   {
-    // Retrieve status from XML string
-    if (replyElement->GetAttribute("Status")==NULL)
-    {
-      vtkErrorMacro("OpenIGTLink command reply: missing Status attribute: "<<reply);
-    }
-    else
-    {
-      if (strcmp(replyElement->GetAttribute("Status"),"SUCCESS")==0)
-      {
-        status = REPLY_SUCCESS;
-      }
-      else if (strcmp(replyElement->GetAttribute("Status"),"FAIL")==0)
-      {
-        status = REPLY_FAIL;
-      }
-      else
-      {
-        vtkErrorMacro("OpenIGTLink command reply: invalid Status attribute value: "<<replyElement->GetAttribute("Status"));
-      }
-    }
-    // Retrieve Data element from XML string
-    if (replyElement->GetAttribute("Message")!=NULL)
-    {
-      message=replyElement->GetAttribute("Message");
-    }
-    // Retrieve other attributes from XML string    
-    for (int attrIndex=0; attrIndex<replyElement->GetNumberOfAttributes(); attrIndex++)
-    {
-      if (replyElement->GetAttributeName(attrIndex)==0)
-      {
-        continue;
-      }
-      if (strcmp(replyElement->GetAttributeName(attrIndex),"Status")==0
-        || strcmp(replyElement->GetAttributeName(attrIndex),"Message")==0)
-      {
-        // Status and Message attributes are processed separately
-        continue;
-      }
-      if (!attributes.empty())
-      {
-        attributes+=" ";
-      }
-      attributes += std::string(replyElement->GetAttributeName(attrIndex)) + "=\""
-        + (replyElement->GetAttributeValue(attrIndex)?replyElement->GetAttributeValue(attrIndex):"") +"\"";
-    }
+    responseElement = vtkSmartPointer<vtkXMLDataElement>::Take( vtkXMLUtilities::ReadElementFromString(response.c_str()) );
+  }
+  if (responseElement == NULL)
+  {
+    // The response is not XML
+    message = response;
+    return COMMAND_FAIL;
+  }
+
+  // Retrieve status from XML string
+  COMMAND_RESULT status = COMMAND_FAIL;
+  if (responseElement->GetAttribute("Status")==NULL)
+  {
+    vtkErrorMacro("OpenIGTLink command response: missing Status attribute: "<<response);
   }
   else
   {
-    // The reply is not XML
-    status = REPLY_FAIL;
-    message = reply;
+    if (strcmp(responseElement->GetAttribute("Status"),"SUCCESS")==0)
+    {
+      status = COMMAND_SUCCESS;
+    }
+    else if (strcmp(responseElement->GetAttribute("Status"),"FAIL")==0)
+    {
+      status = COMMAND_FAIL;
+    }
+    else
+    {
+      vtkErrorMacro("OpenIGTLink command response: invalid Status attribute value: "<<responseElement->GetAttribute("Status"));
+    }
+  }
+  // Retrieve Data element from XML string
+  if (responseElement->GetAttribute("Message")!=NULL)
+  {
+    message=responseElement->GetAttribute("Message");
+  }
+  // Retrieve other attributes from XML string    
+  for (int attrIndex=0; attrIndex<responseElement->GetNumberOfAttributes(); attrIndex++)
+  {
+    if (responseElement->GetAttributeName(attrIndex)==0)
+    {
+      continue;
+    }
+    if (strcmp(responseElement->GetAttributeName(attrIndex),"Status")==0
+      || strcmp(responseElement->GetAttributeName(attrIndex),"Message")==0)
+    {
+      // Status and Message attributes are processed separately
+      continue;
+    }
+    if (!attributes.empty())
+    {
+      attributes+=" ";
+    }
+    attributes += std::string(responseElement->GetAttributeName(attrIndex)) + "=\""
+      + (responseElement->GetAttributeValue(attrIndex)?responseElement->GetAttributeValue(attrIndex):"") +"\"";
   }
 
   return status;
 }
 
-/**
- * @param commandId int that is used to remove any ACK and CMD text annotation nodes
- * @param connectorNodeId Identifies the IGTL connector node that will send the command message to the server.
- */
-void vtkSlicerOpenIGTLinkRemoteLogic::DiscardCommand( int commandId, const char* connectorNodeId )
+//----------------------------------------------------------------------------
+void vtkSlicerOpenIGTLinkRemoteLogic::CancelCommand(vtkMRMLIGTLQueryNode* commandQueryNode)
 {
-  vtkMRMLIGTLConnectorNode* connectorNode = vtkMRMLIGTLConnectorNode::SafeDownCast( this->GetMRMLScene()->GetNodeByID( connectorNodeId ) );
-  if ( connectorNode == NULL )
+  if (commandQueryNode==NULL)
   {
-    vtkErrorMacro( "SendCommand could not cast MRML node to IGTLConnectorNode." );
+    vtkErrorMacro("vtkSlicerOpenIGTLinkRemoteLogic::CancelCommand failed: invalid commandQueryNode");
     return;
   }
-
-  this->GetMRMLScene()->StartState(vtkMRMLScene::BatchProcessState);
-
+  vtkMRMLIGTLConnectorNode* connector = commandQueryNode->GetConnectorNode();
+  if (connector)
   {
-    std::stringstream ss;
-    ss << "ACK_" << commandId;
-    vtkSmartPointer<vtkCollection> replyNodes = vtkSmartPointer<vtkCollection>::Take(this->GetMRMLScene()->GetNodesByName( ss.str().c_str() ));
-    for( int i = 0; i < replyNodes->GetNumberOfItems(); ++i )
-    {
-      vtkMRMLAnnotationTextNode* textNode = vtkMRMLAnnotationTextNode::SafeDownCast( replyNodes->GetItemAsObject(i) );
-      if ( textNode == NULL )
-      {
-        vtkErrorMacro( "Could not cast reply node to vtkMRMLAnnotationTextNode!" );
-        continue;
-      }
-      connectorNode->UnregisterIncomingMRMLNode(textNode);
-      this->GetMRMLScene()->RemoveNode(textNode);
-    }
+    connector->CancelQuery(commandQueryNode);
   }
-
-  {
-    std::stringstream ss;
-    ss << "CMD_" << commandId;
-    vtkCollection* commandNodes = this->GetMRMLScene()->GetNodesByName( ss.str().c_str() );
-    for( int i = 0; i < commandNodes->GetNumberOfItems(); ++i )
-    {
-      vtkMRMLAnnotationTextNode* textNode = vtkMRMLAnnotationTextNode::SafeDownCast( commandNodes->GetItemAsObject(i) );
-      if ( textNode == NULL )
-      {
-        vtkErrorMacro( "Could not cast reply node to vtkMRMLAnnotationTextNode!" );
-        continue;
-      }
-      connectorNode->UnregisterOutgoingMRMLNode(textNode);
-      this->GetMRMLScene()->RemoveNode(textNode);
-    }
-    commandNodes->Delete();
-  }
-
-  this->GetMRMLScene()->EndState(vtkMRMLScene::BatchProcessState);
-}
-
-/**
- * @param strCommand string that will be sent in the command IGTL message.
- * @param connectorNodeId Identifies the IGTL connector node that will send the command message to the server.
- * @returns CommandId that can be used later to get the response for the created. Returns 0 on error.
- */
-int vtkSlicerOpenIGTLinkRemoteLogic::SendCommand( std::string strCommand, const char* connectorNodeId )
-{
-  if ( this->GetMRMLScene() == NULL )
-  {
-    vtkErrorMacro( "MRML Scene is invalid" );
-    return 0;
-  }
-  
-  vtkMRMLIGTLConnectorNode* connectorNode = vtkMRMLIGTLConnectorNode::SafeDownCast( this->GetMRMLScene()->GetNodeByID( connectorNodeId ) );
-  if ( connectorNode == NULL )
-  {
-    vtkErrorMacro( "SendCommand could not cast MRML node to IGTLConnectorNode." );
-    return 0;
-  }
-  
-  // Create annotation text node for this command.
-  
-  vtkSmartPointer< vtkMRMLAnnotationTextNode > newNode = vtkSmartPointer< vtkMRMLAnnotationTextNode >::New();
-  newNode->Initialize( this->GetMRMLScene() );
-  newNode->SetText( 0, strCommand.c_str(), 1, 0 );
-  
-  // Create a unique Id for this command message.
-  // The logic may only be used from the main thread, so there is no need
-  // for making the counter increment thread-safe.
-  std::stringstream ss;
-  (this->CommandCounter)++;
-  ss << "CMD_" << this->CommandCounter;
-  newNode->SetName( ss.str().c_str() );
-  
-  connectorNode->RegisterOutgoingMRMLNode( newNode );
-  newNode->Modified();
-  
-  return this->CommandCounter;
 }
 
 //----------------------------------------------------------------------------
@@ -287,7 +302,6 @@ void vtkSlicerOpenIGTLinkRemoteLogic::RegisterNodes()
     vtkErrorMacro("Scene is invalid");
     return;
   }
-  this->GetMRMLScene()->RegisterNodeClass(vtkSmartPointer<vtkMRMLTextNode>::New());
 }
 
 //----------------------------------------------------------------------------

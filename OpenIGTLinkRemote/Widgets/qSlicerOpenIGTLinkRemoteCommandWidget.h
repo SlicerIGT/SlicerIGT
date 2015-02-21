@@ -50,7 +50,7 @@ public:
 protected slots:
 
   void OnSendCommandClicked();
-  void OnTimeout();
+  void onQueryResponseReceived();
 
   virtual void setup();
 
@@ -62,9 +62,6 @@ private:
   Q_DECLARE_PRIVATE(qSlicerOpenIGTLinkRemoteCommandWidget);
   Q_DISABLE_COPY(qSlicerOpenIGTLinkRemoteCommandWidget);
   
-  QTimer* Timer;
-  int LastCommandId;  // Id of the last command sent from this widget.
-
   vtkSlicerOpenIGTLinkRemoteLogic *CommandLogic;
 };
 

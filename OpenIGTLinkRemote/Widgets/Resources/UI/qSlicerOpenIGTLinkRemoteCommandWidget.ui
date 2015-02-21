@@ -73,13 +73,13 @@
        </widget>
       </item>
       <item>
-       <widget class="QGroupBox" name="replyGroupBox">
+       <widget class="QGroupBox" name="responseGroupBox">
         <property name="title">
-         <string>Reply received</string>
+         <string>Response received</string>
         </property>
         <layout class="QVBoxLayout" name="verticalLayout_4">
          <item>
-          <widget class="QPlainTextEdit" name="ReplyTextEdit"/>
+          <widget class="QPlainTextEdit" name="ResponseTextEdit"/>
          </item>
         </layout>
        </widget>
