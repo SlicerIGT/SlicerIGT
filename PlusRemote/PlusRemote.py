@@ -27,7 +27,6 @@ class PlusRemoteWidget(ScriptedLoadableModuleWidget):
     ScriptedLoadableModuleWidget.__init__(self, parent)
 
     self.logic = PlusRemoteLogic()
-    self.commandToMethodHashtable = {}
     self.parameterNode = None
     self.parameterNodeObserver = None
     self.connectorNode = None
@@ -497,8 +496,8 @@ class PlusRemoteWidget(ScriptedLoadableModuleWidget):
     self.configFileNameBox = qt.QLineEdit()
     transformUpdateLayout.addRow("Filename: ", self.configFileNameBox)
 
-    self.saveTransformButton = qt.QPushButton("Save configuration")
-    transformUpdateLayout.addRow(self.saveTransformButton)
+    self.saveConfigButton = qt.QPushButton("Save configuration")
+    transformUpdateLayout.addRow(self.saveConfigButton)
 
     replyUpdateCollapsibleButton = ctk.ctkCollapsibleButton()
     replyUpdateCollapsibleButton.text = "Reply"
@@ -528,7 +527,7 @@ class PlusRemoteWidget(ScriptedLoadableModuleWidget):
     #self.drawModelBox.connect('stateChanged(int)', self.drawLiveSurfaceModel)
 
     self.updateTransformButton.connect('clicked(bool)', self.onUpdateTransform)
-    self.saveTransformButton.connect('clicked(bool)', self.onSaveTransform)
+    self.saveConfigButton.connect('clicked(bool)', self.onSaveConfig)
 
     self.parameterNodeSelector.connect('currentNodeIDChanged(QString)', self.onParameterSetSelected)
     self.linkInputSelector.connect('currentNodeIDChanged(QString)', self.updateParameterNodeFromGui)
@@ -914,20 +913,20 @@ class PlusRemoteWidget(ScriptedLoadableModuleWidget):
 # Commands
 #
   def onStartRecording(self):
-    self.logic.startRecording(self.linkInputSelector.currentNode().GetID(), self.captureIDSelector.currentText, self.generateRecordingOutputFilename(), self.onGenericCommandResponseReceived)
+    self.logic.startRecording(self.linkInputSelector.currentNode().GetID(), self.captureIDSelector.currentText, self.generateRecordingOutputFilename(), self.printCommandResponse)
 
   def onStopRecording(self):
     self.logic.stopRecording(self.linkInputSelector.currentNode().GetID(), self.captureIDSelector.currentText, self.onVolumeRecorded)
 
   def onStartScoutRecording(self):
     self.lastScoutRecordingOutputFilename = self.generateScoutRecordingOutputFilename()
-    self.logic.startRecording(self.linkInputSelector.currentNode().GetID(), self.captureIDSelector.currentText, self.lastScoutRecordingOutputFilename, self.onGenericCommandResponseReceived)
+    self.logic.startRecording(self.linkInputSelector.currentNode().GetID(), self.captureIDSelector.currentText, self.lastScoutRecordingOutputFilename, self.printCommandResponse)
 
   def onStopScoutRecording(self):
     self.logic.stopRecording(self.linkInputSelector.currentNode().GetID(), self.captureIDSelector.currentText, self.onScoutVolumeRecorded)
 
   def onStartReconstruction(self):
-    self.logic.startVolumeReconstuction(self.linkInputSelector.currentNode().GetID(), self.volumeReconstructorIDSelector.currentText, self.outputSpacingValue, self.outputOriginValue, self.outputExtentValue, self.onGenericCommandResponseReceived, self.getLiveReconstructionOutputFilename(), self.liveOutputVolumeDeviceBox.text)
+    self.logic.startVolumeReconstuction(self.linkInputSelector.currentNode().GetID(), self.volumeReconstructorIDSelector.currentText, self.outputSpacingValue, self.outputOriginValue, self.outputExtentValue, self.printCommandResponse, self.getLiveReconstructionOutputFilename(), self.liveOutputVolumeDeviceBox.text)
     # Set up timer for requesting snapshot
     snapshotIntervalSec = (self.snapshotIntervalSecSpinBox.value)
     if snapshotIntervalSec > 0:
@@ -961,31 +960,28 @@ class PlusRemoteWidget(ScriptedLoadableModuleWidget):
     self.liveReconstructStatus.setToolTip("Snapshot")
 
   def onUpdateTransform(self):
-    self.logic.updateTransform(self.linkInputSelector.currentNode().GetID(), self.transformUpdateInputSelector.currentNode(), self.onGenericCommandResponseReceived)
+    self.logic.updateTransform(self.linkInputSelector.currentNode().GetID(), self.transformUpdateInputSelector.currentNode(), self.printCommandResponse)
 
-  def onSaveTransform(self):
-    self.logic.saveTransform(self.linkInputSelector.currentNode().GetID(), self.configFileNameBox.text, self.onGenericCommandResponseReceived)
+  def onSaveConfig(self):
+    self.logic.saveConfig(self.linkInputSelector.currentNode().GetID(), self.configFileNameBox.text, self.printCommandResponse)
 
 #
 # Functions associated to commands
 #
-  def onGenericCommandResponseReceived(self, commandId, responseNode):
-    if responseNode:
-      self.replyBox.clear()
-      self.replyBox.setPlainText(responseNode.GetText(0))
+  def printCommandResponse(self, command, q):
+    statusText = "Command {0} [{1}]: {2}\n".format(command.GetCommandName(), command.GetID(), command.StatusToString(command.GetStatus()))
+    if command.GetResponseMessage():
+      statusText = statusText + command.GetResponseMessage()
     else:
-      self.replyBox.setPlainText("Command timeout: {0}".format(commandId))
+      statusText = statusText + command.GetResponseText()
+    self.replyBox.setPlainText(statusText)
 
-  def onGetCaptureDeviceCommandResponseReceived(self, commandId, textNode):
-    if not textNode:
-        self.replyBox.setPlainText("GetCaptureDeviceCommand timeout: {0}".format(commandId))
-        return
+  def onGetCaptureDeviceCommandResponseReceived(self, command, q):
+    self.printCommandResponse(command, q)
+    if command.GetStatus() != command.CommandSuccess:
+      return
 
-    commandResponse=textNode.GetText(0)
-    #self.logic.discardCommand(commandId, self.linkInputSelector.currentNode().GetID())
-
-    commandResponseElement = vtk.vtkXMLUtilities.ReadElementFromString(commandResponse)
-    captureDeviceIdsListString = commandResponseElement.GetAttribute("Message")
+    captureDeviceIdsListString = command.GetResponseMessage()
     if captureDeviceIdsListString:
       captureDevicesIdsList = captureDeviceIdsListString.split(",")
     else:
@@ -995,16 +991,12 @@ class PlusRemoteWidget(ScriptedLoadableModuleWidget):
       if self.captureIDSelector.findText(captureDevicesIdsList[i]) == -1:
         self.captureIDSelector.addItem(captureDevicesIdsList[i])
 
-  def onGetVolumeReconstructorDeviceCommandResponseReceived(self, commandId, textNode):
-    if not textNode:
-        self.replyBox.setPlainText("GetVolumeReconstructorDeviceCommand timeout: {0}".format(commandId))
-        return
+  def onGetVolumeReconstructorDeviceCommandResponseReceived(self, command, q):
+    self.printCommandResponse(command, q)
+    if command.GetStatus() != command.CommandSuccess:
+      return
 
-    commandResponse=textNode.GetText(0)
-    #self.logic.discardCommand(commandId, self.linkInputSelector.currentNode().GetID())
-
-    commandResponseElement = vtk.vtkXMLUtilities.ReadElementFromString(commandResponse)
-    volumeReconstructorDeviceIdsListString = commandResponseElement.GetAttribute("Message")
+    volumeReconstructorDeviceIdsListString = command.GetResponseMessage()
     if volumeReconstructorDeviceIdsListString:
       volumeReconstructorDeviceIdsList = volumeReconstructorDeviceIdsListString.split(",")
     else:
@@ -1021,72 +1013,61 @@ class PlusRemoteWidget(ScriptedLoadableModuleWidget):
     self.recordAndReconstructStatus.setEnabled(True)
     self.liveReconstructStatus.setEnabled(True)
 
-  def onVolumeRecorded(self, commandId, textNode):
-    self.onGenericCommandResponseReceived(commandId,textNode)
+  def onVolumeRecorded(self, command, q):
+    self.printCommandResponse(command, q)
     self.offlineReconstructButton.setEnabled(True)
 
-    if not textNode:
+    if command.GetStatus() == command.CommandExpired:
       self.recordingStatus.setIcon(qt.QMessageBox.Critical)
       self.recordingStatus.setToolTip("Timeout while waiting for volume reconstruction result")
       return
 
-    commandResponse=textNode.GetText(0)
-
-    commandResponseElement = vtk.vtkXMLUtilities.ReadElementFromString(commandResponse)
-    stopRecordingMessage = commandResponseElement.GetAttribute("Message")
-    volumeToReconstructFileName = os.path.basename(stopRecordingMessage)
-    self.offlineVolumeToReconstructSelector.insertItem(0,volumeToReconstructFileName)
-    self.offlineVolumeToReconstructSelector.setCurrentIndex(0)
-
-    if commandResponseElement.GetAttribute("Status") == "SUCCESS":
-      self.recordingStatus.setIcon(qt.QMessageBox.Information)
-      self.recordingStatus.setToolTip("Recording completed, saved as " + volumeToReconstructFileName)
-    else:
+    if command.GetStatus() != command.CommandSuccess:
       self.recordingStatus.setIcon(qt.QMessageBox.Critical)
       self.recordingStatus.setToolTip(stopRecordingMessage)
+      return
 
-  def onScoutVolumeRecorded(self, commandId, textNode):
-    self.onGenericCommandResponseReceived(commandId,textNode)
+    volumeToReconstructFileName = os.path.basename(command.GetResponseMessage())
+    self.offlineVolumeToReconstructSelector.insertItem(0,volumeToReconstructFileName)
+    self.offlineVolumeToReconstructSelector.setCurrentIndex(0)
+    self.recordingStatus.setIcon(qt.QMessageBox.Information)
+    self.recordingStatus.setToolTip("Recording completed, saved as " + volumeToReconstructFileName)
+    
+  def onScoutVolumeRecorded(self, command, q):
+    self.printCommandResponse(command,q)
     self.offlineReconstructButton.setEnabled(True)
 
-    if not textNode:
+    if command.GetStatus() == command.CommandExpired:
       self.offlineReconstructStatus.setIcon(qt.QMessageBox.Critical)
       self.offlineReconstructStatus.setToolTip("Timeout while waiting for volume reconstruction result")
       return
 
-    commandResponse=textNode.GetText(0)
-    commandResponseElement = vtk.vtkXMLUtilities.ReadElementFromString(commandResponse)
-    stopRecordingMessage = commandResponseElement.GetAttribute("Message")
-    volumeToReconstructFileName = os.path.basename(stopRecordingMessage)
-
-    if commandResponseElement.GetAttribute("Status") == "SUCCESS":
+    if command.GetStatus() == command.CommandSuccess:
+      self.lastScoutRecordingOutputFilename = os.path.basename(command.GetResponseMessage())
       self.onScoutScanReconstVolume()
 
-  def onVolumeReconstructed(self, commandId, textNode):
-    self.onGenericCommandResponseReceived(commandId,textNode)
+  def onVolumeReconstructed(self, command, q):
+    self.printCommandResponse(command,q)
 
     self.offlineReconstructButton.setIcon(self.recordIcon)
     self.offlineReconstructButton.setText("Offline Reconstruction")
     self.offlineReconstructButton.setEnabled(True)
     self.offlineReconstructButton.setChecked(False)
 
-    if not textNode:
+    if command.GetStatus() == command.CommandExpired:
       # volume reconstruction command timed out
       self.offlineReconstructStatus.setIcon(qt.QMessageBox.Critical)
       self.offlineReconstructStatus.setToolTip("Timeout while waiting for volume reconstruction result")
       return
 
-    commandResponse=textNode.GetText(0)
-    commandResponseElement = vtk.vtkXMLUtilities.ReadElementFromString(commandResponse)
-    offlineReconstMessage = commandResponseElement.GetAttribute("Message")
-
-    if (commandResponseElement.GetAttribute("Status") == "SUCCESS"):
-      self.offlineReconstructStatus.setIcon(qt.QMessageBox.Information)
-      self.offlineReconstructStatus.setToolTip(commandResponseElement.GetAttribute("Message"))
-    else:
+    if command.GetStatus() != command.CommandSuccess:
       self.offlineReconstructStatus.setIcon(qt.QMessageBox.Critical)
-      self.offlineReconstructStatus.setToolTip(offlineReconstMessage)
+      self.offlineReconstructStatus.setToolTip(command.GetResponseMessage())
+      return
 
+    self.offlineReconstructStatus.setIcon(qt.QMessageBox.Information)
+    self.offlineReconstructStatus.setToolTip(command.GetResponseMessage())
+      
     if self.showOfflineReconstructionResultOnCompletionCheckBox.isChecked():
       self.showInSliceViewers(self.getOfflineVolumeRecNode(), ["Yellow", "Green"])
       applicationLogic = slicer.app.applicationLogic()
@@ -1094,31 +1075,28 @@ class PlusRemoteWidget(ScriptedLoadableModuleWidget):
 
       self.showVolumeRendering(self.getOfflineVolumeRecNode())
 
-  def onScoutVolumeReconstructed(self, commandId, textNode):
-    self.onGenericCommandResponseReceived(commandId,textNode)
+  def onScoutVolumeReconstructed(self, command, q):
+    self.printCommandResponse(command,q)
 
-    if not textNode:
+    if command.GetStatus() == command.CommandExpired:
       self.recordAndReconstructStatus.setIcon(qt.QMessageBox.Critical)
       self.recordAndReconstructStatus.setToolTip("Timeout while waiting for scout volume reconstruction result")
       return
-
-    commandResponse=textNode.GetText(0)
-    commandResponseElement = vtk.vtkXMLUtilities.ReadElementFromString(commandResponse)
-    scoutScanMessage = commandResponseElement.GetAttribute("Message")
-    scoutScanReconstructFileName = os.path.basename(scoutScanMessage)
 
     self.startStopScoutScanButton.setIcon(self.recordIcon)
     self.startStopScoutScanButton.setText("  Scout Scan\n  Start Recording")
     self.startStopScoutScanButton.setEnabled(True)
 
-    if (commandResponseElement.GetAttribute("Status") == "SUCCESS"):
-      #Create and initialize ROI after scout scan because low resolution scout scan is used to set a smaller ROI for the live high resolution reconstruction
-      self.onRoiInitialization()
-      self.recordAndReconstructStatus.setIcon(qt.QMessageBox.Information)
-      self.recordAndReconstructStatus.setToolTip("Scout scan completed, file saved as "+ scoutScanReconstructFileName)
-    else:
+    if command.GetStatus() != command.CommandSuccess:
       self.recordAndReconstructStatus.setIcon(qt.QMessageBox.Critical)
-      self.recordAndReconstructStatus.setToolTip(scoutScanMessage)
+      self.recordAndReconstructStatus.setToolTip(command.GetResponseMessage())
+      return
+
+    #Create and initialize ROI after scout scan because low resolution scout scan is used to set a smaller ROI for the live high resolution reconstruction
+    self.onRoiInitialization()
+    self.recordAndReconstructStatus.setIcon(qt.QMessageBox.Information)
+    scoutScanReconstructFileName = os.path.basename(command.GetResponseMessage())
+    self.recordAndReconstructStatus.setToolTip("Scout scan completed, file saved as "+ scoutScanReconstructFileName)
 
     if self.showScoutReconstructionResultOnCompletionCheckBox.isChecked():
       scoutScanVolumeNode = self.getScoutVolumeNode()
@@ -1142,13 +1120,13 @@ class PlusRemoteWidget(ScriptedLoadableModuleWidget):
       #3D view
       self.showVolumeRendering(scoutScanVolumeNode)
 
-  def onSnapshotAcquired(self, commandId, textNode):
+  def onSnapshotAcquired(self, command, q):
+    self.printCommandResponse(command,q)
     
     if not self.startStopLiveReconstructionButton.isChecked():
       # live volume reconstruction is not active
       return
-      
-    self.onGenericCommandResponseReceived(commandId,textNode)
+    
     if self.showLiveReconstructionResultOnCompletionCheckBox.isChecked():
       self.showInSliceViewers(self.getLiveVolumeRecNode(), ["Yellow", "Green"])
       self.showVolumeRendering(self.getLiveVolumeRecNode())
@@ -1158,26 +1136,22 @@ class PlusRemoteWidget(ScriptedLoadableModuleWidget):
     if snapshotIntervalSec > 0:
       self.snapshotTimer.start(snapshotIntervalSec*1000)
 
-  def onVolumeLiveReconstructed(self, commandId, textNode):
-    self.onGenericCommandResponseReceived(commandId,textNode)
+  def onVolumeLiveReconstructed(self, command, q):
+    self.printCommandResponse(command,q)
     
-    if not textNode:
+    if command.GetStatus() == command.CommandExpired:
       self.liveReconstructStatus.setIcon(qt.QMessageBox.Critical)
       self.liveReconstructStatus.setToolTip("Failed to stop volume reconstruction")
       return
-    
-    commandResponse=textNode.GetText(0)
-    commandResponseElement = vtk.vtkXMLUtilities.ReadElementFromString(commandResponse)
-    liveReconstructMessage = commandResponseElement.GetAttribute("Message")
-    liveReconstructVolumeFileName = os.path.basename(liveReconstructMessage)
 
-    if commandResponseElement.GetAttribute("Status") != "SUCCESS":
+    if command.GetStatus() != command.CommandSuccess:
       self.liveReconstructStatus.setIcon(qt.QMessageBox.Critical)
-      self.liveReconstructStatus.setToolTip(liveReconstructMessage)
+      self.liveReconstructStatus.setToolTip(command.GetResponseMessage())
       return
 
     # We successfully received a volume      
     self.liveReconstructStatus.setIcon(qt.QMessageBox.Information)
+    liveReconstructVolumeFileName = os.path.basename(command.GetResponseMessage())
     self.liveReconstructStatus.setToolTip("Live reconstruction completed, file saved as "+ liveReconstructVolumeFileName)
 
     if self.showLiveReconstructionResultOnCompletionCheckBox.isChecked():
@@ -1344,13 +1318,57 @@ class PlusRemoteLogic(ScriptedLoadableModuleLogic):
     # Allow having multiple parameter nodes in the scene
     self.isSingletonParameterNode = False
 
-    self.commandToMethodHashtable = {}
     self.defaultCommandTimeoutSec = 30
-    self.timerIntervalSec = 0.1
-    self.timer = qt.QTimer()
-    self.timer.timeout.connect(self.getCommandReply)
+
+    # Create commands
+    self.cmdGetCaptureDeviceIds = slicer.modulelogic.vtkSlicerOpenIGTLinkCommand()
+    self.cmdGetCaptureDeviceIds.SetCommandTimeoutSec(self.defaultCommandTimeoutSec);
+    self.cmdGetCaptureDeviceIds.SetCommandName('RequestDeviceIds')
+    self.cmdGetCaptureDeviceIds.SetCommandAttribute('DeviceType','VirtualDiscCapture')        
+    self.cmdGetReconstructorDeviceIds = slicer.modulelogic.vtkSlicerOpenIGTLinkCommand()
+    self.cmdGetReconstructorDeviceIds.SetCommandTimeoutSec(self.defaultCommandTimeoutSec);
+    self.cmdGetReconstructorDeviceIds.SetCommandName('RequestDeviceIds')
+    self.cmdGetReconstructorDeviceIds.SetCommandAttribute('DeviceType','VirtualVolumeReconstructor')
+    self.cmdStartVolumeReconstruction = slicer.modulelogic.vtkSlicerOpenIGTLinkCommand()
+    self.cmdStartVolumeReconstruction.SetCommandTimeoutSec(self.defaultCommandTimeoutSec);
+    self.cmdStartVolumeReconstruction.SetCommandName('StartVolumeReconstruction')    
+    self.cmdStopVolumeReconstruction = slicer.modulelogic.vtkSlicerOpenIGTLinkCommand()
+    self.cmdStopVolumeReconstruction.SetCommandTimeoutSec(self.defaultCommandTimeoutSec);
+    self.cmdStopVolumeReconstruction.SetCommandName('StopVolumeReconstruction')    
+    self.cmdReconstructRecorded = slicer.modulelogic.vtkSlicerOpenIGTLinkCommand()
+    self.cmdReconstructRecorded.SetCommandTimeoutSec(self.defaultCommandTimeoutSec);
+    self.cmdReconstructRecorded.SetCommandName('ReconstructVolume')
+    self.cmdStartRecording = slicer.modulelogic.vtkSlicerOpenIGTLinkCommand()
+    self.cmdStartRecording.SetCommandTimeoutSec(self.defaultCommandTimeoutSec);
+    self.cmdStartRecording.SetCommandName('StartRecording')    
+    self.cmdStopRecording = slicer.modulelogic.vtkSlicerOpenIGTLinkCommand()
+    self.cmdStopRecording.SetCommandTimeoutSec(self.defaultCommandTimeoutSec);
+    self.cmdStopRecording.SetCommandName('StopRecording')    
+    self.cmdGetVolumeReconstructionSnapshot = slicer.modulelogic.vtkSlicerOpenIGTLinkCommand()
+    self.cmdGetVolumeReconstructionSnapshot.SetCommandTimeoutSec(self.defaultCommandTimeoutSec);
+    self.cmdGetVolumeReconstructionSnapshot.SetCommandName('GetVolumeReconstructionSnapshot')    
+    self.cmdUpdateTransform = slicer.modulelogic.vtkSlicerOpenIGTLinkCommand()
+    self.cmdUpdateTransform.SetCommandTimeoutSec(self.defaultCommandTimeoutSec);
+    self.cmdUpdateTransform.SetCommandName('UpdateTransform')    
+    self.cmdSaveConfig = slicer.modulelogic.vtkSlicerOpenIGTLinkCommand()
+    self.cmdSaveConfig.SetCommandTimeoutSec(self.defaultCommandTimeoutSec);
+    self.cmdSaveConfig.SetCommandName('SaveConfig')    
+        
     pass
 
+  def __del__(self):
+    # Clean up commands
+    self.cmdGetCaptureDeviceIds.RemoveObservers(slicer.modulelogic.vtkSlicerOpenIGTLinkCommand.CommandCompletedEvent)
+    self.cmdGetReconstructorDeviceIds.RemoveObservers(slicer.modulelogic.vtkSlicerOpenIGTLinkCommand.CommandCompletedEvent)
+    self.cmdStartVolumeReconstruction.RemoveObservers(slicer.modulelogic.vtkSlicerOpenIGTLinkCommand.CommandCompletedEvent)
+    self.cmdStopVolumeReconstruction.RemoveObservers(slicer.modulelogic.vtkSlicerOpenIGTLinkCommand.CommandCompletedEvent)
+    self.cmdReconstructRecorded.RemoveObservers(slicer.modulelogic.vtkSlicerOpenIGTLinkCommand.CommandCompletedEvent)
+    self.cmdStartRecording.RemoveObservers(slicer.modulelogic.vtkSlicerOpenIGTLinkCommand.CommandCompletedEvent)
+    self.cmdStopRecording.RemoveObservers(slicer.modulelogic.vtkSlicerOpenIGTLinkCommand.CommandCompletedEvent)
+    self.cmdGetVolumeReconstructionSnapshot.RemoveObservers(slicer.modulelogic.vtkSlicerOpenIGTLinkCommand.CommandCompletedEvent)
+    self.cmdUpdateTransform.RemoveObservers(slicer.modulelogic.vtkSlicerOpenIGTLinkCommand.CommandCompletedEvent)
+    self.cmdSaveConfig.RemoveObservers(slicer.modulelogic.vtkSlicerOpenIGTLinkCommand.CommandCompletedEvent)
+    
   def setDefaultParameters(self, parameterNode):
     parameterList = {'RoiDisplay': False, 'RecordingFilename': "Recording.mha", 'RecordingFilenameCompletion': False, 'OfflineReconstructionSpacing': 3.0, 'OfflineVolumeToReconstruct': 0, 'OfflineOutputVolumeDevice': "RecVol_Reference" , 'OfflineDefaultLayout': True, 'ScoutScanSpacing': 3.0, 'ScoutScanFilename': "ScoutScanRecording.mha", 'ScoutFilenameCompletion': False, 'ScoutDefaultLayout': True, 'LiveReconstructionSpacing': 1.0, 'LiveRecOutputVolumeDevice': "liveReconstruction", 'RoiExtent1': 0.0, 'RoiExtent2': 0.0, 'RoiExtent3': 0.0, 'SnapshotsNumber': 3, 'LiveFilenameCompletion': False, 'LiveDefaultLayout': True}
     for parameter in parameterList:
@@ -1367,82 +1385,72 @@ class PlusRemoteLogic(ScriptedLoadableModuleLogic):
     # - if no extension found then append timestamp to the end
     return re.sub('(\.mh[ad]$)|$','{0}\g<0>'.format(timestamp),filename, 1, re.IGNORECASE)
     
-  def executeCommand(self, connectorNodeId, commandName, commandParameters, responseCallback):
-      commandId = slicer.modules.openigtlinkremote.logic().ExecuteCommand(connectorNodeId, commandName, commandParameters)
-      self.commandToMethodHashtable[commandId]={'responseCallback': responseCallback, 'connectorNodeId': connectorNodeId, 'remainingTime': self.defaultCommandTimeoutSec/self.timerIntervalSec}
-      if not self.timer.isActive():
-        self.timer.start(self.timerIntervalSec*1000)
+  def executeCommand(self, command, connectorNodeId, responseCallbackMethod):
+    command.RemoveObservers(slicer.modulelogic.vtkSlicerOpenIGTLinkCommand.CommandCompletedEvent)
+    command.AddObserver(slicer.modulelogic.vtkSlicerOpenIGTLinkCommand.CommandCompletedEvent, responseCallbackMethod)
+    slicer.modules.openigtlinkremote.logic().SendCommand(command, connectorNodeId)
 
-  def getCommandReply(self):
-    for commandId in self.commandToMethodHashtable.keys():
-      replyNodes = slicer.mrmlScene.GetNodesByName( "ACK_" + str(commandId) )
-      textNode = slicer.vtkMRMLAnnotationTextNode.SafeDownCast( replyNodes.GetItemAsObject(0) )
-      remainingTime = self.commandToMethodHashtable[commandId]['remainingTime']
-      remainingTime = remainingTime-1
-      if textNode or remainingTime<=0:
-        # We received a response or timed out waiting for a response
-        commandToMethodItem = self.commandToMethodHashtable.pop(commandId)
-        responseCallback = commandToMethodItem['responseCallback']
-        responseCallback(commandId, textNode)
-        connectorNodeId = commandToMethodItem['connectorNodeId']
-        self.discardCommand(commandId, connectorNodeId)
-      else:
-        self.commandToMethodHashtable[commandId]['remainingTime'] = remainingTime
-    if not self.commandToMethodHashtable:
-      self.timer.stop()
+  def getCaptureDeviceIds(self, connectorNodeId, responseCallbackMethod):
+    self.executeCommand(self.cmdGetCaptureDeviceIds, connectorNodeId, responseCallbackMethod)
 
-  def getCaptureDeviceIds(self, connectorNodeId, method):
-    parameters = "DeviceType=" + "\"" + "VirtualDiscCapture" +"\""
-    self.executeCommand(connectorNodeId,"RequestDeviceIds", parameters, method)
+  def getVolumeReconstructorDeviceIds(self, connectorNodeId, responseCallbackMethod):
+    self.executeCommand(self.cmdGetReconstructorDeviceIds, connectorNodeId, responseCallbackMethod)
 
-  def getVolumeReconstructorDeviceIds(self, connectorNodeId, method):
-    parameters = "DeviceType=" + "\"" + "VirtualVolumeReconstructor" +"\""
-    self.executeCommand(connectorNodeId, "RequestDeviceIds", parameters, method)
+  def startVolumeReconstuction(self, connectorNodeId, volumeReconstructorDeviceId, outputSpacing, outputOrigin, outputExtent, responseCallbackMethod, liveOutputVolumeFilename, liveOutputVolumeDevice):
+    self.cmdStartVolumeReconstruction.SetCommandAttribute('VolumeReconstructorDeviceId', volumeReconstructorDeviceId)
+    self.cmdStartVolumeReconstruction.SetCommandAttribute('OutputSpacing', '%f %f %f' % tuple(outputSpacing))
+    self.cmdStartVolumeReconstruction.SetCommandAttribute('OutputOrigin', '%f %f %f' % tuple(outputOrigin))
+    self.cmdStartVolumeReconstruction.SetCommandAttribute('outputExtent', '%i %i %i %i %i %i' % tuple(outputExtent))
+    self.cmdStartVolumeReconstruction.SetCommandAttribute('OutputVolFilename', liveOutputVolumeFilename)
+    self.cmdStartVolumeReconstruction.SetCommandAttribute('OutputVolDeviceName', liveOutputVolumeDevice)
+    self.executeCommand(self.cmdStartVolumeReconstruction, connectorNodeId, responseCallbackMethod)
 
-  def startVolumeReconstuction(self, connectorNodeId, volumeReconstructorDeviceId, outputSpacing, outputOrigin, outputExtent, method, liveOutputVolumeFilename, liveOutputVolumeDevice):
-    parameters = "VolumeReconstructorDeviceId=" + "\"" + volumeReconstructorDeviceId + "\"" + " OutputSpacing=" + "\"" + "%f %f %f" % tuple(outputSpacing) + "\"" + " OutputOrigin=" + "\"" + "%f %f %f" % tuple(outputOrigin) + "\"" + " OutputExtent=" + "\"" + "%i %i %i %i %i %i" % tuple(outputExtent) + "\"" + " OutputVolFilename=" + "\"" + liveOutputVolumeFilename +"\"" + " OutputVolDeviceName=" + "\"" + liveOutputVolumeDevice +"\""
-    self.executeCommand(connectorNodeId, "StartVolumeReconstruction", parameters, method)
+  def stopVolumeReconstruction(self, connectorNodeId, volumeReconstructorDeviceId, responseCallbackMethod, liveOutputVolumeFilename, liveOutputVolumeDevice):
+    self.cmdStopVolumeReconstruction.SetCommandAttribute('VolumeReconstructorDeviceId', volumeReconstructorDeviceId)
+    self.cmdStopVolumeReconstruction.SetCommandAttribute('OutputVolFilename', liveOutputVolumeFilename)
+    self.cmdStopVolumeReconstruction.SetCommandAttribute('OutputVolDeviceName', liveOutputVolumeDevice)
+    self.executeCommand(self.cmdStopVolumeReconstruction, connectorNodeId, responseCallbackMethod)
 
-  def stopVolumeReconstruction(self, connectorNodeId, volumeReconstructorDeviceId, method, liveOutputVolumeFilename, liveOutputVolumeDevice):
-    parameters = "VolumeReconstructorDeviceID=" + "\"" + volumeReconstructorDeviceId + "\"" + " OutputVolFilename=" + "\"" + liveOutputVolumeFilename +"\"" + " OutputVolDeviceName=" + "\"" + liveOutputVolumeDevice +"\""
-    self.executeCommand(connectorNodeId, "StopVolumeReconstruction", parameters, method)
+  def reconstructRecorded(self, connectorNodeId, volumeReconstructorDeviceId, inputSequenceFilename, outputSpacing, responseCallbackMethod, outputVolumeFilename, outputVolumeDevice):
+    self.cmdReconstructRecorded.SetCommandAttribute('VolumeReconstructorDeviceId', volumeReconstructorDeviceId)
+    self.cmdReconstructRecorded.SetCommandAttribute('InputSeqFilename', inputSequenceFilename)
+    self.cmdReconstructRecorded.SetCommandAttribute('OutputSpacing', '%f %f %f' % tuple(outputSpacing))
+    self.cmdReconstructRecorded.SetCommandAttribute('OutputVolFilename', outputVolumeFilename)
+    self.cmdReconstructRecorded.SetCommandAttribute('OutputVolDeviceName', outputVolumeDevice)
+    self.executeCommand(self.cmdReconstructRecorded, connectorNodeId, responseCallbackMethod)
 
-  def reconstructRecorded(self, connectorNodeId, volumeReconstructorDeviceId, inputSequenceFilename, outputSpacing, method, outputVolumeFilename, outputVolumeDevice):
-    parameters = "VolumeReconstructorDeviceId=" + "\"" + volumeReconstructorDeviceId + "\"" + " InputSeqFilename=" + "\"" + inputSequenceFilename + "\"" + " OutputSpacing=" + "\"" + "%f %f %f" % tuple(outputSpacing) + "\"" + " OutputVolFilename=" + "\"" + outputVolumeFilename +"\"" + " OutputVolDeviceName=" + "\"" + outputVolumeDevice +"\""
-    self.executeCommand(connectorNodeId, "ReconstructVolume", parameters, method)
+  def startRecording(self, connectorNodeId, captureName, fileName, responseCallbackMethod):
+    self.cmdStartRecording.SetCommandAttribute('CaptureDeviceId', captureName)
+    self.cmdStartRecording.SetCommandAttribute('OutputFilename', fileName)
+    self.executeCommand(self.cmdStartRecording, connectorNodeId, responseCallbackMethod)
 
-  def startRecording(self, connectorNodeId, captureName, fileName, method):
-    parameters = "CaptureDeviceId=" + "\"" + captureName + "\"" + " OutputFilename=" + "\"" + fileName + "\""
-    self.executeCommand(connectorNodeId, "StartRecording", parameters, method)
+  def stopRecording(self, connectorNodeId, captureName, responseCallbackMethod):
+    self.cmdStopRecording.SetCommandAttribute('CaptureDeviceId', captureName)
+    self.executeCommand(self.cmdStopRecording, connectorNodeId, responseCallbackMethod)
 
-  def stopRecording(self, connectorNodeId, captureName, method):
-    self.executeCommand(connectorNodeId, "StopRecording", "CaptureDeviceId=" + "\"" + captureName + "\"", method)
-
-  def getVolumeReconstructionSnapshot(self, connectorNodeId, volumeReconstructorDeviceId, fileName, deviceName, applyHoleFilling, method):
-    parameters = "VolumeReconstructorDeviceID=" + "\"" + volumeReconstructorDeviceId + "\"" + " OutputFilename=" + "\"" + fileName + "\""  + " OutputVolDeviceName=" + "\"" + deviceName +"\""
-    if applyHoleFilling:
-      parameters = parameters + " ApplyHoleFilling=\"TRUE\""
-    else:
-      parameters = parameters + " ApplyHoleFilling=\"FALSE\""
-    self.executeCommand(connectorNodeId, "GetVolumeReconstructionSnapshot", parameters, method)
-
-  def updateTransform(self, connectorNodeId, transformNode, method):
+  def getVolumeReconstructionSnapshot(self, connectorNodeId, volumeReconstructorDeviceId, fileName, deviceName, applyHoleFilling, responseCallbackMethod):
+    self.cmdGetVolumeReconstructionSnapshot.SetCommandAttribute('VolumeReconstructorDeviceId', volumeReconstructorDeviceId)
+    self.cmdGetVolumeReconstructionSnapshot.SetCommandAttribute('OutputVolFilename', fileName)
+    self.cmdGetVolumeReconstructionSnapshot.SetCommandAttribute('OutputVolDeviceName', outputVolumeDevice)
+    self.cmdGetVolumeReconstructionSnapshot.SetCommandAttribute('ApplyHoleFilling', 'TRUE' if applyHoleFilling else 'FALSE')
+    self.executeCommand(self.cmdGetVolumeReconstructionSnapshot, connectorNodeId, responseCallbackMethod)
+  
+  def updateTransform(self, connectorNodeId, transformNode, responseCallbackMethod):
+    # Get transform matrix as string
     transformMatrix = transformNode.GetMatrixTransformToParent()
     transformValue = ""
     for i in range(0,4):
       for j in range(0,4):
         transformValue = transformValue + str(transformMatrix.GetElement(i,j)) + " "
-    # remove last character (extra space at the end)
-    transformValue = transformValue[:-1]
-
+    transformValue = transformValue[:-1] # remove last character (extra space at the end)
+    # Get transform date as string
     transformDate = str(datetime.datetime.now())
 
-    parameters = "TransformName=" + "\"" + transformNode.GetName() + "\"" + " TransformValue=" + "\"" + transformValue + "\"" + " TransformDate=" + "\"" + transformDate + "\""
-    self.executeCommand(connectorNodeId, "UpdateTransform", parameters, method)
+    self.cmdUpdateTransform.SetCommandAttribute('TransformName', transformNode.GetName())
+    self.cmdUpdateTransform.SetCommandAttribute('TransformValue', transformValue)
+    self.cmdUpdateTransform.SetCommandAttribute('TransformDate', transformDate)
+    self.executeCommand(self.cmdUpdateTransform, connectorNodeId, responseCallbackMethod)
 
-  def saveTransform(self, connectorNodeId, filename, method):
+  def saveConfig(self, connectorNodeId, filename, method):
     parameters = "Filename=" + "\"" + filename + "\""
     self.executeCommand(connectorNodeId, "SaveConfig", parameters, method)
-
-  def discardCommand(self, commandId, connectorNodeId):
-    slicer.modules.openigtlinkremote.logic().DiscardCommand(commandId, connectorNodeId)
