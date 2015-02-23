@@ -9,6 +9,8 @@ set(${KIT}_INCLUDE_DIRECTORIES
   )
 
 set(${KIT}_SRCS
+  vtkSlicerOpenIGTLinkCommand.cxx
+  vtkSlicerOpenIGTLinkCommand.h
   vtkSlicerOpenIGTLinkRemoteLogic.cxx
   vtkSlicerOpenIGTLinkRemoteLogic.h
   )

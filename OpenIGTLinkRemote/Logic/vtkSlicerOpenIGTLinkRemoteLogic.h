@@ -28,6 +28,7 @@
 #include <cstdlib>
 
 class vtkMRMLIGTLQueryNode;
+class vtkSlicerOpenIGTLinkCommand;
 class vtkSlicerOpenIGTLinkIFLogic;
 
 /// \ingroup Slicer_QtModules_ExtensionTemplate
@@ -35,50 +36,34 @@ class VTK_SLICER_OPENIGTLINKREMOTE_MODULE_LOGIC_EXPORT vtkSlicerOpenIGTLinkRemot
   public vtkSlicerModuleLogic
 {
 public:
-  enum COMMAND_RESULT
-  {
-    COMMAND_SUCCESS,
-    COMMAND_FAIL,
-    COMMAND_WAITING
-  };
-  
   static vtkSlicerOpenIGTLinkRemoteLogic *New();
   vtkTypeMacro(vtkSlicerOpenIGTLinkRemoteLogic, vtkSlicerModuleLogic);
   void PrintSelf(ostream& os, vtkIndent indent);
   
   void SetIFLogic( vtkSlicerOpenIGTLinkIFLogic* ifLogic );
-  
-  /// Creates a command query node and corresponding response node.
-  /// It is recommended to reuse the same query node for multiple commands
-  /// to avoid the overhead of creating and deleting nodes in the scene at each
-  /// command execution.
-  vtkMRMLIGTLQueryNode* CreateCommandQueryNode();
-  
-  /// Deletes a command query node and corresponding response node
-  void DeleteCommandQueryNode(vtkMRMLIGTLQueryNode* commandQueryNode);
 
-  /// Sends a command defined by name and set of attributes
-  /// @param commandQueryNode Query node that can be used to monitor the status of the command and retrieve the command response.
-  /// @param connectorNodeId Identifies the IGTL connector node that will send this command message.
-  /// @param commandName Will translate to Name parameter in the Command element (root) of the command message XML text.
-  /// @param attributes A string in name1="value1" name2="value2" ... format. It will be placed in the Command XML element.
-  /// @returns true on success
-  bool SendCommand(vtkMRMLIGTLQueryNode* commandQueryNode, const char* connectorNodeId, const char* commandName, const char* attributes);
-  
-  /// Sends a command defined by an XML string
-  /// @param commandQueryNode Query node that can be used to monitor the status of the command and retrieve the command response.
-  /// @param connectorNodeId Identifies the IGTL connector node that will send the command message to the server.
-  /// @param strCommand XML string that will be sent in the command IGTL message.
-  /// @returns true on success
-  bool SendCommandXML(vtkMRMLIGTLQueryNode* commandQueryNode, const char* connectorNodeId, const char* commandXml);
+  /// Send an OpenIGTLink command
+  /// OpenIGTLink STRING command query nodes are automatically created and associated
+  /// with the vtkSlicerOpenIGTLinkCommand. If the query node is responded then
+  /// the vtkSlicerOpenIGTLinkCommand is updated with the response.
+  /// For performance improvement reason, the query nodes are not removed from the scene
+  /// but reused for sending the next command. The query nodes are invisible and not saved
+  /// with the scene.
+  /// Example usage from Python:
+  ///     cmd = slicer.modulelogic.vtkSlicerOpenIGTLinkCommand()
+  ///     cmd.SetCommandName('RequestChannelIds')
+  ///     slicer.modules.openigtlinkremote.logic().SendCommand(cmd, 'vtkMRMLIGTLConnectorNode1')
+  ///   To get notification about command completion run these before SendCommand:
+  ///     def notificationMethod(command,q):
+  ///       print "Command completed: ", command.StatusToString(command.GetStatus())
+  ///     cmd.AddObserver(slicer.modulelogic.vtkSlicerOpenIGTLinkCommand.CommandCompletedEvent, notificationMethod)
+  bool SendCommand(vtkSlicerOpenIGTLinkCommand* command, const char* connectorNodeId);
 
-  /// Retrieves command response
-  COMMAND_RESULT GetCommandResponse(vtkMRMLIGTLQueryNode* commandQueryNode, std::string &message, std::string &attributes);
+  /// Cancel a command: removes from the OpenIGTLink connector's query queue, removes the
+  /// association with the query node (so that it is reusable for sending another command),
+  /// and sets the command state to cancelled.
+  bool CancelCommand(vtkSlicerOpenIGTLinkCommand* command);
 
-  /// Cancels command (removes command from the query queue of the association connector).
-  /// If command response arrives after the command is cancelled the query node will ignore it.
-  void CancelCommand(vtkMRMLIGTLQueryNode* commandQueryNode);
-  
 protected:
   vtkSlicerOpenIGTLinkRemoteLogic();
   virtual ~vtkSlicerOpenIGTLinkRemoteLogic();
@@ -89,6 +74,22 @@ protected:
   virtual void UpdateFromMRMLScene();
   virtual void OnMRMLSceneNodeAdded(vtkMRMLNode* node);
   virtual void OnMRMLSceneNodeRemoved(vtkMRMLNode* node);
+
+  /// Receives all the events fired by the nodes.
+  virtual void ProcessMRMLNodesEvents(vtkObject* caller, unsigned long event, void * callData);
+
+  vtkMRMLIGTLQueryNode* GetCommandQueryNode(vtkSlicerOpenIGTLinkCommand* command);
+  void ReleaseCommandQueryNode(vtkMRMLIGTLQueryNode* commandQueryNode);
+
+  /// Creates a command query node and corresponding response node.
+  /// It is recommended to reuse the same query node for multiple commands
+  /// to avoid the overhead of creating and deleting nodes in the scene at each
+  /// command execution.
+  vtkMRMLIGTLQueryNode* CreateCommandQueryNode();
+  
+  /// Deletes a command query node and corresponding response node
+  void DeleteCommandQueryNode(vtkMRMLIGTLQueryNode* commandQueryNode);
+
 private:
 
   vtkSlicerOpenIGTLinkRemoteLogic(const vtkSlicerOpenIGTLinkRemoteLogic&); // Not implemented

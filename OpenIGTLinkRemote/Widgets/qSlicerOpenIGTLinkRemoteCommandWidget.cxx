@@ -10,8 +10,8 @@
 #include "ui_qSlicerOpenIGTLinkRemoteCommandWidget.h"
 
 // Other includes
+#include "vtkSlicerOpenIGTLinkCommand.h"
 #include "vtkSlicerOpenIGTLinkRemoteLogic.h"
-#include "vtkMRMLIGTLQueryNode.h"
 
 #include "vtkMRMLNode.h"
 
@@ -30,7 +30,7 @@ public:
   
   vtkSlicerOpenIGTLinkRemoteLogic * logic();
 
-  vtkWeakPointer<vtkMRMLIGTLQueryNode> commandQueryNode;
+  vtkSmartPointer<vtkSlicerOpenIGTLinkCommand> command;
 };
 
 
@@ -58,6 +58,7 @@ void qSlicerOpenIGTLinkRemoteCommandWidget::setup()
   d->setupUi(this);
 
   connect( d->SendCommandButton, SIGNAL( clicked() ), this, SLOT( OnSendCommandClicked() ) );
+  qvtkConnect(d->command, vtkSlicerOpenIGTLinkCommand::CommandCompletedEvent, this, SLOT(onQueryResponseReceived()));
 }
 
 
@@ -71,7 +72,7 @@ qSlicerOpenIGTLinkRemoteCommandWidget::qSlicerOpenIGTLinkRemoteCommandWidget( QW
 {
   Q_D(qSlicerOpenIGTLinkRemoteCommandWidget);
 
-  d->commandQueryNode = NULL;
+  d->command = vtkSmartPointer<vtkSlicerOpenIGTLinkCommand>::New();
   this->setup();
 }
 
@@ -79,6 +80,7 @@ qSlicerOpenIGTLinkRemoteCommandWidget::qSlicerOpenIGTLinkRemoteCommandWidget( QW
 qSlicerOpenIGTLinkRemoteCommandWidget::~qSlicerOpenIGTLinkRemoteCommandWidget()
 {
   Q_D(qSlicerOpenIGTLinkRemoteCommandWidget);
+  qvtkDisconnect(d->command, vtkSlicerOpenIGTLinkCommand::CommandCompletedEvent, this, SLOT(onQueryResponseReceived()));
   this->setMRMLScene(NULL);
   if ( this->CommandLogic != NULL )
   {
@@ -107,10 +109,17 @@ void qSlicerOpenIGTLinkRemoteCommandWidget::OnSendCommandClicked()
   }
   
   // Logic sends command message.
-  d->logic()->SendCommandXML( d->commandQueryNode, connectorNode->GetID(), d->CommandTextEdit->toPlainText().toStdString().c_str());
+  if (d->command->SetCommandText(d->CommandTextEdit->toPlainText().toStdString().c_str()))
+  {
+    d->command->SetCommandTimeoutSec(30);
+    d->logic()->SendCommand( d->command, connectorNode->GetID());
+    onQueryResponseReceived();
+  }
+  else
+  {
+    d->ResponseTextEdit->setPlainText( "Command cannot be sent: XML parsing failed" );
+  }
   
-  //d->CommandTextEdit->setPlainText( "" );
-  onQueryResponseReceived();
 }
 
 //------------------------------------------------------------------------------
@@ -127,22 +136,26 @@ void qSlicerOpenIGTLinkRemoteCommandWidget::onQueryResponseReceived()
   
   std::string message;
   std::string parameters;
-  int status = d->logic()->GetCommandResponse( d->commandQueryNode, message, parameters );  
+  int status = d->command->GetStatus();
 
-  QString responseGroupBoxTitle="Response received ("+QString(d->commandQueryNode->GetIGTLDeviceName())+")";
+  QString responseGroupBoxTitle="Response received ("+QString(d->command->GetID())+")";
   d->responseGroupBox->setTitle(responseGroupBoxTitle);
-  std::string displayedText=message;
-  if (!parameters.empty())
+  std::string displayedText = d->command->GetResponseMessage() ? d->command->GetResponseMessage() : "";
+  if (d->command->GetResponseXML()==NULL)
   {
-    displayedText+=" ("+parameters+")";
-  }    
-  if ( status == vtkSlicerOpenIGTLinkRemoteLogic::COMMAND_SUCCESS )
+    displayedText = d->command->GetResponseText() ? d->command->GetResponseText() : "";
+  }
+  if ( status == vtkSlicerOpenIGTLinkCommand::CommandSuccess)
   {
     d->ResponseTextEdit->setPlainText( QString( displayedText.c_str() ) );
   }
-  else if ( status == vtkSlicerOpenIGTLinkRemoteLogic::COMMAND_WAITING )
+  else if ( status == vtkSlicerOpenIGTLinkCommand::CommandWaiting )
   {
     d->ResponseTextEdit->setPlainText( "Waiting for response..." );
+  }
+  else if ( status == vtkSlicerOpenIGTLinkCommand::CommandExpired )
+  {
+    d->ResponseTextEdit->setPlainText( "Command timed out" );
   }
   else 
   {
@@ -154,19 +167,7 @@ void qSlicerOpenIGTLinkRemoteCommandWidget::onQueryResponseReceived()
 void qSlicerOpenIGTLinkRemoteCommandWidget::setMRMLScene(vtkMRMLScene *newScene)
 {
   Q_D(qSlicerOpenIGTLinkRemoteCommandWidget);
-  
-  if (this->mrmlScene() && this->mrmlScene() != newScene)
-  {
-    qvtkDisconnect(d->commandQueryNode, vtkMRMLIGTLQueryNode::ResponseEvent, this, SLOT(onQueryResponseReceived()));
-    d->logic()->DeleteCommandQueryNode(d->commandQueryNode);
-    d->commandQueryNode = NULL;
-  }
-  if (newScene)
-  {
-    d->commandQueryNode = d->logic()->CreateCommandQueryNode();
-    qvtkConnect(d->commandQueryNode, vtkMRMLIGTLQueryNode::ResponseEvent, this, SLOT(onQueryResponseReceived()));
-  }
-  
+
   if ( this->CommandLogic->GetMRMLScene() != newScene )
   {
     qWarning( "Incosistent MRML scene in OpenIGTLinkRemote logic" );
