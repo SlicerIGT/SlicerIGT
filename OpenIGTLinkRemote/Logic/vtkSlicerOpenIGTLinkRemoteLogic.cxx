@@ -302,31 +302,54 @@ void vtkSlicerOpenIGTLinkRemoteLogic::ProcessMRMLNodesEvents(vtkObject* caller, 
 {
   if (event==vtkMRMLIGTLQueryNode::ResponseEvent)
   {
+    // We obtain command and query node before making any change to the command object
+    // because the query node, command object, and the command queue may change  in response
+    // to command object changes (e.g., a module may poll the status of a command
+    // and submit new commands when it detects that a command is completed)
+    vtkSmartPointer<vtkMRMLIGTLQueryNode> commandQueryNode;
+    vtkSmartPointer<vtkSlicerOpenIGTLinkCommand> command;
     for (std::vector<vtkSlicerOpenIGTLinkRemoteLogic::vtkInternal::CommandInfo>::iterator it=this->Internal->Commands.begin();
       it!=this->Internal->Commands.end(); ++it)
     {
       if (it->CommandQueryNode.GetPointer()==caller)
       {
-        if (it->CommandQueryNode->GetQueryStatus()==vtkMRMLIGTLQueryNode::STATUS_EXPIRED)
-        {
-          it->Command->SetStatus(vtkSlicerOpenIGTLinkCommand::CommandExpired);
-        }
-        else
-        {
-          vtkMRMLTextNode* responseNode = vtkMRMLTextNode::SafeDownCast(it->CommandQueryNode->GetResponseDataNode());
-          if (responseNode)
-          {
-            it->Command->SetResponseText(responseNode->GetText()); // this sets status, too
-          }
-          else
-          {
-            it->Command->SetStatus(vtkSlicerOpenIGTLinkCommand::CommandFail);
-          }
-        }
-        it->Command->InvokeEvent(vtkSlicerOpenIGTLinkCommand::CommandCompletedEvent, it->CommandQueryNode);
-        ReleaseCommandQueryNode(it->CommandQueryNode);
-        return;
+        // found the command
+        commandQueryNode = it->CommandQueryNode;
+        command = it->Command;
+        break;
       }
     }
+    if (commandQueryNode.GetPointer()==NULL || command.GetPointer()==NULL)
+    {
+      // command not found
+      vtkErrorMacro("vtkSlicerOpenIGTLinkRemoteLogic::ProcessMRMLNodesEvents error: vtkMRMLIGTLQueryNode::ResponseEvent received for an invalid command");
+      return;
+    }
+    // Update the command node with the results in the query node
+    ReleaseCommandQueryNode(commandQueryNode);
+    if (commandQueryNode->GetQueryStatus()==vtkMRMLIGTLQueryNode::STATUS_EXPIRED)
+    {
+      command->SetStatus(vtkSlicerOpenIGTLinkCommand::CommandExpired);
+    }
+    else
+    {
+      vtkMRMLTextNode* responseNode = vtkMRMLTextNode::SafeDownCast(commandQueryNode->GetResponseDataNode());
+      if (responseNode)
+      {
+        // this sets status, too; because the success code is specified in the response text
+        command->SetResponseText(responseNode->GetText());
+      }
+      else
+      {
+        command->SetStatus(vtkSlicerOpenIGTLinkCommand::CommandFail);
+      }
+    }
+    command->InvokeEvent(vtkSlicerOpenIGTLinkCommand::CommandCompletedEvent, commandQueryNode);
+    // We must return and do nothing else after InvokeEvent because the notified modules
+    // might have changed the command list.
+    return;
   }
+
+  // By default let the parent class to handle events
+  this->Superclass::ProcessMRMLNodesEvents(caller, event, callData);
 }

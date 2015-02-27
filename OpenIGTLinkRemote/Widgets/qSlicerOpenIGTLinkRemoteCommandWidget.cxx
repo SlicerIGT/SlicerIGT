@@ -111,7 +111,6 @@ void qSlicerOpenIGTLinkRemoteCommandWidget::OnSendCommandClicked()
   // Logic sends command message.
   if (d->command->SetCommandText(d->CommandTextEdit->toPlainText().toStdString().c_str()))
   {
-    d->command->SetCommandTimeoutSec(30);
     d->logic()->SendCommand( d->command, connectorNode->GetID());
     onQueryResponseReceived();
   }

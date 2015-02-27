@@ -49,6 +49,9 @@ public:
   /// For performance improvement reason, the query nodes are not removed from the scene
   /// but reused for sending the next command. The query nodes are invisible and not saved
   /// with the scene.
+  /// If the command is already in progress then the moethod returns with an error (the command
+  /// that was already in progress is not changed).
+  ///
   /// Example usage from Python:
   ///     cmd = slicer.modulelogic.vtkSlicerOpenIGTLinkCommand()
   ///     cmd.SetCommandName('RequestChannelIds')
