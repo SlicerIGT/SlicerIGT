@@ -19,7 +19,7 @@ set(${KIT}_SRCS
   )
 
 set(${KIT}_MOC_SRCS
-  qMRML${MODULE_NAME}Toolbar.h
+  qMRML${MODULE_NAME}ToolBar.h
   )
 
 set(${KIT}_TARGET_LIBRARIES
