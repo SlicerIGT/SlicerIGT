@@ -35,6 +35,13 @@ set( SlicerIGT_Modules
   VolumeResliceDriver
 )
 
+# Specify which modules has to be downloaded from a branch (all the others are downloaded from the master)
+set (SLICERIGT_REPOSITORY_BRANCH "4.4")
+set( SlicerIGT_Modules_FROM_BRANCH
+  OpenIGTLinkRemote
+  PlusRemote
+)
+
 if( SLICERIGT_ENABLE_EXPERIMENTAL_MODULES )
   set( SlicerIGT_Modules
     ${SlicerIGT_Modules}
@@ -49,7 +56,14 @@ mark_as_advanced(${EXTENSION_NAME}_SUPERBUILD)
 # Ensure that the modules' repositories are correctly set
 foreach( proj ${SlicerIGT_Modules} )
   set( SLICERIGT_REPOSITORY_URL_${proj} "https://github.com/SlicerIGT/${proj}.git" CACHE STRING "Set the ${proj} repository" )
-  set( SLICERIGT_REPOSITORY_TAG_${proj} "" CACHE STRING "Set the ${proj} repository tag" )
+  # Determine if module has to be loaded form master or from a specific branch
+  list(FIND SlicerIGT_Modules_FROM_BRANCH ${proj} _module_from_branch)
+  if(_module_from_branch EQUAL -1)
+    set( branch "master" )
+  else()
+    set( branch "${SLICERIGT_REPOSITORY_BRANCH}" )
+  endif()  
+  set( SLICERIGT_REPOSITORY_TAG_${proj} "${branch}" CACHE STRING "Set the ${proj} repository tag" FORCE)
 endforeach( proj )
 
 if(${EXTENSION_NAME}_SUPERBUILD)
