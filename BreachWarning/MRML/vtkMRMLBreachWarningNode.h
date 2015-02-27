@@ -20,6 +20,7 @@
 #include <utility>
 #include <vector>
 
+#include "vtkCommand.h"
 #include "vtkMRMLNode.h"
 #include "vtkMRMLScene.h"
 #include "vtkObject.h"
@@ -39,6 +40,12 @@ vtkMRMLBreachWarningNode
 : public vtkMRMLNode
 {
 public:
+
+  enum Events
+  {
+    // vtkCommand::UserEvent + 555 is just a random value that is very unlikely to be used for anything else in this class
+    InputDataModifiedEvent = vtkCommand::UserEvent + 555
+  };
   
   vtkTypeMacro( vtkMRMLBreachWarningNode, vtkMRMLNode );
   
@@ -81,7 +88,7 @@ public:
   // Watched model defines the risk area that needs to be avoided.
 
   vtkMRMLModelNode* GetWatchedModelNode();
-  void SetWatchedModelNodeID( const char* modelId );
+  void SetAndObserveWatchedModelNodeID( const char* modelId );
   
 
   // Tool transform is interpreted as ToolTip-to-RAS. The origin of ToolTip 

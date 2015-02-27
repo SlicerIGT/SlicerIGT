@@ -139,8 +139,8 @@ vtkSlicerBreachWarningLogic
     return;
   }
   
-  vtkSmartPointer< vtkSelectEnclosedPoints > EnclosedFilter = vtkSmartPointer< vtkSelectEnclosedPoints >::New();
-  vtkImplicitPolyDataDistance *implicitDistanceFilter = vtkImplicitPolyDataDistance::New();
+  vtkSmartPointer< vtkSelectEnclosedPoints > enclosedFilter = vtkSmartPointer< vtkSelectEnclosedPoints >::New();
+  vtkSmartPointer< vtkImplicitPolyDataDistance > implicitDistanceFilter = vtkSmartPointer< vtkImplicitPolyDataDistance >::New();
 
   // Transform the body poly data if there is a parent transform.
 
@@ -159,17 +159,18 @@ vtkSlicerBreachWarningLogic
     bodyToRasFilter->SetTransform( bodyToRasTransform );
     bodyToRasFilter->Update();
 
-    EnclosedFilter->Initialize( bodyToRasFilter->GetOutput() );
-
-    implicitDistanceFilter->SetInput( bodyToRasFilter->GetOutput() );
+    enclosedFilter->Initialize( bodyToRasFilter->GetOutput() ); // expensive: builds a locator
+    implicitDistanceFilter->SetInput( bodyToRasFilter->GetOutput() ); // expensive: builds a locator
   }
   else
   {
-    EnclosedFilter->Initialize( body );
-
-    implicitDistanceFilter->SetInput( body );
-
+    enclosedFilter->Initialize( body ); // expensive: builds a locator
+    implicitDistanceFilter->SetInput( body ); // expensive: builds a locator
   }
+
+  // Note: Performance can be improved by reusing the same locator in both enclosedFilter and implicitDistanceFilter.
+  // EnclosedFilter may not be necessary at all, because the implicitDistanceFilter returns a signed distance (negative if inside)
+  // Even more performance improvement can be reached by keeping the filters in memory for all the observed nodes.
   
   vtkSmartPointer< vtkMatrix4x4 > ToolToRASMatrix = vtkSmartPointer< vtkMatrix4x4 >::New();
   toolToRasNode->GetMatrixTransformToWorld( ToolToRASMatrix );
@@ -179,7 +180,7 @@ vtkSlicerBreachWarningLogic
 
   ToolToRASMatrix->MultiplyPoint( Origin, P0 );
   
-  int inside = EnclosedFilter->IsInsideSurface( P0[ 0 ], P0[ 1 ], P0[ 2 ] );
+  int inside = enclosedFilter->IsInsideSurface( P0[ 0 ], P0[ 1 ], P0[ 2 ] );
 
   this->LastToolState = this->CurrentToolState;
   
@@ -193,8 +194,7 @@ vtkSlicerBreachWarningLogic
   }
 
   bwNode->SetClosestDistanceToModelFromToolTransform(implicitDistanceFilter->EvaluateFunction( P0 ));
-  vtkWarningMacro("Closes Distance to model from transform "<< bwNode->GetClosestDistanceToModelFromToolTransform());
-  implicitDistanceFilter->Delete();
+  //vtkWarningMacro("Closest Distance to model from transform "<< bwNode->GetClosestDistanceToModelFromToolTransform());
 }
 
 
@@ -278,7 +278,10 @@ vtkSlicerBreachWarningLogic
   {
     vtkDebugMacro( "OnMRMLSceneNodeAdded: Module node added." );
     vtkUnObserveMRMLNodeMacro( node ); // Remove previous observers.
-    vtkObserveMRMLNodeMacro( node );
+    vtkNew<vtkIntArray> events;
+    events->InsertNextValue( vtkCommand::ModifiedEvent );
+    events->InsertNextValue( vtkMRMLBreachWarningNode::InputDataModifiedEvent );
+    vtkObserveMRMLNodeEventsMacro( node, events.GetPointer() );
   }
 }
 
@@ -331,7 +334,7 @@ vtkSlicerBreachWarningLogic
     moduleNode->SetOriginalColor( originalColor[ 0 ], originalColor[ 1 ], originalColor[ 2 ], 1.0 );
   }
 
-  moduleNode->SetWatchedModelNodeID( newModel->GetID() );
+  moduleNode->SetAndObserveWatchedModelNodeID( newModel->GetID() );
 
   if(this->CurrentToolState == INSIDE /*moduleNode->GetToolInsideModel()*/ &&   previousModel!= NULL)
   {
@@ -440,11 +443,16 @@ vtkSlicerBreachWarningLogic
     return;
   }
   
-  this->UpdateToolState( bwNode );
-  this->UpdateModelColor( bwNode );
-  if(PlayWarningSound==1)
+  if (event==vtkMRMLBreachWarningNode::InputDataModifiedEvent)
   {
-    this->PlaySound();
+    // only recompute output if the input is changed
+    // (for example we do not recompute the distance if the computed distance is changed)
+    this->UpdateToolState( bwNode );
+    this->UpdateModelColor( bwNode );
+    if(PlayWarningSound==1)
+    {
+      this->PlaySound();
+    }
   }
 }
 

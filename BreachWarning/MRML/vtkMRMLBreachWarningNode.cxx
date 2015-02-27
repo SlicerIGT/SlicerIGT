@@ -47,8 +47,13 @@ vtkMRMLBreachWarningNode
   this->HideFromEditorsOff();
   this->SetSaveWithScene( true );
   
-  this->AddNodeReferenceRole( MODEL_ROLE );
-  this->AddNodeReferenceRole( TOOL_ROLE );
+  vtkNew<vtkIntArray> events;
+  events->InsertNextValue( vtkCommand::ModifiedEvent );
+  events->InsertNextValue( vtkMRMLTransformableNode::TransformModifiedEvent );
+
+  this->AddNodeReferenceRole( MODEL_ROLE, NULL, events.GetPointer() );
+  this->AddNodeReferenceRole( TOOL_ROLE, NULL, events.GetPointer() );
+
   this->DisplayWarningColor=1;
   for ( int i = 0; i < 4; ++ i )
   {
@@ -320,25 +325,14 @@ vtkMRMLBreachWarningNode
 
 void
 vtkMRMLBreachWarningNode
-::SetWatchedModelNodeID( const char* modelId )
+::SetAndObserveWatchedModelNodeID( const char* modelId )
 {
-  vtkMRMLNode* node = this->GetScene()->GetNodeByID( modelId );
-  if ( node == NULL )
-  {
-    this->SetNodeReferenceID( "", modelId );
-    return;
-  }
-  
-  vtkMRMLModelNode* modelNode = vtkMRMLModelNode::SafeDownCast( node );
-  if ( modelNode == NULL )
-  {
-    this->SetNodeReferenceID( "", modelId );
-    return;
-  }
-  
-  this->SetNodeReferenceID( MODEL_ROLE, modelId );
-}
-  
+  vtkNew<vtkIntArray> events;
+  events->InsertNextValue( vtkCommand::ModifiedEvent );
+  events->InsertNextValue( vtkMRMLLinearTransformNode::TransformModifiedEvent );
+  this->SetAndObserveNodeReferenceID( MODEL_ROLE, modelId, events.GetPointer() );
+  this->InvokeEvent(InputDataModifiedEvent); // This will tell the logic to update
+}  
 
 
 vtkMRMLLinearTransformNode*
@@ -359,6 +353,7 @@ vtkMRMLBreachWarningNode
   events->InsertNextValue( vtkCommand::ModifiedEvent );
   events->InsertNextValue( vtkMRMLLinearTransformNode::TransformModifiedEvent );
   this->SetAndObserveNodeReferenceID( TOOL_ROLE, nodeId, events.GetPointer() );
+  this->InvokeEvent(InputDataModifiedEvent); // This will tell the logic to update
 }
 
 
@@ -370,9 +365,12 @@ vtkMRMLBreachWarningNode
   vtkMRMLNode* callerNode = vtkMRMLNode::SafeDownCast( caller );
   if ( callerNode == NULL ) return;
 
-  const char* ObservedTransformNodeId = this->GetToolTransformNode()->GetID();
-  if ( strcmp( ObservedTransformNodeId, callerNode->GetID() ) == 0 )
+  if (this->GetToolTransformNode() && this->GetToolTransformNode()==caller)
   {
-    this->Modified(); // This will tell the logic to update
+    this->InvokeEvent(InputDataModifiedEvent); // This will tell the logic to update
+  }
+  else if (this->GetWatchedModelNode() && this->GetWatchedModelNode()==caller)
+  {
+    this->InvokeEvent(InputDataModifiedEvent); // This will tell the logic to update
   }
 }
