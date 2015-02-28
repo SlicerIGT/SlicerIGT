@@ -7,7 +7,7 @@
 #include "vtkMRMLNode.h"
 
 #include "qMRMLWatchdogToolBar.h"
-#include "QMainWindow.h"
+#include <QMainWindow>
 #include <QMenu>
 #include "qSlicerApplication.h"
 

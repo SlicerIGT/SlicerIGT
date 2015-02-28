@@ -1,7 +1,7 @@
 <!DOCTYPE RCC><RCC version="1.0">
   <qresource>
     <file>Icons/Watchdog.png</file>
-    <file>Icons/Up.png</file>
-    <file>Icons/Down.png</file>
+    <file>Icons/up.png</file>
+    <file>Icons/down.png</file>
   </qresource>
 </RCC>
