@@ -1451,6 +1451,6 @@ class PlusRemoteLogic(ScriptedLoadableModuleLogic):
     self.cmdUpdateTransform.SetCommandAttribute('TransformDate', transformDate)
     self.executeCommand(self.cmdUpdateTransform, connectorNodeId, responseCallbackMethod)
 
-  def saveConfig(self, connectorNodeId, filename, method):
-    parameters = "Filename=" + "\"" + filename + "\""
-    self.executeCommand(connectorNodeId, "SaveConfig", parameters, method)
+  def saveConfig(self, connectorNodeId, filename, responseCallbackMethod):
+    self.cmdSaveConfig.SetCommandAttribute('Filename', filename)
+    self.executeCommand(self.cmdSaveConfig, connectorNodeId, responseCallbackMethod)
