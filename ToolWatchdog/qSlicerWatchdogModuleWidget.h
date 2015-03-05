@@ -89,8 +89,12 @@ protected slots:
 protected:
   QScopedPointer<qSlicerWatchdogModuleWidgetPrivate> d_ptr;
 
+
+  void InitializeToolbar(vtkMRMLWatchdogNode* watchdogNodeAdded );
+  void RemoveToolbar();
+
   /// Updates all the active toolbars accordingly to their respective watchdog nodes states
-  //void updateToolbars();
+  void updateToolbars();
   /// Updates the current watchdog node table
   void updateTable();
   /// Connects the gui signals
