@@ -30,7 +30,7 @@
 // BreachWarning includes
 #include "vtkSlicerBreachWarningModuleMRMLExport.h"
 
-class vtkMRMLLinearTransformNode;
+class vtkMRMLTransformNode;
 class vtkMRMLModelNode;
 
 
@@ -71,46 +71,55 @@ protected:
  
   
 public:
-    
-  vtkGetMacro( ToolInsideModel, bool );
-  vtkGetMacro( ClosestDistanceToModelFromToolTransform, double );
-  vtkSetMacro( ClosestDistanceToModelFromToolTransform, double );
 
-  void SetWarningColor( double r, double g, double b, double a );
-  double GetWarningColorComponent( int c );
-  
-  void SetOriginalColor( double r, double g, double b, double a );
-  double GetOriginalColorComponent( int c );
+  vtkGetMacro( ClosestDistanceToModelFromToolTip, double );
+  vtkSetMacro( ClosestDistanceToModelFromToolTip, double );
+  bool IsToolTipInsideModel();
 
-  void SetDisplayWarningColor(int displayWarningColor );
-  int GetDisplayWarningColor();
+  /// Indicates if the warning sound is to be played.
+  /// False by default.
+  /// \sa SetPlayWarningSound(), GetPlayWarningSound(), PlayWarningSoundOn(), PlayWarningSoundOff()
+  vtkGetMacro( PlayWarningSound, bool );
+  vtkSetMacro( PlayWarningSound, bool );  
+  vtkBooleanMacro( PlayWarningSound, bool );
+
+  /// Indicates if color of the watched model should be changed.
+  /// False by default.
+  /// \sa SetPlayWarningSound(), GetPlayWarningSound(), PlayWarningSoundOn(), PlayWarningSoundOff()
+  vtkGetMacro( DisplayWarningColor, bool );
+  vtkSetMacro( DisplayWarningColor, bool );  
+  vtkBooleanMacro( DisplayWarningColor, bool );
+
+  vtkSetVector3Macro(WarningColor, double);
+  vtkGetVector3Macro(WarningColor, double);
+
+  vtkSetVector3Macro(OriginalColor, double);
+  vtkGetVector3Macro(OriginalColor, double);
+
 
   // Watched model defines the risk area that needs to be avoided.
 
   vtkMRMLModelNode* GetWatchedModelNode();
-  void SetAndObserveWatchedModelNodeID( const char* modelId );
-  
+  void SetAndObserveWatchedModelNodeID( const char* modelId );  
 
-  // Tool transform is interpreted as ToolTip-to-RAS. The origin of ToolTip 
+  // Tool transform is interpreted as ToolTipToRas. The origin of ToolTip 
   // coordinate system is the tip of the surgical tool that needs to avoid the
   // risk area.
-
-  vtkMRMLLinearTransformNode* GetToolTransformNode();
+  vtkMRMLTransformNode* GetToolTransformNode();
   void SetAndObserveToolTransformNodeId( const char* nodeId );
-
   
   void ProcessMRMLEvents( vtkObject *caller, unsigned long event, void *callData );
 
 private:
 
-  double WarningColor[ 4 ];
-  double OriginalColor[ 4 ];
-  bool ToolInsideModel;
-  int DisplayWarningColor;
+  double WarningColor[3];
+  double OriginalColor[3];
+  bool DisplayWarningColor;
+  bool PlayWarningSound;
   // It is the closest distance to the model from the tool transform. If the distance is negative
   // the transform is inside the model.
-  double ClosestDistanceToModelFromToolTransform;
+  double ClosestDistanceToModelFromToolTip;
 
-};  
+};
 
 #endif

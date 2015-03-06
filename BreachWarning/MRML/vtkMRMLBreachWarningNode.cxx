@@ -4,15 +4,11 @@
 
 // Other MRML includes
 #include "vtkMRMLDisplayNode.h"
-#include "vtkMRMLLinearTransformNode.h"
 #include "vtkMRMLModelNode.h"
 #include "vtkMRMLNode.h"
 #include "vtkMRMLTransformNode.h"
 
 // VTK includes
-#include <vtkDoubleArray.h>
-#include <vtkMath.h>
-#include <vtkSmartPointer.h>
 #include <vtkNew.h>
 #include <vtkIntArray.h>
 #include <vtkCommand.h>
@@ -21,25 +17,11 @@
 #include <sstream>
 
 // Constants
-static const char* MODEL_ROLE = "WatchedModelNode";
-static const char* TOOL_ROLE = "ToolTransformNode";
+static const char* MODEL_ROLE = "watchedModelNode";
+static const char* TOOL_ROLE = "toolTransformNode";
 
-
-
-vtkMRMLBreachWarningNode* vtkMRMLBreachWarningNode
-::New()
-{
-  // First try to create the object from the vtkObjectFactory
-  vtkObject* ret = vtkObjectFactory::CreateInstance( "vtkMRMLBreachWarningNode" );
-  if( ret )
-    {
-      return ( vtkMRMLBreachWarningNode* )ret;
-    }
-  // If the factory was unable to create the object, then create it here.
-  return new vtkMRMLBreachWarningNode;
-}
-
-
+//------------------------------------------------------------------------------
+vtkMRMLNodeNewMacro(vtkMRMLBreachWarningNode);
 
 vtkMRMLBreachWarningNode
 ::vtkMRMLBreachWarningNode()
@@ -54,40 +36,23 @@ vtkMRMLBreachWarningNode
   this->AddNodeReferenceRole( MODEL_ROLE, NULL, events.GetPointer() );
   this->AddNodeReferenceRole( TOOL_ROLE, NULL, events.GetPointer() );
 
-  this->DisplayWarningColor=1;
-  for ( int i = 0; i < 4; ++ i )
-  {
-    this->WarningColor[ i ] = 0.0;
-    this->OriginalColor[ i ] = 0.0;
-  }
-  this->ToolInsideModel = false;
+  this->OriginalColor[0] = 0.5;
+  this->OriginalColor[1] = 0.5;
+  this->OriginalColor[2] = 0.5;
+  this->WarningColor[0] = 1;
+  this->WarningColor[1] = 0;
+  this->WarningColor[2] = 0;
 
+  this->DisplayWarningColor=true;
+  this->PlayWarningSound = false;
+
+  this->ClosestDistanceToModelFromToolTip = 0.0;
 }
-
-
 
 vtkMRMLBreachWarningNode
 ::~vtkMRMLBreachWarningNode()
 {
 }
-
-
-
-vtkMRMLNode*
-vtkMRMLBreachWarningNode
-::CreateNodeInstance()
-{
-  // First try to create the object from the vtkObjectFactory
-  vtkObject* ret = vtkObjectFactory::CreateInstance( "vtkMRMLBreachWarningNode" );
-  if( ret )
-    {
-      return ( vtkMRMLBreachWarningNode* )ret;
-    }
-  // If the factory was unable to create the object, then create it here.
-  return new vtkMRMLBreachWarningNode;
-}
-
-
 
 void
 vtkMRMLBreachWarningNode
@@ -96,18 +61,12 @@ vtkMRMLBreachWarningNode
   Superclass::WriteXML(of, nIndent); // This will take care of referenced nodes
   vtkIndent indent(nIndent);
 
-  of << indent << " WarningColorR=\"" << this->WarningColor[ 0 ] << "\"";
-  of << indent << " WarningColorG=\"" << this->WarningColor[ 1 ] << "\"";
-  of << indent << " WarningColorB=\"" << this->WarningColor[ 2 ] << "\"";
-  of << indent << " WarningColorA=\"" << this->WarningColor[ 3 ] << "\"";
-  of << indent << " OriginalColorR=\"" << this->OriginalColor[ 0 ] << "\"";
-  of << indent << " OriginalColorG=\"" << this->OriginalColor[ 1 ] << "\"";
-  of << indent << " OriginalColorB=\"" << this->OriginalColor[ 2 ] << "\"";
-  of << indent << " OriginalColorA=\"" << this->OriginalColor[ 3 ] << "\"";
-  of << indent << " ToolInsideModel=\"" << ( this->ToolInsideModel ? "true" : "false" ) << "\"";
+  of << indent << " warningColor=\"" << this->WarningColor[0] << " " << this->WarningColor[1] << " " << this->WarningColor[2] << "\"";
+  of << indent << " originalColor=\"" << this->OriginalColor[0] << " " << this->OriginalColor[1] << " " << this->OriginalColor[2] << "\"";
+  of << indent << " displayWarningColor=\"" << ( this->DisplayWarningColor ? "true" : "false" ) << "\"";
+  of << indent << " playWarningSound=\"" << ( this->PlayWarningSound ? "true" : "false" ) << "\"";
+  of << indent << " closestDistanceToModelFromToolTip=\"" << ClosestDistanceToModelFromToolTip << "\"";
 }
-
-
 
 void
 vtkMRMLBreachWarningNode
@@ -124,85 +83,67 @@ vtkMRMLBreachWarningNode
     attName  = *(atts++);
     attValue = *(atts++);
     
-    if ( ! strcmp( attName, "WarningColorR" ) )
+    if (!strcmp(attName, "warningColor"))
     {
       std::stringstream ss;
       ss << attValue;
-      double r = 0.0;
-      ss >> r;
-      this->WarningColor[ 0 ] = r;
+      double val;
+      ss >> val;
+      this->WarningColor[0] = val;
+      ss << attValue;
+      ss >> val;
+      this->WarningColor[1] = val;
+      ss << attValue;
+      ss >> val;
+      this->WarningColor[2] = val;
     }
-    else if ( ! strcmp( attName, "WarningColorG" ) )
+    else if (!strcmp(attName, "originalColor"))
     {
       std::stringstream ss;
       ss << attValue;
-      double g = 0.0;
-      ss >> g;
-      this->WarningColor[ 1 ] = g;
-    }
-    else if ( ! strcmp( attName, "WarningColorB" ) )
-    {
-      std::stringstream ss;
+      double val;
+      ss >> val;
+      this->OriginalColor[0] = val;
       ss << attValue;
-      double r = 0.0;
-      ss >> r;
-      this->WarningColor[ 2 ] = r;
-    }
-    else if ( ! strcmp( attName, "WarningColorA" ) )
-    {
-      std::stringstream ss;
+      ss >> val;
+      this->OriginalColor[1] = val;
       ss << attValue;
-      double r = 0.0;
-      ss >> r;
-      this->WarningColor[ 3 ] = r;
+      ss >> val;
+      this->OriginalColor[2] = val;
     }
-    else if ( ! strcmp( attName, "OriginalColorR" ) )
-    {
-      std::stringstream ss;
-      ss << attValue;
-      double r = 0.0;
-      ss >> r;
-      this->OriginalColor[ 0 ] = r;
-    }
-    else if ( ! strcmp( attName, "OriginalColorG" ) )
-    {
-      std::stringstream ss;
-      ss << attValue;
-      double r = 0.0;
-      ss >> r;
-      this->OriginalColor[ 1 ] = r;
-    }
-    else if ( ! strcmp( attName, "OriginalColorB" ) )
-    {
-      std::stringstream ss;
-      ss << attValue;
-      double r = 0.0;
-      ss >> r;
-      this->OriginalColor[ 2 ] = r;
-    }
-    else if ( ! strcmp( attName, "OriginalColorA" ) )
-    {
-      std::stringstream ss;
-      ss << attValue;
-      double r = 0.0;
-      ss >> r;
-      this->OriginalColor[ 3 ] = r;
-    }
-    else if ( ! strcmp( attName, "ToolInsideModel" ) )
+    else if ( ! strcmp( attName, "displayWarningColor" ) )
     {
       if (!strcmp(attValue,"true"))
       {
-        this->ToolInsideModel = true;
+        this->DisplayWarningColor = true;
       }
       else
       {
-        this->ToolInsideModel = false;
+        this->DisplayWarningColor = false;
       }
     }
+    else if ( ! strcmp( attName, "playWarningSound" ) )
+    {
+      if (!strcmp(attValue,"true"))
+      {
+        this->PlayWarningSound = true;
+      }
+      else
+      {
+        this->PlayWarningSound = false;
+      }
+    }
+    else if (!strcmp(attName, "closestDistanceToModelFromToolTip"))
+    {
+      std::stringstream ss;
+      ss << attValue;
+      double val=0.0;
+      ss >> val;
+      this->ClosestDistanceToModelFromToolTip = val;
+    }
+
   }
 }
-
-
 
 void
 vtkMRMLBreachWarningNode
@@ -212,19 +153,17 @@ vtkMRMLBreachWarningNode
   
   vtkMRMLBreachWarningNode *node = ( vtkMRMLBreachWarningNode* ) anode;
   
-  for ( int i = 0; i < 4; ++ i )
+  for ( int i = 0; i < 3; ++ i )
   {
     this->WarningColor[ i ] = node->WarningColor[ i ];
     this->OriginalColor[ i ] = node->OriginalColor[ i ];
   }
 
-  this->ToolInsideModel = node->ToolInsideModel;
+  this->PlayWarningSound = node->PlayWarningSound;  
   this->DisplayWarningColor = node->DisplayWarningColor;
   
   this->Modified();
 }
-
-
 
 void
 vtkMRMLBreachWarningNode
@@ -234,84 +173,9 @@ vtkMRMLBreachWarningNode
 
   os << indent << "WatchedModelID: " << this->GetWatchedModelNode()->GetID() << std::endl;
   os << indent << "ToolTipTransformID: " << this->GetToolTransformNode()->GetID() << std::endl;
-  os << indent << "ToolInsideModel: " << this->ToolInsideModel << std::endl;
+  os << indent << "DisplayWarningColor: " << this->DisplayWarningColor << std::endl;
+  os << indent << "PlayWarningSound: " << this->PlayWarningSound << std::endl;
 }
-
-
-
-void
-vtkMRMLBreachWarningNode
-::SetWarningColor( double r, double g, double b, double a )
-{
-  this->WarningColor[ 0 ] = r;
-  this->WarningColor[ 1 ] = g;
-  this->WarningColor[ 2 ] = b;
-  this->WarningColor[ 3 ] = a;
-}
-
-
-
-double
-vtkMRMLBreachWarningNode
-::GetWarningColorComponent( int c )
-{
-  if ( c >= 0 && c < 4 )
-  {
-    return this->WarningColor[ c ];
-  }
-  else
-  {
-    vtkErrorMacro( "GetWarningColorComponent: Index out of range" );
-    return 0.0;
-  }
-}
-
-
-
-void
-vtkMRMLBreachWarningNode
-::SetOriginalColor( double r, double g, double b, double a )
-{
-  this->OriginalColor[ 0 ] = r;
-  this->OriginalColor[ 1 ] = g;
-  this->OriginalColor[ 2 ] = b;
-  this->OriginalColor[ 3 ] = a;
-}
-
-
-double
-vtkMRMLBreachWarningNode
-::GetOriginalColorComponent( int c )
-{
-  if ( c >= 0 && c < 4 )
-  {
-    return this->OriginalColor[ c ];
-  }
-  else
-  {
-    vtkErrorMacro( "GetOriginalColorComponent: Index out of range" );
-    return 0.0;
-  }
-}
-
-
-void
-vtkMRMLBreachWarningNode
-::SetDisplayWarningColor(int displayWarningColor )
-{
-  this->DisplayWarningColor = displayWarningColor;
-}
-
-
-int
-vtkMRMLBreachWarningNode
-::GetDisplayWarningColor()
-{
-  return this->DisplayWarningColor;
-}
-
-
- 
 
 vtkMRMLModelNode*
 vtkMRMLBreachWarningNode
@@ -327,31 +191,53 @@ void
 vtkMRMLBreachWarningNode
 ::SetAndObserveWatchedModelNodeID( const char* modelId )
 {
+  // SetAndObserveNodeReferenceID does not handle nicely setting of the same
+  // node (it should simply ignore the reques, but it adds another observer instead)
+  // so check for node equality here.
+  const char* currentNodeId=this->GetNodeReferenceID(MODEL_ROLE);
+  if (modelId!=NULL && currentNodeId!=NULL)
+  {
+    if (strcmp(modelId,currentNodeId)==0)
+    {
+      // not changed
+      return;
+    }
+  }
   vtkNew<vtkIntArray> events;
   events->InsertNextValue( vtkCommand::ModifiedEvent );
-  events->InsertNextValue( vtkMRMLLinearTransformNode::TransformModifiedEvent );
+  events->InsertNextValue( vtkMRMLTransformNode::TransformModifiedEvent );
   this->SetAndObserveNodeReferenceID( MODEL_ROLE, modelId, events.GetPointer() );
   this->InvokeEvent(InputDataModifiedEvent); // This will tell the logic to update
 }  
 
 
-vtkMRMLLinearTransformNode*
+vtkMRMLTransformNode*
 vtkMRMLBreachWarningNode
 ::GetToolTransformNode()
 {
-  vtkMRMLLinearTransformNode* ltNode = vtkMRMLLinearTransformNode::SafeDownCast( this->GetNodeReference( TOOL_ROLE ) );
+  vtkMRMLTransformNode* ltNode = vtkMRMLTransformNode::SafeDownCast( this->GetNodeReference( TOOL_ROLE ) );
   return ltNode;
 }
-
-
 
 void
 vtkMRMLBreachWarningNode
 ::SetAndObserveToolTransformNodeId( const char* nodeId )
 {
+  // SetAndObserveNodeReferenceID does not handle nicely setting of the same
+  // node (it should simply ignore the reques, but it adds another observer instead)
+  // so check for node equality here.
+  const char* currentNodeId=this->GetNodeReferenceID(TOOL_ROLE);
+  if (nodeId!=NULL && currentNodeId!=NULL)
+  {
+    if (strcmp(nodeId,currentNodeId)==0)
+    {
+      // not changed
+      return;
+    }
+  }
   vtkNew<vtkIntArray> events;
   events->InsertNextValue( vtkCommand::ModifiedEvent );
-  events->InsertNextValue( vtkMRMLLinearTransformNode::TransformModifiedEvent );
+  events->InsertNextValue( vtkMRMLTransformNode::TransformModifiedEvent );
   this->SetAndObserveNodeReferenceID( TOOL_ROLE, nodeId, events.GetPointer() );
   this->InvokeEvent(InputDataModifiedEvent); // This will tell the logic to update
 }
@@ -373,4 +259,9 @@ vtkMRMLBreachWarningNode
   {
     this->InvokeEvent(InputDataModifiedEvent); // This will tell the logic to update
   }
+}
+
+bool vtkMRMLBreachWarningNode::IsToolTipInsideModel()
+{
+  return (this->ClosestDistanceToModelFromToolTip<0);
 }

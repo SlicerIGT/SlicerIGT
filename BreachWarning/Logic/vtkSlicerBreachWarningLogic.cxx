@@ -20,73 +20,49 @@
 
 // MRML includes
 #include "vtkMRMLBreachWarningNode.h"
-#include "vtkMRMLLinearTransformNode.h"
-#include "vtkMRMLMarkupsDisplayNode.h"
+#include "vtkMRMLDisplayNode.h"
 #include "vtkMRMLModelNode.h"
 #include "vtkMRMLScene.h"
+#include "vtkMRMLTransformNode.h"
 
 // VTK includes
-#include <vtkDoubleArray.h>
 #include <vtkGeneralTransform.h>
-#include <vtkMatrix4x4.h>
-#include <vtkModifiedBSPTree.h>
+#include <vtkImplicitPolyDataDistance.h>
 #include <vtkNew.h>
 #include <vtkObjectFactory.h>
 #include <vtkPolyData.h>
-#include <vtkPoints.h>
-#include <vtkSelectEnclosedPoints.h>
 #include <vtkSmartPointer.h>
-#include <vtkTable.h>
-#include <vtkTransform.h>
 #include <vtkTransformPolyDataFilter.h>
-
-#include <vtkImplicitPolyDataDistance.h>
 
 //Qt includes
 #include <QDir>
 
 // STD includes
-#include <cassert>
-#include <sstream>
-
-
 
 // Slicer methods 
 
 vtkStandardNewMacro(vtkSlicerBreachWarningLogic);
 
-
-
-vtkSlicerBreachWarningLogic
-::vtkSlicerBreachWarningLogic()
-: LastToolState( UNDEFINED ),
-  CurrentToolState( UNDEFINED ),
-  BreachSound(NULL),
-  PlayWarningSound(1)
+//------------------------------------------------------------------------------
+vtkSlicerBreachWarningLogic::vtkSlicerBreachWarningLogic()
+: BreachSound(NULL)
 {
 }
 
 
-
-vtkSlicerBreachWarningLogic
-::~vtkSlicerBreachWarningLogic()
+//------------------------------------------------------------------------------
+vtkSlicerBreachWarningLogic::~vtkSlicerBreachWarningLogic()
 {
 }
 
-
-
-void
-vtkSlicerBreachWarningLogic
-::PrintSelf(ostream& os, vtkIndent indent)
+//------------------------------------------------------------------------------
+void vtkSlicerBreachWarningLogic::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
 }
 
-
-
-void
-vtkSlicerBreachWarningLogic
-::SetMRMLSceneInternal(vtkMRMLScene * newScene)
+//------------------------------------------------------------------------------
+void vtkSlicerBreachWarningLogic ::SetMRMLSceneInternal(vtkMRMLScene * newScene)
 {
   vtkNew<vtkIntArray> events;
   events->InsertNextValue(vtkMRMLScene::NodeAddedEvent);
@@ -95,8 +71,7 @@ vtkSlicerBreachWarningLogic
   this->SetAndObserveMRMLSceneEventsInternal(newScene, events.GetPointer());
 }
 
-
-
+//------------------------------------------------------------------------------
 void vtkSlicerBreachWarningLogic::RegisterNodes()
 {
   if( ! this->GetMRMLScene() )
@@ -113,11 +88,8 @@ void vtkSlicerBreachWarningLogic::RegisterNodes()
   }
 }
 
-
-
-void
-vtkSlicerBreachWarningLogic
-::UpdateToolState( vtkMRMLBreachWarningNode* bwNode )
+//------------------------------------------------------------------------------
+void vtkSlicerBreachWarningLogic::UpdateToolState( vtkMRMLBreachWarningNode* bwNode )
 {
   if ( bwNode == NULL )
   {
@@ -125,10 +97,11 @@ vtkSlicerBreachWarningLogic
   }
 
   vtkMRMLModelNode* modelNode = bwNode->GetWatchedModelNode();
-  vtkMRMLLinearTransformNode* toolToRasNode = bwNode->GetToolTransformNode();
+  vtkMRMLTransformNode* toolToRasNode = bwNode->GetToolTransformNode();
 
   if ( modelNode == NULL || toolToRasNode == NULL )
   {
+    bwNode->SetClosestDistanceToModelFromToolTip(0);
     return;
   }
 
@@ -139,11 +112,9 @@ vtkSlicerBreachWarningLogic
     return;
   }
   
-  vtkSmartPointer< vtkSelectEnclosedPoints > enclosedFilter = vtkSmartPointer< vtkSelectEnclosedPoints >::New();
   vtkSmartPointer< vtkImplicitPolyDataDistance > implicitDistanceFilter = vtkSmartPointer< vtkImplicitPolyDataDistance >::New();
 
   // Transform the body poly data if there is a parent transform.
-
   vtkMRMLTransformNode* bodyParentTransform = modelNode->GetParentTransformNode();
   if ( bodyParentTransform != NULL )
   {
@@ -159,96 +130,55 @@ vtkSlicerBreachWarningLogic
     bodyToRasFilter->SetTransform( bodyToRasTransform );
     bodyToRasFilter->Update();
 
-    enclosedFilter->Initialize( bodyToRasFilter->GetOutput() ); // expensive: builds a locator
     implicitDistanceFilter->SetInput( bodyToRasFilter->GetOutput() ); // expensive: builds a locator
   }
   else
   {
-    enclosedFilter->Initialize( body ); // expensive: builds a locator
     implicitDistanceFilter->SetInput( body ); // expensive: builds a locator
   }
-
-  // Note: Performance can be improved by reusing the same locator in both enclosedFilter and implicitDistanceFilter.
-  // EnclosedFilter may not be necessary at all, because the implicitDistanceFilter returns a signed distance (negative if inside)
-  // Even more performance improvement can be reached by keeping the filters in memory for all the observed nodes.
   
-  vtkSmartPointer< vtkMatrix4x4 > ToolToRASMatrix = vtkSmartPointer< vtkMatrix4x4 >::New();
-  toolToRasNode->GetMatrixTransformToWorld( ToolToRASMatrix );
- 
-  double Origin[ 4 ] = { 0.0, 0.0, 0.0, 1.0 };
-  double P0[ 4 ] = { 0.0, 0.0, 0.0, 1.0 };
+  // Note: Performance could be improved by
+  // - keeping the filter in memory for all the observed nodes.
+  // - in case of linear transform of model and tooltip: transform only the tooltip (with the tooltip to model transform),
+  //   and not transform the model at all
 
-  ToolToRASMatrix->MultiplyPoint( Origin, P0 );
-  
-  int inside = enclosedFilter->IsInsideSurface( P0[ 0 ], P0[ 1 ], P0[ 2 ] );
+  vtkSmartPointer<vtkGeneralTransform> toolToRasTransform = vtkSmartPointer<vtkGeneralTransform>::New();
+  toolToRasNode->GetTransformToWorld( toolToRasTransform ); 
+  double toolTipPosition_Tool[4] = { 0.0, 0.0, 0.0, 1.0 };
+  double* toolTipPosition_Ras = toolToRasTransform->TransformDoublePoint( toolTipPosition_Tool);
 
-  this->LastToolState = this->CurrentToolState;
-  
-  if ( inside )
-  {
-    this->CurrentToolState = INSIDE;
-  }
-  else
-  {
-    this->CurrentToolState = OUTSIDE;
-  }
-
-  bwNode->SetClosestDistanceToModelFromToolTransform(implicitDistanceFilter->EvaluateFunction( P0 ));
-  //vtkWarningMacro("Closest Distance to model from transform "<< bwNode->GetClosestDistanceToModelFromToolTransform());
+  bwNode->SetClosestDistanceToModelFromToolTip(implicitDistanceFilter->EvaluateFunction( toolTipPosition_Ras ));
 }
 
-
-
-void
-vtkSlicerBreachWarningLogic
-::UpdateModelColor( vtkMRMLBreachWarningNode* bwNode )
+//------------------------------------------------------------------------------
+void vtkSlicerBreachWarningLogic ::UpdateModelColor( vtkMRMLBreachWarningNode* bwNode )
 {
   if ( bwNode == NULL )
   {
     return;
   }
-  
   vtkMRMLModelNode* modelNode = bwNode->GetWatchedModelNode();
-
   if ( modelNode == NULL )
   {
     return;
   }
 
- 
-  if(bwNode->GetDisplayWarningColor()==0)
+  if ( bwNode->IsToolTipInsideModel())
   {
-    double r = bwNode->GetOriginalColorComponent( 0 );
-    double g = bwNode->GetOriginalColorComponent( 1 );
-    double b = bwNode->GetOriginalColorComponent( 2 );
-    modelNode->GetDisplayNode()->SetColor( r, g, b );
-    return;
+    double* color = bwNode->GetWarningColor();
+    modelNode->GetDisplayNode()->SetColor(color);
   }
-
-  if ( this->CurrentToolState == INSIDE )
+  else
   {
-    double r = bwNode->GetWarningColorComponent( 0 );
-    double g = bwNode->GetWarningColorComponent( 1 );
-    double b = bwNode->GetWarningColorComponent( 2 );
-    modelNode->GetDisplayNode()->SetColor( r, g, b );
-  }
-  
-  if ( this->CurrentToolState == OUTSIDE )
-  {
-    double r = bwNode->GetOriginalColorComponent( 0 );
-    double g = bwNode->GetOriginalColorComponent( 1 );
-    double b = bwNode->GetOriginalColorComponent( 2 );
-    modelNode->GetDisplayNode()->SetColor( r, g, b );
+    double* color = bwNode->GetOriginalColor();
+    modelNode->GetDisplayNode()->SetColor(color);
   }
 }
 
-
-
-void
-vtkSlicerBreachWarningLogic
-::PlaySound()
+//------------------------------------------------------------------------------
+void vtkSlicerBreachWarningLogic::PlaySound( vtkMRMLBreachWarningNode* bwNode )
 {
-  if ( this->CurrentToolState == INSIDE )
+  if ( bwNode->IsToolTipInsideModel() )
   {
     if(BreachSound->isFinished())
     {
@@ -256,17 +186,14 @@ vtkSlicerBreachWarningLogic
       BreachSound->play();
     }
   }
-  if ( this->CurrentToolState == OUTSIDE )
+  else
   {
-      BreachSound->stop();
+    BreachSound->stop();
   }
 }
 
-
-
-void
-vtkSlicerBreachWarningLogic
-::OnMRMLSceneNodeAdded( vtkMRMLNode* node )
+//------------------------------------------------------------------------------
+void vtkSlicerBreachWarningLogic::OnMRMLSceneNodeAdded( vtkMRMLNode* node )
 {
   if ( node == NULL || this->GetMRMLScene() == NULL )
   {
@@ -285,11 +212,8 @@ vtkSlicerBreachWarningLogic
   }
 }
 
-
-
-void
-vtkSlicerBreachWarningLogic
-::OnMRMLSceneNodeRemoved( vtkMRMLNode* node )
+//------------------------------------------------------------------------------
+void vtkSlicerBreachWarningLogic::OnMRMLSceneNodeRemoved( vtkMRMLNode* node )
 {
   if ( node == NULL || this->GetMRMLScene() == NULL )
   {
@@ -304,141 +228,52 @@ vtkSlicerBreachWarningLogic
   }
 }
 
-
-void
-vtkSlicerBreachWarningLogic
-::SetWatchedModelNode( vtkMRMLModelNode* newModel, vtkMRMLBreachWarningNode* moduleNode )
+//------------------------------------------------------------------------------
+void vtkSlicerBreachWarningLogic::SetWatchedModelNode( vtkMRMLModelNode* newModel, vtkMRMLBreachWarningNode* moduleNode )
 {
-  if ( newModel == NULL || moduleNode == NULL )
+  if ( moduleNode == NULL )
   {
-    vtkWarningMacro( "SetWatchedModelNode: Model or module node not specified" );
-    this->CurrentToolState =UNDEFINED;
+    vtkWarningMacro( "SetWatchedModelNode: Module node is invalid" );
     return;
   }
 
-  vtkMRMLModelNode* previousModel;
-  double previousOriginalColor[ 3 ];
-  if(this->CurrentToolState == INSIDE/*moduleNode->GetToolInsideModel()*/)
+  // Get the original color of the old model node
+  vtkMRMLModelNode* previousModel=moduleNode->GetWatchedModelNode();
+  double previousOriginalColor[3]={0.5,0.5,0.5};
+  if(previousModel)
   {
-    for (int i =0; i<3; i++)
-    {
-      previousOriginalColor[i]=moduleNode->GetOriginalColorComponent(i);
-    }
-    previousModel=moduleNode->GetWatchedModelNode();
+    moduleNode->GetOriginalColor(previousOriginalColor);
   }
 
-  if(this->CurrentToolState == OUTSIDE || this->CurrentToolState == UNDEFINED)
+  // Save the original color of the new model node
+  if(newModel!=NULL)
   {
-    double originalColor[ 3 ];
-    newModel->GetDisplayNode()->GetColor( originalColor );
-    moduleNode->SetOriginalColor( originalColor[ 0 ], originalColor[ 1 ], originalColor[ 2 ], 1.0 );
+    double originalColor[3]={0.5,0.5,0.5};
+    newModel->GetDisplayNode()->GetColor(originalColor);
+    moduleNode->SetOriginalColor(originalColor);
   }
 
-  moduleNode->SetAndObserveWatchedModelNodeID( newModel->GetID() );
+  // Switch to the new model node
+  moduleNode->SetAndObserveWatchedModelNodeID( (newModel!=NULL) ? newModel->GetID() : NULL );
 
-  if(this->CurrentToolState == INSIDE /*moduleNode->GetToolInsideModel()*/ &&   previousModel!= NULL)
+  // Restore the color of the old model node
+  if(previousModel!=NULL)
   {
     previousModel->GetDisplayNode()->SetColor(previousOriginalColor[0],previousOriginalColor[1],previousOriginalColor[2]);
   }
 }
 
-
-
-void
-vtkSlicerBreachWarningLogic
-::SetObservedTransformNode( vtkMRMLLinearTransformNode* newTransform, vtkMRMLBreachWarningNode* moduleNode )
-{
-  if ( newTransform == NULL || moduleNode == NULL )
-  {
-    vtkWarningMacro( "SetObservedTransformNode: Transform or module node invalid" );
-    this->CurrentToolState =UNDEFINED;
-    return;
-  }
-
-  moduleNode->SetAndObserveToolTransformNodeId( newTransform->GetID() );
-}
-
-
-
-void
-vtkSlicerBreachWarningLogic
-::SetWarningColor( double red, double green, double blue, double alpha, vtkMRMLBreachWarningNode* moduleNode )
-{
-  moduleNode->SetWarningColor( red, green, blue, alpha );
-  this->UpdateModelColor( moduleNode );
-}
-
-
-
-double
-vtkSlicerBreachWarningLogic
-::GetWarningColorComponent( int c, vtkMRMLBreachWarningNode* moduleNode )
-{
-  if ( c < 0 || c > 3 )
-  {
-    vtkErrorMacro( "Invalid color component index" );
-    return 0.0;
-  }
-  return moduleNode->GetWarningColorComponent( c );
-}
-
-
-double
-vtkSlicerBreachWarningLogic
-::GetClosestDistanceToModelFromToolTransform( vtkMRMLBreachWarningNode* moduleNode )
-{
-  return moduleNode->GetClosestDistanceToModelFromToolTransform();
-}
-
-
-void
-vtkSlicerBreachWarningLogic
-::SetOriginalColor( double red, double green, double blue, double alpha, vtkMRMLBreachWarningNode* moduleNode )
-{
-  moduleNode->SetOriginalColor( red, green, blue, alpha );
-}
-
-
-
-double
-vtkSlicerBreachWarningLogic
-::GetOriginalColorComponent( int c, vtkMRMLBreachWarningNode* moduleNode )
-{
-  if ( c < 0 || c > 3 )
-  {
-    vtkErrorMacro( "Invalid color component index" );
-    return 0.0;
-  }
-  return moduleNode->GetOriginalColorComponent( c );
-}
-
-void 
-vtkSlicerBreachWarningLogic
-::SetDisplayWarningColor(int displayWarningColor, vtkMRMLBreachWarningNode* moduleNode )
-{
-  moduleNode->SetDisplayWarningColor(displayWarningColor);
-  this->UpdateModelColor( moduleNode );
-}
-
-int 
-vtkSlicerBreachWarningLogic
-::GetDisplayWarningColor( vtkMRMLBreachWarningNode* moduleNode )
-{
-  return moduleNode->GetDisplayWarningColor();
-}
-
-void
-vtkSlicerBreachWarningLogic
-::ProcessMRMLNodesEvents( vtkObject* caller, unsigned long event, void* callData )
+//------------------------------------------------------------------------------
+void vtkSlicerBreachWarningLogic::ProcessMRMLNodesEvents( vtkObject* caller, unsigned long event, void* callData )
 {
   vtkMRMLNode* callerNode = vtkMRMLNode::SafeDownCast( caller );
-  if ( callerNode == NULL )
+  if (callerNode == NULL)
   {
     return;
   }
   
   vtkMRMLBreachWarningNode* bwNode = vtkMRMLBreachWarningNode::SafeDownCast( callerNode );
-  if ( bwNode == NULL )
+  if (bwNode == NULL)
   {
     return;
   }
@@ -447,12 +282,14 @@ vtkSlicerBreachWarningLogic
   {
     // only recompute output if the input is changed
     // (for example we do not recompute the distance if the computed distance is changed)
-    this->UpdateToolState( bwNode );
-    this->UpdateModelColor( bwNode );
-    if(PlayWarningSound==1)
+    this->UpdateToolState(bwNode);
+    if(bwNode->GetDisplayWarningColor())
     {
-      this->PlaySound();
+      this->UpdateModelColor(bwNode);
+    }
+    if(bwNode->GetPlayWarningSound())
+    {
+      this->PlaySound(bwNode);
     }
   }
 }
-

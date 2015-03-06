@@ -45,7 +45,7 @@
 class vtkMRMLBreachWarningNode;
 
 class vtkMRMLModelNode;
-class vtkMRMLLinearTransformNode;
+class vtkMRMLTransformNode;
 
 // STD includes
 #include <cstdlib>
@@ -58,41 +58,15 @@ class VTK_SLICER_BREACHWARNING_MODULE_LOGIC_EXPORT vtkSlicerBreachWarningLogic :
   public vtkSlicerModuleLogic
 {
 public:
-  
-  enum ToolState
-  {
-    UNDEFINED,
-    INSIDE,
-    OUTSIDE
-  };
-  
   static vtkSlicerBreachWarningLogic *New();
   vtkTypeMacro(vtkSlicerBreachWarningLogic,vtkSlicerModuleLogic);
   void PrintSelf(ostream& os, vtkIndent indent);
-  
 
-  // Public interface to be used by GUI and other modules.
-  
+  /// Changes the watched model node, making sure the original color of the previously selected model node is restored
   void SetWatchedModelNode( vtkMRMLModelNode* newModel, vtkMRMLBreachWarningNode* moduleNode );
-  void SetObservedTransformNode( vtkMRMLLinearTransformNode* newTransform, vtkMRMLBreachWarningNode* moduleNode );
-  
-  double GetClosestDistanceToModelFromToolTransform( vtkMRMLBreachWarningNode* moduleNode );
-
-  void SetWarningColor( double red, double green, double blue, double alpha, vtkMRMLBreachWarningNode* moduleNode );
-  double GetWarningColorComponent( int c, vtkMRMLBreachWarningNode* moduleNode );
-  
-  void SetOriginalColor( double red, double green, double blue, double alpha, vtkMRMLBreachWarningNode* moduleNode );
-  double GetOriginalColorComponent( int c, vtkMRMLBreachWarningNode* moduleNode );
-
-  void SetDisplayWarningColor(int displayWarningColor, vtkMRMLBreachWarningNode* moduleNode);
-  int GetDisplayWarningColor( vtkMRMLBreachWarningNode* moduleNode );
-
-  vtkSetMacro(PlayWarningSound, int);
-  vtkGetMacro(PlayWarningSound, int);
-  vtkBooleanMacro(PlayWarningSound, int);
 
   void ProcessMRMLNodesEvents( vtkObject* caller, unsigned long event, void* callData );
-  
+
 protected:
   vtkSlicerBreachWarningLogic();
   virtual ~vtkSlicerBreachWarningLogic();
@@ -106,23 +80,14 @@ protected:
 
   void UpdateToolState( vtkMRMLBreachWarningNode* bwNode );
   void UpdateModelColor( vtkMRMLBreachWarningNode* bwNode );
-  void PlaySound();
+  void PlaySound( vtkMRMLBreachWarningNode* bwNode );
 
 private:
   vtkSlicerBreachWarningLogic(const vtkSlicerBreachWarningLogic&); // Not implemented
   void operator=(const vtkSlicerBreachWarningLogic&);               // Not implemented
 
 private:
-  char* ModuleNodeID;
-  vtkMRMLBreachWarningNode* ModuleNode;
-  ToolState LastToolState;
-  ToolState CurrentToolState;
   QPointer<QSound>  BreachSound; 
-
-  /// Indicates if the warning sound is to be played.
-  /// True by default.
-  /// \sa SetPlayWarningSound(), GetPlayWarningSound(), PlayWarningSoundOn(), PlayWarningSoundOff()
-  int PlayWarningSound;
 };
 
 #endif
