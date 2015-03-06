@@ -25,6 +25,7 @@
 
 class qSlicerWatchdogModuleWidgetPrivate;
 class vtkMRMLNode;
+class vtkMRMLWatchdogNode;
 
 /// \ingroup Slicer_QtModules_ExtensionTemplate
 class Q_SLICER_QTMODULES_WATCHDOG_EXPORT qSlicerWatchdogModuleWidget :
