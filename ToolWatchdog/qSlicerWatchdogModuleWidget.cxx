@@ -136,7 +136,7 @@ void qSlicerWatchdogModuleWidget::InitializeToolbar(vtkMRMLWatchdogNode* watchdo
 {
   Q_D(qSlicerWatchdogModuleWidget);
   //vtkDebugMacro("Initilize toolBAR");
-  Q_D(qSlicerWatchdogModuleWidget);
+
   QMainWindow* window = qSlicerApplication::application()->mainWindow();
   qMRMLWatchdogToolBar *watchdogToolbar = new qMRMLWatchdogToolBar (window);
   watchdogToolbar->SetFirstlabel(watchdogNodeAdded->GetName());
@@ -507,6 +507,11 @@ void  qSlicerWatchdogModuleWidget
 {
   Q_D( qSlicerWatchdogModuleWidget );
 
+  if(d->WatchdogToolbarHash==NULL)
+  {
+    return;
+  }
+
   QList<vtkMRMLNode*> watchdogNodesList = d->ModuleNodeComboBox->nodes();
   QList<vtkMRMLNode*>::Iterator it;
   for (it = watchdogNodesList.begin(); it != watchdogNodesList.end(); ++it)
@@ -876,18 +881,23 @@ void qSlicerWatchdogModuleWidget
     row++;
   }
   updateTable();
-  updateToolbars();
+  if(d->WatchdogToolbarHash!=NULL)
+  {
+    updateToolbars();
+    qMRMLWatchdogToolBar *watchdogToolbar = d->WatchdogToolbarHash->value(watchdogNode->GetID());
+    if(watchdogToolbar && watchdogToolbar->isVisible())
+    {
+      d->ToolbarVisibilityCheckBox->setChecked(true);
+    }
+    else
+    {
+      d->ToolbarVisibilityCheckBox->setChecked(false);
+    }
+  }
+
   d->ToolsTableWidget->blockSignals( false );
 
-  qMRMLWatchdogToolBar *watchdogToolbar = d->WatchdogToolbarHash->value(watchdogNode->GetID());
-  if(watchdogToolbar && watchdogToolbar->isVisible())
-  {
-    d->ToolbarVisibilityCheckBox->setChecked(true);
-  }
-  else
-  {
-    d->ToolbarVisibilityCheckBox->setChecked(false);
-  }
+
 }
 
 
