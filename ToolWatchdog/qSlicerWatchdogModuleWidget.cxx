@@ -136,7 +136,7 @@ void qSlicerWatchdogModuleWidget::InitializeToolbar(vtkMRMLWatchdogNode* watchdo
 {
   Q_D(qSlicerWatchdogModuleWidget);
   //vtkDebugMacro("Initilize toolBAR");
-  Q_D(qSlicerWatchdogModuleWidget);
+
   QMainWindow* window = qSlicerApplication::application()->mainWindow();
   qMRMLWatchdogToolBar *watchdogToolbar = new qMRMLWatchdogToolBar (window);
   watchdogToolbar->SetFirstlabel(watchdogNodeAdded->GetName());
