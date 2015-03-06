@@ -20,6 +20,8 @@ limitations under the License.
 #include <QMenu>
 #include <QtGui>
 
+//#include "qSlicerModuleManager.h"
+#include "qSlicerApplication.h"
 
 // SlicerQt includes
 #include "qSlicerWatchdogModuleWidget.h"
@@ -132,6 +134,7 @@ void qSlicerWatchdogModuleWidget::setup()
 void qSlicerWatchdogModuleWidget::InitializeToolbar(vtkMRMLWatchdogNode* watchdogNodeAdded )
 {
   //vtkDebugMacro("Initilize toolBAR");
+  Q_D(qSlicerWatchdogModuleWidget);
   QMainWindow* window = qSlicerApplication::application()->mainWindow();
   qMRMLWatchdogToolBar *watchdogToolbar = new qMRMLWatchdogToolBar (window);
   watchdogToolbar->SetFirstlabel(watchdogNodeAdded->GetName());
@@ -435,7 +438,7 @@ void qSlicerWatchdogModuleWidget
   }
 
   watchdogNode->WatchdogToolbar->toggleViewAction()->toggle();
-  if(watchdogToolbar->isVisible())
+  if(watchdogNode->WatchdogToolbar->isVisible())
   {
     watchdogNode->WatchdogToolbar->setVisible(false);
   }
@@ -493,7 +496,7 @@ qSlicerWatchdogModuleWidget
 void qSlicerWatchdogModuleWidget
 ::onTimeout()
 {
-  updateToolbars;
+  updateToolbars();
   updateTable();
 }
 
