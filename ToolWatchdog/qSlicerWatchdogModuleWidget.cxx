@@ -24,6 +24,7 @@ limitations under the License.
 #include "qSlicerApplication.h"
 
 // SlicerQt includes
+#include "qSlicerApplication.h"
 #include "qSlicerWatchdogModuleWidget.h"
 #include "qMRMLWatchdogToolBar.h"
 #include "ui_qSlicerWatchdogModuleWidget.h"
@@ -133,6 +134,7 @@ void qSlicerWatchdogModuleWidget::setup()
 
 void qSlicerWatchdogModuleWidget::InitializeToolbar(vtkMRMLWatchdogNode* watchdogNodeAdded )
 {
+  Q_D(qSlicerWatchdogModuleWidget);
   //vtkDebugMacro("Initilize toolBAR");
   Q_D(qSlicerWatchdogModuleWidget);
   QMainWindow* window = qSlicerApplication::application()->mainWindow();
