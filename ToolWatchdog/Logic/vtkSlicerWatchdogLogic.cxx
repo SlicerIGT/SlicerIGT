@@ -206,8 +206,8 @@ void  vtkSlicerWatchdogLogic::TimerEvent()
   for ( watchdogNodeIt->InitTraversal(); ! watchdogNodeIt->IsDoneWithTraversal(); watchdogNodeIt->GoToNextItem() )
   {
     vtkMRMLWatchdogNode* watchdogNode = vtkMRMLWatchdogNode::SafeDownCast( watchdogNodeIt->GetCurrentObject() );
-    if(watchdogNode->WatchdogToolbar->isVisible())
-    {
+    //if(watchdogNode->WatchdogToolbar->isVisible())
+    //{
       this->UpdateToolStatus( watchdogNode);
       std::list<WatchedTool>* toolsVectorPtr = watchdogNode->GetToolNodes();
       int numberTools = toolsVectorPtr->size();
@@ -222,7 +222,7 @@ void  vtkSlicerWatchdogLogic::TimerEvent()
         {
           return;
         }
-        watchdogNode->WatchdogToolbar->SetNodeStatus(row,(*itTool).status);
+        //watchdogNode->WatchdogToolbar->SetNodeStatus(row,(*itTool).status);
         if(LastSoundElapsedTime>=2.0)
         if((*itTool).playSound && !(*itTool).status)
         {
@@ -240,7 +240,7 @@ void  vtkSlicerWatchdogLogic::TimerEvent()
         
         row++;
       }
-    }
+    //}
   }
   watchdogNodeIt->Delete();
   watchdogNodes->Delete();
@@ -265,14 +265,15 @@ void vtkSlicerWatchdogLogic::OnMRMLSceneEndImport()
     vtkMRMLWatchdogNode* watchdogNode = vtkMRMLWatchdogNode::SafeDownCast( watchdogNodeIt->GetCurrentObject() );
     if ( watchdogNode != NULL)
     {
-      watchdogNode->InitializeToolbar();
-      
+      //TODO Somewhere here should be initialized the widget toolbar 
+      //watchdogNode->InitializeToolbar();
       vtkDebugMacro( "OnMRMLSceneEndImport: Module node added. Number of tools " <<watchdogNode->GetNumberOfTools());
       for (int i = 0; i< watchdogNode->GetNumberOfTools(); i++)
       {
         vtkMRMLDisplayableNode* dispNode= vtkMRMLDisplayableNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(watchdogNode->GetToolNode(i)->id));
         watchdogNode->GetToolNode(i)->tool=dispNode;
-        watchdogNode->WatchdogToolbar->ToolNodeAdded(watchdogNode->GetToolNode(i)->label.c_str());
+        //TODO Somewhere here add toolbar labels
+        //watchdogNode->WatchdogToolbar->ToolNodeAdded(watchdogNode->GetToolNode(i)->label.c_str());
         vtkDebugMacro(" tool "<< watchdogNode->GetToolNode(i)->tool<<" ID "<< watchdogNode->GetToolNode(i)->id);
         hasTools=1;
       }
@@ -322,7 +323,7 @@ void vtkSlicerWatchdogLogic
     {
       return;
     }
-    watchdogNodeToBeRemoved->RemoveToolbar();
+    //watchdogNodeToBeRemoved->RemoveToolbar();
 
     vtkDebugMacro( "OnMRMLSceneNodeRemoved" );
     vtkUnObserveMRMLNodeMacro( node );

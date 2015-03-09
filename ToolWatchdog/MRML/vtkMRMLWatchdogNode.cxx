@@ -35,7 +35,7 @@ vtkMRMLWatchdogNode
   //vtkDebugMacro("Initialize watchdog node!");
   this->HideFromEditorsOff();
   this->SetSaveWithScene( true );
-  this->WatchdogToolbar=NULL;
+  //this->WatchdogToolbar=NULL;
 }
 
 vtkMRMLWatchdogNode
@@ -43,7 +43,7 @@ vtkMRMLWatchdogNode
 {
   //vtkDebugMacro("DELETE WATCHDOG NODE : "<< this->GetName());
   //this->RemoveToolbar();
-  this->WatchdogToolbar=NULL;
+  //this->WatchdogToolbar=NULL;
 }
 
 vtkMRMLNode*
@@ -216,7 +216,7 @@ vtkMRMLWatchdogNode
   //tempWatchedTool.LastTimeStamp=mrmlNode->GetMTime();
   WatchedTools.push_back(tempWatchedTool);
 
-  WatchdogToolbar->ToolNodeAdded(tempWatchedTool.label.c_str());
+  //WatchdogToolbar->ToolNodeAdded(tempWatchedTool.label.c_str());
 
   vtkDebugMacro("New number of tools "<<GetNumberOfTools());
   return GetNumberOfTools();
@@ -231,58 +231,57 @@ vtkMRMLWatchdogNode
     std::list<WatchedTool>::iterator it = WatchedTools.begin();
     advance (it,row);
     WatchedTools.erase(it);
-    WatchdogToolbar->DeleteToolNode(row);
+    //WatchdogToolbar->DeleteToolNode(row);
   }
 }
 
-void 
-vtkMRMLWatchdogNode
-::InitializeToolbar()
-{
-  //vtkDebugMacro("Initilize toolBAR");
-  if(this->WatchdogToolbar==NULL)
-  {
-    //vtkDebugMacro("Initilize toolBAR");
-    QMainWindow* window = qSlicerApplication::application()->mainWindow();
-    this->WatchdogToolbar = new qMRMLWatchdogToolBar (window);
-    window->addToolBar(this->WatchdogToolbar);
-    this->WatchdogToolbar->setWindowTitle(QApplication::translate("qSlicerAppMainWindow",this->GetName(), 0, QApplication::UnicodeUTF8));
-    foreach (QMenu* toolBarMenu,window->findChildren<QMenu*>())
-    {
-      if(toolBarMenu->objectName()==QString("WindowToolBarsMenu"))
-      {
-        QList<QAction*> toolBarMenuActions= toolBarMenu->actions();
-        //toolBarMenu->defaultAction() would be bbetter to use but Slicer App should set the default action
-        toolBarMenu->insertAction(toolBarMenuActions.at(toolBarMenuActions.size()-1),this->WatchdogToolbar->toggleViewAction());
-        break;
-      }
-    }
-    this->WatchdogToolbar->SetFirstlabel(this->GetName());
-  }
-}
+//void 
+//vtkMRMLWatchdogNode
+//::InitializeToolbar()
+//{
+//  //vtkDebugMacro("Initilize toolBAR");
+//  if(this->WatchdogToolbar==NULL)
+//  {
+//    //vtkDebugMacro("Initilize toolBAR");
+//    QMainWindow* window = qSlicerApplication::application()->mainWindow();
+//    this->WatchdogToolbar = new qMRMLWatchdogToolBar (window);
+//    window->addToolBar(this->WatchdogToolbar);
+//    this->WatchdogToolbar->setWindowTitle(QApplication::translate("qSlicerAppMainWindow",this->GetName(), 0, QApplication::UnicodeUTF8));
+//    foreach (QMenu* toolBarMenu,window->findChildren<QMenu*>())
+//    {
+//      if(toolBarMenu->objectName()==QString("WindowToolBarsMenu"))
+//      {
+//        QList<QAction*> toolBarMenuActions= toolBarMenu->actions();
+//        toolBarMenu->insertAction(toolBarMenuActions.at(toolBarMenuActions.size()-1),this->WatchdogToolbar->toggleViewAction());
+//        break;
+//      }
+//    }
+//    this->WatchdogToolbar->SetFirstlabel(this->GetName());
+//  }
+//}
 
 
-void 
-vtkMRMLWatchdogNode
-::RemoveToolbar()
-{
-  //vtkWarningMacro("DELETE WATCHDOG NODE : "<< this->GetName());
-  if(this->WatchdogToolbar!= NULL)
-  {
-    QMainWindow* window = qSlicerApplication::application()->mainWindow();
-    window->removeToolBar(this->WatchdogToolbar);
-    foreach (QMenu* toolBarMenu,window->findChildren<QMenu*>())
-    {
-      if(toolBarMenu->objectName()==QString("WindowToolBarsMenu"))
-      {
-        QList<QAction*> toolBarMenuActions= toolBarMenu->actions();
-        toolBarMenu->removeAction(this->WatchdogToolbar->toggleViewAction());
-        break;
-      }
-    }
-  this->WatchdogToolbar=NULL;
-  }
-}
+//void 
+//vtkMRMLWatchdogNode
+//::RemoveToolbar()
+//{
+//  //vtkWarningMacro("DELETE WATCHDOG NODE : "<< this->GetName());
+//  if(this->WatchdogToolbar!= NULL)
+//  {
+//    QMainWindow* window = qSlicerApplication::application()->mainWindow();
+//    window->removeToolBar(this->WatchdogToolbar);
+//    foreach (QMenu* toolBarMenu,window->findChildren<QMenu*>())
+//    {
+//      if(toolBarMenu->objectName()==QString("WindowToolBarsMenu"))
+//      {
+//        QList<QAction*> toolBarMenuActions= toolBarMenu->actions();
+//        toolBarMenu->removeAction(this->WatchdogToolbar->toggleViewAction());
+//        break;
+//      }
+//    }
+//  this->WatchdogToolbar=NULL;
+//  }
+//}
 
 
 void 
@@ -318,7 +317,7 @@ vtkMRMLWatchdogNode
   itB->id=toolTemp.id;
   itB->lastElapsedTimeStamp=toolTemp.lastElapsedTimeStamp;
   itB->playSound=toolTemp.playSound;
-  WatchdogToolbar->SwapToolNodes(toolA, toolB );
+  //WatchdogToolbar->SwapToolNodes(toolA, toolB );
 }
 
 bool 

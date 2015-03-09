@@ -103,11 +103,11 @@ public:
   /// Returns the size of the list of tools
   int GetNumberOfTools();
   /// If there is not a watchdog toolbar widget in the QMainWindow. It will add add one for every watchdog node 
-  void InitializeToolbar();
+  //void InitializeToolbar();
  /// It removes the  watchdog toolbar widget from the QMainWindow.
-  void RemoveToolbar();
+  //void RemoveToolbar();
 
-  qMRMLWatchdogToolBar * WatchdogToolbar;
+  //qMRMLWatchdogToolBar * WatchdogToolbar;
 private:
   std::list< WatchedTool > WatchedTools;
 

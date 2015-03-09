@@ -118,9 +118,9 @@ void qSlicerWatchdogModuleWidget::setup()
   connect( d->DeleteToolButton, SIGNAL( clicked() ), this, SLOT( onDeleteButtonClicked()) );
   d->DeleteToolButton->setIcon( QIcon( ":/Icons/MarkupsDelete.png" ) );
   connect( d->UpToolButton, SIGNAL( clicked() ), this, SLOT( onUpButtonClicked()) );
-  d->UpToolButton->setIcon( QIcon( ":/Icons/Up.png" ) );
+  d->UpToolButton->setIcon( QIcon( ":/Icons/up.png" ) );
   connect( d->DownToolButton, SIGNAL( clicked() ), this, SLOT( onDownButtonClicked()) );
-  d->DownToolButton->setIcon( QIcon( ":/Icons/Down.png" ) );
+  d->DownToolButton->setIcon( QIcon( ":/Icons/down.png" ) );
 
   connect(d->ToolsTableWidget, SIGNAL(itemDoubleClicked(QTableWidgetItem *)), this, SLOT( onTableItemDoubleClicked() ));
   d->ToolsTableWidget->setContextMenuPolicy( Qt::CustomContextMenu );
@@ -254,10 +254,10 @@ qSlicerWatchdogModuleWidget
     vtkMRMLWatchdogNode* watchdogNode = vtkMRMLWatchdogNode::SafeDownCast( watchdogNodeIt->GetCurrentObject() );
     if ( watchdogNode != NULL)
     {
-      watchdogNode->InitializeToolbar();
+      //watchdogNode->InitializeToolbar();
       this->InitializeToolbar(watchdogNode);
       //QDebug( "Enter: connect toolbar with visibility changed ");
-      connect(watchdogNode->WatchdogToolbar, SIGNAL(visibilityChanged(bool)), this, SLOT( onToolbarVisibilityChanged(bool)) );
+      //connect(watchdogNode->WatchdogToolbar, SIGNAL(visibilityChanged(bool)), this, SLOT( onToolbarVisibilityChanged(bool)) );
     }
   }
   watchdogNodeIt->Delete();
@@ -311,7 +311,7 @@ void qSlicerWatchdogModuleWidget
   }
 
   watchdogNode->GetToolNode(currentRow)->label=d->ToolsTableWidget->item(currentRow,currentColumn)->text().toStdString();
-  watchdogNode->WatchdogToolbar->SetNodeLabel(currentRow, watchdogNode->GetToolNode(currentRow)->label.c_str());
+  //watchdogNode->WatchdogToolbar->SetNodeLabel(currentRow, watchdogNode->GetToolNode(currentRow)->label.c_str());
   d->WatchdogToolbarHash->value(QString(watchdogNode->GetID()))->SetNodeLabel(currentRow, watchdogNode->GetToolNode(currentRow)->label.c_str());
   disconnect( d->ToolsTableWidget, SIGNAL( cellChanged( int , int ) ), this, SLOT( onCurrentCellChanged( int, int ) ) );
   this->updateWidget();
@@ -365,10 +365,9 @@ void qSlicerWatchdogModuleWidget
     return;
   }
 
-  watchdogNodeAdded->InitializeToolbar();
+  //watchdogNodeAdded->InitializeToolbar();
   this->InitializeToolbar(watchdogNodeAdded);
-
-  connect(watchdogNodeAdded->WatchdogToolbar, SIGNAL(visibilityChanged(bool)), this, SLOT( onToolbarVisibilityChanged(bool)) );
+  //connect(watchdogNodeAdded->WatchdogToolbar, SIGNAL(visibilityChanged(bool)), this, SLOT( onToolbarVisibilityChanged(bool)) );
 
   this->updateFromMRMLNode();
 }
@@ -389,7 +388,7 @@ void qSlicerWatchdogModuleWidget
   }
 
   //QDebug("NODE TO BE REMOVED");
-  disconnect(watchdogNodeToBeRemoved->WatchdogToolbar, SIGNAL(visibilityChanged(bool)), this, SLOT( onToolbarVisibilityChanged(bool)) );
+  //disconnect(watchdogNodeToBeRemoved->WatchdogToolbar, SIGNAL(visibilityChanged(bool)), this, SLOT( onToolbarVisibilityChanged(bool)) );
   //watchdogNodeToBeRemoved->RemoveToolbar();
 
 
@@ -439,15 +438,15 @@ void qSlicerWatchdogModuleWidget
     return;
   }
 
-  watchdogNode->WatchdogToolbar->toggleViewAction()->toggle();
-  if(watchdogNode->WatchdogToolbar->isVisible())
-  {
-    watchdogNode->WatchdogToolbar->setVisible(false);
-  }
-  else
-  {
-    watchdogNode->WatchdogToolbar->setVisible(true);
-  }
+  //watchdogNode->WatchdogToolbar->toggleViewAction()->toggle();
+  //if(watchdogNode->WatchdogToolbar->isVisible())
+  //{
+  //  watchdogNode->WatchdogToolbar->setVisible(false);
+  //}
+  //else
+  //{
+  //  watchdogNode->WatchdogToolbar->setVisible(true);
+  //}
 
 
   if(d->WatchdogToolbarHash==NULL)
@@ -464,9 +463,6 @@ void qSlicerWatchdogModuleWidget
   {
     watchdogToolbar->setVisible(true);
   }
-
-
-
   //watchdogToolbar->visibilityChanged();
   updateWidget();
 }
