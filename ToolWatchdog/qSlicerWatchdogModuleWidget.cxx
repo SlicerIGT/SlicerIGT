@@ -260,6 +260,32 @@ qSlicerWatchdogModuleWidget
         this->InitializeToolbar(watchdogNode);
        
         
+        
+        
+        //watchdogNode->GetNumberOfTools()
+        //  d->WatchdogToolbarHash->value(QString(watchdogNode->GetID()))->ToolNodeAdded(currentToolNode->GetName());
+        std::list<WatchedTool>* toolsVectorPtr = watchdogNode->GetToolNodes();
+        int numberTools = toolsVectorPtr->size();
+        qDebug() << "enter initialize watchdognode tools " <<numberTools<< "in the toolbar";
+        if ( toolsVectorPtr == NULL /*|| numberTools!= d->ToolsTableWidget->rowCount()*/)
+        {
+          return;
+        }
+        int row=0;
+        for (std::list<WatchedTool>::iterator itTool = toolsVectorPtr->begin() ; itTool != toolsVectorPtr->end(); ++itTool)
+        {
+          if((*itTool).tool==NULL)
+          {
+            return;
+          }
+          d->WatchdogToolbarHash->value(QString(watchdogNode->GetID()))->ToolNodeAdded((*itTool).label.c_str());
+          row++;
+        }
+
+
+
+
+
 
 
       }
@@ -278,7 +304,7 @@ qSlicerWatchdogModuleWidget
 ::setMRMLScene( vtkMRMLScene* scene )
 {
   Q_D( qSlicerWatchdogModuleWidget );
-  qDebug() << "Set mrml scene";
+  qDebug() << "Set MRML SCENE";
   this->Superclass::setMRMLScene( scene );
 }
 
@@ -286,7 +312,7 @@ void
 qSlicerWatchdogModuleWidget
 ::onSceneImportedEvent()
 {
-  qDebug() << "On mrml scene imported event";
+  qDebug() << "On MRML SCENE IMPORTED EVENT";
   this->enter();
   this->updateWidget();
 }
@@ -521,7 +547,7 @@ void  qSlicerWatchdogModuleWidget
   {
 
     vtkMRMLWatchdogNode* watchdogNode = vtkMRMLWatchdogNode::SafeDownCast( (*it) );
-    if(d->WatchdogToolbarHash->value(QString(watchdogNode->GetID()))->isVisible())
+    if(d->WatchdogToolbarHash->contains(QString(watchdogNode->GetID())) && d->WatchdogToolbarHash->value(QString(watchdogNode->GetID()))->isVisible())
     {
       //d->logic()->UpdateToolStatus( watchdogNode, (unsigned long) ElapsedTimeSec );
       std::list<WatchedTool>* toolsVectorPtr = watchdogNode->GetToolNodes();
