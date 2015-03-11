@@ -20,7 +20,6 @@
 
 // SlicerQt includes
 #include "qSlicerAbstractModuleWidget.h"
-
 #include "qSlicerWatchdogModuleExport.h"
 
 class qSlicerWatchdogModuleWidgetPrivate;

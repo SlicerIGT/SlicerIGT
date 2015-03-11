@@ -34,7 +34,7 @@ limitations under the License.
 #include <QEvent>
 #include <QTimer>
 
-#include "qMRMLWatchdogToolBar.h"
+//#include "qMRMLWatchdogToolBar.h"
 
 #include "QVTKSlicerWatchdogLogicInternal.h"
 

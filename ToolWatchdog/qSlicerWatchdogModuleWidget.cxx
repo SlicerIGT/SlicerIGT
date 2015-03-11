@@ -20,9 +20,6 @@ limitations under the License.
 #include <QMenu>
 #include <QtGui>
 
-//#include "qSlicerModuleManager.h"
-#include "qSlicerApplication.h"
-
 // SlicerQt includes
 #include "qSlicerApplication.h"
 #include "qSlicerWatchdogModuleWidget.h"
