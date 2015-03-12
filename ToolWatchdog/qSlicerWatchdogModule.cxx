@@ -29,7 +29,6 @@
 #include "qSlicerToolbarManagerWidget.h"
 
 
-
 //-----------------------------------------------------------------------------
 Q_EXPORT_PLUGIN2(qSlicerWatchdogModule, qSlicerWatchdogModule);
 
@@ -118,15 +117,16 @@ void qSlicerWatchdogModule::setMRMLScene(vtkMRMLScene* _mrmlScene)
   this->Superclass::setMRMLScene(_mrmlScene);
   Q_D(qSlicerWatchdogModule);
   //this->Superclass::logic()
-  if(d->ToolbarManager==NULL)
+  if (d->ToolbarManager == NULL)
   {
     d->ToolbarManager = new qSlicerToolBarManagerWidget;
   }
   d->ToolbarManager->setMRMLScene(_mrmlScene);
-  vtkSlicerWatchdogLogic* watchdogLogic = vtkSlicerWatchdogLogic::SafeDownCast( this->Superclass::logic());
 
-    //connect( d->logic()->GetQVTKLogicInternal(), SIGNAL( updateTable() ), this, SLOT( onTimeout() ) );
-    connect( watchdogLogic->GetQVTKLogicInternal(), SIGNAL( updateTable() ),  d->ToolbarManager, SLOT( onUpdateToolbars() ) );
+  vtkSlicerWatchdogLogic* watchdogLogic = vtkSlicerWatchdogLogic::SafeDownCast(this->Superclass::logic());
+
+  //connect( d->logic()->GetQVTKLogicInternal(), SIGNAL( updateTable() ), this, SLOT( onTimeout() ) );
+  connect(watchdogLogic->GetQVTKLogicInternal(), SIGNAL(updateTable()), d->ToolbarManager, SLOT(onUpdateToolbars()));
   //connect(this, SIGNAL(mrmlSceneChanged(vtkMRMLScene*)), d->ToolbarManager, SLOT(setMRMLScene(vtkMRMLScene*)));
 }
 
