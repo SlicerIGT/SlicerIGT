@@ -67,18 +67,19 @@ public:
 
 public slots:
   virtual void setMRMLScene(vtkMRMLScene* newScene);
+  void InitializeToolbarHash();
 
-
-//signals:
+signals:
 //  //void screenshotButtonClicked();
 //  //void sceneViewButtonClicked();
-//  void mrmlSceneChanged(vtkMRMLScene*);
+  void mrmlSceneChanged(vtkMRMLScene*);
 //
 //protected:
 //  QScopedPointer<qSlicerToolBarManagerWidgetPrivate> d_ptr;
 
 private:
   void InitializeToolbar(vtkMRMLWatchdogNode* watchdogNodeAdded );
+
   //Q_DECLARE_PRIVATE(qSlicerToolBarManagerWidget);
   //Q_DISABLE_COPY(qSlicerToolBarManagerWidget);
 

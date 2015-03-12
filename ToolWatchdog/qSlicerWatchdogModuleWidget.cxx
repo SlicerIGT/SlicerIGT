@@ -549,7 +549,8 @@ void  qSlicerWatchdogModuleWidget
       //d->logic()->UpdateToolStatus( watchdogNode, (unsigned long) ElapsedTimeSec );
       std::list<WatchedTool>* toolsVectorPtr = watchdogNode->GetToolNodes();
       int numberTools = toolsVectorPtr->size();
-      qDebug() << "update toolbars watchnode list number of tools " <<numberTools;
+      //qDebug() << "update toolbars watchnode list number of tools " <<numberTools;
+
       if ( toolsVectorPtr == NULL /*|| numberTools!= d->ToolsTableWidget->rowCount()*/)
       {
         return;

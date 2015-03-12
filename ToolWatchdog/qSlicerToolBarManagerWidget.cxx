@@ -44,6 +44,9 @@
 // VTK includes
 #include <vtkSmartPointer.h>
 #include <vtkWeakPointer.h>
+#include <vtkCollection.h>
+#include <vtkCollectionIterator.h>
+
 
 
 
@@ -65,18 +68,20 @@ qSlicerToolBarManagerWidget::~qSlicerToolBarManagerWidget()
 // --------------------------------------------------------------------------
 void qSlicerToolBarManagerWidget::setMRMLScene(vtkMRMLScene* newScene)
 {
+  qCritical()<<"HOASSS";
   this->Superclass::setMRMLScene( newScene );
+  //InitializeToolbarHash();
   
-  
-//  
-//  if (newScene == this->MRMLScene)
-//    {
-//    return;
-//    }
-///*
-//  this->qvtkReconnect(this->MRMLScene, newScene, vtkMRMLScene::StartBatchProcessEvent,
-//                      this, SLOT(OnMRMLSceneStartBatchProcessing()));
-//
+  //if (newScene == this->Superclass::mrmlScene())
+  //  {
+  //  return;
+  //  }
+
+  this->qvtkConnect(newScene, vtkMRMLScene::EndImportEvent, this, SLOT(InitializeToolbarHash()));
+
+//  this->qvtkReconnect(this->Superclass::mrmlScene(), newScene, vtkMRMLScene::EndImportEvent,
+//                      this, SLOT(InitializeToolbarHash()));
+////
 //  this->qvtkReconnect(this->MRMLScene, newScene, vtkMRMLScene::EndBatchProcessEvent,
 //                      this, SLOT(OnMRMLSceneEndBatchProcessing()));
 //
@@ -90,13 +95,9 @@ void qSlicerToolBarManagerWidget::setMRMLScene(vtkMRMLScene* newScene)
 }
 
 
-
-
 void qSlicerToolBarManagerWidget::InitializeToolbar(vtkMRMLWatchdogNode* watchdogNodeAdded )
 {
-  //Q_D(qSlicerWatchdogModuleWidget);
-  qDebug() << "Initialize toolBAR";
-
+  qDebug() << "Initialize toolBAR ";
   QMainWindow* window = qSlicerApplication::application()->mainWindow();
   qMRMLWatchdogToolBar *watchdogToolbar = new qMRMLWatchdogToolBar (window);
   watchdogToolbar->SetFirstlabel(watchdogNodeAdded->GetName());
@@ -115,6 +116,64 @@ void qSlicerToolBarManagerWidget::InitializeToolbar(vtkMRMLWatchdogNode* watchdo
     }
   }
 }
+
+
+void qSlicerToolBarManagerWidget::InitializeToolbarHash()
+{
+  //Q_D(qSlicerWatchdogModuleWidget);
+  qDebug() << "Initialize toolBAR HASH";
+
+  if(this->WatchdogToolbarHash==NULL)
+  {
+    this->WatchdogToolbarHash = new QHash<QString, qMRMLWatchdogToolBar *>;
+  }
+  assert(this->Superclass::mrmlScene() != 0);
+  vtkCollection* watchdogNodes = this->Superclass::mrmlScene()->GetNodesByClass( "vtkMRMLWatchdogNode" );
+  vtkCollectionIterator* watchdogNodeIt = vtkCollectionIterator::New();
+  watchdogNodeIt->SetCollection( watchdogNodes );
+  int hasTools=0;
+  for ( watchdogNodeIt->InitTraversal(); ! watchdogNodeIt->IsDoneWithTraversal(); watchdogNodeIt->GoToNextItem() )
+  {
+    vtkMRMLWatchdogNode* watchdogNode = vtkMRMLWatchdogNode::SafeDownCast( watchdogNodeIt->GetCurrentObject() );
+    if ( watchdogNode != NULL)
+    {
+      if(!this->WatchdogToolbarHash->contains(watchdogNode->GetID()))
+      {
+        this->InitializeToolbar(watchdogNode);
+        //watchdogNode->GetNumberOfTools()
+        //  this->WatchdogToolbarHash->value(QString(watchdogNode->GetID()))->ToolNodeAdded(currentToolNode->GetName());
+        std::list<WatchedTool>* toolsVectorPtr = watchdogNode->GetToolNodes();
+        int numberTools = toolsVectorPtr->size();
+        qDebug() << "enter initialize watchdognode tools " <<numberTools<< "in the toolbar";
+        if ( toolsVectorPtr == NULL /*|| numberTools!= d->ToolsTableWidget->rowCount()*/)
+        {
+          return;
+        }
+        int row=0;
+        for (std::list<WatchedTool>::iterator itTool = toolsVectorPtr->begin() ; itTool != toolsVectorPtr->end(); ++itTool)
+        {
+          if((*itTool).tool==NULL)
+          {
+            return;
+          }
+          this->WatchdogToolbarHash->value(QString(watchdogNode->GetID()))->ToolNodeAdded((*itTool).label.c_str());
+          row++;
+        }
+      }
+    }
+  }
+  watchdogNodeIt->Delete();
+  watchdogNodes->Delete();
+
+
+
+
+
+}
+
+
+
+
 
 
 //void qSlicerToolBarManagerWidget

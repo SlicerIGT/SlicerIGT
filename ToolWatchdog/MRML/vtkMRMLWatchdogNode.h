@@ -74,6 +74,7 @@ public:
   virtual void WriteXML( ostream& of, int indent );
   virtual void Copy( vtkMRMLNode *node );
 
+
 protected:
 
   // Constructor/destructor methods
