@@ -38,7 +38,6 @@ class qSlicerWatchdogModulePrivate
 {
 public:
   qSlicerWatchdogModulePrivate();
-  ~qSlicerWatchdogModulePrivate();
   qSlicerToolBarManagerWidget * ToolbarManager;
 };
 
@@ -50,15 +49,6 @@ qSlicerWatchdogModulePrivate::qSlicerWatchdogModulePrivate()
 {
   this->ToolbarManager=NULL;
 
-}
-
-//-----------------------------------------------------------------------------
-qSlicerWatchdogModulePrivate::~qSlicerWatchdogModulePrivate()
-{
-  if(this->ToolbarManager)
-  {
-    delete this->ToolbarManager;
-  }
 }
 
 //-----------------------------------------------------------------------------
@@ -121,10 +111,12 @@ void qSlicerWatchdogModule::setup()
   this->Superclass::setup();
 }
 
+
 void qSlicerWatchdogModule::setMRMLScene(vtkMRMLScene* _mrmlScene)
 {
   this->Superclass::setMRMLScene(_mrmlScene);
   Q_D(qSlicerWatchdogModule);
+  //this->Superclass::logic()
   if (d->ToolbarManager == NULL)
   {
     d->ToolbarManager = new qSlicerToolBarManagerWidget;
@@ -132,16 +124,18 @@ void qSlicerWatchdogModule::setMRMLScene(vtkMRMLScene* _mrmlScene)
   d->ToolbarManager->setMRMLScene(_mrmlScene);
 
   vtkSlicerWatchdogLogic* watchdogLogic = vtkSlicerWatchdogLogic::SafeDownCast(this->Superclass::logic());
+
+  //connect( d->logic()->GetQVTKLogicInternal(), SIGNAL( updateTable() ), this, SLOT( onTimeout() ) );
   connect(watchdogLogic->GetQVTKLogicInternal(), SIGNAL(updateTable()), d->ToolbarManager, SLOT(onUpdateToolbars()));
+  //connect(this, SIGNAL(mrmlSceneChanged(vtkMRMLScene*)), d->ToolbarManager, SLOT(setMRMLScene(vtkMRMLScene*)));
 }
 
+
 //-----------------------------------------------------------------------------
-qSlicerAbstractModuleRepresentation* qSlicerWatchdogModule::createWidgetRepresentation()
+qSlicerAbstractModuleRepresentation* qSlicerWatchdogModule
+::createWidgetRepresentation()
 {
-  Q_D(qSlicerWatchdogModule);
-  qSlicerWatchdogModuleWidget * watchdogWidget = new qSlicerWatchdogModuleWidget;
-  watchdogWidget->SetToolbarHash(d->ToolbarManager->GetToolbarHash());
-  return watchdogWidget;
+  return new qSlicerWatchdogModuleWidget;
 }
 
 //-----------------------------------------------------------------------------

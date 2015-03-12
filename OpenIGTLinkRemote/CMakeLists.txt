@@ -1,24 +1,9 @@
-cmake_minimum_required(VERSION 2.8.7)
 
 #-----------------------------------------------------------------------------
 set(MODULE_NAME "OpenIGTLinkRemote" )
 set(MODULE_TITLE "OpenIGTLink Remote" )
 
 string(TOUPPER ${MODULE_NAME} MODULE_NAME_UPPER)
-
-#-----------------------------------------------------------------------------
-if( NOT DEFINED SlicerIGT_SUPERBUILD )
-  find_package(Slicer REQUIRED)
-  include(${Slicer_USE_FILE})
-endif()
-
-#-----------------------------------------------------------------------------
-option(DISABLE_WRAP_PYTHON "Disable Python wrapping" OFF)
-if(${DISABLE_WRAP_PYTHON})
-  set(DISABLE_WRAP_PYTHON "DISABLE_WRAP_PYTHON")
-else()
-  set(DISABLE_WRAP_PYTHON "")
-endif()
 
 #-----------------------------------------------------------------------------
 add_subdirectory(MRML)
@@ -72,9 +57,4 @@ slicerMacroBuildQtModule(
 #-----------------------------------------------------------------------------
 if(BUILD_TESTING)
   add_subdirectory(Testing)
-endif()
-
-#-----------------------------------------------------------------------------
-if( NOT DEFINED SlicerIGT_SUPERBUILD )
-  include(${Slicer_EXTENSION_CPACK})
 endif()

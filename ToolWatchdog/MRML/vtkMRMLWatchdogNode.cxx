@@ -6,10 +6,17 @@
 // Other MRML includes
 #include "vtkMRMLNode.h"
 
+#include "qMRMLWatchdogToolBar.h"
+#include <QMainWindow>
+#include <QMenu>
+#include "qSlicerApplication.h"
+
 // Other includes
 #include <sstream>
+#include <QString>
 
-vtkMRMLWatchdogNode* vtkMRMLWatchdogNode::New()
+vtkMRMLWatchdogNode* vtkMRMLWatchdogNode
+::New()
 {
   // First try to create the object from the vtkObjectFactory
   vtkObject* ret = vtkObjectFactory::CreateInstance( "vtkMRMLWatchdogNode" );
@@ -18,21 +25,32 @@ vtkMRMLWatchdogNode* vtkMRMLWatchdogNode::New()
       return ( vtkMRMLWatchdogNode* )ret;
     }
   // If the factory was unable to create the object, then create it here.
+  //vtkDebugMacro("New watchdog node!");
   return new vtkMRMLWatchdogNode;
 }
 
-vtkMRMLWatchdogNode::vtkMRMLWatchdogNode()
+vtkMRMLWatchdogNode
+::vtkMRMLWatchdogNode()
 {
+  //vtkDebugMacro("Initialize watchdog node!");
   this->HideFromEditorsOff();
   this->SetSaveWithScene( true );
+  //this->WatchdogToolbar=NULL;
 }
 
-vtkMRMLWatchdogNode::~vtkMRMLWatchdogNode()
+vtkMRMLWatchdogNode
+::~vtkMRMLWatchdogNode()
 {
+  //vtkDebugMacro("DELETE WATCHDOG NODE : "<< this->GetName());
+  //this->RemoveToolbar();
+  //this->WatchdogToolbar=NULL;
 }
 
-vtkMRMLNode* vtkMRMLWatchdogNode::CreateNodeInstance()
+vtkMRMLNode*
+vtkMRMLWatchdogNode
+::CreateNodeInstance()
 {
+  //vtkDebugMacro("Create watchdog node instance!");
   // First try to create the object from the vtkObjectFactory
   vtkObject* ret = vtkObjectFactory::CreateInstance( "vtkMRMLWatchdogNode" );
   if( ret )
@@ -43,7 +61,9 @@ vtkMRMLNode* vtkMRMLWatchdogNode::CreateNodeInstance()
   return new vtkMRMLWatchdogNode;
 }
 
-void vtkMRMLWatchdogNode::WriteXML( ostream& of, int nIndent )
+void
+vtkMRMLWatchdogNode
+::WriteXML( ostream& of, int nIndent )
 {
   Superclass::WriteXML(of, nIndent); // This will take care of referenced nodes
   vtkIndent indent(nIndent);
@@ -64,13 +84,16 @@ void vtkMRMLWatchdogNode::WriteXML( ostream& of, int nIndent )
 }
 
 
-void vtkMRMLWatchdogNode::ReadXMLAttributes( const char** atts )
+void
+vtkMRMLWatchdogNode
+::ReadXMLAttributes( const char** atts )
 {
   Superclass::ReadXMLAttributes(atts); // This will take care of referenced nodes
 
   // Read all MRML node attributes from two arrays of names and values
   const char* attName;
   const char* attValue;
+  //this->InitializeToolbar();
 
   while (*atts != NULL)
   {
@@ -94,7 +117,7 @@ void vtkMRMLWatchdogNode::ReadXMLAttributes( const char** atts )
         vtkDebugMacro("WatchedToolName read "<< ss.str().c_str() << " atName = "<< attName<< " atValue = "<< attValue);
         if ( ! strcmp( attName, ss.str().c_str() ) )
         {
-          tempWatchedTool.label= std::string(attValue).substr(0,6);//QString(attValue).left(6).toStdString();
+          tempWatchedTool.label=QString(attValue).left(6).toStdString();
         }
         else 
         {
@@ -110,10 +133,7 @@ void vtkMRMLWatchdogNode::ReadXMLAttributes( const char** atts )
         if ( ! strcmp( attName, soundString.str().c_str()) )
         {
           attValue = *(atts++);
-
-          std::stringstream ss;
-          ss << attValue;
-          ss>>(tempWatchedTool.playSound);//tempWatchedTool.playSound=QString(attValue).toInt();
+          tempWatchedTool.playSound=QString(attValue).toInt();
           attName  = *(atts++);
         }
         else 
@@ -128,7 +148,7 @@ void vtkMRMLWatchdogNode::ReadXMLAttributes( const char** atts )
         vtkDebugMacro("WatchedToolID read "<< IdString.str().c_str() << " atName = " << attName << " atValue = " << attValue);
         if ( ! strcmp( attName, IdString.str().c_str()) )
         {
-          tempWatchedTool.id=std::string(attValue);//QString(attValue).toStdString();
+          tempWatchedTool.id=QString(attValue).toStdString();
           WatchedTools.push_back(tempWatchedTool);
         }
         else 
@@ -142,14 +162,18 @@ void vtkMRMLWatchdogNode::ReadXMLAttributes( const char** atts )
   vtkDebugMacro("XML atts number of tools read "<<GetNumberOfTools());
 }
 
-void vtkMRMLWatchdogNode::Copy( vtkMRMLNode *anode )
+void
+vtkMRMLWatchdogNode
+::Copy( vtkMRMLNode *anode )
 {  
   Superclass::Copy( anode ); // This will take care of referenced nodes
   vtkMRMLWatchdogNode *node = ( vtkMRMLWatchdogNode* ) anode;
   this->Modified();
 }
 
-void vtkMRMLWatchdogNode::PrintSelf( ostream& os, vtkIndent indent )
+void
+vtkMRMLWatchdogNode
+::PrintSelf( ostream& os, vtkIndent indent )
 {
   vtkMRMLNode::PrintSelf(os,indent); // This will take care of referenced nodes
   os << indent << "ToolID: ";
@@ -160,7 +184,9 @@ void vtkMRMLWatchdogNode::PrintSelf( ostream& os, vtkIndent indent )
   
 }
 
-WatchedTool * vtkMRMLWatchdogNode::GetToolNode(int currentRow)
+WatchedTool *
+vtkMRMLWatchdogNode
+::GetToolNode(int currentRow)
 {
   std::list<WatchedTool>::iterator it = WatchedTools.begin();
   advance (it,currentRow);
@@ -168,12 +194,16 @@ WatchedTool * vtkMRMLWatchdogNode::GetToolNode(int currentRow)
   return watchedTool;
 }
 
-std::list<WatchedTool> * vtkMRMLWatchdogNode::GetToolNodes()
+std::list<WatchedTool> * 
+vtkMRMLWatchdogNode
+::GetToolNodes()
 {
   return &WatchedTools;
 }
 
-int vtkMRMLWatchdogNode::AddToolNode( vtkMRMLDisplayableNode* toolAdded)
+int 
+vtkMRMLWatchdogNode
+::AddToolNode( vtkMRMLDisplayableNode* toolAdded)
 {
   WatchedTool tempWatchedTool;
   if(toolAdded==NULL)
@@ -181,27 +211,82 @@ int vtkMRMLWatchdogNode::AddToolNode( vtkMRMLDisplayableNode* toolAdded)
     return 0;
   }
   tempWatchedTool.tool=toolAdded;
-  tempWatchedTool.label=std::string(toolAdded->GetName()).substr(0,6);//QString(toolAdded->GetName()).left(6).toStdString();
+  tempWatchedTool.label=QString(toolAdded->GetName()).left(6).toStdString();
   tempWatchedTool.id=toolAdded->GetID();
   //tempWatchedTool.LastTimeStamp=mrmlNode->GetMTime();
   WatchedTools.push_back(tempWatchedTool);
 
-  //vtkDebugMacro("New number of tools "<<GetNumberOfTools());
+  //WatchdogToolbar->ToolNodeAdded(tempWatchedTool.label.c_str());
+
+  vtkDebugMacro("New number of tools "<<GetNumberOfTools());
   return GetNumberOfTools();
 }
 
-void vtkMRMLWatchdogNode::RemoveTool(int row)
+void 
+vtkMRMLWatchdogNode
+::RemoveTool(int row)
 {
   if(row>=0 && row<WatchedTools.size())
   {
     std::list<WatchedTool>::iterator it = WatchedTools.begin();
     advance (it,row);
     WatchedTools.erase(it);
+    //WatchdogToolbar->DeleteToolNode(row);
   }
 }
 
+//void 
+//vtkMRMLWatchdogNode
+//::InitializeToolbar()
+//{
+//  //vtkDebugMacro("Initilize toolBAR");
+//  if(this->WatchdogToolbar==NULL)
+//  {
+//    //vtkDebugMacro("Initilize toolBAR");
+//    QMainWindow* window = qSlicerApplication::application()->mainWindow();
+//    this->WatchdogToolbar = new qMRMLWatchdogToolBar (window);
+//    window->addToolBar(this->WatchdogToolbar);
+//    this->WatchdogToolbar->setWindowTitle(QApplication::translate("qSlicerAppMainWindow",this->GetName(), 0, QApplication::UnicodeUTF8));
+//    foreach (QMenu* toolBarMenu,window->findChildren<QMenu*>())
+//    {
+//      if(toolBarMenu->objectName()==QString("WindowToolBarsMenu"))
+//      {
+//        QList<QAction*> toolBarMenuActions= toolBarMenu->actions();
+//        toolBarMenu->insertAction(toolBarMenuActions.at(toolBarMenuActions.size()-1),this->WatchdogToolbar->toggleViewAction());
+//        break;
+//      }
+//    }
+//    this->WatchdogToolbar->SetFirstlabel(this->GetName());
+//  }
+//}
 
-void vtkMRMLWatchdogNode::SwapTools( int toolA, int toolB )
+
+//void 
+//vtkMRMLWatchdogNode
+//::RemoveToolbar()
+//{
+//  //vtkWarningMacro("DELETE WATCHDOG NODE : "<< this->GetName());
+//  if(this->WatchdogToolbar!= NULL)
+//  {
+//    QMainWindow* window = qSlicerApplication::application()->mainWindow();
+//    window->removeToolBar(this->WatchdogToolbar);
+//    foreach (QMenu* toolBarMenu,window->findChildren<QMenu*>())
+//    {
+//      if(toolBarMenu->objectName()==QString("WindowToolBarsMenu"))
+//      {
+//        QList<QAction*> toolBarMenuActions= toolBarMenu->actions();
+//        toolBarMenu->removeAction(this->WatchdogToolbar->toggleViewAction());
+//        break;
+//      }
+//    }
+//  this->WatchdogToolbar=NULL;
+//  }
+//}
+
+
+void 
+vtkMRMLWatchdogNode
+::SwapTools( int toolA, int toolB )
 {
   std::list<WatchedTool>::iterator itA = WatchedTools.begin();
   advance (itA,toolA);
@@ -232,9 +317,12 @@ void vtkMRMLWatchdogNode::SwapTools( int toolA, int toolB )
   itB->id=toolTemp.id;
   itB->lastElapsedTimeStamp=toolTemp.lastElapsedTimeStamp;
   itB->playSound=toolTemp.playSound;
+  //WatchdogToolbar->SwapToolNodes(toolA, toolB );
 }
 
-bool vtkMRMLWatchdogNode::HasTool(char * toolName)
+bool 
+vtkMRMLWatchdogNode
+::HasTool(char * toolName)
 {
   for (std::list<WatchedTool>::iterator it = WatchedTools.begin() ; it != WatchedTools.end(); ++it)
   {
@@ -242,8 +330,9 @@ bool vtkMRMLWatchdogNode::HasTool(char * toolName)
     {
       continue;
     }
-    //QString toolNameTemp((*it).tool->GetName());
-    if(!strcmp((*it).tool->GetName(), toolName))//(toolNameTemp.compare(toolName)==0)
+    QString toolNameTemp((*it).tool->GetName());
+    
+    if(toolNameTemp.compare(toolName)==0)
     {
       return true;
     }
@@ -251,7 +340,9 @@ bool vtkMRMLWatchdogNode::HasTool(char * toolName)
   return false;
 }
 
-int vtkMRMLWatchdogNode::GetNumberOfTools()
+int 
+vtkMRMLWatchdogNode
+::GetNumberOfTools()
 {
   return WatchedTools.size();
 }

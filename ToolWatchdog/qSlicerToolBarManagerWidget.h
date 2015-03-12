@@ -18,20 +18,30 @@
 
 ==============================================================================*/
 
-// .NAME vtkSlicerToolBarManagerWidget - slicer helper class for managing toolbars widgets of watchdog module
-// .SECTION Description
-// This class adds, updates, and removes watchdog toolbars into slicer main window.
-
 #ifndef __qSlicerToolBarManagerWidget_h
 #define __qSlicerToolBarManagerWidget_h
 
-// SlicerQt includes
+//// Qt includes
+////#include <QSignalMapper>
+//#include <QToolBar>
+//
+//// CTK includes
+//#include <ctkPimpl.h>
+//// no ui begin
+//#include <ctkVTKObject.h>
+//// no ui end
+
+// qMRMLWidget includes
 #include "qSlicerWidget.h"
+#include "qMRMLWidget.h"
 #include "qSlicerWatchdogModuleExport.h"
 
+class vtkMRMLNode;
 class vtkMRMLScene;
+class vtkMRMLViewNode;
 class qMRMLWatchdogToolBar;
 class vtkMRMLWatchdogNode;
+//class qSlicerToolBarManagerWidgetPrivate;
 
 class Q_SLICER_QTMODULES_WATCHDOG_EXPORT qSlicerToolBarManagerWidget : public qSlicerWidget
 {
@@ -42,27 +52,37 @@ public:
   typedef qSlicerWidget Superclass;
 
   /// Constructor
+  /// Title is the name of the toolbar (can appear using right click on the toolbar area)
+  //qSlicerToolBarManagerWidget();
   qSlicerToolBarManagerWidget(QWidget* parent = 0);
   virtual ~qSlicerToolBarManagerWidget();
-
-  QHash<QString, qMRMLWatchdogToolBar *> * GetToolbarHash();
+  
+  //void SetFirstlabel(char * watchDogNodeName);
+  //void ToolNodeAdded(const char * toolName);
+  //void SwapToolNodes(int toolA, int toolB );
+  //void ToolNodeDeleted();
+  //void DeleteToolNode(int row);
+  //void SetNodeStatus(int row, bool status );
+  //void SetNodeLabel(int row, const char * toolLabel);
 
 public slots:
   virtual void setMRMLScene(vtkMRMLScene* newScene);
-  ///Every time the logic timer shoots will update the main window watchdog toolbar status
-  void onUpdateToolbars();
-  /// It removes the  watchdog toolbar widget from the QMainWindow.
-  void RemoveToolbar(vtkObject* scene, vtkObject* node);
-  /// If there is not a watchdog toolbar widget in the QMainWindow. It will add add one for every watchdog node 
-  void AddToolbar(vtkObject*, vtkObject* nodeToBeRemoved);
+  void InitializeToolbarHash();
+  void  onUpdateToolbars();
 
 signals:
+//  //void screenshotButtonClicked();
+//  //void sceneViewButtonClicked();
+  void mrmlSceneChanged(vtkMRMLScene*);
+//
+//protected:
+//  QScopedPointer<qSlicerToolBarManagerWidgetPrivate> d_ptr;
 
 private:
-
   void InitializeToolbar(vtkMRMLWatchdogNode* watchdogNodeAdded );
 
-  Q_DISABLE_COPY(qSlicerToolBarManagerWidget);
+  //Q_DECLARE_PRIVATE(qSlicerToolBarManagerWidget);
+  //Q_DISABLE_COPY(qSlicerToolBarManagerWidget);
 
   QHash<QString, qMRMLWatchdogToolBar *> * WatchdogToolbarHash;
 };

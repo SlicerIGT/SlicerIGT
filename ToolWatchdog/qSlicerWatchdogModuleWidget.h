@@ -25,7 +25,6 @@
 class qSlicerWatchdogModuleWidgetPrivate;
 class vtkMRMLNode;
 class vtkMRMLWatchdogNode;
-class qMRMLWatchdogToolBar;
 
 /// \ingroup Slicer_QtModules_ExtensionTemplate
 class Q_SLICER_QTMODULES_WATCHDOG_EXPORT qSlicerWatchdogModuleWidget :
@@ -38,8 +37,6 @@ public:
   typedef qSlicerAbstractModuleWidget Superclass;
   qSlicerWatchdogModuleWidget(QWidget *parent=0);
   virtual ~qSlicerWatchdogModuleWidget();
-
-  void SetToolbarHash(QHash<QString, qMRMLWatchdogToolBar *> * );
 
 public slots:
 
@@ -93,11 +90,11 @@ protected:
   QScopedPointer<qSlicerWatchdogModuleWidgetPrivate> d_ptr;
 
 
-  void ConnectToolbarVisibility(vtkMRMLWatchdogNode* watchdogNodeAdded );
+  void InitializeToolbar(vtkMRMLWatchdogNode* watchdogNodeAdded );
   void RemoveToolbar();
 
   /// Updates all the active toolbars accordingly to their respective watchdog nodes states
-  //void updateToolbars();
+  void updateToolbars();
   /// Updates the current watchdog node table
   void updateTable();
   /// Connects the gui signals

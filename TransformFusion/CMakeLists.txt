@@ -1,17 +1,8 @@
 #-----------------------------------------------------------------------------
-cmake_minimum_required(VERSION 2.8.7)
-
-#-----------------------------------------------------------------------------
 set(MODULE_NAME "TransformFusion") # Do not use 'project()'
 set(MODULE_TITLE "Transform Fusion")
 
 string(TOUPPER ${MODULE_NAME} MODULE_NAME_UPPER)
-
-#-----------------------------------------------------------------------------
-if( NOT DEFINED SlicerIGT_SUPERBUILD )
-  find_package(Slicer REQUIRED)
-  include(${Slicer_USE_FILE})
-endif()
 
 #-----------------------------------------------------------------------------
 add_subdirectory(Logic)
@@ -20,7 +11,7 @@ add_subdirectory(Logic)
 #-----------------------------------------------------------------------------
 set(MODULE_EXPORT_DIRECTIVE "Q_SLICER_QTMODULES_${MODULE_NAME_UPPER}_EXPORT")
 
-# Additional includes - Current_{source,binary} and Slicer_{Libs,Base} already included
+# Current_{source,binary} and Slicer_{Libs,Base} already included
 set(MODULE_INCLUDE_DIRECTORIES
   ${CMAKE_CURRENT_SOURCE_DIR}/Logic
   ${CMAKE_CURRENT_BINARY_DIR}/Logic

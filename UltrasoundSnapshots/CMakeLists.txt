@@ -1,17 +1,8 @@
 #-----------------------------------------------------------------------------
-cmake_minimum_required(VERSION 2.8.7)
-
-#-----------------------------------------------------------------------------
 set(MODULE_NAME UltrasoundSnapshots)
 set(MODULE_TITLE ${MODULE_NAME})
 
 string(TOUPPER ${MODULE_NAME} MODULE_NAME_UPPER)
-
-#-----------------------------------------------------------------------------
-if( NOT DEFINED SlicerIGT_SUPERBUILD )
-  find_package(Slicer REQUIRED)
-  include(${Slicer_USE_FILE})
-endif()
 
 #-----------------------------------------------------------------------------
 add_subdirectory(Logic)
@@ -70,4 +61,3 @@ slicerMacroBuildQtModule(
 if(BUILD_TESTING)
   add_subdirectory(Testing)
 endif()
-

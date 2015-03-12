@@ -1,12 +1,5 @@
-cmake_minimum_required(VERSION 2.8.9)
-
 #-----------------------------------------------------------------------------
 set(MODULE_NAME PlusRemote)
-
-#-----------------------------------------------------------------------------
-#Change this once it is packaged as an extension
-#find_package(Slicer REQUIRED)
-#include(${Slicer_USE_FILE})
 
 #-----------------------------------------------------------------------------
 set(MODULE_PYTHON_SCRIPTS
@@ -14,7 +7,7 @@ set(MODULE_PYTHON_SCRIPTS
   )
 
 set(MODULE_PYTHON_RESOURCES
-  Resources/Icons/PlusRemote.png
+  Resources/Icons/${MODULE_NAME}.png
   Resources/Icons/icon_Record.png
   Resources/Icons/icon_Stop.png
   Resources/Icons/icon_Wait.png
