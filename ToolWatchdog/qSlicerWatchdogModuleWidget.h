@@ -25,6 +25,7 @@
 class qSlicerWatchdogModuleWidgetPrivate;
 class vtkMRMLNode;
 class vtkMRMLWatchdogNode;
+class qMRMLWatchdogToolBar;
 
 /// \ingroup Slicer_QtModules_ExtensionTemplate
 class Q_SLICER_QTMODULES_WATCHDOG_EXPORT qSlicerWatchdogModuleWidget :
@@ -37,6 +38,8 @@ public:
   typedef qSlicerAbstractModuleWidget Superclass;
   qSlicerWatchdogModuleWidget(QWidget *parent=0);
   virtual ~qSlicerWatchdogModuleWidget();
+
+  void SetToolbarHash(QHash<QString, qMRMLWatchdogToolBar *> * );
 
 public slots:
 

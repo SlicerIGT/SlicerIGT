@@ -135,7 +135,10 @@ void qSlicerWatchdogModule::setMRMLScene(vtkMRMLScene* _mrmlScene)
 qSlicerAbstractModuleRepresentation* qSlicerWatchdogModule
 ::createWidgetRepresentation()
 {
-  return new qSlicerWatchdogModuleWidget;
+    Q_D(qSlicerWatchdogModule);
+  qSlicerWatchdogModuleWidget * watchdogWidget = new qSlicerWatchdogModuleWidget;
+  watchdogWidget->SetToolbarHash(d->ToolbarManager->GetToolbarHash());
+  return watchdogWidget;
 }
 
 //-----------------------------------------------------------------------------

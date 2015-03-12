@@ -130,6 +130,16 @@ void qSlicerWatchdogModuleWidget::setup()
 }
 
 
+
+  void qSlicerWatchdogModuleWidget::SetToolbarHash(QHash<QString, qMRMLWatchdogToolBar *> * watchdogToolbarHash)
+  {
+    Q_D(qSlicerWatchdogModuleWidget);
+    if (watchdogToolbarHash!=NULL)
+    {
+      d->WatchdogToolbarHash=watchdogToolbarHash;
+    }
+  }
+
 void qSlicerWatchdogModuleWidget::InitializeToolbar(vtkMRMLWatchdogNode* watchdogNodeAdded )
 {
   Q_D(qSlicerWatchdogModuleWidget);
@@ -199,10 +209,6 @@ void qSlicerWatchdogModuleWidget::RemoveToolbar()
   //}
 }
 
-
-
-
-
 void
 qSlicerWatchdogModuleWidget
 ::enter()
@@ -238,10 +244,10 @@ qSlicerWatchdogModuleWidget
     d->ModuleNodeComboBox->setCurrentNodeID( node->GetID() );
   }
 
-  if(d->WatchdogToolbarHash==NULL)
-  {
-    d->WatchdogToolbarHash = new QHash<QString, qMRMLWatchdogToolBar *>;
-  }
+  //if(d->WatchdogToolbarHash==NULL)
+  //{
+  //  d->WatchdogToolbarHash = new QHash<QString, qMRMLWatchdogToolBar *>;
+  //}
 
   vtkCollection* watchdogNodes = this->mrmlScene()->GetNodesByClass( "vtkMRMLWatchdogNode" );
   vtkCollectionIterator* watchdogNodeIt = vtkCollectionIterator::New();

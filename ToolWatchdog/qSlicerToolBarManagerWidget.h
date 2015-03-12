@@ -65,6 +65,9 @@ public:
   //void SetNodeStatus(int row, bool status );
   //void SetNodeLabel(int row, const char * toolLabel);
 
+QHash<QString, qMRMLWatchdogToolBar *> * GetToolbarHash();
+
+
 public slots:
   virtual void setMRMLScene(vtkMRMLScene* newScene);
   void InitializeToolbarHash();

@@ -65,6 +65,13 @@ qSlicerToolBarManagerWidget::~qSlicerToolBarManagerWidget()
 {
 }
 
+
+QHash<QString, qMRMLWatchdogToolBar *> * qSlicerToolBarManagerWidget::GetToolbarHash()
+{
+  return this->WatchdogToolbarHash;
+}
+
+
 // --------------------------------------------------------------------------
 void qSlicerToolBarManagerWidget::setMRMLScene(vtkMRMLScene* newScene)
 {
@@ -165,11 +172,6 @@ void qSlicerToolBarManagerWidget::InitializeToolbarHash()
   }
   watchdogNodeIt->Delete();
   watchdogNodes->Delete();
-
-
-
-
-
 }
 
 
@@ -189,7 +191,6 @@ void  qSlicerToolBarManagerWidget::onUpdateToolbars()
 
   for ( watchdogNodeIt->InitTraversal(); ! watchdogNodeIt->IsDoneWithTraversal(); watchdogNodeIt->GoToNextItem() )
   {
-
     vtkMRMLWatchdogNode* watchdogNode = vtkMRMLWatchdogNode::SafeDownCast( watchdogNodeIt->GetCurrentObject() );
     if(this->WatchdogToolbarHash->contains(QString(watchdogNode->GetID())) && this->WatchdogToolbarHash->value(QString(watchdogNode->GetID()))->isVisible())
     {
