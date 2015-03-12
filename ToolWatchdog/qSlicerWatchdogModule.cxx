@@ -21,9 +21,14 @@
 // Watchdog Logic includes
 #include <vtkSlicerWatchdogLogic.h>
 
+#include "QVTKSlicerWatchdogLogicInternal.h"
+
 // Watchdog includes
 #include "qSlicerWatchdogModule.h"
 #include "qSlicerWatchdogModuleWidget.h"
+#include "qSlicerToolbarManagerWidget.h"
+
+
 
 //-----------------------------------------------------------------------------
 Q_EXPORT_PLUGIN2(qSlicerWatchdogModule, qSlicerWatchdogModule);
@@ -34,6 +39,7 @@ class qSlicerWatchdogModulePrivate
 {
 public:
   qSlicerWatchdogModulePrivate();
+  qSlicerToolBarManagerWidget * ToolbarManager;
 };
 
 //-----------------------------------------------------------------------------
@@ -42,6 +48,8 @@ public:
 //-----------------------------------------------------------------------------
 qSlicerWatchdogModulePrivate::qSlicerWatchdogModulePrivate()
 {
+  this->ToolbarManager=NULL;
+
 }
 
 //-----------------------------------------------------------------------------
@@ -103,6 +111,25 @@ void qSlicerWatchdogModule::setup()
 {
   this->Superclass::setup();
 }
+
+
+void qSlicerWatchdogModule::setMRMLScene(vtkMRMLScene* _mrmlScene)
+{
+  this->Superclass::setMRMLScene(_mrmlScene);
+  Q_D(qSlicerWatchdogModule);
+  //this->Superclass::logic()
+  if(d->ToolbarManager==NULL)
+  {
+    d->ToolbarManager = new qSlicerToolBarManagerWidget;
+  }
+  d->ToolbarManager->setMRMLScene(_mrmlScene);
+  vtkSlicerWatchdogLogic* watchdogLogic = vtkSlicerWatchdogLogic::SafeDownCast( this->Superclass::logic());
+
+    //connect( d->logic()->GetQVTKLogicInternal(), SIGNAL( updateTable() ), this, SLOT( onTimeout() ) );
+    connect( watchdogLogic->GetQVTKLogicInternal(), SIGNAL( updateTable() ),  d->ToolbarManager, SLOT( onUpdateToolbars() ) );
+  //connect(this, SIGNAL(mrmlSceneChanged(vtkMRMLScene*)), d->ToolbarManager, SLOT(setMRMLScene(vtkMRMLScene*)));
+}
+
 
 //-----------------------------------------------------------------------------
 qSlicerAbstractModuleRepresentation* qSlicerWatchdogModule

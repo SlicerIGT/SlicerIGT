@@ -50,10 +50,16 @@ public:
   virtual QStringList categories()const;
   virtual QStringList dependencies() const;
 
+public slots:
+
+  virtual void setMRMLScene(vtkMRMLScene*);
+
 protected:
 
   /// Initialize the module.
   virtual void setup();
+
+
 
   /// Create and return the widget representation associated to this module
   virtual qSlicerAbstractModuleRepresentation * createWidgetRepresentation();
