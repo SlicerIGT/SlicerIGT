@@ -70,7 +70,7 @@ QHash<QString, qMRMLWatchdogToolBar *> * GetToolbarHash();
 
 public slots:
   virtual void setMRMLScene(vtkMRMLScene* newScene);
-  void InitializeToolbarHash();
+  //void InitializeToolbarHash();
   void onUpdateToolbars();
   void RemoveToolbar(vtkObject* scene, vtkObject* node);
   void AddToolbar(vtkObject*, vtkObject* nodeToBeRemoved);

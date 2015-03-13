@@ -63,6 +63,9 @@ qSlicerToolBarManagerWidget::qSlicerToolBarManagerWidget(QWidget* _parent)
 //---------------------------------------------------------------------------
 qSlicerToolBarManagerWidget::~qSlicerToolBarManagerWidget()
 {
+  //assert(this->Superclass::mrmlScene() != 0);
+  //this->qvtkDisconnect(this->Superclass::mrmlScene(), vtkMRMLScene::NodeRemovedEvent, this, SLOT(RemoveToolbar(vtkObject*, vtkObject*)));
+  //this->qvtkDisconnect(this->Superclass::mrmlScene(), vtkMRMLScene::NodeAddedEvent, this, SLOT(AddToolbar(vtkObject*, vtkObject*)));
 }
 
 
@@ -126,53 +129,53 @@ void qSlicerToolBarManagerWidget::InitializeToolbar(vtkMRMLWatchdogNode* watchdo
 }
 
 
-void qSlicerToolBarManagerWidget::InitializeToolbarHash()
-{
-  //Q_D(qSlicerWatchdogModuleWidget);
-  qDebug() << "Initialize toolBAR HASH";
-
-  if(this->WatchdogToolbarHash==NULL)
-  {
-    this->WatchdogToolbarHash = new QHash<QString, qMRMLWatchdogToolBar *>;
-  }
-  assert(this->Superclass::mrmlScene() != 0);
-  vtkCollection* watchdogNodes = this->Superclass::mrmlScene()->GetNodesByClass( "vtkMRMLWatchdogNode" );
-  vtkCollectionIterator* watchdogNodeIt = vtkCollectionIterator::New();
-  watchdogNodeIt->SetCollection( watchdogNodes );
-  int hasTools=0;
-  for ( watchdogNodeIt->InitTraversal(); ! watchdogNodeIt->IsDoneWithTraversal(); watchdogNodeIt->GoToNextItem() )
-  {
-    vtkMRMLWatchdogNode* watchdogNode = vtkMRMLWatchdogNode::SafeDownCast( watchdogNodeIt->GetCurrentObject() );
-    if ( watchdogNode != NULL)
-    {
-      if(!this->WatchdogToolbarHash->contains(watchdogNode->GetID()))
-      {
-        this->InitializeToolbar(watchdogNode);
-        //watchdogNode->GetNumberOfTools()
-        //  this->WatchdogToolbarHash->value(QString(watchdogNode->GetID()))->ToolNodeAdded(currentToolNode->GetName());
-        std::list<WatchedTool>* toolsVectorPtr = watchdogNode->GetToolNodes();
-        int numberTools = toolsVectorPtr->size();
-        qDebug() << "enter initialize watchdognode tools " <<numberTools<< "in the toolbar";
-        if ( toolsVectorPtr == NULL /*|| numberTools!= d->ToolsTableWidget->rowCount()*/)
-        {
-          return;
-        }
-        int row=0;
-        for (std::list<WatchedTool>::iterator itTool = toolsVectorPtr->begin() ; itTool != toolsVectorPtr->end(); ++itTool)
-        {
-          if((*itTool).tool==NULL)
-          {
-            return;
-          }
-          this->WatchdogToolbarHash->value(QString(watchdogNode->GetID()))->ToolNodeAdded((*itTool).label.c_str());
-          row++;
-        }
-      }
-    }
-  }
-  watchdogNodeIt->Delete();
-  watchdogNodes->Delete();
-}
+//void qSlicerToolBarManagerWidget::InitializeToolbarHash()
+//{
+//  //Q_D(qSlicerWatchdogModuleWidget);
+//  qDebug() << "Initialize toolBAR HASH";
+//
+//  if(this->WatchdogToolbarHash==NULL)
+//  {
+//    this->WatchdogToolbarHash = new QHash<QString, qMRMLWatchdogToolBar *>;
+//  }
+//  assert(this->Superclass::mrmlScene() != 0);
+//  vtkCollection* watchdogNodes = this->Superclass::mrmlScene()->GetNodesByClass( "vtkMRMLWatchdogNode" );
+//  vtkCollectionIterator* watchdogNodeIt = vtkCollectionIterator::New();
+//  watchdogNodeIt->SetCollection( watchdogNodes );
+//  int hasTools=0;
+//  for ( watchdogNodeIt->InitTraversal(); ! watchdogNodeIt->IsDoneWithTraversal(); watchdogNodeIt->GoToNextItem() )
+//  {
+//    vtkMRMLWatchdogNode* watchdogNode = vtkMRMLWatchdogNode::SafeDownCast( watchdogNodeIt->GetCurrentObject() );
+//    if ( watchdogNode != NULL)
+//    {
+//      if(!this->WatchdogToolbarHash->contains(watchdogNode->GetID()))
+//      {
+//        this->InitializeToolbar(watchdogNode);
+//        //watchdogNode->GetNumberOfTools()
+//        //  this->WatchdogToolbarHash->value(QString(watchdogNode->GetID()))->ToolNodeAdded(currentToolNode->GetName());
+//        std::list<WatchedTool>* toolsVectorPtr = watchdogNode->GetToolNodes();
+//        int numberTools = toolsVectorPtr->size();
+//        qDebug() << "enter initialize watchdognode tools " <<numberTools<< "in the toolbar";
+//        if ( toolsVectorPtr == NULL /*|| numberTools!= d->ToolsTableWidget->rowCount()*/)
+//        {
+//          return;
+//        }
+//        int row=0;
+//        for (std::list<WatchedTool>::iterator itTool = toolsVectorPtr->begin() ; itTool != toolsVectorPtr->end(); ++itTool)
+//        {
+//          if((*itTool).tool==NULL)
+//          {
+//            return;
+//          }
+//          this->WatchdogToolbarHash->value(QString(watchdogNode->GetID()))->ToolNodeAdded((*itTool).label.c_str());
+//          row++;
+//        }
+//      }
+//    }
+//  }
+//  watchdogNodeIt->Delete();
+//  watchdogNodes->Delete();
+//}
 
 void  qSlicerToolBarManagerWidget::onUpdateToolbars()
 {
@@ -212,6 +215,8 @@ void  qSlicerToolBarManagerWidget::onUpdateToolbars()
       }
     }
   }
+    watchdogNodeIt->Delete();
+    watchdogNodes->Delete();
 }
 
 
@@ -307,105 +312,3 @@ void qSlicerToolBarManagerWidget::AddToolbar(vtkObject*, vtkObject* nodeAdded)
 
 
 
-//void qSlicerToolBarManagerWidget
-//::SetFirstlabel(char * watchDogNodeName)
-//{
-//  Q_D(qSlicerToolBarManagerWidget);
-//  QString tooltip("Each square indicates the state of the tools watched by the Watchdog module: ");
-//  tooltip.append(watchDogNodeName);
-//  QLabel* firstLabel = (QLabel*)this->widgetForAction(d->ActionsListPtr->at(0));
-//  firstLabel->setToolTip( tooltip );
-//  firstLabel->setText(QString(watchDogNodeName));
-//}
-//
-//void qSlicerToolBarManagerWidget
-//::ToolNodeAdded(const char * label)
-//{
-//  Q_D(qSlicerToolBarManagerWidget);
-//
-//  QLabel* toolLabel = new QLabel(this);
-//  toolLabel->setToolTip(this->tr("Tool in row %1").arg(d->ActionsListPtr->size()));
-//  toolLabel->setText(label);
-//
-//  toolLabel->setAlignment(Qt::AlignCenter);
-//  toolLabel->setStyleSheet("QLabel { background-color: green; min-width: 2em; max-height: 2em;}");
-//  toolLabel->setMargin(4);
-//  d->ActionsListPtr->push_back(this->addWidget(toolLabel));
-//  //QObject::connect(this->LabelsListPtr, SIGNAL(triggered()),
-//  //                 this, SIGNAL(screenshotButtonClicked()));
-//  
-//}
-//
-//void qSlicerToolBarManagerWidget
-//::SwapToolNodes(int toolA, int toolB )
-//{
-//  Q_D(qSlicerToolBarManagerWidget);
-//
-//  //d->ActionsListPtr->swap(toolA+1,toolB+1);
-//  QLabel* toolLabelA = (QLabel*)this->widgetForAction(d->ActionsListPtr->at(toolA+1));
-//  QLabel* toolLabelB = (QLabel*)this->widgetForAction(d->ActionsListPtr->at(toolB+1));
-//  QString TempLabel = toolLabelA->text();
-//  toolLabelA->setText(toolLabelB->text());
-//  toolLabelB->setText(TempLabel);
-//  //this->widgetForAction(d->ActionsListPtr->at(toolA+1))->setIconText(this->widgetForAction(d->ActionsListPtr->at(toolB+1))->iconText());
-//  //this->widgetForAction(d->ActionsListPtr->at(toolB+1))->SetIconText(toolLabel);
-//}
-//
-//void qSlicerToolBarManagerWidget
-//::ToolNodeDeleted()
-//{
-//  Q_D(qSlicerToolBarManagerWidget);
-//  this->removeAction(d->ActionsListPtr->back());
-//  d->ActionsListPtr->pop_back();
-//}
-//
-//
-//void qSlicerToolBarManagerWidget
-//::DeleteToolNode(int row)
-//{
-//  Q_D(qSlicerToolBarManagerWidget);
-//  this->removeAction(d->ActionsListPtr->at(row+1));
-//  d->ActionsListPtr->removeAt(row+1);
-//}
-//
-//
-//
-//void qSlicerToolBarManagerWidget
-//::SetNodeStatus(int row, bool status )
-//{
-//  Q_D(qSlicerToolBarManagerWidget);
-//  if(d->ActionsListPtr!= NULL)
-//  {
-//    if(d->ActionsListPtr->size()>1&&row+1<d->ActionsListPtr->size())
-//    {
-//      if(status)
-//      {
-//        this->widgetForAction(d->ActionsListPtr->at(row+1))->setStyleSheet("QLabel { background-color: rgb(45,224,90); min-width: 2em; max-height: 2em;}");
-//      }
-//      else
-//      {
-//        this->widgetForAction(d->ActionsListPtr->at(row+1))->setStyleSheet("QLabel { background-color: red; min-width: 2em; max-height: 2em;}");
-//      }
-//    }
-//  }
-//  return;
-//  
-//  //QObject::connect(this->LabelsListPtr, SIGNAL(triggered()),
-//  //                 this, SIGNAL(screenshotButtonClicked()));
-//  //this->addWidget(d->LabelsListPtr->back());
-//}
-//
-//void qSlicerToolBarManagerWidget
-//::SetNodeLabel(int row,const char * toolLabel)
-//{
-//  Q_D(qSlicerToolBarManagerWidget);
-//  if(d->ActionsListPtr!= NULL)
-//  {
-//    if(d->ActionsListPtr->size()>1&&row+1<d->ActionsListPtr->size())
-//    {
-//      QLabel* label= (QLabel*)(this->widgetForAction(d->ActionsListPtr->at(row+1)));
-//      label->setText(QString(toolLabel));
-//    }
-//  }
-//  return;
-//}
