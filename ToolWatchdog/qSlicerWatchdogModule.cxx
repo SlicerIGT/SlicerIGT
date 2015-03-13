@@ -38,6 +38,7 @@ class qSlicerWatchdogModulePrivate
 {
 public:
   qSlicerWatchdogModulePrivate();
+  ~qSlicerWatchdogModulePrivate();
   qSlicerToolBarManagerWidget * ToolbarManager;
 };
 
@@ -49,6 +50,15 @@ qSlicerWatchdogModulePrivate::qSlicerWatchdogModulePrivate()
 {
   this->ToolbarManager=NULL;
 
+}
+
+//-----------------------------------------------------------------------------
+qSlicerWatchdogModulePrivate::~qSlicerWatchdogModulePrivate()
+{
+  if(this->ToolbarManager)
+  {
+    delete this->ToolbarManager;
+  }
 }
 
 //-----------------------------------------------------------------------------
