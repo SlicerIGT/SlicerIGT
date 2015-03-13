@@ -93,7 +93,7 @@ protected:
   QScopedPointer<qSlicerWatchdogModuleWidgetPrivate> d_ptr;
 
 
-  void InitializeToolbar(vtkMRMLWatchdogNode* watchdogNodeAdded );
+  void ConnectToolbarVisibility(vtkMRMLWatchdogNode* watchdogNodeAdded );
   void RemoveToolbar();
 
   /// Updates all the active toolbars accordingly to their respective watchdog nodes states
