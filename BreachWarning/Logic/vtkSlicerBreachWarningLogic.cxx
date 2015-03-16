@@ -162,6 +162,10 @@ void vtkSlicerBreachWarningLogic ::UpdateModelColor( vtkMRMLBreachWarningNode* b
   {
     return;
   }
+  if ( modelNode->GetDisplayNode() == NULL )
+  {
+    return;
+  }
 
   if ( bwNode->IsToolTipInsideModel())
   {
@@ -249,7 +253,10 @@ void vtkSlicerBreachWarningLogic::SetWatchedModelNode( vtkMRMLModelNode* newMode
   if(newModel!=NULL)
   {
     double originalColor[3]={0.5,0.5,0.5};
-    newModel->GetDisplayNode()->GetColor(originalColor);
+    if ( newModel->GetDisplayNode() != NULL )
+    {
+      newModel->GetDisplayNode()->GetColor(originalColor);
+    }
     moduleNode->SetOriginalColor(originalColor);
   }
 
@@ -257,7 +264,7 @@ void vtkSlicerBreachWarningLogic::SetWatchedModelNode( vtkMRMLModelNode* newMode
   moduleNode->SetAndObserveWatchedModelNodeID( (newModel!=NULL) ? newModel->GetID() : NULL );
 
   // Restore the color of the old model node
-  if(previousModel!=NULL)
+  if(previousModel!=NULL && previousModel->GetDisplayNode()!=NULL)
   {
     previousModel->GetDisplayNode()->SetColor(previousOriginalColor[0],previousOriginalColor[1],previousOriginalColor[2]);
   }
