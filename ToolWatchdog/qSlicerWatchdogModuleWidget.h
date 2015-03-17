@@ -26,6 +26,7 @@ class qSlicerWatchdogModuleWidgetPrivate;
 class vtkMRMLNode;
 class vtkMRMLWatchdogNode;
 class qMRMLWatchdogToolBar;
+class qSlicerToolBarManagerWidget;
 
 /// \ingroup Slicer_QtModules_ExtensionTemplate
 class Q_SLICER_QTMODULES_WATCHDOG_EXPORT qSlicerWatchdogModuleWidget :
@@ -39,7 +40,7 @@ public:
   qSlicerWatchdogModuleWidget(QWidget *parent=0);
   virtual ~qSlicerWatchdogModuleWidget();
 
-  void SetToolbarHash(QHash<QString, qMRMLWatchdogToolBar *> * );
+  void SetToolBarManager(qSlicerToolBarManagerWidget * );
 
 public slots:
 
@@ -63,7 +64,7 @@ protected slots:
   /// Clean up the table when toolWatchdog node is about to be removed
   void onModuleNodeAboutToBeRemoved(vtkMRMLNode* nodeToBeRemoved);
   ///Turn ON or OFF the tool bar visibility and the current watchdog node
-  void onToolbarVisibilityButtonClicked();
+  void onToolBarVisibilityButtonClicked();
   /// Update table every time the logic timer shots
   void onTimeout();
   /// When the label column is clicked it connects the cellChanged signal, to update the toolbar accordingly
@@ -85,7 +86,7 @@ protected slots:
   /// Deletes and creates a table. Updates gui accordingly to node state
   void updateWidget();
   /// Updates the toolbar visibility checkbox accordingly to the toolbar visibility, in case is deactivated from the menu
-  void onToolbarVisibilityChanged( bool visible );
+  void onToolBarVisibilityChanged( bool visible );
   /// Sets the playSound option of the displayable node accordingly to the table checkbox
   void onSoundCheckBoxStateChanged(int state);
 
@@ -93,11 +94,11 @@ protected:
   QScopedPointer<qSlicerWatchdogModuleWidgetPrivate> d_ptr;
 
 
-  void ConnectToolbarVisibility(vtkMRMLWatchdogNode* watchdogNodeAdded );
-  void RemoveToolbar();
+  void ConnectToolBarVisibility(vtkMRMLWatchdogNode* watchdogNodeAdded );
+  void RemoveToolBar();
 
   /// Updates all the active toolbars accordingly to their respective watchdog nodes states
-  //void updateToolbars();
+  //void updateToolBars();
   /// Updates the current watchdog node table
   void updateTable();
   /// Connects the gui signals

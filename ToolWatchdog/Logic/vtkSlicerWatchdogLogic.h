@@ -61,6 +61,7 @@ public:
 
   static vtkSlicerWatchdogLogic *New();
   vtkTypeMacro(vtkSlicerWatchdogLogic, vtkSlicerModuleLogic);
+  vtkGetMacro(StatusRefreshTimeSec, double);
   void PrintSelf(ostream& os, vtkIndent indent);
 
   /// Adds a tool to the list in the respective toolwatchdog node
@@ -95,9 +96,9 @@ private:
   void operator=(const vtkSlicerWatchdogLogic&); // Not implemented
   double StatusRefreshTimeSec;
   double ElapsedTimeSec;
-  double LastSoundElapsedTime;
+  //double LastSoundElapsedTime;
   QVTKSlicerWatchdogLogicInternal* Internal;
-  QPointer<QSound>  BreachSound;
+  //QPointer<QSound>  BreachSound;
 
 };
 

@@ -32,7 +32,6 @@
 #include <vtkTimerLog.h>
 
 class vtkMRMLDisplayableNode;
-class qMRMLWatchdogToolBar;
 
 struct WatchedTool{
   vtkMRMLDisplayableNode* tool;

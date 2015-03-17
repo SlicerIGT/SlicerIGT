@@ -63,7 +63,6 @@ void vtkMRMLWatchdogNode::WriteXML( ostream& of, int nIndent )
   }
 }
 
-
 void vtkMRMLWatchdogNode::ReadXMLAttributes( const char** atts )
 {
   Superclass::ReadXMLAttributes(atts); // This will take care of referenced nodes
@@ -94,7 +93,7 @@ void vtkMRMLWatchdogNode::ReadXMLAttributes( const char** atts )
         vtkDebugMacro("WatchedToolName read "<< ss.str().c_str() << " atName = "<< attName<< " atValue = "<< attValue);
         if ( ! strcmp( attName, ss.str().c_str() ) )
         {
-          tempWatchedTool.label= std::string(attValue).substr(0,6);//QString(attValue).left(6).toStdString();
+          tempWatchedTool.label= std::string(attValue).substr(0,6);
         }
         else 
         {
@@ -113,7 +112,7 @@ void vtkMRMLWatchdogNode::ReadXMLAttributes( const char** atts )
 
           std::stringstream ss;
           ss << attValue;
-          ss>>(tempWatchedTool.playSound);//tempWatchedTool.playSound=QString(attValue).toInt();
+          ss>>(tempWatchedTool.playSound);
           attName  = *(atts++);
         }
         else 
@@ -128,7 +127,7 @@ void vtkMRMLWatchdogNode::ReadXMLAttributes( const char** atts )
         vtkDebugMacro("WatchedToolID read "<< IdString.str().c_str() << " atName = " << attName << " atValue = " << attValue);
         if ( ! strcmp( attName, IdString.str().c_str()) )
         {
-          tempWatchedTool.id=std::string(attValue);//QString(attValue).toStdString();
+          tempWatchedTool.id=std::string(attValue);
           WatchedTools.push_back(tempWatchedTool);
         }
         else 
@@ -181,7 +180,7 @@ int vtkMRMLWatchdogNode::AddToolNode( vtkMRMLDisplayableNode* toolAdded)
     return 0;
   }
   tempWatchedTool.tool=toolAdded;
-  tempWatchedTool.label=std::string(toolAdded->GetName()).substr(0,6);//QString(toolAdded->GetName()).left(6).toStdString();
+  tempWatchedTool.label=std::string(toolAdded->GetName()).substr(0,6);
   tempWatchedTool.id=toolAdded->GetID();
   //tempWatchedTool.LastTimeStamp=mrmlNode->GetMTime();
   WatchedTools.push_back(tempWatchedTool);
@@ -242,7 +241,6 @@ bool vtkMRMLWatchdogNode::HasTool(char * toolName)
     {
       continue;
     }
-    //QString toolNameTemp((*it).tool->GetName());
     if(!strcmp((*it).tool->GetName(), toolName))//(toolNameTemp.compare(toolName)==0)
     {
       return true;

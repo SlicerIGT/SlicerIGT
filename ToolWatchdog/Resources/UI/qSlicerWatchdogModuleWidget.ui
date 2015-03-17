@@ -179,7 +179,7 @@
             </widget>
            </item>
            <item row="1" column="0">
-            <widget class="QCheckBox" name="ToolbarVisibilityCheckBox">
+            <widget class="QCheckBox" name="ToolBarVisibilityCheckBox">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                <horstretch>0</horstretch>
