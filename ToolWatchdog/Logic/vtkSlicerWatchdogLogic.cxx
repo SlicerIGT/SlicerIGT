@@ -109,13 +109,8 @@ void vtkSlicerWatchdogLogic::RegisterNodes()
 
   ElapsedTimeSec=0.0;
   StatusRefreshTimeSec=0.20;
-  //LastSoundElapsedTime=2.0;
 
   QObject::connect( this->Internal->Timer, SIGNAL( timeout() ), this->Internal, SLOT( onTimerEvent() ) );
-  //if(BreachSound==NULL)
-  //{
-  //  BreachSound=new QSound( QDir::toNativeSeparators( QString::fromStdString( GetModuleShareDirectory()+"/alarmWatchdog.wav" ) ) );
-  //}
 }
 
 void vtkSlicerWatchdogLogic::AddToolNode( vtkMRMLWatchdogNode* watchdogNode, vtkMRMLDisplayableNode *toolNode)
@@ -197,7 +192,6 @@ void  vtkSlicerWatchdogLogic::TimerEvent()
     ElapsedTimeSec=0.0;
   }
   ElapsedTimeSec = ElapsedTimeSec+StatusRefreshTimeSec;
-  //LastSoundElapsedTime = LastSoundElapsedTime+StatusRefreshTimeSec;
 
   vtkCollection* watchdogNodes = this->GetMRMLScene()->GetNodesByClass( "vtkMRMLWatchdogNode" );
   vtkCollectionIterator* watchdogNodeIt = vtkCollectionIterator::New();
@@ -221,21 +215,6 @@ void  vtkSlicerWatchdogLogic::TimerEvent()
         {
           return;
         }
-        //watchdogNode->WatchdogToolbar->SetNodeStatus(row,(*itTool).status);
-        //if(LastSoundElapsedTime>=2.0)
-        //if((*itTool).playSound && !(*itTool).status)
-        //{
-        //  LastSoundElapsedTime=0;
-        //  if(BreachSound->isFinished())
-        //  {
-        //    BreachSound->setLoops(1);
-        //    BreachSound->play();
-        //  }
-        //}
-        ////if((*itTool).sound && (*itTool).status)
-        ////{
-        ////  BreachSound->stop();
-        ////}
         row++;
       }
     //}

@@ -54,7 +54,8 @@ public:
 
 public slots:
   virtual void setMRMLScene(vtkMRMLScene* newScene);
-  ///Every time the logic timer shoots will update the main window watchdog toolbar status
+  ///Every time the logic timer shoots will update the main window watchdog toolbar status  and play the beep sound if 
+  ///any watched tool (with playSound activated) is out-dated.
   void onUpdateToolBars();
   /// It removes the  watchdog toolbar widget from the QMainWindow.
   void RemoveToolBar(vtkObject* scene, vtkObject* node);

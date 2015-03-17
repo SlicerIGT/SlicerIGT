@@ -34,9 +34,6 @@
 #include "vtkMRMLScene.h"
 
 //#include "vtkSmartPointer.h"
-#include <QSound>
-#include <QPointer>
-
 // For referencing own MRML node
 class vtkMRMLWatchdogNode;
 class vtkMRMLDisplayableNode;
@@ -69,8 +66,7 @@ public:
   /// Updates the state of the tool observed according to the timestamp. The elapsedTime is stored to keep track of time 
   ///that tools have been disconnected.
   void UpdateToolStatus( vtkMRMLWatchdogNode* toolWatchdogNode);
-  ///Every time the timer is reached this method updates the tools status, the elapsed time and play the beep sound if 
-  ///any watched tool (with playSound activated) is out-dated.
+  ///Every time the timer is reached this method updates the tools status and the elapsed time
   void TimerEvent();
   vtkGetMacro(ElapsedTimeSec, double);
   void SetStatusRefreshTimeMiliSec( double statusRefeshRateMiliSec);
@@ -96,10 +92,7 @@ private:
   void operator=(const vtkSlicerWatchdogLogic&); // Not implemented
   double StatusRefreshTimeSec;
   double ElapsedTimeSec;
-  //double LastSoundElapsedTime;
   QVTKSlicerWatchdogLogicInternal* Internal;
-  //QPointer<QSound>  BreachSound;
-
 };
 
 #endif
