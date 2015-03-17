@@ -131,9 +131,7 @@ void qSlicerWatchdogModule::setMRMLScene(vtkMRMLScene* _mrmlScene)
   }
   d->ToolBarManager->setMRMLScene(_mrmlScene);
   vtkSlicerWatchdogLogic* watchdogLogic = vtkSlicerWatchdogLogic::SafeDownCast(this->Superclass::logic());
-  d->ToolBarManager->setSound(watchdogLogic->GetModuleShareDirectory());
-  d->ToolBarManager->setStatusRefreshTimeSec(watchdogLogic->GetStatusRefreshTimeSec());
-  connect(watchdogLogic->GetQVTKLogicInternal(), SIGNAL(updateTable()), d->ToolBarManager, SLOT(onUpdateToolBars()));
+  d->ToolBarManager->setLogic(watchdogLogic);
 }
 
 //-----------------------------------------------------------------------------

@@ -9,12 +9,12 @@ set(${KIT}_INCLUDE_DIRECTORIES
   ${CMAKE_CURRENT_BINARY_DIR}/../Widgets
   )
 
-QT4_WRAP_CPP(LOADABLEMODULE_MOC_OUTPUT QVTKSlicer${MODULE_NAME}LogicInternal.h)
+#QT4_WRAP_CPP(LOADABLEMODULE_MOC_OUTPUT QVTKSlicer${MODULE_NAME}LogicInternal.h)
 
 set(${KIT}_SRCS
   vtkSlicer${MODULE_NAME}Logic.cxx
   vtkSlicer${MODULE_NAME}Logic.h
-  QVTKSlicer${MODULE_NAME}LogicInternal.h
+  #QVTKSlicer${MODULE_NAME}LogicInternal.h
   ${LOADABLEMODULE_MOC_OUTPUT}
   )
 

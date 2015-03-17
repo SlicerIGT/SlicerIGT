@@ -30,33 +30,33 @@ limitations under the License.
 
 //Qt includes
 //#include <QDir>
-#include <QtCore/QObject>
-#include <QEvent>
-#include <QTimer>
+//#include <QtCore/QObject>
+//#include <QEvent>
+//#include <QTimer>
 
 //#include "qMRMLWatchdogToolBar.h"
 
-#include "QVTKSlicerWatchdogLogicInternal.h"
+//#include "QVTKSlicerWatchdogLogicInternal.h"
 
 // STD includes
 #include <cassert>
 #include <limits>
+//
+//QVTKSlicerWatchdogLogicInternal::QVTKSlicerWatchdogLogicInternal(vtkSlicerWatchdogLogic* p)
+//: Parent(p)
+//{
+//
+//}
 
-QVTKSlicerWatchdogLogicInternal::QVTKSlicerWatchdogLogicInternal(vtkSlicerWatchdogLogic* p)
-: Parent(p)
-{
-
-}
-
-QVTKSlicerWatchdogLogicInternal::~QVTKSlicerWatchdogLogicInternal()
-{
-}
-
-void QVTKSlicerWatchdogLogicInternal::onTimerEvent()
-{
-  Parent->TimerEvent();
-  emit updateTable();
-}
+//QVTKSlicerWatchdogLogicInternal::~QVTKSlicerWatchdogLogicInternal()
+//{
+//}
+//
+//void QVTKSlicerWatchdogLogicInternal::onTimerEvent()
+//{
+//  Parent->TimerEvent();
+//  emit updateTable();
+//}
 
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSlicerWatchdogLogic);
@@ -65,14 +65,14 @@ vtkStandardNewMacro(vtkSlicerWatchdogLogic);
 vtkSlicerWatchdogLogic::vtkSlicerWatchdogLogic()
 {
   //vtkDebugMacro("Initialize watchdog logic!");
-  this->Internal = new QVTKSlicerWatchdogLogicInternal(this);
+  //this->Internal = new QVTKSlicerWatchdogLogicInternal(this);
 }
 
 //----------------------------------------------------------------------------
 vtkSlicerWatchdogLogic::~vtkSlicerWatchdogLogic()
 {
-  this->Internal->Timer->stop();
-  QObject::connect( this->Internal->Timer, SIGNAL( timeout() ), this->Internal, SLOT( onTimerEvent() ) );
+  //this->Internal->Timer->stop();
+  //QObject::connect( this->Internal->Timer, SIGNAL( timeout() ), this->Internal, SLOT( onTimerEvent() ) );
 }
 
 //----------------------------------------------------------------------------
@@ -105,12 +105,12 @@ void vtkSlicerWatchdogLogic::RegisterNodes()
   }
   this->GetMRMLScene()->RegisterNodeClass( vtkSmartPointer< vtkMRMLWatchdogNode >::New() );
 
-  this->Internal->Timer = new QTimer( this->Internal );
+  //this->Internal->Timer = new QTimer( this->Internal );
 
   ElapsedTimeSec=0.0;
   StatusRefreshTimeSec=0.20;
 
-  QObject::connect( this->Internal->Timer, SIGNAL( timeout() ), this->Internal, SLOT( onTimerEvent() ) );
+  //QObject::connect( this->Internal->Timer, SIGNAL( timeout() ), this->Internal, SLOT( onTimerEvent() ) );
 }
 
 void vtkSlicerWatchdogLogic::AddToolNode( vtkMRMLWatchdogNode* watchdogNode, vtkMRMLDisplayableNode *toolNode)
@@ -120,10 +120,10 @@ void vtkSlicerWatchdogLogic::AddToolNode( vtkMRMLWatchdogNode* watchdogNode, vtk
     return;
   }
 
-  if(watchdogNode->AddToolNode(toolNode)&& !this->Internal->Timer->isActive())
-  {
-    this->Internal->Timer->start( 1000.0*StatusRefreshTimeSec );
-  }
+  //if(watchdogNode->AddToolNode(toolNode)&& !this->Internal->Timer->isActive())
+  //{
+  //  this->Internal->Timer->start( 1000.0*StatusRefreshTimeSec );
+  //}
 }
 
 void vtkSlicerWatchdogLogic::UpdateToolStatus( vtkMRMLWatchdogNode* watchdogNode )
@@ -172,19 +172,19 @@ void vtkSlicerWatchdogLogic::UpdateToolStatus( vtkMRMLWatchdogNode* watchdogNode
   }
 }
 
-QVTKSlicerWatchdogLogicInternal* vtkSlicerWatchdogLogic::GetQVTKLogicInternal()
-{
-  return this->Internal;
-}
+//QVTKSlicerWatchdogLogicInternal* vtkSlicerWatchdogLogic::GetQVTKLogicInternal()
+//{
+//  return this->Internal;
+//}
 
-void vtkSlicerWatchdogLogic::SetStatusRefreshTimeMiliSec( double statusRefeshRateMiliSec)
-{
-  this->Internal->Timer->stop();
-  StatusRefreshTimeSec=((double)statusRefeshRateMiliSec)/1000;
-  this->Internal->Timer->start(statusRefeshRateMiliSec);
-}
+//void vtkSlicerWatchdogLogic::SetStatusRefreshTimeMiliSec( double statusRefeshRateMiliSec)
+//{
+//  this->Internal->Timer->stop();
+//  StatusRefreshTimeSec=((double)statusRefeshRateMiliSec)/1000;
+//  this->Internal->Timer->start(statusRefeshRateMiliSec);
+//}
 
-void  vtkSlicerWatchdogLogic::TimerEvent()
+void  vtkSlicerWatchdogLogic::UpdateWatchdogNodes()
 {
   //vtkDebugMacro("Timer event");
   if(ElapsedTimeSec>=std::numeric_limits<double>::max()-1.0)
@@ -221,6 +221,10 @@ void  vtkSlicerWatchdogLogic::TimerEvent()
   }
   watchdogNodeIt->Delete();
   watchdogNodes->Delete();
+
+
+  this->InvokeEvent(WatchdogLogicUpdatedEvent);
+
 }
 
 //---------------------------------------------------------------------------
@@ -258,10 +262,10 @@ void vtkSlicerWatchdogLogic::OnMRMLSceneEndImport()
   }
   watchdogNodeIt->Delete();
   watchdogNodes->Delete();
-  if(hasTools==1)
-  {
-    this->Internal->Timer->start( 1000.0*StatusRefreshTimeSec );
-  }
+  //if(hasTools==1)
+  //{
+  //  this->Internal->Timer->start( 1000.0*StatusRefreshTimeSec );
+  //}
   this->Modified();
 }
 

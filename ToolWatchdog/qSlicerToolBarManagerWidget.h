@@ -31,10 +31,12 @@
 
 #include <QSound>
 #include <QPointer>
+class QTimer;
 
 class vtkMRMLScene;
 class qMRMLWatchdogToolBar;
 class vtkMRMLWatchdogNode;
+class vtkSlicerWatchdogLogic;
 
 class Q_SLICER_QTMODULES_WATCHDOG_EXPORT qSlicerToolBarManagerWidget : public qSlicerWidget
 {
@@ -48,25 +50,29 @@ public:
   qSlicerToolBarManagerWidget(QWidget* parent = 0);
   virtual ~qSlicerToolBarManagerWidget();
 
+  QTimer* Timer;
   QHash<QString, qMRMLWatchdogToolBar *> * GetToolBarHash();
-  void setSound(std::string watchdogModuleShareDirectory);
-  void setStatusRefreshTimeSec( double StatusRefreshTimeSec);
+
+  void setLogic(vtkSlicerWatchdogLogic* watchdogLogic);
 
 public slots:
   virtual void setMRMLScene(vtkMRMLScene* newScene);
   ///Every time the logic timer shoots will update the main window watchdog toolbar status  and play the beep sound if 
   ///any watched tool (with playSound activated) is out-dated.
   void onUpdateToolBars();
+  void  onTimerEvent();
   /// It removes the  watchdog toolbar widget from the QMainWindow.
   void RemoveToolBar(vtkObject* scene, vtkObject* node);
   /// If there is not a watchdog toolbar widget in the QMainWindow. It will add add one for every watchdog node 
   void AddToolBar(vtkObject*, vtkObject* nodeToBeRemoved);
+  void setStatusRefreshTimeSec( double StatusRefreshTimeSec);
 
-signals:
 
 private:
 
   void InitializeToolBar(vtkMRMLWatchdogNode* watchdogNodeAdded );
+  void setSound(std::string watchdogModuleShareDirectory);
+
 
   Q_DISABLE_COPY(qSlicerToolBarManagerWidget);
 
@@ -74,6 +80,7 @@ private:
   QPointer<QSound>  WatchdogSound;
   double LastSoundElapsedTime;
   double StatusRefreshTimeSec;
+  vtkSlicerWatchdogLogic * WatchdogLogic;
 };
 
 #endif

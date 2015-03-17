@@ -119,7 +119,7 @@ void qSlicerWatchdogModuleWidget::setup()
   d->ToolsTableWidget->setContextMenuPolicy( Qt::CustomContextMenu );
   connect( d->ToolsTableWidget, SIGNAL( customContextMenuRequested(const QPoint&) ), this, SLOT( onToolsTableContextMenu(const QPoint&) ) );
 
-  connect( d->logic()->GetQVTKLogicInternal(), SIGNAL( updateTable() ), this, SLOT( onTimeout() ) );
+  connect( d->ToolBarManager->Timer, SIGNAL( timeout() ), this, SLOT( onTimeout() ) );
 
   this->updateFromMRMLNode();
 }
@@ -194,7 +194,12 @@ void qSlicerWatchdogModuleWidget::onSceneImportedEvent()
 void qSlicerWatchdogModuleWidget::onStatusRefreshRateSpinBoxChanged(int statusRefeshRateMiliSec)
 {
   Q_D( qSlicerWatchdogModuleWidget );
-  d->logic()->SetStatusRefreshTimeMiliSec(statusRefeshRateMiliSec);
+
+  d->ToolBarManager->Timer->stop();
+  int statusRefeshRateTimeSec=((double)statusRefeshRateMiliSec)/1000;
+  d->ToolBarManager->Timer->start(statusRefeshRateMiliSec);
+  d->ToolBarManager->setStatusRefreshTimeSec(statusRefeshRateTimeSec);
+  d->logic()->SetStatusRefreshTimeSec(statusRefeshRateTimeSec);
   updateWidget();
 }
 

@@ -22,6 +22,7 @@
 #include <QDebug>
 #include <QMenu>
 #include <QtGui>
+#include <QTimer>
 
 // SlicerQt includes
 #include "qSlicerApplication.h"
@@ -33,11 +34,13 @@
 // MRML includes
 #include <vtkMRMLScene.h>
 #include "vtkMRMLWatchdogNode.h"
+#include "vtkSlicerWatchdogLogic.h"
 
 // VTK includes
 #include <vtkSmartPointer.h>
 #include <vtkCollection.h>
 #include <vtkCollectionIterator.h>
+
 
 // --------------------------------------------------------------------------
 // qSlicerToolBarManagerWidget methods
@@ -47,11 +50,13 @@ qSlicerToolBarManagerWidget::qSlicerToolBarManagerWidget(QWidget* _parent)
 : Superclass(_parent), WatchdogSound(NULL)
 {
   this->WatchdogToolBarHash=NULL;
+  this->Timer = new QTimer( this );
 }
 
 //---------------------------------------------------------------------------
 qSlicerToolBarManagerWidget::~qSlicerToolBarManagerWidget()
 {
+  this->Timer->stop();
   assert(this->Superclass::mrmlScene() != 0);
   this->qvtkDisconnect(this->Superclass::mrmlScene(), vtkMRMLScene::NodeRemovedEvent, this, SLOT(RemoveToolBar(vtkObject*, vtkObject*)));
   this->qvtkDisconnect(this->Superclass::mrmlScene(), vtkMRMLScene::NodeAddedEvent, this, SLOT(AddToolBar(vtkObject*, vtkObject*)));
@@ -93,24 +98,19 @@ void qSlicerToolBarManagerWidget::setMRMLScene(vtkMRMLScene* newScene)
 
 }
 
-void qSlicerToolBarManagerWidget::InitializeToolBar(vtkMRMLWatchdogNode* watchdogNodeAdded )
+void qSlicerToolBarManagerWidget::setLogic(vtkSlicerWatchdogLogic* watchdogLogic)
 {
-  QMainWindow* window = qSlicerApplication::application()->mainWindow();
-  qMRMLWatchdogToolBar *watchdogToolBar = new qMRMLWatchdogToolBar (window);
-  watchdogToolBar->SetFirstlabel(watchdogNodeAdded->GetName());
-  this->WatchdogToolBarHash->insert(QString(watchdogNodeAdded->GetID()), watchdogToolBar);
-  window->addToolBar(watchdogToolBar);
-  watchdogToolBar->setWindowTitle(QApplication::translate("qSlicerAppMainWindow", watchdogNodeAdded->GetName(), 0, QApplication::UnicodeUTF8));
-  foreach (QMenu* toolBarMenu,window->findChildren<QMenu*>())
-  {
-    if(toolBarMenu->objectName()==QString("WindowToolBarsMenu"))
-    {
-      QList<QAction*> toolBarMenuActions= toolBarMenu->actions();
-      //toolBarMenu->defaultAction() would be bbetter to use but Slicer App should set the default action
-      toolBarMenu->insertAction(toolBarMenuActions.at(toolBarMenuActions.size()-1),watchdogToolBar->toggleViewAction());
-      break;
-    }
-  }
+ this->WatchdogLogic=watchdogLogic;
+  this->setSound(watchdogLogic->GetModuleShareDirectory());
+  this->setStatusRefreshTimeSec(watchdogLogic->GetStatusRefreshTimeSec());
+  connect( this->Timer, SIGNAL( timeout() ), this, SLOT( onTimerEvent() ) );
+  this->qvtkConnect(watchdogLogic, vtkSlicerWatchdogLogic::WatchdogLogicUpdatedEvent, this, SLOT(onUpdateToolBars()));
+
+}
+
+void  qSlicerToolBarManagerWidget::onTimerEvent()
+{
+  this->WatchdogLogic->UpdateWatchdogNodes();
 }
 
 void  qSlicerToolBarManagerWidget::onUpdateToolBars()
@@ -172,6 +172,10 @@ void  qSlicerToolBarManagerWidget::onUpdateToolBars()
 
 }
 
+
+
+
+
 void qSlicerToolBarManagerWidget::RemoveToolBar(vtkObject*, vtkObject* nodeToBeRemoved)
 {
   if(nodeToBeRemoved==NULL && this->WatchdogToolBarHash==NULL)
@@ -202,7 +206,37 @@ void qSlicerToolBarManagerWidget::RemoveToolBar(vtkObject*, vtkObject* nodeToBeR
       break;
     }
   }
+
+  this->WatchdogToolBarHash->remove(watchdogNodeToBeRemoved->GetID());
+  if(this->WatchdogToolBarHash->size()==0)
+  {
+    this->Timer->stop();
+  }
+
 }
+
+
+
+void qSlicerToolBarManagerWidget::InitializeToolBar(vtkMRMLWatchdogNode* watchdogNodeAdded )
+{
+  QMainWindow* window = qSlicerApplication::application()->mainWindow();
+  qMRMLWatchdogToolBar *watchdogToolBar = new qMRMLWatchdogToolBar (window);
+  watchdogToolBar->SetFirstlabel(watchdogNodeAdded->GetName());
+  this->WatchdogToolBarHash->insert(QString(watchdogNodeAdded->GetID()), watchdogToolBar);
+  window->addToolBar(watchdogToolBar);
+  watchdogToolBar->setWindowTitle(QApplication::translate("qSlicerAppMainWindow", watchdogNodeAdded->GetName(), 0, QApplication::UnicodeUTF8));
+  foreach (QMenu* toolBarMenu,window->findChildren<QMenu*>())
+  {
+    if(toolBarMenu->objectName()==QString("WindowToolBarsMenu"))
+    {
+      QList<QAction*> toolBarMenuActions= toolBarMenu->actions();
+      //toolBarMenu->defaultAction() would be bbetter to use but Slicer App should set the default action
+      toolBarMenu->insertAction(toolBarMenuActions.at(toolBarMenuActions.size()-1),watchdogToolBar->toggleViewAction());
+      break;
+    }
+  }
+}
+
 
 void qSlicerToolBarManagerWidget::AddToolBar(vtkObject*, vtkObject* nodeAdded)
 {
@@ -223,28 +257,29 @@ void qSlicerToolBarManagerWidget::AddToolBar(vtkObject*, vtkObject* nodeAdded)
     return;
   }
 
-  if ( watchdogNodeAdded != NULL)
+  if(this->WatchdogToolBarHash->size()==0)
   {
-    if(!this->WatchdogToolBarHash->contains(watchdogNodeAdded->GetID()))
+    this->Timer->start();
+  }
+  if(!this->WatchdogToolBarHash->contains(watchdogNodeAdded->GetID()))
+  {
+    this->InitializeToolBar(watchdogNodeAdded);
+    std::list<WatchedTool>* toolsVectorPtr = watchdogNodeAdded->GetToolNodes();
+    int numberTools = toolsVectorPtr->size();
+    //qDebug() << "toolbar manager initialize watchdogNodeAdded tools " <<numberTools<< "in the toolbar";
+    if ( toolsVectorPtr == NULL /*|| numberTools!= d->ToolsTableWidget->rowCount()*/)
     {
-      this->InitializeToolBar(watchdogNodeAdded);
-      std::list<WatchedTool>* toolsVectorPtr = watchdogNodeAdded->GetToolNodes();
-      int numberTools = toolsVectorPtr->size();
-      //qDebug() << "toolbar manager initialize watchdogNodeAdded tools " <<numberTools<< "in the toolbar";
-      if ( toolsVectorPtr == NULL /*|| numberTools!= d->ToolsTableWidget->rowCount()*/)
+      return;
+    }
+    int row=0;
+    for (std::list<WatchedTool>::iterator itTool = toolsVectorPtr->begin() ; itTool != toolsVectorPtr->end(); ++itTool)
+    {
+      if((*itTool).id=="")
       {
         return;
       }
-      int row=0;
-      for (std::list<WatchedTool>::iterator itTool = toolsVectorPtr->begin() ; itTool != toolsVectorPtr->end(); ++itTool)
-      {
-        if((*itTool).id=="")
-        {
-          return;
-        }
-        this->WatchdogToolBarHash->value(QString(watchdogNodeAdded->GetID()))->ToolNodeAdded((*itTool).label.c_str());
-        row++;
-      }
+      this->WatchdogToolBarHash->value(QString(watchdogNodeAdded->GetID()))->ToolNodeAdded((*itTool).label.c_str());
+      row++;
     }
   }
 
