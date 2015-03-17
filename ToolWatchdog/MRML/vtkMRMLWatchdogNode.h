@@ -103,12 +103,7 @@ public:
   bool HasTool(char * toolName);
   /// Returns the size of the list of tools
   int GetNumberOfTools();
-  /// If there is not a watchdog toolbar widget in the QMainWindow. It will add add one for every watchdog node 
-  //void InitializeToolbar();
- /// It removes the  watchdog toolbar widget from the QMainWindow.
-  //void RemoveToolbar();
 
-  //qMRMLWatchdogToolBar * WatchdogToolbar;
 private:
   std::list< WatchedTool > WatchedTools;
 
