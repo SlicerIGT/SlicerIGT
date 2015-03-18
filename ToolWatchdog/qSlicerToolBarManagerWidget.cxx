@@ -51,6 +51,8 @@ qSlicerToolBarManagerWidget::qSlicerToolBarManagerWidget(QWidget* _parent)
 {
   this->WatchdogToolBarHash=NULL;
   this->Timer = new QTimer( this );
+  StatusRefreshTimeSec=0.2;
+  LastSoundElapsedTime=2.0;
 }
 
 //---------------------------------------------------------------------------
@@ -100,12 +102,11 @@ void qSlicerToolBarManagerWidget::setMRMLScene(vtkMRMLScene* newScene)
 
 void qSlicerToolBarManagerWidget::setLogic(vtkSlicerWatchdogLogic* watchdogLogic)
 {
- this->WatchdogLogic=watchdogLogic;
+  this->WatchdogLogic=watchdogLogic;
   this->setSound(watchdogLogic->GetModuleShareDirectory());
   this->setStatusRefreshTimeSec(watchdogLogic->GetStatusRefreshTimeSec());
   connect( this->Timer, SIGNAL( timeout() ), this, SLOT( onTimerEvent() ) );
   this->qvtkConnect(watchdogLogic, vtkSlicerWatchdogLogic::WatchdogLogicUpdatedEvent, this, SLOT(onUpdateToolBars()));
-
 }
 
 void  qSlicerToolBarManagerWidget::onTimerEvent()
@@ -161,9 +162,6 @@ void  qSlicerToolBarManagerWidget::onUpdateToolBars()
           //{
           //  this->BreachSound->stop();
           //}
-
-
-
         row++;
       }
     }
@@ -171,10 +169,6 @@ void  qSlicerToolBarManagerWidget::onUpdateToolBars()
   watchdogNodes->Delete();
 
 }
-
-
-
-
 
 void qSlicerToolBarManagerWidget::RemoveToolBar(vtkObject*, vtkObject* nodeToBeRemoved)
 {
@@ -215,8 +209,6 @@ void qSlicerToolBarManagerWidget::RemoveToolBar(vtkObject*, vtkObject* nodeToBeR
 
 }
 
-
-
 void qSlicerToolBarManagerWidget::InitializeToolBar(vtkMRMLWatchdogNode* watchdogNodeAdded )
 {
   QMainWindow* window = qSlicerApplication::application()->mainWindow();
@@ -237,7 +229,6 @@ void qSlicerToolBarManagerWidget::InitializeToolBar(vtkMRMLWatchdogNode* watchdo
   }
 }
 
-
 void qSlicerToolBarManagerWidget::AddToolBar(vtkObject*, vtkObject* nodeAdded)
 {
   assert(this->Superclass::mrmlScene() != 0);
@@ -257,9 +248,9 @@ void qSlicerToolBarManagerWidget::AddToolBar(vtkObject*, vtkObject* nodeAdded)
     return;
   }
 
-  if(this->WatchdogToolBarHash->size()==0)
+  if( !this->Timer->isActive() )
   {
-    this->Timer->start();
+    this->Timer->start(1000.0*StatusRefreshTimeSec );
   }
   if(!this->WatchdogToolBarHash->contains(watchdogNodeAdded->GetID()))
   {

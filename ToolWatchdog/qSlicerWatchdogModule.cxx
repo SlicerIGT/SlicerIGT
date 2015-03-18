@@ -21,7 +21,7 @@
 // Watchdog Logic includes
 #include <vtkSlicerWatchdogLogic.h>
 
-#include "QVTKSlicerWatchdogLogicInternal.h"
+//#include "QVTKSlicerWatchdogLogicInternal.h"
 
 // Watchdog includes
 #include "qSlicerWatchdogModule.h"

@@ -28,7 +28,7 @@ limitations under the License.
 
 #include "vtkMRMLDisplayableNode.h"
 #include "vtkSlicerWatchdogLogic.h"
-#include "QVTKSlicerWatchdogLogicInternal.h"
+//#include "QVTKSlicerWatchdogLogicInternal.h"
 #include "vtkMRMLWatchdogNode.h"
 
 

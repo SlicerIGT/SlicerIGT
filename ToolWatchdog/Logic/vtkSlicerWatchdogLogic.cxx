@@ -119,7 +119,7 @@ void vtkSlicerWatchdogLogic::AddToolNode( vtkMRMLWatchdogNode* watchdogNode, vtk
   {
     return;
   }
-
+  watchdogNode->AddToolNode(toolNode);
   //if(watchdogNode->AddToolNode(toolNode)&& !this->Internal->Timer->isActive())
   //{
   //  this->Internal->Timer->start( 1000.0*StatusRefreshTimeSec );
