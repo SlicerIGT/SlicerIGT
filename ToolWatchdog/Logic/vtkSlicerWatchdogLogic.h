@@ -37,7 +37,6 @@
 // For referencing own MRML node
 class vtkMRMLWatchdogNode;
 class vtkMRMLDisplayableNode;
-//class QVTKSlicerWatchdogLogicInternal;
 
 // STD includes
 #include <cstdlib>
@@ -59,14 +58,16 @@ public:
 
   enum Events
   {
-    // vtkCommand::UserEvent + 555 is just a random value that is very unlikely to be used for anything else in this class
+    // vtkCommand::UserEvent + 666 is just a random value that is very unlikely to be used for anything else in this class
     WatchdogLogicUpdatedEvent = vtkCommand::UserEvent + 666,
   };
 
   static vtkSlicerWatchdogLogic *New();
   vtkTypeMacro(vtkSlicerWatchdogLogic, vtkSlicerModuleLogic);
+
   vtkGetMacro(StatusRefreshTimeSec, double);
   vtkSetMacro(StatusRefreshTimeSec, double);
+
   void PrintSelf(ostream& os, vtkIndent indent);
 
   /// Adds a tool to the list in the respective toolwatchdog node
@@ -77,8 +78,6 @@ public:
   ///Every time the timer is reached this method updates the tools status and the elapsed time
   void UpdateWatchdogNodes();
   vtkGetMacro(ElapsedTimeSec, double);
-  //void SetStatusRefreshTimeMiliSec( double statusRefeshRateMiliSec);
-  //QVTKSlicerWatchdogLogicInternal* GetQVTKLogicInternal();
 
 protected:
   vtkSlicerWatchdogLogic();
@@ -100,7 +99,6 @@ private:
   void operator=(const vtkSlicerWatchdogLogic&); // Not implemented
   double StatusRefreshTimeSec;
   double ElapsedTimeSec;
-  //QVTKSlicerWatchdogLogicInternal* Internal;
 };
 
 #endif

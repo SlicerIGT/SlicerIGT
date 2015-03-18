@@ -180,7 +180,9 @@ int vtkMRMLWatchdogNode::AddToolNode( vtkMRMLDisplayableNode* toolAdded)
     return 0;
   }
   tempWatchedTool.tool=toolAdded;
-  tempWatchedTool.label=std::string(toolAdded->GetName()).substr(0,6);
+  std::string toolAddedName(toolAdded->GetName());
+  tempWatchedTool.label= toolAddedName.substr(0,6)+ toolAddedName.substr( toolAddedName.size()-2, toolAddedName.size());
+;
   tempWatchedTool.id=toolAdded->GetID();
   //tempWatchedTool.LastTimeStamp=mrmlNode->GetMTime();
   WatchedTools.push_back(tempWatchedTool);

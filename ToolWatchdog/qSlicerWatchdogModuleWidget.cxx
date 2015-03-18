@@ -28,7 +28,6 @@ limitations under the License.
 
 #include "vtkMRMLDisplayableNode.h"
 #include "vtkSlicerWatchdogLogic.h"
-//#include "QVTKSlicerWatchdogLogicInternal.h"
 #include "vtkMRMLWatchdogNode.h"
 
 
@@ -527,7 +526,8 @@ void qSlicerWatchdogModuleWidget::onToolNodeAdded( )
   }
 
   d->logic()->AddToolNode(watchdogNode, currentToolNode ); // Make sure there is an associated display node
-  d->ToolBarManager->GetToolBarHash()->value(QString(watchdogNode->GetID()))->ToolNodeAdded(currentToolNode->GetName());
+  const char * addedToolLabel = watchdogNode->GetToolNode(watchdogNode->GetNumberOfTools()-1)->label.c_str();
+  d->ToolBarManager->GetToolBarHash()->value(QString(watchdogNode->GetID()))->SetToolNodeAddedLabel(addedToolLabel);
   this->updateWidget();
 }
 

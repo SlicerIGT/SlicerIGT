@@ -213,7 +213,7 @@ void qSlicerToolBarManagerWidget::InitializeToolBar(vtkMRMLWatchdogNode* watchdo
 {
   QMainWindow* window = qSlicerApplication::application()->mainWindow();
   qMRMLWatchdogToolBar *watchdogToolBar = new qMRMLWatchdogToolBar (window);
-  watchdogToolBar->SetFirstlabel(watchdogNodeAdded->GetName());
+  watchdogToolBar->SetWatchdogToolBarName(watchdogNodeAdded->GetName());
   this->WatchdogToolBarHash->insert(QString(watchdogNodeAdded->GetID()), watchdogToolBar);
   window->addToolBar(watchdogToolBar);
   watchdogToolBar->setWindowTitle(QApplication::translate("qSlicerAppMainWindow", watchdogNodeAdded->GetName(), 0, QApplication::UnicodeUTF8));
@@ -269,7 +269,7 @@ void qSlicerToolBarManagerWidget::AddToolBar(vtkObject*, vtkObject* nodeAdded)
       {
         return;
       }
-      this->WatchdogToolBarHash->value(QString(watchdogNodeAdded->GetID()))->ToolNodeAdded((*itTool).label.c_str());
+      this->WatchdogToolBarHash->value(QString(watchdogNodeAdded->GetID()))->SetToolNodeAddedLabel((*itTool).label.c_str());
       row++;
     }
   }

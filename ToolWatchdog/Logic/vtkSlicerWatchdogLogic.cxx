@@ -28,35 +28,9 @@ limitations under the License.
 #include <vtkCollection.h>
 #include <vtkCollectionIterator.h>
 
-//Qt includes
-//#include <QDir>
-//#include <QtCore/QObject>
-//#include <QEvent>
-//#include <QTimer>
-
-//#include "qMRMLWatchdogToolBar.h"
-
-//#include "QVTKSlicerWatchdogLogicInternal.h"
-
 // STD includes
-#include <cassert>
+//#include <cassert>
 #include <limits>
-//
-//QVTKSlicerWatchdogLogicInternal::QVTKSlicerWatchdogLogicInternal(vtkSlicerWatchdogLogic* p)
-//: Parent(p)
-//{
-//
-//}
-
-//QVTKSlicerWatchdogLogicInternal::~QVTKSlicerWatchdogLogicInternal()
-//{
-//}
-//
-//void QVTKSlicerWatchdogLogicInternal::onTimerEvent()
-//{
-//  Parent->TimerEvent();
-//  emit updateTable();
-//}
 
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSlicerWatchdogLogic);
@@ -171,18 +145,6 @@ void vtkSlicerWatchdogLogic::UpdateToolStatus( vtkMRMLWatchdogNode* watchdogNode
 
   }
 }
-
-//QVTKSlicerWatchdogLogicInternal* vtkSlicerWatchdogLogic::GetQVTKLogicInternal()
-//{
-//  return this->Internal;
-//}
-
-//void vtkSlicerWatchdogLogic::SetStatusRefreshTimeMiliSec( double statusRefeshRateMiliSec)
-//{
-//  this->Internal->Timer->stop();
-//  StatusRefreshTimeSec=((double)statusRefeshRateMiliSec)/1000;
-//  this->Internal->Timer->start(statusRefeshRateMiliSec);
-//}
 
 void  vtkSlicerWatchdogLogic::UpdateWatchdogNodes()
 {
