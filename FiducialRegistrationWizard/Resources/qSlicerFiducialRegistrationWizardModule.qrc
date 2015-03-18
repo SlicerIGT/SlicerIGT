@@ -1,0 +1,6 @@
+<!DOCTYPE RCC><RCC version="1.0">
+  <qresource>
+    <file>Icons/FiducialRegistrationWizard.png</file>
+    <file>Icons/FiducialRegistrationWizardEllipsis.png</file>
+  </qresource>
+</RCC>

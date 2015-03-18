@@ -1,70 +1,45 @@
-cmake_minimum_required( VERSION 2.8.7 )
+cmake_minimum_required(VERSION 2.8.9)
 
-set( EXTENSION_NAME SlicerIGT )
+project(SlicerIGT)
 
-set( EXTENSION_HOMEPAGE "http://slicerigt.github.com/" )
-set( EXTENSION_CATEGORY "IGT" )
-set( EXTENSION_CONTRIBUTORS "Tamas Ungi (Queen's University), Junichi Tokuda (Brigham and Women's Hospital)" )
-set( EXTENSION_DESCRIPTION "This extension contains modules that enable rapid prototyping of applications for image-guided interventions. Intended users should have real-time imaging and/or tracking hardware (e.g. tracked ultrasound) connected to 3D Slicer through OpenIGTLink network. Specific modules allow patient registration to the navigation coordinate system in 3D Slicer, and real-time update of tracked models and images." )
-set( EXTENSION_ICONURL "http://www.slicer.org/slicerWiki/images/2/2b/SlicerIGTLogo.png" )
-set( EXTENSION_SCREENSHOTURLS "http://www.slicer.org/slicerWiki/images/7/78/SlicerIGTScreenshot.png" )
-set( EXTENSION_DEPENDS "NA") # Specified as a space separated list or 'NA' if any
-set( EXTENSION_BUILD_SUBDIRECTORY inner-build )
+# Experimental modules are not included in the official SlicerIGT extension package.
+# They are kept in the repository to allow testing but not stable enough to be made available to users.
+option(SLICERIGT_ENABLE_EXPERIMENTAL_MODULES "Enable building experimental modules" OFF)
 
-project( SlicerIGT ) 
-find_package( Slicer REQUIRED )
-include( ${Slicer_USE_FILE} )
+#-----------------------------------------------------------------------------
+# Extension meta-information
+set(EXTENSION_HOMEPAGE "http://www.slicerigt.org")
+set(EXTENSION_CATEGORY "IGT")
+set(EXTENSION_CONTRIBUTORS "Tamas Ungi (Queen's University), Junichi Tokuda (Brigham and Women's Hospital), Andras Lasso (Queen's University), Matthew Holden (Queen's University), Laurent Chauvin (SNR), Atsushi Yamada (SNR), Franklin King (Queen's University), Jaime Garcia-Guevara (Queen's University), Amelie Meyer (Queen's University)")
+set(EXTENSION_DESCRIPTION "This extension contains modules that enable rapid prototyping of applications for image-guided interventions. Intended users should have real-time imaging and/or tracking hardware (e.g. tracked ultrasound) connected to 3D Slicer through OpenIGTLink network. Specific modules allow patient registration to the navigation coordinate system in 3D Slicer, and real-time update of tracked models and images." )
+set(EXTENSION_ICONURL "http://www.slicer.org/slicerWiki/images/2/2b/SlicerIGTLogo.png" )
+set(EXTENSION_SCREENSHOTURLS "http://www.slicer.org/slicerWiki/images/7/78/SlicerIGTScreenshot.png" )
 
-# Enable building of experimental modules
-option( SLICERIGT_ENABLE_EXPERIMENTAL_MODULES "Enable building of work-in-progress, experimental modules." OFF )
+#-----------------------------------------------------------------------------
+# Extension dependencies
+find_package(Slicer REQUIRED)
+include(${Slicer_USE_FILE})
 
-set( SlicerIGT_Modules
-  BreachWarning
-  CollectFiducials
-  CreateModels
-  FiducialRegistrationWizard
-  FiducialsToModelRegistration
-  ModelRegistration
-  OpenIGTLinkRemote
-  PathExplorer
-  PivotCalibration
-  PlusRemote
-  ToolWatchdog
-  TransformFusion
-  UltrasoundSnapshots
-  VolumeResliceDriver
-)
+#-----------------------------------------------------------------------------
+# Extension modules
+add_subdirectory(BreachWarning)
+add_subdirectory(CollectFiducials)
+add_subdirectory(CreateModels)
+add_subdirectory(FiducialRegistrationWizard)
+add_subdirectory(FiducialsToModelRegistration)
+add_subdirectory(ModelRegistration)
+add_subdirectory(OpenIGTLinkRemote)
+add_subdirectory(PathExplorer)
+add_subdirectory(PivotCalibration)
+add_subdirectory(PlusRemote)
+add_subdirectory(ToolWatchdog)
+add_subdirectory(TransformFusion)
+add_subdirectory(UltrasoundSnapshots)
+add_subdirectory(VolumeResliceDriver)
+## NEXT_MODULE
+if(SLICERIGT_ENABLE_EXPERIMENTAL_MODULES)
+  add_subdirectory(Experimental)
+endif(SLICERIGT_ENABLE_EXPERIMENTAL_MODULES)
 
-if( SLICERIGT_ENABLE_EXPERIMENTAL_MODULES )
-  set( SlicerIGT_Modules
-    ${SlicerIGT_Modules}
-    # Put experimental modules names here
-  )
-endif( SLICERIGT_ENABLE_EXPERIMENTAL_MODULES )
-
-# Run superbuild in the first round of configuration.
-option(${EXTENSION_NAME}_SUPERBUILD "Build ${EXTENSION_NAME} and the projects it depends on via SuperBuild.cmake." ON)
-mark_as_advanced(${EXTENSION_NAME}_SUPERBUILD)
-
-# Ensure that the modules' repositories are correctly set
-foreach( proj ${SlicerIGT_Modules} )
-  set( SLICERIGT_REPOSITORY_URL_${proj} "https://github.com/SlicerIGT/${proj}.git" CACHE STRING "Set the ${proj} repository" )
-  set( SLICERIGT_REPOSITORY_TAG_${proj} "" CACHE STRING "Set the ${proj} repository tag" )
-endforeach( proj )
-
-if(${EXTENSION_NAME}_SUPERBUILD)
-  include("${CMAKE_CURRENT_SOURCE_DIR}/SuperBuild.cmake")
-  return()
-endif()
-
-set( MODULE_NAME ${EXTENSION_NAME} )
-set( MODULE_TITLE ${MODULE_NAME} )
-string( TOUPPER ${MODULE_NAME} MODULE_NAME_UPPER )
-
-foreach( proj ${SlicerIGT_Modules} )
-  add_subdirectory( ${${proj}_SOURCE_DIR} ${${proj}_BINARY_DIR} )
-endforeach( proj )
-
-set(CPACK_INSTALL_CMAKE_PROJECTS "${CPACK_INSTALL_CMAKE_PROJECTS};${CMAKE_BINARY_DIR};${EXTENSION_NAME};ALL;/")
-
+#-----------------------------------------------------------------------------
 include(${Slicer_EXTENSION_CPACK})
