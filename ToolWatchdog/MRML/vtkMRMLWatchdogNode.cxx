@@ -1,4 +1,3 @@
-
 // Watchdog MRML includes
 #include "vtkMRMLWatchdogNode.h"
 #include "vtkMRMLDisplayableNode.h"
@@ -8,6 +7,19 @@
 
 // Other includes
 #include <sstream>
+
+std::string getToolLabel(char * toolName)
+{
+  std::string toolAddedName(toolName);
+  if(toolAddedName.size()>6)
+  {
+    return toolAddedName.substr(0,4)+ toolAddedName.substr( toolAddedName.size()-2, toolAddedName.size());
+  }
+  else
+  {
+    return toolAddedName.substr(0,6);
+  }
+}
 
 vtkMRMLWatchdogNode* vtkMRMLWatchdogNode::New()
 {
@@ -93,7 +105,7 @@ void vtkMRMLWatchdogNode::ReadXMLAttributes( const char** atts )
         vtkDebugMacro("WatchedToolName read "<< ss.str().c_str() << " atName = "<< attName<< " atValue = "<< attValue);
         if ( ! strcmp( attName, ss.str().c_str() ) )
         {
-          tempWatchedTool.label= std::string(attValue).substr(0,6);
+          tempWatchedTool.label=getToolLabel((char *) attValue);
         }
         else 
         {
@@ -138,7 +150,7 @@ void vtkMRMLWatchdogNode::ReadXMLAttributes( const char** atts )
       }
     }
   }
-  vtkDebugMacro("XML atts number of tools read "<<GetNumberOfTools());
+  //vtkDebugMacro("XML atts number of tools read "<<GetNumberOfTools());
 }
 
 void vtkMRMLWatchdogNode::Copy( vtkMRMLNode *anode )
@@ -180,14 +192,11 @@ int vtkMRMLWatchdogNode::AddToolNode( vtkMRMLDisplayableNode* toolAdded)
     return 0;
   }
   tempWatchedTool.tool=toolAdded;
-  std::string toolAddedName(toolAdded->GetName());
-  tempWatchedTool.label= toolAddedName.substr(0,6)+ toolAddedName.substr( toolAddedName.size()-2, toolAddedName.size());
-;
+  tempWatchedTool.label=getToolLabel(toolAdded->GetName());
   tempWatchedTool.id=toolAdded->GetID();
   //tempWatchedTool.LastTimeStamp=mrmlNode->GetMTime();
   WatchedTools.push_back(tempWatchedTool);
 
-  //vtkDebugMacro("New number of tools "<<GetNumberOfTools());
   return GetNumberOfTools();
 }
 
@@ -243,7 +252,7 @@ bool vtkMRMLWatchdogNode::HasTool(char * toolName)
     {
       continue;
     }
-    if(!strcmp((*it).tool->GetName(), toolName))//(toolNameTemp.compare(toolName)==0)
+    if(!strcmp((*it).tool->GetName(), toolName))
     {
       return true;
     }

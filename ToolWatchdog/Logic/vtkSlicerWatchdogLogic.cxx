@@ -29,7 +29,6 @@ limitations under the License.
 #include <vtkCollectionIterator.h>
 
 // STD includes
-//#include <cassert>
 #include <limits>
 
 //----------------------------------------------------------------------------
@@ -38,15 +37,11 @@ vtkStandardNewMacro(vtkSlicerWatchdogLogic);
 //----------------------------------------------------------------------------
 vtkSlicerWatchdogLogic::vtkSlicerWatchdogLogic()
 {
-  //vtkDebugMacro("Initialize watchdog logic!");
-  //this->Internal = new QVTKSlicerWatchdogLogicInternal(this);
 }
 
 //----------------------------------------------------------------------------
 vtkSlicerWatchdogLogic::~vtkSlicerWatchdogLogic()
 {
-  //this->Internal->Timer->stop();
-  //QObject::connect( this->Internal->Timer, SIGNAL( timeout() ), this->Internal, SLOT( onTimerEvent() ) );
 }
 
 //----------------------------------------------------------------------------
@@ -58,7 +53,6 @@ void vtkSlicerWatchdogLogic::PrintSelf(ostream& os, vtkIndent indent)
 //---------------------------------------------------------------------------
 void vtkSlicerWatchdogLogic::SetMRMLSceneInternal(vtkMRMLScene * newScene)
 {
-  //vtkDebugMacro("set scene internal watchdog logic!");
   vtkNew<vtkIntArray> events;
   events->InsertNextValue(vtkMRMLScene::NodeAddedEvent);
   events->InsertNextValue(vtkMRMLScene::NodeRemovedEvent);
@@ -70,7 +64,6 @@ void vtkSlicerWatchdogLogic::SetMRMLSceneInternal(vtkMRMLScene * newScene)
 //-----------------------------------------------------------------------------
 void vtkSlicerWatchdogLogic::RegisterNodes()
 {
-  //vtkDebugMacro("Register Nodes watchdog logic!");
   assert(this->GetMRMLScene() != 0);
   if( ! this->GetMRMLScene() )
   {
@@ -79,12 +72,8 @@ void vtkSlicerWatchdogLogic::RegisterNodes()
   }
   this->GetMRMLScene()->RegisterNodeClass( vtkSmartPointer< vtkMRMLWatchdogNode >::New() );
 
-  //this->Internal->Timer = new QTimer( this->Internal );
-
   ElapsedTimeSec=0.0;
   StatusRefreshTimeSec=0.20;
-
-  //QObject::connect( this->Internal->Timer, SIGNAL( timeout() ), this->Internal, SLOT( onTimerEvent() ) );
 }
 
 void vtkSlicerWatchdogLogic::AddToolNode( vtkMRMLWatchdogNode* watchdogNode, vtkMRMLDisplayableNode *toolNode)
@@ -94,10 +83,6 @@ void vtkSlicerWatchdogLogic::AddToolNode( vtkMRMLWatchdogNode* watchdogNode, vtk
     return;
   }
   watchdogNode->AddToolNode(toolNode);
-  //if(watchdogNode->AddToolNode(toolNode)&& !this->Internal->Timer->isActive())
-  //{
-  //  this->Internal->Timer->start( 1000.0*StatusRefreshTimeSec );
-  //}
 }
 
 void vtkSlicerWatchdogLogic::UpdateToolStatus( vtkMRMLWatchdogNode* watchdogNode )
@@ -148,7 +133,6 @@ void vtkSlicerWatchdogLogic::UpdateToolStatus( vtkMRMLWatchdogNode* watchdogNode
 
 void  vtkSlicerWatchdogLogic::UpdateWatchdogNodes()
 {
-  //vtkDebugMacro("Timer event");
   if(ElapsedTimeSec>=std::numeric_limits<double>::max()-1.0)
   {
     ElapsedTimeSec=0.0;
@@ -161,12 +145,10 @@ void  vtkSlicerWatchdogLogic::UpdateWatchdogNodes()
   for ( watchdogNodeIt->InitTraversal(); ! watchdogNodeIt->IsDoneWithTraversal(); watchdogNodeIt->GoToNextItem() )
   {
     vtkMRMLWatchdogNode* watchdogNode = vtkMRMLWatchdogNode::SafeDownCast( watchdogNodeIt->GetCurrentObject() );
-    //if(watchdogNode->WatchdogToolbar->isVisible())
-    //{
       this->UpdateToolStatus( watchdogNode);
       std::list<WatchedTool>* toolsVectorPtr = watchdogNode->GetToolNodes();
       int numberTools = toolsVectorPtr->size();
-      if ( toolsVectorPtr == NULL /*|| numberTools!= d->ToolsTableWidget->rowCount()*/)
+      if ( toolsVectorPtr == NULL)
       {
         return;
       }
@@ -179,14 +161,11 @@ void  vtkSlicerWatchdogLogic::UpdateWatchdogNodes()
         }
         row++;
       }
-    //}
   }
   watchdogNodeIt->Delete();
   watchdogNodes->Delete();
 
-
   this->InvokeEvent(WatchdogLogicUpdatedEvent);
-
 }
 
 //---------------------------------------------------------------------------
@@ -208,26 +187,18 @@ void vtkSlicerWatchdogLogic::OnMRMLSceneEndImport()
     vtkMRMLWatchdogNode* watchdogNode = vtkMRMLWatchdogNode::SafeDownCast( watchdogNodeIt->GetCurrentObject() );
     if ( watchdogNode != NULL)
     {
-      //TODO Somewhere here should be initialized the widget toolbar 
-      //watchdogNode->InitializeToolbar();
       vtkDebugMacro( "OnMRMLSceneEndImport: Module node added. Number of tools " <<watchdogNode->GetNumberOfTools());
       for (int i = 0; i< watchdogNode->GetNumberOfTools(); i++)
       {
         vtkMRMLDisplayableNode* dispNode= vtkMRMLDisplayableNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(watchdogNode->GetToolNode(i)->id));
         watchdogNode->GetToolNode(i)->tool=dispNode;
-        //TODO Somewhere here add toolbar labels
-        //watchdogNode->WatchdogToolbar->ToolNodeAdded(watchdogNode->GetToolNode(i)->label.c_str());
-        vtkDebugMacro(" tool "<< watchdogNode->GetToolNode(i)->tool<<" ID "<< watchdogNode->GetToolNode(i)->id);
+        //vtkDebugMacro(" tool "<< watchdogNode->GetToolNode(i)->tool<<" ID "<< watchdogNode->GetToolNode(i)->id);
         hasTools=1;
       }
     }
   }
   watchdogNodeIt->Delete();
   watchdogNodes->Delete();
-  //if(hasTools==1)
-  //{
-  //  this->Internal->Timer->start( 1000.0*StatusRefreshTimeSec );
-  //}
   this->Modified();
 }
 
@@ -243,7 +214,7 @@ void vtkSlicerWatchdogLogic
 
   if ( node->IsA( "vtkMRMLWatchdogNode" ) )
   {
-    vtkDebugMacro( "OnMRMLSceneNodeAdded: Module node added."<< node->GetName() );
+    //vtkDebugMacro( "OnMRMLSceneNodeAdded: Module node added."<< node->GetName() );
     vtkUnObserveMRMLNodeMacro( node ); // Remove previous observers.
     vtkObserveMRMLNodeMacro( node );
   }
@@ -266,9 +237,8 @@ void vtkSlicerWatchdogLogic
     {
       return;
     }
-    //watchdogNodeToBeRemoved->RemoveToolbar();
 
-    vtkDebugMacro( "OnMRMLSceneNodeRemoved" );
+    //vtkDebugMacro( "OnMRMLSceneNodeRemoved" );
     vtkUnObserveMRMLNodeMacro( node );
   }
 }

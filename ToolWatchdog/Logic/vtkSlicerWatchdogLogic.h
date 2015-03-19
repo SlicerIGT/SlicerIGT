@@ -21,7 +21,6 @@
 // stored and compared with the current one every timer shot. If the last and current time stamps are different it 
 // has an updated status.
 
-
 #ifndef __vtkSlicerWatchdogLogic_h
 #define __vtkSlicerWatchdogLogic_h
 
@@ -33,18 +32,14 @@
 #include "vtkMRMLNode.h"
 #include "vtkMRMLScene.h"
 
-//#include "vtkSmartPointer.h"
 // For referencing own MRML node
 class vtkMRMLWatchdogNode;
 class vtkMRMLDisplayableNode;
 
-// STD includes
-#include <cstdlib>
-
 #include "vtkSlicerWatchdogModuleLogicExport.h"
 
 /// \ingroup Slicer_QtModules_ExtensionTemplate
-class VTK_SLICER_WATCHDOG_MODULE_LOGIC_EXPORT vtkSlicerWatchdogLogic :
+class VTK_SLICER_WATCHDOG_MODULE_LOGIC_EXPORT vtkSlicerWatchdogLogic : 
   public vtkSlicerModuleLogic
 {
 public:
@@ -55,7 +50,6 @@ public:
     UP_TO_DATE
   };
 
-
   enum Events
   {
     // vtkCommand::UserEvent + 666 is just a random value that is very unlikely to be used for anything else in this class
@@ -64,11 +58,13 @@ public:
 
   static vtkSlicerWatchdogLogic *New();
   vtkTypeMacro(vtkSlicerWatchdogLogic, vtkSlicerModuleLogic);
+  void PrintSelf(ostream& os, vtkIndent indent);
 
+  /// The tool bar updates every StatusRefreshTimeSec
   vtkGetMacro(StatusRefreshTimeSec, double);
   vtkSetMacro(StatusRefreshTimeSec, double);
-
-  void PrintSelf(ostream& os, vtkIndent indent);
+  /// The time that the tool has been disconnected
+  vtkGetMacro(ElapsedTimeSec, double);
 
   /// Adds a tool to the list in the respective toolwatchdog node
   void AddToolNode( vtkMRMLWatchdogNode* toolWatchdogNode, vtkMRMLDisplayableNode *mrmlNode);
@@ -77,7 +73,6 @@ public:
   void UpdateToolStatus( vtkMRMLWatchdogNode* toolWatchdogNode);
   ///Every time the timer is reached this method updates the tools status and the elapsed time
   void UpdateWatchdogNodes();
-  vtkGetMacro(ElapsedTimeSec, double);
 
 protected:
   vtkSlicerWatchdogLogic();

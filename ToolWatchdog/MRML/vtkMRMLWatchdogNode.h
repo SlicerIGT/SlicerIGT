@@ -29,8 +29,6 @@
 // Watchdog includes
 #include "vtkSlicerWatchdogModuleMRMLExport.h"
 
-#include <vtkTimerLog.h>
-
 class vtkMRMLDisplayableNode;
 
 struct WatchedTool{
@@ -84,8 +82,8 @@ protected:
   
 public:
 
-  // Tool is interpreted as displayable node. It check the time stamp with a frequency determined
-  // by the QTimer in the watchdog logic and set the status to 1 if the time stamp has changed compared
+  // Tool is interpreted as displayable node. The tool's time stamp is checked with a frequency determined
+  // by the QTimer in the toolBarManagerWidget class. The tool's status is set to 1 if the time stamp has changed compared
   // to the last time stamp saved.
 
   /// Gets the specified tool watched from the tools' list
@@ -106,6 +104,6 @@ public:
 private:
   std::list< WatchedTool > WatchedTools;
 
-};  
+};
 
 #endif

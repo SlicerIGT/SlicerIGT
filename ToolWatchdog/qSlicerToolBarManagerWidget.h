@@ -28,9 +28,9 @@
 // SlicerQt includes
 #include "qSlicerWidget.h"
 #include "qSlicerWatchdogModuleExport.h"
-
 #include <QSound>
 #include <QPointer>
+
 class QTimer;
 
 class vtkMRMLScene;
@@ -38,7 +38,8 @@ class qMRMLWatchdogToolBar;
 class vtkMRMLWatchdogNode;
 class vtkSlicerWatchdogLogic;
 
-class Q_SLICER_QTMODULES_WATCHDOG_EXPORT qSlicerToolBarManagerWidget : public qSlicerWidget
+class Q_SLICER_QTMODULES_WATCHDOG_EXPORT qSlicerToolBarManagerWidget 
+  : public qSlicerWidget
 {
   Q_OBJECT
   QVTK_OBJECT
@@ -51,28 +52,30 @@ public:
   virtual ~qSlicerToolBarManagerWidget();
 
   QTimer* Timer;
-  QHash<QString, qMRMLWatchdogToolBar *> * GetToolBarHash();
 
+  QHash<QString, qMRMLWatchdogToolBar *> * GetToolBarHash();
   void setLogic(vtkSlicerWatchdogLogic* watchdogLogic);
 
 public slots:
   virtual void setMRMLScene(vtkMRMLScene* newScene);
-  ///Every time the logic timer shoots will update the main window watchdog toolbar status  and play the beep sound if 
-  ///any watched tool (with playSound activated) is out-dated.
+  /// After the watchdog logic is updated the toolbar status will be updated accordingly and 
+  /// and play the beep sound if activated
   void onUpdateToolBars();
+  /// Every time the timer shoots will update the watchdog logic.
   void  onTimerEvent();
-  /// It removes the  watchdog toolbar widget from the QMainWindow.
+  /// When a watchdog node is removed watchdog toolbar widget from the QMainWindow as well.
   void RemoveToolBar(vtkObject* scene, vtkObject* node);
-  /// If there is not a watchdog toolbar widget in the QMainWindow. It will add add one for every watchdog node 
+  /// When a watchdog node is added a watchdog toolbar widget as well.
   void AddToolBar(vtkObject*, vtkObject* nodeToBeRemoved);
+  /// StatusRefreshTimeSec is time tool bar updates
   void setStatusRefreshTimeSec( double StatusRefreshTimeSec);
 
 
 private:
-
+  /// If there is not a watchdog toolbar widget in the QMainWindow.
   void InitializeToolBar(vtkMRMLWatchdogNode* watchdogNodeAdded );
+  /// Initializes sound
   void setSound(std::string watchdogModuleShareDirectory);
-
 
   Q_DISABLE_COPY(qSlicerToolBarManagerWidget);
 

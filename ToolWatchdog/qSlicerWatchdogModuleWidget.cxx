@@ -30,8 +30,6 @@ limitations under the License.
 #include "vtkSlicerWatchdogLogic.h"
 #include "vtkMRMLWatchdogNode.h"
 
-
-
 int TOOL_LABEL_COLUMN = 0;
 int TOOL_NAME_COLUMN = 1;
 int TOOL_SOUND_COLUMN = 2;
@@ -104,7 +102,7 @@ void qSlicerWatchdogModuleWidget::setup()
   connect( d->ToolBarVisibilityCheckBox, SIGNAL( clicked() ), this, SLOT( onToolBarVisibilityButtonClicked() ) );
   d->ToolBarVisibilityCheckBox->setChecked(true);
 
-  connect( d->StatusRefreshRateSpinBox, SIGNAL( valueChanged(int) ), this, SLOT( onStatusRefreshRateSpinBoxChanged(int) ) );
+  connect( d->StatusRefreshRateSpinBox, SIGNAL( valueChanged(int) ), this, SLOT( onStatusRefreshTimeSpinBoxChanged(int) ) );
 
   connect( d->AddToolButton, SIGNAL( clicked() ), this, SLOT( onToolNodeAdded() ) );
   connect( d->DeleteToolButton, SIGNAL( clicked() ), this, SLOT( onDeleteButtonClicked()) );
@@ -190,15 +188,15 @@ void qSlicerWatchdogModuleWidget::onSceneImportedEvent()
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerWatchdogModuleWidget::onStatusRefreshRateSpinBoxChanged(int statusRefeshRateMiliSec)
+void qSlicerWatchdogModuleWidget::onStatusRefreshTimeSpinBoxChanged(int statusRefeshTimeMiliSec)
 {
   Q_D( qSlicerWatchdogModuleWidget );
 
   d->ToolBarManager->Timer->stop();
-  int statusRefeshRateTimeSec=((double)statusRefeshRateMiliSec)/1000;
-  d->ToolBarManager->Timer->start(statusRefeshRateMiliSec);
-  d->ToolBarManager->setStatusRefreshTimeSec(statusRefeshRateTimeSec);
-  d->logic()->SetStatusRefreshTimeSec(statusRefeshRateTimeSec);
+  int statusRefeshTimeSec=((double)statusRefeshTimeMiliSec)/1000;
+  d->ToolBarManager->Timer->start(statusRefeshTimeMiliSec);
+  d->ToolBarManager->setStatusRefreshTimeSec(statusRefeshTimeSec);
+  d->logic()->SetStatusRefreshTimeSec(statusRefeshTimeSec);
   updateWidget();
 }
 
@@ -354,7 +352,6 @@ void qSlicerWatchdogModuleWidget::updateFromMRMLNode()
     qCritical( "Selected node not a valid module node" );
     return;
   }
-
   d->ToolComboBox->setEnabled( true );
   updateWidget();
 }
@@ -362,7 +359,6 @@ void qSlicerWatchdogModuleWidget::updateFromMRMLNode()
 //-----------------------------------------------------------------------------
 void qSlicerWatchdogModuleWidget::onTimeout()
 {
-  //updateToolBars();
   updateTable();
 }
 
@@ -492,8 +488,6 @@ void  qSlicerWatchdogModuleWidget::onDeleteButtonClicked()
   {
     return;
   }
-  //Traversing this way should be more efficient and correct
-  QString toolKey;
   for ( int i = deleteFiducials.size() - 1; i >= 0; i-- )
   {
     watchdogNode->RemoveTool(deleteFiducials.at( i ));
@@ -551,7 +545,6 @@ void qSlicerWatchdogModuleWidget::onToolsTableContextMenu(const QPoint& position
 
   QAction* selectedAction = trasnformsMenu->exec( globalPosition );
 
-  int currentTool = d->ToolsTableWidget->currentRow();
   vtkMRMLNode* currentNode = d->ModuleNodeComboBox->currentNode();
   if ( currentNode == NULL )
   {
@@ -559,8 +552,8 @@ void qSlicerWatchdogModuleWidget::onToolsTableContextMenu(const QPoint& position
     d->ToolComboBox->setEnabled( false );
     return;
   }
-  vtkMRMLWatchdogNode* watchdogNode = vtkMRMLWatchdogNode::SafeDownCast( currentNode );
 
+  vtkMRMLWatchdogNode* watchdogNode = vtkMRMLWatchdogNode::SafeDownCast( currentNode );
   if ( watchdogNode == NULL )
   {
     return;
@@ -586,7 +579,7 @@ void qSlicerWatchdogModuleWidget::onToolsTableContextMenu(const QPoint& position
       d->ToolBarManager->GetToolBarHash()->value(QString(watchdogNode->GetID()))->DeleteToolNode(deleteFiducials.at( i ));
     }
   }
-
+  int currentTool = d->ToolsTableWidget->currentRow();
   if ( selectedAction == upAction )
   {
     if ( currentTool > 0 )
@@ -709,7 +702,6 @@ void qSlicerWatchdogModuleWidget::updateWidget()
   updateTable();
   if(d->ToolBarManager->GetToolBarHash()!=NULL)
   {
-    //updateToolBars();
     qMRMLWatchdogToolBar *watchdogToolBar = d->ToolBarManager->GetToolBarHash()->value(watchdogNode->GetID());
     if(watchdogToolBar && watchdogToolBar->isVisible())
     {
@@ -746,7 +738,6 @@ void qSlicerWatchdogModuleWidget::onSoundCheckBoxStateChanged(int state)
   int cbRow = pCheckBox->accessibleName().toInt();
   if(cbRow>=0&&cbRow<watchdogNode->GetNumberOfTools())
   {
-    //QDebug("Changed state checkbox current cell position = %d", cbRow);
     watchdogNode->GetToolNode(cbRow)->playSound=state;
   }
 }
@@ -774,40 +765,3 @@ void qSlicerWatchdogModuleWidget::onToolBarVisibilityChanged( bool visible )
   }
 }
 
-//void qSlicerWatchdogModuleWidget::updateToolBars()
-//{
-//  Q_D( qSlicerWatchdogModuleWidget );
-//  if(d->ToolBarManager->GetToolBarHash()==NULL)
-//  {
-//    return;
-//  }
-//
-//  QList<vtkMRMLNode*> watchdogNodesList = d->ModuleNodeComboBox->nodes();
-//  QList<vtkMRMLNode*>::Iterator it;
-//  for (it = watchdogNodesList.begin(); it != watchdogNodesList.end(); ++it)
-//  {
-//    vtkMRMLWatchdogNode* watchdogNode = vtkMRMLWatchdogNode::SafeDownCast( (*it) );
-//    if(d->ToolBarManager->GetToolBarHash()->contains(QString(watchdogNode->GetID())) && d->ToolBarManager->GetToolBarHash()->value(QString(watchdogNode->GetID()))->isVisible())
-//    {
-//      //d->logic()->UpdateToolStatus( watchdogNode, (unsigned long) ElapsedTimeSec );
-//      std::list<WatchedTool>* toolsVectorPtr = watchdogNode->GetToolNodes();
-//      int numberTools = toolsVectorPtr->size();
-//      //qDebug() << "update toolbars watchnode list number of tools " <<numberTools;
-//
-//      if ( toolsVectorPtr == NULL /*|| numberTools!= d->ToolsTableWidget->rowCount()*/)
-//      {
-//        return;
-//      }
-//      int row=0;
-//      for (std::list<WatchedTool>::iterator itTool = toolsVectorPtr->begin() ; itTool != toolsVectorPtr->end(); ++itTool)
-//      {
-//        if((*itTool).tool==NULL)
-//        {
-//          return;
-//        }
-//        d->ToolBarManager->GetToolBarHash()->value(QString(watchdogNode->GetID()))->SetNodeStatus(row,(*itTool).status);
-//        row++;
-//      }
-//    }
-//  }
-//}

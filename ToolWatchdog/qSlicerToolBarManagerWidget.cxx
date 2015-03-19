@@ -69,7 +69,6 @@ QHash<QString, qMRMLWatchdogToolBar *> * qSlicerToolBarManagerWidget::GetToolBar
   return this->WatchdogToolBarHash;
 }
 
-
 // --------------------------------------------------------------------------
 void qSlicerToolBarManagerWidget::setSound(std::string watchdogModuleShareDirectory)
 {
@@ -80,7 +79,6 @@ void qSlicerToolBarManagerWidget::setSound(std::string watchdogModuleShareDirect
   }
 }
 
-
 void qSlicerToolBarManagerWidget::setStatusRefreshTimeSec(double statusRefreshTimeSec)
 {
   if(statusRefreshTimeSec != 0)
@@ -88,7 +86,6 @@ void qSlicerToolBarManagerWidget::setStatusRefreshTimeSec(double statusRefreshTi
     this->StatusRefreshTimeSec=statusRefreshTimeSec;
   }
 }
-
 
 // --------------------------------------------------------------------------
 void qSlicerToolBarManagerWidget::setMRMLScene(vtkMRMLScene* newScene)
@@ -100,6 +97,7 @@ void qSlicerToolBarManagerWidget::setMRMLScene(vtkMRMLScene* newScene)
 
 }
 
+// --------------------------------------------------------------------------
 void qSlicerToolBarManagerWidget::setLogic(vtkSlicerWatchdogLogic* watchdogLogic)
 {
   this->WatchdogLogic=watchdogLogic;
@@ -109,11 +107,13 @@ void qSlicerToolBarManagerWidget::setLogic(vtkSlicerWatchdogLogic* watchdogLogic
   this->qvtkConnect(watchdogLogic, vtkSlicerWatchdogLogic::WatchdogLogicUpdatedEvent, this, SLOT(onUpdateToolBars()));
 }
 
+// --------------------------------------------------------------------------
 void  qSlicerToolBarManagerWidget::onTimerEvent()
 {
   this->WatchdogLogic->UpdateWatchdogNodes();
 }
 
+// --------------------------------------------------------------------------
 void  qSlicerToolBarManagerWidget::onUpdateToolBars()
 {
   if(this->WatchdogToolBarHash==NULL)
@@ -170,6 +170,7 @@ void  qSlicerToolBarManagerWidget::onUpdateToolBars()
 
 }
 
+// --------------------------------------------------------------------------
 void qSlicerToolBarManagerWidget::RemoveToolBar(vtkObject*, vtkObject* nodeToBeRemoved)
 {
   if(nodeToBeRemoved==NULL && this->WatchdogToolBarHash==NULL)
@@ -196,7 +197,6 @@ void qSlicerToolBarManagerWidget::RemoveToolBar(vtkObject*, vtkObject* nodeToBeR
       //toolBarMenuActions.remove(watchdogToolBar->toggleViewAction());
       toolBarMenu->removeAction(watchdogToolBar->toggleViewAction());
       //toolBarMenu->defaultAction() would be bbetter to use but Slicer App should set the default action
-      //toolBarMenu->insertAction(toolBarMenuActions.at(toolBarMenuActions.size()-1),watchdogToolBar->toggleViewAction());
       break;
     }
   }
@@ -205,10 +205,11 @@ void qSlicerToolBarManagerWidget::RemoveToolBar(vtkObject*, vtkObject* nodeToBeR
   if(this->WatchdogToolBarHash->size()==0)
   {
     this->Timer->stop();
+    //qCritical("STOPPED timer!!");
   }
-
 }
 
+// --------------------------------------------------------------------------
 void qSlicerToolBarManagerWidget::InitializeToolBar(vtkMRMLWatchdogNode* watchdogNodeAdded )
 {
   QMainWindow* window = qSlicerApplication::application()->mainWindow();
@@ -229,6 +230,7 @@ void qSlicerToolBarManagerWidget::InitializeToolBar(vtkMRMLWatchdogNode* watchdo
   }
 }
 
+// --------------------------------------------------------------------------
 void qSlicerToolBarManagerWidget::AddToolBar(vtkObject*, vtkObject* nodeAdded)
 {
   assert(this->Superclass::mrmlScene() != 0);
@@ -251,6 +253,7 @@ void qSlicerToolBarManagerWidget::AddToolBar(vtkObject*, vtkObject* nodeAdded)
   if( !this->Timer->isActive() )
   {
     this->Timer->start(1000.0*StatusRefreshTimeSec );
+    //qCritical("STARTED timer!!");
   }
   if(!this->WatchdogToolBarHash->contains(watchdogNodeAdded->GetID()))
   {
@@ -273,7 +276,6 @@ void qSlicerToolBarManagerWidget::AddToolBar(vtkObject*, vtkObject* nodeAdded)
       row++;
     }
   }
-
 }
 
 
