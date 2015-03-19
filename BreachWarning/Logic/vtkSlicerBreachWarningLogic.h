@@ -25,6 +25,10 @@
 
 
 #include <string>
+#include <deque>
+
+// VTK includes
+#include "vtkWeakPointer.h"
 
 // Slicer includes
 #include "vtkSlicerModuleLogic.h"
@@ -36,10 +40,6 @@
 #include <vtkLandmarkTransform.h>
 #include <vtkPoints.h>
 #include "vtkSmartPointer.h"
-
-//Qt includes
-#include <QSound>
-#include <QPointer>
 
 // For referencing own MRML node
 class vtkMRMLBreachWarningNode;
@@ -67,6 +67,10 @@ public:
 
   void ProcessMRMLNodesEvents( vtkObject* caller, unsigned long event, void* callData );
 
+  /// Returns true if a warning sound has to be played
+  vtkGetMacro(WarningSoundPlaying, bool);
+  vtkSetMacro(WarningSoundPlaying, bool);
+
 protected:
   vtkSlicerBreachWarningLogic();
   virtual ~vtkSlicerBreachWarningLogic();
@@ -86,9 +90,8 @@ private:
   vtkSlicerBreachWarningLogic(const vtkSlicerBreachWarningLogic&); // Not implemented
   void operator=(const vtkSlicerBreachWarningLogic&);               // Not implemented
 
-private:
-  QPointer<QSound>  BreachSound; 
+  std::deque< vtkWeakPointer< vtkMRMLBreachWarningNode > > WarningSoundPlayingNodes;
+  bool WarningSoundPlaying;
 };
 
 #endif
-

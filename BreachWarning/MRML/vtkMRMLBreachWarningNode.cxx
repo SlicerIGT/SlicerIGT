@@ -90,10 +90,8 @@ vtkMRMLBreachWarningNode
       double val;
       ss >> val;
       this->WarningColor[0] = val;
-      ss << attValue;
       ss >> val;
       this->WarningColor[1] = val;
-      ss << attValue;
       ss >> val;
       this->WarningColor[2] = val;
     }
@@ -104,10 +102,8 @@ vtkMRMLBreachWarningNode
       double val;
       ss >> val;
       this->OriginalColor[0] = val;
-      ss << attValue;
       ss >> val;
       this->OriginalColor[1] = val;
-      ss << attValue;
       ss >> val;
       this->OriginalColor[2] = val;
     }
@@ -175,6 +171,8 @@ vtkMRMLBreachWarningNode
   os << indent << "ToolTipTransformID: " << this->GetToolTransformNode()->GetID() << std::endl;
   os << indent << "DisplayWarningColor: " << this->DisplayWarningColor << std::endl;
   os << indent << "PlayWarningSound: " << this->PlayWarningSound << std::endl;
+  os << indent << "WarningColor: " << this->WarningColor[0] << ", " << this->WarningColor[1] << ", " << this->WarningColor[2] << std::endl;
+  os << indent << "OriginalColor: " << this->OriginalColor[0] << ", " << this->OriginalColor[1] << ", " << this->OriginalColor[2] << std::endl;
 }
 
 vtkMRMLModelNode*
@@ -207,8 +205,8 @@ vtkMRMLBreachWarningNode
   events->InsertNextValue( vtkCommand::ModifiedEvent );
   events->InsertNextValue( vtkMRMLTransformNode::TransformModifiedEvent );
   this->SetAndObserveNodeReferenceID( MODEL_ROLE, modelId, events.GetPointer() );
-  this->InvokeEvent(InputDataModifiedEvent); // This will tell the logic to update
-}  
+  this->InvokeCustomModifiedEvent(InputDataModifiedEvent);
+}
 
 
 vtkMRMLTransformNode*
@@ -239,7 +237,7 @@ vtkMRMLBreachWarningNode
   events->InsertNextValue( vtkCommand::ModifiedEvent );
   events->InsertNextValue( vtkMRMLTransformNode::TransformModifiedEvent );
   this->SetAndObserveNodeReferenceID( TOOL_ROLE, nodeId, events.GetPointer() );
-  this->InvokeEvent(InputDataModifiedEvent); // This will tell the logic to update
+  this->InvokeCustomModifiedEvent(InputDataModifiedEvent);
 }
 
 
@@ -253,15 +251,73 @@ vtkMRMLBreachWarningNode
 
   if (this->GetToolTransformNode() && this->GetToolTransformNode()==caller)
   {
-    this->InvokeEvent(InputDataModifiedEvent); // This will tell the logic to update
+    this->InvokeCustomModifiedEvent(InputDataModifiedEvent);
   }
   else if (this->GetWatchedModelNode() && this->GetWatchedModelNode()==caller)
   {
-    this->InvokeEvent(InputDataModifiedEvent); // This will tell the logic to update
+    this->InvokeCustomModifiedEvent(InputDataModifiedEvent);
   }
 }
 
 bool vtkMRMLBreachWarningNode::IsToolTipInsideModel()
 {
   return (this->ClosestDistanceToModelFromToolTip<0);
+}
+
+void vtkMRMLBreachWarningNode::SetDisplayWarningColor(bool _arg)
+{
+  vtkDebugMacro(<< this->GetClassName() << " (" << this << "): setting DisplayWarningColor to " << _arg);
+  if (this->DisplayWarningColor != _arg)
+  {
+    this->DisplayWarningColor = _arg;
+    this->Modified();
+    this->InvokeCustomModifiedEvent(InputDataModifiedEvent);
+  }
+}
+
+void vtkMRMLBreachWarningNode::SetPlayWarningSound(bool _arg)
+{
+  vtkDebugMacro(<< this->GetClassName() << " (" << this << "): setting PlayWarningSound to " << _arg);
+  if (this->PlayWarningSound != _arg)
+  {
+    this->PlayWarningSound = _arg;
+    this->Modified();
+    this->InvokeCustomModifiedEvent(InputDataModifiedEvent);
+  }
+}
+
+void vtkMRMLBreachWarningNode::SetWarningColor(double _arg1, double _arg2, double _arg3)
+{
+  vtkDebugMacro(<< this->GetClassName() << " (" << this << "): setting WarningColor to (" << _arg1 << "," << _arg2 << "," << _arg3 << ")");
+  if ((this->WarningColor[0] != _arg1)||(this->WarningColor[1] != _arg2)||(this->WarningColor[2] != _arg3))
+  {
+    this->WarningColor[0] = _arg1;
+    this->WarningColor[1] = _arg2;
+    this->WarningColor[2] = _arg3;
+    this->Modified();
+    this->InvokeCustomModifiedEvent(InputDataModifiedEvent);
+  }
+}
+
+void vtkMRMLBreachWarningNode::SetWarningColor(double _arg[3])
+{
+  this->SetWarningColor(_arg[0], _arg[1], _arg[2]);
+}
+
+void vtkMRMLBreachWarningNode::SetOriginalColor(double _arg1, double _arg2, double _arg3)
+{
+  vtkDebugMacro(<< this->GetClassName() << " (" << this << "): setting OriginalColor to (" << _arg1 << "," << _arg2 << "," << _arg3 << ")");
+  if ((this->OriginalColor[0] != _arg1)||(this->OriginalColor[1] != _arg2)||(this->OriginalColor[2] != _arg3))
+  {
+    this->OriginalColor[0] = _arg1;
+    this->OriginalColor[1] = _arg2;
+    this->OriginalColor[2] = _arg3;
+    this->Modified();
+    this->InvokeCustomModifiedEvent(InputDataModifiedEvent);
+  }
+}
+
+void vtkMRMLBreachWarningNode::SetOriginalColor(double _arg[3])
+{
+  this->SetOriginalColor(_arg[0], _arg[1], _arg[2]);
 }

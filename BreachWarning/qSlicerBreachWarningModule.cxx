@@ -16,7 +16,14 @@
 ==============================================================================*/
 
 // Qt includes
+#include <QDir>
+#include <QPointer>
+#include <QSound>
+#include <QTime>
+#include <QTimer>
 #include <QtPlugin>
+
+#include "qSlicerApplication.h"
 
 // BreachWarning Logic includes
 #include <vtkSlicerBreachWarningLogic.h>
@@ -24,6 +31,7 @@
 // BreachWarning includes
 #include "qSlicerBreachWarningModule.h"
 #include "qSlicerBreachWarningModuleWidget.h"
+#include "vtkSlicerBreachWarningLogic.h"
 
 //-----------------------------------------------------------------------------
 Q_EXPORT_PLUGIN2(qSlicerBreachWarningModule, qSlicerBreachWarningModule);
@@ -34,6 +42,11 @@ class qSlicerBreachWarningModulePrivate
 {
 public:
   qSlicerBreachWarningModulePrivate();
+
+  vtkSlicerBreachWarningLogic* ObservedLogic; // should be the same as logic(), it is used for adding/removing observer safely
+  QTimer UpdateWarningSoundTimer;
+  QPointer<QSound> WarningSound;
+  double WarningSoundPeriodSec;
 };
 
 //-----------------------------------------------------------------------------
@@ -41,6 +54,7 @@ public:
 
 //-----------------------------------------------------------------------------
 qSlicerBreachWarningModulePrivate::qSlicerBreachWarningModulePrivate()
+: ObservedLogic(NULL)
 {
 }
 
@@ -52,6 +66,8 @@ qSlicerBreachWarningModule::qSlicerBreachWarningModule(QObject* _parent)
   : Superclass(_parent)
   , d_ptr(new qSlicerBreachWarningModulePrivate)
 {
+  Q_D(qSlicerBreachWarningModule);
+  d->WarningSoundPeriodSec = 0.5;
 }
 
 //-----------------------------------------------------------------------------
@@ -69,12 +85,20 @@ QStringList qSlicerBreachWarningModule::dependencies() const
 //-----------------------------------------------------------------------------
 qSlicerBreachWarningModule::~qSlicerBreachWarningModule()
 {
+  Q_D(qSlicerBreachWarningModule);
+  if (!d->WarningSound.isNull())
+  {
+    d->WarningSound->stop();
+  }
+  disconnect(&d->UpdateWarningSoundTimer, SIGNAL(timeout()), this, SLOT(updateWarningSound()));
+  this->qvtkReconnect(d->ObservedLogic, NULL, vtkCommand::ModifiedEvent, this, SLOT(updateWarningSound()));
+  d->ObservedLogic = NULL;
 }
 
 //-----------------------------------------------------------------------------
 QString qSlicerBreachWarningModule::helpText()const
 {
-  return "For help on how to use this module visit: <a href='http://www.slicerigt.org/'>SlicerIGT</a>";
+  return "This module can alert the user by color change and sound signal if a tool enters a restricted area. The restricted area is defined by a surface model, the tool position is defined by a linear transform. For help on how to use this module visit: <a href='http://www.slicerigt.org/'>SlicerIGT</a>";
 }
 
 //-----------------------------------------------------------------------------
@@ -88,6 +112,8 @@ QStringList qSlicerBreachWarningModule::contributors()const
 {
   QStringList moduleContributors;
   moduleContributors << QString("Matthew Holden (Queen's University)");
+  moduleContributors << QString("Jaime Garcia Guevara (Queen's University)");
+  moduleContributors << QString("Andras Lasso (Queen's University)");
   moduleContributors << QString("Tamas Ungi (Queen's University)");
   // ...
   return moduleContributors;
@@ -102,7 +128,24 @@ QIcon qSlicerBreachWarningModule::icon()const
 //-----------------------------------------------------------------------------
 void qSlicerBreachWarningModule::setup()
 {
+  Q_D(qSlicerBreachWarningModule);
+
   this->Superclass::setup();
+
+  connect(qSlicerApplication::application(), SIGNAL(lastWindowClosed()), this, SLOT(stopSound()));  
+
+  vtkSlicerBreachWarningLogic* moduleLogic = vtkSlicerBreachWarningLogic::SafeDownCast(logic());
+
+  if (d->WarningSound == NULL)
+  {
+    d->WarningSound = new QSound( QDir::toNativeSeparators( QString::fromStdString( moduleLogic->GetModuleShareDirectory()+"/alarm.wav" ) ) );
+  }
+
+  this->qvtkReconnect(d->ObservedLogic, moduleLogic, vtkCommand::ModifiedEvent, this, SLOT(updateWarningSound()));
+  d->ObservedLogic = moduleLogic;
+
+  d->UpdateWarningSoundTimer.setSingleShot(true);
+  connect(&d->UpdateWarningSoundTimer, SIGNAL(timeout()), this, SLOT(updateWarningSound()));
 }
 
 //-----------------------------------------------------------------------------
@@ -115,4 +158,57 @@ qSlicerAbstractModuleRepresentation * qSlicerBreachWarningModule::createWidgetRe
 vtkMRMLAbstractLogic* qSlicerBreachWarningModule::createLogic()
 {
   return vtkSlicerBreachWarningLogic::New();
+}
+
+//------------------------------------------------------------------------------
+void qSlicerBreachWarningModule::updateWarningSound()
+{
+  Q_D(qSlicerBreachWarningModule);
+  if (d->WarningSound.isNull())
+  {
+    qWarning("Warning sound object is invalid");
+    return;
+  }
+  if (d->ObservedLogic==NULL)
+  {
+    qWarning("ObservedLogic is invalid");
+    return;
+  }
+  bool warningSoundShouldPlay = d->ObservedLogic->GetWarningSoundPlaying();
+  if (warningSoundShouldPlay)
+  {
+    d->WarningSound->setLoops(1);
+    d->WarningSound->play();
+  }
+  else
+  {
+    d->WarningSound->stop();
+  }
+  d->UpdateWarningSoundTimer.start(warningSoundPeriodSec()*1000);
+}
+
+
+//------------------------------------------------------------------------------
+void qSlicerBreachWarningModule::stopSound()
+{
+  Q_D(qSlicerBreachWarningModule);
+  if (!d->WarningSound.isNull())
+  {
+    d->WarningSound->stop();
+    d->WarningSound=NULL;
+  }
+}
+
+//------------------------------------------------------------------------------
+void qSlicerBreachWarningModule::setWarningSoundPeriodSec(double periodTimeSec)
+{
+  Q_D(qSlicerBreachWarningModule);
+  d->WarningSoundPeriodSec = periodTimeSec;
+}
+
+//------------------------------------------------------------------------------
+double qSlicerBreachWarningModule::warningSoundPeriodSec()
+{
+  Q_D(qSlicerBreachWarningModule);
+  return d->WarningSoundPeriodSec;
 }

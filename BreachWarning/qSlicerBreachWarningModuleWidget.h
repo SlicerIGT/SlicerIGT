@@ -46,7 +46,7 @@ public slots:
 
 protected slots:
 
-  void onModuleNodeChanged();
+  void onParameterNodeChanged();
 
   void onModelNodeChanged();
   void onToolTransformChanged();

@@ -23,6 +23,8 @@
 #include "qSlicerCoreApplication.h"
 #include "qSlicerModuleManager.h"
 
+#include <ctkVTKObject.h>
+
 #include "qSlicerBreachWarningModuleExport.h"
 
 class qSlicerBreachWarningModulePrivate;
@@ -32,7 +34,9 @@ class Q_SLICER_QTMODULES_BREACHWARNING_EXPORT qSlicerBreachWarningModule :
   public qSlicerLoadableModule
 {
   Q_OBJECT
+  QVTK_OBJECT
   Q_INTERFACES(qSlicerLoadableModule);
+  Q_PROPERTY(double warningSoundPeriodSec READ warningSoundPeriodSec WRITE setWarningSoundPeriodSec)
 
 public:
 
@@ -59,6 +63,20 @@ public:
   
   /// Return the dependencies for the module  
   virtual QStringList dependencies() const;
+
+  /// Set period time of the warning sound. If period is 0.5 sec then the sound will be played 2x while inside
+  /// the breach region.
+  void setWarningSoundPeriodSec(double periodTimeSec);
+  double warningSoundPeriodSec();
+
+public slots:
+/*
+  virtual void setMRMLScene(vtkMRMLScene*);
+  void onNodeAddedEvent(vtkObject*, vtkObject*);
+  void onNodeRemovedEvent(vtkObject*, vtkObject*);
+*/
+  void updateWarningSound();
+  void stopSound();
 
 protected:
 

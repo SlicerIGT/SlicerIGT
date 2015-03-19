@@ -43,6 +43,9 @@ public:
 
   enum Events
   {
+    /// The node stores both inputs (e.g., tooltip position, model, colors, etc.) and computed parameters.
+    /// InputDataModifiedEvent is only invoked when input parameters are changed.
+    /// In contrast, ModifiedEvent event is called if either an input or output parameter is changed.
     // vtkCommand::UserEvent + 555 is just a random value that is very unlikely to be used for anything else in this class
     InputDataModifiedEvent = vtkCommand::UserEvent + 555
   };
@@ -72,30 +75,32 @@ protected:
   
 public:
 
+  /// Computed parameter
   vtkGetMacro( ClosestDistanceToModelFromToolTip, double );
   vtkSetMacro( ClosestDistanceToModelFromToolTip, double );
+
+  /// Computed parameter
   bool IsToolTipInsideModel();
 
   /// Indicates if the warning sound is to be played.
   /// False by default.
   /// \sa SetPlayWarningSound(), GetPlayWarningSound(), PlayWarningSoundOn(), PlayWarningSoundOff()
   vtkGetMacro( PlayWarningSound, bool );
-  vtkSetMacro( PlayWarningSound, bool );  
-  vtkBooleanMacro( PlayWarningSound, bool );
+  virtual void SetPlayWarningSound(bool _arg);
 
   /// Indicates if color of the watched model should be changed.
   /// False by default.
   /// \sa SetPlayWarningSound(), GetPlayWarningSound(), PlayWarningSoundOn(), PlayWarningSoundOff()
   vtkGetMacro( DisplayWarningColor, bool );
-  vtkSetMacro( DisplayWarningColor, bool );  
-  vtkBooleanMacro( DisplayWarningColor, bool );
+  virtual void SetDisplayWarningColor(bool _arg);
 
-  vtkSetVector3Macro(WarningColor, double);
   vtkGetVector3Macro(WarningColor, double);
+  virtual void SetWarningColor(double _arg1, double _arg2, double _arg3);
+  virtual void SetWarningColor(double _arg[3]);
 
-  vtkSetVector3Macro(OriginalColor, double);
   vtkGetVector3Macro(OriginalColor, double);
-
+  virtual void SetOriginalColor(double _arg1, double _arg2, double _arg3);
+  virtual void SetOriginalColor(double _arg[3]);
 
   // Watched model defines the risk area that needs to be avoided.
 

@@ -14,13 +14,42 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Module Template</string>
+   <string>Breach warning</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="ctkCollapsibleButton" name="CTKCollapsibleButton" native="true">
+    <layout class="QGridLayout" name="gridLayout_2">
+     <item row="0" column="1">
+      <widget class="qMRMLNodeComboBox" name="ParameterNodeComboBox">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
+       <property name="nodeTypes">
+        <stringlist>
+         <string>vtkMRMLBreachWarningNode</string>
+        </stringlist>
+       </property>
+       <property name="renameEnabled">
+        <bool>true</bool>
+       </property>
+       <property name="selectNodeUponCreation">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="0">
+      <widget class="QLabel" name="label_3">
+       <property name="text">
+        <string>Parameter set:</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <widget class="ctkCollapsibleButton" name="CTKCollapsibleButton">
      <property name="sizePolicy">
-      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+      <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
@@ -28,11 +57,11 @@
      <property name="maximumSize">
       <size>
        <width>16777215</width>
-       <height>130</height>
+       <height>120</height>
       </size>
      </property>
-     <property name="text" stdset="0">
-      <string>Display</string>
+     <property name="text">
+      <string>Inputs</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_3">
       <item>
@@ -47,22 +76,22 @@
            </widget>
           </item>
           <item row="0" column="1">
-           <widget class="qMRMLNodeComboBox" name="ModelNodeComboBox" native="true">
+           <widget class="qMRMLNodeComboBox" name="ModelNodeComboBox">
             <property name="enabled">
              <bool>true</bool>
             </property>
-            <property name="nodeTypes" stdset="0">
+            <property name="nodeTypes">
              <stringlist>
               <string>vtkMRMLModelNode</string>
              </stringlist>
             </property>
-            <property name="noneEnabled" stdset="0">
+            <property name="noneEnabled">
              <bool>true</bool>
             </property>
-            <property name="addEnabled" stdset="0">
+            <property name="addEnabled">
              <bool>false</bool>
             </property>
-            <property name="removeEnabled" stdset="0">
+            <property name="removeEnabled">
              <bool>false</bool>
             </property>
            </widget>
@@ -75,61 +104,25 @@
            </widget>
           </item>
           <item row="1" column="1">
-           <widget class="qMRMLNodeComboBox" name="ToolComboBox" native="true">
+           <widget class="qMRMLNodeComboBox" name="ToolComboBox">
             <property name="enabled">
              <bool>true</bool>
             </property>
-            <property name="nodeTypes" stdset="0">
+            <property name="nodeTypes">
              <stringlist>
               <string>vtkMRMLLinearTransformNode</string>
              </stringlist>
             </property>
-            <property name="noneEnabled" stdset="0">
+            <property name="noneEnabled">
              <bool>true</bool>
             </property>
-            <property name="addEnabled" stdset="0">
+            <property name="addEnabled">
              <bool>false</bool>
             </property>
-            <property name="removeEnabled" stdset="0">
+            <property name="removeEnabled">
              <bool>false</bool>
             </property>
            </widget>
-          </item>
-         </layout>
-        </item>
-        <item>
-         <layout class="QFormLayout" name="formLayout">
-          <property name="labelAlignment">
-           <set>Qt::AlignCenter</set>
-          </property>
-          <property name="formAlignment">
-           <set>Qt::AlignCenter</set>
-          </property>
-          <item row="0" column="0">
-           <widget class="QCheckBox" name="colorCheckBox">
-            <property name="layoutDirection">
-             <enum>Qt::LeftToRight</enum>
-            </property>
-            <property name="text">
-             <string>Display warning color</string>
-            </property>
-            <property name="checked">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="0">
-           <widget class="QCheckBox" name="SoundCheckBox">
-            <property name="text">
-             <string>Play warning sound</string>
-            </property>
-            <property name="checked">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="1">
-           <widget class="ctkColorPickerButton" name="ColorPickerButton"/>
           </item>
          </layout>
         </item>
@@ -139,40 +132,59 @@
     </widget>
    </item>
    <item>
-    <widget class="ctkCollapsibleButton" name="CollapsibleButton" native="true">
-     <property name="text" stdset="0">
-      <string>Advanced options</string>
+    <widget class="ctkCollapsibleButton" name="CollapsibleButton">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
      </property>
-     <property name="collapsed" stdset="0">
-      <bool>true</bool>
+     <property name="maximumSize">
+      <size>
+       <width>16777215</width>
+       <height>120</height>
+      </size>
+     </property>
+     <property name="text">
+      <string>Display</string>
+     </property>
+     <property name="collapsed">
+      <bool>false</bool>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_5">
       <item>
-       <layout class="QGridLayout" name="gridLayout_2">
-        <item row="0" column="1">
-         <widget class="qMRMLNodeComboBox" name="ModuleNodeComboBox" native="true">
-          <property name="enabled">
+       <layout class="QFormLayout" name="formLayout">
+        <property name="labelAlignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+        <property name="formAlignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+        <item row="0" column="0">
+         <widget class="QCheckBox" name="colorCheckBox">
+          <property name="layoutDirection">
+           <enum>Qt::LeftToRight</enum>
+          </property>
+          <property name="text">
+           <string>Display warning color</string>
+          </property>
+          <property name="checked">
            <bool>true</bool>
-          </property>
-          <property name="nodeTypes" stdset="0">
-           <stringlist>
-            <string>vtkMRMLBreachWarningNode</string>
-           </stringlist>
-          </property>
-          <property name="renameEnabled" stdset="0">
-           <bool>true</bool>
-          </property>
-          <property name="selectNodeUponCreation" stdset="0">
-           <bool>false</bool>
           </property>
          </widget>
         </item>
-        <item row="0" column="0">
-         <widget class="QLabel" name="label_3">
+        <item row="1" column="0">
+         <widget class="QCheckBox" name="SoundCheckBox">
           <property name="text">
-           <string>Active module node: </string>
+           <string>Play warning sound</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
           </property>
          </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="ctkColorPickerButton" name="ColorPickerButton"/>
         </item>
        </layout>
       </item>
@@ -239,7 +251,7 @@
   <connection>
    <sender>qSlicerBreachWarningModule</sender>
    <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
-   <receiver>ModuleNodeComboBox</receiver>
+   <receiver>ParameterNodeComboBox</receiver>
    <slot>setMRMLScene(vtkMRMLScene*)</slot>
    <hints>
     <hint type="sourcelabel">

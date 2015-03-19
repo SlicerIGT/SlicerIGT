@@ -34,9 +34,6 @@
 #include <vtkSmartPointer.h>
 #include <vtkTransformPolyDataFilter.h>
 
-//Qt includes
-#include <QDir>
-
 // STD includes
 
 // Slicer methods 
@@ -45,7 +42,7 @@ vtkStandardNewMacro(vtkSlicerBreachWarningLogic);
 
 //------------------------------------------------------------------------------
 vtkSlicerBreachWarningLogic::vtkSlicerBreachWarningLogic()
-: BreachSound(NULL)
+: WarningSoundPlaying(false)
 {
 }
 
@@ -62,7 +59,7 @@ void vtkSlicerBreachWarningLogic::PrintSelf(ostream& os, vtkIndent indent)
 }
 
 //------------------------------------------------------------------------------
-void vtkSlicerBreachWarningLogic ::SetMRMLSceneInternal(vtkMRMLScene * newScene)
+void vtkSlicerBreachWarningLogic::SetMRMLSceneInternal(vtkMRMLScene * newScene)
 {
   vtkNew<vtkIntArray> events;
   events->InsertNextValue(vtkMRMLScene::NodeAddedEvent);
@@ -81,11 +78,6 @@ void vtkSlicerBreachWarningLogic::RegisterNodes()
   }
 
   this->GetMRMLScene()->RegisterNodeClass( vtkSmartPointer< vtkMRMLBreachWarningNode >::New() );
-
-  if(BreachSound==NULL)
-  {
-    BreachSound=new QSound( QDir::toNativeSeparators( QString::fromStdString( GetModuleShareDirectory()+"/alarm.wav" ) ) );
-  }
 }
 
 //------------------------------------------------------------------------------
@@ -151,7 +143,7 @@ void vtkSlicerBreachWarningLogic::UpdateToolState( vtkMRMLBreachWarningNode* bwN
 }
 
 //------------------------------------------------------------------------------
-void vtkSlicerBreachWarningLogic ::UpdateModelColor( vtkMRMLBreachWarningNode* bwNode )
+void vtkSlicerBreachWarningLogic::UpdateModelColor( vtkMRMLBreachWarningNode* bwNode )
 {
   if ( bwNode == NULL )
   {
@@ -180,23 +172,6 @@ void vtkSlicerBreachWarningLogic ::UpdateModelColor( vtkMRMLBreachWarningNode* b
 }
 
 //------------------------------------------------------------------------------
-void vtkSlicerBreachWarningLogic::PlaySound( vtkMRMLBreachWarningNode* bwNode )
-{
-  if ( bwNode->IsToolTipInsideModel() )
-  {
-    if(BreachSound->isFinished())
-    {
-      BreachSound->setLoops(1);
-      BreachSound->play();
-    }
-  }
-  else
-  {
-    BreachSound->stop();
-  }
-}
-
-//------------------------------------------------------------------------------
 void vtkSlicerBreachWarningLogic::OnMRMLSceneNodeAdded( vtkMRMLNode* node )
 {
   if ( node == NULL || this->GetMRMLScene() == NULL )
@@ -205,14 +180,33 @@ void vtkSlicerBreachWarningLogic::OnMRMLSceneNodeAdded( vtkMRMLNode* node )
     return;
   }
 
-  if ( node->IsA( "vtkMRMLBreachWarningNode" ) )
+  vtkMRMLBreachWarningNode* bwNode = vtkMRMLBreachWarningNode::SafeDownCast(node);
+  if ( bwNode )
   {
     vtkDebugMacro( "OnMRMLSceneNodeAdded: Module node added." );
-    vtkUnObserveMRMLNodeMacro( node ); // Remove previous observers.
+    vtkUnObserveMRMLNodeMacro( bwNode ); // Remove previous observers.
     vtkNew<vtkIntArray> events;
     events->InsertNextValue( vtkCommand::ModifiedEvent );
     events->InsertNextValue( vtkMRMLBreachWarningNode::InputDataModifiedEvent );
-    vtkObserveMRMLNodeEventsMacro( node, events.GetPointer() );
+    vtkObserveMRMLNodeEventsMacro( bwNode, events.GetPointer() );
+    if(bwNode->GetPlayWarningSound() && bwNode->IsToolTipInsideModel())
+    {
+      // Add to list of playing nodes (if not there already)
+      std::deque< vtkWeakPointer< vtkMRMLBreachWarningNode > >::iterator foundPlayingNodeIt = this->WarningSoundPlayingNodes.begin();    
+      for (; foundPlayingNodeIt!=this->WarningSoundPlayingNodes.end(); ++foundPlayingNodeIt)
+      {
+        if (foundPlayingNodeIt->GetPointer()==bwNode)
+        {
+          // found, current bw node is already in the playing list
+          break;
+        }
+      }
+      if (foundPlayingNodeIt==this->WarningSoundPlayingNodes.end())
+      {
+        this->WarningSoundPlayingNodes.push_back(bwNode);
+      }
+      this->SetWarningSoundPlaying(true);
+    }
   }
 }
 
@@ -229,6 +223,15 @@ void vtkSlicerBreachWarningLogic::OnMRMLSceneNodeRemoved( vtkMRMLNode* node )
   {
     vtkDebugMacro( "OnMRMLSceneNodeRemoved" );
     vtkUnObserveMRMLNodeMacro( node );
+    for (std::deque< vtkWeakPointer< vtkMRMLBreachWarningNode > >::iterator it=this->WarningSoundPlayingNodes.begin(); it!=this->WarningSoundPlayingNodes.end(); ++it)
+    {
+      if (it->GetPointer()==node)
+      {
+        this->WarningSoundPlayingNodes.erase(it);
+        break;
+      }
+    }
+    this->SetWarningSoundPlaying(!this->WarningSoundPlayingNodes.empty());
   }
 }
 
@@ -243,6 +246,13 @@ void vtkSlicerBreachWarningLogic::SetWatchedModelNode( vtkMRMLModelNode* newMode
 
   // Get the original color of the old model node
   vtkMRMLModelNode* previousModel=moduleNode->GetWatchedModelNode();
+
+  if (previousModel==newModel)
+  {
+    // no change
+    return;
+  }
+
   double previousOriginalColor[3]={0.5,0.5,0.5};
   if(previousModel)
   {
@@ -270,6 +280,7 @@ void vtkSlicerBreachWarningLogic::SetWatchedModelNode( vtkMRMLModelNode* newMode
   }
 }
 
+/*
 //------------------------------------------------------------------------------
 void vtkSlicerBreachWarningLogic::ProcessMRMLNodesEvents( vtkObject* caller, unsigned long event, void* callData )
 {
@@ -294,9 +305,66 @@ void vtkSlicerBreachWarningLogic::ProcessMRMLNodesEvents( vtkObject* caller, uns
     {
       this->UpdateModelColor(bwNode);
     }
-    if(bwNode->GetPlayWarningSound())
+    if(bwNode->GetPlayWarningSound() && bwNode->IsToolTipInsideModel())
     {
-      this->PlaySound(bwNode);
+      this->SetWarningSoundPlaying(true);
     }
+    else
+    {
+      this->SetWarningSoundPlaying(false);
+    }
+  }
+}
+*/
+//------------------------------------------------------------------------------
+void vtkSlicerBreachWarningLogic::ProcessMRMLNodesEvents( vtkObject* caller, unsigned long event, void* callData )
+{
+  vtkMRMLNode* callerNode = vtkMRMLNode::SafeDownCast( caller );
+  if (callerNode == NULL)
+  {
+    return;
+  }
+  
+  vtkMRMLBreachWarningNode* bwNode = vtkMRMLBreachWarningNode::SafeDownCast( callerNode );
+  if (bwNode == NULL)
+  {
+    return;
+  }
+  
+  if (event==vtkMRMLBreachWarningNode::InputDataModifiedEvent)
+  {
+    // only recompute output if the input is changed
+    // (for example we do not recompute the distance if the computed distance is changed)
+    this->UpdateToolState(bwNode);
+    if(bwNode->GetDisplayWarningColor())
+    {
+      this->UpdateModelColor(bwNode);
+    }
+    std::deque< vtkWeakPointer< vtkMRMLBreachWarningNode > >::iterator foundPlayingNodeIt = this->WarningSoundPlayingNodes.begin();    
+    for (; foundPlayingNodeIt!=this->WarningSoundPlayingNodes.end(); ++foundPlayingNodeIt)
+    {
+      if (foundPlayingNodeIt->GetPointer()==bwNode)
+      {
+        // found current bw node is already in the playing list
+        break;
+      }
+    }
+    if(bwNode->GetPlayWarningSound() && bwNode->IsToolTipInsideModel())
+    {
+      // Add to list of playing nodes (if not there already)
+      if (foundPlayingNodeIt==this->WarningSoundPlayingNodes.end())
+      {
+        this->WarningSoundPlayingNodes.push_back(bwNode);
+      }
+    }
+    else
+    {
+      // Remove from list of playing nodes (if still there)
+      if (foundPlayingNodeIt!=this->WarningSoundPlayingNodes.end())
+      {
+        this->WarningSoundPlayingNodes.erase(foundPlayingNodeIt);
+      }
+    }
+    this->SetWarningSoundPlaying(!this->WarningSoundPlayingNodes.empty());
   }
 }

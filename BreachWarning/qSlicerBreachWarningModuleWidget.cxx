@@ -89,7 +89,7 @@ void qSlicerBreachWarningModuleWidget::setup()
 
   this->setMRMLScene( d->logic()->GetMRMLScene() );
 
-  connect( d->ModuleNodeComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onModuleNodeChanged() ) );
+  connect( d->ParameterNodeComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onParameterNodeChanged() ) );
 
   // Make connections to update the mrml from the widget
   connect( d->ModelNodeComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onModelNodeChanged() ) );
@@ -130,9 +130,9 @@ void qSlicerBreachWarningModuleWidget::enter()
 
   // For convenience, select a default module.
 
-  if ( d->ModuleNodeComboBox->currentNode() == NULL )
+  if ( d->ParameterNodeComboBox->currentNode() == NULL )
   {
-    d->ModuleNodeComboBox->setCurrentNodeID( node->GetID() );
+    d->ParameterNodeComboBox->setCurrentNodeID( node->GetID() );
   }
 
   this->Superclass::enter();
@@ -152,7 +152,7 @@ void qSlicerBreachWarningModuleWidget::onSceneImportedEvent()
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerBreachWarningModuleWidget::onModuleNodeChanged()
+void qSlicerBreachWarningModuleWidget::onParameterNodeChanged()
 {
   Q_D( qSlicerBreachWarningModuleWidget );
   this->UpdateFromMRMLNode();
@@ -163,7 +163,7 @@ void qSlicerBreachWarningModuleWidget::onModelNodeChanged()
 {
   Q_D( qSlicerBreachWarningModuleWidget );
   
-  vtkMRMLBreachWarningNode* bwNode = vtkMRMLBreachWarningNode::SafeDownCast( d->ModuleNodeComboBox->currentNode() );
+  vtkMRMLBreachWarningNode* bwNode = vtkMRMLBreachWarningNode::SafeDownCast( d->ParameterNodeComboBox->currentNode() );
   if ( bwNode == NULL )
   {
     qCritical( "Model node changed with no module node selection" );
@@ -179,42 +179,41 @@ void qSlicerBreachWarningModuleWidget::onToolTransformChanged()
 {
   Q_D( qSlicerBreachWarningModuleWidget );
   
-  vtkMRMLBreachWarningNode* moduleNode = vtkMRMLBreachWarningNode::SafeDownCast( d->ModuleNodeComboBox->currentNode() );
-  if ( moduleNode == NULL )
+  vtkMRMLBreachWarningNode* parameterNode = vtkMRMLBreachWarningNode::SafeDownCast( d->ParameterNodeComboBox->currentNode() );
+  if ( parameterNode == NULL )
   {
-    qCritical( "Transform node should not be changed when no module node selected" );
+    qCritical( "Transform node should not be changed when no parameter node selected" );
     return;
   }
   
   vtkMRMLTransformNode* currentNode = vtkMRMLTransformNode::SafeDownCast(d->ToolComboBox->currentNode());
-  moduleNode->SetAndObserveToolTransformNodeId( (currentNode!=NULL) ? currentNode->GetID() : NULL);
+  parameterNode->SetAndObserveToolTransformNodeId( (currentNode!=NULL) ? currentNode->GetID() : NULL);
 }
 
 //-----------------------------------------------------------------------------
 void qSlicerBreachWarningModuleWidget::PlayWarningSound(bool playWarningSound)
 {
   Q_D(qSlicerBreachWarningModuleWidget);
-  vtkMRMLBreachWarningNode* moduleNode = vtkMRMLBreachWarningNode::SafeDownCast( d->ModuleNodeComboBox->currentNode() );
-  if ( moduleNode == NULL )
+  vtkMRMLBreachWarningNode* parameterNode = vtkMRMLBreachWarningNode::SafeDownCast( d->ParameterNodeComboBox->currentNode() );
+  if ( parameterNode == NULL )
   {
     qCritical( "Transform node should not be changed when no module node selected" );
     return;
   }
-  moduleNode->SetPlayWarningSound(playWarningSound);
+  parameterNode->SetPlayWarningSound(playWarningSound);
 }
 
 //-----------------------------------------------------------------------------
 void qSlicerBreachWarningModuleWidget::DisplayWarningColor(bool displayWarningColor)
 {
   Q_D(qSlicerBreachWarningModuleWidget);
-  vtkMRMLBreachWarningNode* moduleNode = vtkMRMLBreachWarningNode::SafeDownCast( d->ModuleNodeComboBox->currentNode() );
-  if ( moduleNode == NULL )
+  vtkMRMLBreachWarningNode* parameterNode = vtkMRMLBreachWarningNode::SafeDownCast( d->ParameterNodeComboBox->currentNode() );
+  if ( parameterNode == NULL )
   {
     qCritical( "Transform node should not be changed when no module node selected" );
     return;
   }
-  moduleNode->SetDisplayWarningColor(displayWarningColor);
-  moduleNode->InvokeEvent(vtkMRMLBreachWarningNode::InputDataModifiedEvent); // force update
+  parameterNode->SetDisplayWarningColor(displayWarningColor);
 }
 
 //-----------------------------------------------------------------------------
@@ -222,15 +221,14 @@ void qSlicerBreachWarningModuleWidget::UpdateWarningColor( QColor newColor )
 {
   Q_D(qSlicerBreachWarningModuleWidget);
 
-  vtkMRMLBreachWarningNode* moduleNode = vtkMRMLBreachWarningNode::SafeDownCast( d->ModuleNodeComboBox->currentNode() );
-  if ( moduleNode == NULL )
+  vtkMRMLBreachWarningNode* parameterNode = vtkMRMLBreachWarningNode::SafeDownCast( d->ParameterNodeComboBox->currentNode() );
+  if ( parameterNode == NULL )
   {
     qCritical( "Color selected without module node" );
     return;
   }
 
-  moduleNode->SetWarningColor( newColor.redF(), newColor.greenF(), newColor.blueF() );
-  moduleNode->InvokeEvent(vtkMRMLBreachWarningNode::InputDataModifiedEvent); // force update
+  parameterNode->SetWarningColor( newColor.redF(), newColor.greenF(), newColor.blueF() );
 }
 
 //-----------------------------------------------------------------------------
@@ -238,7 +236,7 @@ void qSlicerBreachWarningModuleWidget::UpdateFromMRMLNode()
 {
   Q_D( qSlicerBreachWarningModuleWidget );
   
-  vtkMRMLBreachWarningNode* bwNode = vtkMRMLBreachWarningNode::SafeDownCast( d->ModuleNodeComboBox->currentNode() );
+  vtkMRMLBreachWarningNode* bwNode = vtkMRMLBreachWarningNode::SafeDownCast( d->ParameterNodeComboBox->currentNode() );
   if ( bwNode == NULL )
   {
     d->ToolComboBox->setCurrentNodeID( "" );
