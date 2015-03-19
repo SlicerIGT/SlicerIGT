@@ -1,4 +1,3 @@
-
 // Watchdog MRML includes
 #include "vtkMRMLWatchdogNode.h"
 #include "vtkMRMLDisplayableNode.h"
@@ -8,6 +7,19 @@
 
 // Other includes
 #include <sstream>
+
+std::string getToolLabel(char * toolName)
+{
+  std::string toolAddedName(toolName);
+  if(toolAddedName.size()>6)
+  {
+    return toolAddedName.substr(0,4)+ toolAddedName.substr( toolAddedName.size()-2, toolAddedName.size());
+  }
+  else
+  {
+    return toolAddedName.substr(0,6);
+  }
+}
 
 vtkMRMLWatchdogNode* vtkMRMLWatchdogNode::New()
 {
@@ -63,7 +75,6 @@ void vtkMRMLWatchdogNode::WriteXML( ostream& of, int nIndent )
   }
 }
 
-
 void vtkMRMLWatchdogNode::ReadXMLAttributes( const char** atts )
 {
   Superclass::ReadXMLAttributes(atts); // This will take care of referenced nodes
@@ -94,7 +105,7 @@ void vtkMRMLWatchdogNode::ReadXMLAttributes( const char** atts )
         vtkDebugMacro("WatchedToolName read "<< ss.str().c_str() << " atName = "<< attName<< " atValue = "<< attValue);
         if ( ! strcmp( attName, ss.str().c_str() ) )
         {
-          tempWatchedTool.label= std::string(attValue).substr(0,6);//QString(attValue).left(6).toStdString();
+          tempWatchedTool.label=getToolLabel((char *) attValue);
         }
         else 
         {
@@ -113,7 +124,7 @@ void vtkMRMLWatchdogNode::ReadXMLAttributes( const char** atts )
 
           std::stringstream ss;
           ss << attValue;
-          ss>>(tempWatchedTool.playSound);//tempWatchedTool.playSound=QString(attValue).toInt();
+          ss>>(tempWatchedTool.playSound);
           attName  = *(atts++);
         }
         else 
@@ -128,7 +139,7 @@ void vtkMRMLWatchdogNode::ReadXMLAttributes( const char** atts )
         vtkDebugMacro("WatchedToolID read "<< IdString.str().c_str() << " atName = " << attName << " atValue = " << attValue);
         if ( ! strcmp( attName, IdString.str().c_str()) )
         {
-          tempWatchedTool.id=std::string(attValue);//QString(attValue).toStdString();
+          tempWatchedTool.id=std::string(attValue);
           WatchedTools.push_back(tempWatchedTool);
         }
         else 
@@ -139,7 +150,7 @@ void vtkMRMLWatchdogNode::ReadXMLAttributes( const char** atts )
       }
     }
   }
-  vtkDebugMacro("XML atts number of tools read "<<GetNumberOfTools());
+  //vtkDebugMacro("XML atts number of tools read "<<GetNumberOfTools());
 }
 
 void vtkMRMLWatchdogNode::Copy( vtkMRMLNode *anode )
@@ -181,12 +192,11 @@ int vtkMRMLWatchdogNode::AddToolNode( vtkMRMLDisplayableNode* toolAdded)
     return 0;
   }
   tempWatchedTool.tool=toolAdded;
-  tempWatchedTool.label=std::string(toolAdded->GetName()).substr(0,6);//QString(toolAdded->GetName()).left(6).toStdString();
+  tempWatchedTool.label=getToolLabel(toolAdded->GetName());
   tempWatchedTool.id=toolAdded->GetID();
   //tempWatchedTool.LastTimeStamp=mrmlNode->GetMTime();
   WatchedTools.push_back(tempWatchedTool);
 
-  //vtkDebugMacro("New number of tools "<<GetNumberOfTools());
   return GetNumberOfTools();
 }
 
@@ -242,8 +252,7 @@ bool vtkMRMLWatchdogNode::HasTool(char * toolName)
     {
       continue;
     }
-    //QString toolNameTemp((*it).tool->GetName());
-    if(!strcmp((*it).tool->GetName(), toolName))//(toolNameTemp.compare(toolName)==0)
+    if(!strcmp((*it).tool->GetName(), toolName))
     {
       return true;
     }

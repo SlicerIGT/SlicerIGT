@@ -26,8 +26,7 @@
 class qSlicerWatchdogModulePrivate;
 
 /// \ingroup Slicer_QtModules_ExtensionTemplate
-class Q_SLICER_QTMODULES_WATCHDOG_EXPORT
-qSlicerWatchdogModule
+class Q_SLICER_QTMODULES_WATCHDOG_EXPORT qSlicerWatchdogModule
   : public qSlicerLoadableModule
 {
   Q_OBJECT
@@ -58,8 +57,6 @@ protected:
 
   /// Initialize the module.
   virtual void setup();
-
-
 
   /// Create and return the widget representation associated to this module
   virtual qSlicerAbstractModuleRepresentation * createWidgetRepresentation();

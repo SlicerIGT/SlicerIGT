@@ -21,12 +21,12 @@
 // Watchdog Logic includes
 #include <vtkSlicerWatchdogLogic.h>
 
-#include "QVTKSlicerWatchdogLogicInternal.h"
+//#include "QVTKSlicerWatchdogLogicInternal.h"
 
 // Watchdog includes
 #include "qSlicerWatchdogModule.h"
 #include "qSlicerWatchdogModuleWidget.h"
-#include "qSlicerToolbarManagerWidget.h"
+#include "qSlicerToolBarManagerWidget.h"
 
 
 //-----------------------------------------------------------------------------
@@ -39,7 +39,7 @@ class qSlicerWatchdogModulePrivate
 public:
   qSlicerWatchdogModulePrivate();
   ~qSlicerWatchdogModulePrivate();
-  qSlicerToolBarManagerWidget * ToolbarManager;
+  qSlicerToolBarManagerWidget * ToolBarManager;
 };
 
 //-----------------------------------------------------------------------------
@@ -48,16 +48,16 @@ public:
 //-----------------------------------------------------------------------------
 qSlicerWatchdogModulePrivate::qSlicerWatchdogModulePrivate()
 {
-  this->ToolbarManager=NULL;
+  this->ToolBarManager=NULL;
 
 }
 
 //-----------------------------------------------------------------------------
 qSlicerWatchdogModulePrivate::~qSlicerWatchdogModulePrivate()
 {
-  if(this->ToolbarManager)
+  if(this->ToolBarManager)
   {
-    delete this->ToolbarManager;
+    delete this->ToolBarManager;
   }
 }
 
@@ -125,14 +125,13 @@ void qSlicerWatchdogModule::setMRMLScene(vtkMRMLScene* _mrmlScene)
 {
   this->Superclass::setMRMLScene(_mrmlScene);
   Q_D(qSlicerWatchdogModule);
-  if (d->ToolbarManager == NULL)
+  if (d->ToolBarManager == NULL)
   {
-    d->ToolbarManager = new qSlicerToolBarManagerWidget;
+    d->ToolBarManager = new qSlicerToolBarManagerWidget;
   }
-  d->ToolbarManager->setMRMLScene(_mrmlScene);
-
+  d->ToolBarManager->setMRMLScene(_mrmlScene);
   vtkSlicerWatchdogLogic* watchdogLogic = vtkSlicerWatchdogLogic::SafeDownCast(this->Superclass::logic());
-  connect(watchdogLogic->GetQVTKLogicInternal(), SIGNAL(updateTable()), d->ToolbarManager, SLOT(onUpdateToolbars()));
+  d->ToolBarManager->setLogic(watchdogLogic);
 }
 
 //-----------------------------------------------------------------------------
@@ -140,7 +139,7 @@ qSlicerAbstractModuleRepresentation* qSlicerWatchdogModule::createWidgetRepresen
 {
   Q_D(qSlicerWatchdogModule);
   qSlicerWatchdogModuleWidget * watchdogWidget = new qSlicerWatchdogModuleWidget;
-  watchdogWidget->SetToolbarHash(d->ToolbarManager->GetToolbarHash());
+  watchdogWidget->SetToolBarManager(d->ToolBarManager);
   return watchdogWidget;
 }
 

@@ -26,6 +26,7 @@ class qSlicerWatchdogModuleWidgetPrivate;
 class vtkMRMLNode;
 class vtkMRMLWatchdogNode;
 class qMRMLWatchdogToolBar;
+class qSlicerToolBarManagerWidget;
 
 /// \ingroup Slicer_QtModules_ExtensionTemplate
 class Q_SLICER_QTMODULES_WATCHDOG_EXPORT qSlicerWatchdogModuleWidget :
@@ -39,13 +40,13 @@ public:
   qSlicerWatchdogModuleWidget(QWidget *parent=0);
   virtual ~qSlicerWatchdogModuleWidget();
 
-  void SetToolbarHash(QHash<QString, qMRMLWatchdogToolBar *> * );
+///ToolBarManagerWidget is a helper class to manage the toolbar when the module widget is not created  yet
+  void SetToolBarManager(qSlicerToolBarManagerWidget * );
 
 public slots:
 
   /// Update the table after a scene is set
   virtual void setMRMLScene( vtkMRMLScene* scene );
-
   /// Update the table after a scene is imported
   void onSceneImportedEvent();
 
@@ -54,25 +55,24 @@ protected slots:
   /// Refresh the gui from the currently active toolwatchdog node as determined by
   /// the selection node
   void updateFromMRMLNode();
-
   /// Update the selection node from the combobox
   void onWatchdogNodeChanged();
   /// When the user clicks in the combobox to create a new watchdog node,
-  /// initializes a new toolbar
+  /// connects the toolbar with widget for visibility control
   void onWatchdogNodeAddedByUser(vtkMRMLNode* nodeAdded);
   /// Clean up the table when toolWatchdog node is about to be removed
   void onModuleNodeAboutToBeRemoved(vtkMRMLNode* nodeToBeRemoved);
-  ///Turn ON or OFF the tool bar visibility and the current watchdog node
-  void onToolbarVisibilityButtonClicked();
-  /// Update table every time the logic timer shots
+  /// Turn ON or OFF the tool bar visibility and the current watchdog node
+  void onToolBarVisibilityButtonClicked();
+  /// Update table every time the timer shots
   void onTimeout();
   /// When the label column is clicked it connects the cellChanged signal, to update the toolbar accordingly
   void onTableItemDoubleClicked();
   /// Updates the toolbar accordingly to the label changed on the table
   void onCurrentCellChanged(int currentRow, int currentColumn);
-  /// Updates the timer accordingly with the refreshing rate
-  void onStatusRefreshRateSpinBoxChanged(int statusRefeshRate);
-  /// Swaps the current table row with the down row
+  /// Updates the timer accordingly with the refreshing time
+  void onStatusRefreshTimeSpinBoxChanged(int statusRefeshRate);
+  /// Swaps the current table row with the lower row
   void onDownButtonClicked();
   /// Swaps the current table row with the upper row
   void onUpButtonClicked();
@@ -85,24 +85,17 @@ protected slots:
   /// Deletes and creates a table. Updates gui accordingly to node state
   void updateWidget();
   /// Updates the toolbar visibility checkbox accordingly to the toolbar visibility, in case is deactivated from the menu
-  void onToolbarVisibilityChanged( bool visible );
+  void onToolBarVisibilityChanged( bool visible );
   /// Sets the playSound option of the displayable node accordingly to the table checkbox
   void onSoundCheckBoxStateChanged(int state);
 
 protected:
   QScopedPointer<qSlicerWatchdogModuleWidgetPrivate> d_ptr;
 
-
-  void ConnectToolbarVisibility(vtkMRMLWatchdogNode* watchdogNodeAdded );
-  void RemoveToolbar();
-
-  /// Updates all the active toolbars accordingly to their respective watchdog nodes states
-  //void updateToolbars();
   /// Updates the current watchdog node table
   void updateTable();
   /// Connects the gui signals
   virtual void setup();
-
   /// Set up the GUI from mrml when entering
   virtual void enter();
 
