@@ -62,6 +62,10 @@ qSlicerToolBarManagerWidget::~qSlicerToolBarManagerWidget()
   assert(this->Superclass::mrmlScene() != 0);
   this->qvtkDisconnect(this->Superclass::mrmlScene(), vtkMRMLScene::NodeRemovedEvent, this, SLOT(RemoveToolBar(vtkObject*, vtkObject*)));
   this->qvtkDisconnect(this->Superclass::mrmlScene(), vtkMRMLScene::NodeAddedEvent, this, SLOT(AddToolBar(vtkObject*, vtkObject*)));
+
+  disconnect( this->Timer, SIGNAL( timeout() ), this, SLOT( onTimerEvent() ) );
+  this->qvtkDisconnect(this->WatchdogLogic, vtkSlicerWatchdogLogic::WatchdogLogicUpdatedEvent, this, SLOT(onUpdateToolBars()));
+
 }
 
 QHash<QString, qMRMLWatchdogToolBar *> * qSlicerToolBarManagerWidget::GetToolBarHash()

@@ -8,7 +8,6 @@ set(${KIT}_INCLUDE_DIRECTORIES
   ${Slicer_Base_INCLUDE_DIRS}
   )
 
-
 # --------------------------------------------------------------------------
 # Sources
 

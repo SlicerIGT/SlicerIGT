@@ -169,7 +169,7 @@ void qSlicerOpenIGTLinkRemoteCommandWidget::setMRMLScene(vtkMRMLScene *newScene)
 
   if ( this->CommandLogic->GetMRMLScene() != newScene )
   {
-    qWarning( "Incosistent MRML scene in OpenIGTLinkRemote logic" );
+    qWarning( "Inconsistent MRML scene in OpenIGTLinkRemote logic" );
   }
   
   this->Superclass::setMRMLScene(newScene);

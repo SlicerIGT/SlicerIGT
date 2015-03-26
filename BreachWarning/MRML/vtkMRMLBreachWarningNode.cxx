@@ -208,7 +208,6 @@ vtkMRMLBreachWarningNode
   this->InvokeCustomModifiedEvent(InputDataModifiedEvent);
 }
 
-
 vtkMRMLTransformNode*
 vtkMRMLBreachWarningNode
 ::GetToolTransformNode()
@@ -239,8 +238,6 @@ vtkMRMLBreachWarningNode
   this->SetAndObserveNodeReferenceID( TOOL_ROLE, nodeId, events.GetPointer() );
   this->InvokeCustomModifiedEvent(InputDataModifiedEvent);
 }
-
-
 
 void
 vtkMRMLBreachWarningNode
