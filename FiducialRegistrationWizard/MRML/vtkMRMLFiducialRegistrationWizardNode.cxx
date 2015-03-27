@@ -193,7 +193,7 @@ void vtkMRMLFiducialRegistrationWizardNode
 {
   if ( newProbeTransformID.compare( "" ) == 0 )
   {
-    this->RemoveAllNodeReferenceIDs( PROBE_TRANSFORM_REFERENCE_ROLE );
+    this->RemoveNodeReferenceIDs( PROBE_TRANSFORM_REFERENCE_ROLE );
   }
   else if ( this->GetProbeTransformID() != newProbeTransformID )
   {
@@ -260,7 +260,7 @@ void vtkMRMLFiducialRegistrationWizardNode
 {
   if ( newOutputTransformID.compare( "" ) == 0 )
   {
-    this->RemoveAllNodeReferenceIDs( OUTPUT_TRANSFORM_REFERENCE_ROLE );
+    this->RemoveNodeReferenceIDs( OUTPUT_TRANSFORM_REFERENCE_ROLE );
   }
   else if ( this->GetOutputTransformID() != newOutputTransformID )
   {
