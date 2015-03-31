@@ -28,8 +28,8 @@ limitations under the License.
 #include <vtkCollection.h>
 #include <vtkCollectionIterator.h>
 
-// STD includes
-#include <limits>
+//// STD includes
+//#include <limits>
 
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSlicerWatchdogLogic);
@@ -72,8 +72,8 @@ void vtkSlicerWatchdogLogic::RegisterNodes()
   }
   this->GetMRMLScene()->RegisterNodeClass( vtkSmartPointer< vtkMRMLWatchdogNode >::New() );
 
-  ElapsedTimeSec=0.0;
-  StatusRefreshTimeSec=0.20;
+  this->ElapsedTimeSec=0.0;
+  this->StatusRefreshTimeSec=0.20;
 }
 
 void vtkSlicerWatchdogLogic::AddToolNode( vtkMRMLWatchdogNode* watchdogNode, vtkMRMLDisplayableNode *toolNode)
@@ -125,19 +125,18 @@ void vtkSlicerWatchdogLogic::UpdateToolStatus( vtkMRMLWatchdogNode* watchdogNode
     {
       (*it).status=UP_TO_DATE;
       (*it).lastTimeStamp=timeStamp;
-      (*it).lastElapsedTimeStamp=ElapsedTimeSec;
+      (*it).lastElapsedTimeStamp=this->ElapsedTimeSec;
     }
-
   }
 }
 
 void  vtkSlicerWatchdogLogic::UpdateWatchdogNodes()
 {
-  if(ElapsedTimeSec>=std::numeric_limits<double>::max()-1.0)
-  {
-    ElapsedTimeSec=0.0;
-  }
-  ElapsedTimeSec = ElapsedTimeSec+StatusRefreshTimeSec;
+  //if(this->ElapsedTimeSec==std::numeric_limits<double>::max()-1.0)
+  //{
+  //  this->ElapsedTimeSec=0.0;
+  //}
+  this->ElapsedTimeSec = this->ElapsedTimeSec+this->StatusRefreshTimeSec;
 
   vtkCollection* watchdogNodes = this->GetMRMLScene()->GetNodesByClass( "vtkMRMLWatchdogNode" );
   vtkCollectionIterator* watchdogNodeIt = vtkCollectionIterator::New();

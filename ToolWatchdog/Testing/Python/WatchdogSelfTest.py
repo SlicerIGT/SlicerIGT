@@ -120,7 +120,7 @@ class WatchdogSelfTestLogic(ScriptedLoadableModuleLogic):
     """
     Run the actual algorithm
     """
-    print("Test the algorith logic here, not implemented yet")
+    print("Test the algorith logic here, not implemented yet holas!")
 
 #
 # WatchdogSelfTestTest
