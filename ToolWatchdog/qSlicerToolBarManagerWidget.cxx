@@ -51,8 +51,8 @@ qSlicerToolBarManagerWidget::qSlicerToolBarManagerWidget(QWidget* _parent)
 {
   this->WatchdogToolBarHash=NULL;
   this->Timer = new QTimer( this );
-  StatusRefreshTimeSec=0.2;
-  LastSoundElapsedTime=2.0;
+  this->StatusRefreshTimeSec=0.2;
+  this->LastSoundElapsedTime=2.0;
 }
 
 //---------------------------------------------------------------------------
@@ -79,7 +79,7 @@ void qSlicerToolBarManagerWidget::setSound(std::string watchdogModuleShareDirect
   if(this->WatchdogSound==NULL)
   {
     this->WatchdogSound=new QSound( QDir::toNativeSeparators( QString::fromStdString( watchdogModuleShareDirectory+"/alarmWatchdog.wav" ) ) );
-    LastSoundElapsedTime=2.0;
+    this->LastSoundElapsedTime=2.0;
   }
 }
 
@@ -124,7 +124,7 @@ void  qSlicerToolBarManagerWidget::onUpdateToolBars()
   {
     return;
   }
-  LastSoundElapsedTime = LastSoundElapsedTime+StatusRefreshTimeSec;
+  this->LastSoundElapsedTime = this->LastSoundElapsedTime+this->StatusRefreshTimeSec;
 
   vtkCollection * watchdogNodes  = this->Superclass::mrmlScene()->GetNodesByClass( "vtkMRMLWatchdogNode" );
   vtkSmartPointer<vtkCollectionIterator> watchdogNodeIt = vtkSmartPointer<vtkCollectionIterator>::New();
@@ -152,10 +152,10 @@ void  qSlicerToolBarManagerWidget::onUpdateToolBars()
         }
         this->WatchdogToolBarHash->value(QString(watchdogNode->GetID()))->SetNodeStatus(row,(*itTool).status);
 
-        if(LastSoundElapsedTime>=2.0)
+        if(this->LastSoundElapsedTime>=2.0)
           if((*itTool).playSound && !(*itTool).status)
           {
-            LastSoundElapsedTime=0;
+            this->LastSoundElapsedTime=0;
             if(this->WatchdogSound->isFinished())
             {
               this->WatchdogSound->setLoops(1);
@@ -227,7 +227,7 @@ void qSlicerToolBarManagerWidget::InitializeToolBar(vtkMRMLWatchdogNode* watchdo
     if(toolBarMenu->objectName()==QString("WindowToolBarsMenu"))
     {
       QList<QAction*> toolBarMenuActions= toolBarMenu->actions();
-      //toolBarMenu->defaultAction() would be bbetter to use but Slicer App should set the default action
+      //toolBarMenu->defaultAction() would be better to use but Slicer App should set the default action
       toolBarMenu->insertAction(toolBarMenuActions.at(toolBarMenuActions.size()-1),watchdogToolBar->toggleViewAction());
       break;
     }
@@ -256,7 +256,7 @@ void qSlicerToolBarManagerWidget::AddToolBar(vtkObject*, vtkObject* nodeAdded)
 
   if( !this->Timer->isActive() )
   {
-    this->Timer->start(1000.0*StatusRefreshTimeSec );
+    this->Timer->start(1000.0*this->StatusRefreshTimeSec );
     //qCritical("STARTED timer!!");
   }
   if(!this->WatchdogToolBarHash->contains(watchdogNodeAdded->GetID()))

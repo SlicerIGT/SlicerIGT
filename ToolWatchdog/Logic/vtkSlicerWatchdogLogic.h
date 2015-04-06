@@ -15,7 +15,7 @@
 
 ==============================================================================*/
 
-// .NAME vtkSlicerWatchdogLogic - slicer logic class for displayable nodes (tools) watchdog
+// .NAME vtkSlicerWatchdogLogic - slicer watchdog logic class for displayable nodes (tools)
 // .SECTION Description
 // This class manages the logic associated with displayable nodes watchdog. The watched nodes last time stamp is 
 // stored and compared with the current one every timer shot. If the last and current time stamps are different it 
@@ -63,10 +63,10 @@ public:
   /// The tool bar updates every StatusRefreshTimeSec
   vtkGetMacro(StatusRefreshTimeSec, double);
   vtkSetMacro(StatusRefreshTimeSec, double);
-  /// The time that the tool has been disconnected
+  /// The time that the watchdog has been active
   vtkGetMacro(ElapsedTimeSec, double);
 
-  /// Adds a tool to the list in the respective toolwatchdog node
+  /// Adds a tool in the respective toolwatchdog node's list
   void AddToolNode( vtkMRMLWatchdogNode* toolWatchdogNode, vtkMRMLDisplayableNode *mrmlNode);
   /// Updates the state of the tool observed according to the timestamp. The elapsedTime is stored to keep track of time 
   ///that tools have been disconnected.

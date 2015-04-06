@@ -24,45 +24,43 @@
 
 class qSlicerWatchdogModuleWidgetPrivate;
 class vtkMRMLNode;
-class vtkMRMLWatchdogNode;
-class qMRMLWatchdogToolBar;
+//class vtkMRMLWatchdogNode;
+//class qMRMLWatchdogToolBar;
 class qSlicerToolBarManagerWidget;
 
-/// \ingroup Slicer_QtModules_ExtensionTemplate
+/// \ingroup Slicer_QtModules_ToolWatchdog
 class Q_SLICER_QTMODULES_WATCHDOG_EXPORT qSlicerWatchdogModuleWidget :
   public qSlicerAbstractModuleWidget
 {
   Q_OBJECT
 
 public:
-
   typedef qSlicerAbstractModuleWidget Superclass;
   qSlicerWatchdogModuleWidget(QWidget *parent=0);
   virtual ~qSlicerWatchdogModuleWidget();
 
-///ToolBarManagerWidget is a helper class to manage the toolbar when the module widget is not created  yet
+  /// ToolBarManagerWidget is a helper class to manage the toolbar when the module widget is not created  yet
   void SetToolBarManager(qSlicerToolBarManagerWidget * );
 
 public slots:
 
-  /// Update the table after a scene is set
+  /// Set the current MRML scene to the widget
   virtual void setMRMLScene( vtkMRMLScene* scene );
-  /// Update the table after a scene is imported
+  /// Process loaded scene, updates the table after a scene is set
   void onSceneImportedEvent();
 
 protected slots:
 
-  /// Refresh the gui from the currently active toolwatchdog node as determined by
-  /// the selection node
+  /// Refresh the gui from the currently active toolwatchdog node 
   void updateFromMRMLNode();
   /// Update the selection node from the combobox
   void onWatchdogNodeChanged();
-  /// When the user clicks in the combobox to create a new watchdog node,
+  /// When the user clicks the combobox to create a new watchdog node,
   /// connects the toolbar with widget for visibility control
   void onWatchdogNodeAddedByUser(vtkMRMLNode* nodeAdded);
   /// Clean up the table when toolWatchdog node is about to be removed
   void onModuleNodeAboutToBeRemoved(vtkMRMLNode* nodeToBeRemoved);
-  /// Turn ON or OFF the tool bar visibility and the current watchdog node
+  /// Turn ON or OFF the toolbar visibility and the current watchdog node
   void onToolBarVisibilityButtonClicked();
   /// Update table every time the timer shots
   void onTimeout();

@@ -22,7 +22,6 @@
 #define __qMRMLWatchdogToolBar_h
 
 // Qt includes
-//#include <QSignalMapper>
 #include <QToolBar>
 
 // CTK includes
@@ -32,11 +31,10 @@
 // no ui end
 
 // qMRMLWidget includes
-#include "qMRMLWidget.h"
+//#include "qMRMLWidget.h"
 #include "qMRMLWatchdogModuleWidgetsExport.h"
 
 class qMRMLWatchdogToolBarPrivate;
-class vtkMRMLNode;
 class vtkMRMLScene;
 class vtkMRMLViewNode;
 
@@ -57,21 +55,9 @@ public:
   void SetWatchdogToolBarName(char * watchDogNodeName);
   void SetToolNodeAddedLabel(const char * toolNodeAddedLabel);
   void SwapToolNodes(int toolA, int toolB );
-  void ToolNodeDeleted();
   void DeleteToolNode(int row);
   void SetNodeStatus(int row, bool status );
   void SetNodeLabel(int row, const char * toolLabel);
-
-public slots:
-  virtual void setMRMLScene(vtkMRMLScene* newScene);
-  void setActiveMRMLThreeDViewNode(vtkMRMLViewNode * newActiveMRMLThreeDViewNode);
-
-
-
-signals:
-  void screenshotButtonClicked();
-  void sceneViewButtonClicked();
-  void mrmlSceneChanged(vtkMRMLScene*);
 
 protected:
   QScopedPointer<qMRMLWatchdogToolBarPrivate> d_ptr;

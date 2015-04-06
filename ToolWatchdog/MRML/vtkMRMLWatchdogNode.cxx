@@ -60,9 +60,9 @@ void vtkMRMLWatchdogNode::WriteXML( ostream& of, int nIndent )
   Superclass::WriteXML(of, nIndent); // This will take care of referenced nodes
   vtkIndent indent(nIndent);
 
-  of << indent << " NumberOfWatchedTools=\"" << WatchedTools.size() << "\"";
+  of << indent << " NumberOfWatchedTools=\"" << this->WatchedTools.size() << "\"";
  int i =1;
-  for (std::list<WatchedTool>::iterator it = WatchedTools.begin() ; it != WatchedTools.end(); ++it)
+  for (std::list<WatchedTool>::iterator it = this->WatchedTools.begin() ; it != this->WatchedTools.end(); ++it)
   {
     if((*it).tool== NULL)
     {
@@ -140,7 +140,7 @@ void vtkMRMLWatchdogNode::ReadXMLAttributes( const char** atts )
         if ( ! strcmp( attName, IdString.str().c_str()) )
         {
           tempWatchedTool.id=std::string(attValue);
-          WatchedTools.push_back(tempWatchedTool);
+          this->WatchedTools.push_back(tempWatchedTool);
         }
         else 
         {
@@ -173,7 +173,7 @@ void vtkMRMLWatchdogNode::PrintSelf( ostream& os, vtkIndent indent )
 
 WatchedTool * vtkMRMLWatchdogNode::GetToolNode(int currentRow)
 {
-  std::list<WatchedTool>::iterator it = WatchedTools.begin();
+  std::list<WatchedTool>::iterator it = this->WatchedTools.begin();
   advance (it,currentRow);
   WatchedTool * watchedTool = &(*it);
   return watchedTool;
@@ -181,7 +181,7 @@ WatchedTool * vtkMRMLWatchdogNode::GetToolNode(int currentRow)
 
 std::list<WatchedTool> * vtkMRMLWatchdogNode::GetToolNodes()
 {
-  return &WatchedTools;
+  return &this->WatchedTools;
 }
 
 int vtkMRMLWatchdogNode::AddToolNode( vtkMRMLDisplayableNode* toolAdded)
@@ -195,27 +195,26 @@ int vtkMRMLWatchdogNode::AddToolNode( vtkMRMLDisplayableNode* toolAdded)
   tempWatchedTool.label=getToolLabel(toolAdded->GetName());
   tempWatchedTool.id=toolAdded->GetID();
   //tempWatchedTool.LastTimeStamp=mrmlNode->GetMTime();
-  WatchedTools.push_back(tempWatchedTool);
+  this->WatchedTools.push_back(tempWatchedTool);
 
   return GetNumberOfTools();
 }
 
 void vtkMRMLWatchdogNode::RemoveTool(int row)
 {
-  if(row>=0 && row<WatchedTools.size())
+  if(row>=0 && row<this->WatchedTools.size())
   {
-    std::list<WatchedTool>::iterator it = WatchedTools.begin();
+    std::list<WatchedTool>::iterator it = this->WatchedTools.begin();
     advance (it,row);
-    WatchedTools.erase(it);
+    this->WatchedTools.erase(it);
   }
 }
 
-
 void vtkMRMLWatchdogNode::SwapTools( int toolA, int toolB )
 {
-  std::list<WatchedTool>::iterator itA = WatchedTools.begin();
+  std::list<WatchedTool>::iterator itA = this->WatchedTools.begin();
   advance (itA,toolA);
-  std::list<WatchedTool>::iterator itB = WatchedTools.begin();
+  std::list<WatchedTool>::iterator itB = this->WatchedTools.begin();
   advance (itB,toolB);
 
   WatchedTool toolTemp;
@@ -246,7 +245,7 @@ void vtkMRMLWatchdogNode::SwapTools( int toolA, int toolB )
 
 bool vtkMRMLWatchdogNode::HasTool(char * toolName)
 {
-  for (std::list<WatchedTool>::iterator it = WatchedTools.begin() ; it != WatchedTools.end(); ++it)
+  for (std::list<WatchedTool>::iterator it = this->WatchedTools.begin() ; it != this->WatchedTools.end(); ++it)
   {
     if((*it).tool== NULL)
     {
@@ -262,5 +261,5 @@ bool vtkMRMLWatchdogNode::HasTool(char * toolName)
 
 int vtkMRMLWatchdogNode::GetNumberOfTools()
 {
-  return WatchedTools.size();
+  return this->WatchedTools.size();
 }

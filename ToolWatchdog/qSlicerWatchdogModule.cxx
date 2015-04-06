@@ -21,8 +21,6 @@
 // Watchdog Logic includes
 #include <vtkSlicerWatchdogLogic.h>
 
-//#include "QVTKSlicerWatchdogLogicInternal.h"
-
 // Watchdog includes
 #include "qSlicerWatchdogModule.h"
 #include "qSlicerWatchdogModuleWidget.h"
@@ -33,7 +31,7 @@
 Q_EXPORT_PLUGIN2(qSlicerWatchdogModule, qSlicerWatchdogModule);
 
 //-----------------------------------------------------------------------------
-/// \ingroup Slicer_QtModules_ExtensionTemplate
+/// \ingroup Slicer_QtModules_ToolWatchdog
 class qSlicerWatchdogModulePrivate
 {
 public:
@@ -121,6 +119,7 @@ void qSlicerWatchdogModule::setup()
   this->Superclass::setup();
 }
 
+//-----------------------------------------------------------------------------
 void qSlicerWatchdogModule::setMRMLScene(vtkMRMLScene* _mrmlScene)
 {
   this->Superclass::setMRMLScene(_mrmlScene);

@@ -84,7 +84,6 @@ protected:
 
   void UpdateToolState( vtkMRMLBreachWarningNode* bwNode );
   void UpdateModelColor( vtkMRMLBreachWarningNode* bwNode );
-  void PlaySound( vtkMRMLBreachWarningNode* bwNode );
 
 private:
   vtkSlicerBreachWarningLogic(const vtkSlicerBreachWarningLogic&); // Not implemented

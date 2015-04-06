@@ -37,7 +37,7 @@ int TOOL_TIMESTAMP_COLUMN = 3;
 int TOOL_COLUMNS = 4;
 
 //-----------------------------------------------------------------------------
-/// \ingroup Slicer_QtModules_ExtensionTemplate
+/// \ingroup Slicer_QtModules_ToolWatchdog
 class qSlicerWatchdogModuleWidgetPrivate: public Ui_qSlicerWatchdogModuleWidget
 {
   Q_DECLARE_PUBLIC( qSlicerWatchdogModuleWidget ); 
@@ -74,8 +74,8 @@ qSlicerWatchdogModuleWidget::qSlicerWatchdogModuleWidget(QWidget* _parent)
 : Superclass( _parent )
 , d_ptr( new qSlicerWatchdogModuleWidgetPrivate ( *this ) )
 {
-  CurrentCellPosition[0]=0;
-  CurrentCellPosition[1]=0;
+  this->CurrentCellPosition[0]=0;
+  this->CurrentCellPosition[1]=0;
 }
 
 //-----------------------------------------------------------------------------
@@ -181,6 +181,7 @@ void qSlicerWatchdogModuleWidget::setMRMLScene( vtkMRMLScene* scene )
   this->Superclass::setMRMLScene( scene );
 }
 
+//-----------------------------------------------------------------------------
 void qSlicerWatchdogModuleWidget::onSceneImportedEvent()
 {
   this->enter();
@@ -203,7 +204,7 @@ void qSlicerWatchdogModuleWidget::onStatusRefreshTimeSpinBoxChanged(int statusRe
 //-----------------------------------------------------------------------------
 void qSlicerWatchdogModuleWidget::onCurrentCellChanged(int currentRow, int currentColumn)
 {
-  if(CurrentCellPosition[0]!=currentRow && CurrentCellPosition[1]!=currentColumn)
+  if(this->CurrentCellPosition[0]!=currentRow && this->CurrentCellPosition[1]!=currentColumn)
   {
     return;
   }
@@ -235,8 +236,8 @@ void qSlicerWatchdogModuleWidget::onTableItemDoubleClicked()
   {
     return;
   }
-  CurrentCellPosition[0]=d->ToolsTableWidget->currentRow();
-  CurrentCellPosition[1]=d->ToolsTableWidget->currentColumn();
+  this->CurrentCellPosition[0]=d->ToolsTableWidget->currentRow();
+  this->CurrentCellPosition[1]=d->ToolsTableWidget->currentColumn();
   connect( d->ToolsTableWidget, SIGNAL( cellChanged( int , int ) ), this, SLOT( onCurrentCellChanged( int , int ) ) );
 }
 
