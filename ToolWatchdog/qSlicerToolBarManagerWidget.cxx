@@ -227,7 +227,7 @@ void qSlicerToolBarManagerWidget::InitializeToolBar(vtkMRMLWatchdogNode* watchdo
     if(toolBarMenu->objectName()==QString("WindowToolBarsMenu"))
     {
       QList<QAction*> toolBarMenuActions= toolBarMenu->actions();
-      //toolBarMenu->defaultAction() would be bbetter to use but Slicer App should set the default action
+      //toolBarMenu->defaultAction() would be better to use but Slicer App should set the default action
       toolBarMenu->insertAction(toolBarMenuActions.at(toolBarMenuActions.size()-1),watchdogToolBar->toggleViewAction());
       break;
     }

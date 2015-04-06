@@ -181,6 +181,7 @@ void qSlicerWatchdogModuleWidget::setMRMLScene( vtkMRMLScene* scene )
   this->Superclass::setMRMLScene( scene );
 }
 
+//-----------------------------------------------------------------------------
 void qSlicerWatchdogModuleWidget::onSceneImportedEvent()
 {
   this->enter();

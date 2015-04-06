@@ -115,9 +115,9 @@ void vtkSlicerBreachWarningLogic::UpdateToolState( vtkMRMLBreachWarningNode* bwN
 
     vtkSmartPointer< vtkTransformPolyDataFilter > bodyToRasFilter = vtkSmartPointer< vtkTransformPolyDataFilter >::New();
 #if (VTK_MAJOR_VERSION <= 5)
-	bodyToRasFilter->SetInput( body );
+    bodyToRasFilter->SetInput( body );
 #else
-	bodyToRasFilter->SetInputData( body );
+    bodyToRasFilter->SetInputData( body );
 #endif
     bodyToRasFilter->SetTransform( bodyToRasTransform );
     bodyToRasFilter->Update();

@@ -119,6 +119,7 @@ void qSlicerWatchdogModule::setup()
   this->Superclass::setup();
 }
 
+//-----------------------------------------------------------------------------
 void qSlicerWatchdogModule::setMRMLScene(vtkMRMLScene* _mrmlScene)
 {
   this->Superclass::setMRMLScene(_mrmlScene);

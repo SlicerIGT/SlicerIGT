@@ -57,6 +57,7 @@ public:
   void setLogic(vtkSlicerWatchdogLogic* watchdogLogic);
 
 public slots:
+  /// When the scene is set the node added and removed events are connected to respective slots, to add or remove a toolbar
   virtual void setMRMLScene(vtkMRMLScene* newScene);
   /// After the watchdog logic is updated the toolbar status will be updated accordingly and 
   /// and play the beep sound if activated
