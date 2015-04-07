@@ -62,20 +62,21 @@ qSlicerMarkupsToModelModule::~qSlicerMarkupsToModelModule()
 //-----------------------------------------------------------------------------
 QString qSlicerMarkupsToModelModule::helpText() const
 {
-  return "This is a loadable module that can be bundled in an extension";
+  return " create an enclosing closed surface from the markup points";
 }
 
 //-----------------------------------------------------------------------------
 QString qSlicerMarkupsToModelModule::acknowledgementText() const
 {
-  return "This work was partially funded by NIH grant NXNNXXNNNNNN-NNXN";
+  return "This work was was funded by Cancer Care Ontario and the Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO)";
 }
 
 //-----------------------------------------------------------------------------
 QStringList qSlicerMarkupsToModelModule::contributors() const
 {
   QStringList moduleContributors;
-  moduleContributors << QString("John Doe (AnyWare Corp.)");
+  moduleContributors << QString("Jaime Garcia Guevara (Queen's University)");
+  moduleContributors << QString("Andras Lasso (Queen's University)");
   return moduleContributors;
 }
 
@@ -88,7 +89,7 @@ QIcon qSlicerMarkupsToModelModule::icon() const
 //-----------------------------------------------------------------------------
 QStringList qSlicerMarkupsToModelModule::categories() const
 {
-  return QStringList() << "Examples";
+  return QStringList() << "IGT";
 }
 
 //-----------------------------------------------------------------------------

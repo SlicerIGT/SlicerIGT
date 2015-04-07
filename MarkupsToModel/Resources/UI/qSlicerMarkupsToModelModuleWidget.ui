@@ -1,27 +1,445 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>qSlicerMarkupsToModelModuleWidget</class>
- <widget class="qSlicerWidget" name="qSlicerMarkupsToModelModuleWidget">
+ <class>qSlicerMarkupsToModelModule</class>
+ <widget class="qSlicerWidget" name="qSlicerMarkupsToModelModule">
+  <property name="enabled">
+   <bool>true</bool>
+  </property>
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>525</width>
-    <height>319</height>
+    <width>544</width>
+    <height>789</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Form</string>
+   <string>Markups To Model</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="ctkCollapsibleButton" name="CTKCollapsibleButton" native="true">
-     <property name="text" stdset="0">
-      <string>Display</string>
+    <widget class="ctkCollapsibleButton" name="CTKCollapsibleButton">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>16777215</width>
+       <height>120</height>
+      </size>
+     </property>
+     <property name="text">
+      <string>Inputs</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_3">
       <item>
-       <widget class="qSlicerMarkupsToModelFooBarWidget" name="FooBar" native="true"/>
+       <layout class="QVBoxLayout" name="InputsVerticalLayout">
+        <item>
+         <layout class="QGridLayout" name="InputsGridLayout">
+          <item row="0" column="0">
+           <widget class="QLabel" name="InputMarkupsLabel">
+            <property name="text">
+             <string>Input markups:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="qMRMLNodeComboBox" name="MarkupsNodeComboBox">
+            <property name="enabled">
+             <bool>true</bool>
+            </property>
+            <property name="nodeTypes">
+             <stringlist>
+              <string>vtkMRMLMarkupsFiducialNode</string>
+             </stringlist>
+            </property>
+            <property name="noneEnabled">
+             <bool>true</bool>
+            </property>
+            <property name="addEnabled">
+             <bool>false</bool>
+            </property>
+            <property name="removeEnabled">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QPushButton" name="DeleteAllPushButton">
+            <property name="text">
+             <string>Delete All</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QPushButton" name="DeleteLastPushButton">
+            <property name="text">
+             <string>Delete Last</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="ctkCollapsibleButton" name="CTKCollapsibleButton">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>16777215</width>
+       <height>120</height>
+      </size>
+     </property>
+     <property name="text">
+      <string>Conversion parameters</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_39">
+      <item>
+       <layout class="QVBoxLayout" name="ConversionVerticalLayout">
+        <item>
+         <widget class="QGroupBox" name="ModeGroupBox">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="title">
+           <string>Mode</string>
+          </property>
+          <widget class="QRadioButton" name="CurveRadioButton">
+           <property name="geometry">
+            <rect>
+             <x>150</x>
+             <y>20</y>
+             <width>82</width>
+             <height>17</height>
+            </rect>
+           </property>
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="text">
+            <string>Curve</string>
+           </property>
+          </widget>
+          <widget class="QRadioButton" name="ClosedSurfaceRadioButton">
+           <property name="geometry">
+            <rect>
+             <x>10</x>
+             <y>20</y>
+             <width>131</width>
+             <height>17</height>
+            </rect>
+           </property>
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="text">
+            <string>Closed surface</string>
+           </property>
+          </widget>
+         </widget>
+        </item>
+        <item>
+         <layout class="QGridLayout" name="ConversionClosedSurfaceGridLayout">
+          <item row="0" column="2">
+           <widget class="QDoubleSpinBox" name="DelaunayAlphaDoubleSpinBox"/>
+          </item>
+          <item row="0" column="0">
+           <widget class="QCheckBox" name="ButterflySmoothingCheckBox">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>Butterfly filter smoothing</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QLabel" name="DelaunayAlphaLabel">
+            <property name="text">
+             <string>Delaunay alpha</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QGridLayout" name="ConversionCurveGridLayout">
+          <item row="0" column="1">
+           <widget class="QLabel" name="TubeRadiusLabel">
+            <property name="text">
+             <string>Tube radius</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="2">
+           <widget class="QDoubleSpinBox" name="TubeRadiusDoubleSpinBox"/>
+          </item>
+          <item row="0" column="0">
+           <widget class="QGroupBox" name="CurveInterpolationGroupBox">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="title">
+             <string>Interpolation</string>
+            </property>
+            <widget class="QRadioButton" name="NoneInterpolationButton">
+             <property name="geometry">
+              <rect>
+               <x>10</x>
+               <y>10</y>
+               <width>82</width>
+               <height>17</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string>None</string>
+             </property>
+            </widget>
+            <widget class="QRadioButton" name="CardinalInterpolationRadioButton">
+             <property name="geometry">
+              <rect>
+               <x>20</x>
+               <y>20</y>
+               <width>82</width>
+               <height>17</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string>Cardinal Spline</string>
+             </property>
+            </widget>
+            <widget class="QRadioButton" name="HermiteInterpolationRadioButton">
+             <property name="geometry">
+              <rect>
+               <x>20</x>
+               <y>20</y>
+               <width>82</width>
+               <height>17</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string>Hermite Spline</string>
+             </property>
+            </widget>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="ctkCollapsibleButton" name="CTKCollapsibleButton">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>16777215</width>
+       <height>120</height>
+      </size>
+     </property>
+     <property name="text">
+      <string>Output</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_38">
+      <item>
+       <layout class="QVBoxLayout" name="OutputVerticalLayout">
+        <item>
+         <layout class="QGridLayout" name="OutputGridLayout">
+          <item row="1" column="1">
+           <widget class="qMRMLNodeComboBox" name="ModelNodeComboBox">
+            <property name="enabled">
+             <bool>true</bool>
+            </property>
+            <property name="nodeTypes">
+             <stringlist>
+              <string>vtkMRMLModelNode</string>
+             </stringlist>
+            </property>
+            <property name="noneEnabled">
+             <bool>true</bool>
+            </property>
+            <property name="addEnabled">
+             <bool>false</bool>
+            </property>
+            <property name="removeEnabled">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QCheckBox" name="AutoUpdateOutputCheckBox">
+            <property name="text">
+             <string>Auto-update</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="OutputLabel">
+            <property name="text">
+             <string>Output Model:</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <layout class="QHBoxLayout" name="UpdateHorizontalLayout">
+            <item>
+             <spacer name="horizontalSpacer">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeType">
+               <enum>QSizePolicy::Preferred</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
+             <widget class="QPushButton" name="UpdateOutputPushButton">
+              <property name="text">
+               <string>Update</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="ctkCollapsibleButton" name="CollapsibleButton">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>16777215</width>
+       <height>120</height>
+      </size>
+     </property>
+     <property name="text">
+      <string>Display</string>
+     </property>
+     <property name="collapsed">
+      <bool>false</bool>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_5">
+      <item>
+       <layout class="QFormLayout" name="DisplayFormLayout">
+        <property name="fieldGrowthPolicy">
+         <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+        </property>
+        <property name="labelAlignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+        <property name="formAlignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+        <item row="0" column="0">
+         <widget class="QCheckBox" name="ShowModelCheckBox">
+          <property name="layoutDirection">
+           <enum>Qt::LeftToRight</enum>
+          </property>
+          <property name="text">
+           <string>Show model</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="ctkColorPickerButton" name="ColorPickerButton"/>
+        </item>
+        <item row="1" column="0">
+         <widget class="QCheckBox" name="ShowModelSliceIntersectionCheckBox">
+          <property name="text">
+           <string>Show model slice intersection</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <layout class="QHBoxLayout" name="horizontalLayout">
+          <item>
+           <widget class="QLabel" name="TransparencyLabel">
+            <property name="text">
+             <string>Transparency</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QSlider" name="OutputTransparencySlider">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
       </item>
      </layout>
     </widget>
@@ -33,8 +451,8 @@
      </property>
      <property name="sizeHint" stdset="0">
       <size>
-       <width>0</width>
-       <height>0</height>
+       <width>20</width>
+       <height>40</height>
       </size>
      </property>
     </spacer>
@@ -42,6 +460,11 @@
   </layout>
  </widget>
  <customwidgets>
+  <customwidget>
+   <class>qMRMLNodeComboBox</class>
+   <extends>QWidget</extends>
+   <header>qMRMLNodeComboBox.h</header>
+  </customwidget>
   <customwidget>
    <class>qSlicerWidget</class>
    <extends>QWidget</extends>
@@ -55,12 +478,28 @@
    <container>1</container>
   </customwidget>
   <customwidget>
-   <class>qSlicerMarkupsToModelFooBarWidget</class>
-   <extends>QWidget</extends>
-   <header>qSlicerMarkupsToModelFooBarWidget.h</header>
-   <container>1</container>
+   <class>ctkColorPickerButton</class>
+   <extends>QPushButton</extends>
+   <header>ctkColorPickerButton.h</header>
   </customwidget>
  </customwidgets>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>qSlicerMarkupsToModelModule</sender>
+   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+   <receiver>MarkupsNodeComboBox</receiver>
+   <slot>setMRMLScene(vtkMRMLScene*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>216</x>
+     <y>316</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>286</x>
+     <y>52</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>

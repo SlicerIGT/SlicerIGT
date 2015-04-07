@@ -40,11 +40,15 @@ public:
 
 public slots:
 
+  void onModelNodeChanged();
+  void onMarkupsNodeChanged();
 
 protected:
   QScopedPointer<qSlicerMarkupsToModelModuleWidgetPrivate> d_ptr;
 
   virtual void setup();
+  virtual void enter();
+
 
 private:
   Q_DECLARE_PRIVATE(qSlicerMarkupsToModelModuleWidget);
