@@ -40,15 +40,29 @@ public:
 
 public slots:
 
-  void onModelNodeChanged();
-  void onMarkupsNodeChanged();
+  //void onModelNodeChanged();
+  /// Refresh the gui from the currently active toolwatchdog node 
+  void updateFromMRMLNode();
+  /// Deletes and creates a table. Updates gui accordingly to node state
+  void updateWidget();
+
+  /// Update the selection node from the combobox
+  void onMarkupsToModelModuleNodeChanged();
+
+  void onCurrentMarkupsNodeChanged();
+  /// When the user clicks the combobox to create a new MarkupsToModel node,
+  /// connects the toolbar with widget for visibility control
+  void onMarkupsToModelModuleNodeAddedByUser(vtkMRMLNode* nodeAdded);
+  /// Clean up the table when toolMarkupsToModel node is about to be removed
+  //void onMarkupsToModelModuleNodeAboutToBeRemoved(vtkMRMLNode* nodeToBeRemoved);
+
+  void onUpdateOutputModelPushButton();
 
 protected:
   QScopedPointer<qSlicerMarkupsToModelModuleWidgetPrivate> d_ptr;
 
   virtual void setup();
   virtual void enter();
-
 
 private:
   Q_DECLARE_PRIVATE(qSlicerMarkupsToModelModuleWidget);

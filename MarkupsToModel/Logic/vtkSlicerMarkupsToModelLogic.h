@@ -34,6 +34,9 @@
 
 #include "vtkSlicerMarkupsToModelModuleLogicExport.h"
 
+class vtkMRMLMarkupsFiducialNode;
+class vtkMRMLMarkupsToModelNode;
+
 
 /// \ingroup Slicer_QtModules_ExtensionTemplate
 class VTK_SLICER_MARKUPSTOMODEL_MODULE_LOGIC_EXPORT vtkSlicerMarkupsToModelLogic :
@@ -44,6 +47,8 @@ public:
   static vtkSlicerMarkupsToModelLogic *New();
   vtkTypeMacro(vtkSlicerMarkupsToModelLogic, vtkSlicerModuleLogic);
   void PrintSelf(ostream& os, vtkIndent indent);
+  void SetMarkupsNode( vtkMRMLMarkupsFiducialNode* newMarkups, vtkMRMLMarkupsToModelNode* moduleNode );
+  void UpdateOutputModel(vtkMRMLMarkupsFiducialNode* markups, vtkMRMLMarkupsToModelNode* moduleNode);
 
 protected:
   vtkSlicerMarkupsToModelLogic();
@@ -55,6 +60,7 @@ protected:
   virtual void UpdateFromMRMLScene();
   virtual void OnMRMLSceneNodeAdded(vtkMRMLNode* node);
   virtual void OnMRMLSceneNodeRemoved(vtkMRMLNode* node);
+
 private:
 
   vtkSlicerMarkupsToModelLogic(const vtkSlicerMarkupsToModelLogic&); // Not implemented

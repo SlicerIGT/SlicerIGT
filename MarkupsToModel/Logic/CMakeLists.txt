@@ -4,7 +4,11 @@ set(KIT ${PROJECT_NAME})
 
 set(${KIT}_EXPORT_DIRECTIVE "VTK_SLICER_${MODULE_NAME_UPPER}_MODULE_LOGIC_EXPORT")
 
+
+#Really wierd!!
 set(${KIT}_INCLUDE_DIRECTORIES
+  ${CMAKE_CURRENT_SOURCE_DIR}/../MRML
+  ${CMAKE_CURRENT_BINARY_DIR}/../MRML
   )
 
 set(${KIT}_SRCS
@@ -14,6 +18,7 @@ set(${KIT}_SRCS
 
 set(${KIT}_TARGET_LIBRARIES
   ${ITK_LIBRARIES}
+  vtkSlicer${MODULE_NAME}ModuleMRML
   )
 
 #-----------------------------------------------------------------------------

@@ -111,7 +111,7 @@ vtkSlicerCreateModelsLogic
 #endif
 
   needleShaftTransformFilter->Update();
-    	
+    
 #if (VTK_MAJOR_VERSION <= 5)
   appendShaftTip->AddInput( needleShaftTransformFilter->GetOutput() );
 #else

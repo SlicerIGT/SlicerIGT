@@ -60,6 +60,7 @@ qSlicerWatchdogModuleWidgetPrivate::qSlicerWatchdogModuleWidgetPrivate( qSlicerW
   this->ToolBarManager=NULL;
 }
 
+//-----------------------------------------------------------------------------
 vtkSlicerWatchdogLogic* qSlicerWatchdogModuleWidgetPrivate::logic() const
 {
   Q_Q( const qSlicerWatchdogModuleWidget );

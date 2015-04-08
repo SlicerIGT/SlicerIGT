@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>qSlicerMarkupsToModelModule</class>
- <widget class="qSlicerWidget" name="qSlicerMarkupsToModelModule">
+ <class>qSlicerMarkupsToModelModuleWidget</class>
+ <widget class="qSlicerWidget" name="qSlicerMarkupsToModelModuleWidget">
   <property name="enabled">
    <bool>true</bool>
   </property>
@@ -99,7 +99,7 @@
      <property name="maximumSize">
       <size>
        <width>16777215</width>
-       <height>120</height>
+       <height>250</height>
       </size>
      </property>
      <property name="text">
@@ -120,6 +120,12 @@
            <size>
             <width>0</width>
             <height>0</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>16777215</width>
+            <height>45</height>
            </size>
           </property>
           <property name="title">
@@ -162,6 +168,9 @@
            <property name="text">
             <string>Closed surface</string>
            </property>
+           <property name="checked">
+            <bool>true</bool>
+           </property>
           </widget>
          </widget>
         </item>
@@ -197,19 +206,6 @@
         </item>
         <item>
          <layout class="QGridLayout" name="ConversionCurveGridLayout">
-          <item row="0" column="1">
-           <widget class="QLabel" name="TubeRadiusLabel">
-            <property name="text">
-             <string>Tube radius</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="2">
-           <widget class="QDoubleSpinBox" name="TubeRadiusDoubleSpinBox"/>
-          </item>
           <item row="0" column="0">
            <widget class="QGroupBox" name="CurveInterpolationGroupBox">
             <property name="sizePolicy">
@@ -225,7 +221,7 @@
              <property name="geometry">
               <rect>
                <x>10</x>
-               <y>10</y>
+               <y>20</y>
                <width>82</width>
                <height>17</height>
               </rect>
@@ -233,13 +229,16 @@
              <property name="text">
               <string>None</string>
              </property>
+             <property name="checked">
+              <bool>true</bool>
+             </property>
             </widget>
             <widget class="QRadioButton" name="CardinalInterpolationRadioButton">
              <property name="geometry">
               <rect>
-               <x>20</x>
-               <y>20</y>
-               <width>82</width>
+               <x>10</x>
+               <y>50</y>
+               <width>121</width>
                <height>17</height>
               </rect>
              </property>
@@ -250,9 +249,9 @@
             <widget class="QRadioButton" name="HermiteInterpolationRadioButton">
              <property name="geometry">
               <rect>
-               <x>20</x>
-               <y>20</y>
-               <width>82</width>
+               <x>10</x>
+               <y>80</y>
+               <width>111</width>
                <height>17</height>
               </rect>
              </property>
@@ -261,6 +260,23 @@
              </property>
             </widget>
            </widget>
+          </item>
+          <item row="0" column="2">
+           <layout class="QVBoxLayout" name="verticalLayout_2">
+            <item>
+             <widget class="QLabel" name="TubeRadiusLabel">
+              <property name="text">
+               <string>Tube radius</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item row="0" column="3">
+           <widget class="QDoubleSpinBox" name="TubeRadiusDoubleSpinBox"/>
           </item>
          </layout>
         </item>
@@ -337,7 +353,7 @@
                <enum>Qt::Horizontal</enum>
               </property>
               <property name="sizeType">
-               <enum>QSizePolicy::Preferred</enum>
+               <enum>QSizePolicy::Expanding</enum>
               </property>
               <property name="sizeHint" stdset="0">
                <size>
@@ -348,7 +364,7 @@
              </spacer>
             </item>
             <item>
-             <widget class="QPushButton" name="UpdateOutputPushButton">
+             <widget class="QPushButton" name="UpdateOutputModelPushButton">
               <property name="text">
                <string>Update</string>
               </property>
@@ -396,33 +412,7 @@
          <set>Qt::AlignCenter</set>
         </property>
         <item row="0" column="0">
-         <widget class="QCheckBox" name="ShowModelCheckBox">
-          <property name="layoutDirection">
-           <enum>Qt::LeftToRight</enum>
-          </property>
-          <property name="text">
-           <string>Show model</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="1">
-         <widget class="ctkColorPickerButton" name="ColorPickerButton"/>
-        </item>
-        <item row="1" column="0">
-         <widget class="QCheckBox" name="ShowModelSliceIntersectionCheckBox">
-          <property name="text">
-           <string>Show model slice intersection</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="1">
-         <layout class="QHBoxLayout" name="horizontalLayout">
+         <layout class="QHBoxLayout" name="TransparencyHorizontalLayout">
           <item>
            <widget class="QLabel" name="TransparencyLabel">
             <property name="text">
@@ -438,6 +428,50 @@
            </widget>
           </item>
          </layout>
+        </item>
+        <item row="0" column="1">
+         <widget class="ctkColorPickerButton" name="ColorPickerButton"/>
+        </item>
+        <item row="1" column="1">
+         <widget class="qMRMLNodeComboBox" name="ModuleNodeComboBox">
+          <property name="enabled">
+           <bool>true</bool>
+          </property>
+          <property name="nodeTypes">
+           <stringlist>
+            <string>vtkMRMLMarkupsToModelNode</string>
+           </stringlist>
+          </property>
+          <property name="renameEnabled">
+           <bool>true</bool>
+          </property>
+          <property name="selectNodeUponCreation">
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QCheckBox" name="ShowModelSliceIntersectionCheckBox">
+          <property name="text">
+           <string>Show model slice intersection</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QCheckBox" name="ShowModelCheckBox">
+          <property name="layoutDirection">
+           <enum>Qt::LeftToRight</enum>
+          </property>
+          <property name="text">
+           <string>Show model</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
         </item>
        </layout>
       </item>
@@ -464,6 +498,7 @@
    <class>qMRMLNodeComboBox</class>
    <extends>QWidget</extends>
    <header>qMRMLNodeComboBox.h</header>
+   <container>1</container>
   </customwidget>
   <customwidget>
    <class>qSlicerWidget</class>
@@ -486,7 +521,7 @@
  <resources/>
  <connections>
   <connection>
-   <sender>qSlicerMarkupsToModelModule</sender>
+   <sender>qSlicerMarkupsToModelModuleWidget</sender>
    <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
    <receiver>MarkupsNodeComboBox</receiver>
    <slot>setMRMLScene(vtkMRMLScene*)</slot>
@@ -498,6 +533,38 @@
     <hint type="destinationlabel">
      <x>286</x>
      <y>52</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>qSlicerMarkupsToModelModuleWidget</sender>
+   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+   <receiver>ModelNodeComboBox</receiver>
+   <slot>setMRMLScene(vtkMRMLScene*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>265</x>
+     <y>613</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>265</x>
+     <y>384</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>qSlicerMarkupsToModelModuleWidget</sender>
+   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+   <receiver>ModuleNodeComboBox</receiver>
+   <slot>setMRMLScene(vtkMRMLScene*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>366</x>
+     <y>600</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>371</x>
+     <y>511</y>
     </hint>
    </hints>
   </connection>
