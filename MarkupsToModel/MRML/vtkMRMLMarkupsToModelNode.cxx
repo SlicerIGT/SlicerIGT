@@ -41,6 +41,14 @@ vtkMRMLMarkupsToModelNode::vtkMRMLMarkupsToModelNode()
 {
   this->HideFromEditorsOff();
   this->SetSaveWithScene( true );
+
+  vtkNew<vtkIntArray> events;
+  events->InsertNextValue( vtkCommand::ModifiedEvent );
+  //events->InsertNextValue( vtkMRMLTransformableNode::TransformModifiedEvent );
+
+  this->AddNodeReferenceRole( MARKUPS_ROLE, NULL, events.GetPointer() );
+  this->ModelNodeID="";
+  this->ModelNode=NULL;
 }
 
 vtkMRMLMarkupsToModelNode::~vtkMRMLMarkupsToModelNode()
@@ -65,7 +73,7 @@ void vtkMRMLMarkupsToModelNode::WriteXML( ostream& of, int nIndent )
   vtkIndent indent(nIndent);
 
   //of << indent << " NumberOfMarkups=\"" << this->Markups->GetNumberOfFiducials() << "\"";
-  of << indent << " MarkupsID=\"" << this->MarkupsId << "\"";
+  of << indent << " MarkupsID=\"" << this->MarkupsNodeID << "\"";
   
 }
 
@@ -149,27 +157,42 @@ vtkMRMLMarkupsFiducialNode * vtkMRMLMarkupsToModelNode::GetMarkupsNode()
 //}
 
 
-  void vtkMRMLMarkupsToModelNode::SetAndObserveMarkupsNodeID( const char* markupsId )
+void vtkMRMLMarkupsToModelNode::SetAndObserveMarkupsNodeID( const char* markupsId )
+{
+  // SetAndObserveNodeReferenceID does not handle nicely setting of the same
+  // node (it should simply ignore the request, but it adds another observer instead)
+  // so check for node equality here.
+
+  const char* currentNodeId=this->GetNodeReferenceID(MARKUPS_ROLE);
+  if (markupsId!=NULL && currentNodeId!=NULL)
   {
-    // SetAndObserveNodeReferenceID does not handle nicely setting of the same
-    // node (it should simply ignore the reques, but it adds another observer instead)
-    // so check for node equality here.
-    
-    const char* currentNodeId=this->GetNodeReferenceID(MARKUPS_ROLE);
-    if (markupsId!=NULL && currentNodeId!=NULL)
+    if (strcmp(markupsId,currentNodeId)==0)
     {
-      if (strcmp(markupsId,currentNodeId)==0)
-      {
-        // not changed
-        return;
-      }
+      // not changed
+      return;
     }
-    vtkNew<vtkIntArray> events;
-    events->InsertNextValue( vtkCommand::ModifiedEvent );
-    //events->InsertNextValue( vtkMRMLTransformNode::TransformModifiedEvent );
-    this->SetAndObserveNodeReferenceID( MARKUPS_ROLE, markupsId, events.GetPointer() );
+  }
+  vtkNew<vtkIntArray> events;
+  events->InsertNextValue( vtkCommand::ModifiedEvent );
+  //events->InsertNextValue( vtkMRMLTransformNode::TransformModifiedEvent );
+  this->SetAndObserveNodeReferenceID( MARKUPS_ROLE, markupsId, events.GetPointer() );
+  this->InvokeCustomModifiedEvent(InputDataModifiedEvent);
+}
+
+
+
+void vtkMRMLMarkupsToModelNode::ProcessMRMLEvents( vtkObject *caller, unsigned long event, void *callData )
+{
+  vtkMRMLNode* callerNode = vtkMRMLNode::SafeDownCast( caller );
+  if ( callerNode == NULL ) return;
+
+  if (this->GetMarkupsNode() && this->GetMarkupsNode()==caller)
+  {
     this->InvokeCustomModifiedEvent(InputDataModifiedEvent);
   }
+}
+
+
 
 void vtkMRMLMarkupsToModelNode::RemoveTool(int row)
 {
@@ -179,6 +202,17 @@ void vtkMRMLMarkupsToModelNode::RemoveTool(int row)
   //  advance (it,row);
   //  this->Markups.erase(it);
   //}
+}
+
+
+const char* vtkMRMLMarkupsToModelNode::GetModelNodeName()
+{
+  return std::string(this->GetID()).append("_Model").c_str();
+}
+
+const char* vtkMRMLMarkupsToModelNode::GetDisplayNodeName()
+{
+  return std::string(this->GetID()).append("_Display").c_str();
 }
 
 void vtkMRMLMarkupsToModelNode::SwapTools( int toolA, int toolB )

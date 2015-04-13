@@ -82,13 +82,39 @@ void vtkSlicerMarkupsToModelLogic::UpdateFromMRMLScene()
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerMarkupsToModelLogic::OnMRMLSceneNodeAdded(vtkMRMLNode* vtkNotUsed(node))
+void vtkSlicerMarkupsToModelLogic::OnMRMLSceneNodeAdded(vtkMRMLNode* node)
 {
+  if ( node == NULL || this->GetMRMLScene() == NULL )
+  {
+    vtkWarningMacro( "OnMRMLSceneNodeAdded: Invalid MRML scene or node" );
+    return;
+  }
+
+  vtkMRMLMarkupsToModelNode* markupsToModelNode = vtkMRMLMarkupsToModelNode::SafeDownCast(node);
+  if ( markupsToModelNode )
+  {
+    vtkDebugMacro( "OnMRMLSceneNodeAdded: Module node added." );
+    vtkUnObserveMRMLNodeMacro( markupsToModelNode ); // Remove previous observers.
+    vtkNew<vtkIntArray> events;
+    events->InsertNextValue( vtkCommand::ModifiedEvent );
+    events->InsertNextValue( vtkMRMLMarkupsToModelNode::InputDataModifiedEvent );
+    vtkObserveMRMLNodeEventsMacro( markupsToModelNode, events.GetPointer() );
+  }
+
+
+
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerMarkupsToModelLogic::OnMRMLSceneNodeRemoved(vtkMRMLNode* vtkNotUsed(node))
+void vtkSlicerMarkupsToModelLogic::OnMRMLSceneNodeRemoved(vtkMRMLNode* node)
 {
+
+  if ( node == NULL || this->GetMRMLScene() == NULL )
+  {
+    vtkWarningMacro( "OnMRMLSceneNodeRemoved: Invalid MRML scene or node" );
+    return;
+  }
+
 }
 
 //------------------------------------------------------------------------------
@@ -137,13 +163,21 @@ void vtkSlicerMarkupsToModelLogic::SetMarkupsNode( vtkMRMLMarkupsFiducialNode* n
 }
 
 //------------------------------------------------------------------------------
-void vtkSlicerMarkupsToModelLogic::UpdateOutputModel(vtkMRMLMarkupsFiducialNode* markups, vtkMRMLMarkupsToModelNode* moduleNode)
+void vtkSlicerMarkupsToModelLogic::UpdateOutputModel(vtkMRMLMarkupsToModelNode* markupsToModelModuleNode)
 {
+  vtkMRMLMarkupsFiducialNode* markups=markupsToModelModuleNode->GetMarkupsNode(); 
   int numberOfMarkups = markups->GetNumberOfFiducials();
   if(numberOfMarkups<10)
   {
     vtkWarningMacro("Not enough fiducials");
   }
+
+  if(markupsToModelModuleNode->GetModelNode() != NULL)
+  {
+    //this->GetMRMLScene()->RemoveNodeID(markupsToModelModuleNode->GetModelNodeID());
+    this->GetMRMLScene()->RemoveNode(markupsToModelModuleNode->GetModelNode());
+  }
+
   vtkSmartPointer< vtkPoints > modelPoints = vtkSmartPointer< vtkPoints >::New();
   vtkSmartPointer< vtkCellArray > modelCellArray = vtkSmartPointer< vtkCellArray >::New();
 
@@ -172,22 +206,49 @@ void vtkSlicerMarkupsToModelLogic::UpdateOutputModel(vtkMRMLMarkupsFiducialNode*
   vtkSmartPointer< vtkDataSetSurfaceFilter > surfaceFilter = vtkSmartPointer< vtkDataSetSurfaceFilter >::New();
   surfaceFilter->SetInputConnection(delaunay->GetOutputPort());
 
-  vtkSmartPointer< vtkButterflySubdivisionFilter > smoother = vtkSmartPointer< vtkButterflySubdivisionFilter >::New();
-  smoother->SetInputConnection(surfaceFilter->GetOutputPort());
-  smoother->SetNumberOfSubdivisions(3);
-  smoother->Update();
+  vtkSmartPointer< vtkButterflySubdivisionFilter > subdivisionFilter = vtkSmartPointer< vtkButterflySubdivisionFilter >::New();
+  subdivisionFilter->SetInputConnection(surfaceFilter->GetOutputPort());
+  subdivisionFilter->SetNumberOfSubdivisions(3);
+  subdivisionFilter->Update();
 
   vtkSmartPointer< vtkMRMLModelNode > modelNode = vtkSmartPointer< vtkMRMLModelNode >::New();
   this->GetMRMLScene()->AddNode( modelNode );
-  modelNode->SetName( "CylinderModel" );
-  modelNode->SetAndObservePolyData( smoother->GetOutput() );
+
+  vtkWarningMacro("PERRAS "<< markupsToModelModuleNode->GetModelNodeName() );
+  modelNode->SetName( markupsToModelModuleNode->GetModelNodeName() );
+  modelNode->SetAndObservePolyData( subdivisionFilter->GetOutput() );
 
   vtkSmartPointer< vtkMRMLModelDisplayNode > displayNode = vtkSmartPointer< vtkMRMLModelDisplayNode >::New();
   this->GetMRMLScene()->AddNode( displayNode );
-  displayNode->SetName( "CylinderModelDisplay" );
+  displayNode->SetName( markupsToModelModuleNode->GetDisplayNodeName());
 
   modelNode->SetAndObserveDisplayNodeID( displayNode->GetID() );
+  markupsToModelModuleNode->SetModelNode(modelNode);
 
+}
+
+//------------------------------------------------------------------------------
+void vtkSlicerMarkupsToModelLogic::ProcessMRMLNodesEvents( vtkObject* caller, unsigned long event, void* callData )
+{
+  vtkWarningMacro("PUTAS");
+  vtkMRMLNode* callerNode = vtkMRMLNode::SafeDownCast( caller );
+  if (callerNode == NULL)
+  {
+    return;
+  }
+
+  vtkMRMLMarkupsToModelNode* markupsToModelNode = vtkMRMLMarkupsToModelNode::SafeDownCast( callerNode );
+  if (markupsToModelNode == NULL)
+  {
+    return;
+  }
+
+  if (event==vtkMRMLMarkupsToModelNode::InputDataModifiedEvent)
+  {
+    // only recompute output if the input is changed
+    // (for example we do not recompute the distance if the computed distance is changed)
+    this->UpdateOutputModel(markupsToModelNode); 
+  }
 }
 
 

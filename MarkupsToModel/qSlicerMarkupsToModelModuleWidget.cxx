@@ -85,8 +85,9 @@ void qSlicerMarkupsToModelModuleWidget::onCurrentMarkupsNodeChanged()
   }
 
   vtkMRMLMarkupsFiducialNode* markupsNode = vtkMRMLMarkupsFiducialNode::SafeDownCast(d->MarkupsNodeComboBox->currentNode());
-  //d->logic()->SetMarkupsNode( currentNode, markupsToModelNode );
-  d->logic()->UpdateOutputModel(markupsNode, markupsToModelModuleNode);
+  d->logic()->SetMarkupsNode( markupsNode, markupsToModelModuleNode );
+  d->logic()->UpdateOutputModel(markupsToModelModuleNode);
+  this->updateWidget();
 }
 
 //-----------------------------------------------------------------------------
@@ -103,7 +104,6 @@ void qSlicerMarkupsToModelModuleWidget::setup()
   connect( d->MarkupsNodeComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onCurrentMarkupsNodeChanged() ) );
 
   connect( d->UpdateOutputModelPushButton, SIGNAL( clicked() ) , this, SLOT( onUpdateOutputModelPushButton() ) );
-
 
 }
 
@@ -183,11 +183,14 @@ void qSlicerMarkupsToModelModuleWidget::updateWidget()
   else
   {
     // Set the button indicating if this list is active
-    if ( !MarkupsToModelNode->HasTool(currentMarkupsNode->GetName()))
+    if ( MarkupsToModelNode->GetMarkupsNode()->GetNumberOfFiducials() > 0 )
     {
       d->DeleteAllPushButton->setEnabled(true);
       d->DeleteLastPushButton->setEnabled(true);
-      d->UpdateOutputModelPushButton->setEnabled(true);
+      if(MarkupsToModelNode->GetMarkupsNode()->GetNumberOfFiducials() > 10)
+      {
+        d->UpdateOutputModelPushButton->setEnabled(true);
+      }
     }
     else
     {
@@ -223,12 +226,9 @@ void qSlicerMarkupsToModelModuleWidget::updateFromMRMLNode()
   updateWidget();
 }
 
-
-
 //-----------------------------------------------------------------------------
 void qSlicerMarkupsToModelModuleWidget::onMarkupsToModelModuleNodeChanged()
 {
-
   Q_D( qSlicerMarkupsToModelModuleWidget );
   this->updateFromMRMLNode();
 }
@@ -277,12 +277,12 @@ void qSlicerMarkupsToModelModuleWidget::onUpdateOutputModelPushButton()
     return;
   }
 
-  vtkMRMLMarkupsFiducialNode* markupsNode = vtkMRMLMarkupsFiducialNode::SafeDownCast(d->ModelNodeComboBox->currentNode());
-  if ( markupsNode == NULL )
-  {
-    qCritical( "Model node changed with no module node selection" );
-    return;
-  }
-  d->logic()->UpdateOutputModel(markupsNode, moduleNode);
+  //vtkMRMLMarkupsFiducialNode* markupsNode = vtkMRMLMarkupsFiducialNode::SafeDownCast(d->ModelNodeComboBox->currentNode());
+  //if ( markupsNode == NULL )
+  //{
+  //  qCritical( "Model node changed with no module node selection" );
+  //  return;
+  //}
+  d->logic()->UpdateOutputModel(moduleNode);
 }
 

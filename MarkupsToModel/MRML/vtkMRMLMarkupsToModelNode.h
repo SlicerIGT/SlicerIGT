@@ -33,11 +33,11 @@
 
 static const char* MARKUPS_ROLE = "markupsToModelNode";
 
-class vtkMRMLDisplayableNode;
+class vtkMRMLModelNode;
 class vtkMRMLMarkupsFiducialNode;
 
 struct MarkupsTool{
-  vtkMRMLDisplayableNode* tool;
+  //vtkMRMLDisplayableNode* tool;
   int status;
   int playSound;
   unsigned long lastTimeStamp;
@@ -47,7 +47,7 @@ struct MarkupsTool{
 
   MarkupsTool()
   {
-    tool=NULL;
+    //tool=NULL;
     status=0;
     lastTimeStamp=0;
     playSound=0;
@@ -88,6 +88,11 @@ public:
   virtual void WriteXML( ostream& of, int indent );
   virtual void Copy( vtkMRMLNode *node );
 
+  vtkGetMacro( ModelNodeID, char* );
+  vtkSetMacro( ModelNodeID, char* );
+
+  vtkGetMacro( ModelNode, vtkMRMLModelNode * );
+  vtkSetMacro( ModelNode, vtkMRMLModelNode * );
 
 protected:
 
@@ -105,6 +110,7 @@ public:
 
   // 
   void SetAndObserveMarkupsNodeID( const char* markupsId );
+  void ProcessMRMLEvents( vtkObject *caller, unsigned long event, void *callData );
 
   /// Gets the specified tool watched from the tools' list
   vtkMRMLMarkupsFiducialNode * GetMarkupsNode();
@@ -120,11 +126,16 @@ public:
   bool HasTool(char * toolName);
   /// Returns the size of the list of tools
   //int GetNumberOfMarkups();
+  const char* GetModelNodeName();
+
+  const char* GetDisplayNodeName();
 
 
 private:
   vtkMRMLMarkupsFiducialNode * Markups;
-  const char* MarkupsId;
+  vtkMRMLModelNode * ModelNode;
+  char* MarkupsNodeID;
+  char* ModelNodeID;
 
 };
 

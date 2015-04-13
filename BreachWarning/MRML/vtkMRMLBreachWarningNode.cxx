@@ -183,8 +183,6 @@ vtkMRMLBreachWarningNode
   return modelNode;
 }
 
-
-
 void
 vtkMRMLBreachWarningNode
 ::SetAndObserveWatchedModelNodeID( const char* modelId )
@@ -221,7 +219,7 @@ vtkMRMLBreachWarningNode
 ::SetAndObserveToolTransformNodeId( const char* nodeId )
 {
   // SetAndObserveNodeReferenceID does not handle nicely setting of the same
-  // node (it should simply ignore the reques, but it adds another observer instead)
+  // node (it should simply ignore the request, but it adds another observer instead)
   // so check for node equality here.
   const char* currentNodeId=this->GetNodeReferenceID(TOOL_ROLE);
   if (nodeId!=NULL && currentNodeId!=NULL)

@@ -316,6 +316,7 @@ void vtkSlicerBreachWarningLogic::ProcessMRMLNodesEvents( vtkObject* caller, uns
   }
 }
 */
+
 //------------------------------------------------------------------------------
 void vtkSlicerBreachWarningLogic::ProcessMRMLNodesEvents( vtkObject* caller, unsigned long event, void* callData )
 {
