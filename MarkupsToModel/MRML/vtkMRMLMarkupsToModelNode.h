@@ -119,16 +119,17 @@ public:
   /// Adds the displayble node into the tools list, adding label, status,id, and last time stamp information.
   //void AddMarkupsNode( vtkMRMLMarkupsFiducialNode* markupsAdded);
   /// Removes the specified tool watched from the tools' list
-  void RemoveTool(int row);
+  void RemoveAllMarkups();
+  void RemoveLastMarkup();
   /// Swaps the specified tools watched from the tools' list
   void SwapTools( int toolA, int toolB );
   /// Returns True if the list of tools already contains the tool name
   bool HasTool(char * toolName);
   /// Returns the size of the list of tools
   //int GetNumberOfMarkups();
-  const char* GetModelNodeName();
+  std::string GetModelNodeName();
 
-  const char* GetDisplayNodeName();
+  std::string GetDisplayNodeName();
 
 
 private:

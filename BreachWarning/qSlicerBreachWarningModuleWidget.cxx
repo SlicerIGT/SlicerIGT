@@ -77,6 +77,17 @@ qSlicerBreachWarningModuleWidget::qSlicerBreachWarningModuleWidget( QWidget* _pa
 //-----------------------------------------------------------------------------
 qSlicerBreachWarningModuleWidget::~qSlicerBreachWarningModuleWidget()
 {
+ Q_D(qSlicerBreachWarningModuleWidget);
+  disconnect( d->ParameterNodeComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onParameterNodeChanged() ) );
+
+  // Make connections to update the mrml from the widget
+  disconnect( d->ModelNodeComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onModelNodeChanged() ) );
+  disconnect( d->ToolComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onToolTransformChanged() ) );
+  disconnect( d->ColorPickerButton, SIGNAL( colorChanged( QColor ) ), this, SLOT( UpdateWarningColor( QColor ) ) );
+  disconnect(d->SoundCheckBox, SIGNAL(toggled(bool)), this, SLOT(PlayWarningSound(bool)));
+  disconnect(d->colorCheckBox, SIGNAL(toggled(bool)), this, SLOT(DisplayWarningColor(bool)));
+
+
 }
 
 //-----------------------------------------------------------------------------

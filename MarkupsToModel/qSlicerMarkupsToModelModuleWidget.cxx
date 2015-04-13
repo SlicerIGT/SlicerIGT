@@ -69,6 +69,17 @@ qSlicerMarkupsToModelModuleWidget::qSlicerMarkupsToModelModuleWidget(QWidget* _p
 //-----------------------------------------------------------------------------
 qSlicerMarkupsToModelModuleWidget::~qSlicerMarkupsToModelModuleWidget()
 {
+  Q_D(qSlicerMarkupsToModelModuleWidget);
+  disconnect( d->ModuleNodeComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onMarkupsToModelModuleNodeChanged() ) );
+  disconnect( d->ModuleNodeComboBox, SIGNAL(nodeAddedByUser(vtkMRMLNode* )), this, SLOT(onMarkupsToModelModuleNodeAddedByUser(vtkMRMLNode* ) ) );
+  disconnect( d->ModuleNodeComboBox, SIGNAL(nodeAboutToBeRemoved(vtkMRMLNode* )), this, SLOT(onMarkupsToModelModuleNodeAboutToBeRemoved(vtkMRMLNode* ) ) );
+
+  disconnect( d->MarkupsNodeComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onCurrentMarkupsNodeChanged() ) );
+
+  disconnect( d->UpdateOutputModelPushButton, SIGNAL( clicked() ) , this, SLOT( onUpdateOutputModelPushButton() ) );
+  disconnect( d->DeleteAllPushButton, SIGNAL( clicked() ) , this, SLOT( onDeleteAllPushButton() ) );
+  disconnect( d->DeleteLastPushButton, SIGNAL( clicked() ) , this, SLOT( onDeleteLastModelPushButton() ) );
+
 }
 
 
@@ -104,11 +115,9 @@ void qSlicerMarkupsToModelModuleWidget::setup()
   connect( d->MarkupsNodeComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onCurrentMarkupsNodeChanged() ) );
 
   connect( d->UpdateOutputModelPushButton, SIGNAL( clicked() ) , this, SLOT( onUpdateOutputModelPushButton() ) );
-
+  connect( d->DeleteAllPushButton, SIGNAL( clicked() ) , this, SLOT( onDeleteAllPushButton() ) );
+  connect( d->DeleteLastPushButton, SIGNAL( clicked() ) , this, SLOT( onDeleteLastModelPushButton() ) );
 }
-
-
-
 
 
 //-----------------------------------------------------------------------------
@@ -270,8 +279,8 @@ void qSlicerMarkupsToModelModuleWidget::onUpdateOutputModelPushButton()
 {
   Q_D( qSlicerMarkupsToModelModuleWidget );
 
-  vtkMRMLMarkupsToModelNode* moduleNode = vtkMRMLMarkupsToModelNode::SafeDownCast( d->ModuleNodeComboBox->currentNode() );
-  if ( moduleNode == NULL )
+  vtkMRMLMarkupsToModelNode* markupsToModelModuleNode = vtkMRMLMarkupsToModelNode::SafeDownCast( d->ModuleNodeComboBox->currentNode() );
+  if ( markupsToModelModuleNode == NULL )
   {
     qCritical( "Model node changed with no module node selection" );
     return;
@@ -283,6 +292,39 @@ void qSlicerMarkupsToModelModuleWidget::onUpdateOutputModelPushButton()
   //  qCritical( "Model node changed with no module node selection" );
   //  return;
   //}
-  d->logic()->UpdateOutputModel(moduleNode);
+  d->logic()->UpdateOutputModel(markupsToModelModuleNode);
 }
+
+
+
+//-----------------------------------------------------------------------------
+void qSlicerMarkupsToModelModuleWidget::onDeleteAllPushButton()
+{
+  Q_D( qSlicerMarkupsToModelModuleWidget );
+
+  vtkMRMLMarkupsToModelNode* markupsToModelModuleNode = vtkMRMLMarkupsToModelNode::SafeDownCast( d->ModuleNodeComboBox->currentNode() );
+  if ( markupsToModelModuleNode == NULL )
+  {
+    qCritical( "Model node changed with no module node selection" );
+    return;
+  }
+  markupsToModelModuleNode->RemoveAllMarkups();
+
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerMarkupsToModelModuleWidget::onDeleteLastModelPushButton()
+{
+  Q_D( qSlicerMarkupsToModelModuleWidget );
+
+  vtkMRMLMarkupsToModelNode* markupsToModelModuleNode = vtkMRMLMarkupsToModelNode::SafeDownCast( d->ModuleNodeComboBox->currentNode() );
+  if ( markupsToModelModuleNode == NULL )
+  {
+    qCritical( "Model node changed with no module node selection" );
+    return;
+  }
+  markupsToModelModuleNode->RemoveLastMarkup();
+
+}
+
 

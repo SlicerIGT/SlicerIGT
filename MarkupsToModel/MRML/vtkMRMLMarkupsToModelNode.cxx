@@ -194,25 +194,32 @@ void vtkMRMLMarkupsToModelNode::ProcessMRMLEvents( vtkObject *caller, unsigned l
 
 
 
-void vtkMRMLMarkupsToModelNode::RemoveTool(int row)
+void vtkMRMLMarkupsToModelNode::RemoveAllMarkups()
 {
-  //if(row>=0 && row<this->Markups.size())
-  //{
-  //  std::list<MarkupsTool>::iterator it = this->Markups.begin();
-  //  advance (it,row);
-  //  this->Markups.erase(it);
-  //}
+  vtkMRMLMarkupsFiducialNode* markupsNode = vtkMRMLMarkupsFiducialNode::SafeDownCast( this->GetNodeReference( MARKUPS_ROLE ) );
+  markupsNode->RemoveAllMarkups();
 }
 
-
-const char* vtkMRMLMarkupsToModelNode::GetModelNodeName()
+void vtkMRMLMarkupsToModelNode::RemoveLastMarkup()
 {
-  return std::string(this->GetID()).append("_Model").c_str();
+  vtkMRMLMarkupsFiducialNode* markupsNode = vtkMRMLMarkupsFiducialNode::SafeDownCast( this->GetNodeReference( MARKUPS_ROLE ) );
+  if(markupsNode->GetNumberOfFiducials()>0)
+  {
+    markupsNode->RemoveMarkup(markupsNode->GetNumberOfFiducials()-1);
+  }
 }
 
-const char* vtkMRMLMarkupsToModelNode::GetDisplayNodeName()
+std::string vtkMRMLMarkupsToModelNode::GetModelNodeName()
 {
-  return std::string(this->GetID()).append("_Display").c_str();
+  //std::string modelName = std::string(this->GetID()).append("_Model");
+  //vtkWarningMacro("Nombre " << modelName.c_str());
+  return std::string(this->GetID()).append("_Model");
+  //return std::string(this->GetID()).append("_Model").c_str();
+}
+
+std::string vtkMRMLMarkupsToModelNode::GetDisplayNodeName()
+{
+  return std::string(this->GetID()).append("_Display");
 }
 
 void vtkMRMLMarkupsToModelNode::SwapTools( int toolA, int toolB )

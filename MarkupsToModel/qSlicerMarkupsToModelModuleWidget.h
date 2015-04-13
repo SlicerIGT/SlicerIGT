@@ -58,6 +58,10 @@ public slots:
 
   void onUpdateOutputModelPushButton();
 
+  void onDeleteAllPushButton();
+  void onDeleteLastModelPushButton();
+
+
 protected:
   QScopedPointer<qSlicerMarkupsToModelModuleWidgetPrivate> d_ptr;
 

@@ -100,9 +100,6 @@ void vtkSlicerMarkupsToModelLogic::OnMRMLSceneNodeAdded(vtkMRMLNode* node)
     events->InsertNextValue( vtkMRMLMarkupsToModelNode::InputDataModifiedEvent );
     vtkObserveMRMLNodeEventsMacro( markupsToModelNode, events.GetPointer() );
   }
-
-
-
 }
 
 //---------------------------------------------------------------------------
@@ -167,9 +164,11 @@ void vtkSlicerMarkupsToModelLogic::UpdateOutputModel(vtkMRMLMarkupsToModelNode* 
 {
   vtkMRMLMarkupsFiducialNode* markups=markupsToModelModuleNode->GetMarkupsNode(); 
   int numberOfMarkups = markups->GetNumberOfFiducials();
+  
   if(numberOfMarkups<10)
   {
     vtkWarningMacro("Not enough fiducials");
+    return;
   }
 
   if(markupsToModelModuleNode->GetModelNode() != NULL)
@@ -215,12 +214,12 @@ void vtkSlicerMarkupsToModelLogic::UpdateOutputModel(vtkMRMLMarkupsToModelNode* 
   this->GetMRMLScene()->AddNode( modelNode );
 
   vtkWarningMacro("PERRAS "<< markupsToModelModuleNode->GetModelNodeName() );
-  modelNode->SetName( markupsToModelModuleNode->GetModelNodeName() );
+  modelNode->SetName( markupsToModelModuleNode->GetModelNodeName().c_str() );
   modelNode->SetAndObservePolyData( subdivisionFilter->GetOutput() );
 
   vtkSmartPointer< vtkMRMLModelDisplayNode > displayNode = vtkSmartPointer< vtkMRMLModelDisplayNode >::New();
   this->GetMRMLScene()->AddNode( displayNode );
-  displayNode->SetName( markupsToModelModuleNode->GetDisplayNodeName());
+  displayNode->SetName( markupsToModelModuleNode->GetDisplayNodeName().c_str());
 
   modelNode->SetAndObserveDisplayNodeID( displayNode->GetID() );
   markupsToModelModuleNode->SetModelNode(modelNode);
