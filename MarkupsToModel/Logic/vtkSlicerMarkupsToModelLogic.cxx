@@ -32,6 +32,7 @@
 #include <vtkDelaunay3D.h>
 #include <vtkDataSetSurfaceFilter.h>
 #include <vtkButterflySubdivisionFilter.h>
+#include <vtkCleanPolyData.h>
 
 #include "vtkMRMLMarkupsFiducialNode.h"
 #include "vtkMRMLMarkupsToModelNode.h"
@@ -199,8 +200,11 @@ void vtkSlicerMarkupsToModelLogic::UpdateOutputModel(vtkMRMLMarkupsToModelNode* 
   pointPolyData->SetLines(modelCellArray);
   pointPolyData->SetPoints(modelPoints);
 
+  vtkSmartPointer< vtkCleanPolyData > cleanPointPolyData = vtkSmartPointer< vtkCleanPolyData >::New();
+  cleanPointPolyData->SetInputData(pointPolyData);
+
   vtkSmartPointer< vtkDelaunay3D > delaunay = vtkSmartPointer< vtkDelaunay3D >::New();
-  delaunay->SetInputData(pointPolyData); //TODO SET VTK5
+  delaunay->SetInputConnection(cleanPointPolyData->GetOutputPort()); //TODO SET VTK5
 
   vtkSmartPointer< vtkDataSetSurfaceFilter > surfaceFilter = vtkSmartPointer< vtkDataSetSurfaceFilter >::New();
   surfaceFilter->SetInputConnection(delaunay->GetOutputPort());

@@ -172,6 +172,22 @@
             <bool>true</bool>
            </property>
           </widget>
+          <widget class="QCheckBox" name="CleanMarkupsCheckBox">
+           <property name="geometry">
+            <rect>
+             <x>339</x>
+             <y>20</y>
+             <width>101</width>
+             <height>20</height>
+            </rect>
+           </property>
+           <property name="text">
+            <string>Clean markups</string>
+           </property>
+           <property name="checked">
+            <bool>true</bool>
+           </property>
+          </widget>
          </widget>
         </item>
         <item>
@@ -188,7 +204,10 @@
              </sizepolicy>
             </property>
             <property name="text">
-             <string>Butterfly filter smoothing</string>
+             <string>Butterfly subdivision filter</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
             </property>
            </widget>
           </item>
