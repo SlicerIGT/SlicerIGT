@@ -44,7 +44,7 @@ vtkMRMLMarkupsToModelNode::vtkMRMLMarkupsToModelNode()
 
   vtkNew<vtkIntArray> events;
   events->InsertNextValue( vtkCommand::ModifiedEvent );
-  //events->InsertNextValue( vtkMRMLTransformableNode::TransformModifiedEvent );
+  events->InsertNextValue( vtkMRMLMarkupsNode::PointModifiedEvent );//PointEndInteractionEvent
 
   this->AddNodeReferenceRole( MARKUPS_ROLE, NULL, events.GetPointer() );
   this->ModelNodeID="";
@@ -174,9 +174,9 @@ void vtkMRMLMarkupsToModelNode::SetAndObserveMarkupsNodeID( const char* markupsI
   }
   vtkNew<vtkIntArray> events;
   events->InsertNextValue( vtkCommand::ModifiedEvent );
-  //events->InsertNextValue( vtkMRMLTransformNode::TransformModifiedEvent );
+  events->InsertNextValue( vtkMRMLMarkupsNode::PointModifiedEvent); // PointEndInteractionEvent 
   this->SetAndObserveNodeReferenceID( MARKUPS_ROLE, markupsId, events.GetPointer() );
-  this->InvokeCustomModifiedEvent(InputDataModifiedEvent);
+  this->InvokeCustomModifiedEvent(vtkMRMLMarkupsToModelNode::InputDataModifiedEvent);
 }
 
 
@@ -188,7 +188,7 @@ void vtkMRMLMarkupsToModelNode::ProcessMRMLEvents( vtkObject *caller, unsigned l
 
   if (this->GetMarkupsNode() && this->GetMarkupsNode()==caller)
   {
-    this->InvokeCustomModifiedEvent(InputDataModifiedEvent);
+    this->InvokeCustomModifiedEvent(vtkMRMLMarkupsToModelNode::InputDataModifiedEvent);
   }
 }
 

@@ -79,7 +79,6 @@ qSlicerMarkupsToModelModuleWidget::~qSlicerMarkupsToModelModuleWidget()
   disconnect( d->UpdateOutputModelPushButton, SIGNAL( clicked() ) , this, SLOT( onUpdateOutputModelPushButton() ) );
   disconnect( d->DeleteAllPushButton, SIGNAL( clicked() ) , this, SLOT( onDeleteAllPushButton() ) );
   disconnect( d->DeleteLastPushButton, SIGNAL( clicked() ) , this, SLOT( onDeleteLastModelPushButton() ) );
-
 }
 
 
@@ -117,6 +116,9 @@ void qSlicerMarkupsToModelModuleWidget::setup()
   connect( d->UpdateOutputModelPushButton, SIGNAL( clicked() ) , this, SLOT( onUpdateOutputModelPushButton() ) );
   connect( d->DeleteAllPushButton, SIGNAL( clicked() ) , this, SLOT( onDeleteAllPushButton() ) );
   connect( d->DeleteLastPushButton, SIGNAL( clicked() ) , this, SLOT( onDeleteLastModelPushButton() ) );
+
+
+
 }
 
 
@@ -149,10 +151,10 @@ void qSlicerMarkupsToModelModuleWidget::enter()
 
   //// For convenience, select a default module.
 
-  //if ( d->ParameterNodeComboBox->currentNode() == NULL )
-  //{
-  //  d->ParameterNodeComboBox->setCurrentNodeID( node->GetID() );
-  //}
+  if ( d->ModuleNodeComboBox->currentNode() == NULL )
+  {
+    d->ModuleNodeComboBox->setCurrentNodeID( node->GetID() );
+  }
 
   this->Superclass::enter();
 }

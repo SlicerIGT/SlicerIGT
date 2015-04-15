@@ -106,13 +106,17 @@ void vtkSlicerMarkupsToModelLogic::OnMRMLSceneNodeAdded(vtkMRMLNode* node)
 //---------------------------------------------------------------------------
 void vtkSlicerMarkupsToModelLogic::OnMRMLSceneNodeRemoved(vtkMRMLNode* node)
 {
-
   if ( node == NULL || this->GetMRMLScene() == NULL )
   {
     vtkWarningMacro( "OnMRMLSceneNodeRemoved: Invalid MRML scene or node" );
     return;
   }
 
+  if ( node->IsA( "vvtkSlicerMarkupsToModelNode" ) )
+  {
+    vtkDebugMacro( "OnMRMLSceneNodeRemoved" );
+    vtkUnObserveMRMLNodeMacro( node );
+  }
 }
 
 //------------------------------------------------------------------------------

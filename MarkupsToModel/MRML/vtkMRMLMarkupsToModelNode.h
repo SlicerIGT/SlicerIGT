@@ -31,7 +31,7 @@
 // MarkupsToModel includes
 #include "vtkSlicerMarkupsToModelModuleMRMLExport.h"
 
-static const char* MARKUPS_ROLE = "markupsToModelNode";
+static const char* MARKUPS_ROLE = "markupsToModelRoleNode";
 
 class vtkMRMLModelNode;
 class vtkMRMLMarkupsFiducialNode;
