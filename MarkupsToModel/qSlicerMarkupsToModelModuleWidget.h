@@ -60,6 +60,7 @@ public slots:
 
   void onDeleteAllPushButton();
   void onDeleteLastModelPushButton();
+  void onAutoUpdateOutputToogled(bool autoUpdateOutput);
 
 
 protected:

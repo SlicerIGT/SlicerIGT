@@ -79,6 +79,8 @@ qSlicerMarkupsToModelModuleWidget::~qSlicerMarkupsToModelModuleWidget()
   disconnect( d->UpdateOutputModelPushButton, SIGNAL( clicked() ) , this, SLOT( onUpdateOutputModelPushButton() ) );
   disconnect( d->DeleteAllPushButton, SIGNAL( clicked() ) , this, SLOT( onDeleteAllPushButton() ) );
   disconnect( d->DeleteLastPushButton, SIGNAL( clicked() ) , this, SLOT( onDeleteLastModelPushButton() ) );
+
+  disconnect(d->AutoUpdateOutputCheckBox, SIGNAL(toggled(bool)), this, SLOT(onAutoUpdateOutputToogled(bool)));
 }
 
 
@@ -96,7 +98,10 @@ void qSlicerMarkupsToModelModuleWidget::onCurrentMarkupsNodeChanged()
 
   vtkMRMLMarkupsFiducialNode* markupsNode = vtkMRMLMarkupsFiducialNode::SafeDownCast(d->MarkupsNodeComboBox->currentNode());
   d->logic()->SetMarkupsNode( markupsNode, markupsToModelModuleNode );
-  d->logic()->UpdateOutputModel(markupsToModelModuleNode);
+  if(markupsToModelModuleNode->GetAutoUpdateOutput())
+  {
+    d->logic()->UpdateOutputModel(markupsToModelModuleNode);
+  }
   this->updateWidget();
 }
 
@@ -116,6 +121,8 @@ void qSlicerMarkupsToModelModuleWidget::setup()
   connect( d->UpdateOutputModelPushButton, SIGNAL( clicked() ) , this, SLOT( onUpdateOutputModelPushButton() ) );
   connect( d->DeleteAllPushButton, SIGNAL( clicked() ) , this, SLOT( onDeleteAllPushButton() ) );
   connect( d->DeleteLastPushButton, SIGNAL( clicked() ) , this, SLOT( onDeleteLastModelPushButton() ) );
+
+  connect(d->AutoUpdateOutputCheckBox, SIGNAL(toggled(bool)), this, SLOT(onAutoUpdateOutputToogled(bool)));
 
 
 
@@ -313,6 +320,20 @@ void qSlicerMarkupsToModelModuleWidget::onDeleteAllPushButton()
   markupsToModelModuleNode->RemoveAllMarkups();
 
 }
+
+//-----------------------------------------------------------------------------
+void qSlicerMarkupsToModelModuleWidget::onAutoUpdateOutputToogled(bool autoUpdateOutput)
+{
+  Q_D( qSlicerMarkupsToModelModuleWidget );
+  vtkMRMLMarkupsToModelNode* markupsToModelModuleNode = vtkMRMLMarkupsToModelNode::SafeDownCast( d->ModuleNodeComboBox->currentNode() );
+  if ( markupsToModelModuleNode == NULL )
+  {
+    qCritical( "Model node changed with no module node selection" );
+    return;
+  }
+  markupsToModelModuleNode->SetAutoUpdateOutput(autoUpdateOutput);
+}
+
 
 //-----------------------------------------------------------------------------
 void qSlicerMarkupsToModelModuleWidget::onDeleteLastModelPushButton()

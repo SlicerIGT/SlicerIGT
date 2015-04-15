@@ -94,6 +94,9 @@ public:
   vtkGetMacro( ModelNode, vtkMRMLModelNode * );
   vtkSetMacro( ModelNode, vtkMRMLModelNode * );
 
+  vtkGetMacro( AutoUpdateOutput, bool );
+  vtkSetMacro( AutoUpdateOutput, bool );
+
 protected:
 
   // Constructor/destructor methods
@@ -137,6 +140,7 @@ private:
   vtkMRMLModelNode * ModelNode;
   char* MarkupsNodeID;
   char* ModelNodeID;
+  bool AutoUpdateOutput;
 
 };
 

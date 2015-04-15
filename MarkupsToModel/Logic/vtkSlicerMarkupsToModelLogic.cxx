@@ -244,8 +244,8 @@ void vtkSlicerMarkupsToModelLogic::ProcessMRMLNodesEvents( vtkObject* caller, un
     return;
   }
 
-  vtkMRMLMarkupsToModelNode* markupsToModelNode = vtkMRMLMarkupsToModelNode::SafeDownCast( callerNode );
-  if (markupsToModelNode == NULL)
+  vtkMRMLMarkupsToModelNode* markupsToModelModuleNode = vtkMRMLMarkupsToModelNode::SafeDownCast( callerNode );
+  if (markupsToModelModuleNode == NULL)
   {
     return;
   }
@@ -254,7 +254,10 @@ void vtkSlicerMarkupsToModelLogic::ProcessMRMLNodesEvents( vtkObject* caller, un
   {
     // only recompute output if the input is changed
     // (for example we do not recompute the distance if the computed distance is changed)
-    this->UpdateOutputModel(markupsToModelNode); 
+    if(markupsToModelModuleNode->GetAutoUpdateOutput())
+    {
+      this->UpdateOutputModel(markupsToModelModuleNode);
+    }
   }
 }
 
