@@ -26,6 +26,8 @@
 #include "vtkSlicerMarkupsToModelLogic.h"
 #include "vtkMRMLMarkupsFiducialNode.h"
 
+static const int MINIMUM_MARKUPS_NUMBER = 10;
+
 //-----------------------------------------------------------------------------
 /// \ingroup Slicer_QtModules_ExtensionTemplate
 class qSlicerMarkupsToModelModuleWidgetPrivate: public Ui_qSlicerMarkupsToModelModuleWidget
@@ -75,6 +77,7 @@ qSlicerMarkupsToModelModuleWidget::~qSlicerMarkupsToModelModuleWidget()
   disconnect( d->ModuleNodeComboBox, SIGNAL(nodeAboutToBeRemoved(vtkMRMLNode* )), this, SLOT(onMarkupsToModelModuleNodeAboutToBeRemoved(vtkMRMLNode* ) ) );
 
   disconnect( d->MarkupsNodeComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onCurrentMarkupsNodeChanged() ) );
+  disconnect( d->MarkupsNodeComboBox, SIGNAL( nodeAboutToBeEdited(vtkMRMLNode* node)), this, SLOT( onNodeAboutToBeEdited(vtkMRMLNode* node) ));
 
   disconnect( d->UpdateOutputModelPushButton, SIGNAL( clicked() ) , this, SLOT( onUpdateOutputModelPushButton() ) );
   disconnect( d->DeleteAllPushButton, SIGNAL( clicked() ) , this, SLOT( onDeleteAllPushButton() ) );
@@ -83,6 +86,12 @@ qSlicerMarkupsToModelModuleWidget::~qSlicerMarkupsToModelModuleWidget()
   disconnect(d->AutoUpdateOutputCheckBox, SIGNAL(toggled(bool)), this, SLOT(onAutoUpdateOutputToogled(bool)));
 }
 
+//-----------------------------------------------------------------------------
+void qSlicerMarkupsToModelModuleWidget::onNodeAboutToBeEdited(vtkMRMLNode* node)
+{
+  vtkMRMLMarkupsToModelNode* markupsToModelModuleNode = vtkMRMLMarkupsToModelNode::SafeDownCast( node );
+  this->qvtkDisconnect(markupsToModelModuleNode, vtkMRMLMarkupsToModelNode::InputDataModifiedEvent, this, SLOT(updateFromMRMLNode()));
+}
 
 //-----------------------------------------------------------------------------
 void qSlicerMarkupsToModelModuleWidget::onCurrentMarkupsNodeChanged()
@@ -95,6 +104,8 @@ void qSlicerMarkupsToModelModuleWidget::onCurrentMarkupsNodeChanged()
     qCritical( "Model node changed with no module node selection" );
     return;
   }
+
+  this->qvtkConnect(markupsToModelModuleNode, vtkMRMLMarkupsToModelNode::InputDataModifiedEvent, this, SLOT(updateFromMRMLNode()));
 
   vtkMRMLMarkupsFiducialNode* markupsNode = vtkMRMLMarkupsFiducialNode::SafeDownCast(d->MarkupsNodeComboBox->currentNode());
   d->logic()->SetMarkupsNode( markupsNode, markupsToModelModuleNode );
@@ -117,14 +128,13 @@ void qSlicerMarkupsToModelModuleWidget::setup()
   connect( d->ModuleNodeComboBox, SIGNAL(nodeAboutToBeRemoved(vtkMRMLNode* )), this, SLOT(onMarkupsToModelModuleNodeAboutToBeRemoved(vtkMRMLNode* ) ) );
 
   connect( d->MarkupsNodeComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onCurrentMarkupsNodeChanged() ) );
+  connect( d->MarkupsNodeComboBox, SIGNAL( nodeAboutToBeEdited(vtkMRMLNode* node)), this, SLOT( onNodeAboutToBeEdited(vtkMRMLNode* node) ) );
 
   connect( d->UpdateOutputModelPushButton, SIGNAL( clicked() ) , this, SLOT( onUpdateOutputModelPushButton() ) );
   connect( d->DeleteAllPushButton, SIGNAL( clicked() ) , this, SLOT( onDeleteAllPushButton() ) );
   connect( d->DeleteLastPushButton, SIGNAL( clicked() ) , this, SLOT( onDeleteLastModelPushButton() ) );
 
   connect(d->AutoUpdateOutputCheckBox, SIGNAL(toggled(bool)), this, SLOT(onAutoUpdateOutputToogled(bool)));
-
-
 
 }
 
@@ -169,6 +179,7 @@ void qSlicerMarkupsToModelModuleWidget::enter()
 //-----------------------------------------------------------------------------
 void qSlicerMarkupsToModelModuleWidget::updateWidget()
 {
+  qCritical("HOLAS");
   Q_D(qSlicerMarkupsToModelModuleWidget);
   vtkMRMLNode* currentModuleNode = d->ModuleNodeComboBox->currentNode();
   if ( currentModuleNode == NULL )
@@ -205,9 +216,13 @@ void qSlicerMarkupsToModelModuleWidget::updateWidget()
     {
       d->DeleteAllPushButton->setEnabled(true);
       d->DeleteLastPushButton->setEnabled(true);
-      if(MarkupsToModelNode->GetMarkupsNode()->GetNumberOfFiducials() > 10)
+      if(MarkupsToModelNode->GetMarkupsNode()->GetNumberOfFiducials() > MINIMUM_MARKUPS_NUMBER)
       {
         d->UpdateOutputModelPushButton->setEnabled(true);
+      }
+      else
+      {
+        d->UpdateOutputModelPushButton->setEnabled(false);
       }
     }
     else
@@ -241,7 +256,7 @@ void qSlicerMarkupsToModelModuleWidget::updateFromMRMLNode()
     return;
   }
   d->MarkupsNodeComboBox->setEnabled( true );
-  updateWidget();
+  this->updateWidget();
 }
 
 //-----------------------------------------------------------------------------

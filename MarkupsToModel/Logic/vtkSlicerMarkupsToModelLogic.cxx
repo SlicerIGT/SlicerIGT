@@ -221,7 +221,7 @@ void vtkSlicerMarkupsToModelLogic::UpdateOutputModel(vtkMRMLMarkupsToModelNode* 
   vtkSmartPointer< vtkMRMLModelNode > modelNode = vtkSmartPointer< vtkMRMLModelNode >::New();
   this->GetMRMLScene()->AddNode( modelNode );
 
-  vtkWarningMacro("PERRAS "<< markupsToModelModuleNode->GetModelNodeName() );
+  //vtkWarningMacro("PERRAS "<< markupsToModelModuleNode->GetModelNodeName() );
   modelNode->SetName( markupsToModelModuleNode->GetModelNodeName().c_str() );
   modelNode->SetAndObservePolyData( subdivisionFilter->GetOutput() );
 
@@ -237,7 +237,7 @@ void vtkSlicerMarkupsToModelLogic::UpdateOutputModel(vtkMRMLMarkupsToModelNode* 
 //------------------------------------------------------------------------------
 void vtkSlicerMarkupsToModelLogic::ProcessMRMLNodesEvents( vtkObject* caller, unsigned long event, void* callData )
 {
-  vtkWarningMacro("PUTAS");
+  //vtkWarningMacro("PUTAS");
   vtkMRMLNode* callerNode = vtkMRMLNode::SafeDownCast( caller );
   if (callerNode == NULL)
   {

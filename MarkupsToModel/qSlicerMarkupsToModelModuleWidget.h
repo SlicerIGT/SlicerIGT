@@ -48,6 +48,8 @@ public slots:
 
   /// Update the selection node from the combobox
   void onMarkupsToModelModuleNodeChanged();
+  void onNodeAboutToBeEdited(vtkMRMLNode* node);
+
 
   void onCurrentMarkupsNodeChanged();
   /// When the user clicks the combobox to create a new MarkupsToModel node,
