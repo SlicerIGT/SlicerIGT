@@ -47,10 +47,13 @@ vtkMRMLMarkupsToModelNode::vtkMRMLMarkupsToModelNode()
   events->InsertNextValue( vtkMRMLMarkupsNode::PointModifiedEvent );//PointEndInteractionEvent
 
   this->AddNodeReferenceRole( MARKUPS_ROLE, NULL, events.GetPointer() );
-  this->ModelNodeID="";
-  this->ModelNode=NULL;
-  
+  this->ModelNodeName = "";
+  this->ModelNode = NULL;
+
   this->AutoUpdateOutput=true;
+  this->CleanMarkups=true;
+  this->ButterflySubdivision=true;
+  this->DelaunayAlpha=0.0;
 }
 
 vtkMRMLMarkupsToModelNode::~vtkMRMLMarkupsToModelNode()
@@ -135,11 +138,6 @@ vtkMRMLMarkupsFiducialNode * vtkMRMLMarkupsToModelNode::GetMarkupsNode()
   //return this->Markups;
 }
 
-//std::list<MarkupsTool> * vtkMRMLMarkupsToModelNode::GetToolNodes()
-//{
-//  return &this->Markups;
-//}
-
 //void vtkMRMLMarkupsToModelNode::AddMarkupsNode( vtkMRMLMarkupsFiducialNode* markupsAdded)
 //{
 //  //MarkupsTool tempMarkupsTool;
@@ -158,7 +156,6 @@ vtkMRMLMarkupsFiducialNode * vtkMRMLMarkupsToModelNode::GetMarkupsNode()
 //  //return GetNumberOfTools();
 //}
 
-
 void vtkMRMLMarkupsToModelNode::SetAndObserveMarkupsNodeID( const char* markupsId )
 {
   // SetAndObserveNodeReferenceID does not handle nicely setting of the same
@@ -176,12 +173,10 @@ void vtkMRMLMarkupsToModelNode::SetAndObserveMarkupsNodeID( const char* markupsI
   }
   vtkNew<vtkIntArray> events;
   events->InsertNextValue( vtkCommand::ModifiedEvent );
-  events->InsertNextValue( vtkMRMLMarkupsNode::PointModifiedEvent); // PointEndInteractionEvent 
+  events->InsertNextValue( vtkMRMLMarkupsNode::PointModifiedEvent ); // PointEndInteractionEvent 
   this->SetAndObserveNodeReferenceID( MARKUPS_ROLE, markupsId, events.GetPointer() );
   this->InvokeCustomModifiedEvent(InputDataModifiedEvent);
 }
-
-
 
 void vtkMRMLMarkupsToModelNode::ProcessMRMLEvents( vtkObject *caller, unsigned long event, void *callData )
 {
@@ -193,8 +188,6 @@ void vtkMRMLMarkupsToModelNode::ProcessMRMLEvents( vtkObject *caller, unsigned l
     this->InvokeCustomModifiedEvent(InputDataModifiedEvent);
   }
 }
-
-
 
 void vtkMRMLMarkupsToModelNode::RemoveAllMarkups()
 {
@@ -213,68 +206,27 @@ void vtkMRMLMarkupsToModelNode::RemoveLastMarkup()
 
 std::string vtkMRMLMarkupsToModelNode::GetModelNodeName()
 {
-  //std::string modelName = std::string(this->GetID()).append("_Model");
-  //vtkWarningMacro("Nombre " << modelName.c_str());
-  return std::string(this->GetID()).append("_Model");
-  //return std::string(this->GetID()).append("_Model").c_str();
+  if(this->ModelNode == NULL)
+  {
+    return std::string(this->GetID()).append("Model");
+  }
 }
 
 std::string vtkMRMLMarkupsToModelNode::GetDisplayNodeName()
 {
-  return std::string(this->GetID()).append("_Display");
+  if(this->ModelNode == NULL)
+  {
+    return std::string(this->GetID()).append("Display");
+  }
 }
 
 void vtkMRMLMarkupsToModelNode::SwapTools( int toolA, int toolB )
 {
-  //std::list<MarkupsTool>::iterator itA = this->Markups.begin();
-  //advance (itA,toolA);
-  //std::list<MarkupsTool>::iterator itB = this->Markups.begin();
-  //advance (itB,toolB);
 
-  //MarkupsTool toolTemp;
-  //toolTemp.status=itA->status;
-  //toolTemp.tool=itA->tool;
-  //toolTemp.lastTimeStamp=itA->lastTimeStamp;
-  //toolTemp.label=itA->label;
-  //toolTemp.id=itA->id;
-  //toolTemp.lastElapsedTimeStamp=itA->lastElapsedTimeStamp;
-  //toolTemp.playSound=itA->playSound;
-
-  //itA->status=itB->status;
-  //itA->tool=itB->tool;
-  //itA->lastTimeStamp=itB->lastTimeStamp;
-  //itA->label=itB->label;
-  //itA->id=itB->id;
-  //itA->lastElapsedTimeStamp=itB->lastElapsedTimeStamp;
-  //itA->playSound=itB->playSound;
-
-  //itB->status=toolTemp.status;
-  //itB->tool=toolTemp.tool;
-  //itB->lastTimeStamp=toolTemp.lastTimeStamp;
-  //itB->label=toolTemp.label;
-  //itB->id=toolTemp.id;
-  //itB->lastElapsedTimeStamp=toolTemp.lastElapsedTimeStamp;
-  //itB->playSound=toolTemp.playSound;
 }
 
 bool vtkMRMLMarkupsToModelNode::HasTool(char * toolName)
 {
-  //for (std::list<MarkupsTool>::iterator it = this->Markups.begin() ; it != this->Markups.end(); ++it)
-  //{
-  //  if((*it).tool== NULL)
-  //  {
-  //    continue;
-  //  }
-  //  if(!strcmp((*it).tool->GetName(), toolName))
-  //  {
-  //    return true;
-  //  }
-  //}
   return false;
 }
 
-//int vtkMRMLMarkupsToModelNode::GetNumberOfMarkups()
-//{
-//  return this->Markups->GetNumberOfFiducials();
-//  //return this->Markups->GetNumberOfMarkups();
-//}

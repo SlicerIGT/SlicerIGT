@@ -88,14 +88,21 @@ public:
   virtual void WriteXML( ostream& of, int indent );
   virtual void Copy( vtkMRMLNode *node );
 
-  vtkGetMacro( ModelNodeID, char* );
-  vtkSetMacro( ModelNodeID, char* );
+  //vtkGetMacro( ModelNodeName, char* );
+  vtkSetMacro( ModelNodeName, char* );
 
   vtkGetMacro( ModelNode, vtkMRMLModelNode * );
   vtkSetMacro( ModelNode, vtkMRMLModelNode * );
 
   vtkGetMacro( AutoUpdateOutput, bool );
   vtkSetMacro( AutoUpdateOutput, bool );
+  vtkGetMacro( CleanMarkups, bool );
+  vtkSetMacro( CleanMarkups, bool );
+  vtkGetMacro( ButterflySubdivision, bool );
+  vtkSetMacro( ButterflySubdivision, bool );
+  vtkGetMacro( DelaunayAlpha, double );
+  vtkSetMacro( DelaunayAlpha, double );
+
 
 protected:
 
@@ -139,9 +146,11 @@ private:
   vtkMRMLMarkupsFiducialNode * Markups;
   vtkMRMLModelNode * ModelNode;
   char* MarkupsNodeID;
-  char* ModelNodeID;
+  char* ModelNodeName;
   bool AutoUpdateOutput;
-
+  bool CleanMarkups;
+  bool ButterflySubdivision;
+  double DelaunayAlpha;
 };
 
 #endif

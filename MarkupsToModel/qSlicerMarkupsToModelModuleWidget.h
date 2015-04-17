@@ -46,6 +46,8 @@ public slots:
   /// Deletes and creates a table. Updates gui accordingly to node state
   void updateWidget();
 
+  void onModelNodeChanged();
+
   /// Update the selection node from the combobox
   void onMarkupsToModelModuleNodeChanged();
   void onNodeAboutToBeEdited(vtkMRMLNode* node);
@@ -62,8 +64,12 @@ public slots:
 
   void onDeleteAllPushButton();
   void onDeleteLastModelPushButton();
-  void onAutoUpdateOutputToogled(bool autoUpdateOutput);
 
+  void onModeGroupBoxClicked(bool nana);
+  void onDelaunayAlphaDoubleChanged(double delaunayAlpha);
+  void onCleanMarkupsToogled(bool cleanMarkups);
+  void onAutoUpdateOutputToogled(bool autoUpdateOutput);
+  void onButterflySubdivisionToogled(bool butterflySubdivision);
 
 protected:
   QScopedPointer<qSlicerMarkupsToModelModuleWidgetPrivate> d_ptr;

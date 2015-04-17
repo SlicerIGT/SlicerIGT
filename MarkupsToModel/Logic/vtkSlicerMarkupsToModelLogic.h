@@ -37,6 +37,7 @@
 class vtkMRMLMarkupsFiducialNode;
 class vtkMRMLMarkupsToModelNode;
 
+static const int MINIMUM_MARKUPS_NUMBER = 10;
 
 /// \ingroup Slicer_QtModules_ExtensionTemplate
 class VTK_SLICER_MARKUPSTOMODEL_MODULE_LOGIC_EXPORT vtkSlicerMarkupsToModelLogic :

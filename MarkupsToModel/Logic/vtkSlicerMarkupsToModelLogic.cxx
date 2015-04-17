@@ -170,16 +170,10 @@ void vtkSlicerMarkupsToModelLogic::UpdateOutputModel(vtkMRMLMarkupsToModelNode* 
   vtkMRMLMarkupsFiducialNode* markups=markupsToModelModuleNode->GetMarkupsNode(); 
   int numberOfMarkups = markups->GetNumberOfFiducials();
   
-  if(numberOfMarkups<10)
+  if(numberOfMarkups< MINIMUM_MARKUPS_NUMBER)
   {
     vtkWarningMacro("Not enough fiducials");
     return;
-  }
-
-  if(markupsToModelModuleNode->GetModelNode() != NULL)
-  {
-    //this->GetMRMLScene()->RemoveNodeID(markupsToModelModuleNode->GetModelNodeID());
-    this->GetMRMLScene()->RemoveNode(markupsToModelModuleNode->GetModelNode());
   }
 
   vtkSmartPointer< vtkPoints > modelPoints = vtkSmartPointer< vtkPoints >::New();
@@ -204,33 +198,61 @@ void vtkSlicerMarkupsToModelLogic::UpdateOutputModel(vtkMRMLMarkupsToModelNode* 
   pointPolyData->SetLines(modelCellArray);
   pointPolyData->SetPoints(modelPoints);
 
-  vtkSmartPointer< vtkCleanPolyData > cleanPointPolyData = vtkSmartPointer< vtkCleanPolyData >::New();
-  cleanPointPolyData->SetInputData(pointPolyData);
-
   vtkSmartPointer< vtkDelaunay3D > delaunay = vtkSmartPointer< vtkDelaunay3D >::New();
-  delaunay->SetInputConnection(cleanPointPolyData->GetOutputPort()); //TODO SET VTK5
+  delaunay->SetAlpha(markupsToModelModuleNode->GetDelaunayAlpha());
+  if(markupsToModelModuleNode->GetCleanMarkups())
+  {
+    vtkSmartPointer< vtkCleanPolyData > cleanPointPolyData = vtkSmartPointer< vtkCleanPolyData >::New();
+    cleanPointPolyData->SetInputData(pointPolyData);
+    delaunay->SetInputConnection(cleanPointPolyData->GetOutputPort()); //TODO SET VTK5
+  }
+  else
+  {
+    delaunay->SetInputData(pointPolyData); //TODO SET VTK5
+  }
 
   vtkSmartPointer< vtkDataSetSurfaceFilter > surfaceFilter = vtkSmartPointer< vtkDataSetSurfaceFilter >::New();
   surfaceFilter->SetInputConnection(delaunay->GetOutputPort());
 
-  vtkSmartPointer< vtkButterflySubdivisionFilter > subdivisionFilter = vtkSmartPointer< vtkButterflySubdivisionFilter >::New();
-  subdivisionFilter->SetInputConnection(surfaceFilter->GetOutputPort());
-  subdivisionFilter->SetNumberOfSubdivisions(3);
-  subdivisionFilter->Update();
-
-  vtkSmartPointer< vtkMRMLModelNode > modelNode = vtkSmartPointer< vtkMRMLModelNode >::New();
-  this->GetMRMLScene()->AddNode( modelNode );
-
   //vtkWarningMacro("PERRAS "<< markupsToModelModuleNode->GetModelNodeName() );
-  modelNode->SetName( markupsToModelModuleNode->GetModelNodeName().c_str() );
-  modelNode->SetAndObservePolyData( subdivisionFilter->GetOutput() );
+  vtkSmartPointer< vtkMRMLModelNode > modelNode;
+  if(markupsToModelModuleNode->GetModelNode() == NULL)
+  {
+    modelNode = vtkSmartPointer< vtkMRMLModelNode >::New();
+    this->GetMRMLScene()->AddNode( modelNode );
+    modelNode->SetName( markupsToModelModuleNode->GetModelNodeName().c_str() );
+    ////this->GetMRMLScene()->RemoveNodeID(markupsToModelModuleNode->GetModelNodeID());
+    //markupsToModelModuleNode->SetModelNodeName(markupsToModelModuleNode->GetModelNode()->GetName());
+    ////markupsToModelModuleNode->SetDisplayNodeName();
+    //this->GetMRMLScene()->RemoveNode(markupsToModelModuleNode->GetModelNode());
+  }
+  else
+  {
+    modelNode = markupsToModelModuleNode->GetModelNode();
+  }
 
-  vtkSmartPointer< vtkMRMLModelDisplayNode > displayNode = vtkSmartPointer< vtkMRMLModelDisplayNode >::New();
-  this->GetMRMLScene()->AddNode( displayNode );
-  displayNode->SetName( markupsToModelModuleNode->GetDisplayNodeName().c_str());
+  if(markupsToModelModuleNode->GetButterflySubdivision())
+  {
+    vtkSmartPointer< vtkButterflySubdivisionFilter > subdivisionFilter = vtkSmartPointer< vtkButterflySubdivisionFilter >::New();
+    subdivisionFilter->SetInputConnection(surfaceFilter->GetOutputPort());
+    subdivisionFilter->SetNumberOfSubdivisions(3);
+    subdivisionFilter->Update();
+    modelNode->SetAndObservePolyData( subdivisionFilter->GetOutput() );
+  }
+  else
+  {
+    surfaceFilter->Update();
+    modelNode->SetAndObservePolyData( surfaceFilter->GetOutput() );
+  }
 
-  modelNode->SetAndObserveDisplayNodeID( displayNode->GetID() );
-  markupsToModelModuleNode->SetModelNode(modelNode);
+  if(markupsToModelModuleNode->GetModelNode() == NULL)
+  {
+    vtkSmartPointer< vtkMRMLModelDisplayNode > displayNode = vtkSmartPointer< vtkMRMLModelDisplayNode >::New();
+    this->GetMRMLScene()->AddNode( displayNode );
+    displayNode->SetName( markupsToModelModuleNode->GetDisplayNodeName().c_str());
+    modelNode->SetAndObserveDisplayNodeID( displayNode->GetID() );
+    markupsToModelModuleNode->SetModelNode(modelNode);
+  }
 
 }
 
