@@ -73,7 +73,13 @@ void vtkSlicerMarkupsToModelLogic::SetMRMLSceneInternal(vtkMRMLScene * newScene)
 //-----------------------------------------------------------------------------
 void vtkSlicerMarkupsToModelLogic::RegisterNodes()
 {
-  assert(this->GetMRMLScene() != 0);
+  if( ! this->GetMRMLScene() )
+  {
+    vtkWarningMacro( "MRML scene not yet created" );
+    return;
+  }
+
+  this->GetMRMLScene()->RegisterNodeClass( vtkSmartPointer< vtkMRMLMarkupsToModelNode >::New() );
 }
 
 //---------------------------------------------------------------------------
