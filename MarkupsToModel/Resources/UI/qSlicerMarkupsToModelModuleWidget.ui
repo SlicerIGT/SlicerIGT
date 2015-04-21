@@ -31,7 +31,7 @@
       <bool>true</bool>
      </property>
      <property name="selectNodeUponCreation">
-      <bool>false</bool>
+      <bool>true</bool>
      </property>
     </widget>
    </item>
@@ -528,24 +528,33 @@
           <item>
            <widget class="QLabel" name="TransparencyLabel">
             <property name="text">
-             <string>Transparency</string>
+             <string>Opacity</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QSlider" name="OutputTransparencySlider">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
+           <widget class="ctkSliderWidget" name="OutputOpacitySlider">
+            <property name="singleStep">
+             <double>0.010000000000000</double>
+            </property>
+            <property name="pageStep">
+             <double>0.100000000000000</double>
+            </property>
+            <property name="maximum">
+             <double>1.000000000000000</double>
+            </property>
+            <property name="value">
+             <double>1.000000000000000</double>
             </property>
            </widget>
           </item>
          </layout>
         </item>
         <item row="0" column="1">
-         <widget class="ctkColorPickerButton" name="ColorPickerButton"/>
+         <widget class="ctkColorPickerButton" name="OutputColorPickerButton"/>
         </item>
         <item row="1" column="0">
-         <widget class="QCheckBox" name="ShowModelCheckBox">
+         <widget class="QCheckBox" name="OutputVisiblityCheckBox">
           <property name="layoutDirection">
            <enum>Qt::LeftToRight</enum>
           </property>
@@ -558,7 +567,7 @@
          </widget>
         </item>
         <item row="1" column="1">
-         <widget class="QCheckBox" name="ShowModelSliceIntersectionCheckBox">
+         <widget class="QCheckBox" name="OutputIntersectionVisibilityCheckBox">
           <property name="text">
            <string>Show model slice intersection</string>
           </property>
@@ -610,6 +619,11 @@
    <class>ctkColorPickerButton</class>
    <extends>QPushButton</extends>
    <header>ctkColorPickerButton.h</header>
+  </customwidget>
+  <customwidget>
+   <class>ctkSliderWidget</class>
+   <extends>QWidget</extends>
+   <header>ctkSliderWidget.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

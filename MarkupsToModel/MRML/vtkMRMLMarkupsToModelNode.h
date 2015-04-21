@@ -73,8 +73,11 @@ public:
     InputDataModifiedEvent = vtkCommand::UserEvent + 777
   };
 
-
-
+  enum ModelType
+  {
+    ClosedSurface =0,
+    Curve
+  };
   
   vtkTypeMacro( vtkMRMLMarkupsToModelNode, vtkMRMLNode );
   
@@ -94,6 +97,8 @@ public:
   vtkGetMacro( ModelNode, vtkMRMLModelNode * );
   vtkSetMacro( ModelNode, vtkMRMLModelNode * );
 
+  vtkGetMacro( ModelType, int );
+  vtkSetMacro( ModelType, int );
   vtkGetMacro( AutoUpdateOutput, bool );
   vtkSetMacro( AutoUpdateOutput, bool );
   vtkGetMacro( CleanMarkups, bool );
@@ -138,15 +143,28 @@ public:
   /// Returns the size of the list of tools
   //int GetNumberOfMarkups();
   std::string GetModelNodeName();
-
   std::string GetDisplayNodeName();
 
+
+  void SetOutputIntersectionVisibility(bool outputIntersectionVisibility);
+  void SetOutputVisibility(bool outputVisibility);
+  void SetOutputOpacity(double outputOpacity);
+  //vtkGetVector3Macro(WarningColor, double);
+  virtual void SetOutputColor(double redComponent, double greenComponent, double blueComponent);
+  //virtual void SetWarningColor(double _arg[3]);
+
+  bool GetOutputIntersectionVisibility( );
+  bool GetOutputVisibility( );
+  double GetOutputOpacity( );
+  //vtkGetVector3Macro(WarningColor, double);
+  void GetOutputColor( double outputColor[3]  );
 
 private:
   vtkMRMLMarkupsFiducialNode * Markups;
   vtkMRMLModelNode * ModelNode;
   char* MarkupsNodeID;
   char* ModelNodeName;
+  int ModelType;
   bool AutoUpdateOutput;
   bool CleanMarkups;
   bool ButterflySubdivision;

@@ -66,7 +66,11 @@ public slots:
   void onDeleteLastModelPushButton();
 
   void onModeGroupBoxClicked(bool nana);
+  void onOutputOpacityValueChanged(double outputTransparency);
+  void onOutputColorChanged( QColor newColor );
   void onDelaunayAlphaDoubleChanged(double delaunayAlpha);
+  void onOutputVisibilityToogled(bool outputVisibility);
+  void onOutputIntersectionVisibilityToogled(bool outputIntersectionVisibility);
   void onCleanMarkupsToogled(bool cleanMarkups);
   void onAutoUpdateOutputToogled(bool autoUpdateOutput);
   void onButterflySubdivisionToogled(bool butterflySubdivision);

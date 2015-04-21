@@ -174,6 +174,11 @@ void vtkSlicerMarkupsToModelLogic::SetMarkupsNode( vtkMRMLMarkupsFiducialNode* n
 void vtkSlicerMarkupsToModelLogic::UpdateOutputModel(vtkMRMLMarkupsToModelNode* markupsToModelModuleNode)
 {
   vtkMRMLMarkupsFiducialNode* markups=markupsToModelModuleNode->GetMarkupsNode(); 
+  if(markups==NULL)
+  {
+    vtkWarningMacro("No markups yet");
+    return;
+  }
   int numberOfMarkups = markups->GetNumberOfFiducials();
   
   if(numberOfMarkups< MINIMUM_MARKUPS_NUMBER)

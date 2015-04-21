@@ -1,6 +1,8 @@
 // MarkupsToModel MRML includes
 #include "vtkMRMLMarkupsToModelNode.h"
-#include "vtkMRMLDisplayableNode.h"
+#include "vtkMRMLModelDisplayNode.h"
+#include "vtkMRMLDisplayNode.h"
+#include "vtkMRMLModelNode.h"
 
 // Other MRML includes
 #include "vtkMRMLNode.h"
@@ -210,6 +212,10 @@ std::string vtkMRMLMarkupsToModelNode::GetModelNodeName()
   {
     return std::string(this->GetID()).append("Model");
   }
+  else
+  {
+    this->ModelNode->GetName();
+  }
 }
 
 std::string vtkMRMLMarkupsToModelNode::GetDisplayNodeName()
@@ -218,7 +224,114 @@ std::string vtkMRMLMarkupsToModelNode::GetDisplayNodeName()
   {
     return std::string(this->GetID()).append("Display");
   }
+  else
+  {
+    this->ModelNode->GetDisplayNode()->GetName();
+  }
 }
+
+void vtkMRMLMarkupsToModelNode::SetOutputOpacity(double outputOpacity)
+{
+  if(this->ModelNode != NULL)
+  {
+    //this->ModelNode->GetModelDisplayNode->SetOpacity(outputOpacity);
+    this->ModelNode->GetDisplayNode()->SetOpacity(outputOpacity);
+  }
+}
+
+void vtkMRMLMarkupsToModelNode::SetOutputVisibility(bool outputVisibility)
+{
+  if(this->ModelNode != NULL)
+  {
+    if(outputVisibility)
+    {
+      this->ModelNode->GetDisplayNode()->VisibilityOn();
+    }
+    else
+    {
+      this->ModelNode->GetDisplayNode()->VisibilityOff();
+    }
+  }
+}
+
+void vtkMRMLMarkupsToModelNode::SetOutputIntersectionVisibility(bool outputIntersectionVisibility)
+{
+  if(this->ModelNode != NULL)
+  {
+    if(outputIntersectionVisibility)
+    {
+      this->ModelNode->GetDisplayNode()->SliceIntersectionVisibilityOn();
+    }
+    else
+    {
+      this->ModelNode->GetDisplayNode()->SliceIntersectionVisibilityOff();
+    }
+  }
+}
+
+void vtkMRMLMarkupsToModelNode::SetOutputColor(double redComponent, double greenComponent, double blueComponent)
+{
+  if(this->ModelNode != NULL)
+  {
+    double outputColor[3];
+    outputColor[0] = redComponent;
+    outputColor[1] = greenComponent;
+    outputColor[2] = blueComponent;
+    this->ModelNode->GetDisplayNode()->SetColor(outputColor);
+  }
+}
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+double vtkMRMLMarkupsToModelNode::GetOutputOpacity()
+{
+  if(this->ModelNode != NULL)
+  {
+    //this->ModelNode->GetModelDisplayNode->SetOpacity(outputOpacity);
+    return this->ModelNode->GetDisplayNode()->GetOpacity();
+  }
+  return 1.0;
+}
+
+bool vtkMRMLMarkupsToModelNode::GetOutputVisibility()
+{
+  if(this->ModelNode != NULL)
+  {
+    return this->ModelNode->GetDisplayNode()->GetVisibility();
+  }
+  else
+  {
+    return true;
+  }
+}
+
+bool vtkMRMLMarkupsToModelNode::GetOutputIntersectionVisibility()
+{
+  if(this->ModelNode != NULL)
+  {
+    return this->ModelNode->GetDisplayNode()->GetSliceIntersectionVisibility();
+  }
+  else
+  {
+    return true;
+  }
+}
+
+void vtkMRMLMarkupsToModelNode::GetOutputColor(double outputColor[3])
+{
+  if(this->ModelNode != NULL)
+  {
+    this->ModelNode->GetDisplayNode()->GetColor( outputColor[0], outputColor[1], outputColor[2]);
+  }
+  else
+  {
+    outputColor[0] = 0;
+    outputColor[1] = 0;
+    outputColor[2] = 0;
+  }
+}
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void vtkMRMLMarkupsToModelNode::SwapTools( int toolA, int toolB )
 {

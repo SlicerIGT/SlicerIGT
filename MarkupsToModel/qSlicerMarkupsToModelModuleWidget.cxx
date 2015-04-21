@@ -92,6 +92,11 @@ qSlicerMarkupsToModelModuleWidget::~qSlicerMarkupsToModelModuleWidget()
   disconnect(d->ClosedSurfaceRadioButton, SIGNAL(toggled(bool)), this, SLOT(onModeGroupBoxClicked(bool)));
   disconnect(d->CurveRadioButton, SIGNAL(toggled(bool)), this, SLOT(onModeGroupBoxClicked(bool)));
   disconnect( d->DelaunayAlphaDoubleSpinBox, SIGNAL( valueChanged(double) ), this, SLOT( onDelaunayAlphaDoubleChanged(double) ) );
+
+  disconnect( d->OutputOpacitySlider, SIGNAL(valueChanged(double)), this, SLOT(onOutputOpacityValueChanged(double)));
+  disconnect( d->OutputColorPickerButton, SIGNAL( colorChanged( QColor ) ), this, SLOT( onOutputColorChanged( QColor ) ) );
+  disconnect( d->OutputVisiblityCheckBox, SIGNAL(toggled(bool)), this, SLOT(onOutputVisibilityToogled(bool)));
+  disconnect( d->OutputIntersectionVisibilityCheckBox, SIGNAL(toggled(bool)), this, SLOT(onOutputIntersectionVisibilityToogled(bool)));
 }
 
 //-----------------------------------------------------------------------------
@@ -146,14 +151,19 @@ void qSlicerMarkupsToModelModuleWidget::setup()
   connect( d->DeleteAllPushButton, SIGNAL( clicked() ) , this, SLOT( onDeleteAllPushButton() ) );
   connect( d->DeleteLastPushButton, SIGNAL( clicked() ) , this, SLOT( onDeleteLastModelPushButton() ) );
 
-  connect(d->AutoUpdateOutputCheckBox, SIGNAL(toggled(bool)), this, SLOT(onAutoUpdateOutputToogled(bool)));
+  connect( d->AutoUpdateOutputCheckBox, SIGNAL(toggled(bool)), this, SLOT(onAutoUpdateOutputToogled(bool)));
 
-  connect(d->ButterflySubdivisionCheckBox, SIGNAL(toggled(bool)), this, SLOT(onButterflySubdivisionToogled(bool)));
+  connect( d->ButterflySubdivisionCheckBox, SIGNAL(toggled(bool)), this, SLOT(onButterflySubdivisionToogled(bool)));
 
-  connect(d->CleanMarkupsCheckBox, SIGNAL(toggled(bool)), this, SLOT(onCleanMarkupsToogled(bool)));
-  connect(d->ClosedSurfaceRadioButton, SIGNAL(toggled(bool)), this, SLOT(onModeGroupBoxClicked(bool)));
-  connect(d->CurveRadioButton, SIGNAL(toggled(bool)), this, SLOT(onModeGroupBoxClicked(bool)));
+  connect( d->CleanMarkupsCheckBox, SIGNAL(toggled(bool)), this, SLOT(onCleanMarkupsToogled(bool)));
+  connect( d->ClosedSurfaceRadioButton, SIGNAL(toggled(bool)), this, SLOT(onModeGroupBoxClicked(bool)));
+  connect( d->CurveRadioButton, SIGNAL(toggled(bool)), this, SLOT(onModeGroupBoxClicked(bool)));
   connect( d->DelaunayAlphaDoubleSpinBox, SIGNAL( valueChanged(double) ), this, SLOT( onDelaunayAlphaDoubleChanged(double) ) );
+
+  connect( d->OutputOpacitySlider, SIGNAL(valueChanged(double)), this, SLOT(onOutputOpacityValueChanged(double)));
+  connect( d->OutputColorPickerButton, SIGNAL( colorChanged( QColor ) ), this, SLOT( onOutputColorChanged( QColor ) ) );
+  connect( d->OutputVisiblityCheckBox, SIGNAL(toggled(bool)), this, SLOT(onOutputVisibilityToogled(bool)));
+  connect( d->OutputIntersectionVisibilityCheckBox, SIGNAL(toggled(bool)), this, SLOT(onOutputIntersectionVisibilityToogled(bool)));
 }
 
 
@@ -185,7 +195,6 @@ void qSlicerMarkupsToModelModuleWidget::enter()
   }
 
   //// For convenience, select a default module.
-
   if ( d->ModuleNodeComboBox->currentNode() == NULL )
   {
     d->ModuleNodeComboBox->setCurrentNodeID( node->GetID() );
@@ -231,7 +240,7 @@ void qSlicerMarkupsToModelModuleWidget::updateWidget()
   else
   {
     // Set the button indicating if this list is active
-    if ( MarkupsToModelNode->GetMarkupsNode()->GetNumberOfFiducials() > 0 )
+    if ( MarkupsToModelNode->GetMarkupsNode()!=NULL && MarkupsToModelNode->GetMarkupsNode()->GetNumberOfFiducials() > 0 )
     {
       d->DeleteAllPushButton->setEnabled(true);
       d->DeleteLastPushButton->setEnabled(true);
@@ -275,11 +284,45 @@ void qSlicerMarkupsToModelModuleWidget::updateFromMRMLNode()
     return;
   }
   d->MarkupsNodeComboBox->setEnabled( true );
+  
+  if ( /*d->ModelNodeComboBox->currentNode() == 0 &&*/ MarkupsToModelNode->GetMarkupsNode() != NULL )
+  {
+    d->MarkupsNodeComboBox->setCurrentNodeID(MarkupsToModelNode->GetMarkupsNode()->GetID());
+  }
+  else
+  {
+    d->MarkupsNodeComboBox->setCurrentNodeIndex(0);
+  }
 
-  if ( d->ModelNodeComboBox->currentNode() == 0 && MarkupsToModelNode->GetModelNode() != NULL )
+  switch(MarkupsToModelNode->GetModelType())
+  {
+  case vtkMRMLMarkupsToModelNode::ClosedSurface: d->ClosedSurfaceRadioButton->setChecked(1); break;
+  case vtkMRMLMarkupsToModelNode::Curve: d->CurveRadioButton->setChecked(1); break;
+  }
+  d->CleanMarkupsCheckBox->setChecked(MarkupsToModelNode->GetCleanMarkups());
+  d->ButterflySubdivisionCheckBox->setChecked(MarkupsToModelNode->GetButterflySubdivision());
+  d->DelaunayAlphaDoubleSpinBox->setValue(MarkupsToModelNode->GetDelaunayAlpha());
+
+
+  if ( /*d->ModelNodeComboBox->currentNode() == 0 && */MarkupsToModelNode->GetModelNode() != NULL )
   {
     d->ModelNodeComboBox->setCurrentNodeID(MarkupsToModelNode->GetModelNode()->GetID());
+    //qCritical("Model not null");
   }
+  else
+  {
+    d->ModelNodeComboBox->setCurrentNodeID("None");
+  }
+  d->AutoUpdateOutputCheckBox->setChecked(MarkupsToModelNode->GetAutoUpdateOutput());
+
+  d->OutputOpacitySlider->setValue(MarkupsToModelNode->GetOutputOpacity());
+  double outputColor[3];
+  MarkupsToModelNode->GetOutputColor(outputColor);
+  QColor nodeOutputColor;
+  nodeOutputColor.setRgbF(outputColor[0],outputColor[1],outputColor[2]);
+  d->OutputColorPickerButton->setColor(nodeOutputColor);
+  d->OutputVisiblityCheckBox->setChecked(MarkupsToModelNode->GetOutputVisibility());
+  d->OutputIntersectionVisibilityCheckBox->setChecked(MarkupsToModelNode->GetOutputIntersectionVisibility());
 
   this->updateWidget();
 }
@@ -306,6 +349,8 @@ void qSlicerMarkupsToModelModuleWidget::onModelNodeChanged()
   if ( modelNode == NULL )
   {
     qCritical( "Selected node not a valid model node" );
+    markupsToModelModuleNode->SetModelNode(NULL);
+    markupsToModelModuleNode->SetModelNodeName("");
     return;
   }
 
@@ -400,6 +445,13 @@ void qSlicerMarkupsToModelModuleWidget::onModeGroupBoxClicked(bool nana)
 {
   Q_D(qSlicerMarkupsToModelModuleWidget);
   //qCritical("HOLAS");
+  vtkMRMLMarkupsToModelNode* markupsToModelModuleNode = vtkMRMLMarkupsToModelNode::SafeDownCast( d->ModuleNodeComboBox->currentNode() );
+  if ( markupsToModelModuleNode == NULL )
+  {
+    qCritical( "Conversion Mode changed with no module node selection" );
+    return;
+  }
+
   if(d->ClosedSurfaceRadioButton->isChecked())
   {
     d->ButterflySubdivisionCheckBox->setVisible(true);
@@ -409,6 +461,7 @@ void qSlicerMarkupsToModelModuleWidget::onModeGroupBoxClicked(bool nana)
     d->CurveInterpolationGroupBox->setVisible(false);
     d->TubeRadiusLabel->setVisible(false);
     d->TubeRadiusDoubleSpinBox->setVisible(false);
+    markupsToModelModuleNode->SetModelType(vtkMRMLMarkupsToModelNode::ClosedSurface);
   }
   else
   {
@@ -419,6 +472,7 @@ void qSlicerMarkupsToModelModuleWidget::onModeGroupBoxClicked(bool nana)
     d->CurveInterpolationGroupBox->setVisible(true);
     d->TubeRadiusLabel->setVisible(true);
     d->TubeRadiusDoubleSpinBox->setVisible(true);
+    markupsToModelModuleNode->SetModelType(vtkMRMLMarkupsToModelNode::Curve);
   }
 }
 
@@ -433,7 +487,62 @@ void qSlicerMarkupsToModelModuleWidget::onDelaunayAlphaDoubleChanged(double dela
     return;
   }
   markupsToModelModuleNode->SetDelaunayAlpha(delaunayAlpha);
+}
 
+
+//-----------------------------------------------------------------------------
+void qSlicerMarkupsToModelModuleWidget::onOutputOpacityValueChanged(double outputOpacity)
+{
+  Q_D( qSlicerMarkupsToModelModuleWidget );
+  vtkMRMLMarkupsToModelNode* markupsToModelModuleNode = vtkMRMLMarkupsToModelNode::SafeDownCast( d->ModuleNodeComboBox->currentNode() );
+  if ( markupsToModelModuleNode == NULL )
+  {
+    qCritical( "Model node changed with no module node selection" );
+    return;
+  }
+  markupsToModelModuleNode->SetOutputOpacity(outputOpacity);
+}
+
+
+
+//-----------------------------------------------------------------------------
+void qSlicerMarkupsToModelModuleWidget::onOutputColorChanged( QColor newColor )
+{
+   Q_D( qSlicerMarkupsToModelModuleWidget );
+
+  vtkMRMLMarkupsToModelNode* markupsToModelModuleNode = vtkMRMLMarkupsToModelNode::SafeDownCast( d->ModuleNodeComboBox->currentNode() );
+  if ( markupsToModelModuleNode == NULL )
+  {
+    qCritical( "Model node changed with no module node selection" );
+    return;
+  }
+  markupsToModelModuleNode->SetOutputColor(newColor.redF(), newColor.greenF(), newColor.blueF() );
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerMarkupsToModelModuleWidget::onOutputVisibilityToogled(bool outputVisibility)
+{
+  Q_D( qSlicerMarkupsToModelModuleWidget );
+  vtkMRMLMarkupsToModelNode* markupsToModelModuleNode = vtkMRMLMarkupsToModelNode::SafeDownCast( d->ModuleNodeComboBox->currentNode() );
+  if ( markupsToModelModuleNode == NULL )
+  {
+    qCritical( "Model node changed with no module node selection" );
+    return;
+  }
+  markupsToModelModuleNode->SetOutputVisibility(outputVisibility);
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerMarkupsToModelModuleWidget::onOutputIntersectionVisibilityToogled(bool outputIntersectionVisibility)
+{
+  Q_D( qSlicerMarkupsToModelModuleWidget );
+  vtkMRMLMarkupsToModelNode* markupsToModelModuleNode = vtkMRMLMarkupsToModelNode::SafeDownCast( d->ModuleNodeComboBox->currentNode() );
+  if ( markupsToModelModuleNode == NULL )
+  {
+    qCritical( "Model node changed with no module node selection" );
+    return;
+  }
+  markupsToModelModuleNode->SetOutputIntersectionVisibility(outputIntersectionVisibility);
 }
 
 //-----------------------------------------------------------------------------
