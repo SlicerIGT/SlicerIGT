@@ -74,14 +74,23 @@
               <string>vtkMRMLMarkupsFiducialNode</string>
              </stringlist>
             </property>
+            <property name="baseName">
+             <string>M</string>
+            </property>
             <property name="noneEnabled">
-             <bool>true</bool>
+             <bool>false</bool>
             </property>
             <property name="addEnabled">
-             <bool>false</bool>
+             <bool>true</bool>
             </property>
             <property name="removeEnabled">
+             <bool>true</bool>
+            </property>
+            <property name="editEnabled">
              <bool>false</bool>
+            </property>
+            <property name="renameEnabled">
+             <bool>true</bool>
             </property>
            </widget>
           </item>
@@ -228,10 +237,6 @@
            <bool>true</bool>
           </property>
          </widget>
-         <zorder>CurveRadioButton</zorder>
-         <zorder>ClosedSurfaceRadioButton</zorder>
-         <zorder>CleanMarkupsCheckBox</zorder>
-         <zorder>horizontalLayoutWidget</zorder>
         </widget>
         <widget class="QWidget" name="horizontalLayoutWidget">
          <property name="geometry">
@@ -383,12 +388,6 @@
           </item>
          </layout>
         </widget>
-        <zorder>ModeGroupBox</zorder>
-        <zorder>horizontalLayoutWidget</zorder>
-        <zorder>ModeGroupBox</zorder>
-        <zorder>ModeGroupBox</zorder>
-        <zorder>horizontalLayoutWidget</zorder>
-        <zorder>horizontalLayoutWidget_2</zorder>
        </widget>
       </item>
      </layout>

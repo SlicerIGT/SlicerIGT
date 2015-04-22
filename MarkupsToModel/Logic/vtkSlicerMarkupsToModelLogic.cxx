@@ -37,6 +37,7 @@
 #include "vtkMRMLMarkupsFiducialNode.h"
 #include "vtkMRMLMarkupsToModelNode.h"
 #include "vtkMRMLModelNode.h"
+#include "vtkMRMLSelectionNode.h"
 
 // STD includes
 #include <cassert>
@@ -118,7 +119,7 @@ void vtkSlicerMarkupsToModelLogic::OnMRMLSceneNodeRemoved(vtkMRMLNode* node)
     return;
   }
 
-  if ( node->IsA( "vvtkSlicerMarkupsToModelNode" ) )
+  if ( node->IsA( "vtkSlicerMarkupsToModelNode" ) )
   {
     vtkDebugMacro( "OnMRMLSceneNodeRemoved" );
     vtkUnObserveMRMLNodeMacro( node );
@@ -169,6 +170,80 @@ void vtkSlicerMarkupsToModelLogic::SetMarkupsNode( vtkMRMLMarkupsFiducialNode* n
   //  previousMarkups->GetDisplayNode()->SetColor(previousOriginalColor[0],previousOriginalColor[1],previousOriginalColor[2]);
   //}
 }
+
+
+//------------------------------------------------------------------------------
+void vtkSlicerMarkupsToModelLogic::UpdateSelectionNode( vtkMRMLMarkupsToModelNode* markupsToModelModuleNode )
+{
+  vtkMRMLMarkupsFiducialNode* markupsNode=markupsToModelModuleNode->GetMarkupsNode(); 
+  if(markupsNode==NULL)
+  {
+    vtkWarningMacro("No markups yet");
+    return;
+  }
+  
+  
+  std::string selectionNodeID = std::string("");
+
+  if (!this->GetMRMLScene())
+  {
+    vtkErrorMacro("UpdateSelectionNode: no scene defined!");
+    return;
+  }
+
+  // try the application logic first
+  vtkMRMLApplicationLogic *mrmlAppLogic = this->GetMRMLApplicationLogic();
+  vtkMRMLSelectionNode *selectionNode ;
+  if (mrmlAppLogic)
+  {
+    selectionNode = mrmlAppLogic->GetSelectionNode();
+  }
+  else
+  {
+    // try a default string
+    selectionNodeID = std::string("vtkMRMLSelectionNodeSingleton");
+    selectionNode = vtkMRMLSelectionNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(selectionNodeID.c_str()));
+  }
+
+  if (selectionNode)
+  {
+    // check if changed
+    const char *selectionNodeActivePlaceNodeID = selectionNode->GetActivePlaceNodeID();
+
+    const char *activeID = NULL;
+    if (markupsNode)
+    {
+      activeID = markupsNode->GetID();
+    }
+
+    // get the current node from the combo box
+    //QString activeMarkupsNodeID = d->activeMarkupMRMLNodeComboBox->currentNodeID();
+    //qDebug() << "setActiveMarkupsNode: combo box says: " << qPrintable(activeMarkupsNodeID) << ", input node says " << (activeID ? activeID : "null");
+
+    // don't update the selection node if the active ID is null (can happen
+    // when entering the module)
+    if (activeID != NULL)
+    {
+      if (!selectionNodeActivePlaceNodeID || !activeID ||
+        strcmp(selectionNodeActivePlaceNodeID, activeID) != 0)
+      {
+        selectionNode->SetReferenceActivePlaceNodeID(activeID);
+      }
+    }
+    //else
+    //{
+    //  if (selectionNodeActivePlaceNodeID != NULL)
+    //  {
+    //    //std::cout << "Setting combo box from selection node " << selectionNodeActivePlaceNodeID << std::endl;
+    //    d->activeMarkupMRMLNodeComboBox->setCurrentNodeID(selectionNodeActivePlaceNodeID);
+    //  }
+    //}
+  }
+
+}
+
+
+
 
 //------------------------------------------------------------------------------
 void vtkSlicerMarkupsToModelLogic::UpdateOutputModel(vtkMRMLMarkupsToModelNode* markupsToModelModuleNode)

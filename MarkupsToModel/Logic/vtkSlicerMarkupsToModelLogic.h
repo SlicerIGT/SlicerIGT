@@ -49,6 +49,9 @@ public:
   vtkTypeMacro(vtkSlicerMarkupsToModelLogic, vtkSlicerModuleLogic);
   void PrintSelf(ostream& os, vtkIndent indent);
   void SetMarkupsNode( vtkMRMLMarkupsFiducialNode* newMarkups, vtkMRMLMarkupsToModelNode* moduleNode );
+
+
+  void UpdateSelectionNode( vtkMRMLMarkupsToModelNode* markupsToModelModuleNode );
   void UpdateOutputModel(vtkMRMLMarkupsToModelNode* moduleNode);
 
   void ProcessMRMLNodesEvents( vtkObject* caller, unsigned long event, void* callData );
