@@ -56,6 +56,7 @@ vtkMRMLMarkupsToModelNode::vtkMRMLMarkupsToModelNode()
   this->CleanMarkups=true;
   this->ButterflySubdivision=true;
   this->DelaunayAlpha=0.0;
+  this->TubeRadius=1.0;
 }
 
 vtkMRMLMarkupsToModelNode::~vtkMRMLMarkupsToModelNode()

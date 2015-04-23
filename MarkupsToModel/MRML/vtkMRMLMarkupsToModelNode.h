@@ -97,6 +97,8 @@ public:
   vtkGetMacro( ModelNode, vtkMRMLModelNode * );
   vtkSetMacro( ModelNode, vtkMRMLModelNode * );
 
+  vtkGetMacro( TubeRadius, double );
+  vtkSetMacro( TubeRadius, double );
   vtkGetMacro( ModelType, int );
   vtkSetMacro( ModelType, int );
   vtkGetMacro( AutoUpdateOutput, bool );
@@ -107,7 +109,6 @@ public:
   vtkSetMacro( ButterflySubdivision, bool );
   vtkGetMacro( DelaunayAlpha, double );
   vtkSetMacro( DelaunayAlpha, double );
-
 
 protected:
 
@@ -169,6 +170,7 @@ private:
   bool CleanMarkups;
   bool ButterflySubdivision;
   double DelaunayAlpha;
+  double TubeRadius;
 };
 
 #endif

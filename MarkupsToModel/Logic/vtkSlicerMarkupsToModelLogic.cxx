@@ -33,6 +33,8 @@
 #include <vtkDataSetSurfaceFilter.h>
 #include <vtkButterflySubdivisionFilter.h>
 #include <vtkCleanPolyData.h>
+#include <vtkAppendPolyData.h>
+#include <vtkTubeFilter.h>
 
 #include "vtkMRMLMarkupsFiducialNode.h"
 #include "vtkMRMLMarkupsToModelNode.h"
@@ -181,8 +183,6 @@ void vtkSlicerMarkupsToModelLogic::UpdateSelectionNode( vtkMRMLMarkupsToModelNod
     vtkWarningMacro("No markups yet");
     return;
   }
-  
-  
   std::string selectionNodeID = std::string("");
 
   if (!this->GetMRMLScene())
@@ -239,14 +239,10 @@ void vtkSlicerMarkupsToModelLogic::UpdateSelectionNode( vtkMRMLMarkupsToModelNod
     //  }
     //}
   }
-
 }
 
-
-
-
 //------------------------------------------------------------------------------
-void vtkSlicerMarkupsToModelLogic::UpdateOutputModel(vtkMRMLMarkupsToModelNode* markupsToModelModuleNode)
+void vtkSlicerMarkupsToModelLogic::UpdateOutputCloseSurfaceModel(vtkMRMLMarkupsToModelNode* markupsToModelModuleNode)
 {
   vtkMRMLMarkupsFiducialNode* markups=markupsToModelModuleNode->GetMarkupsNode(); 
   if(markups==NULL)
@@ -255,10 +251,10 @@ void vtkSlicerMarkupsToModelLogic::UpdateOutputModel(vtkMRMLMarkupsToModelNode* 
     return;
   }
   int numberOfMarkups = markups->GetNumberOfFiducials();
-  
-  if(numberOfMarkups< MINIMUM_MARKUPS_NUMBER)
+
+  if(numberOfMarkups< MINIMUM_MARKUPS_CLOSED_SURFACE_NUMBER)
   {
-    vtkWarningMacro("Not enough fiducials");
+    vtkWarningMacro("Not enough fiducials for closed surface");
     return;
   }
 
@@ -339,7 +335,153 @@ void vtkSlicerMarkupsToModelLogic::UpdateOutputModel(vtkMRMLMarkupsToModelNode* 
     modelNode->SetAndObserveDisplayNodeID( displayNode->GetID() );
     markupsToModelModuleNode->SetModelNode(modelNode);
   }
+}
 
+//------------------------------------------------------------------------------
+void markupsToPath(vtkMRMLMarkupsFiducialNode* markupsNode, vtkPolyData* markupsPointsPolyData)
+{
+  vtkSmartPointer< vtkPoints > modelPoints = vtkSmartPointer< vtkPoints >::New();
+  vtkSmartPointer< vtkCellArray > modelCellArray = vtkSmartPointer< vtkCellArray >::New();
+  int numberOfMarkups = markupsNode->GetNumberOfFiducials();
+  modelPoints->SetNumberOfPoints(numberOfMarkups);
+  double markupPoint [3] = {0.0, 0.0, 0.0};
+
+  for (int i=0; i<numberOfMarkups;i++)
+  {
+    markupsNode->GetNthFiducialPosition(i,markupPoint);
+    modelPoints->SetPoint(i, markupPoint);
+  }
+
+  modelCellArray->InsertNextCell(numberOfMarkups);
+  for (int i=0; i < numberOfMarkups;i++)
+  {
+    modelCellArray->InsertCellPoint(i);
+  }
+
+    markupsPointsPolyData->SetPoints(modelPoints);
+    markupsPointsPolyData->SetLines(modelCellArray);
+}
+////------------------------------------------------------------------------------
+//void vtkSlicerMarkupsToModelLogic::pathToPoly( path, poly)
+//{
+//  points = vtk.vtkPoints()
+//    cellArray = vtk.vtkCellArray()
+//
+//    points = vtk.vtkPoints()
+//    poly.SetPoints(points)
+//
+//    lines = vtk.vtkCellArray()
+//    poly.SetLines(lines)
+//
+//    linesIDArray = lines.GetData()
+//    linesIDArray.Reset()
+//    linesIDArray.InsertNextTuple1(0)
+//
+//    polygons = vtk.vtkCellArray()
+//    poly.SetPolys( polygons )
+//    idArray = polygons.GetData()
+//    idArray.Reset()
+//    idArray.InsertNextTuple1(0)
+//
+//    for point in path:
+//  pointIndex = points.InsertNextPoint(*point)
+//    linesIDArray.InsertNextTuple1(pointIndex)
+//    linesIDArray.SetTuple1( 0, linesIDArray.GetNumberOfTuples() - 1 )
+//    lines.SetNumberOfCells(1)
+//}
+
+
+//------------------------------------------------------------------------------
+void vtkSlicerMarkupsToModelLogic::UpdateOutputCurveModel(vtkMRMLMarkupsToModelNode* markupsToModelModuleNode)
+{
+  vtkMRMLMarkupsFiducialNode* markupsNode=markupsToModelModuleNode->GetMarkupsNode(); 
+  if(markupsNode==NULL)
+  {
+    vtkWarningMacro("No markups yet");
+    return;
+  }
+
+  int numberOfMarkups = markupsNode->GetNumberOfFiducials();
+  if(numberOfMarkups< MINIMUM_MARKUPS_NUMBER )
+  {
+    vtkWarningMacro("Not enough fiducials for closed surface");
+    return;
+  }
+
+  vtkSmartPointer< vtkMRMLModelNode > modelNode;
+  if(markupsToModelModuleNode->GetModelNode() == NULL)
+  {
+    modelNode = vtkSmartPointer< vtkMRMLModelNode >::New();
+    this->GetMRMLScene()->AddNode( modelNode );
+    modelNode->SetName( markupsToModelModuleNode->GetModelNodeName().c_str() );
+  }
+  else
+  {
+    modelNode = markupsToModelModuleNode->GetModelNode();
+  }
+
+  vtkSmartPointer< vtkPolyData > markupsPointsPolyData = vtkSmartPointer< vtkPolyData >::New();
+  markupsToPath( markupsNode, markupsPointsPolyData);
+
+  vtkSmartPointer< vtkAppendPolyData> append = vtkSmartPointer< vtkAppendPolyData>::New();
+
+    vtkPoints * points = markupsPointsPolyData->GetPoints();
+    double point0 [3] = {0, 0, 0};
+    double point1 [3]= {0, 0, 0};
+
+    for( int i =0; i<numberOfMarkups-1; i++)
+    {
+      points->GetPoint(i, point0);
+      points->GetPoint(i+1, point1);
+      vtkSmartPointer< vtkPoints > pointsSegment = vtkSmartPointer< vtkPoints >::New();
+      pointsSegment->SetNumberOfPoints(2);
+      pointsSegment->SetPoint(0, point0);
+      pointsSegment->SetPoint(1, point1);
+
+      vtkSmartPointer< vtkCellArray > cellArraySegment = vtkSmartPointer<  vtkCellArray >::New();
+      cellArraySegment->InsertNextCell(2);
+      cellArraySegment->InsertCellPoint(0);
+      cellArraySegment->InsertCellPoint(1);
+
+      vtkSmartPointer< vtkPolyData >polydataSegment = vtkSmartPointer< vtkPolyData >::New();
+      polydataSegment->Initialize();
+      polydataSegment->SetPoints(pointsSegment);
+      polydataSegment->SetLines(cellArraySegment);
+
+        vtkSmartPointer< vtkTubeFilter> tubeSegmentFilter = vtkSmartPointer< vtkTubeFilter>::New();
+        tubeSegmentFilter->SetInputData(polydataSegment);
+        tubeSegmentFilter->SetRadius(markupsToModelModuleNode->GetTubeRadius());
+        tubeSegmentFilter->SetNumberOfSides(20);
+        tubeSegmentFilter->CappingOn();
+        tubeSegmentFilter->Update();
+
+        //if vtk.VTK_MAJOR_VERSION <= 5
+        //append.AddInput(tubeFilter.GetOutput());
+        //else:
+        append->AddInputData(tubeSegmentFilter->GetOutput());
+    }
+
+    append->Update();
+    modelNode->SetAndObservePolyData( append->GetOutput() );
+
+    if(markupsToModelModuleNode->GetModelNode() == NULL)
+    {
+      vtkSmartPointer< vtkMRMLModelDisplayNode > displayNode = vtkSmartPointer< vtkMRMLModelDisplayNode >::New();
+      this->GetMRMLScene()->AddNode( displayNode );
+      displayNode->SetName( markupsToModelModuleNode->GetDisplayNodeName().c_str());
+      modelNode->SetAndObserveDisplayNodeID( displayNode->GetID() );
+      markupsToModelModuleNode->SetModelNode(modelNode);
+    }
+}
+
+//------------------------------------------------------------------------------
+void vtkSlicerMarkupsToModelLogic::UpdateOutputModel(vtkMRMLMarkupsToModelNode* markupsToModelModuleNode)
+{
+  switch(markupsToModelModuleNode->GetModelType())
+  {
+  case vtkMRMLMarkupsToModelNode::ClosedSurface: UpdateOutputCloseSurfaceModel(markupsToModelModuleNode); break;
+  case vtkMRMLMarkupsToModelNode::Curve: UpdateOutputCurveModel(markupsToModelModuleNode); break;
+  }
 }
 
 //------------------------------------------------------------------------------

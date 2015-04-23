@@ -37,7 +37,8 @@
 class vtkMRMLMarkupsFiducialNode;
 class vtkMRMLMarkupsToModelNode;
 
-static const int MINIMUM_MARKUPS_NUMBER = 10;
+static const int MINIMUM_MARKUPS_NUMBER = 4;
+static const int MINIMUM_MARKUPS_CLOSED_SURFACE_NUMBER = 10;
 
 /// \ingroup Slicer_QtModules_ExtensionTemplate
 class VTK_SLICER_MARKUPSTOMODEL_MODULE_LOGIC_EXPORT vtkSlicerMarkupsToModelLogic :
@@ -52,6 +53,8 @@ public:
 
 
   void UpdateSelectionNode( vtkMRMLMarkupsToModelNode* markupsToModelModuleNode );
+  void UpdateOutputCloseSurfaceModel(vtkMRMLMarkupsToModelNode* markupsToModelModuleNode);
+  void UpdateOutputCurveModel(vtkMRMLMarkupsToModelNode* markupsToModelModuleNode);
   void UpdateOutputModel(vtkMRMLMarkupsToModelNode* moduleNode);
 
   void ProcessMRMLNodesEvents( vtkObject* caller, unsigned long event, void* callData );
