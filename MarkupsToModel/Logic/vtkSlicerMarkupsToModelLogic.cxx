@@ -358,8 +358,8 @@ void markupsToPath(vtkMRMLMarkupsFiducialNode* markupsNode, vtkPolyData* markups
     modelCellArray->InsertCellPoint(i);
   }
 
-    markupsPointsPolyData->SetPoints(modelPoints);
-    markupsPointsPolyData->SetLines(modelCellArray);
+  markupsPointsPolyData->SetPoints(modelPoints);
+  markupsPointsPolyData->SetLines(modelCellArray);
 }
 ////------------------------------------------------------------------------------
 //void vtkSlicerMarkupsToModelLogic::pathToPoly( path, poly)
@@ -425,53 +425,53 @@ void vtkSlicerMarkupsToModelLogic::UpdateOutputCurveModel(vtkMRMLMarkupsToModelN
 
   vtkSmartPointer< vtkAppendPolyData> append = vtkSmartPointer< vtkAppendPolyData>::New();
 
-    vtkPoints * points = markupsPointsPolyData->GetPoints();
-    double point0 [3] = {0, 0, 0};
-    double point1 [3]= {0, 0, 0};
+  vtkPoints * points = markupsPointsPolyData->GetPoints();
+  double point0 [3] = {0, 0, 0};
+  double point1 [3]= {0, 0, 0};
 
-    for( int i =0; i<numberOfMarkups-1; i++)
-    {
-      points->GetPoint(i, point0);
-      points->GetPoint(i+1, point1);
-      vtkSmartPointer< vtkPoints > pointsSegment = vtkSmartPointer< vtkPoints >::New();
-      pointsSegment->SetNumberOfPoints(2);
-      pointsSegment->SetPoint(0, point0);
-      pointsSegment->SetPoint(1, point1);
+  for( int i =0; i<numberOfMarkups-1; i++)
+  {
+    points->GetPoint(i, point0);
+    points->GetPoint(i+1, point1);
+    vtkSmartPointer< vtkPoints > pointsSegment = vtkSmartPointer< vtkPoints >::New();
+    pointsSegment->SetNumberOfPoints(2);
+    pointsSegment->SetPoint(0, point0);
+    pointsSegment->SetPoint(1, point1);
 
-      vtkSmartPointer< vtkCellArray > cellArraySegment = vtkSmartPointer<  vtkCellArray >::New();
-      cellArraySegment->InsertNextCell(2);
-      cellArraySegment->InsertCellPoint(0);
-      cellArraySegment->InsertCellPoint(1);
+    vtkSmartPointer< vtkCellArray > cellArraySegment = vtkSmartPointer<  vtkCellArray >::New();
+    cellArraySegment->InsertNextCell(2);
+    cellArraySegment->InsertCellPoint(0);
+    cellArraySegment->InsertCellPoint(1);
 
-      vtkSmartPointer< vtkPolyData >polydataSegment = vtkSmartPointer< vtkPolyData >::New();
-      polydataSegment->Initialize();
-      polydataSegment->SetPoints(pointsSegment);
-      polydataSegment->SetLines(cellArraySegment);
+    vtkSmartPointer< vtkPolyData >polydataSegment = vtkSmartPointer< vtkPolyData >::New();
+    polydataSegment->Initialize();
+    polydataSegment->SetPoints(pointsSegment);
+    polydataSegment->SetLines(cellArraySegment);
 
-        vtkSmartPointer< vtkTubeFilter> tubeSegmentFilter = vtkSmartPointer< vtkTubeFilter>::New();
-        tubeSegmentFilter->SetInputData(polydataSegment);
-        tubeSegmentFilter->SetRadius(markupsToModelModuleNode->GetTubeRadius());
-        tubeSegmentFilter->SetNumberOfSides(20);
-        tubeSegmentFilter->CappingOn();
-        tubeSegmentFilter->Update();
+    vtkSmartPointer< vtkTubeFilter> tubeSegmentFilter = vtkSmartPointer< vtkTubeFilter>::New();
+    tubeSegmentFilter->SetInputData(polydataSegment);
+    tubeSegmentFilter->SetRadius(markupsToModelModuleNode->GetTubeRadius());
+    tubeSegmentFilter->SetNumberOfSides(20);
+    tubeSegmentFilter->CappingOn();
+    tubeSegmentFilter->Update();
 
-        //if vtk.VTK_MAJOR_VERSION <= 5
-        //append.AddInput(tubeFilter.GetOutput());
-        //else:
-        append->AddInputData(tubeSegmentFilter->GetOutput());
-    }
+    //if vtk.VTK_MAJOR_VERSION <= 5
+    //append.AddInput(tubeFilter.GetOutput());
+    //else:
+    append->AddInputData(tubeSegmentFilter->GetOutput());
+  }
 
-    append->Update();
-    modelNode->SetAndObservePolyData( append->GetOutput() );
+  append->Update();
+  modelNode->SetAndObservePolyData( append->GetOutput() );
 
-    if(markupsToModelModuleNode->GetModelNode() == NULL)
-    {
-      vtkSmartPointer< vtkMRMLModelDisplayNode > displayNode = vtkSmartPointer< vtkMRMLModelDisplayNode >::New();
-      this->GetMRMLScene()->AddNode( displayNode );
-      displayNode->SetName( markupsToModelModuleNode->GetDisplayNodeName().c_str());
-      modelNode->SetAndObserveDisplayNodeID( displayNode->GetID() );
-      markupsToModelModuleNode->SetModelNode(modelNode);
-    }
+  if(markupsToModelModuleNode->GetModelNode() == NULL)
+  {
+    vtkSmartPointer< vtkMRMLModelDisplayNode > displayNode = vtkSmartPointer< vtkMRMLModelDisplayNode >::New();
+    this->GetMRMLScene()->AddNode( displayNode );
+    displayNode->SetName( markupsToModelModuleNode->GetDisplayNodeName().c_str());
+    modelNode->SetAndObserveDisplayNodeID( displayNode->GetID() );
+    markupsToModelModuleNode->SetModelNode(modelNode);
+  }
 }
 
 //------------------------------------------------------------------------------

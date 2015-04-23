@@ -24,6 +24,8 @@
 // MarkupsToModel includes
 #include "qSlicerMarkupsToModelModule.h"
 #include "qSlicerMarkupsToModelModuleWidget.h"
+#include "qSlicerCoreApplication.h"
+#include "qSlicerModuleManager.h"
 
 //-----------------------------------------------------------------------------
 Q_EXPORT_PLUGIN2(qSlicerMarkupsToModelModule, qSlicerMarkupsToModelModule);
@@ -95,13 +97,22 @@ QStringList qSlicerMarkupsToModelModule::categories() const
 //-----------------------------------------------------------------------------
 QStringList qSlicerMarkupsToModelModule::dependencies() const
 {
-  return QStringList();
+  return QStringList()<< "Markups";
 }
 
 //-----------------------------------------------------------------------------
 void qSlicerMarkupsToModelModule::setup()
 {
   this->Superclass::setup();
+
+  vtkSlicerMarkupsToModelLogic* markupsToModelLogic = vtkSlicerMarkupsToModelLogic::SafeDownCast( this->logic() );
+  qSlicerAbstractCoreModule* markupsModule = qSlicerCoreApplication::application()->moduleManager()->module("Markups");
+
+  if ( markupsModule )
+  {
+    markupsToModelLogic->MarkupsLogic = vtkSlicerMarkupsLogic::SafeDownCast( markupsModule->logic() );
+  }
+
 }
 
 //-----------------------------------------------------------------------------

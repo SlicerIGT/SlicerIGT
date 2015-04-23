@@ -26,6 +26,9 @@
 
 // Slicer includes
 #include "vtkSlicerModuleLogic.h"
+#include "vtkSlicerMarkupsLogic.h"
+
+
 
 // MRML includes
 
@@ -49,8 +52,10 @@ public:
   static vtkSlicerMarkupsToModelLogic *New();
   vtkTypeMacro(vtkSlicerMarkupsToModelLogic, vtkSlicerModuleLogic);
   void PrintSelf(ostream& os, vtkIndent indent);
+
   void SetMarkupsNode( vtkMRMLMarkupsFiducialNode* newMarkups, vtkMRMLMarkupsToModelNode* moduleNode );
 
+  vtkSlicerMarkupsLogic* MarkupsLogic;
 
   void UpdateSelectionNode( vtkMRMLMarkupsToModelNode* markupsToModelModuleNode );
   void UpdateOutputCloseSurfaceModel(vtkMRMLMarkupsToModelNode* markupsToModelModuleNode);

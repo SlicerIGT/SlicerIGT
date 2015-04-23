@@ -26,8 +26,7 @@
 #include "vtkMRMLModelNode.h"
 #include "vtkSlicerMarkupsToModelLogic.h"
 #include "vtkMRMLMarkupsFiducialNode.h"
-
-
+#include "vtkMRMLInteractionNode.h"
 
 
 //-----------------------------------------------------------------------------
@@ -88,6 +87,7 @@ qSlicerMarkupsToModelModuleWidget::~qSlicerMarkupsToModelModuleWidget()
   disconnect( d->UpdateOutputModelPushButton, SIGNAL( clicked() ) , this, SLOT( onUpdateOutputModelPushButton() ) );
   disconnect( d->DeleteAllPushButton, SIGNAL( clicked() ) , this, SLOT( onDeleteAllPushButton() ) );
   disconnect( d->DeleteLastPushButton, SIGNAL( clicked() ) , this, SLOT( onDeleteLastModelPushButton() ) );
+  disconnect( d->PlacePushButton, SIGNAL( clicked() ), this, SLOT( onPlacePushButtonClicked() ) ); 
 
   disconnect(d->AutoUpdateOutputCheckBox, SIGNAL(toggled(bool)), this, SLOT(onAutoUpdateOutputToogled(bool)));
 
@@ -97,6 +97,7 @@ qSlicerMarkupsToModelModuleWidget::~qSlicerMarkupsToModelModuleWidget()
   disconnect(d->ClosedSurfaceRadioButton, SIGNAL(toggled(bool)), this, SLOT(onModeGroupBoxClicked(bool)));
   disconnect(d->CurveRadioButton, SIGNAL(toggled(bool)), this, SLOT(onModeGroupBoxClicked(bool)));
   disconnect( d->DelaunayAlphaDoubleSpinBox, SIGNAL( valueChanged(double) ), this, SLOT( onDelaunayAlphaDoubleChanged(double) ) );
+  disconnect( d->TubeRadiusDoubleSpinBox, SIGNAL( valueChanged(double) ), this, SLOT( onTubeRadiusDoubleChanged(double) ) );
 
   disconnect( d->OutputOpacitySlider, SIGNAL(valueChanged(double)), this, SLOT(onOutputOpacityValueChanged(double)));
   disconnect( d->OutputColorPickerButton, SIGNAL( colorChanged( QColor ) ), this, SLOT( onOutputColorChanged( QColor ) ) );
@@ -156,7 +157,11 @@ void qSlicerMarkupsToModelModuleWidget::setup()
 
   connect( d->UpdateOutputModelPushButton, SIGNAL( clicked() ) , this, SLOT( onUpdateOutputModelPushButton() ) );
   connect( d->DeleteAllPushButton, SIGNAL( clicked() ) , this, SLOT( onDeleteAllPushButton() ) );
+  d->DeleteAllPushButton->setIcon(QIcon( ":/Icons/MarkupsDeleteAllRows.png" ) );
   connect( d->DeleteLastPushButton, SIGNAL( clicked() ) , this, SLOT( onDeleteLastModelPushButton() ) );
+  d->DeleteLastPushButton->setIcon( QIcon( ":/Icons/MarkupsDeleteLast.png" ) );
+  connect( d->PlacePushButton, SIGNAL( clicked() ), this, SLOT( onPlacePushButtonClicked() ) ); 
+  d->PlacePushButton->setIcon( QIcon( ":/Icons/MarkupsMouseModePlace.png" ) );
 
   connect( d->AutoUpdateOutputCheckBox, SIGNAL(toggled(bool)), this, SLOT(onAutoUpdateOutputToogled(bool)));
 
@@ -166,6 +171,7 @@ void qSlicerMarkupsToModelModuleWidget::setup()
   connect( d->ClosedSurfaceRadioButton, SIGNAL(toggled(bool)), this, SLOT(onModeGroupBoxClicked(bool)));
   connect( d->CurveRadioButton, SIGNAL(toggled(bool)), this, SLOT(onModeGroupBoxClicked(bool)));
   connect( d->DelaunayAlphaDoubleSpinBox, SIGNAL( valueChanged(double) ), this, SLOT( onDelaunayAlphaDoubleChanged(double) ) );
+  connect( d->TubeRadiusDoubleSpinBox, SIGNAL( valueChanged(double) ), this, SLOT( onTubeRadiusDoubleChanged(double) ) );
 
   connect( d->OutputOpacitySlider, SIGNAL(valueChanged(double)), this, SLOT(onOutputOpacityValueChanged(double)));
   connect( d->OutputColorPickerButton, SIGNAL( colorChanged( QColor ) ), this, SLOT( onOutputColorChanged( QColor ) ) );
@@ -371,6 +377,7 @@ void qSlicerMarkupsToModelModuleWidget::onModelNodeChanged()
   markupsToModelModuleNode->SetModelNode(modelNode);
   markupsToModelModuleNode->SetModelNodeName(modelNode->GetName());
 
+  UpdateOutputModel();
 }
 
 ////-----------------------------------------------------------------------------
@@ -445,7 +452,22 @@ void qSlicerMarkupsToModelModuleWidget::onUpdateOutputModelPushButton()
   d->logic()->UpdateOutputModel(markupsToModelModuleNode);
 }
 
+//-----------------------------------------------------------------------------
+void qSlicerMarkupsToModelModuleWidget::UpdateOutputModel()
+{
+  Q_D( qSlicerMarkupsToModelModuleWidget );
 
+  vtkMRMLMarkupsToModelNode* markupsToModelModuleNode = vtkMRMLMarkupsToModelNode::SafeDownCast( d->ModuleNodeComboBox->currentNode() );
+  if ( markupsToModelModuleNode == NULL )
+  {
+    qCritical( "Model node changed with no module node selection" );
+    return;
+  }
+  if(markupsToModelModuleNode->GetAutoUpdateOutput())
+  {
+    d->logic()->UpdateOutputModel(markupsToModelModuleNode);
+  }
+}
 
 //-----------------------------------------------------------------------------
 void qSlicerMarkupsToModelModuleWidget::onDeleteAllPushButton()
@@ -495,6 +517,21 @@ void qSlicerMarkupsToModelModuleWidget::onModeGroupBoxClicked(bool nana)
     d->TubeRadiusDoubleSpinBox->setVisible(true);
     markupsToModelModuleNode->SetModelType(vtkMRMLMarkupsToModelNode::Curve);
   }
+  UpdateOutputModel();
+}
+
+void qSlicerMarkupsToModelModuleWidget::onTubeRadiusDoubleChanged(double tubeRadius)
+{
+  Q_D( qSlicerMarkupsToModelModuleWidget );
+
+  vtkMRMLMarkupsToModelNode* markupsToModelModuleNode = vtkMRMLMarkupsToModelNode::SafeDownCast( d->ModuleNodeComboBox->currentNode() );
+  if ( markupsToModelModuleNode == NULL )
+  {
+    qCritical( "Model node changed with no module node selection" );
+    return;
+  }
+  markupsToModelModuleNode->SetTubeRadius(tubeRadius);
+  UpdateOutputModel();
 }
 
 //-----------------------------------------------------------------------------
@@ -508,6 +545,7 @@ void qSlicerMarkupsToModelModuleWidget::onDelaunayAlphaDoubleChanged(double dela
     return;
   }
   markupsToModelModuleNode->SetDelaunayAlpha(delaunayAlpha);
+  UpdateOutputModel();
 }
 
 
@@ -577,6 +615,7 @@ void qSlicerMarkupsToModelModuleWidget::onCleanMarkupsToogled(bool cleanMarkups)
     return;
   }
   markupsToModelModuleNode->SetCleanMarkups(cleanMarkups);
+  UpdateOutputModel();
 }
 
 //-----------------------------------------------------------------------------
@@ -590,6 +629,7 @@ void qSlicerMarkupsToModelModuleWidget::onButterflySubdivisionToogled(bool butte
     return;
   }
   markupsToModelModuleNode->SetButterflySubdivision(butterflySubdivision);
+  UpdateOutputModel();
 }
 
 //-----------------------------------------------------------------------------
@@ -618,6 +658,41 @@ void qSlicerMarkupsToModelModuleWidget::onDeleteLastModelPushButton()
     return;
   }
   markupsToModelModuleNode->RemoveLastMarkup();
+
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerMarkupsToModelModuleWidget::onPlacePushButtonClicked()
+{
+
+  Q_D(qSlicerMarkupsToModelModuleWidget);
+
+  vtkMRMLMarkupsNode* currentMarkupsNode = vtkMRMLMarkupsNode::SafeDownCast( d->MarkupsNodeComboBox->currentNode() );
+
+  // Depending to the current state, change the activeness and placeness for the current markups node
+  vtkMRMLInteractionNode *interactionNode = vtkMRMLInteractionNode::SafeDownCast( this->mrmlScene()->GetNodeByID( "vtkMRMLInteractionNodeSingleton" ) );
+
+  bool isActive = currentMarkupsNode != NULL && d->logic()->MarkupsLogic->GetActiveListID().compare( currentMarkupsNode->GetID() ) == 0;
+  bool isPlace = interactionNode->GetCurrentInteractionMode() == vtkMRMLInteractionNode::Place;
+
+  if ( isPlace && isActive )
+  {
+    interactionNode->SetCurrentInteractionMode( vtkMRMLInteractionNode::ViewTransform );
+  }
+  else
+  {
+    interactionNode->SetCurrentInteractionMode( vtkMRMLInteractionNode::Place );
+    // interactionNode->SetPlaceModePersistence( true ); // Use whatever persistence the user has already set
+  }
+
+  if ( currentMarkupsNode != NULL )
+  {
+    d->logic()->MarkupsLogic->SetActiveListID( currentMarkupsNode ); // If there are other widgets, they are responsible for updating themselves
+  }
+
+  this->updateWidget();
+
+
 
 }
 

@@ -64,10 +64,12 @@ public slots:
 
   void onDeleteAllPushButton();
   void onDeleteLastModelPushButton();
+  void onPlacePushButtonClicked();
 
   void onModeGroupBoxClicked(bool nana);
   void onOutputOpacityValueChanged(double outputTransparency);
   void onOutputColorChanged( QColor newColor );
+  void onTubeRadiusDoubleChanged(double tubeRadius);
   void onDelaunayAlphaDoubleChanged(double delaunayAlpha);
   void onOutputVisibilityToogled(bool outputVisibility);
   void onOutputIntersectionVisibilityToogled(bool outputIntersectionVisibility);
@@ -77,6 +79,8 @@ public slots:
 
 protected:
   QScopedPointer<qSlicerMarkupsToModelModuleWidgetPrivate> d_ptr;
+
+  void UpdateOutputModel();
 
   virtual void setup();
   virtual void enter();
