@@ -35,6 +35,7 @@
 #include <vtkCleanPolyData.h>
 #include <vtkAppendPolyData.h>
 #include <vtkTubeFilter.h>
+#include <vtkSplineFilter.h>
 
 #include "vtkMRMLMarkupsFiducialNode.h"
 #include "vtkMRMLMarkupsToModelNode.h"
@@ -390,9 +391,8 @@ void markupsToPath(vtkMRMLMarkupsFiducialNode* markupsNode, vtkPolyData* markups
 //    lines.SetNumberOfCells(1)
 //}
 
-
 //------------------------------------------------------------------------------
-void vtkSlicerMarkupsToModelLogic::UpdateOutputCurveModel(vtkMRMLMarkupsToModelNode* markupsToModelModuleNode)
+void vtkSlicerMarkupsToModelLogic::UpdateOutputTubeModel(vtkMRMLMarkupsToModelNode* markupsToModelModuleNode)
 {
   vtkMRMLMarkupsFiducialNode* markupsNode=markupsToModelModuleNode->GetMarkupsNode(); 
   if(markupsNode==NULL)
@@ -473,6 +473,85 @@ void vtkSlicerMarkupsToModelLogic::UpdateOutputCurveModel(vtkMRMLMarkupsToModelN
     markupsToModelModuleNode->SetModelNode(modelNode);
   }
 }
+
+
+//------------------------------------------------------------------------------
+void vtkSlicerMarkupsToModelLogic::UpdateOutputCardinalSplineModel(vtkMRMLMarkupsToModelNode* markupsToModelModuleNode)
+{
+  vtkWarningMacro("HOLAS DEL MAR");
+  vtkMRMLMarkupsFiducialNode* markupsNode=markupsToModelModuleNode->GetMarkupsNode(); 
+  if(markupsNode==NULL)
+  {
+    vtkWarningMacro("No markups yet");
+    return;
+  }
+
+  int numberOfMarkups = markupsNode->GetNumberOfFiducials();
+  if(numberOfMarkups< MINIMUM_MARKUPS_NUMBER )
+  {
+    vtkWarningMacro("Not enough fiducials for closed surface");
+    return;
+  }
+
+  vtkSmartPointer< vtkMRMLModelNode > modelNode;
+  if(markupsToModelModuleNode->GetModelNode() == NULL)
+  {
+    modelNode = vtkSmartPointer< vtkMRMLModelNode >::New();
+    this->GetMRMLScene()->AddNode( modelNode );
+    modelNode->SetName( markupsToModelModuleNode->GetModelNodeName().c_str() );
+  }
+  else
+  {
+    modelNode = markupsToModelModuleNode->GetModelNode();
+  }
+
+  vtkSmartPointer< vtkPolyData > markupsPointsPolyData = vtkSmartPointer< vtkPolyData >::New();
+  markupsToPath( markupsNode, markupsPointsPolyData);
+
+  int totalNumberOfPoints = markupsToModelModuleNode->GetNumberOfIntermediatePoints()*numberOfMarkups;
+  vtkSmartPointer< vtkSplineFilter > splineFilter = vtkSmartPointer< vtkSplineFilter >::New();
+  //  if vtk.VTK_MAJOR_VERSION <= 5:
+  //splineFilter.SetInput(self.ControlPoints)
+  //  else:
+  splineFilter->SetInputData(markupsPointsPolyData);
+  splineFilter->SetNumberOfSubdivisions(totalNumberOfPoints);
+  splineFilter->Update();
+
+  vtkSmartPointer< vtkTubeFilter> cardinalSplineTubeFilter = vtkSmartPointer< vtkTubeFilter>::New();
+  cardinalSplineTubeFilter->SetInputConnection(splineFilter->GetOutputPort());
+  cardinalSplineTubeFilter->SetRadius(markupsToModelModuleNode->GetTubeRadius());
+  cardinalSplineTubeFilter->SetNumberOfSides(20);
+  cardinalSplineTubeFilter->CappingOn();
+  cardinalSplineTubeFilter->Update();
+
+  modelNode->SetAndObservePolyData( cardinalSplineTubeFilter->GetOutput() );
+
+  if(markupsToModelModuleNode->GetModelNode() == NULL)
+  {
+    vtkSmartPointer< vtkMRMLModelDisplayNode > displayNode = vtkSmartPointer< vtkMRMLModelDisplayNode >::New();
+    this->GetMRMLScene()->AddNode( displayNode );
+    displayNode->SetName( markupsToModelModuleNode->GetDisplayNodeName().c_str());
+    modelNode->SetAndObserveDisplayNodeID( displayNode->GetID() );
+    markupsToModelModuleNode->SetModelNode(modelNode);
+  }
+}
+
+
+
+
+//------------------------------------------------------------------------------
+void vtkSlicerMarkupsToModelLogic::UpdateOutputCurveModel(vtkMRMLMarkupsToModelNode* markupsToModelModuleNode)
+{
+
+switch(markupsToModelModuleNode->GetInterpolationType())
+{
+case vtkMRMLMarkupsToModelNode::None: UpdateOutputTubeModel(markupsToModelModuleNode); break;
+case vtkMRMLMarkupsToModelNode::CardinalSpline: UpdateOutputCardinalSplineModel(markupsToModelModuleNode); break;
+}
+}
+
+
+
 
 //------------------------------------------------------------------------------
 void vtkSlicerMarkupsToModelLogic::UpdateOutputModel(vtkMRMLMarkupsToModelNode* markupsToModelModuleNode)

@@ -66,6 +66,7 @@ public slots:
   void onDeleteLastModelPushButton();
   void onPlacePushButtonClicked();
 
+  void onInterpolationBoxClicked( bool nana );
   void onModeGroupBoxClicked(bool nana);
   void onOutputOpacityValueChanged(double outputTransparency);
   void onOutputColorChanged( QColor newColor );

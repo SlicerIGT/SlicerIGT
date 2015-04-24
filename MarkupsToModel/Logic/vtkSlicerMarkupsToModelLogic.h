@@ -59,6 +59,8 @@ public:
 
   void UpdateSelectionNode( vtkMRMLMarkupsToModelNode* markupsToModelModuleNode );
   void UpdateOutputCloseSurfaceModel(vtkMRMLMarkupsToModelNode* markupsToModelModuleNode);
+  void UpdateOutputTubeModel(vtkMRMLMarkupsToModelNode* markupsToModelModuleNode);
+  void UpdateOutputCardinalSplineModel(vtkMRMLMarkupsToModelNode* markupsToModelModuleNode);
   void UpdateOutputCurveModel(vtkMRMLMarkupsToModelNode* markupsToModelModuleNode);
   void UpdateOutputModel(vtkMRMLMarkupsToModelNode* moduleNode);
 

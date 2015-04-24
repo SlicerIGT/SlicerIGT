@@ -78,6 +78,14 @@ public:
     ClosedSurface =0,
     Curve
   };
+
+
+  enum InterpolationType
+  {
+    None =0,
+    CardinalSpline,
+    HermiteSpline
+  };
   
   vtkTypeMacro( vtkMRMLMarkupsToModelNode, vtkMRMLNode );
   
@@ -101,6 +109,12 @@ public:
   vtkSetMacro( TubeRadius, double );
   vtkGetMacro( ModelType, int );
   vtkSetMacro( ModelType, int );
+  vtkGetMacro( InterpolationType, int );
+  vtkSetMacro( InterpolationType, int );
+  vtkGetMacro( NumberOfIntermediatePoints, int );
+  vtkSetMacro( NumberOfIntermediatePoints, int );
+  
+  
   vtkGetMacro( AutoUpdateOutput, bool );
   vtkSetMacro( AutoUpdateOutput, bool );
   vtkGetMacro( CleanMarkups, bool );
@@ -166,6 +180,8 @@ private:
   char* MarkupsNodeID;
   char* ModelNodeName;
   int ModelType;
+  int InterpolationType;
+  int NumberOfIntermediatePoints;
   bool AutoUpdateOutput;
   bool CleanMarkups;
   bool ButterflySubdivision;

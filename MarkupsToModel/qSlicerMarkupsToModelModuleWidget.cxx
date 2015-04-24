@@ -103,6 +103,10 @@ qSlicerMarkupsToModelModuleWidget::~qSlicerMarkupsToModelModuleWidget()
   disconnect( d->OutputColorPickerButton, SIGNAL( colorChanged( QColor ) ), this, SLOT( onOutputColorChanged( QColor ) ) );
   disconnect( d->OutputVisiblityCheckBox, SIGNAL( toggled( bool ) ), this, SLOT( onOutputVisibilityToogled( bool ) ) );
   disconnect( d->OutputIntersectionVisibilityCheckBox, SIGNAL( toggled( bool ) ), this, SLOT( onOutputIntersectionVisibilityToogled( bool ) ) );
+
+  connect( d->NoneInterpolationButton, SIGNAL( toggled( bool ) ), this, SLOT( onInterpolationBoxClicked( bool ) ) );
+  connect( d->CardinalInterpolationRadioButton, SIGNAL( toggled( bool ) ), this, SLOT( onInterpolationBoxClicked( bool ) ) );
+  connect( d->HermiteInterpolationRadioButton, SIGNAL( toggled( bool ) ), this, SLOT( onInterpolationBoxClicked( bool ) ) );
 }
 
 //-----------------------------------------------------------------------------
@@ -178,6 +182,11 @@ void qSlicerMarkupsToModelModuleWidget::setup()
   connect( d->OutputVisiblityCheckBox, SIGNAL( toggled( bool ) ), this, SLOT( onOutputVisibilityToogled( bool ) ) );
   connect( d->OutputIntersectionVisibilityCheckBox, SIGNAL( toggled( bool ) ), this, SLOT( onOutputIntersectionVisibilityToogled( bool ) ) );
   connect( d->TextScaleSlider, SIGNAL( valueChanged( double ) ), this, SLOT( onTextScaleChanged( double ) ) );
+
+  connect( d->NoneInterpolationButton, SIGNAL( toggled( bool ) ), this, SLOT( onInterpolationBoxClicked( bool ) ) );
+  connect( d->CardinalInterpolationRadioButton, SIGNAL( toggled( bool ) ), this, SLOT( onInterpolationBoxClicked( bool ) ) );
+  connect( d->HermiteInterpolationRadioButton, SIGNAL( toggled( bool ) ), this, SLOT( onInterpolationBoxClicked( bool ) ) );
+
 
 }
 
@@ -484,6 +493,37 @@ void qSlicerMarkupsToModelModuleWidget::onDeleteAllPushButton()
   }
   markupsToModelModuleNode->RemoveAllMarkups();
 }
+
+
+//-----------------------------------------------------------------------------
+void qSlicerMarkupsToModelModuleWidget::onInterpolationBoxClicked( bool nana )
+{
+  Q_D( qSlicerMarkupsToModelModuleWidget );
+  qCritical( "HOLAS" );
+  vtkMRMLMarkupsToModelNode* markupsToModelModuleNode = vtkMRMLMarkupsToModelNode::SafeDownCast( d->ModuleNodeComboBox->currentNode() );
+  if ( markupsToModelModuleNode == NULL )
+  {
+    qCritical( "Conversion Mode changed with no module node selection" );
+    return;
+  }
+
+  if( d->NoneInterpolationButton->isChecked() )
+  {
+    markupsToModelModuleNode->SetInterpolationType( vtkMRMLMarkupsToModelNode::None );
+  }
+  else if(d->CardinalInterpolationRadioButton->isChecked())
+  {
+    markupsToModelModuleNode->SetInterpolationType( vtkMRMLMarkupsToModelNode::CardinalSpline );
+  }
+  else
+  {
+    markupsToModelModuleNode->SetInterpolationType( vtkMRMLMarkupsToModelNode::HermiteSpline );
+  }
+  UpdateOutputModel();
+}
+
+
+
 
 //-----------------------------------------------------------------------------
 void qSlicerMarkupsToModelModuleWidget::onModeGroupBoxClicked( bool nana )
