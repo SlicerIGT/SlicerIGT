@@ -109,9 +109,9 @@ void qSlicerWatchdogModuleWidget::setup()
   connect( d->DeleteToolButton, SIGNAL( clicked() ), this, SLOT( onDeleteButtonClicked()) );
   d->DeleteToolButton->setIcon( QIcon( ":/Icons/MarkupsDelete.png" ) );
   connect( d->UpToolButton, SIGNAL( clicked() ), this, SLOT( onUpButtonClicked()) );
-  d->UpToolButton->setIcon( QIcon( ":/Icons/up.png" ) );
+  d->UpToolButton->setIcon( QIcon( ":/Icons/MarkupsMoveUp.png" ) );
   connect( d->DownToolButton, SIGNAL( clicked() ), this, SLOT( onDownButtonClicked()) );
-  d->DownToolButton->setIcon( QIcon( ":/Icons/down.png" ) );
+  d->DownToolButton->setIcon( QIcon( ":/Icons/MarkupsMoveDown.png" ) );
 
   connect(d->ToolsTableWidget, SIGNAL(itemDoubleClicked(QTableWidgetItem *)), this, SLOT( onTableItemDoubleClicked() ));
   d->ToolsTableWidget->setContextMenuPolicy( Qt::CustomContextMenu );

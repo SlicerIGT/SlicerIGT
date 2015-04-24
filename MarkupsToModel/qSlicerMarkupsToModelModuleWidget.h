@@ -72,6 +72,7 @@ public slots:
   void onTubeRadiusDoubleChanged(double tubeRadius);
   void onDelaunayAlphaDoubleChanged(double delaunayAlpha);
   void onOutputVisibilityToogled(bool outputVisibility);
+  void onTextScaleChanged( double textScale);
   void onOutputIntersectionVisibilityToogled(bool outputIntersectionVisibility);
   void onCleanMarkupsToogled(bool cleanMarkups);
   void onAutoUpdateOutputToogled(bool autoUpdateOutput);
