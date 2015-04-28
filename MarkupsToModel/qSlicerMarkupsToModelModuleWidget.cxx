@@ -105,7 +105,7 @@ qSlicerMarkupsToModelModuleWidget::~qSlicerMarkupsToModelModuleWidget()
 
   disconnect( d->OutputOpacitySlider, SIGNAL( valueChanged( double ) ), this, SLOT( onOutputOpacityValueChanged( double ) ) );
   disconnect( d->OutputColorPickerButton, SIGNAL( colorChanged( QColor ) ), this, SLOT( onOutputColorChanged( QColor ) ) );
-  disconnect( d->OutputVisiblityCheckBox, SIGNAL( toggled( bool ) ), this, SLOT( onOutputVisibilityToogled( bool ) ) );
+  disconnect( d->OutputVisiblityButton, SIGNAL( toggled( bool ) ), this, SLOT( onOutputVisibilityToogled( bool ) ) );
   disconnect( d->OutputIntersectionVisibilityCheckBox, SIGNAL( toggled( bool ) ), this, SLOT( onOutputIntersectionVisibilityToogled( bool ) ) );
 
   disconnect( d->NoneInterpolationButton, SIGNAL( toggled( bool ) ), this, SLOT( onInterpolationBoxClicked( bool ) ) );
@@ -188,7 +188,7 @@ void qSlicerMarkupsToModelModuleWidget::setup()
 
   connect( d->OutputOpacitySlider, SIGNAL( valueChanged( double ) ), this, SLOT( onOutputOpacityValueChanged( double ) ) );
   connect( d->OutputColorPickerButton, SIGNAL( colorChanged( QColor ) ), this, SLOT( onOutputColorChanged( QColor ) ) );
-  connect( d->OutputVisiblityCheckBox, SIGNAL( toggled( bool ) ), this, SLOT( onOutputVisibilityToogled( bool ) ) );
+  connect( d->OutputVisiblityButton, SIGNAL( toggled( bool ) ), this, SLOT( onOutputVisibilityToogled( bool ) ) );
   connect( d->OutputIntersectionVisibilityCheckBox, SIGNAL( toggled( bool ) ), this, SLOT( onOutputIntersectionVisibilityToogled( bool ) ) );
   connect( d->TextScaleSlider, SIGNAL( valueChanged( double ) ), this, SLOT( onTextScaleChanged( double ) ) );
 
@@ -361,7 +361,7 @@ void qSlicerMarkupsToModelModuleWidget::updateFromMRMLNode()
   QColor nodeOutputColor;
   nodeOutputColor.setRgbF( outputColor[0],outputColor[1],outputColor[2] );
   d->OutputColorPickerButton->setColor( nodeOutputColor );
-  d->OutputVisiblityCheckBox->setChecked( MarkupsToModelNode->GetOutputVisibility() );
+  d->OutputVisiblityButton->setChecked( MarkupsToModelNode->GetOutputVisibility() );
   d->OutputIntersectionVisibilityCheckBox->setChecked( MarkupsToModelNode->GetOutputIntersectionVisibility() );
   this->updateWidget();
 }
@@ -691,7 +691,6 @@ void qSlicerMarkupsToModelModuleWidget::onDelaunayAlphaDoubleChanged( double del
   UpdateOutputModel();
 }
 
-
 //-----------------------------------------------------------------------------
 void qSlicerMarkupsToModelModuleWidget::onOutputOpacityValueChanged( double outputOpacity )
 {
@@ -704,8 +703,6 @@ void qSlicerMarkupsToModelModuleWidget::onOutputOpacityValueChanged( double outp
   }
   markupsToModelModuleNode->SetOutputOpacity( outputOpacity );
 }
-
-
 
 //-----------------------------------------------------------------------------
 void qSlicerMarkupsToModelModuleWidget::onOutputColorChanged( QColor newColor )
@@ -743,7 +740,16 @@ void qSlicerMarkupsToModelModuleWidget::onTextScaleChanged( double textScale )
   {
     return;
   }
-  d->logic()->MarkupsLogic->SetDefaultMarkupsDisplayNodeTextScale( textScale );
+
+  vtkMRMLMarkupsFiducialNode* markupsNode = vtkMRMLMarkupsFiducialNode::SafeDownCast( d->MarkupsNodeComboBox->currentNode() );
+  if ( markupsNode == NULL )
+  {
+    qCritical( "Model node changed with no module node selection" );
+    return;
+  }
+  vtkMRMLMarkupsDisplayNode * markupsDisplay = vtkMRMLMarkupsDisplayNode::SafeDownCast( markupsNode->GetDisplayNode() );
+  markupsDisplay->SetTextScale(textScale);
+  //d->logic()->MarkupsLogic->SetDefaultMarkupsDisplayNodeTextScale( textScale );
 }
 
 

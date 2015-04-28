@@ -367,6 +367,23 @@
         <item row="0" column="0">
          <layout class="QHBoxLayout" name="TransparencyHorizontalLayout">
           <item>
+           <widget class="QPushButton" name="OutputVisiblityButton">
+            <property name="toolTip">
+             <string>Turns visibility on for all models (does not include hierarchies)</string>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="icon">
+             <iconset>
+              <normaloff>:/Icons/Small/SlicerVisible.png</normaloff>:/Icons/Small/SlicerVisible.png</iconset>
+            </property>
+            <property name="checkable">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
            <widget class="QLabel" name="TransparencyLabel">
             <property name="text">
              <string>Opacity</string>
@@ -394,19 +411,6 @@
         <item row="0" column="1">
          <widget class="ctkColorPickerButton" name="OutputColorPickerButton"/>
         </item>
-        <item row="1" column="0">
-         <widget class="QCheckBox" name="OutputVisiblityCheckBox">
-          <property name="layoutDirection">
-           <enum>Qt::LeftToRight</enum>
-          </property>
-          <property name="text">
-           <string>Show model</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
         <item row="1" column="1">
          <widget class="QCheckBox" name="OutputIntersectionVisibilityCheckBox">
           <property name="text">
@@ -417,48 +421,35 @@
           </property>
          </widget>
         </item>
-       </layout>
-      </item>
-      <item>
-       <layout class="QHBoxLayout" name="horizontalLayout_8">
-        <property name="sizeConstraint">
-         <enum>QLayout::SetMaximumSize</enum>
-        </property>
-        <item>
-         <widget class="QLabel" name="label">
-          <property name="text">
-           <string>Markups Text Scale</string>
+        <item row="1" column="0">
+         <layout class="QHBoxLayout" name="horizontalLayout_8">
+          <property name="sizeConstraint">
+           <enum>QLayout::SetMaximumSize</enum>
           </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="ctkSliderWidget" name="TextScaleSlider">
-          <property name="maximumSize">
-           <size>
-            <width>130</width>
-            <height>80</height>
-           </size>
-          </property>
-          <property name="maximum">
-           <double>20.000000000000000</double>
-          </property>
-          <property name="value">
-           <double>4.500000000000000</double>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <spacer name="horizontalSpacer_2">
-          <property name="orientation">
-           <enum>Qt::Horizontal</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>40</width>
-            <height>20</height>
-           </size>
-          </property>
-         </spacer>
+          <item>
+           <widget class="QLabel" name="label">
+            <property name="text">
+             <string>Markups Text Scale</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="ctkSliderWidget" name="TextScaleSlider">
+            <property name="maximumSize">
+             <size>
+              <width>130</width>
+              <height>80</height>
+             </size>
+            </property>
+            <property name="maximum">
+             <double>20.000000000000000</double>
+            </property>
+            <property name="value">
+             <double>4.500000000000000</double>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </item>
        </layout>
       </item>
