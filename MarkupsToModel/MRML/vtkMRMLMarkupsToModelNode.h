@@ -84,7 +84,9 @@ public:
   {
     None =0,
     CardinalSpline,
-    HermiteSpline
+    HermiteSpline,
+    KochanekSpline
+
   };
   
   vtkTypeMacro( vtkMRMLMarkupsToModelNode, vtkMRMLNode );
@@ -104,6 +106,15 @@ public:
 
   vtkGetMacro( ModelNode, vtkMRMLModelNode * );
   vtkSetMacro( ModelNode, vtkMRMLModelNode * );
+
+
+  vtkGetMacro( KochanekTension, double );
+  vtkSetMacro( KochanekTension, double );
+  vtkGetMacro( KochanekBias, double );
+  vtkSetMacro( KochanekBias, double );
+  vtkGetMacro( KochanekContinuity, double );
+  vtkSetMacro( KochanekContinuity, double );
+
 
   vtkGetMacro( TubeRadius, double );
   vtkSetMacro( TubeRadius, double );
@@ -187,6 +198,11 @@ private:
   bool ButterflySubdivision;
   double DelaunayAlpha;
   double TubeRadius;
+
+  double KochanekTension;
+  double KochanekBias; 
+  double KochanekContinuity;
+
 };
 
 #endif

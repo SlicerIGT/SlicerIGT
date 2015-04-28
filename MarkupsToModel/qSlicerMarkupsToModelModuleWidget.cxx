@@ -99,14 +99,19 @@ qSlicerMarkupsToModelModuleWidget::~qSlicerMarkupsToModelModuleWidget()
   disconnect( d->DelaunayAlphaDoubleSpinBox, SIGNAL( valueChanged( double ) ), this, SLOT( onDelaunayAlphaDoubleChanged( double ) ) );
   disconnect( d->TubeRadiusDoubleSpinBox, SIGNAL( valueChanged( double ) ), this, SLOT( onTubeRadiusDoubleChanged( double ) ) );
 
+  disconnect( d->KochanekBiasDoubleSpinBox, SIGNAL( valueChanged( double ) ), this, SLOT( onKochanekBiasDoubleChanged( double ) ) );
+  disconnect( d->KochanekContinuityDoubleSpinBox, SIGNAL( valueChanged( double ) ), this, SLOT( onKochanekContinuityDoubleChanged( double ) ) );
+  disconnect( d->KochanekTensionDoubleSpinBox, SIGNAL( valueChanged( double ) ), this, SLOT( onKochanekTensionDoubleChanged( double ) ) );
+
   disconnect( d->OutputOpacitySlider, SIGNAL( valueChanged( double ) ), this, SLOT( onOutputOpacityValueChanged( double ) ) );
   disconnect( d->OutputColorPickerButton, SIGNAL( colorChanged( QColor ) ), this, SLOT( onOutputColorChanged( QColor ) ) );
   disconnect( d->OutputVisiblityCheckBox, SIGNAL( toggled( bool ) ), this, SLOT( onOutputVisibilityToogled( bool ) ) );
   disconnect( d->OutputIntersectionVisibilityCheckBox, SIGNAL( toggled( bool ) ), this, SLOT( onOutputIntersectionVisibilityToogled( bool ) ) );
 
-  connect( d->NoneInterpolationButton, SIGNAL( toggled( bool ) ), this, SLOT( onInterpolationBoxClicked( bool ) ) );
-  connect( d->CardinalInterpolationRadioButton, SIGNAL( toggled( bool ) ), this, SLOT( onInterpolationBoxClicked( bool ) ) );
-  connect( d->HermiteInterpolationRadioButton, SIGNAL( toggled( bool ) ), this, SLOT( onInterpolationBoxClicked( bool ) ) );
+  disconnect( d->NoneInterpolationButton, SIGNAL( toggled( bool ) ), this, SLOT( onInterpolationBoxClicked( bool ) ) );
+  disconnect( d->CardinalInterpolationRadioButton, SIGNAL( toggled( bool ) ), this, SLOT( onInterpolationBoxClicked( bool ) ) );
+  disconnect( d->HermiteInterpolationRadioButton, SIGNAL( toggled( bool ) ), this, SLOT( onInterpolationBoxClicked( bool ) ) );
+  disconnect( d->KochanekInterpolationRadioButton, SIGNAL( toggled( bool ) ), this, SLOT( onInterpolationBoxClicked( bool ) ) );
 }
 
 //-----------------------------------------------------------------------------
@@ -176,6 +181,10 @@ void qSlicerMarkupsToModelModuleWidget::setup()
   connect( d->CurveRadioButton, SIGNAL( toggled( bool ) ), this, SLOT( onModeGroupBoxClicked( bool ) ) );
   connect( d->DelaunayAlphaDoubleSpinBox, SIGNAL( valueChanged( double ) ), this, SLOT( onDelaunayAlphaDoubleChanged( double ) ) );
   connect( d->TubeRadiusDoubleSpinBox, SIGNAL( valueChanged( double ) ), this, SLOT( onTubeRadiusDoubleChanged( double ) ) );
+  
+  connect( d->KochanekBiasDoubleSpinBox, SIGNAL( valueChanged( double ) ), this, SLOT( onKochanekBiasDoubleChanged( double ) ) );
+  connect( d->KochanekContinuityDoubleSpinBox, SIGNAL( valueChanged( double ) ), this, SLOT( onKochanekContinuityDoubleChanged( double ) ) );
+  connect( d->KochanekTensionDoubleSpinBox, SIGNAL( valueChanged( double ) ), this, SLOT( onKochanekTensionDoubleChanged( double ) ) );
 
   connect( d->OutputOpacitySlider, SIGNAL( valueChanged( double ) ), this, SLOT( onOutputOpacityValueChanged( double ) ) );
   connect( d->OutputColorPickerButton, SIGNAL( colorChanged( QColor ) ), this, SLOT( onOutputColorChanged( QColor ) ) );
@@ -186,8 +195,7 @@ void qSlicerMarkupsToModelModuleWidget::setup()
   connect( d->NoneInterpolationButton, SIGNAL( toggled( bool ) ), this, SLOT( onInterpolationBoxClicked( bool ) ) );
   connect( d->CardinalInterpolationRadioButton, SIGNAL( toggled( bool ) ), this, SLOT( onInterpolationBoxClicked( bool ) ) );
   connect( d->HermiteInterpolationRadioButton, SIGNAL( toggled( bool ) ), this, SLOT( onInterpolationBoxClicked( bool ) ) );
-
-
+  connect( d->KochanekInterpolationRadioButton, SIGNAL( toggled( bool ) ), this, SLOT( onInterpolationBoxClicked( bool ) ) );
 }
 
 
@@ -515,15 +523,36 @@ void qSlicerMarkupsToModelModuleWidget::onInterpolationBoxClicked( bool nana )
   {
     markupsToModelModuleNode->SetInterpolationType( vtkMRMLMarkupsToModelNode::CardinalSpline );
   }
+  else if(d->KochanekInterpolationRadioButton->isChecked())
+  {
+    markupsToModelModuleNode->SetInterpolationType( vtkMRMLMarkupsToModelNode::KochanekSpline );
+  }
   else
   {
     markupsToModelModuleNode->SetInterpolationType( vtkMRMLMarkupsToModelNode::HermiteSpline );
   }
+
+  if(d->KochanekInterpolationRadioButton->isChecked())
+  {
+    d->KochanekBiasLabel->setVisible( true );
+    d->KochanekBiasDoubleSpinBox->setVisible( true );
+    d->KochanekTensionLabel->setVisible( true );
+    d->KochanekTensionDoubleSpinBox->setVisible( true );
+    d->KochanekContinuityLabel->setVisible( true );
+    d->KochanekContinuityDoubleSpinBox->setVisible( true );
+  }
+  else
+  {
+    d->KochanekBiasLabel->setVisible( false );
+    d->KochanekBiasDoubleSpinBox->setVisible( false );
+    d->KochanekTensionLabel->setVisible( false );
+    d->KochanekTensionDoubleSpinBox->setVisible( false );
+    d->KochanekContinuityLabel->setVisible( false );
+    d->KochanekContinuityDoubleSpinBox->setVisible( false );
+  }
+
   UpdateOutputModel();
 }
-
-
-
 
 //-----------------------------------------------------------------------------
 void qSlicerMarkupsToModelModuleWidget::onModeGroupBoxClicked( bool nana )
@@ -546,6 +575,12 @@ void qSlicerMarkupsToModelModuleWidget::onModeGroupBoxClicked( bool nana )
     d->CurveInterpolationGroupBox->setVisible( false );
     d->TubeRadiusLabel->setVisible( false );
     d->TubeRadiusDoubleSpinBox->setVisible( false );
+    d->KochanekBiasLabel->setVisible( false );
+    d->KochanekBiasDoubleSpinBox->setVisible( false );
+    d->KochanekTensionLabel->setVisible( false );
+    d->KochanekTensionDoubleSpinBox->setVisible( false );
+    d->KochanekContinuityLabel->setVisible( false );
+    d->KochanekContinuityDoubleSpinBox->setVisible( false );
     markupsToModelModuleNode->SetModelType( vtkMRMLMarkupsToModelNode::ClosedSurface );
   }
   else
@@ -559,9 +594,30 @@ void qSlicerMarkupsToModelModuleWidget::onModeGroupBoxClicked( bool nana )
     d->TubeRadiusDoubleSpinBox->setVisible( true );
     markupsToModelModuleNode->SetModelType( vtkMRMLMarkupsToModelNode::Curve );
   }
+
+  if(d->KochanekInterpolationRadioButton->isChecked())
+  {
+    d->KochanekBiasLabel->setVisible( true );
+    d->KochanekBiasDoubleSpinBox->setVisible( true );
+    d->KochanekTensionLabel->setVisible( true );
+    d->KochanekTensionDoubleSpinBox->setVisible( true );
+    d->KochanekContinuityLabel->setVisible( true );
+    d->KochanekContinuityDoubleSpinBox->setVisible( true );
+  }
+  else
+  {
+    d->KochanekBiasLabel->setVisible( false );
+    d->KochanekBiasDoubleSpinBox->setVisible( false );
+    d->KochanekTensionLabel->setVisible( false );
+    d->KochanekTensionDoubleSpinBox->setVisible( false );
+    d->KochanekContinuityLabel->setVisible( false );
+    d->KochanekContinuityDoubleSpinBox->setVisible( false );
+  }
+
   UpdateOutputModel();
 }
 
+//-----------------------------------------------------------------------------
 void qSlicerMarkupsToModelModuleWidget::onTubeRadiusDoubleChanged( double tubeRadius )
 {
   Q_D( qSlicerMarkupsToModelModuleWidget );
@@ -573,6 +629,51 @@ void qSlicerMarkupsToModelModuleWidget::onTubeRadiusDoubleChanged( double tubeRa
     return;
   }
   markupsToModelModuleNode->SetTubeRadius( tubeRadius );
+  UpdateOutputModel();
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerMarkupsToModelModuleWidget::onKochanekContinuityDoubleChanged( double kochanekContinuity )
+{
+  Q_D( qSlicerMarkupsToModelModuleWidget );
+
+  vtkMRMLMarkupsToModelNode* markupsToModelModuleNode = vtkMRMLMarkupsToModelNode::SafeDownCast( d->ModuleNodeComboBox->currentNode() );
+  if ( markupsToModelModuleNode == NULL )
+  {
+    qCritical( "Model node changed with no module node selection" );
+    return;
+  }
+  markupsToModelModuleNode->SetKochanekContinuity( kochanekContinuity );
+  UpdateOutputModel();
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerMarkupsToModelModuleWidget::onKochanekBiasDoubleChanged( double kochanekBias )
+{
+  Q_D( qSlicerMarkupsToModelModuleWidget );
+
+  vtkMRMLMarkupsToModelNode* markupsToModelModuleNode = vtkMRMLMarkupsToModelNode::SafeDownCast( d->ModuleNodeComboBox->currentNode() );
+  if ( markupsToModelModuleNode == NULL )
+  {
+    qCritical( "Model node changed with no module node selection" );
+    return;
+  }
+  markupsToModelModuleNode->SetKochanekBias( kochanekBias );
+  UpdateOutputModel();
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerMarkupsToModelModuleWidget::onKochanekTensionDoubleChanged( double kochanekTension )
+{
+  Q_D( qSlicerMarkupsToModelModuleWidget );
+
+  vtkMRMLMarkupsToModelNode* markupsToModelModuleNode = vtkMRMLMarkupsToModelNode::SafeDownCast( d->ModuleNodeComboBox->currentNode() );
+  if ( markupsToModelModuleNode == NULL )
+  {
+    qCritical( "Model node changed with no module node selection" );
+    return;
+  }
+  markupsToModelModuleNode->SetKochanekTension( kochanekTension );
   UpdateOutputModel();
 }
 

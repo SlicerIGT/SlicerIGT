@@ -36,6 +36,7 @@
 #include <vtkAppendPolyData.h>
 #include <vtkTubeFilter.h>
 #include <vtkSplineFilter.h>
+#include <vtkKochanekSpline.h>
 
 #include "vtkMRMLMarkupsFiducialNode.h"
 #include "vtkMRMLMarkupsToModelNode.h"
@@ -515,6 +516,17 @@ void vtkSlicerMarkupsToModelLogic::UpdateOutputCardinalSplineModel(vtkMRMLMarkup
   //  else:
   splineFilter->SetInputData(markupsPointsPolyData);
   splineFilter->SetNumberOfSubdivisions(totalNumberOfPoints);
+  
+  vtkSmartPointer<vtkKochanekSpline> spline;
+  if (markupsToModelModuleNode->GetInterpolationType()== vtkMRMLMarkupsToModelNode::KochanekSpline)
+  {
+    spline = vtkSmartPointer<vtkKochanekSpline>::New();
+    spline->SetDefaultBias(markupsToModelModuleNode->GetKochanekBias());
+    spline->SetDefaultContinuity(markupsToModelModuleNode->GetKochanekContinuity());
+    spline->SetDefaultTension(markupsToModelModuleNode->GetKochanekTension());
+    splineFilter->SetSpline(spline);
+  }
+
   splineFilter->Update();
 
   vtkSmartPointer< vtkTubeFilter> cardinalSplineTubeFilter = vtkSmartPointer< vtkTubeFilter>::New();
@@ -542,12 +554,12 @@ void vtkSlicerMarkupsToModelLogic::UpdateOutputCardinalSplineModel(vtkMRMLMarkup
 //------------------------------------------------------------------------------
 void vtkSlicerMarkupsToModelLogic::UpdateOutputCurveModel(vtkMRMLMarkupsToModelNode* markupsToModelModuleNode)
 {
-
-switch(markupsToModelModuleNode->GetInterpolationType())
-{
-case vtkMRMLMarkupsToModelNode::None: UpdateOutputTubeModel(markupsToModelModuleNode); break;
-case vtkMRMLMarkupsToModelNode::CardinalSpline: UpdateOutputCardinalSplineModel(markupsToModelModuleNode); break;
-}
+  switch(markupsToModelModuleNode->GetInterpolationType())
+  {
+  case vtkMRMLMarkupsToModelNode::None: UpdateOutputTubeModel(markupsToModelModuleNode); break;
+  case vtkMRMLMarkupsToModelNode::CardinalSpline: UpdateOutputCardinalSplineModel(markupsToModelModuleNode); break;
+  case vtkMRMLMarkupsToModelNode::KochanekSpline: UpdateOutputCardinalSplineModel(markupsToModelModuleNode); break;
+  }
 }
 
 

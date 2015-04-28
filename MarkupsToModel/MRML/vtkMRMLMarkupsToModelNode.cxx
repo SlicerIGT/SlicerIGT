@@ -60,8 +60,9 @@ vtkMRMLMarkupsToModelNode::vtkMRMLMarkupsToModelNode()
   this->InterpolationType = 0;
   this->NumberOfIntermediatePoints=20;
 
-
-
+  this->KochanekTension = 0;
+  this->KochanekBias = 0;
+  this->KochanekContinuity = 0;
 }
 
 vtkMRMLMarkupsToModelNode::~vtkMRMLMarkupsToModelNode()

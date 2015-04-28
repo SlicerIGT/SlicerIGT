@@ -67,17 +67,21 @@ public slots:
   void onPlacePushButtonClicked();
 
   void onInterpolationBoxClicked( bool nana );
-  void onModeGroupBoxClicked(bool nana);
-  void onOutputOpacityValueChanged(double outputTransparency);
+  void onModeGroupBoxClicked( bool nana );
+  void onOutputOpacityValueChanged( double outputTransparency );
   void onOutputColorChanged( QColor newColor );
-  void onTubeRadiusDoubleChanged(double tubeRadius);
-  void onDelaunayAlphaDoubleChanged(double delaunayAlpha);
-  void onOutputVisibilityToogled(bool outputVisibility);
-  void onTextScaleChanged( double textScale);
-  void onOutputIntersectionVisibilityToogled(bool outputIntersectionVisibility);
-  void onCleanMarkupsToogled(bool cleanMarkups);
-  void onAutoUpdateOutputToogled(bool autoUpdateOutput);
-  void onButterflySubdivisionToogled(bool butterflySubdivision);
+  void onTubeRadiusDoubleChanged( double tubeRadius );
+  void onKochanekContinuityDoubleChanged( double kochanekContinuity );
+  void onKochanekBiasDoubleChanged( double kochanekBias );
+  void onKochanekTensionDoubleChanged( double kochanekTension );
+
+  void onDelaunayAlphaDoubleChanged( double delaunayAlpha );
+  void onOutputVisibilityToogled( bool outputVisibility );
+  void onTextScaleChanged( double textScale );
+  void onOutputIntersectionVisibilityToogled( bool outputIntersectionVisibility );
+  void onCleanMarkupsToogled( bool cleanMarkups );
+  void onAutoUpdateOutputToogled( bool autoUpdateOutput );
+  void onButterflySubdivisionToogled( bool butterflySubdivision );
 
 protected:
   QScopedPointer<qSlicerMarkupsToModelModuleWidgetPrivate> d_ptr;
