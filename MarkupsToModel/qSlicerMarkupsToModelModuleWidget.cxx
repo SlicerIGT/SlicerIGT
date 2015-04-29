@@ -69,6 +69,7 @@ qSlicerMarkupsToModelModuleWidget::qSlicerMarkupsToModelModuleWidget( QWidget* _
 {
 }
 
+
 //-----------------------------------------------------------------------------
 qSlicerMarkupsToModelModuleWidget::~qSlicerMarkupsToModelModuleWidget()
 {
@@ -243,7 +244,36 @@ void qSlicerMarkupsToModelModuleWidget::enter()
   d->logic()->UpdateSelectionNode( markupsToModelModuleNode );
 
   this->Superclass::enter();
+  this->updateFromMRMLNode();
 }
+
+
+
+//-----------------------------------------------------------------------------
+void qSlicerMarkupsToModelModuleWidget::setMRMLScene( vtkMRMLScene* scene )
+{
+  Q_D( qSlicerMarkupsToModelModuleWidget );
+  qCritical( "PERRAS" );
+  this->Superclass::setMRMLScene( scene );
+  qvtkReconnect( d->logic(), scene, vtkMRMLScene::EndImportEvent, this, SLOT(onSceneImportedEvent()) );
+}
+
+
+//-----------------------------------------------------------------------------
+void qSlicerMarkupsToModelModuleWidget::onSceneImportedEvent()
+{
+  Q_D( qSlicerMarkupsToModelModuleWidget );
+  qCritical( "PERRAS" );
+  this->enter();
+  this->updateFromMRMLNode();
+  //this->updateWidget();
+}
+
+
+
+
+
+
 
 //-----------------------------------------------------------------------------
 void qSlicerMarkupsToModelModuleWidget::updateWidget()
@@ -367,6 +397,8 @@ void qSlicerMarkupsToModelModuleWidget::updateFromMRMLNode()
 }
 
 
+
+
 //-----------------------------------------------------------------------------
 void qSlicerMarkupsToModelModuleWidget::onModelNodeChanged()
 {
@@ -389,12 +421,12 @@ void qSlicerMarkupsToModelModuleWidget::onModelNodeChanged()
   {
     qCritical( "Selected node not a valid model node" );
     markupsToModelModuleNode->SetModelNode( NULL );
-    markupsToModelModuleNode->SetModelNodeName( "" );
+    markupsToModelModuleNode->SetModelNodeID( "" );
     return;
   }
 
   markupsToModelModuleNode->SetModelNode( modelNode );
-  markupsToModelModuleNode->SetModelNodeName( modelNode->GetName() );
+  markupsToModelModuleNode->SetModelNodeID( modelNode->GetID() );
 
   UpdateOutputModel();
 }
@@ -507,7 +539,7 @@ void qSlicerMarkupsToModelModuleWidget::onDeleteAllPushButton()
 void qSlicerMarkupsToModelModuleWidget::onInterpolationBoxClicked( bool nana )
 {
   Q_D( qSlicerMarkupsToModelModuleWidget );
-  qCritical( "HOLAS" );
+
   vtkMRMLMarkupsToModelNode* markupsToModelModuleNode = vtkMRMLMarkupsToModelNode::SafeDownCast( d->ModuleNodeComboBox->currentNode() );
   if ( markupsToModelModuleNode == NULL )
   {

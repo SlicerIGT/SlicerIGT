@@ -49,7 +49,7 @@ vtkMRMLMarkupsToModelNode::vtkMRMLMarkupsToModelNode()
   events->InsertNextValue( vtkMRMLMarkupsNode::PointModifiedEvent );//PointEndInteractionEvent
 
   this->AddNodeReferenceRole( MARKUPS_ROLE, NULL, events.GetPointer() );
-  this->ModelNodeName = "";
+  this->ModelNodeID = "";
   this->ModelNode = NULL;
 
   this->AutoUpdateOutput=true;
@@ -87,8 +87,16 @@ void vtkMRMLMarkupsToModelNode::WriteXML( ostream& of, int nIndent )
   vtkIndent indent(nIndent);
 
   //of << indent << " NumberOfMarkups=\"" << this->Markups->GetNumberOfFiducials() << "\"";
-  of << indent << " MarkupsID=\"" << this->MarkupsNodeID << "\"";
-  
+  of << indent << " MarkupsNodeID=\"" << this->MarkupsNodeID << "\"";
+  of << indent << " ModelNodeID=\"" << this->ModelNodeID << "\"";
+  of << indent << " ModelType=\"" << this->ModelType << "\"";
+  of << indent << " CleanMarkups =\"" << this->CleanMarkups << "\"";
+  of << indent << " InterpolationType=\"" << this->InterpolationType << "\"";
+  of << indent << " TubeRadius=\"" << this->TubeRadius << "\"";
+  of << indent << " KochanekBias=\"" << this->KochanekBias << "\"";
+  of << indent << " KochanekContinuity=\"" << this->KochanekContinuity << "\"";
+  of << indent << " KochanekTension=\"" << this->KochanekTension << "\"";
+
 }
 
 void vtkMRMLMarkupsToModelNode::ReadXMLAttributes( const char** atts )
@@ -110,11 +118,54 @@ void vtkMRMLMarkupsToModelNode::ReadXMLAttributes( const char** atts )
     //  int r = 0;
     //  nameString >> r;
     //}
-    if ( ! strcmp( attName, "MarkupsID" ) )
+    if ( ! strcmp( attName, "MarkupsNodeID" ) )
     {
-      std::stringstream nameString;
-      nameString << attValue;
+      this->MarkupsNodeID=(char*) attValue;
+      //std::stringstream nameString;
+      //nameString << attValue;
     }
+    if ( ! strcmp( attName, "ModelNodeID" ) )
+    {
+      this->ModelNodeID=(char*)attValue;
+    }
+    std::stringstream nameString;
+    if ( ! strcmp( attName, "ModelType" ) )
+    {
+      nameString << attValue;
+      //int r = 0;
+      nameString >> this->ModelType;
+    }
+    if ( ! strcmp( attName, "CleanMarkups" ) )
+    {
+      nameString << attValue;
+      nameString >> this->CleanMarkups;
+    }
+    if ( ! strcmp( attName, "InterpolationType" ) )
+    {
+      nameString << attValue;
+      nameString >> this->InterpolationType;
+    }
+    if ( ! strcmp( attName, "TubeRadius" ) )
+    {
+      nameString << attValue;
+      nameString >> this->TubeRadius;
+    }
+    if ( ! strcmp( attName, "KochanekBias" ) )
+    {
+      nameString << attValue;
+      nameString >> this->KochanekBias;
+    }
+    if ( ! strcmp( attName, "KochanekContinuity" ) )
+    {
+      nameString << attValue;
+      nameString >> this->KochanekContinuity;
+    }
+    if ( ! strcmp( attName, "KochanekTension" ) )
+    {
+      nameString << attValue;
+      nameString >> this->KochanekTension;
+    }
+
   }
   //vtkDebugMacro("XML atts number of tools read "<<GetNumberOfTools());
 }
@@ -221,7 +272,7 @@ std::string vtkMRMLMarkupsToModelNode::GetModelNodeName()
   }
   else
   {
-    this->ModelNode->GetName();
+    return std::string(this->ModelNode->GetName());
   }
 }
 
@@ -233,7 +284,7 @@ std::string vtkMRMLMarkupsToModelNode::GetDisplayNodeName()
   }
   else
   {
-    this->ModelNode->GetDisplayNode()->GetName();
+    return std::string(this->ModelNode->GetDisplayNode()->GetName());
   }
 }
 

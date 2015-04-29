@@ -39,12 +39,14 @@ public:
   virtual ~qSlicerMarkupsToModelModuleWidget();
 
 public slots:
-
+  void setMRMLScene( vtkMRMLScene* scene );
+  void onSceneImportedEvent();
   //void onModelNodeChanged();
   /// Refresh the gui from the currently active toolwatchdog node 
   void updateFromMRMLNode();
   /// Deletes and creates a table. Updates gui accordingly to node state
   void updateWidget();
+
 
   void onModelNodeChanged();
 
@@ -82,6 +84,7 @@ public slots:
   void onCleanMarkupsToogled( bool cleanMarkups );
   void onAutoUpdateOutputToogled( bool autoUpdateOutput );
   void onButterflySubdivisionToogled( bool butterflySubdivision );
+
 
 protected:
   QScopedPointer<qSlicerMarkupsToModelModuleWidgetPrivate> d_ptr;

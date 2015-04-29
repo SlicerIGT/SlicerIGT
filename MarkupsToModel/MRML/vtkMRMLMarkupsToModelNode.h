@@ -102,11 +102,13 @@ public:
   virtual void Copy( vtkMRMLNode *node );
 
   //vtkGetMacro( ModelNodeName, char* );
-  vtkSetMacro( ModelNodeName, char* );
+  vtkSetMacro( ModelNodeID, std::string );
+  vtkSetMacro( MarkupsNodeID, std::string );
+  vtkGetMacro( ModelNodeID, std::string );
+  vtkGetMacro( MarkupsNodeID, std::string );
 
   vtkGetMacro( ModelNode, vtkMRMLModelNode * );
   vtkSetMacro( ModelNode, vtkMRMLModelNode * );
-
 
   vtkGetMacro( KochanekTension, double );
   vtkSetMacro( KochanekTension, double );
@@ -188,8 +190,8 @@ public:
 private:
   vtkMRMLMarkupsFiducialNode * Markups;
   vtkMRMLModelNode * ModelNode;
-  char* MarkupsNodeID;
-  char* ModelNodeName;
+  std::string MarkupsNodeID;
+  std::string ModelNodeID;
   int ModelType;
   int InterpolationType;
   int NumberOfIntermediatePoints;

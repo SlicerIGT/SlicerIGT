@@ -74,6 +74,9 @@ protected:
   /// Register MRML Node classes to Scene. Gets called automatically when the MRMLScene is attached to this logic class.
   virtual void RegisterNodes();
   virtual void UpdateFromMRMLScene();
+  ///When a scene has been imported it will set the markups list and model.
+  virtual void OnMRMLSceneEndImport();
+  virtual void OnMRMLSceneStartImport();
   virtual void OnMRMLSceneNodeAdded(vtkMRMLNode* node);
   virtual void OnMRMLSceneNodeRemoved(vtkMRMLNode* node);
 
@@ -81,6 +84,7 @@ private:
 
   vtkSlicerMarkupsToModelLogic(const vtkSlicerMarkupsToModelLogic&); // Not implemented
   void operator=(const vtkSlicerMarkupsToModelLogic&); // Not implemented
+  int ImportingScene;
 };
 
 #endif
