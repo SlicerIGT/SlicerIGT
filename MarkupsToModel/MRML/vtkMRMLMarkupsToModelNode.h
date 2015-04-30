@@ -82,7 +82,7 @@ public:
 
   enum InterpolationType
   {
-    None =0,
+    Linear =0,
     CardinalSpline,
     HermiteSpline,
     KochanekSpline

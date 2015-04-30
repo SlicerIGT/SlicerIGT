@@ -111,7 +111,6 @@ qSlicerMarkupsToModelModuleWidget::~qSlicerMarkupsToModelModuleWidget()
 
   disconnect( d->LinearInterpolationButton, SIGNAL( toggled( bool ) ), this, SLOT( onInterpolationBoxClicked( bool ) ) );
   disconnect( d->CardinalInterpolationRadioButton, SIGNAL( toggled( bool ) ), this, SLOT( onInterpolationBoxClicked( bool ) ) );
-  disconnect( d->HermiteInterpolationRadioButton, SIGNAL( toggled( bool ) ), this, SLOT( onInterpolationBoxClicked( bool ) ) );
   disconnect( d->KochanekInterpolationRadioButton, SIGNAL( toggled( bool ) ), this, SLOT( onInterpolationBoxClicked( bool ) ) );
 }
 
@@ -195,7 +194,6 @@ void qSlicerMarkupsToModelModuleWidget::setup()
 
   connect( d->LinearInterpolationButton, SIGNAL( toggled( bool ) ), this, SLOT( onInterpolationBoxClicked( bool ) ) );
   connect( d->CardinalInterpolationRadioButton, SIGNAL( toggled( bool ) ), this, SLOT( onInterpolationBoxClicked( bool ) ) );
-  connect( d->HermiteInterpolationRadioButton, SIGNAL( toggled( bool ) ), this, SLOT( onInterpolationBoxClicked( bool ) ) );
   connect( d->KochanekInterpolationRadioButton, SIGNAL( toggled( bool ) ), this, SLOT( onInterpolationBoxClicked( bool ) ) );
 }
 
@@ -549,7 +547,7 @@ void qSlicerMarkupsToModelModuleWidget::onInterpolationBoxClicked( bool nana )
 
   if( d->LinearInterpolationButton->isChecked() )
   {
-    markupsToModelModuleNode->SetInterpolationType( vtkMRMLMarkupsToModelNode::None );
+    markupsToModelModuleNode->SetInterpolationType( vtkMRMLMarkupsToModelNode::Linear );
   }
   else if(d->CardinalInterpolationRadioButton->isChecked())
   {

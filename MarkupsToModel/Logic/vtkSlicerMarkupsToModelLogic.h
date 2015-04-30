@@ -39,9 +39,11 @@
 
 class vtkMRMLMarkupsFiducialNode;
 class vtkMRMLMarkupsToModelNode;
+class vtkPolyData;
 
 static const int MINIMUM_MARKUPS_NUMBER = 4;
 static const int MINIMUM_MARKUPS_CLOSED_SURFACE_NUMBER = 10;
+static const double CLEAN_POLYDATA_TOLERANCE=0.01;
 
 /// \ingroup Slicer_QtModules_ExtensionTemplate
 class VTK_SLICER_MARKUPSTOMODEL_MODULE_LOGIC_EXPORT vtkSlicerMarkupsToModelLogic :
@@ -59,8 +61,8 @@ public:
 
   void UpdateSelectionNode( vtkMRMLMarkupsToModelNode* markupsToModelModuleNode );
   void UpdateOutputCloseSurfaceModel(vtkMRMLMarkupsToModelNode* markupsToModelModuleNode);
-  void UpdateOutputTubeModel(vtkMRMLMarkupsToModelNode* markupsToModelModuleNode);
-  void UpdateOutputCardinalSplineModel(vtkMRMLMarkupsToModelNode* markupsToModelModuleNode);
+  void UpdateOutputTubeModel(vtkMRMLMarkupsToModelNode* markupsToModelModuleNode, vtkPolyData * markupsPointsPolyData);
+  void UpdateOutputCardinalSplineModel(vtkMRMLMarkupsToModelNode* markupsToModelModuleNode, vtkPolyData * markupsPointsPolyData);
   void UpdateOutputCurveModel(vtkMRMLMarkupsToModelNode* markupsToModelModuleNode);
   void UpdateOutputModel(vtkMRMLMarkupsToModelNode* moduleNode);
 

@@ -479,6 +479,9 @@
      <layout class="QVBoxLayout" name="verticalLayout_39">
       <item>
        <widget class="QCheckBox" name="CleanMarkupsCheckBox">
+        <property name="toolTip">
+         <string extracomment="It will merge duplicate  points.  Duplicate points are the ones closer than tolerance distance. The tolerance distance is 1% diagonal size bounding box of total points."/>
+        </property>
         <property name="text">
          <string>Clean markups</string>
         </property>
@@ -604,7 +607,7 @@
               </rect>
              </property>
              <property name="text">
-              <string>None</string>
+              <string>Linear</string>
              </property>
              <property name="checked">
               <bool>true</bool>
