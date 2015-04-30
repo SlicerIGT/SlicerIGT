@@ -310,12 +310,7 @@ void qSlicerPivotCalibrationModuleWidget::onSpinStop()
   Q_D(qSlicerPivotCalibrationModuleWidget);
   
   d->logic()->SetRecordingState(false);
-  d->logic()->ComputeSpinCalibration();
-
-  if ( d->snapCheckBox->checkState() == Qt::Checked )
-  {
-    d->logic()->SnapRotationRightAngle();
-  }
+  d->logic()->ComputeSpinCalibration( d->snapCheckBox->checkState() == Qt::Checked );
 
   vtkMRMLLinearTransformNode* outputTransform = vtkMRMLLinearTransformNode::SafeDownCast(d->OutputComboBox->currentNode());
 #ifdef TRANSFORM_NODE_MATRIX_COPY_REQUIRED
