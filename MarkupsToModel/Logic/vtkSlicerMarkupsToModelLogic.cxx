@@ -318,7 +318,7 @@ void vtkSlicerMarkupsToModelLogic::UpdateOutputCloseSurfaceModel(vtkMRMLMarkupsT
 
   if(numberOfMarkups< MINIMUM_MARKUPS_CLOSED_SURFACE_NUMBER)
   {
-    vtkWarningMacro("Not enough fiducials for closed surface");
+    //vtkWarningMacro("Not enough fiducials for closed surface");
     if(markupsToModelModuleNode->GetModelNode()!=NULL)
     {
       markupsToModelModuleNode->GetModelNode()->GetPolyData()->Reset();
@@ -593,7 +593,6 @@ void vtkSlicerMarkupsToModelLogic::UpdateOutputCurveModel(vtkMRMLMarkupsToModelN
     this->GetMRMLScene()->AddNode( modelNode );
     modelNode->SetName( markupsToModelModuleNode->GetModelNodeName().c_str() );
     //markupsToModelModuleNode->SetModelNode(modelNode);
-
 
     vtkSmartPointer< vtkMRMLModelDisplayNode > displayNode = vtkSmartPointer< vtkMRMLModelDisplayNode >::New();
     this->GetMRMLScene()->AddNode( displayNode );

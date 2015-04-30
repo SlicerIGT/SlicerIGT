@@ -177,6 +177,9 @@ void qSlicerMarkupsToModelModuleWidget::setup()
   connect( d->ButterflySubdivisionCheckBox, SIGNAL( toggled( bool ) ), this, SLOT( onButterflySubdivisionToogled( bool ) ) );
 
   connect( d->CleanMarkupsCheckBox, SIGNAL( toggled( bool ) ), this, SLOT( onCleanMarkupsToogled( bool ) ) );
+
+  d->CleanMarkupsCheckBox->setToolTip(QString("It will merge duplicate  points.  Duplicate points are the ones closer than tolerance distance. The tolerance distance is 1% diagonal size bounding box of total points."));
+  
   connect( d->ClosedSurfaceRadioButton, SIGNAL( toggled( bool ) ), this, SLOT( onModeGroupBoxClicked( bool ) ) );
   connect( d->CurveRadioButton, SIGNAL( toggled( bool ) ), this, SLOT( onModeGroupBoxClicked( bool ) ) );
   connect( d->DelaunayAlphaDoubleSpinBox, SIGNAL( valueChanged( double ) ), this, SLOT( onDelaunayAlphaDoubleChanged( double ) ) );
@@ -239,6 +242,16 @@ void qSlicerMarkupsToModelModuleWidget::enter()
     qCritical( "Selected node not a valid module node" );
     return;
   }
+
+  this->qvtkConnect( markupsToModelModuleNode, vtkMRMLMarkupsToModelNode::InputDataModifiedEvent, this, SLOT( updateFromMRMLNode() ) );
+
+  vtkMRMLMarkupsFiducialNode* markupsNode = vtkMRMLMarkupsFiducialNode::SafeDownCast( d->MarkupsNodeComboBox->currentNode() );
+  d->logic()->SetMarkupsNode( markupsNode, markupsToModelModuleNode );
+  if( markupsToModelModuleNode->GetAutoUpdateOutput() )
+  {
+    d->logic()->UpdateOutputModel( markupsToModelModuleNode );
+  }
+
   d->logic()->UpdateSelectionNode( markupsToModelModuleNode );
 
   this->Superclass::enter();
