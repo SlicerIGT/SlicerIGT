@@ -114,19 +114,19 @@ void vtkSlicerMarkupsToModelLogic::OnMRMLSceneEndImport()
 
       if( markupsToModelNode->GetModelNodeName().compare("")!=0 && markupsToModelNode->GetModelNode()==NULL)
       {
-        vtkCollection* models = this->GetMRMLScene()->GetNodesByClass( "vtkMRMLModelNode" );
-        vtkCollectionIterator* modelNodeIt = vtkCollectionIterator::New();
-        modelNodeIt->SetCollection( models );
-        for ( modelNodeIt->InitTraversal(); ! modelNodeIt->IsDoneWithTraversal(); modelNodeIt->GoToNextItem() )
-        {
-          vtkMRMLModelNode* modelNodeItScene = vtkMRMLModelNode::SafeDownCast( modelNodeIt->GetCurrentObject() );
-          if(modelNodeItScene!=NULL)
-          {
-            vtkWarningMacro( "PERRAS" << modelNodeItScene->GetID());
-          }
-        }
-        modelNodeIt->Delete();
-        models->Delete();
+        //vtkCollection* models = this->GetMRMLScene()->GetNodesByClass( "vtkMRMLModelNode" );
+        //vtkCollectionIterator* modelNodeIt = vtkCollectionIterator::New();
+        //modelNodeIt->SetCollection( models );
+        //for ( modelNodeIt->InitTraversal(); ! modelNodeIt->IsDoneWithTraversal(); modelNodeIt->GoToNextItem() )
+        //{
+        //  vtkMRMLModelNode* modelNodeItScene = vtkMRMLModelNode::SafeDownCast( modelNodeIt->GetCurrentObject() );
+        //  if(modelNodeItScene!=NULL)
+        //  {
+        //    vtkWarningMacro( "PERRAS" << modelNodeItScene->GetID());
+        //  }
+        //}
+        //modelNodeIt->Delete();
+        //models->Delete();
         vtkMRMLNode* modelNodeFromScene = this->GetMRMLScene()->GetNodeByID(markupsToModelNode->GetModelNodeID());
         if(modelNodeFromScene!=NULL)
         {

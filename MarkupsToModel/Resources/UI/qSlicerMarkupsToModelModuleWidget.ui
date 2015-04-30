@@ -594,7 +594,7 @@
             <property name="alignment">
              <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
             </property>
-            <widget class="QRadioButton" name="NoneInterpolationButton">
+            <widget class="QRadioButton" name="LinearInterpolationButton">
              <property name="geometry">
               <rect>
                <x>10</x>
@@ -621,19 +621,6 @@
              </property>
              <property name="text">
               <string>Cardinal Spline</string>
-             </property>
-            </widget>
-            <widget class="QRadioButton" name="HermiteInterpolationRadioButton">
-             <property name="geometry">
-              <rect>
-               <x>10</x>
-               <y>110</y>
-               <width>91</width>
-               <height>17</height>
-              </rect>
-             </property>
-             <property name="text">
-              <string>Hermite Spline</string>
              </property>
             </widget>
             <widget class="QRadioButton" name="KochanekInterpolationRadioButton">
