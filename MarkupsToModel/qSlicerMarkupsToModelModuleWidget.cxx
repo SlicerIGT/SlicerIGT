@@ -280,12 +280,6 @@ void qSlicerMarkupsToModelModuleWidget::onSceneImportedEvent()
   //this->updateWidget();
 }
 
-
-
-
-
-
-
 //-----------------------------------------------------------------------------
 void qSlicerMarkupsToModelModuleWidget::updateWidget()
 {
@@ -365,7 +359,7 @@ void qSlicerMarkupsToModelModuleWidget::updateFromMRMLNode()
     return;
   }
   d->MarkupsNodeComboBox->setEnabled( true );
-  
+
   if ( /*d->ModelNodeComboBox->currentNode() == 0 &&*/ MarkupsToModelNode->GetMarkupsNode() != NULL )
   {
     d->MarkupsNodeComboBox->setCurrentNodeID( MarkupsToModelNode->GetMarkupsNode()->GetID() );
@@ -374,16 +368,6 @@ void qSlicerMarkupsToModelModuleWidget::updateFromMRMLNode()
   {
     d->MarkupsNodeComboBox->setCurrentNodeIndex( 0 );
   }
-
-  switch( MarkupsToModelNode->GetModelType() )
-  {
-  case vtkMRMLMarkupsToModelNode::ClosedSurface: d->ClosedSurfaceRadioButton->setChecked( 1 ); break;
-  case vtkMRMLMarkupsToModelNode::Curve: d->CurveRadioButton->setChecked( 1 ); break;
-  }
-  d->CleanMarkupsCheckBox->setChecked( MarkupsToModelNode->GetCleanMarkups() );
-  d->ButterflySubdivisionCheckBox->setChecked( MarkupsToModelNode->GetButterflySubdivision() );
-  d->DelaunayAlphaDoubleSpinBox->setValue( MarkupsToModelNode->GetDelaunayAlpha() );
-
 
   if ( /*d->ModelNodeComboBox->currentNode() == 0 && */MarkupsToModelNode->GetModelNode() != NULL )
   {
@@ -404,6 +388,32 @@ void qSlicerMarkupsToModelModuleWidget::updateFromMRMLNode()
   d->OutputColorPickerButton->setColor( nodeOutputColor );
   d->OutputVisiblityButton->setChecked( MarkupsToModelNode->GetOutputVisibility() );
   d->OutputIntersectionVisibilityCheckBox->setChecked( MarkupsToModelNode->GetOutputIntersectionVisibility() );
+
+  d->CleanMarkupsCheckBox->setChecked( MarkupsToModelNode->GetCleanMarkups() );
+
+  switch( MarkupsToModelNode->GetModelType() )
+  {
+  case vtkMRMLMarkupsToModelNode::ClosedSurface: 
+    d->ClosedSurfaceRadioButton->setChecked( 1 ); break;
+    d->ButterflySubdivisionCheckBox->setChecked( MarkupsToModelNode->GetButterflySubdivision() );
+    d->DelaunayAlphaDoubleSpinBox->setValue( MarkupsToModelNode->GetDelaunayAlpha() );
+
+  case vtkMRMLMarkupsToModelNode::Curve: d->CurveRadioButton->setChecked( 1 );
+    d->TubeRadiusDoubleSpinBox->setValue(MarkupsToModelNode->GetTubeRadius());
+    switch( MarkupsToModelNode->GetInterpolationType() )
+    {
+    case vtkMRMLMarkupsToModelNode::Linear: d->LinearInterpolationButton->setChecked( 1 ); break;
+    case vtkMRMLMarkupsToModelNode::CardinalSpline: d->CardinalInterpolationRadioButton->setChecked( 1 ); break;
+    case vtkMRMLMarkupsToModelNode::KochanekSpline: 
+      d->KochanekInterpolationRadioButton->setChecked( 1 ); 
+      d->KochanekBiasDoubleSpinBox->setValue(MarkupsToModelNode->GetKochanekBias());
+      d->KochanekContinuityDoubleSpinBox->setValue(MarkupsToModelNode->GetKochanekContinuity());
+      d->KochanekTensionDoubleSpinBox->setValue(MarkupsToModelNode->GetKochanekTension());
+      break;
+    }
+    break;
+  }
+
   this->updateWidget();
 }
 
