@@ -183,7 +183,7 @@ void vtkSlicerPivotCalibrationLogic::ComputePivotCalibration()
 
 
 //---------------------------------------------------------------------------
-void vtkSlicerPivotCalibrationLogic::ComputeSpinCalibration()
+void vtkSlicerPivotCalibrationLogic::ComputeSpinCalibration( bool snapRotation )
 {
 
   if ( this->ToolToReferenceMatrices.size() == 0 )
@@ -191,115 +191,92 @@ void vtkSlicerPivotCalibrationLogic::ComputeSpinCalibration()
     return;
   }
 
-  // Find the plane of best fit for the points
-  vnl_matrix<double> ToolPoints_Reference( this->ToolToReferenceMatrices.size(), 3, 0.0 );
-  vnl_vector<double> meanToolPoint_Reference( 3, 0.0 );
+  // Setup our system to find the axis of rotation
+  unsigned int rows = 3, columns = 3;
 
-  for ( int i = 0; i < this->ToolToReferenceMatrices.size(); i++ )
+  vnl_matrix<double> A( rows, columns, 0), I( 3, 3, 0 ), RI( rows, columns );
+  I.set_identity();
+
+  std::vector< vtkMatrix4x4* >::const_iterator it, previt = this->ToolToReferenceMatrices.end();
+  for( it = this->ToolToReferenceMatrices.begin(); it != this->ToolToReferenceMatrices.end(); it++ )
   {
-    ToolPoints_Reference.put( i, 0, this->ToolToReferenceMatrices.at( i )->GetElement( 0, 3 ) );
-    ToolPoints_Reference.put( i, 1, this->ToolToReferenceMatrices.at( i )->GetElement( 1, 3 ) );
-    ToolPoints_Reference.put( i, 2, this->ToolToReferenceMatrices.at( i )->GetElement( 2, 3 ) );
-
-    meanToolPoint_Reference.put( 0, meanToolPoint_Reference.get( 0 ) + this->ToolToReferenceMatrices.at( i )->GetElement( 0, 3 ) );
-    meanToolPoint_Reference.put( 1, meanToolPoint_Reference.get( 1 ) + this->ToolToReferenceMatrices.at( i )->GetElement( 1, 3 ) );
-    meanToolPoint_Reference.put( 2, meanToolPoint_Reference.get( 2 ) + this->ToolToReferenceMatrices.at( i )->GetElement( 2, 3 ) );
-  }
-
-  meanToolPoint_Reference.put( 0, meanToolPoint_Reference.get( 0 ) / this->ToolToReferenceMatrices.size() );
-  meanToolPoint_Reference.put( 1, meanToolPoint_Reference.get( 1 ) / this->ToolToReferenceMatrices.size() );
-  meanToolPoint_Reference.put( 2, meanToolPoint_Reference.get( 2 ) / this->ToolToReferenceMatrices.size() );
-
-  vnl_matrix<double> ToolCovariance_Reference = ToolPoints_Reference.transpose() * ToolPoints_Reference / this->ToolToReferenceMatrices.size() - outer_product( meanToolPoint_Reference, meanToolPoint_Reference );
-  
-  vnl_matrix<double> ToolCovarianceEigenvectors_Reference( 3, 3, 0.0 );
-  vnl_vector<double> ToolCovarianceEigenvalues_Reference( 3, 0.0 );
-  vnl_symmetric_eigensystem_compute( ToolCovariance_Reference, ToolCovarianceEigenvectors_Reference, ToolCovarianceEigenvalues_Reference );
-  // Note: eigenvectors are ordered in increasing eigenvalue ( 0 = smallest, end = biggest )
-
-  vnl_vector<double> basisVector1_Projection = ToolCovarianceEigenvectors_Reference.get_column( 1 );
-  vnl_vector<double> basisVector2_Projection = ToolCovarianceEigenvectors_Reference.get_column( 2 );
-
-  // Project positions onto plane
-  vnl_matrix<double> ToolCircleMatrix_Projection( ToolPoints_Reference.rows(), 3, 0.0 );
-  vnl_vector<double> ToolCircleVector_Projection( ToolPoints_Reference.rows(), 0.0 );
-
-  for ( int i = 0; i < ToolPoints_Reference.rows(); i++ )
-  {
-    vnl_vector<double> currentToolPoint_Reference = ToolPoints_Reference.get_row( i ) - meanToolPoint_Reference;
-    vnl_vector<double> currentToolPoint_Projection( 2, 0.0 );
-    currentToolPoint_Projection.put( 0, dot_product( currentToolPoint_Reference, basisVector1_Projection ) );
-    currentToolPoint_Projection.put( 1, dot_product( currentToolPoint_Reference, basisVector2_Projection ) );
-
-    ToolCircleMatrix_Projection.put( i, 0, 2 * currentToolPoint_Reference.get( 0 ) );
-    ToolCircleMatrix_Projection.put( i, 1, 2 * currentToolPoint_Reference.get( 1 ) );
-    ToolCircleMatrix_Projection.put( i, 2, 1 );
-
-    ToolCircleVector_Projection.put( i, currentToolPoint_Projection.get( 0 ) * currentToolPoint_Projection.get( 0 ) + currentToolPoint_Projection.get( 1 ) * currentToolPoint_Projection.get( 1 ) );
-  }
-
-  // Solve the system
-  vnl_svd<double> ToolCircleSolver_Reference( ToolCircleMatrix_Projection );
-  vnl_vector<double> ToolRotationCentre_Projection = ToolCircleSolver_Reference.solve( ToolCircleVector_Projection );
-
-  // This will compute the rms of the square roots of the residual vector
-  // This is a better error metrics because the residuals are the sums/differences of squared quantities
-  this->SpinRMSE = sqrt( ( ToolCircleMatrix_Projection * ToolRotationCentre_Projection - ToolCircleVector_Projection ).one_norm() / ToolCircleVector_Projection.size() );
-
-  // Unproject the centre
-  vnl_vector<double> ToolRotationCentre_Reference = ToolRotationCentre_Projection.get( 0 ) * basisVector1_Projection + ToolRotationCentre_Projection.get( 1 ) * basisVector2_Projection + meanToolPoint_Reference;
-  
-  // Put into the ToolTip coordinate system
-  double arrayToolRotationCentre_Reference[ 4 ] = { ToolRotationCentre_Reference[ 0 ], ToolRotationCentre_Reference[ 1 ], ToolRotationCentre_Reference[ 2 ], 1 };
-  double arrayToolRotationCentre_ToolTip[ 4 ] = { 0, 0, 0, 1 };
-
-  vtkSmartPointer< vtkMatrix4x4 > ReferenceToToolTipMatrix = vtkSmartPointer< vtkMatrix4x4 >::New();
-  vtkSmartPointer< vtkMatrix4x4 > ReferenceToToolMatrix = vtkSmartPointer< vtkMatrix4x4 >::New();
-  vtkSmartPointer< vtkMatrix4x4 > ToolToToolTipMatrix = vtkSmartPointer< vtkMatrix4x4 >::New();
-  this->GetToolTipToToolTranslation( ToolToToolTipMatrix );
-  ToolToToolTipMatrix->Invert();
-
-  for ( int i = 0; i < this->ToolToReferenceMatrices.size(); i++ )
-  {
-    ReferenceToToolMatrix->DeepCopy( this->ToolToReferenceMatrices.at( i ) );
-    ReferenceToToolMatrix->Invert();
-    vtkMatrix4x4::Multiply4x4( ToolToToolTipMatrix, ReferenceToToolMatrix, ReferenceToToolTipMatrix );
+    if ( previt == this->ToolToReferenceMatrices.end() )
+    {
+      previt = it;
+      continue; // No comparison to make for the first matrix
+    }
     
-    double currentArrayToolRotationCentre_ToolTip[ 4 ] = { 0, 0, 0, 1 };
-    ReferenceToToolTipMatrix->MultiplyPoint( arrayToolRotationCentre_Reference, currentArrayToolRotationCentre_ToolTip );
+    vtkSmartPointer< vtkMatrix4x4 > itinverse = vtkSmartPointer< vtkMatrix4x4 >::New();
+    vtkMatrix4x4::Invert( (*it), itinverse );
 
-    arrayToolRotationCentre_ToolTip[ 0 ] += currentArrayToolRotationCentre_ToolTip[ 0 ];
-    arrayToolRotationCentre_ToolTip[ 1 ] += currentArrayToolRotationCentre_ToolTip[ 1 ];
-    arrayToolRotationCentre_ToolTip[ 2 ] += currentArrayToolRotationCentre_ToolTip[ 2 ];
-    arrayToolRotationCentre_ToolTip[ 3 ] += currentArrayToolRotationCentre_ToolTip[ 3 ];
+    vtkSmartPointer< vtkMatrix4x4 > instRotation = vtkSmartPointer< vtkMatrix4x4 >::New();
+    vtkMatrix4x4::Multiply4x4( itinverse, (*previt), instRotation );
+
+    for (int i = 0; i < 3; i++)
+    {
+      for (int j = 0; j < 3; j++ )
+      {
+        RI(i, j) = instRotation->GetElement(i, j);
+      }
+    }
+
+    RI = RI - I;
+    A = A + RI.transpose() * RI;
+
+    previt = it;
   }
 
-  arrayToolRotationCentre_ToolTip[ 0 ] /= this->ToolToReferenceMatrices.size();
-  arrayToolRotationCentre_ToolTip[ 1 ] /= this->ToolToReferenceMatrices.size();
-  arrayToolRotationCentre_ToolTip[ 2 ] /= this->ToolToReferenceMatrices.size();
-  arrayToolRotationCentre_ToolTip[ 3 ] /= this->ToolToReferenceMatrices.size();
+  // Find the eigenvector associated with the samllest eigenvalue
+  // This is the best axis of rotation over all instantaneous rotations
+  vnl_matrix<double> eigenvectors( columns, columns, 0 );
+  vnl_vector<double> eigenvalues( columns, 0 );
+  vnl_symmetric_eigensystem_compute( A, eigenvectors, eigenvalues );
+  // Note: eigenvectors are ordered in increasing eigenvalue ( 0 = smallest, end = biggest )
+  vnl_vector<double> x( columns, 0 );
+  x( 0 ) = eigenvectors( 0, 0 );
+  x( 1 ) = eigenvectors( 1, 0 );
+  x( 2 ) = eigenvectors( 2, 0 );
+  x.normalize();
 
-  // This is the shaft point in the ToolTip coordinate frame
-  vnl_vector<double> ToolRotationCentre_ToolTip( 3, 0.0 );
-  ToolRotationCentre_ToolTip.put( 0, arrayToolRotationCentre_ToolTip[ 0 ] );
-  ToolRotationCentre_ToolTip.put( 1, arrayToolRotationCentre_ToolTip[ 1 ] );
-  ToolRotationCentre_ToolTip.put( 2, arrayToolRotationCentre_ToolTip[ 2 ] );
+  // Snap the direction vector to be exactly aligned with one of the coordinate axes
+  // This is if the sensor is known to be parallel to one of the axis, just not which one
+  if ( snapRotation )
+  {
+    int axis = element_product( x, x ).arg_max();
+    x.fill( 0 );
+    x.put( axis, 1 ); // Doesn't matter the direction, will be sorted out in the next step
+  }
 
-  vnl_vector<double> yPoint_ToolTip( 3, 0.0 );
-  yPoint_ToolTip.put( 1, 1 ); // Put the y part in
-  yPoint_ToolTip = yPoint_ToolTip - dot_product( yPoint_ToolTip, ToolRotationCentre_ToolTip ) * ToolRotationCentre_ToolTip;
-  yPoint_ToolTip.normalize();
+  // Make sure it is in the correct direction (opposite the StylusTipToStylus translation)
+  vnl_vector<double> toolTipToToolTranslation( 3 );
+  toolTipToToolTranslation( 0 ) = this->ToolTipToToolMatrix->GetElement( 0, 3 );
+  toolTipToToolTranslation( 1 ) = this->ToolTipToToolMatrix->GetElement( 1, 3 );
+  toolTipToToolTranslation( 2 ) = this->ToolTipToToolMatrix->GetElement( 2, 3 );
+  if ( dot_product( x, toolTipToToolTranslation ) > 0 )
+  {
+    x = x * ( -1 );
+  }
+
+  //set the RMSE
+  this->SpinRMSE = ( A * x ).rms();
+
+
+  // Do the registration find the appropriate rotation
+  vnl_vector<double> y( 3, 0.0 );
+  y.put( 1, 1 ); // Put the y part in
+  y = y - dot_product( y, x ) * x;
+  y.normalize();
 
   // Register X,Y,O points in the two coordinate frames (only spherical registration - since pure rotation)
   vnl_matrix<double> ToolTipPoints( 3, 3, 0.0 );
   vnl_matrix<double> XShaftPoints( 3, 3, 0.0 );
 
-  ToolTipPoints.put( 0, 0, ToolRotationCentre_ToolTip.get( 0 ) );
-  ToolTipPoints.put( 0, 1, ToolRotationCentre_ToolTip.get( 1 ) );
-  ToolTipPoints.put( 0, 2, ToolRotationCentre_ToolTip.get( 2 ) );
-  ToolTipPoints.put( 1, 0, yPoint_ToolTip.get( 0 ) );
-  ToolTipPoints.put( 1, 1, yPoint_ToolTip.get( 1 ) );
-  ToolTipPoints.put( 1, 2, yPoint_ToolTip.get( 2 ) );
+  ToolTipPoints.put( 0, 0, x.get( 0 ) );
+  ToolTipPoints.put( 0, 1, x.get( 1 ) );
+  ToolTipPoints.put( 0, 2, x.get( 2 ) );
+  ToolTipPoints.put( 1, 0, y.get( 0 ) );
+  ToolTipPoints.put( 1, 1, y.get( 1 ) );
+  ToolTipPoints.put( 1, 2, y.get( 2 ) );
   ToolTipPoints.put( 2, 0, 0 );
   ToolTipPoints.put( 2, 1, 0 );
   ToolTipPoints.put( 2, 2, 0 );
@@ -331,67 +308,17 @@ void vtkSlicerPivotCalibrationLogic::ComputeSpinCalibration()
     Rotation = V * U.transpose();
   }
 
-  
-  this->ToolTipToToolMatrix->SetElement( 0, 0, Rotation[ 0 ][ 0 ] );
-  this->ToolTipToToolMatrix->SetElement( 0, 1, Rotation[ 0 ][ 1 ] );
-  this->ToolTipToToolMatrix->SetElement( 0, 2, Rotation[ 0 ][ 2 ] );
-  this->ToolTipToToolMatrix->SetElement( 1, 0, Rotation[ 1 ][ 0 ] );
-  this->ToolTipToToolMatrix->SetElement( 1, 1, Rotation[ 1 ][ 1 ] );
-  this->ToolTipToToolMatrix->SetElement( 1, 2, Rotation[ 1 ][ 2 ] );
-  this->ToolTipToToolMatrix->SetElement( 2, 0, Rotation[ 2 ][ 0 ] );
-  this->ToolTipToToolMatrix->SetElement( 2, 1, Rotation[ 2 ][ 1 ] );
-  this->ToolTipToToolMatrix->SetElement( 2, 2, Rotation[ 2 ][ 2 ] );
-}
-
-
-//---------------------------------------------------------------------------
-void vtkSlicerPivotCalibrationLogic::SnapRotationRightAngle()
-{
-  // The idea is to find the axis-angle representation
-  // Then find the closest coordinate axis to the rotation
-  // Then round the angle to the nearest multiple of 90 degrees
-  vtkSmartPointer< vtkTransform > XShaftToToolTipTransform = vtkSmartPointer< vtkTransform >::New();
-  XShaftToToolTipTransform->SetMatrix( this->ToolTipToToolMatrix );
-
-  // Get the axis-angl representation
-  double XShaftToToolTipOrientationWXYZ[ 4 ] = { 0.0, 0.0, 0.0, 0.0 };
-  XShaftToToolTipTransform->GetOrientationWXYZ( XShaftToToolTipOrientationWXYZ );
-
-  // Calculate the right-angle axis vector
-  vnl_vector<double> XShaftToToolTipAxisVector( 3, 0.0 );
-  XShaftToToolTipAxisVector.put( 0, XShaftToToolTipOrientationWXYZ[ 1 ] );
-  XShaftToToolTipAxisVector.put( 1, XShaftToToolTipOrientationWXYZ[ 2 ] );
-  XShaftToToolTipAxisVector.put( 2, XShaftToToolTipOrientationWXYZ[ 3 ] );
-  int maxAbsAxisVectorLocation = element_product( XShaftToToolTipAxisVector, XShaftToToolTipAxisVector ).arg_max();
-
-  vnl_vector<double> XShaftToToolTipSnapAxisVector( 3, 0.0 );
-  XShaftToToolTipSnapAxisVector.put( maxAbsAxisVectorLocation, XShaftToToolTipAxisVector.get( maxAbsAxisVectorLocation ) );
-  XShaftToToolTipSnapAxisVector.normalize();
-
-  double XShaftToToolTipSnapAxisArray[ 3 ] = { 0.0, 0.0, 0.0 };
-  XShaftToToolTipSnapAxisArray[ 0 ] = XShaftToToolTipSnapAxisVector.get( 0 );
-  XShaftToToolTipSnapAxisArray[ 1 ] = XShaftToToolTipSnapAxisVector.get( 1 );
-  XShaftToToolTipSnapAxisArray[ 2 ] = XShaftToToolTipSnapAxisVector.get( 2 );
-
-  // Calculate the 90 degree rotation
-  double XShaftToToolTipSnapAngle = 90 * floor( XShaftToToolTipOrientationWXYZ[ 0 ] / 90 + 0.5 ); // Trick for raounding without round function
-
-  // Put it back into a matrix
-  vtkSmartPointer< vtkTransform > XShaftToToolTipSnapTransform = vtkSmartPointer< vtkTransform >::New();
-  XShaftToToolTipSnapTransform->RotateWXYZ( XShaftToToolTipSnapAngle, XShaftToToolTipSnapAxisArray );
-  vtkSmartPointer< vtkMatrix4x4 > XShaftToToolTipSnapMatrix = XShaftToToolTipSnapTransform->GetMatrix();
-
-  this->ToolTipToToolMatrix->SetElement( 0, 0, XShaftToToolTipSnapMatrix->GetElement( 0, 0 ) );
-  this->ToolTipToToolMatrix->SetElement( 0, 1, XShaftToToolTipSnapMatrix->GetElement( 0, 1 ) );
-  this->ToolTipToToolMatrix->SetElement( 0, 2, XShaftToToolTipSnapMatrix->GetElement( 0, 2 ) );
-  this->ToolTipToToolMatrix->SetElement( 1, 0, XShaftToToolTipSnapMatrix->GetElement( 1, 0 ) );
-  this->ToolTipToToolMatrix->SetElement( 1, 1, XShaftToToolTipSnapMatrix->GetElement( 1, 1 ) );
-  this->ToolTipToToolMatrix->SetElement( 1, 2, XShaftToToolTipSnapMatrix->GetElement( 1, 2 ) );
-  this->ToolTipToToolMatrix->SetElement( 2, 0, XShaftToToolTipSnapMatrix->GetElement( 2, 0 ) );
-  this->ToolTipToToolMatrix->SetElement( 2, 1, XShaftToToolTipSnapMatrix->GetElement( 2, 1 ) );
-  this->ToolTipToToolMatrix->SetElement( 2, 2, XShaftToToolTipSnapMatrix->GetElement( 2, 2 ) );
+  // Set the elements of the output matrix
+  for (int i = 0; i < 3; i++)
+  {
+    for (int j = 0; j < 3; j++ )
+    {
+      this->ToolTipToToolMatrix->SetElement( i, j, Rotation[ i ][ j ] );
+    }
+  }
 
 }
+
 
 
 //-----------------------------------------------------------------------------

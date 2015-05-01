@@ -54,9 +54,7 @@ public:
   void AddToolToReferenceMatrix( vtkMatrix4x4* );
 
   void ComputePivotCalibration();
-  void ComputeSpinCalibration(); //Note: The neede orientation protocol assumes that the shaft of the tool lies along the positive x-axis
-
-  void SnapRotationRightAngle();
+  void ComputeSpinCalibration( bool snapRotation = false ); //Note: The neede orientation protocol assumes that the shaft of the tool lies along the positive x-axis
 
   // Getters for the output
   void GetToolTipToToolTranslation( vtkMatrix4x4* );
