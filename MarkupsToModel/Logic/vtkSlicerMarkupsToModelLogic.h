@@ -41,8 +41,8 @@ class vtkMRMLMarkupsFiducialNode;
 class vtkMRMLMarkupsToModelNode;
 class vtkPolyData;
 
-static const int MINIMUM_MARKUPS_NUMBER = 4;
-static const int MINIMUM_MARKUPS_CLOSED_SURFACE_NUMBER = 10;
+static const int MINIMUM_MARKUPS_NUMBER = 3;
+static const int MINIMUM_MARKUPS_CLOSED_SURFACE_NUMBER = 4;
 static const double CLEAN_POLYDATA_TOLERANCE=0.01;
 
 /// \ingroup Slicer_QtModules_ExtensionTemplate
