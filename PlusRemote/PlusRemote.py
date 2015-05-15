@@ -973,7 +973,8 @@ class PlusRemoteWidget(ScriptedLoadableModuleWidget):
     if command.GetResponseMessage():
       statusText = statusText + command.GetResponseMessage()
     else:
-      statusText = statusText + command.GetResponseText()
+      if command.GetResponseText():
+        statusText = statusText + command.GetResponseText()
     self.replyBox.setPlainText(statusText)
 
   def onGetCaptureDeviceCommandResponseReceived(self, command, q):
