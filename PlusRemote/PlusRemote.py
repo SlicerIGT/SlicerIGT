@@ -1,6 +1,8 @@
 import os.path, datetime
 from __main__ import vtk, qt, ctk, slicer
 from slicer.ScriptedLoadableModule import *
+import logging
+
 #
 # PlusRemote
 #
@@ -955,7 +957,7 @@ class PlusRemoteWidget(ScriptedLoadableModuleWidget):
     self.logic.reconstructRecorded(self.linkInputSelector.currentNode().GetID(), self.volumeReconstructorIDSelector.currentText, self.lastScoutRecordingOutputFilename, outputSpacing, self.onScoutVolumeReconstructed, self.scoutVolumeFilename, self.scoutVolumeNodeName)
 
   def onRequestVolumeReconstructionSnapshot(self, stopFlag = ""):
-    self.logic.getVolumeReconstructionSnapshot(self.linkInputSelector.currentNode().GetID(), self.volumeReconstructorIDSelector.currentText, self.scoutScanRecordingLineEdit.text, self.liveOutputVolumeDeviceBox.text, self.applyHoleFillingForSnapshot, self.onSnapshotAcquired)
+    self.logic.getVolumeReconstructionSnapshot(self.linkInputSelector.currentNode().GetID(), self.volumeReconstructorIDSelector.currentText, self.liveVolumeToReconstructFilename.text, self.liveOutputVolumeDeviceBox.text, self.applyHoleFillingForSnapshot, self.onSnapshotAcquired)
     self.liveReconstructStatus.setIcon(qt.QMessageBox.Information)
     self.liveReconstructStatus.setToolTip("Snapshot")
 
@@ -972,9 +974,8 @@ class PlusRemoteWidget(ScriptedLoadableModuleWidget):
     statusText = "Command {0} [{1}]: {2}\n".format(command.GetCommandName(), command.GetID(), command.StatusToString(command.GetStatus()))
     if command.GetResponseMessage():
       statusText = statusText + command.GetResponseMessage()
-    else:
-      if command.GetResponseText():
-        statusText = statusText + command.GetResponseText()
+    elif command.GetResponseText():
+      statusText = statusText + command.GetResponseText()
     self.replyBox.setPlainText(statusText)
 
   def onGetCaptureDeviceCommandResponseReceived(self, command, q):
@@ -1069,6 +1070,12 @@ class PlusRemoteWidget(ScriptedLoadableModuleWidget):
     self.offlineReconstructStatus.setIcon(qt.QMessageBox.Information)
     self.offlineReconstructStatus.setToolTip(command.GetResponseMessage())
       
+    # Order of OpenIGTLink message receiving and processing is not guaranteed to be the same
+    # therefore we wait a bit to make sure the image message is processed as well
+    qt.QTimer.singleShot(100, self.onVolumeReconstructedFinalize)
+
+  def onVolumeReconstructedFinalize(self):
+    
     if self.showOfflineReconstructionResultOnCompletionCheckBox.isChecked():
       self.showInSliceViewers(self.getOfflineVolumeRecNode(), ["Yellow", "Green"])
       applicationLogic = slicer.app.applicationLogic()
@@ -1093,19 +1100,20 @@ class PlusRemoteWidget(ScriptedLoadableModuleWidget):
       self.recordAndReconstructStatus.setToolTip(command.GetResponseMessage())
       return
 
-    #Create and initialize ROI after scout scan because low resolution scout scan is used to set a smaller ROI for the live high resolution reconstruction
-    self.onRoiInitialization()
     self.recordAndReconstructStatus.setIcon(qt.QMessageBox.Information)
     scoutScanReconstructFileName = os.path.basename(command.GetResponseMessage())
     self.recordAndReconstructStatus.setToolTip("Scout scan completed, file saved as "+ scoutScanReconstructFileName)
 
+    # Order of OpenIGTLink message receiving and processing is not guaranteed to be the same
+    # therefore we wait a bit to make sure the image message is processed as well
+    qt.QTimer.singleShot(100, self.onScoutVolumeReconstructedFinalize)
+
+  def onScoutVolumeReconstructedFinalize(self):
+    #Create and initialize ROI after scout scan because low resolution scout scan is used to set a smaller ROI for the live high resolution reconstruction
+    self.onRoiInitialization()
+
     if self.showScoutReconstructionResultOnCompletionCheckBox.isChecked():
       scoutScanVolumeNode = self.getScoutVolumeNode()
-#       selectionNode = slicer.app.applicationLogic().GetSelectionNode()
-#       selectionNode.SetReferenceActiveVolumeID(self.scoutScanVolumeNode.GetID())
-#       applicationLogic = slicer.app.applicationLogic()
-#       applicationLogic.PropagateVolumeSelection(0)
-#       applicationLogic.FitSliceToAll()
 
       scoutVolumeDisplay = scoutScanVolumeNode.GetDisplayNode()
       self.scoutWindow = scoutVolumeDisplay.GetWindow()
@@ -1115,9 +1123,6 @@ class PlusRemoteWidget(ScriptedLoadableModuleWidget):
       applicationLogic = slicer.app.applicationLogic()
       applicationLogic.FitSliceToAll()
 
-      #Red view: Image_Reference
-      #redLogic = slicer.app.layoutManager().sliceWidget('Red').sliceLogic()
-      #redLogic.GetSliceCompositeNode().SetBackgroundVolumeID(slicer.util.getNode('Image_Reference').GetID())
       #3D view
       self.showVolumeRendering(scoutScanVolumeNode)
 
@@ -1128,6 +1133,12 @@ class PlusRemoteWidget(ScriptedLoadableModuleWidget):
       # live volume reconstruction is not active
       return
     
+
+    # Order of OpenIGTLink message receiving and processing is not guaranteed to be the same
+    # therefore we wait a bit to make sure the image message is processed as well
+    qt.QTimer.singleShot(100, self.onSnapshotAcquiredFinalize)
+
+  def onSnapshotAcquiredFinalize(self):
     if self.showLiveReconstructionResultOnCompletionCheckBox.isChecked():
       self.showInSliceViewers(self.getLiveVolumeRecNode(), ["Yellow", "Green"])
       self.showVolumeRendering(self.getLiveVolumeRecNode())
@@ -1139,7 +1150,7 @@ class PlusRemoteWidget(ScriptedLoadableModuleWidget):
 
   def onVolumeLiveReconstructed(self, command, q):
     self.printCommandResponse(command,q)
-    
+
     if command.GetStatus() == command.CommandExpired:
       self.liveReconstructStatus.setIcon(qt.QMessageBox.Critical)
       self.liveReconstructStatus.setToolTip("Failed to stop volume reconstruction")
@@ -1150,11 +1161,16 @@ class PlusRemoteWidget(ScriptedLoadableModuleWidget):
       self.liveReconstructStatus.setToolTip(command.GetResponseMessage())
       return
 
-    # We successfully received a volume      
+    # We successfully received a volume
     self.liveReconstructStatus.setIcon(qt.QMessageBox.Information)
     liveReconstructVolumeFileName = os.path.basename(command.GetResponseMessage())
     self.liveReconstructStatus.setToolTip("Live reconstruction completed, file saved as "+ liveReconstructVolumeFileName)
 
+    # Order of OpenIGTLink message receiving and processing is not guaranteed to be the same
+    # therefore we wait a bit to make sure the image message is processed as well
+    qt.QTimer.singleShot(100, self.onVolumeLiveReconstructedFinalize)
+
+  def onVolumeLiveReconstructedFinalize(self):
     if self.showLiveReconstructionResultOnCompletionCheckBox.isChecked():
       self.showInSliceViewers(self.getLiveVolumeRecNode(), ["Yellow", "Green"])
       self.showVolumeRendering(self.getLiveVolumeRecNode())
@@ -1337,7 +1353,7 @@ class PlusRemoteLogic(ScriptedLoadableModuleLogic):
     self.cmdStopVolumeReconstruction.SetCommandTimeoutSec(self.defaultCommandTimeoutSec);
     self.cmdStopVolumeReconstruction.SetCommandName('StopVolumeReconstruction')    
     self.cmdReconstructRecorded = slicer.modulelogic.vtkSlicerOpenIGTLinkCommand()
-    self.cmdReconstructRecorded.SetCommandTimeoutSec(self.defaultCommandTimeoutSec);
+    self.cmdReconstructRecorded.SetCommandTimeoutSec(2*self.defaultCommandTimeoutSec);
     self.cmdReconstructRecorded.SetCommandName('ReconstructVolume')
     self.cmdStartRecording = slicer.modulelogic.vtkSlicerOpenIGTLinkCommand()
     self.cmdStartRecording.SetCommandTimeoutSec(self.defaultCommandTimeoutSec);
@@ -1401,7 +1417,7 @@ class PlusRemoteLogic(ScriptedLoadableModuleLogic):
     self.cmdStartVolumeReconstruction.SetCommandAttribute('VolumeReconstructorDeviceId', volumeReconstructorDeviceId)
     self.cmdStartVolumeReconstruction.SetCommandAttribute('OutputSpacing', '%f %f %f' % tuple(outputSpacing))
     self.cmdStartVolumeReconstruction.SetCommandAttribute('OutputOrigin', '%f %f %f' % tuple(outputOrigin))
-    self.cmdStartVolumeReconstruction.SetCommandAttribute('outputExtent', '%i %i %i %i %i %i' % tuple(outputExtent))
+    self.cmdStartVolumeReconstruction.SetCommandAttribute('OutputExtent', '%i %i %i %i %i %i' % tuple(outputExtent))
     self.cmdStartVolumeReconstruction.SetCommandAttribute('OutputVolFilename', liveOutputVolumeFilename)
     self.cmdStartVolumeReconstruction.SetCommandAttribute('OutputVolDeviceName', liveOutputVolumeDevice)
     self.executeCommand(self.cmdStartVolumeReconstruction, connectorNodeId, responseCallbackMethod)
@@ -1432,7 +1448,7 @@ class PlusRemoteLogic(ScriptedLoadableModuleLogic):
   def getVolumeReconstructionSnapshot(self, connectorNodeId, volumeReconstructorDeviceId, fileName, deviceName, applyHoleFilling, responseCallbackMethod):
     self.cmdGetVolumeReconstructionSnapshot.SetCommandAttribute('VolumeReconstructorDeviceId', volumeReconstructorDeviceId)
     self.cmdGetVolumeReconstructionSnapshot.SetCommandAttribute('OutputVolFilename', fileName)
-    self.cmdGetVolumeReconstructionSnapshot.SetCommandAttribute('OutputVolDeviceName', outputVolumeDevice)
+    self.cmdGetVolumeReconstructionSnapshot.SetCommandAttribute('OutputVolDeviceName', deviceName)
     self.cmdGetVolumeReconstructionSnapshot.SetCommandAttribute('ApplyHoleFilling', 'TRUE' if applyHoleFilling else 'FALSE')
     self.executeCommand(self.cmdGetVolumeReconstructionSnapshot, connectorNodeId, responseCallbackMethod)
   
@@ -1455,3 +1471,4 @@ class PlusRemoteLogic(ScriptedLoadableModuleLogic):
   def saveConfig(self, connectorNodeId, filename, responseCallbackMethod):
     self.cmdSaveConfig.SetCommandAttribute('Filename', filename)
     self.executeCommand(self.cmdSaveConfig, connectorNodeId, responseCallbackMethod)
+
