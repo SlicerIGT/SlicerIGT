@@ -136,11 +136,17 @@ void vtkSlicerPivotCalibrationLogic::ComputePivotCalibration()
   unsigned int rows = 3 * this->ToolToReferenceMatrices.size();
   unsigned int columns = 6;
 
-  vnl_matrix<double> A(rows, columns), minusI(3,3,0), R(3,3);
-  vnl_vector<double> b(rows), x(columns), t(3);
+  vnl_matrix<double> A(rows, columns);
+
+  vnl_matrix<double> minusI(3,3,0);
   minusI(0, 0) = -1;
   minusI(1, 1) = -1;
   minusI(2, 2) = -1;
+
+  vnl_matrix<double> R(3,3);
+  vnl_vector<double> b(rows);
+  vnl_vector<double> x(columns);
+  vnl_vector<double> t(3);
         
   std::vector<vtkMatrix4x4*>::const_iterator it;
   std::vector<vtkMatrix4x4*>::const_iterator matricesEnd = this->ToolToReferenceMatrices.end();
@@ -194,11 +200,16 @@ void vtkSlicerPivotCalibrationLogic::ComputeSpinCalibration( bool snapRotation )
   // Setup our system to find the axis of rotation
   unsigned int rows = 3, columns = 3;
 
-  vnl_matrix<double> A( rows, columns, 0), I( 3, 3, 0 ), RI( rows, columns );
+  vnl_matrix<double> A( rows, columns, 0);
+
+  vnl_matrix<double> I( 3, 3, 0 );
   I.set_identity();
 
-  std::vector< vtkMatrix4x4* >::const_iterator it, previt = this->ToolToReferenceMatrices.end();
-  for( it = this->ToolToReferenceMatrices.begin(); it != this->ToolToReferenceMatrices.end(); it++ )
+  vnl_matrix<double> RI( rows, columns );
+
+
+  std::vector< vtkMatrix4x4* >::const_iterator previt = this->ToolToReferenceMatrices.end();
+  for(std::vector< vtkMatrix4x4* >::const_iterator it = this->ToolToReferenceMatrices.begin(); it != this->ToolToReferenceMatrices.end(); it++ )
   {
     if ( previt == this->ToolToReferenceMatrices.end() )
     {
@@ -226,7 +237,7 @@ void vtkSlicerPivotCalibrationLogic::ComputeSpinCalibration( bool snapRotation )
     previt = it;
   }
 
-  // Find the eigenvector associated with the samllest eigenvalue
+  // Find the eigenvector associated with the smallest eigenvalue
   // This is the best axis of rotation over all instantaneous rotations
   vnl_matrix<double> eigenvectors( columns, columns, 0 );
   vnl_vector<double> eigenvalues( columns, 0 );

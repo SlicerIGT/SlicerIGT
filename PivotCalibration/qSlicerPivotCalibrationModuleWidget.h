@@ -52,11 +52,12 @@ protected slots:
   void onPivotStop();
   void onSpinStop();
   
-  void setTimer(double);
+  void setStartupDurationSec(double);
+  void setSamplingDurationSec(double);
   
-  void onPivotDelayTimeout();
+  void onPivotStartupTimeout();
   void onPivotSamplingTimeout();
-  void onSpinDelayTimeout();
+  void onSpinStartupTimeout();
   void onSpinSamplingTimeout();
   
 protected:
@@ -64,19 +65,20 @@ protected:
 
   virtual void setup();
   
-  int timerSetting;
+  int startupDurationSec;
+  int samplingDurationSec;
   
-  QTimer* pivotDelayTimer;
-  int pivotDelayCount;
+  QTimer* pivotStartupTimer;
+  int pivotStartupRemainingTimerPeriodCount;
   
   QTimer* pivotSamplingTimer;
-  int pivotSamplingCount;
+  int pivotSamplingRemainingTimerPeriodCount;
 
-  QTimer* spinDelayTimer;
-  int spinDelayCount;
+  QTimer* spinStartupTimer;
+  int spinStartupRemainingTimerPeriodCount;
   
   QTimer* spinSamplingTimer;
-  int spinSamplingCount;
+  int spinSamplingRemainingTimerPeriodCount;
 
 
 private:

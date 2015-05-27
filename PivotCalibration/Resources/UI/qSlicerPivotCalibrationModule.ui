@@ -81,14 +81,17 @@
         <item>
          <widget class="QLabel" name="label_3">
           <property name="text">
-           <string>Delay and duration (seconds):  </string>
+           <string>Startup delay (seconds):  </string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="ctkDoubleSpinBox" name="timerEdit">
+         <widget class="ctkDoubleSpinBox" name="startupTimerEdit">
           <property name="decimals">
            <number>0</number>
+          </property>
+          <property name="minimum">
+           <double>0.000000000000000</double>
           </property>
           <property name="maximum">
            <double>30.000000000000000</double>
@@ -100,6 +103,35 @@
         </item>
        </layout>
       </item>
+      
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout">
+        <item>
+         <widget class="QLabel" name="label_3">
+          <property name="text">
+           <string>Delay and duration (seconds):  </string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="ctkDoubleSpinBox" name="durationTimerEdit">
+          <property name="decimals">
+           <number>0</number>
+          </property>
+          <property name="minimum">
+           <double>3.000000000000000</double>
+          </property>
+          <property name="maximum">
+           <double>60.000000000000000</double>
+          </property>
+          <property name="value">
+           <double>5.000000000000000</double>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      
       <item>
        <widget class="QLabel" name="label_5">
         <property name="layoutDirection">
@@ -166,7 +198,7 @@
    <item>
     <widget class="ctkCollapsibleButton" name="DisplayCollapsibleButton">
      <property name="text">
-      <string>Display</string>
+      <string>Results</string>
      </property>
      <layout class="QFormLayout" name="formLayout_3">
       <property name="fieldGrowthPolicy">

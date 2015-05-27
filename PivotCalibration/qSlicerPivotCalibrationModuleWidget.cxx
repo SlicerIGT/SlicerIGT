@@ -66,35 +66,36 @@ vtkSlicerPivotCalibrationLogic* qSlicerPivotCalibrationModuleWidgetPrivate::logi
 //-----------------------------------------------------------------------------
 qSlicerPivotCalibrationModuleWidget::qSlicerPivotCalibrationModuleWidget(QWidget* _parent) : Superclass( _parent ) , d_ptr( new qSlicerPivotCalibrationModuleWidgetPrivate(*this))
 {
-  this->pivotDelayTimer = new QTimer();
-  pivotDelayTimer->setSingleShot(false);
-  pivotDelayTimer->setInterval(1000);
-  this->pivotDelayCount = 5;
+  this->startupDurationSec = 5;
+  this->samplingDurationSec = 5;
+  
+  this->pivotStartupTimer = new QTimer();
+  pivotStartupTimer->setSingleShot(false);
+  pivotStartupTimer->setInterval(1000); // 1 sec
+  this->pivotStartupRemainingTimerPeriodCount = 0;
   
   this->pivotSamplingTimer = new QTimer();
   pivotSamplingTimer->setSingleShot(false);
-  pivotSamplingTimer->setInterval(1000);
-  this->pivotSamplingCount = 5;
+  pivotSamplingTimer->setInterval(1000); // 1 sec
+  this->pivotSamplingRemainingTimerPeriodCount = 0;
   
-  this->spinDelayTimer = new QTimer();
-  spinDelayTimer->setSingleShot(false);
-  spinDelayTimer->setInterval(1000);
-  this->spinDelayCount = 5;
+  this->spinStartupTimer = new QTimer();
+  spinStartupTimer->setSingleShot(false);
+  spinStartupTimer->setInterval(1000); // 1 sec
+  this->spinStartupRemainingTimerPeriodCount = 0;
   
   this->spinSamplingTimer = new QTimer();
   spinSamplingTimer->setSingleShot(false);
-  spinSamplingTimer->setInterval(1000);
-  this->spinSamplingCount = 5;
-
-  this->timerSetting = 5;
+  spinSamplingTimer->setInterval(1000); // 1 sec
+  this->spinSamplingRemainingTimerPeriodCount = 0;
 }
 
 //-----------------------------------------------------------------------------
 qSlicerPivotCalibrationModuleWidget::~qSlicerPivotCalibrationModuleWidget()
 {
-  delete this->pivotDelayTimer;
+  delete this->pivotStartupTimer;
   delete this->pivotSamplingTimer;
-  delete this->spinDelayTimer;
+  delete this->spinStartupTimer;
   delete this->spinSamplingTimer;
 }
 
@@ -132,9 +133,9 @@ void qSlicerPivotCalibrationModuleWidget::setup()
 
   this->Superclass::setup();
   
-  connect(pivotDelayTimer, SIGNAL( timeout() ), this, SLOT( onPivotDelayTimeout() ));
+  connect(pivotStartupTimer, SIGNAL( timeout() ), this, SLOT( onPivotStartupTimeout() ));
   connect(pivotSamplingTimer, SIGNAL( timeout() ), this, SLOT( onPivotSamplingTimeout() ));
-  connect(spinDelayTimer, SIGNAL( timeout() ), this, SLOT( onSpinDelayTimeout() ));
+  connect(spinStartupTimer, SIGNAL( timeout() ), this, SLOT( onSpinStartupTimeout() ));
   connect(spinSamplingTimer, SIGNAL( timeout() ), this, SLOT( onSpinSamplingTimeout() )); 
   
   connect( d->InputComboBox, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(initializeObserver(vtkMRMLNode*)) );
@@ -144,7 +145,8 @@ void qSlicerPivotCalibrationModuleWidget::setup()
   connect( d->startPivotButton, SIGNAL( clicked() ), this, SLOT( onStartPivotPart() ) );
   connect( d->startSpinButton, SIGNAL( clicked() ), this, SLOT( onStartSpinPart() ) );
   
-  connect( d->timerEdit, SIGNAL( valueChanged(double) ), this, SLOT( setTimer(double) ) );
+  connect( d->startupTimerEdit, SIGNAL( valueChanged(double) ), this, SLOT( setStartupDurationSec(double) ) );
+  connect( d->durationTimerEdit, SIGNAL( valueChanged(double) ), this, SLOT( setSamplingDurationSec(double) ) );
 }
 
 //-----------------------------------------------------------------------------
@@ -152,14 +154,14 @@ void qSlicerPivotCalibrationModuleWidget::onStartPivotPart()
 {
   Q_D(qSlicerPivotCalibrationModuleWidget);
 
-  this->pivotDelayCount = this->timerSetting;
-  this->pivotSamplingCount = this->timerSetting;
+  this->pivotStartupRemainingTimerPeriodCount = this->startupDurationSec;
+  this->pivotSamplingRemainingTimerPeriodCount = this->samplingDurationSec;
 
   std::stringstream ss;
-  ss << this->pivotDelayCount << " seconds until start";
+  ss << this->pivotStartupRemainingTimerPeriodCount << " seconds until start";
   d->CountdownLabel->setText(ss.str().c_str());  
   
-  pivotDelayTimer->start();
+  pivotStartupTimer->start();
 }
 
 //-----------------------------------------------------------------------------
@@ -167,36 +169,36 @@ void qSlicerPivotCalibrationModuleWidget::onStartSpinPart()
 {
   Q_D(qSlicerPivotCalibrationModuleWidget);
 
-  this->spinDelayCount = this->timerSetting;
-  this->spinSamplingCount = this->timerSetting;
+  this->spinStartupRemainingTimerPeriodCount = this->startupDurationSec;
+  this->spinSamplingRemainingTimerPeriodCount = this->samplingDurationSec;
 
   std::stringstream ss;
-  ss << this->spinDelayCount << " seconds until start";
+  ss << this->spinStartupRemainingTimerPeriodCount << " seconds until start";
   d->CountdownLabel->setText(ss.str().c_str());  
   
-  spinDelayTimer->start();
+  spinStartupTimer->start();
 }
 
 
 //-----------------------------------------------------------------------------
-void qSlicerPivotCalibrationModuleWidget::onPivotDelayTimeout()
+void qSlicerPivotCalibrationModuleWidget::onPivotStartupTimeout()
 {
   Q_D(qSlicerPivotCalibrationModuleWidget);
 
   std::stringstream ss1;
   
-  this->pivotDelayCount -= 1;
-  ss1 << this->pivotDelayCount << " seconds until start";
+  --this->pivotStartupRemainingTimerPeriodCount;
+  ss1 << this->pivotStartupRemainingTimerPeriodCount << " seconds until start";
   d->CountdownLabel->setText(ss1.str().c_str());
 
-  if (this->pivotDelayCount <= 0)
+  if (this->pivotStartupRemainingTimerPeriodCount <= 0)
   {
     std::stringstream ss2;
-    this->pivotSamplingCount = this->timerSetting;
-    ss2 << "Sampling time left: " << this->pivotSamplingCount;
+    this->pivotSamplingRemainingTimerPeriodCount = this->samplingDurationSec;
+    ss2 << "Sampling time left: " << this->pivotSamplingRemainingTimerPeriodCount;
     d->CountdownLabel->setText(ss2.str().c_str());
     
-    this->pivotDelayTimer->stop();
+    this->pivotStartupTimer->stop();
     d->logic()->SetRecordingState(true);
     this->pivotSamplingTimer->start();
   }
@@ -211,11 +213,11 @@ void qSlicerPivotCalibrationModuleWidget::onPivotSamplingTimeout()
 
   //std::cout<<this->samplingCount<<std::endl;
   
-  this->pivotSamplingCount -= 1;
-  ss << "Sampling time left: " << this->pivotSamplingCount;
+  --this->pivotSamplingRemainingTimerPeriodCount;
+  ss << "Sampling time left: " << this->pivotSamplingRemainingTimerPeriodCount;
   d->CountdownLabel->setText(ss.str().c_str());  
   
-  if (this->pivotSamplingCount <= 0)
+  if (this->pivotSamplingRemainingTimerPeriodCount <= 0)
   {
     d->CountdownLabel->setText("Sampling complete");
     
@@ -226,24 +228,24 @@ void qSlicerPivotCalibrationModuleWidget::onPivotSamplingTimeout()
 
 
 //-----------------------------------------------------------------------------
-void qSlicerPivotCalibrationModuleWidget::onSpinDelayTimeout()
+void qSlicerPivotCalibrationModuleWidget::onSpinStartupTimeout()
 {
   Q_D(qSlicerPivotCalibrationModuleWidget);
 
   std::stringstream ss1;
   
-  this->spinDelayCount -= 1;
-  ss1 << this->spinDelayCount << " seconds until start";
+  --this->spinStartupRemainingTimerPeriodCount;
+  ss1 << this->spinStartupRemainingTimerPeriodCount << " seconds until start";
   d->CountdownLabel->setText(ss1.str().c_str());
 
-  if (this->spinDelayCount <= 0)
+  if (this->spinStartupRemainingTimerPeriodCount <= 0)
   {
     std::stringstream ss2;
-    this->spinSamplingCount = this->timerSetting;
-    ss2 << "Sampling time left: " << this->spinSamplingCount;
+    this->spinSamplingRemainingTimerPeriodCount = this->samplingDurationSec;
+    ss2 << "Sampling time left: " << this->spinSamplingRemainingTimerPeriodCount;
     d->CountdownLabel->setText(ss2.str().c_str());
     
-    this->spinDelayTimer->stop();
+    this->spinStartupTimer->stop();
     d->logic()->SetRecordingState(true);
     this->spinSamplingTimer->start();
   }
@@ -258,11 +260,11 @@ void qSlicerPivotCalibrationModuleWidget::onSpinSamplingTimeout()
 
   //std::cout<<this->samplingCount<<std::endl;
   
-  this->spinSamplingCount -= 1;
-  ss << "Sampling time left: " << this->spinSamplingCount;
+  --this->spinSamplingRemainingTimerPeriodCount;
+  ss << "Sampling time left: " << this->spinSamplingRemainingTimerPeriodCount;
   d->CountdownLabel->setText(ss.str().c_str());  
   
-  if (this->spinSamplingCount <= 0)
+  if (this->spinSamplingRemainingTimerPeriodCount <= 0)
   {
     d->CountdownLabel->setText("Sampling complete");
     
@@ -336,8 +338,14 @@ void qSlicerPivotCalibrationModuleWidget::onSpinStop()
 
 
 //-----------------------------------------------------------------------------
-void qSlicerPivotCalibrationModuleWidget::setTimer(double time)
+void qSlicerPivotCalibrationModuleWidget::setStartupDurationSec(double timeSec)
 {
-  this->timerSetting = (int)time;
+  this->startupDurationSec = (int)timeSec;
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerPivotCalibrationModuleWidget::setSamplingDurationSec(double timeSec)
+{
+  this->samplingDurationSec = (int)timeSec;
 }
 
