@@ -219,33 +219,33 @@ vtkSlicerCreateModelsLogic
     markPositionYMm = markPositionYMm + 10;
   }
 
-  // Rotate to the proper needle orientation (X shaft)
-  vtkSmartPointer< vtkTransform > xShaftTransform = vtkSmartPointer< vtkTransform >::New();
-  xShaftTransform->RotateZ( -90 );
+  // Rotate to the proper needle orientation (Z shaft)
+  vtkSmartPointer< vtkTransform > zShaftTransform = vtkSmartPointer< vtkTransform >::New();
+  zShaftTransform->RotateX( -90 );
 
-  vtkSmartPointer< vtkTransformPolyDataFilter > xShaftNeedleTransformFilter = vtkSmartPointer< vtkTransformPolyDataFilter >::New();
-  xShaftNeedleTransformFilter->SetTransform( xShaftTransform );
-
-#if (VTK_MAJOR_VERSION <= 5)
-  xShaftNeedleTransformFilter->SetInput( appendShaftTip->GetOutput() );
-#else
-  xShaftNeedleTransformFilter->SetInputData( appendShaftTip->GetOutput() );
-#endif
-
-  xShaftNeedleTransformFilter->Update();
-  vtkSmartPointer< vtkPolyData > needlePolyData = xShaftNeedleTransformFilter->GetOutput();
-
-  vtkSmartPointer< vtkTransformPolyDataFilter > xShaftMarkersTransformFilter = vtkSmartPointer< vtkTransformPolyDataFilter >::New();
-  xShaftMarkersTransformFilter->SetTransform( xShaftTransform );
+  vtkSmartPointer< vtkTransformPolyDataFilter > zShaftNeedleTransformFilter = vtkSmartPointer< vtkTransformPolyDataFilter >::New();
+  zShaftNeedleTransformFilter->SetTransform( zShaftTransform );
 
 #if (VTK_MAJOR_VERSION <= 5)
-  xShaftMarkersTransformFilter->SetInput( appendMarkings->GetOutput() );
+  zShaftNeedleTransformFilter->SetInput( appendShaftTip->GetOutput() );
 #else
-  xShaftMarkersTransformFilter->SetInputData( appendMarkings->GetOutput() );
+  zShaftNeedleTransformFilter->SetInputData( appendShaftTip->GetOutput() );
 #endif
 
-  xShaftMarkersTransformFilter->Update();
-  vtkSmartPointer< vtkPolyData > needleMarkersPolyData = xShaftMarkersTransformFilter->GetOutput();  
+  zShaftNeedleTransformFilter->Update();
+  vtkSmartPointer< vtkPolyData > needlePolyData = zShaftNeedleTransformFilter->GetOutput();
+
+  vtkSmartPointer< vtkTransformPolyDataFilter > zShaftMarkersTransformFilter = vtkSmartPointer< vtkTransformPolyDataFilter >::New();
+  zShaftMarkersTransformFilter->SetTransform( zShaftTransform );
+
+#if (VTK_MAJOR_VERSION <= 5)
+  zShaftMarkersTransformFilter->SetInput( appendMarkings->GetOutput() );
+#else
+  zShaftMarkersTransformFilter->SetInputData( appendMarkings->GetOutput() );
+#endif
+
+  zShaftMarkersTransformFilter->Update();
+  vtkSmartPointer< vtkPolyData > needleMarkersPolyData = zShaftMarkersTransformFilter->GetOutput();  
   
   
     // Add the needle poly data to the scene as a model
@@ -319,14 +319,29 @@ vtkSlicerCreateModelsLogic
   cube->SetHeight( h );
   cube->SetRadius( r );
   cube->SetResolution( 24 );
-  cube->Update();
   
-    // Add the needle poly data to the scene as a model
+  
+  // Set the transform of the needle tip
+  vtkSmartPointer< vtkTransform > rotateToLongAxisZ = vtkSmartPointer< vtkTransform >::New();
+  rotateToLongAxisZ->RotateX( -90 );
+    
+    // Transform the needle tip
+  vtkSmartPointer< vtkTransformPolyDataFilter > transformFilter = vtkSmartPointer< vtkTransformPolyDataFilter >::New();
+  transformFilter->SetTransform( rotateToLongAxisZ );
+#if (VTK_MAJOR_VERSION <= 5)
+  cube->Update();
+  transformFilter->SetInput( cube->GetOutput() );
+#else
+  transformFilter->SetInputConnection( cube->GetOutputPort() );
+#endif
+
+  // Add the needle poly data to the scene as a model
   
   vtkSmartPointer< vtkMRMLModelNode > modelNode = vtkSmartPointer< vtkMRMLModelNode >::New();
   this->GetMRMLScene()->AddNode( modelNode );
   modelNode->SetName( "CylinderModel" );
-  modelNode->SetAndObservePolyData( cube->GetOutput() );
+  transformFilter->Update();
+  modelNode->SetAndObservePolyData( transformFilter->GetOutput() );
 
   vtkSmartPointer< vtkMRMLModelDisplayNode > displayNode = vtkSmartPointer< vtkMRMLModelDisplayNode >::New();
   this->GetMRMLScene()->AddNode( displayNode );
