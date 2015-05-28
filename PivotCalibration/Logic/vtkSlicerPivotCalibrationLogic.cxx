@@ -237,25 +237,31 @@ void vtkSlicerPivotCalibrationLogic::ComputeSpinCalibration( bool snapRotation )
     previt = it;
   }
 
+  // Note: If the needle orientation protocol changes, only the definitions of shaftAxis and orthogonalAxis need to be changed
+  // Define the shaft axis and the secondary shaft axis
+  // Current needle orientation protocol dictates: shaft axis -z, orthogonal axis +x
+  vnl_vector<double> shaftAxis_Shaft( columns, 0 ); shaftAxis_Shaft( 0 ) = 0; shaftAxis_Shaft( 1 ) = 0; shaftAxis_Shaft( 2 ) = -1;
+  vnl_vector<double> orthogonalAxis_Shaft( columns, 0 ); orthogonalAxis_Shaft( 0 ) = 1; orthogonalAxis_Shaft( 1 ) = 0; orthogonalAxis_Shaft( 2 ) = 0;
+
   // Find the eigenvector associated with the smallest eigenvalue
   // This is the best axis of rotation over all instantaneous rotations
   vnl_matrix<double> eigenvectors( columns, columns, 0 );
   vnl_vector<double> eigenvalues( columns, 0 );
   vnl_symmetric_eigensystem_compute( A, eigenvectors, eigenvalues );
   // Note: eigenvectors are ordered in increasing eigenvalue ( 0 = smallest, end = biggest )
-  vnl_vector<double> x( columns, 0 );
-  x( 0 ) = eigenvectors( 0, 0 );
-  x( 1 ) = eigenvectors( 1, 0 );
-  x( 2 ) = eigenvectors( 2, 0 );
-  x.normalize();
+  vnl_vector<double> shaftAxis_ToolTip( columns, 0 );
+  shaftAxis_ToolTip( 0 ) = eigenvectors( 0, 0 );
+  shaftAxis_ToolTip( 1 ) = eigenvectors( 1, 0 );
+  shaftAxis_ToolTip( 2 ) = eigenvectors( 2, 0 );
+  shaftAxis_ToolTip.normalize();
 
   // Snap the direction vector to be exactly aligned with one of the coordinate axes
   // This is if the sensor is known to be parallel to one of the axis, just not which one
   if ( snapRotation )
   {
-    int axis = element_product( x, x ).arg_max();
-    x.fill( 0 );
-    x.put( axis, 1 ); // Doesn't matter the direction, will be sorted out in the next step
+    int closestCoordinateAxis = element_product( shaftAxis_ToolTip, shaftAxis_ToolTip ).arg_max();
+    shaftAxis_ToolTip.fill( 0 );
+    shaftAxis_ToolTip.put( closestCoordinateAxis, 1 ); // Doesn't matter the direction, will be sorted out in the next step
   }
 
   // Make sure it is in the correct direction (opposite the StylusTipToStylus translation)
@@ -263,48 +269,47 @@ void vtkSlicerPivotCalibrationLogic::ComputeSpinCalibration( bool snapRotation )
   toolTipToToolTranslation( 0 ) = this->ToolTipToToolMatrix->GetElement( 0, 3 );
   toolTipToToolTranslation( 1 ) = this->ToolTipToToolMatrix->GetElement( 1, 3 );
   toolTipToToolTranslation( 2 ) = this->ToolTipToToolMatrix->GetElement( 2, 3 );
-  if ( dot_product( x, toolTipToToolTranslation ) > 0 )
+  if ( dot_product( shaftAxis_ToolTip, toolTipToToolTranslation ) > 0 )
   {
-    x = x * ( -1 );
+    shaftAxis_ToolTip = shaftAxis_ToolTip * ( -1 );
   }
 
   //set the RMSE
-  this->SpinRMSE = ( A * x ).rms();
+  this->SpinRMSE = ( A * shaftAxis_ToolTip ).rms();
 
 
   // Do the registration find the appropriate rotation
-  vnl_vector<double> y( 3, 0.0 );
-  y.put( 1, 1 ); // Put the y part in
-  y = y - dot_product( y, x ) * x;
-  y.normalize();
+  vnl_vector<double> orthogonalAxis_ToolTip = orthogonalAxis_Shaft;
+  orthogonalAxis_ToolTip = orthogonalAxis_ToolTip - dot_product( orthogonalAxis_ToolTip, shaftAxis_ToolTip ) * shaftAxis_ToolTip;
+  orthogonalAxis_ToolTip.normalize();
 
   // Register X,Y,O points in the two coordinate frames (only spherical registration - since pure rotation)
   vnl_matrix<double> ToolTipPoints( 3, 3, 0.0 );
-  vnl_matrix<double> XShaftPoints( 3, 3, 0.0 );
+  vnl_matrix<double> ShaftPoints( 3, 3, 0.0 );
 
-  ToolTipPoints.put( 0, 0, x.get( 0 ) );
-  ToolTipPoints.put( 0, 1, x.get( 1 ) );
-  ToolTipPoints.put( 0, 2, x.get( 2 ) );
-  ToolTipPoints.put( 1, 0, y.get( 0 ) );
-  ToolTipPoints.put( 1, 1, y.get( 1 ) );
-  ToolTipPoints.put( 1, 2, y.get( 2 ) );
+  ToolTipPoints.put( 0, 0, shaftAxis_ToolTip( 0 ) );
+  ToolTipPoints.put( 0, 1, shaftAxis_ToolTip( 1 ) );
+  ToolTipPoints.put( 0, 2, shaftAxis_ToolTip( 2 ) );
+  ToolTipPoints.put( 1, 0, orthogonalAxis_ToolTip( 0 ) );
+  ToolTipPoints.put( 1, 1, orthogonalAxis_ToolTip( 1 ) );
+  ToolTipPoints.put( 1, 2, orthogonalAxis_ToolTip( 2 ) );
   ToolTipPoints.put( 2, 0, 0 );
   ToolTipPoints.put( 2, 1, 0 );
   ToolTipPoints.put( 2, 2, 0 );
 
-  XShaftPoints.put( 0, 0, 1 );
-  XShaftPoints.put( 0, 1, 0 );
-  XShaftPoints.put( 0, 2, 0 );
-  XShaftPoints.put( 1, 0, 0 );
-  XShaftPoints.put( 1, 1, 1 );
-  XShaftPoints.put( 1, 2, 0 );
-  XShaftPoints.put( 2, 0, 0 );
-  XShaftPoints.put( 2, 1, 0 );
-  XShaftPoints.put( 2, 2, 0 );
+  ShaftPoints.put( 0, 0, shaftAxis_Shaft( 0 ) );
+  ShaftPoints.put( 0, 1, shaftAxis_Shaft( 1 ) );
+  ShaftPoints.put( 0, 2, shaftAxis_Shaft( 2 ) );
+  ShaftPoints.put( 1, 0, orthogonalAxis_Shaft( 0 ) );
+  ShaftPoints.put( 1, 1, orthogonalAxis_Shaft( 1 ) );
+  ShaftPoints.put( 1, 2, orthogonalAxis_Shaft( 2 ) );
+  ShaftPoints.put( 2, 0, 0 );
+  ShaftPoints.put( 2, 1, 0 );
+  ShaftPoints.put( 2, 2, 0 );
   
-  vnl_svd<double> XShaftToToolTipRegistrator( XShaftPoints.transpose() * ToolTipPoints );
-  vnl_matrix<double> V = XShaftToToolTipRegistrator.V();
-  vnl_matrix<double> U = XShaftToToolTipRegistrator.U();
+  vnl_svd<double> ShaftToToolTipRegistrator( ShaftPoints.transpose() * ToolTipPoints );
+  vnl_matrix<double> V = ShaftToToolTipRegistrator.V();
+  vnl_matrix<double> U = ShaftToToolTipRegistrator.U();
   vnl_matrix<double> Rotation = V * U.transpose();
 
   // Make sure the determinant is positve (i.e. +1)
