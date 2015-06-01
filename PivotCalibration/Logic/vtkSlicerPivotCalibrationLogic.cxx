@@ -41,6 +41,8 @@
 #include "vnl/algo/vnl_determinant.h"
 
 
+static const double PARALLEL_ANGLE_THRESHOLD_DEGREES = 20.0;
+
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSlicerPivotCalibrationLogic);
 
@@ -237,11 +239,13 @@ void vtkSlicerPivotCalibrationLogic::ComputeSpinCalibration( bool snapRotation )
     previt = it;
   }
 
-  // Note: If the needle orientation protocol changes, only the definitions of shaftAxis and orthogonalAxis need to be changed
+  // Note: If the needle orientation protocol changes, only the definitions of shaftAxis and secondaryAxes need to be changed
   // Define the shaft axis and the secondary shaft axis
   // Current needle orientation protocol dictates: shaft axis -z, orthogonal axis +x
+  // If StylusX is parallel to ShaftAxis then: shaft axis -z, orthogonal axis +y
   vnl_vector<double> shaftAxis_Shaft( columns, 0 ); shaftAxis_Shaft( 0 ) = 0; shaftAxis_Shaft( 1 ) = 0; shaftAxis_Shaft( 2 ) = -1;
   vnl_vector<double> orthogonalAxis_Shaft( columns, 0 ); orthogonalAxis_Shaft( 0 ) = 1; orthogonalAxis_Shaft( 1 ) = 0; orthogonalAxis_Shaft( 2 ) = 0;
+  vnl_vector<double> backupAxis_Shaft( columns, 0 ); backupAxis_Shaft( 0 ) = 0; backupAxis_Shaft( 1 ) = 1; backupAxis_Shaft( 2 ) = 0;
 
   // Find the eigenvector associated with the smallest eigenvalue
   // This is the best axis of rotation over all instantaneous rotations
@@ -278,8 +282,28 @@ void vtkSlicerPivotCalibrationLogic::ComputeSpinCalibration( bool snapRotation )
   this->SpinRMSE = ( A * shaftAxis_ToolTip ).rms();
 
 
+  // If the secondary axis 1 is parallel to the shaft axis in the tooltip frame, then use secondary axis 2
+  vnl_vector<double> orthogonalAxis_ToolTip;
+  double angle = acos( dot_product( shaftAxis_ToolTip, orthogonalAxis_Shaft ) );
+  // Force angle to be between -pi/2 and +pi/2
+  if ( angle > vtkMath::Pi() / 2 )
+  {
+    angle -= vtkMath::Pi();
+  }
+  if ( angle < - vtkMath::Pi() / 2 )
+  {
+    angle += vtkMath::Pi();
+  }
+  if ( fabs( angle ) > vtkMath::RadiansFromDegrees( PARALLEL_ANGLE_THRESHOLD_DEGREES ) ) // If shaft axis and orthogonal axis are not parallel
+  {
+    orthogonalAxis_ToolTip = orthogonalAxis_Shaft;
+  }
+  else
+  {
+    orthogonalAxis_ToolTip = backupAxis_Shaft;
+  }
+
   // Do the registration find the appropriate rotation
-  vnl_vector<double> orthogonalAxis_ToolTip = orthogonalAxis_Shaft;
   orthogonalAxis_ToolTip = orthogonalAxis_ToolTip - dot_product( orthogonalAxis_ToolTip, shaftAxis_ToolTip ) * shaftAxis_ToolTip;
   orthogonalAxis_ToolTip.normalize();
 
