@@ -167,10 +167,15 @@ void qSlicerOpenIGTLinkRemoteCommandWidget::setMRMLScene(vtkMRMLScene *newScene)
 {
   Q_D(qSlicerOpenIGTLinkRemoteCommandWidget);
 
-  if ( this->CommandLogic->GetMRMLScene() != newScene )
-  {
+  // The scene set in the widget should match the scene set in the logic,
+  // log a warning if it is not so.
+  // During scene opening or closing it is normal to have one of the scene pointers
+  // still/already NULL while the other is non-NULL.
+  if ( this->CommandLogic->GetMRMLScene() != newScene
+    && newScene != NULL && this->CommandLogic->GetMRMLScene() != NULL)
+    {
     qWarning( "Inconsistent MRML scene in OpenIGTLinkRemote logic" );
-  }
+    }
   
   this->Superclass::setMRMLScene(newScene);
 }
