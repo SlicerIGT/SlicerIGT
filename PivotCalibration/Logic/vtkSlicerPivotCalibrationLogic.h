@@ -25,6 +25,7 @@
 
 // VTK includes
 #include <vtkMatrix4x4.h>
+#include <vtkMath.h>
 
 // MRML includes
 #include "vtkMRMLLinearTransformNode.h"
