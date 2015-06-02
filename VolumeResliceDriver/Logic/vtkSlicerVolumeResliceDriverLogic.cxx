@@ -35,10 +35,6 @@
 #include <vtkTransform.h>
 #include <vtkObjectFactory.h>
 
-// STD includes
-#include <cassert>
-
-
 
 vtkStandardNewMacro(vtkSlicerVolumeResliceDriverLogic);
 
@@ -68,9 +64,9 @@ void vtkSlicerVolumeResliceDriverLogic
   os << indent << "Observed nodes:";
   
   for ( unsigned int i = 0; i < this->ObservedNodes.size(); ++ i )
-  {
+    {
     os << " " << this->ObservedNodes[ i ]->GetID();
-  }
+    }
   
   os << std::endl;
 }
@@ -201,7 +197,6 @@ void vtkSlicerVolumeResliceDriverLogic::SetMRMLSceneInternal(vtkMRMLScene * newS
 //-----------------------------------------------------------------------------
 void vtkSlicerVolumeResliceDriverLogic::RegisterNodes()
 {
-  assert(this->GetMRMLScene() != 0);
 }
 
 
@@ -210,8 +205,12 @@ void vtkSlicerVolumeResliceDriverLogic::RegisterNodes()
 void vtkSlicerVolumeResliceDriverLogic
 ::UpdateFromMRMLScene()
 {
-  assert(this->GetMRMLScene() != 0);
-  
+  if (this->GetMRMLScene()==NULL)
+    {
+    vtkErrorMacro("UpdateFromMRMLScene failed: scene is invalid");
+    return;
+    }
+
   // Check if any of the slice nodes contain driver transforms that need to be observed.
   
   vtkCollection* sliceNodes = this->GetMRMLScene()->GetNodesByClass( "vtkMRMLSliceNode" );
@@ -390,10 +389,15 @@ void vtkSlicerVolumeResliceDriverLogic
   float py = rtimgTransform->GetElement(1, 3);
   float pz = rtimgTransform->GetElement(2, 3);
 
-  vtkImageData* imageData;
-  imageData = volumeNode->GetImageData();
-  int size[3];
-  imageData->GetDimensions(size);
+  int size[3]={0};
+  vtkImageData* imageData = volumeNode->GetImageData();
+  // imageData may be NULL if volume reslice driver is active while loading an image.
+  // Slice position and orientation is stored in the node, so we can still update the slice
+  // pose.
+  if (imageData!=NULL)
+    {
+    imageData->GetDimensions(size);
+    }
 
   // normalize
   float psi = sqrt(tx*tx + ty*ty + tz*tz);
