@@ -8,7 +8,7 @@ string(TOUPPER ${MODULE_NAME} MODULE_NAME_UPPER)
 #-----------------------------------------------------------------------------
 add_subdirectory(MRML)
 add_subdirectory(Logic)
-add_subdirectory(Widgets)
+add_subdirectory(MRMLDM)
 
 #-----------------------------------------------------------------------------
 set(MODULE_EXPORT_DIRECTIVE "Q_SLICER_QTMODULES_${MODULE_NAME_UPPER}_EXPORT")
@@ -17,9 +17,6 @@ set(MODULE_EXPORT_DIRECTIVE "Q_SLICER_QTMODULES_${MODULE_NAME_UPPER}_EXPORT")
 set(MODULE_INCLUDE_DIRECTORIES
   ${CMAKE_CURRENT_SOURCE_DIR}/Logic
   ${CMAKE_CURRENT_BINARY_DIR}/Logic
-  ${CMAKE_CURRENT_SOURCE_DIR}/Widgets
-  ${CMAKE_CURRENT_BINARY_DIR}/Widgets
-  ${qMRMLWatchdogModuleWidgets_INCLUDE_DIRS}
   )
 
 set(MODULE_SRCS
@@ -27,14 +24,11 @@ set(MODULE_SRCS
   qSlicer${MODULE_NAME}Module.h
   qSlicer${MODULE_NAME}ModuleWidget.cxx
   qSlicer${MODULE_NAME}ModuleWidget.h
-  qSlicerToolBarManagerWidget.cxx
-  qSlicerToolBarManagerWidget.h
   )
 
 set(MODULE_MOC_SRCS
   qSlicer${MODULE_NAME}Module.h
   qSlicer${MODULE_NAME}ModuleWidget.h
-  qSlicerToolBarManagerWidget.h
   )
 
 set(MODULE_UI_SRCS
@@ -42,9 +36,9 @@ set(MODULE_UI_SRCS
   )
 
 set(MODULE_TARGET_LIBRARIES
+  vtkSlicer${MODULE_NAME}ModuleMRMLDisplayableManager
   vtkSlicer${MODULE_NAME}ModuleMRML
   vtkSlicer${MODULE_NAME}ModuleLogic
-  qMRML${MODULE_NAME}ModuleWidgets
   ${QT_LIBRARIES}
   qMRMLWidgets
   MRMLLogic
@@ -76,11 +70,16 @@ if(BUILD_TESTING)
 endif()
 
 configure_file(
-  ${CMAKE_CURRENT_SOURCE_DIR}/Resources/alarmWatchdog.wav
-  ${SlicerIGT_BINARY_DIR}/${Slicer_QTLOADABLEMODULES_SHARE_DIR}/${MODULE_NAME}/alarmWatchdog.wav
+  ${CMAKE_CURRENT_SOURCE_DIR}/Resources/WatchedNodeOutdated.wav
+  ${SlicerIGT_BINARY_DIR}/${Slicer_QTLOADABLEMODULES_SHARE_DIR}/${MODULE_NAME}/WatchedNodeOutdated.wav
+  COPYONLY)
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/Resources/WatchedNodeUpToDate.wav 
+  ${SlicerIGT_BINARY_DIR}/${Slicer_QTLOADABLEMODULES_SHARE_DIR}/${MODULE_NAME}/WatchedNodeUpToDate.wav 
   COPYONLY)
 
 install(
-  FILES ${SlicerIGT_BINARY_DIR}/${Slicer_QTLOADABLEMODULES_SHARE_DIR}/${MODULE_NAME}/alarmWatchdog.wav
+  FILES
+    ${SlicerIGT_BINARY_DIR}/${Slicer_QTLOADABLEMODULES_SHARE_DIR}/${MODULE_NAME}/WatchedNodeOutdated.wav
+    ${SlicerIGT_BINARY_DIR}/${Slicer_QTLOADABLEMODULES_SHARE_DIR}/${MODULE_NAME}/WatchedNodeUpToDate.wav
   DESTINATION ${Slicer_INSTALL_QTLOADABLEMODULES_SHARE_DIR}/${MODULE_NAME} COMPONENT Runtime)
-

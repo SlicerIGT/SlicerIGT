@@ -18,6 +18,9 @@
 #ifndef __qSlicerWatchdogModule_h
 #define __qSlicerWatchdogModule_h
 
+// CTK includes
+#include <ctkVTKObject.h>
+
 // SlicerQt includes
 #include "qSlicerLoadableModule.h"
 
@@ -29,7 +32,8 @@ class qSlicerWatchdogModulePrivate;
 class Q_SLICER_QTMODULES_WATCHDOG_EXPORT qSlicerWatchdogModule
   : public qSlicerLoadableModule
 {
-  Q_OBJECT
+  Q_OBJECT;
+  QVTK_OBJECT;
   Q_INTERFACES(qSlicerLoadableModule);
 
 public:
@@ -49,10 +53,6 @@ public:
   virtual QStringList categories()const;
   virtual QStringList dependencies() const;
 
-public slots:
-
-  virtual void setMRMLScene(vtkMRMLScene*);
-
 protected:
 
   /// Initialize the module.
@@ -63,6 +63,13 @@ protected:
 
   /// Create and return the logic associated to this module
   virtual vtkMRMLAbstractLogic* createLogic();
+
+public slots:
+  virtual void setMRMLScene(vtkMRMLScene*);
+  void onNodeAddedEvent(vtkObject*, vtkObject*);
+  void onNodeRemovedEvent(vtkObject*, vtkObject*);
+  void updateAllWatchdogNodes();
+  void stopSound();
 
 protected:
   QScopedPointer<qSlicerWatchdogModulePrivate> d_ptr;

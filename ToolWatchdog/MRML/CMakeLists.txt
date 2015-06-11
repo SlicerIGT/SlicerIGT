@@ -14,6 +14,8 @@ set(${KIT}_INCLUDE_DIRECTORIES
 set(${KIT}_SRCS
   vtkMRMLWatchdogNode.cxx
   vtkMRMLWatchdogNode.h
+  vtkMRMLWatchdogDisplayNode.cxx
+  vtkMRMLWatchdogDisplayNode.h
   )
 
 SET (${KIT}_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} CACHE INTERNAL "" FORCE)
