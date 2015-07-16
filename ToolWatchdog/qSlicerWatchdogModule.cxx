@@ -16,16 +16,28 @@
 ==============================================================================*/
 
 // Qt includes
+#include <QDir>
+#include <QPointer>
+#include <QSound>
+#include <QTimer>
 #include <QtPlugin>
+
+#include "qSlicerCoreApplication.h"
+#include "qSlicerApplication.h"
 
 // Watchdog Logic includes
 #include <vtkSlicerWatchdogLogic.h>
+#include "vtkMRMLSliceViewDisplayableManagerFactory.h"
+#include "vtkMRMLThreeDViewDisplayableManagerFactory.h" 
 
 // Watchdog includes
 #include "qSlicerWatchdogModule.h"
 #include "qSlicerWatchdogModuleWidget.h"
-#include "qSlicerToolBarManagerWidget.h"
+#include "vtkMRMLWatchdogDisplayableManager.h"
 
+#include "vtkMRMLWatchdogNode.h"
+
+static const double UPDATE_WATCHDOG_NODES_PERIOD_SEC = 0.2;
 
 //-----------------------------------------------------------------------------
 Q_EXPORT_PLUGIN2(qSlicerWatchdogModule, qSlicerWatchdogModule);
@@ -37,7 +49,10 @@ class qSlicerWatchdogModulePrivate
 public:
   qSlicerWatchdogModulePrivate();
   ~qSlicerWatchdogModulePrivate();
-  qSlicerToolBarManagerWidget * ToolBarManager;
+  
+  QTimer UpdateAllWatchdogNodesTimer;
+  QPointer<QSound> WatchedNodeBecomeUpToDateSound;
+  QPointer<QSound> WatchedNodeBecomeOutdatedSound;
 };
 
 //-----------------------------------------------------------------------------
@@ -46,17 +61,11 @@ public:
 //-----------------------------------------------------------------------------
 qSlicerWatchdogModulePrivate::qSlicerWatchdogModulePrivate()
 {
-  this->ToolBarManager=NULL;
-
 }
 
 //-----------------------------------------------------------------------------
 qSlicerWatchdogModulePrivate::~qSlicerWatchdogModulePrivate()
 {
-  if(this->ToolBarManager)
-  {
-    delete this->ToolBarManager;
-  }
 }
 
 //-----------------------------------------------------------------------------
@@ -67,11 +76,29 @@ qSlicerWatchdogModule::qSlicerWatchdogModule(QObject* _parent)
   : Superclass(_parent)
   , d_ptr(new qSlicerWatchdogModulePrivate)
 {
+  Q_D(qSlicerWatchdogModule);
+  connect(&d->UpdateAllWatchdogNodesTimer, SIGNAL(timeout()), this, SLOT(updateAllWatchdogNodes()));
+  vtkMRMLScene * scene = qSlicerCoreApplication::application()->mrmlScene();
+  if (scene)
+    {
+    // Need to listen for any new watchdog nodes being added to start/stop timer
+    this->qvtkConnect(scene, vtkMRMLScene::NodeAddedEvent, this, SLOT(onNodeAddedEvent(vtkObject*,vtkObject*)));
+    this->qvtkConnect(scene, vtkMRMLScene::NodeRemovedEvent, this, SLOT(onNodeRemovedEvent(vtkObject*,vtkObject*)));
+    }
 }
 
 //-----------------------------------------------------------------------------
 qSlicerWatchdogModule::~qSlicerWatchdogModule()
 {
+  Q_D(qSlicerWatchdogModule);
+  if (!d->WatchedNodeBecomeUpToDateSound.isNull())
+  {
+    d->WatchedNodeBecomeUpToDateSound->stop();
+  }
+  if (!d->WatchedNodeBecomeOutdatedSound.isNull())
+  {
+    d->WatchedNodeBecomeOutdatedSound->stop();
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -91,6 +118,7 @@ QStringList qSlicerWatchdogModule::contributors() const
 {
   QStringList moduleContributors;
   moduleContributors << QString("Jaime Garcia-Guevara (Queen's University)");
+  moduleContributors << QString("Andras Lasso (Queen's University)");
   moduleContributors << QString("Tamas Ungi (Queen's University)");
   return moduleContributors;
 }
@@ -116,21 +144,56 @@ QStringList qSlicerWatchdogModule::dependencies() const
 //-----------------------------------------------------------------------------
 void qSlicerWatchdogModule::setup()
 {
+  Q_D(qSlicerWatchdogModule);
   this->Superclass::setup();
+  
+  // Use the displayable manager class to make sure the the containing library is loaded
+  vtkSmartPointer<vtkMRMLWatchdogDisplayableManager> dm=vtkSmartPointer<vtkMRMLWatchdogDisplayableManager>::New();
+
+  connect(qSlicerApplication::application(), SIGNAL(lastWindowClosed()), this, SLOT(stopSound()));  
+
+  vtkSlicerWatchdogLogic* watchdogLogic = vtkSlicerWatchdogLogic::SafeDownCast(this->logic());
+  if (watchdogLogic)
+  {
+    if (d->WatchedNodeBecomeUpToDateSound == NULL)
+    {
+      d->WatchedNodeBecomeUpToDateSound = new QSound( QDir::toNativeSeparators( QString::fromStdString( watchdogLogic->GetModuleShareDirectory()+"/WatchedNodeUpToDate.wav" ) ) );
+    }
+    if (d->WatchedNodeBecomeOutdatedSound == NULL)
+    {
+      d->WatchedNodeBecomeOutdatedSound = new QSound( QDir::toNativeSeparators( QString::fromStdString( watchdogLogic->GetModuleShareDirectory()+"/WatchedNodeOutdated.wav" ) ) );
+    }
+  }
+  else
+  {
+    qWarning("vtkSlicerWatchdogLogic is not available");
+  }
+
+  // Register displayable managers
+  vtkMRMLSliceViewDisplayableManagerFactory::GetInstance()->RegisterDisplayableManager("vtkMRMLWatchdogDisplayableManager");
+  vtkMRMLThreeDViewDisplayableManagerFactory::GetInstance()->RegisterDisplayableManager("vtkMRMLWatchdogDisplayableManager"); 
+}
+
+//------------------------------------------------------------------------------
+void qSlicerWatchdogModule::stopSound()
+{
+  Q_D(qSlicerWatchdogModule);
+  if (!d->WatchedNodeBecomeUpToDateSound.isNull())
+  {
+    d->WatchedNodeBecomeUpToDateSound->stop();
+    d->WatchedNodeBecomeUpToDateSound=NULL;
+  }
+  if (!d->WatchedNodeBecomeOutdatedSound.isNull())
+  {
+    d->WatchedNodeBecomeOutdatedSound->stop();
+    d->WatchedNodeBecomeOutdatedSound=NULL;
+  }
 }
 
 //-----------------------------------------------------------------------------
 void qSlicerWatchdogModule::setMRMLScene(vtkMRMLScene* _mrmlScene)
 {
   this->Superclass::setMRMLScene(_mrmlScene);
-  Q_D(qSlicerWatchdogModule);
-  if (d->ToolBarManager == NULL)
-  {
-    d->ToolBarManager = new qSlicerToolBarManagerWidget;
-  }
-  d->ToolBarManager->setMRMLScene(_mrmlScene);
-  vtkSlicerWatchdogLogic* watchdogLogic = vtkSlicerWatchdogLogic::SafeDownCast(this->Superclass::logic());
-  d->ToolBarManager->setLogic(watchdogLogic);
 }
 
 //-----------------------------------------------------------------------------
@@ -138,7 +201,6 @@ qSlicerAbstractModuleRepresentation* qSlicerWatchdogModule::createWidgetRepresen
 {
   Q_D(qSlicerWatchdogModule);
   qSlicerWatchdogModuleWidget * watchdogWidget = new qSlicerWatchdogModuleWidget;
-  watchdogWidget->SetToolBarManager(d->ToolBarManager);
   return watchdogWidget;
 }
 
@@ -146,4 +208,72 @@ qSlicerAbstractModuleRepresentation* qSlicerWatchdogModule::createWidgetRepresen
 vtkMRMLAbstractLogic* qSlicerWatchdogModule::createLogic()
 {
   return vtkSlicerWatchdogLogic::New();
+}
+
+// --------------------------------------------------------------------------
+void qSlicerWatchdogModule::onNodeAddedEvent(vtkObject*, vtkObject* node)
+{
+  Q_D(qSlicerWatchdogModule);
+
+  vtkMRMLWatchdogNode* watchdogNode = vtkMRMLWatchdogNode::SafeDownCast(node);
+  if (watchdogNode)
+    {
+    // If the timer is not active
+    if (!d->UpdateAllWatchdogNodesTimer.isActive())
+      {
+      d->UpdateAllWatchdogNodesTimer.start(UPDATE_WATCHDOG_NODES_PERIOD_SEC*1000.0);
+      }
+    }
+}
+
+// --------------------------------------------------------------------------
+void qSlicerWatchdogModule::onNodeRemovedEvent(vtkObject*, vtkObject* node)
+{
+  Q_D(qSlicerWatchdogModule);
+
+  vtkMRMLWatchdogNode* watchdogNode = vtkMRMLWatchdogNode::SafeDownCast(node);
+  if (watchdogNode)
+    {
+    // If the timer is active
+    if (d->UpdateAllWatchdogNodesTimer.isActive())
+      {
+      // Check if there is any other sequence browser node left in the Scene
+      vtkMRMLScene * scene = qSlicerCoreApplication::application()->mrmlScene();
+      if (scene)
+        {
+        std::vector<vtkMRMLNode *> nodes;
+        this->mrmlScene()->GetNodesByClass("vtkMRMLWatchdogNode", nodes);
+        if (nodes.size() == 0)
+          {
+          // The last sequence browser was removed
+          d->UpdateAllWatchdogNodesTimer.stop();
+          }
+        }
+      }
+    }
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerWatchdogModule::updateAllWatchdogNodes()
+{
+  Q_D(qSlicerWatchdogModule);
+  vtkSlicerWatchdogLogic* watchdogLogic = vtkSlicerWatchdogLogic::SafeDownCast(this->Superclass::logic());
+  if (!watchdogLogic)
+    {
+    return;
+    }
+
+  bool watchedNodeBecomeUpToDateSound=false;
+  bool watchedNodeBecomeOutdatedSound=false;
+  watchdogLogic->UpdateAllWatchdogNodes(watchedNodeBecomeUpToDateSound, watchedNodeBecomeOutdatedSound);
+
+  // Play connected/disconnected sounds
+  if (watchedNodeBecomeUpToDateSound && !d->WatchedNodeBecomeUpToDateSound.isNull())
+  {
+    d->WatchedNodeBecomeUpToDateSound->play();
+  }
+  if (watchedNodeBecomeOutdatedSound && !d->WatchedNodeBecomeOutdatedSound.isNull())
+  {
+    d->WatchedNodeBecomeOutdatedSound->play();
+  }
 }
