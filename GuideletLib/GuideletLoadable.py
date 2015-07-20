@@ -1,5 +1,4 @@
 import os
-import unittest
 from __main__ import vtk, qt, ctk, slicer
 from slicer.ScriptedLoadableModule import *
 import logging
@@ -30,6 +29,7 @@ class GuideletLoadable(ScriptedLoadableModule):
     self.parent.categories = ["Guidelet"] 
     self.parent.dependencies = []
     self.parent.contributors = [""]
+
 
 #
 # GuideletWidget
@@ -87,7 +87,7 @@ class GuideletWidget(ScriptedLoadableModuleWidget):
     hbox.addWidget(self.lineEdit)
     self.launcherFormLayout.addRow(hbox)
 
-    if(lnNode is not None and lnNode.GetParameter('PlusServerHostNamePort')):
+    if lnNode is not None and lnNode.GetParameter('PlusServerHostNamePort'):
         #logging.debug("There is already a connector PlusServerHostNamePort parameter " + lnNode.GetParameter('PlusServerHostNamePort'))
         self.lineEdit.setDisabled(True)
         self.lineEdit.setText(lnNode.GetParameter('PlusServerHostNamePort'))
@@ -99,8 +99,10 @@ class GuideletWidget(ScriptedLoadableModuleWidget):
 
   def cleanup(self):
     self.launchGuideletButton.disconnect('clicked()', self.onLaunchGuideletButtonClicked)
-    self.guideletLogic.cleanup()
-    self.guideletInstance.cleanUp()
+    if self.guideletLogic:
+      self.guideletLogic.cleanup()
+    if self.guideletInstance:
+      self.guideletInstance.cleanup()
    
   def onLaunchGuideletButtonClicked(self):
     logging.debug('onLaunchGuideletButtonClicked')
@@ -113,18 +115,20 @@ class GuideletWidget(ScriptedLoadableModuleWidget):
       self.guideletInstance = self.createGuideletInstance(parameterList)
       
   def collectParameterList(self):
-    paremeterlist = None
+    parameterlist = None
     settings = slicer.app.userSettings()
-    if(self.lineEdit.isEnabled() and self.lineEdit.text != ''):
+    if self.lineEdit.isEnabled() and self.lineEdit.text != '':
         settings.setValue(self.moduleName + '/PlusServerHostNamePort', self.lineEdit.text)        
         parameterlist = {'PlusServerHostNamePort':self.lineEdit.text}
     return parameterlist
 
   def createGuideletInstance(self, parameterList = None):
-    pass
+    raise NotImplementedError("Abstract method must be overridden!")
 
   def createGuideletLogic(self):
-    pass
+    raise NotImplementedError("Abstract method must be overridden!")
+
+
 #
 # GuideletLogic
 #
@@ -182,6 +186,7 @@ class GuideletTest(ScriptedLoadableModuleTest):
     self.setUp()
     # self.test_SliceletBase1() # Here the tests should be added that are common for all full screen applets e.g.  # TODO defines tests
 
+
 class UltraSound(object):
 
   def __init__(self, guideletParent):
@@ -189,10 +194,10 @@ class UltraSound(object):
     self.guideletParent = guideletParent
     defaultCommandTimeoutSec = 15
     self.cmdStartRecording = slicer.modulelogic.vtkSlicerOpenIGTLinkCommand()
-    self.cmdStartRecording.SetCommandTimeoutSec(defaultCommandTimeoutSec);
+    self.cmdStartRecording.SetCommandTimeoutSec(defaultCommandTimeoutSec)
     self.cmdStartRecording.SetCommandName('StartRecording')    
     self.cmdStopRecording = slicer.modulelogic.vtkSlicerOpenIGTLinkCommand()
-    self.cmdStopRecording.SetCommandTimeoutSec(defaultCommandTimeoutSec);
+    self.cmdStopRecording.SetCommandTimeoutSec(defaultCommandTimeoutSec)
     self.cmdStopRecording.SetCommandName('StopRecording')
     self.captureDeviceName='CaptureDevice'
 
@@ -339,7 +344,7 @@ class UltraSound(object):
       logging.debug("PlusConnector created")
     return connectorNode
 
-  def recordingCommandCompleted(self, command, q):
+  def recordingCommandCompleted(self, command):
     statusText = "Command {0} [{1}]: {2}\n".format(command.GetCommandName(), command.GetID(), command.StatusToString(command.GetStatus()))
     statusTextUser = "{0} {1}\n".format(command.GetCommandName(), command.StatusToString(command.GetStatus()))
     if command.GetResponseMessage():
@@ -385,7 +390,7 @@ class UltraSound(object):
   def onFreezeUltrasoundClicked(self):
     logging.debug('onFreezeUltrasoundClicked')
     self.usFrozen = not self.usFrozen
-    if(self.usFrozen):
+    if self.usFrozen:
       self.guideletParent.connectorNode.Stop()
     else:
       self.guideletParent.connectorNode.Start()
@@ -409,6 +414,35 @@ class UltraSound(object):
 
 class Guidelet(object):
 
+  @staticmethod
+  def showToolbars(show):
+    for toolbar in slicer.util.mainWindow().findChildren('QToolBar'):
+      toolbar.setVisible(show)
+
+  @staticmethod
+  def showModulePanel(show):
+    slicer.util.mainWindow().findChildren('QDockWidget','PanelDockWidget')[0].setVisible(show)
+
+  @staticmethod
+  def showMenuBar(show):
+    for menubar in slicer.util.mainWindow().findChildren('QMenuBar'):
+      menubar.setVisible(show)
+
+  @staticmethod
+  def onGenericCommandResponseReceived(commandId, responseNode):
+    if responseNode:
+      logging.debug("Response from PLUS: {0}".format(responseNode.GetText(0)))
+    else:
+      logging.debug("Timeout. Command Id: {0}".format(commandId))
+
+  @staticmethod
+  def showUltrasoundIn3dView(show):
+    redNode = slicer.util.getNode('vtkMRMLSliceNodeRed')
+    if show:
+      redNode.SetSliceVisible(1)
+    else:
+      redNode.SetSliceVisible(0)
+
   def __init__(self, parent, logic, parameterList=None, widgetClass=None):    
     logging.debug('Guidelet.__init__')
     self.parent = parent
@@ -416,7 +450,7 @@ class Guidelet(object):
     self.parameterNodeObserver = None
     self.parameterNode = self.logic.getParameterNode()
 
-    if(parameterList!=None):
+    if parameterList is not None:
         for parameter in parameterList:
             self.parameterNode.SetParameter(parameter, str(parameterList[parameter]))
             logging.info(parameter +' '+ self.parameterNode.GetParameter(parameter))
@@ -501,7 +535,7 @@ class Guidelet(object):
 
     # OpenIGTLink connector node selection
     self.linkInputSelector = slicer.qMRMLNodeComboBox()
-    self.linkInputSelector.nodeTypes = (("vtkMRMLIGTLConnectorNode"), "")
+    self.linkInputSelector.nodeTypes = ("vtkMRMLIGTLConnectorNode", "")
     self.linkInputSelector.selectNodeUponCreation = True
     self.linkInputSelector.addEnabled = False
     self.linkInputSelector.removeEnabled = True
@@ -524,7 +558,6 @@ class Guidelet(object):
     self.advancedLayout.addRow(self.saveSceneButton)
 
     self.saveDirectoryLineEdit = qt.QLineEdit()
-    settings = slicer.app.userSettings()
     self.saveDirectoryLineEdit.setText(self.getSavedScenesDirectory())
     saveLabel = qt.QLabel()
     saveLabel.setText("Save scene directory:")
@@ -623,7 +656,7 @@ class Guidelet(object):
     logging.info("Saving scene to: {0}".format(sceneSaveDirectory))
     if not os.access(sceneSaveDirectory, os.F_OK):
       os.makedirs(sceneSaveDirectory)
-    if(applicationLogic.SaveSceneToSlicerDataBundleDirectory(sceneSaveDirectory, None)):
+    if applicationLogic.SaveSceneToSlicerDataBundleDirectory(sceneSaveDirectory, None):
       logging.info("Scene saved to: {0}".format(sceneSaveDirectory)) 
     else:
       logging.error("Scene saving failed")
@@ -665,18 +698,7 @@ class Guidelet(object):
     self.sliceletDockWidget.show()
     mainWindow=slicer.util.mainWindow()
     mainWindow.showFullScreen()
-    
-  def showToolbars(self, show):
-    for toolbar in slicer.util.mainWindow().findChildren('QToolBar'):
-      toolbar.setVisible(show)
 
-  def showModulePanel(self, show):
-    slicer.util.mainWindow().findChildren('QDockWidget','PanelDockWidget')[0].setVisible(show)
-  
-  def showMenuBar(self, show):
-    for menubar in slicer.util.mainWindow().findChildren('QMenuBar'):
-      menubar.setVisible(show)
-  
   def onShowFullSlicerInterfaceClicked(self):
     self.showToolbars(True)
     self.showModulePanel(True)
@@ -781,12 +803,6 @@ class Guidelet(object):
       connectorNodeObserverTag = self.connectorNode.AddObserver(tagEventHandler[0], tagEventHandler[1])
       self.connectorNodeObserverTagList.append(connectorNodeObserverTag)
 
-  def onGenericCommandResponseReceived(self, commandId, responseNode):
-    if responseNode:
-      logging.debug("Response from PLUS: {0}".format(responseNode.GetText(0)))
-    else:
-      logging.debug("Timeout. Command Id: {0}".format(commandId))
-    
   def fitUltrasoundImageToView(self):
     redWidget = self.layoutManager.sliceWidget('Red')
     redWidget.sliceController().fitSliceToBackground()
@@ -794,13 +810,6 @@ class Guidelet(object):
   def delayedFitUltrasoundImageToView(self, delayMsec=500):
     qt.QTimer.singleShot(delayMsec, self.fitUltrasoundImageToView) 
 
-  def showUltrasoundIn3dView(self, show):
-    redNode = slicer.util.getNode('vtkMRMLSliceNodeRed')
-    if show:
-      redNode.SetSliceVisible(1)
-    else:
-      redNode.SetSliceVisible(0)
-    
   def onViewSelect(self, layoutIndex):
     logging.debug('onViewSelect: {0}'.format(layoutIndex))
     if layoutIndex == self.viewUltrasound:      
@@ -859,7 +868,7 @@ class Guidelet(object):
     settings.setValue(settingString, sceneSaveDirectory)
 
   def onUltrasoundPanelToggled(self, toggled):
-    if toggled == False:
+    if not toggled:
       # deactivate placement mode
       interactionNode = slicer.app.applicationLogic().GetInteractionNode()
       interactionNode.SetCurrentInteractionMode(interactionNode.ViewTransform)   
