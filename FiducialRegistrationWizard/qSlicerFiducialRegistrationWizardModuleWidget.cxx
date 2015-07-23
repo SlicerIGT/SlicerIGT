@@ -18,16 +18,18 @@
 
 // Qt includes
 #include <QtGui>
+#include <QColor>
 
 // SlicerQt includes
 #include "qSlicerFiducialRegistrationWizardModuleWidget.h"
+#include "qSlicerSimpleMarkupsWidget.h"
+#include "qSlicerTransformPreviewWidget.h"
 #include "ui_qSlicerFiducialRegistrationWizardModule.h"
 
 #include "vtkSlicerFiducialRegistrationWizardLogic.h"
 
 #include "vtkMRMLLinearTransformNode.h"
 #include "vtkMRMLMarkupsFiducialNode.h"
-
 
 //-----------------------------------------------------------------------------
 /// \ingroup Slicer_QtModules_FiducialRegistrationWizard
@@ -117,8 +119,8 @@ std::string qSlicerFiducialRegistrationWizardModuleWidget
 
   vtkMRMLMarkupsNode* activeMarkupsNode = vtkMRMLMarkupsNode::SafeDownCast( this->mrmlScene()->GetNodeByID( d->logic()->MarkupsLogic->GetActiveListID() ) );
 
-  vtkMRMLMarkupsFiducialNode* fromMarkupsNode = vtkMRMLMarkupsFiducialNode::SafeDownCast( d->FromMarkupsWidget->GetCurrentNode() );
-  vtkMRMLMarkupsFiducialNode* toMarkupsNode = vtkMRMLMarkupsFiducialNode::SafeDownCast( d->ToMarkupsWidget->GetCurrentNode() );
+  vtkMRMLMarkupsFiducialNode* fromMarkupsNode = vtkMRMLMarkupsFiducialNode::SafeDownCast( d->FromMarkupsWidget->currentNode() );
+  vtkMRMLMarkupsFiducialNode* toMarkupsNode = vtkMRMLMarkupsFiducialNode::SafeDownCast( d->ToMarkupsWidget->currentNode() );
 
   if ( fromMarkupsNode != NULL && toMarkupsNode != NULL )
   {
@@ -161,15 +163,17 @@ void qSlicerFiducialRegistrationWizardModuleWidget
 
   // Embed widgets here
   d->FromMarkupsWidget = new qSlicerSimpleMarkupsWidget();
-  d->FromMarkupsWidget->SetNodeBaseName( "From" );
-  double FROM_MARKUPS_DEFAULT_COLOR[3] = { 1, 0, 0 };
-  d->FromMarkupsWidget->SetDefaultNodeColor( FROM_MARKUPS_DEFAULT_COLOR );
+  d->FromMarkupsWidget->setNodeBaseName( "From" );
+  QColor fromMarkupsDefaultColor;
+  fromMarkupsDefaultColor.setRgbF(1, 0, 0);
+  d->FromMarkupsWidget->setDefaultNodeColor( fromMarkupsDefaultColor );
   d->FromGroupBox->layout()->addWidget( d->FromMarkupsWidget );
 
   d->ToMarkupsWidget = new qSlicerSimpleMarkupsWidget();
-  d->ToMarkupsWidget->SetNodeBaseName( "To" );
-  double TO_MARKUPS_DEFAULT_COLOR[3] = { 0, 0, 1 };
-  d->ToMarkupsWidget->SetDefaultNodeColor( TO_MARKUPS_DEFAULT_COLOR );
+  d->ToMarkupsWidget->setNodeBaseName( "To" );
+  QColor toMarkupsDefaultColor;
+  toMarkupsDefaultColor.setRgbF(0, 0, 1);
+  d->ToMarkupsWidget->setDefaultNodeColor(toMarkupsDefaultColor);
   d->ToGroupBox->layout()->addWidget( d->ToMarkupsWidget );
 
   d->TransformPreviewWidget = new qSlicerTransformPreviewWidget;
@@ -308,22 +312,22 @@ void qSlicerFiducialRegistrationWizardModuleWidget
     fiducialRegistrationWizardNode->SetOutputTransformID( d->OutputTransformComboBox->currentNode()->GetID(), vtkMRMLFiducialRegistrationWizardNode::NeverModify );
   }
 
-  if ( d->FromMarkupsWidget->GetCurrentNode() == NULL )
+  if ( d->FromMarkupsWidget->currentNode() == NULL )
   {
     fiducialRegistrationWizardNode->SetFromFiducialListID( "", vtkMRMLFiducialRegistrationWizardNode::NeverModify );
   }
   else
   {
-    fiducialRegistrationWizardNode->SetFromFiducialListID( d->FromMarkupsWidget->GetCurrentNode()->GetID(), vtkMRMLFiducialRegistrationWizardNode::NeverModify );
+    fiducialRegistrationWizardNode->SetFromFiducialListID( d->FromMarkupsWidget->currentNode()->GetID(), vtkMRMLFiducialRegistrationWizardNode::NeverModify );
   }
 
-  if ( d->ToMarkupsWidget->GetCurrentNode() == NULL )
+  if ( d->ToMarkupsWidget->currentNode() == NULL )
   {
     fiducialRegistrationWizardNode->SetToFiducialListID( "", vtkMRMLFiducialRegistrationWizardNode::NeverModify );
   }
   else
   {
-    fiducialRegistrationWizardNode->SetToFiducialListID( d->ToMarkupsWidget->GetCurrentNode()->GetID(), vtkMRMLFiducialRegistrationWizardNode::NeverModify );
+    fiducialRegistrationWizardNode->SetToFiducialListID( d->ToMarkupsWidget->currentNode()->GetID(), vtkMRMLFiducialRegistrationWizardNode::NeverModify );
   }
 
   if ( d->SimilarityRadioButton->isChecked() )
@@ -379,8 +383,8 @@ void qSlicerFiducialRegistrationWizardModuleWidget
   d->TransformPreviewWidget->SetCurrentNode( this->mrmlScene()->GetNodeByID( fiducialRegistrationWizardNode->GetOutputTransformID() ) );
   d->RecordButton->setText( QString::fromStdString( this->GetCorrespondingFiducialString() ) );
 
-  d->FromMarkupsWidget->SetCurrentNode( this->mrmlScene()->GetNodeByID( fiducialRegistrationWizardNode->GetFromFiducialListID() ) );
-  d->ToMarkupsWidget->SetCurrentNode( this->mrmlScene()->GetNodeByID( fiducialRegistrationWizardNode->GetToFiducialListID() ) );
+  d->FromMarkupsWidget->setCurrentNode( this->mrmlScene()->GetNodeByID( fiducialRegistrationWizardNode->GetFromFiducialListID() ) );
+  d->ToMarkupsWidget->setCurrentNode( this->mrmlScene()->GetNodeByID( fiducialRegistrationWizardNode->GetToFiducialListID() ) );
 
 
   if ( fiducialRegistrationWizardNode->GetRegistrationMode().compare( "Similarity" ) == 0 )
@@ -420,8 +424,8 @@ void qSlicerFiducialRegistrationWizardModuleWidget
 
   vtkMRMLMarkupsNode* activeMarkupsNode = vtkMRMLMarkupsNode::SafeDownCast( this->mrmlScene()->GetNodeByID( d->logic()->MarkupsLogic->GetActiveListID() ) );
 
-  vtkMRMLMarkupsFiducialNode* fromMarkupsNode = vtkMRMLMarkupsFiducialNode::SafeDownCast( d->FromMarkupsWidget->GetCurrentNode() );
-  vtkMRMLMarkupsFiducialNode* toMarkupsNode = vtkMRMLMarkupsFiducialNode::SafeDownCast( d->ToMarkupsWidget->GetCurrentNode() );
+  vtkMRMLMarkupsFiducialNode* fromMarkupsNode = vtkMRMLMarkupsFiducialNode::SafeDownCast( d->FromMarkupsWidget->currentNode() );
+  vtkMRMLMarkupsFiducialNode* toMarkupsNode = vtkMRMLMarkupsFiducialNode::SafeDownCast( d->ToMarkupsWidget->currentNode() );
 
   if ( activeMarkupsNode != NULL && fromMarkupsNode != NULL && toMarkupsNode != NULL )
   {

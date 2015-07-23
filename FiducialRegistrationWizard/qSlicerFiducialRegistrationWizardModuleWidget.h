@@ -18,12 +18,10 @@
 #ifndef __qSlicerFiducialRegistrationWizardModuleWidget_h
 #define __qSlicerFiducialRegistrationWizardModuleWidget_h
 
+#include "qSlicerFiducialRegistrationWizardModuleExport.h"
+
 // SlicerQt includes
 #include "qSlicerAbstractModuleWidget.h"
-#include "qSlicerSimpleMarkupsWidget.h"
-#include "qSlicerTransformPreviewWidget.h"
-
-#include "qSlicerFiducialRegistrationWizardModuleExport.h"
 
 class qSlicerFiducialRegistrationWizardModuleWidgetPrivate;
 class vtkMRMLNode;
