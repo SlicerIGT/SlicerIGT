@@ -1,8 +1,7 @@
 /*==============================================================================
 
-  Program: 3D Slicer
-
-  Portions (c) Copyright Brigham and Women's Hospital (BWH) All Rights Reserved.
+  Copyright (c) Laboratory for Percutaneous Surgery (PerkLab)
+  Queen's University, Kingston, ON, Canada. All Rights Reserved.
 
   See COPYRIGHT.txt
   or http://www.slicer.org/copyright/copyright.txt for details.
@@ -13,13 +12,11 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 
+  This file was originally developed by Matthew Holden, PerkLab, Queen's University
+  and was supported through the Applied Cancer Research Unit program of Cancer Care
+  Ontario with funds provided by the Ontario Ministry of Health and Long-Term Care
+
 ==============================================================================*/
-
-// .NAME vtkSlicerFiducialRegistrationWizardLogic - slicer logic class for volumes manipulation
-// .SECTION Description
-// This class manages the logic associated with reading, saving,
-// and changing propertied of the volumes
-
 
 #ifndef __vtkSlicerFiducialRegistrationWizardLogic_h
 #define __vtkSlicerFiducialRegistrationWizardLogic_h
@@ -65,12 +62,13 @@ public:
   
   void AddFiducial( vtkMRMLLinearTransformNode* probeTransformNode );
 
-  vtkSlicerMarkupsLogic* MarkupsLogic;
-
   void ProcessMRMLNodesEvents( vtkObject* caller, unsigned long event, void* callData );
-  void ProcessMRMLSceneEvents( vtkObject* caller, unsigned long event, void* callData );
+  //void ProcessMRMLSceneEvents( vtkObject* caller, unsigned long event, void* callData );
 
-  void CalculateTransform( vtkMRMLNode* node );
+  void UpdateCalibration( vtkMRMLNode* node );
+
+  vtkGetMacro(MarkupsLogic, vtkSlicerMarkupsLogic*);
+  vtkSetMacro(MarkupsLogic, vtkSlicerMarkupsLogic*);
   
   std::string GetOutputMessage( std::string nodeID );
   
@@ -95,6 +93,8 @@ private:
   std::map< std::string, std::string > OutputMessages;
 
   void SetOutputMessage( std::string nodeID, std::string newOutputMessage ); // The modified event will tell the widget to update (only needs to update when transform is calculated)
+
+  vtkSlicerMarkupsLogic* MarkupsLogic;
 };
 
 #endif

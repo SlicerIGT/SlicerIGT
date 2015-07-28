@@ -31,7 +31,6 @@
 // BreachWarning includes
 #include "qSlicerBreachWarningModule.h"
 #include "qSlicerBreachWarningModuleWidget.h"
-#include "vtkSlicerBreachWarningLogic.h"
 
 //-----------------------------------------------------------------------------
 Q_EXPORT_PLUGIN2(qSlicerBreachWarningModule, qSlicerBreachWarningModule);

@@ -1,7 +1,29 @@
+/*==============================================================================
+
+  Copyright (c) Laboratory for Percutaneous Surgery (PerkLab)
+  Queen's University, Kingston, ON, Canada. All Rights Reserved.
+
+  See COPYRIGHT.txt
+  or http://www.slicer.org/copyright/copyright.txt for details.
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+
+  This file was originally developed by Matthew Holden, PerkLab, Queen's University
+  and was supported through the Applied Cancer Research Unit program of Cancer Care
+  Ontario with funds provided by the Ontario Ministry of Health and Long-Term Care
+
+==============================================================================*/
 
 // FiducialRegistrationWizard MRML includes
 #include "vtkMRMLFiducialRegistrationWizardNode.h"
 
+#include "vtkMRMLMarkupsFiducialNode.h"
+#include "vtkMRMLTransformNode.h"
+#include "vtkNew.h"
 
 // Constants ------------------------------------------------------------------
 static const char* PROBE_TRANSFORM_REFERENCE_ROLE = "ProbeTransform";
@@ -9,107 +31,42 @@ static const char* FROM_FIDUCIAL_LIST_REFERENCE_ROLE = "FromFiducialList";
 static const char* TO_FIDUCIAL_LIST_REFERENCE_ROLE = "ToFiducialList";
 static const char* OUTPUT_TRANSFORM_REFERENCE_ROLE = "OutputTransform";
 
+vtkMRMLNodeNewMacro(vtkMRMLFiducialRegistrationWizardNode);
 
-// MACROS ---------------------------------------------------------------------
-
-#define DELETE_IF_NOT_NULL(x) \
-  if ( x != NULL ) \
-    { \
-    x->Delete(); \
-    x = NULL; \
-    }
-
-#define WRITE_STRING_XML(x) \
-  if ( this->x != NULL ) \
-  { \
-    of << indent << " "#x"=\"" << this->x << "\"\n"; \
-  }
-
-#define READ_AND_SET_STRING_XML(x) \
-    if ( !strcmp( attName, #x ) ) \
-      { \
-      this->SetAndObserve##x( NULL ); \
-      this->Set##x( attValue ); \
-      }
-
-
-// Constructors and Destructors
-// ----------------------------------------------------------------------------
-
-vtkMRMLFiducialRegistrationWizardNode* vtkMRMLFiducialRegistrationWizardNode
-::New()
-{
-  // First try to create the object from the vtkObjectFactory
-  vtkObject* ret = vtkObjectFactory::CreateInstance( "vtkMRMLFiducialRegistrationWizardNode" );
-  if( ret )
-    {
-      return ( vtkMRMLFiducialRegistrationWizardNode* )ret;
-    }
-  // If the factory was unable to create the object, then create it here.
-  return new vtkMRMLFiducialRegistrationWizardNode;
-}
-
-
-
-vtkMRMLFiducialRegistrationWizardNode
-::vtkMRMLFiducialRegistrationWizardNode()
+//------------------------------------------------------------------------------
+vtkMRMLFiducialRegistrationWizardNode::vtkMRMLFiducialRegistrationWizardNode()
 {
   this->HideFromEditorsOff();
   this->SetSaveWithScene( true );
-  // this->SetModifiedSinceRead( true );
+
+  vtkNew<vtkIntArray> fiducialListEvents;
+  fiducialListEvents->InsertNextValue( vtkCommand::ModifiedEvent );
+  fiducialListEvents->InsertNextValue( vtkMRMLMarkupsNode::PointModifiedEvent ); //PointEndInteractionEvent
 
   this->AddNodeReferenceRole( PROBE_TRANSFORM_REFERENCE_ROLE );
-  this->AddNodeReferenceRole( FROM_FIDUCIAL_LIST_REFERENCE_ROLE );
-  this->AddNodeReferenceRole( TO_FIDUCIAL_LIST_REFERENCE_ROLE );
+  this->AddNodeReferenceRole( FROM_FIDUCIAL_LIST_REFERENCE_ROLE, NULL, fiducialListEvents.GetPointer() );
+  this->AddNodeReferenceRole( TO_FIDUCIAL_LIST_REFERENCE_ROLE, NULL, fiducialListEvents.GetPointer() );
   this->AddNodeReferenceRole( OUTPUT_TRANSFORM_REFERENCE_ROLE );
   this->RegistrationMode = "Rigid";
   this->UpdateMode = "Automatic";
-
-  this->Modified();
 }
 
-
-
-vtkMRMLFiducialRegistrationWizardNode
-::~vtkMRMLFiducialRegistrationWizardNode()
+//------------------------------------------------------------------------------
+vtkMRMLFiducialRegistrationWizardNode::~vtkMRMLFiducialRegistrationWizardNode()
 {
 }
 
-
-
-vtkMRMLNode* vtkMRMLFiducialRegistrationWizardNode
-::CreateNodeInstance()
-{
-  // First try to create the object from the vtkObjectFactory
-  vtkObject* ret = vtkObjectFactory::CreateInstance( "vtkMRMLFiducialRegistrationWizardNode" );
-  if( ret )
-    {
-      return ( vtkMRMLFiducialRegistrationWizardNode* )ret;
-    }
-  // If the factory was unable to create the object, then create it here.
-  return new vtkMRMLFiducialRegistrationWizardNode;
-}
-
-
-
-// Scene: Save and load
 // ----------------------------------------------------------------------------
-
-
-void vtkMRMLFiducialRegistrationWizardNode
-::WriteXML( ostream& of, int nIndent )
+void vtkMRMLFiducialRegistrationWizardNode::WriteXML( ostream& of, int nIndent )
 {
-
   Superclass::WriteXML(of, nIndent); // This will take care of referenced nodes
 
-  vtkIndent indent(nIndent);
-  
+  vtkIndent indent(nIndent); 
   of << indent << " RegistrationMode=\"" << this->RegistrationMode << "\"";
   of << indent << " UpdateMode=\"" << this->UpdateMode << "\"";
 }
 
-
-
+//------------------------------------------------------------------------------
 void vtkMRMLFiducialRegistrationWizardNode::ReadXMLAttributes( const char** atts )
 {
   Superclass::ReadXMLAttributes(atts); // This will take care of referenced nodes
@@ -117,7 +74,6 @@ void vtkMRMLFiducialRegistrationWizardNode::ReadXMLAttributes( const char** atts
   // Read all MRML node attributes from two arrays of names and values
   const char* attName;
   const char* attValue;
-
   while (*atts != NULL)
   {
     attName  = *(atts++);
@@ -131,19 +87,13 @@ void vtkMRMLFiducialRegistrationWizardNode::ReadXMLAttributes( const char** atts
     {
       this->UpdateMode = std::string( attValue );
     }
-
   }
 
   this->Modified();
 }
 
-
-
-// Slicer Scene
-// ----------------------------------------------------------------------------
-
-void vtkMRMLFiducialRegistrationWizardNode
-::Copy( vtkMRMLNode *anode )
+//------------------------------------------------------------------------------
+void vtkMRMLFiducialRegistrationWizardNode::Copy( vtkMRMLNode *anode )
 {  
   Superclass::Copy( anode ); // This will take care of referenced nodes
   vtkMRMLFiducialRegistrationWizardNode *node = ( vtkMRMLFiducialRegistrationWizardNode* ) anode;
@@ -155,187 +105,147 @@ void vtkMRMLFiducialRegistrationWizardNode
   this->Modified();
 }
 
-
-
-void vtkMRMLFiducialRegistrationWizardNode
-::PrintSelf( ostream& os, vtkIndent indent )
+//------------------------------------------------------------------------------
+void vtkMRMLFiducialRegistrationWizardNode::PrintSelf( ostream& os, vtkIndent indent )
 {
   vtkMRMLNode::PrintSelf(os,indent); // This will take care of referenced nodes
   os << indent << "RegistrationMode: " << this->RegistrationMode << "\n";
   os << indent << "UpdateMode: " << this->UpdateMode << "\n";
 }
 
-
-void vtkMRMLFiducialRegistrationWizardNode
-::ObserveAllReferenceNodes()
+//------------------------------------------------------------------------------
+void vtkMRMLFiducialRegistrationWizardNode::SetAndObserveFromFiducialListNodeId( const char* nodeId )
 {
-  this->SetProbeTransformID( this->GetProbeTransformID(), NeverModify );
-  this->SetFromFiducialListID( this->GetFromFiducialListID(), NeverModify );
-  this->SetToFiducialListID( this->GetToFiducialListID(), NeverModify );
-  this->SetOutputTransformID( this->GetOutputTransformID(), NeverModify );
-
-  this->UpdateNodeReferences();
-  this->Modified();
+  const char* currentNodeId=this->GetNodeReferenceID(FROM_FIDUCIAL_LIST_REFERENCE_ROLE);
+  if (nodeId!=NULL && currentNodeId!=NULL && strcmp(nodeId,currentNodeId)==0)
+  {
+    // not changed
+    return;
+  }
+  this->SetAndObserveNodeReferenceID( FROM_FIDUCIAL_LIST_REFERENCE_ROLE, nodeId);
+  this->InvokeCustomModifiedEvent(InputDataModifiedEvent);
 }
 
-
-// Variable getters and setters -----------------------------------------------------
-
-std::string vtkMRMLFiducialRegistrationWizardNode
-::GetProbeTransformID()
+//------------------------------------------------------------------------------
+vtkMRMLMarkupsFiducialNode* vtkMRMLFiducialRegistrationWizardNode::GetFromFiducialListNode()
 {
-  return this->GetNodeReferenceIDString( PROBE_TRANSFORM_REFERENCE_ROLE );
+  vtkMRMLMarkupsFiducialNode* node = vtkMRMLMarkupsFiducialNode::SafeDownCast( this->GetNodeReference( FROM_FIDUCIAL_LIST_REFERENCE_ROLE ) );
+  return node;
 }
 
-
-void vtkMRMLFiducialRegistrationWizardNode
-::SetProbeTransformID( std::string newProbeTransformID, int modifyType )
+//------------------------------------------------------------------------------
+void vtkMRMLFiducialRegistrationWizardNode::SetAndObserveToFiducialListNodeId( const char* nodeId )
 {
-  if ( newProbeTransformID.compare( "" ) == 0 )
+  const char* currentNodeId=this->GetNodeReferenceID(TO_FIDUCIAL_LIST_REFERENCE_ROLE);
+  if (nodeId!=NULL && currentNodeId!=NULL && strcmp(nodeId,currentNodeId)==0)
   {
-    this->RemoveNodeReferenceIDs( PROBE_TRANSFORM_REFERENCE_ROLE );
+    // not changed
+    return;
   }
-  else if ( this->GetProbeTransformID() != newProbeTransformID )
-  {
-    this->SetNodeReferenceID( PROBE_TRANSFORM_REFERENCE_ROLE, newProbeTransformID.c_str() );
-  }
-  if ( this->GetProbeTransformID() != newProbeTransformID && modifyType == DefaultModify || modifyType == AlwaysModify )
-  {
-    this->Modified();
-  }
+  this->SetAndObserveNodeReferenceID( TO_FIDUCIAL_LIST_REFERENCE_ROLE, nodeId);
+  this->InvokeCustomModifiedEvent(InputDataModifiedEvent);
 }
 
-
-std::string vtkMRMLFiducialRegistrationWizardNode
-::GetFromFiducialListID()
+//------------------------------------------------------------------------------
+vtkMRMLMarkupsFiducialNode* vtkMRMLFiducialRegistrationWizardNode::GetToFiducialListNode()
 {
-  return this->GetNodeReferenceIDString( FROM_FIDUCIAL_LIST_REFERENCE_ROLE );
+  vtkMRMLMarkupsFiducialNode* node = vtkMRMLMarkupsFiducialNode::SafeDownCast( this->GetNodeReference( TO_FIDUCIAL_LIST_REFERENCE_ROLE ) );
+  return node;
 }
 
-
-void vtkMRMLFiducialRegistrationWizardNode
-::SetFromFiducialListID( std::string newFromFiducialListID, int modifyType )
+//------------------------------------------------------------------------------
+void vtkMRMLFiducialRegistrationWizardNode::SetProbeTransformNodeId( const char* nodeId )
 {
-  if ( this->GetFromFiducialListID() != newFromFiducialListID )
+  const char* currentNodeId=this->GetNodeReferenceID(PROBE_TRANSFORM_REFERENCE_ROLE);
+  if (nodeId!=NULL && currentNodeId!=NULL && strcmp(nodeId,currentNodeId)==0)
   {
-    this->SetAndObserveNodeReferenceID( FROM_FIDUCIAL_LIST_REFERENCE_ROLE, newFromFiducialListID.c_str() );
+    // not changed
+    return;
   }
-  if ( this->GetFromFiducialListID() != newFromFiducialListID && modifyType == DefaultModify || modifyType == AlwaysModify )
-  {
-    this->Modified();
-  }
+  this->SetAndObserveNodeReferenceID( PROBE_TRANSFORM_REFERENCE_ROLE, nodeId);
 }
 
-
-std::string vtkMRMLFiducialRegistrationWizardNode
-::GetToFiducialListID()
+//------------------------------------------------------------------------------
+vtkMRMLTransformNode* vtkMRMLFiducialRegistrationWizardNode::GetProbeTransformNode()
 {
-  return this->GetNodeReferenceIDString( TO_FIDUCIAL_LIST_REFERENCE_ROLE );
+  vtkMRMLTransformNode* node = vtkMRMLTransformNode::SafeDownCast( this->GetNodeReference( PROBE_TRANSFORM_REFERENCE_ROLE ) );
+  return node;
 }
 
-
-void vtkMRMLFiducialRegistrationWizardNode
-::SetToFiducialListID( std::string newToFiducialListID, int modifyType )
+//------------------------------------------------------------------------------
+void vtkMRMLFiducialRegistrationWizardNode::SetOutputTransformNodeId( const char* nodeId )
 {
-  if ( this->GetToFiducialListID() != newToFiducialListID )
+  const char* currentNodeId=this->GetNodeReferenceID(OUTPUT_TRANSFORM_REFERENCE_ROLE);
+  if (nodeId!=NULL && currentNodeId!=NULL && strcmp(nodeId,currentNodeId)==0)
   {
-    this->SetAndObserveNodeReferenceID( TO_FIDUCIAL_LIST_REFERENCE_ROLE, newToFiducialListID.c_str() );
+    // not changed
+    return;
   }
-  if ( this->GetToFiducialListID() != newToFiducialListID && modifyType == DefaultModify || modifyType == AlwaysModify )
-  {
-    this->Modified();
-  }
+  this->SetAndObserveNodeReferenceID( OUTPUT_TRANSFORM_REFERENCE_ROLE, nodeId);
+  // if the output node is changed then the calibration should be recomputed and placed into the newly selected output node
+  this->InvokeCustomModifiedEvent(InputDataModifiedEvent);
 }
 
-
-std::string vtkMRMLFiducialRegistrationWizardNode
-::GetOutputTransformID()
+//------------------------------------------------------------------------------
+vtkMRMLTransformNode* vtkMRMLFiducialRegistrationWizardNode::GetOutputTransformNode()
 {
-  return this->GetNodeReferenceIDString( OUTPUT_TRANSFORM_REFERENCE_ROLE );
+  vtkMRMLTransformNode* node = vtkMRMLTransformNode::SafeDownCast( this->GetNodeReference( OUTPUT_TRANSFORM_REFERENCE_ROLE ) );
+  return node;
 }
 
-
-void vtkMRMLFiducialRegistrationWizardNode
-::SetOutputTransformID( std::string newOutputTransformID, int modifyType )
-{
-  if ( newOutputTransformID.compare( "" ) == 0 )
-  {
-    this->RemoveNodeReferenceIDs( OUTPUT_TRANSFORM_REFERENCE_ROLE );
-  }
-  else if ( this->GetOutputTransformID() != newOutputTransformID )
-  {
-    this->SetNodeReferenceID( OUTPUT_TRANSFORM_REFERENCE_ROLE, newOutputTransformID.c_str() );
-  }
-  if ( this->GetOutputTransformID() != newOutputTransformID && modifyType == DefaultModify || modifyType == AlwaysModify )
-  {
-    this->Modified();
-  }
-}
-
-
-std::string vtkMRMLFiducialRegistrationWizardNode
-::GetRegistrationMode()
+//------------------------------------------------------------------------------
+std::string vtkMRMLFiducialRegistrationWizardNode::GetRegistrationMode()
 {
   return this->RegistrationMode;
 }
 
-
-void vtkMRMLFiducialRegistrationWizardNode
-::SetRegistrationMode( std::string newRegistrationMode, int modifyType )
+//------------------------------------------------------------------------------
+void vtkMRMLFiducialRegistrationWizardNode::SetRegistrationMode( std::string newRegistrationMode)
 {
-  if ( this->GetRegistrationMode() != newRegistrationMode )
+  if ( this->GetRegistrationMode() == newRegistrationMode )
   {
-    this->RegistrationMode = newRegistrationMode;
+    // no change
+    return;
   }
-  if ( this->GetRegistrationMode() != newRegistrationMode && modifyType == DefaultModify || modifyType == AlwaysModify ) 
-  {
-    this->Modified();
-  }
+  this->RegistrationMode = newRegistrationMode;
+  this->Modified();
+  this->InvokeCustomModifiedEvent(InputDataModifiedEvent);
 }
 
-
-std::string vtkMRMLFiducialRegistrationWizardNode
-::GetUpdateMode()
+//------------------------------------------------------------------------------
+std::string vtkMRMLFiducialRegistrationWizardNode::GetUpdateMode()
 {
   return this->UpdateMode;
 }
 
-
-void vtkMRMLFiducialRegistrationWizardNode
-::SetUpdateMode( std::string newUpdateMode, int modifyType )
+//------------------------------------------------------------------------------
+void vtkMRMLFiducialRegistrationWizardNode::SetUpdateMode( std::string newUpdateMode)
 {
-  if ( this->GetUpdateMode() != newUpdateMode )
+  if ( this->GetUpdateMode() == newUpdateMode )
   {
-    this->UpdateMode = newUpdateMode;
+    // no change
+    return;
   }
-  if ( this->GetUpdateMode() != newUpdateMode && modifyType == DefaultModify || modifyType == AlwaysModify ) 
-  {
-    this->Modified();
-  }
+  this->UpdateMode = newUpdateMode;
+  this->Modified();
+  this->InvokeCustomModifiedEvent(InputDataModifiedEvent);
 }
 
-
-std::string vtkMRMLFiducialRegistrationWizardNode
-::GetNodeReferenceIDString( std::string referenceRole )
+//------------------------------------------------------------------------------
+void vtkMRMLFiducialRegistrationWizardNode::ProcessMRMLEvents( vtkObject *caller, unsigned long event, void *callData )
 {
-  const char* refID = this->GetNodeReferenceID( referenceRole.c_str() );
-  std::string refIDString;
-
-  if ( refID == NULL )
+  vtkMRMLNode* callerNode = vtkMRMLNode::SafeDownCast( caller );
+  if ( callerNode == NULL ) 
   {
-    refIDString = "";
-  }
-  else
-  {
-    refIDString = refID;
+    return;
   }
 
-  return refIDString;
-}
-
-
-void vtkMRMLFiducialRegistrationWizardNode
-::ProcessMRMLEvents( vtkObject *caller, unsigned long event, void *callData )
-{
-  this->Modified(); // This will tell the logic to update
+  if (this->GetFromFiducialListNode()==callerNode)
+  {
+    this->InvokeCustomModifiedEvent(InputDataModifiedEvent);
+  }
+  else if (this->GetToFiducialListNode()==callerNode)
+  {
+    this->InvokeCustomModifiedEvent(InputDataModifiedEvent);
+  }
 }

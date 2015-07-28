@@ -1,16 +1,22 @@
-/*=auto=========================================================================
+/*==============================================================================
 
-  Portions (c) Copyright 2005 Brigham and Women's Hospital (BWH) All Rights Reserved.
+  Copyright (c) Laboratory for Percutaneous Surgery (PerkLab)
+  Queen's University, Kingston, ON, Canada. All Rights Reserved.
 
   See COPYRIGHT.txt
   or http://www.slicer.org/copyright/copyright.txt for details.
 
-  Program:   3D Slicer
-  Module:    $RCSfile: vtkMRMLFiducialRegistrationWizardNode.h,v $
-  Date:      $Date: 2006/03/19 17:12:28 $
-  Version:   $Revision: 1.6 $
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
 
-=========================================================================auto=*/
+  This file was originally developed by Matthew Holden, PerkLab, Queen's University
+  and was supported through the Applied Cancer Research Unit program of Cancer Care
+  Ontario with funds provided by the Ontario Ministry of Health and Long-Term Care
+
+==============================================================================*/
 
 #ifndef __vtkMRMLFiducialRegistrationWizardNode_h
 #define __vtkMRMLFiducialRegistrationWizardNode_h
@@ -20,6 +26,7 @@
 #include <utility>
 #include <vector>
 
+#include "vtkCommand.h"
 #include "vtkMRMLNode.h"
 #include "vtkMRMLScene.h"
 #include "vtkObject.h"
@@ -29,6 +36,8 @@
 // FiducialRegistrationWizard includes
 #include "vtkSlicerFiducialRegistrationWizardModuleMRMLExport.h"
 
+class vtkMRMLMarkupsFiducialNode;
+class vtkMRMLTransformNode;
 
 class
 VTK_SLICER_FIDUCIALREGISTRATIONWIZARD_MODULE_MRML_EXPORT
@@ -36,6 +45,16 @@ vtkMRMLFiducialRegistrationWizardNode
 : public vtkMRMLNode
 {
 public:
+
+  enum Events
+  {
+    /// The node stores both inputs (e.g., tooltip position, model, colors, etc.) and computed parameters.
+    /// InputDataModifiedEvent is only invoked when input parameters are changed.
+    /// In contrast, ModifiedEvent event is called if either an input or output parameter is changed.
+    // vtkCommand::UserEvent + 555 is just a random value that is very unlikely to be used for anything else in this class
+    InputDataModifiedEvent = vtkCommand::UserEvent + 555
+  };
+
   vtkTypeMacro( vtkMRMLFiducialRegistrationWizardNode, vtkMRMLNode );
   
   // Standard MRML node methods  
@@ -50,46 +69,39 @@ public:
   
 protected:
 
-  // Constructor/desctructor methods
   vtkMRMLFiducialRegistrationWizardNode();
   virtual ~vtkMRMLFiducialRegistrationWizardNode();
   vtkMRMLFiducialRegistrationWizardNode ( const vtkMRMLFiducialRegistrationWizardNode& );
   void operator=( const vtkMRMLFiducialRegistrationWizardNode& );
- 
-  
+
 public:
-  // Enumerate all the possible modified states
-  enum ModifyType
-  {
-    NeverModify,
-    DefaultModify,
-    AlwaysModify
-  };
+  vtkMRMLMarkupsFiducialNode* GetFromFiducialListNode();
+  void SetAndObserveFromFiducialListNodeId( const char* nodeId );
 
-  // Use default setters and getters - vtk set macro will cause modified event
-  void SetProbeTransformID( std::string newProbeTransformID, int modifyType = DefaultModify );
-  void SetFromFiducialListID( std::string newFromFiducialListID, int modifyType = DefaultModify );
-  void SetToFiducialListID( std::string newToFiducialListID, int modifyType = DefaultModify );
-  void SetOutputTransformID( std::string newOutputTransformID, int modifyType = DefaultModify );
-  void SetRegistrationMode( std::string newRegistrationMode, int modifyType = DefaultModify );
-  void SetUpdateMode( std::string newUpdateMode, int modifyType = DefaultModify );
+  vtkMRMLMarkupsFiducialNode* GetToFiducialListNode();
+  void SetAndObserveToFiducialListNodeId( const char* nodeId );
 
-  std::string GetProbeTransformID();
-  std::string GetFromFiducialListID();
-  std::string GetToFiducialListID();
-  std::string GetOutputTransformID();
+  vtkMRMLTransformNode* GetOutputTransformNode();
+  void SetOutputTransformNodeId( const char* nodeId );
+
+  vtkMRMLTransformNode* GetProbeTransformNode();
+  void SetProbeTransformNodeId( const char* nodeId );
+
   std::string GetRegistrationMode();
+  void SetRegistrationMode( std::string newRegistrationMode);
+
   std::string GetUpdateMode();
+  void SetUpdateMode( std::string newUpdateMode);
 
-  std::string GetNodeReferenceIDString( std::string referenceRole );
-
-  void ObserveAllReferenceNodes();
+  vtkSetMacro(CalibrationStatusMessage, std::string);
+  vtkGetMacro(CalibrationStatusMessage, std::string);
 
   void ProcessMRMLEvents( vtkObject *caller, unsigned long event, void *callData );
 
 private:
-  std::string RegistrationMode;
-  std::string UpdateMode;
+  std::string RegistrationMode; // TODO: add enum for this
+  std::string UpdateMode; // TODO: make it a bool flag
+  std::string CalibrationStatusMessage; // TODO: add this to the ouput transform as a custom node attribute
 
 };  
 

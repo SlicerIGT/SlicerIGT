@@ -12,8 +12,7 @@ set(${KIT}_SRCS
   vtkSlicerFiducialRegistrationWizardLogic.h
   )
 
-set(${KIT}_TARGET_LIBRARIES
-  
+set(${KIT}_TARGET_LIBRARIES  
   ${ITK_LIBRARIES}
   vtkSlicer${MODULE_NAME}ModuleMRML
   vtkSlicerMarkupsModuleMRML

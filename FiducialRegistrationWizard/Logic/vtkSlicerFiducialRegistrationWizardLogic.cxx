@@ -1,8 +1,7 @@
 /*==============================================================================
 
-  Program: 3D Slicer
-
-  Portions (c) Copyright Brigham and Women's Hospital (BWH) All Rights Reserved.
+  Copyright (c) Laboratory for Percutaneous Surgery (PerkLab)
+  Queen's University, Kingston, ON, Canada. All Rights Reserved.
 
   See COPYRIGHT.txt
   or http://www.slicer.org/copyright/copyright.txt for details.
@@ -13,7 +12,12 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 
+  This file was originally developed by Matthew Holden, PerkLab, Queen's University
+  and was supported through the Applied Cancer Research Unit program of Cancer Care
+  Ontario with funds provided by the Ontario Ministry of Health and Long-Term Care
+
 ==============================================================================*/
+
 
 // FiducialRegistrationWizard includes
 #include "vtkSlicerFiducialRegistrationWizardLogic.h"
@@ -42,17 +46,16 @@
 
 double EIGENVALUE_THRESHOLD = 1e-4;
 
-vtkPoints* MarkupsFiducialNodeToVTKPoints( vtkMRMLMarkupsFiducialNode* markupsFiducialNode )
+//------------------------------------------------------------------------------
+void MarkupsFiducialNodeToVTKPoints( vtkMRMLMarkupsFiducialNode* markupsFiducialNode, vtkPoints* points )
 {
-  vtkPoints* points = vtkPoints::New();
+  points->Reset();
   for ( int i = 0; i < markupsFiducialNode->GetNumberOfFiducials(); i++ )
   {
     double currentFiducial[ 3 ] = { 0, 0, 0 };
     markupsFiducialNode->GetNthFiducialPosition( i, currentFiducial );
     points->InsertNextPoint( currentFiducial );
   }
-
-  return points;
 }
 
 
@@ -60,26 +63,24 @@ vtkPoints* MarkupsFiducialNodeToVTKPoints( vtkMRMLMarkupsFiducialNode* markupsFi
 
 vtkStandardNewMacro(vtkSlicerFiducialRegistrationWizardLogic);
 
-
-
+//------------------------------------------------------------------------------
 vtkSlicerFiducialRegistrationWizardLogic::vtkSlicerFiducialRegistrationWizardLogic()
+: MarkupsLogic(NULL)
 {
 }
 
-
-
+//------------------------------------------------------------------------------
 vtkSlicerFiducialRegistrationWizardLogic::~vtkSlicerFiducialRegistrationWizardLogic()
 {
 }
 
-
-
+//------------------------------------------------------------------------------
 void vtkSlicerFiducialRegistrationWizardLogic::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
 }
 
-
+//------------------------------------------------------------------------------
 void vtkSlicerFiducialRegistrationWizardLogic::SetMRMLSceneInternal(vtkMRMLScene * newScene)
 {
   vtkNew<vtkIntArray> events;
@@ -89,140 +90,171 @@ void vtkSlicerFiducialRegistrationWizardLogic::SetMRMLSceneInternal(vtkMRMLScene
   this->SetAndObserveMRMLSceneEventsInternal(newScene, events.GetPointer());
 }
 
-
-
+//------------------------------------------------------------------------------
 void vtkSlicerFiducialRegistrationWizardLogic::RegisterNodes()
 {
   if( ! this->GetMRMLScene() )
   {
     return;
   }
-
-  vtkMRMLFiducialRegistrationWizardNode* frwNode = vtkMRMLFiducialRegistrationWizardNode::New();
-  this->GetMRMLScene()->RegisterNodeClass( frwNode );
-  frwNode->Delete();
+  this->GetMRMLScene()->RegisterNodeClass( vtkSmartPointer< vtkMRMLFiducialRegistrationWizardNode >::New() );
 }
 
-
-
+//------------------------------------------------------------------------------
 void vtkSlicerFiducialRegistrationWizardLogic::UpdateFromMRMLScene()
 {
   assert(this->GetMRMLScene() != 0);
 }
 
-
-
-void vtkSlicerFiducialRegistrationWizardLogic
-::OnMRMLSceneNodeAdded(vtkMRMLNode* vtkNotUsed(node))
+//------------------------------------------------------------------------------
+void vtkSlicerFiducialRegistrationWizardLogic::OnMRMLSceneNodeAdded( vtkMRMLNode* node )
 {
+  if ( node == NULL || this->GetMRMLScene() == NULL )
+  {
+    vtkWarningMacro( "OnMRMLSceneNodeAdded: Invalid MRML scene or node" );
+    return;
+  }
+
+  vtkMRMLFiducialRegistrationWizardNode* frwNode = vtkMRMLFiducialRegistrationWizardNode::SafeDownCast(node);
+  if ( frwNode )
+  {
+    vtkDebugMacro( "OnMRMLSceneNodeAdded: Module node added." );
+    vtkUnObserveMRMLNodeMacro( frwNode ); // Remove previous observers.
+    vtkNew<vtkIntArray> events;
+    events->InsertNextValue( vtkCommand::ModifiedEvent );
+    events->InsertNextValue( vtkMRMLFiducialRegistrationWizardNode::InputDataModifiedEvent );
+    vtkObserveMRMLNodeEventsMacro( frwNode, events.GetPointer() );
+    
+    if ( strcmp( frwNode->GetUpdateMode().c_str(), "Automatic" ) == 0 )
+    {
+      this->UpdateCalibration( frwNode ); // Will create modified event to update widget
+    }
+  }
 }
 
-
-
-void vtkSlicerFiducialRegistrationWizardLogic
-::OnMRMLSceneNodeRemoved(vtkMRMLNode* vtkNotUsed(node))
+//------------------------------------------------------------------------------
+void vtkSlicerFiducialRegistrationWizardLogic::OnMRMLSceneNodeRemoved( vtkMRMLNode* node )
 {
+  if ( node == NULL || this->GetMRMLScene() == NULL )
+  {
+    vtkWarningMacro( "OnMRMLSceneNodeRemoved: Invalid MRML scene or node" );
+    return;
+  }
+
+  if ( node->IsA( "vtkMRMLFiducialRegistrationWizardNode" ) )
+  {
+    vtkDebugMacro( "OnMRMLSceneNodeRemoved" );
+    vtkUnObserveMRMLNodeMacro( node );
+  }
+} 
+
+//------------------------------------------------------------------------------
+std::string vtkSlicerFiducialRegistrationWizardLogic::GetOutputMessage( std::string nodeID )
+{
+  vtkMRMLFiducialRegistrationWizardNode* node = vtkMRMLFiducialRegistrationWizardNode::SafeDownCast( this->GetMRMLScene()->GetNodeByID( nodeID.c_str() ) );
+  if (node==NULL)
+  {
+    vtkWarningMacro("vtkSlicerFiducialRegistrationWizardLogic::GetOutputMessage failed: vtkMRMLFiducialRegistrationWizardNode with the specified ID ("<<nodeID<<") not found");
+    return "";
+  }
+  return node->GetCalibrationStatusMessage();
 }
 
-// Variable getters and setters -----------------------------------------------------
-// Note: vtkSetMacro doesn't call a modified event if the replacing value is the same as before
-// We want a modified event always
-std::string vtkSlicerFiducialRegistrationWizardLogic
-::GetOutputMessage( std::string nodeID )
-{
-  return this->OutputMessages[ nodeID ];
-}
-
-
-void vtkSlicerFiducialRegistrationWizardLogic
-::SetOutputMessage( std::string nodeID, std::string newOutputMessage )
-{
-  this->OutputMessages[ nodeID ] = newOutputMessage;
-  this->Modified();
-}
-
-
-
-// Module-specific methods ----------------------------------------------------------
-
-void vtkSlicerFiducialRegistrationWizardLogic
-::AddFiducial( vtkMRMLLinearTransformNode* probeTransformNode )
+//------------------------------------------------------------------------------
+void vtkSlicerFiducialRegistrationWizardLogic::AddFiducial( vtkMRMLLinearTransformNode* probeTransformNode )
 {
   if ( probeTransformNode == NULL )
   {
+    vtkWarningMacro("vtkSlicerFiducialRegistrationWizardLogic::AddFiducial failed: input transform is invalid");
     return;
   }
 
   vtkMRMLMarkupsFiducialNode* activeMarkupsFiducialNode = vtkMRMLMarkupsFiducialNode::SafeDownCast( this->GetMRMLScene()->GetNodeByID( this->MarkupsLogic->GetActiveListID() ) );
-
   if ( activeMarkupsFiducialNode == NULL )
   {
+    vtkWarningMacro("vtkSlicerFiducialRegistrationWizardLogic::AddFiducial failed: no active markup list is found");
     return;
   }
   
-  vtkMatrix4x4* transformToWorld = vtkMatrix4x4::New();
+  vtkSmartPointer<vtkMatrix4x4> transformToWorld = vtkSmartPointer<vtkMatrix4x4>::New();
   probeTransformNode->GetMatrixTransformToWorld( transformToWorld );
-  
-  double coord[ 3 ] = { transformToWorld->GetElement( 0, 3 ), transformToWorld->GetElement( 1, 3 ), transformToWorld->GetElement( 2, 3 ) };
 
+  double coord[3] = { transformToWorld->GetElement( 0, 3 ), transformToWorld->GetElement( 1, 3 ), transformToWorld->GetElement( 2, 3 ) };
   activeMarkupsFiducialNode->AddFiducialFromArray( coord );
-
-  transformToWorld->Delete();
 }
 
-
-void vtkSlicerFiducialRegistrationWizardLogic
-::CalculateTransform( vtkMRMLNode* node )
+//------------------------------------------------------------------------------
+void vtkSlicerFiducialRegistrationWizardLogic::UpdateCalibration( vtkMRMLNode* node )
 {
   vtkMRMLFiducialRegistrationWizardNode* fiducialRegistrationWizardNode = vtkMRMLFiducialRegistrationWizardNode::SafeDownCast( node );
   if ( fiducialRegistrationWizardNode == NULL )
   {
-    this->SetOutputMessage( fiducialRegistrationWizardNode->GetID(), "Failed to find module node." ); // Note: This should only happen if the user clicks the button
+    vtkWarningMacro("vtkSlicerFiducialRegistrationWizardLogic::UpdateCalibration failed: input node is invalid");
     return;
   }
 
-  vtkMRMLMarkupsFiducialNode* fromMarkupsFiducialNode = vtkMRMLMarkupsFiducialNode::SafeDownCast( this->GetMRMLScene()->GetNodeByID( fiducialRegistrationWizardNode->GetFromFiducialListID() ) );
-  vtkMRMLMarkupsFiducialNode* toMarkupsFiducialNode = vtkMRMLMarkupsFiducialNode::SafeDownCast( this->GetMRMLScene()->GetNodeByID( fiducialRegistrationWizardNode->GetToFiducialListID() ) );
-  vtkMRMLLinearTransformNode* outputTransform = vtkMRMLLinearTransformNode::SafeDownCast( this->GetMRMLScene()->GetNodeByID( fiducialRegistrationWizardNode->GetOutputTransformID() ) );
+  vtkMRMLMarkupsFiducialNode* fromMarkupsFiducialNode = fiducialRegistrationWizardNode->GetFromFiducialListNode();
+  vtkMRMLMarkupsFiducialNode* toMarkupsFiducialNode = fiducialRegistrationWizardNode->GetToFiducialListNode();
+  vtkMRMLTransformNode* outputTransform = fiducialRegistrationWizardNode->GetOutputTransformNode();
   std::string transformType = fiducialRegistrationWizardNode->GetRegistrationMode();
 
-
-  if ( fromMarkupsFiducialNode == NULL || toMarkupsFiducialNode == NULL )
+  if ( fromMarkupsFiducialNode == NULL )
   {
-    this->SetOutputMessage( fiducialRegistrationWizardNode->GetID(), "One or more fiducial lists not defined." );
+    fiducialRegistrationWizardNode->SetCalibrationStatusMessage("'From' fiducial list is not defined." );
+    return;
+  }
+
+  if ( toMarkupsFiducialNode == NULL )
+  {
+    fiducialRegistrationWizardNode->SetCalibrationStatusMessage("'To' fiducial list is not defined." );
     return;
   }
 
   if ( outputTransform == NULL )
   {
-    this->SetOutputMessage( fiducialRegistrationWizardNode->GetID(), "Output transform is not defined." );
+    fiducialRegistrationWizardNode->SetCalibrationStatusMessage("Output transform is not defined." );
     return;
   }
 
-  if ( fromMarkupsFiducialNode->GetNumberOfFiducials() < 3 || toMarkupsFiducialNode->GetNumberOfFiducials() < 3 )
+  if ( fromMarkupsFiducialNode->GetNumberOfFiducials() < 3 )
   {
-    this->SetOutputMessage( fiducialRegistrationWizardNode->GetID(), "One or more fiducial lists has too few fiducials (minimum 3 required)." );
+    fiducialRegistrationWizardNode->SetCalibrationStatusMessage("'From' fiducial list has too few fiducials (minimum 3 required)." );
     return;
   }
-
+  if ( toMarkupsFiducialNode->GetNumberOfFiducials() < 3 )
+  {
+    fiducialRegistrationWizardNode->SetCalibrationStatusMessage("'To' fiducial list has too few fiducials (minimum 3 required)." );
+    return;
+  }
   if ( fromMarkupsFiducialNode->GetNumberOfFiducials() != toMarkupsFiducialNode->GetNumberOfFiducials() )
   {
-    this->SetOutputMessage( fiducialRegistrationWizardNode->GetID(), "Fiducial lists have unequal number of fiducials." );
+    std::stringstream msg;
+    msg << "Fiducial lists have unequal number of fiducials ('From' has "<<fromMarkupsFiducialNode->GetNumberOfFiducials()
+      <<", 'To' has " << toMarkupsFiducialNode->GetNumberOfFiducials() << ").";
+    fiducialRegistrationWizardNode->SetCalibrationStatusMessage(msg.str());
     return;
   }
 
   // Convert the markupsfiducial nodes into vector of itk points
-  vtkPoints* fromPoints = MarkupsFiducialNodeToVTKPoints( fromMarkupsFiducialNode );
-  vtkPoints* toPoints = MarkupsFiducialNodeToVTKPoints( toMarkupsFiducialNode );
+  vtkSmartPointer<vtkPoints> fromPoints = vtkSmartPointer<vtkPoints>::New();
+  vtkSmartPointer<vtkPoints> toPoints = vtkSmartPointer<vtkPoints>::New();
+  MarkupsFiducialNodeToVTKPoints( fromMarkupsFiducialNode, fromPoints );
+  MarkupsFiducialNodeToVTKPoints( toMarkupsFiducialNode, toPoints );
 
-  if ( this->CheckCollinear( fromPoints ) || this->CheckCollinear( toPoints ) )
+  if ( this->CheckCollinear( fromPoints ) )
   {
-    this->SetOutputMessage( fiducialRegistrationWizardNode->GetID(), "One or more fiducial lists have strictly collinear points." );
+    fiducialRegistrationWizardNode->SetCalibrationStatusMessage("'From' fiducial list has strictly collinear points.");
+    return;
+  }
+
+  if ( this->CheckCollinear( toPoints ) )
+  {
+    fiducialRegistrationWizardNode->SetCalibrationStatusMessage("'To' fiducial list has strictly collinear points.");
     return;
   }
 
   // Setup the registration
-  vtkLandmarkTransform* transform = vtkLandmarkTransform::New();
+  vtkSmartPointer<vtkLandmarkTransform> transform = vtkSmartPointer<vtkLandmarkTransform>::New();
 
   transform->SetSourceLandmarks( fromPoints );
   transform->SetTargetLandmarks( toPoints );
@@ -239,29 +271,22 @@ void vtkSlicerFiducialRegistrationWizardLogic
   transform->Update();
 
   // Copy the resulting transform into the outputTransform
-  vtkMatrix4x4* calculatedTransform = vtkMatrix4x4::New();
+  vtkSmartPointer<vtkMatrix4x4> calculatedTransform = vtkSmartPointer<vtkMatrix4x4>::New();
   transform->GetMatrix( calculatedTransform );
-  outputTransform->SetAndObserveMatrixTransformToParent( calculatedTransform );
+  outputTransform->SetMatrixTransformToParent( calculatedTransform );
 
   double rmsError = this->CalculateRegistrationError( fromPoints,toPoints, transform );
 
-  // Delete stuff // TODO: Use smart pointers
-  fromPoints->Delete();
-  toPoints->Delete();
-  transform->Delete();
-  calculatedTransform->Delete();
-
   std::stringstream successMessage;
   successMessage << "Success! RMS Error: " << rmsError;
-  this->SetOutputMessage( fiducialRegistrationWizardNode->GetID(), successMessage.str() );
+  fiducialRegistrationWizardNode->SetCalibrationStatusMessage(successMessage.str());
 }
 
-
-double vtkSlicerFiducialRegistrationWizardLogic
-::CalculateRegistrationError( vtkPoints* fromPoints, vtkPoints* toPoints, vtkLinearTransform* transform )
+//------------------------------------------------------------------------------
+double vtkSlicerFiducialRegistrationWizardLogic::CalculateRegistrationError( vtkPoints* fromPoints, vtkPoints* toPoints, vtkLinearTransform* transform )
 {
   // Transform the from points
-  vtkPoints* transformedFromPoints = vtkPoints::New();
+  vtkSmartPointer<vtkPoints> transformedFromPoints = vtkSmartPointer<vtkPoints>::New();
   transform->TransformPoints( fromPoints, transformedFromPoints );
 
   // Calculate the RMS distance between the to points and the transformed from points
@@ -276,15 +301,11 @@ double vtkSlicerFiducialRegistrationWizardLogic
     sumSquaredError += vtkMath::Distance2BetweenPoints( currentToPoint, currentTransformedFromPoint );
   }
 
-  // Delete // TODO: User smart pointers
-  transformedFromPoints->Delete();
-
   return sqrt( sumSquaredError / toPoints->GetNumberOfPoints() );
 }
 
-
-bool vtkSlicerFiducialRegistrationWizardLogic
-::CheckCollinear( vtkPoints* points )
+//------------------------------------------------------------------------------
+bool vtkSlicerFiducialRegistrationWizardLogic::CheckCollinear( vtkPoints* points )
 {
   // Initialize the x,y,z arrays for computing the PCA statistics
   vtkSmartPointer< vtkDoubleArray > xArray = vtkSmartPointer< vtkDoubleArray >::New();
@@ -343,39 +364,22 @@ bool vtkSlicerFiducialRegistrationWizardLogic
   
 }
 
-
-// Node update methods ----------------------------------------------------------
-
-void vtkSlicerFiducialRegistrationWizardLogic
-::ProcessMRMLNodesEvents( vtkObject* caller, unsigned long event, void* callData )
+//------------------------------------------------------------------------------
+void vtkSlicerFiducialRegistrationWizardLogic::ProcessMRMLNodesEvents( vtkObject* caller, unsigned long event, void* callData )
 {
-  vtkMRMLFiducialRegistrationWizardNode* callerNode = vtkMRMLFiducialRegistrationWizardNode::SafeDownCast( caller );
-  // The caller must be a vtkMRMLFiducialRegistrationWizardNode
-  if ( callerNode != NULL && strcmp( callerNode->GetUpdateMode().c_str(), "Automatic" ) == 0 )
+  vtkMRMLFiducialRegistrationWizardNode* frwNode = vtkMRMLFiducialRegistrationWizardNode::SafeDownCast(caller);
+  if ( frwNode == NULL)
   {
-    this->CalculateTransform( callerNode ); // Will create modified event to update widget
+    return;
   }
-}
-
-
-void vtkSlicerFiducialRegistrationWizardLogic
-::ProcessMRMLSceneEvents( vtkObject* caller, unsigned long event, void* callData )
-{
-  vtkMRMLScene* callerNode = vtkMRMLScene::SafeDownCast( caller );
-
-  // If the added node was a fiducial registration wizard node then observe it
-  vtkMRMLNode* addedNode = reinterpret_cast< vtkMRMLNode* >( callData );
-  vtkMRMLFiducialRegistrationWizardNode* fiducialRegistrationWizardNode = vtkMRMLFiducialRegistrationWizardNode::SafeDownCast( addedNode );
-  if ( event == vtkMRMLScene::NodeAddedEvent && fiducialRegistrationWizardNode != NULL )
+  
+  if (event==vtkMRMLFiducialRegistrationWizardNode::InputDataModifiedEvent)
   {
-    // This will get called exactly once, and we will add the observer only once (since node is never replaced)
-    fiducialRegistrationWizardNode->AddObserver( vtkCommand::ModifiedEvent, ( vtkCommand* ) this->GetMRMLNodesCallbackCommand() );
-    fiducialRegistrationWizardNode->UpdateScene( this->GetMRMLScene() );
-    fiducialRegistrationWizardNode->ObserveAllReferenceNodes(); // This will update
-    if ( strcmp( fiducialRegistrationWizardNode->GetUpdateMode().c_str(), "Automatic" ) == 0 )
+    // only recompute output if the input is changed
+    // (for example we do not recompute the calibration output if the computed calibration transform or status message is changed)
+    if ( strcmp( frwNode->GetUpdateMode().c_str(), "Automatic" ) == 0 )
     {
-      this->CalculateTransform( fiducialRegistrationWizardNode ); // Will create modified event to update widget
+      this->UpdateCalibration( frwNode ); // Will create modified event to update widget
     }
   }
-
 }

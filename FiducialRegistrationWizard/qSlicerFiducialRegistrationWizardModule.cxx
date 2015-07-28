@@ -1,8 +1,7 @@
 /*==============================================================================
 
-  Program: 3D Slicer
-
-  Portions (c) Copyright Brigham and Women's Hospital (BWH) All Rights Reserved.
+  Copyright (c) Laboratory for Percutaneous Surgery (PerkLab)
+  Queen's University, Kingston, ON, Canada. All Rights Reserved.
 
   See COPYRIGHT.txt
   or http://www.slicer.org/copyright/copyright.txt for details.
@@ -12,6 +11,10 @@
   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
   See the License for the specific language governing permissions and
   limitations under the License.
+
+  This file was originally developed by Matthew Holden, PerkLab, Queen's University
+  and was supported through the Applied Cancer Research Unit program of Cancer Care
+  Ontario with funds provided by the Ontario Ministry of Health and Long-Term Care
 
 ==============================================================================*/
 
@@ -104,19 +107,24 @@ void qSlicerFiducialRegistrationWizardModule::setup()
 {
   this->Superclass::setup();
 
-  vtkSlicerFiducialRegistrationWizardLogic* FiducialRegistrationWizardLogic = vtkSlicerFiducialRegistrationWizardLogic::SafeDownCast( this->logic() );
-  qSlicerAbstractCoreModule* MarkupsModule = qSlicerCoreApplication::application()->moduleManager()->module("Markups");
-
-  if ( MarkupsModule )
-  {
-    FiducialRegistrationWizardLogic->MarkupsLogic = vtkSlicerMarkupsLogic::SafeDownCast( MarkupsModule->logic() );
-  }
+  vtkSlicerFiducialRegistrationWizardLogic* fiducialRegistrationWizardLogic = vtkSlicerFiducialRegistrationWizardLogic::SafeDownCast( this->logic() );
+  
+  qSlicerAbstractCoreModule* markupsModule = qSlicerCoreApplication::application()->moduleManager()->module("Markups");
+  if (markupsModule)
+    {
+    vtkSlicerMarkupsLogic* markupsLogic = vtkSlicerMarkupsLogic::SafeDownCast(markupsModule->logic());
+    fiducialRegistrationWizardLogic->SetMarkupsLogic(vtkSlicerMarkupsLogic::SafeDownCast( markupsModule->logic() ));
+    }
+  else
+    {
+    qWarning("Markups module is not found. qSlicerFiducialRegistrationWizardModule module initialization is incomplete.");
+    }
 }
 
 //-----------------------------------------------------------------------------
 qSlicerAbstractModuleRepresentation * qSlicerFiducialRegistrationWizardModule::createWidgetRepresentation()
 {
-  return new qSlicerFiducialRegistrationWizardModuleWidget;
+  return new qSlicerFiducialRegistrationWizardModuleWidget();
 }
 
 //-----------------------------------------------------------------------------
