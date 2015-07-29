@@ -228,7 +228,7 @@ class UltraSound(object):
     self.startStopRecordingButton.setIcon(self.recordIcon)
     setButtonStyle(self.startStopRecordingButton)
     self.startStopRecordingButton.setToolTip("If clicked, start recording")
-    
+
     self.freezeUltrasoundButton = qt.QPushButton('Freeze')
     setButtonStyle(self.freezeUltrasoundButton)
 
@@ -259,7 +259,7 @@ class UltraSound(object):
     brightnessContrastBox.addWidget(self.brigthnessContrastButtonBright)
     brightnessContrastBox.addWidget(self.brigthnessContrastButtonBrighter)
     ultrasoundLayout.addRow(brightnessContrastBox)
-    
+
     return collapsibleButton
 
   def setupScene(self):
@@ -293,11 +293,14 @@ class UltraSound(object):
       self.liveUltrasoundNode_Reference.SetAndObserveDisplayNodeID(displayNode.GetID())
       #self.liveUltrasoundNode_Reference.CreateDefaultStorageNode()
 
+    self.setupResliceDriver()
+
+  def setupResliceDriver(self):
+    layoutManager = slicer.app.layoutManager()
     # Show ultrasound in red view.
     redSlice = layoutManager.sliceWidget('Red')
     redSliceLogic = redSlice.sliceLogic()
     redSliceLogic.GetSliceCompositeNode().SetBackgroundVolumeID(self.liveUltrasoundNode_Reference.GetID())
-
     # Set up volume reslice driver.
     resliceLogic = slicer.modules.volumereslicedriver.logic()
     if resliceLogic:
@@ -351,18 +354,18 @@ class UltraSound(object):
       statusText = statusText + command.GetResponseText()
       statusTextUser = command.GetResponseText()
     logging.info(statusText)
-    self.startStopRecordingButton.setToolTip(statusTextUser)  
+    self.startStopRecordingButton.setToolTip(statusTextUser)
 
   def cleanup(self):
     self.disconnect()
 
   def onStartStopRecordingClicked(self):
 
-    if self.startStopRecordingButton.isChecked():      
+    if self.startStopRecordingButton.isChecked():
       self.startStopRecordingButton.setText("  Stop Recording")
       self.startStopRecordingButton.setIcon(self.stopIcon)
       self.startStopRecordingButton.setToolTip("Recording is being started...")
-      
+
       # Important to save as .mhd because that does not require lengthy finalization (merging into a single file)
       recordPrefix = self.guideletParent.parameterNode.GetParameter('RecordingFilenamePrefix')
       recordExt = self.guideletParent.parameterNode.GetParameter('RecordingFilenameExtension')
@@ -393,7 +396,7 @@ class UltraSound(object):
   def setImageMinMaxLevel(self, minLevel, maxLevel):
     self.liveUltrasoundNode_Reference.GetDisplayNode().SetAutoWindowLevel(0)
     self.liveUltrasoundNode_Reference.GetDisplayNode().SetWindowLevelMinMax(minLevel,maxLevel)
-    
+
   def onBrightnessContrastNormalClicked(self):
     logging.debug('onBrightnessContrastNormalClicked')
     self.setImageMinMaxLevel(0,200)
@@ -401,7 +404,7 @@ class UltraSound(object):
   def onBrightnessContrastBrightClicked(self):
     logging.debug('onBrightnessContrastBrightClicked')
     self.setImageMinMaxLevel(0,120)
-    
+
   def onBrightnessContrastBrighterClicked(self):
     logging.debug('onBrightnessContrastBrighterClicked')
     self.setImageMinMaxLevel(0,60)
