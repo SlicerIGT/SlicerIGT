@@ -183,7 +183,495 @@ class GuideletTest(ScriptedLoadableModuleTest):
     # self.test_SliceletBase1() # Here the tests should be added that are common for all full screen applets e.g.  # TODO defines tests
 
 
+class Guidelet(object):
+
+  @staticmethod
+  def showToolbars(show):
+    for toolbar in slicer.util.mainWindow().findChildren('QToolBar'):
+      toolbar.setVisible(show)
+
+  @staticmethod
+  def showModulePanel(show):
+    slicer.util.mainWindow().findChildren('QDockWidget','PanelDockWidget')[0].setVisible(show)
+
+  @staticmethod
+  def showMenuBar(show):
+    for menubar in slicer.util.mainWindow().findChildren('QMenuBar'):
+      menubar.setVisible(show)
+
+  @staticmethod
+  def onGenericCommandResponseReceived(commandId, responseNode):
+    if responseNode:
+      logging.debug("Response from PLUS: {0}".format(responseNode.GetText(0)))
+    else:
+      logging.debug("Timeout. Command Id: {0}".format(commandId))
+
+  @staticmethod
+  def showUltrasoundIn3dView(show):
+    redNode = slicer.util.getNode('vtkMRMLSliceNodeRed')
+    if show:
+      redNode.SetSliceVisible(1)
+    else:
+      redNode.SetSliceVisible(0)
+
+  def __init__(self, parent, logic, parameterList=None, widgetClass=None, configurationName='Default'):
+    logging.debug('Guidelet.__init__')
+    self.parent = parent
+    self.logic = logic
+    self.configurationName = configurationName
+    self.parameterNodeObserver = None
+    self.parameterNode = self.logic.getParameterNode()
+
+    if parameterList is not None:
+      for parameter in parameterList:
+        self.parameterNode.SetParameter(parameter, str(parameterList[parameter]))
+        logging.info(parameter + ' ' + self.parameterNode.GetParameter(parameter))
+
+    self.setAndObserveParameterNode(self.parameterNode)
+
+    self.ultrasound = self.getUltrasoundClass()
+
+    self.setupConnectorNode()
+
+    self.sliceletDockWidget = qt.QDockWidget(self.parent)
+    style = "QDockWidget:title {background-color: #9ACEFF;}"    
+    self.sliceletDockWidget.setStyleSheet(style)
+
+    self.mainWindow=slicer.util.mainWindow()
+    self.sliceletDockWidget.setParent(self.mainWindow)
+    self.mainWindow.addDockWidget(qt.Qt.LeftDockWidgetArea, self.sliceletDockWidget)
+        
+    self.sliceletPanel = qt.QFrame(self.sliceletDockWidget)
+    self.sliceletPanelLayout = qt.QVBoxLayout(self.sliceletPanel)    
+    self.sliceletDockWidget.setWidget(self.sliceletPanel)
+    
+    # Color scheme: #C7DDF5, #9ACEFF, #669ACC, #336799
+    style = "QFrame {background-color: #336799; border-color: #9ACEFF;}"
+    self.sliceletPanel.setStyleSheet(style)
+
+    self.setupFeaturePanelList()
+    self.setupAdvancedPanel()
+    self.setupAdditionalPanel()
+
+    self.addConnectorObservers()
+
+    # Setting up callback functions for widgets.
+    self.setupConnections()
+
+  def setupFeaturePanelList(self):
+    featurePanelList = self.createFeaturePanels()
+
+    self.collapsibleButtonGroup = qt.QButtonGroup()
+    for panel in featurePanelList:
+      self.collapsibleButtonGroup.addButton(panel)
+
+  def getUltrasoundClass(self):
+    return UltraSound(self)
+    
+  def cleanup(self):
+    self.ultrasound.cleanup()
+    self.disconnect()
+
+  def createFeaturePanels(self):
+    self.ultrasoundCollapsibleButton = self.ultrasound.setupPanel(self.sliceletPanelLayout)
+    self.advancedCollapsibleButton = ctk.ctkCollapsibleButton()
+
+    featurePanelList = [self.ultrasoundCollapsibleButton, self.advancedCollapsibleButton]
+
+    return featurePanelList
+  
+  def setupAdvancedPanel(self):
+    logging.debug('setupAdvancedPanel')
+
+    self.advancedCollapsibleButton.setProperty('collapsedHeight', 20)
+    #self.setButtonStyle(self.advancedCollapsibleButton, 2.0)
+    self.advancedCollapsibleButton.text = "Settings"
+    self.sliceletPanelLayout.addWidget(self.advancedCollapsibleButton)
+
+    self.advancedLayout = qt.QFormLayout(self.advancedCollapsibleButton)
+    self.advancedLayout.setContentsMargins(12, 4, 4, 4)
+    self.advancedLayout.setSpacing(4)
+
+    # Layout selection combo box
+    self.viewSelectorComboBox = qt.QComboBox(self.advancedCollapsibleButton)
+    self.viewSelectorComboBox.addItem("Ultrasound")
+    self.viewSelectorComboBox.addItem("Ultrasound + 3D")
+    self.viewSelectorComboBox.addItem("Ultrasound + Dual 3D")
+    self.viewSelectorComboBox.addItem("3D")
+    self.viewSelectorComboBox.addItem("Dual 3D")
+    self.advancedLayout.addRow("Layout: ", self.viewSelectorComboBox)
+    
+    self.viewUltrasound = 0
+    self.viewUltrasound3d = 1
+    self.viewUltrasoundDual3d = 2
+    self.view3d = 3
+    self.viewDual3d = 4
+
+    self.layoutManager = slicer.app.layoutManager()
+
+    self.registerCustomLayouts()
+
+    # Activate default view
+    self.onViewSelect(self.viewUltrasound3d)
+
+    # OpenIGTLink connector node selection
+    self.linkInputSelector = slicer.qMRMLNodeComboBox()
+    self.linkInputSelector.nodeTypes = ("vtkMRMLIGTLConnectorNode", "")
+    self.linkInputSelector.selectNodeUponCreation = True
+    self.linkInputSelector.addEnabled = False
+    self.linkInputSelector.removeEnabled = True
+    self.linkInputSelector.noneEnabled = False
+    self.linkInputSelector.showHidden = False
+    self.linkInputSelector.showChildNodeTypes = False
+    self.linkInputSelector.setMRMLScene( slicer.mrmlScene )
+    self.linkInputSelector.setToolTip( "Select connector node" )
+    self.advancedLayout.addRow("OpenIGTLink connector: ", self.linkInputSelector)
+
+    self.showFullSlicerInterfaceButton = qt.QPushButton()
+    self.showFullSlicerInterfaceButton.setText("Show full user interface")
+    setButtonStyle(self.showFullSlicerInterfaceButton)
+    #self.showFullSlicerInterfaceButton.setSizePolicy(self.sizePolicy)
+    self.advancedLayout.addRow(self.showFullSlicerInterfaceButton)
+
+    self.saveSceneButton = qt.QPushButton()
+    self.saveSceneButton.setText("Save slicelet scene")
+    setButtonStyle(self.saveSceneButton)
+    self.advancedLayout.addRow(self.saveSceneButton)
+
+    self.saveDirectoryLineEdit = qt.QLineEdit()
+    self.saveDirectoryLineEdit.setText(self.getSavedScenesDirectory())
+    saveLabel = qt.QLabel()
+    saveLabel.setText("Save scene directory:")
+    hbox = qt.QHBoxLayout()
+    hbox.addWidget(saveLabel)
+    hbox.addWidget(self.saveDirectoryLineEdit)
+    self.advancedLayout.addRow(hbox)
+
+  def setupAdditionalPanel(self):
+    pass
+
+  def registerCustomLayouts(self):#common
+    layoutLogic = slicer.app.layoutManager().layoutLogic()
+    customLayout = ("<layout type=\"horizontal\" split=\"false\" >"
+      " <item>"
+      "  <view class=\"vtkMRMLViewNode\" singletontag=\"1\">"
+      "    <property name=\"viewlabel\" action=\"default\">1</property>"
+      "  </view>"
+      " </item>"
+      " <item>"
+      "  <view class=\"vtkMRMLViewNode\" singletontag=\"2\" type=\"secondary\">"
+      "   <property name=\"viewlabel\" action=\"default\">2</property>"
+      "  </view>"
+      " </item>"
+      "</layout>")
+    self.dual3dCustomLayoutId=503
+    layoutLogic.GetLayoutNode().AddLayoutDescription(self.dual3dCustomLayoutId, customLayout)
+
+    customLayout = ("<layout type=\"horizontal\" split=\"false\" >"
+      " <item>"
+      "  <view class=\"vtkMRMLViewNode\" singletontag=\"1\">"
+      "    <property name=\"viewlabel\" action=\"default\">1</property>"
+      "  </view>"
+      " </item>"
+      " <item>"
+      "  <view class=\"vtkMRMLSliceNode\" singletontag=\"Red\">"
+      "   <property name=\"orientation\" action=\"default\">Axial</property>"
+      "   <property name=\"viewlabel\" action=\"default\">R</property>"
+      "   <property name=\"viewcolor\" action=\"default\">#F34A33</property>"
+      "  </view>"
+      " </item>"
+      "</layout>")
+    self.red3dCustomLayoutId=504
+    layoutLogic.GetLayoutNode().AddLayoutDescription(self.red3dCustomLayoutId, customLayout)
+    
+    customLayout = ("<layout type=\"horizontal\" split=\"false\" >"
+      " <item>"
+      "  <view class=\"vtkMRMLViewNode\" singletontag=\"1\">"
+      "    <property name=\"viewlabel\" action=\"default\">1</property>"
+      "  </view>"
+      " </item>"
+      " <item>"
+      "  <view class=\"vtkMRMLViewNode\" singletontag=\"2\" type=\"secondary\">"
+      "   <property name=\"viewlabel\" action=\"default\">2</property>"
+      "  </view>"
+      " </item>"
+      " <item>"
+      "  <view class=\"vtkMRMLSliceNode\" singletontag=\"Red\">"
+      "   <property name=\"orientation\" action=\"default\">Axial</property>"
+      "   <property name=\"viewlabel\" action=\"default\">R</property>"
+      "   <property name=\"viewcolor\" action=\"default\">#F34A33</property>"
+      "  </view>"
+      " </item>"
+      "</layout>")
+    self.redDual3dCustomLayoutId=505
+    layoutLogic.GetLayoutNode().AddLayoutDescription(self.redDual3dCustomLayoutId, customLayout)
+
+  def setupScene(self):
+
+    #create transforms
+    self.ReferenceToRas = slicer.util.getNode('ReferenceToRas')
+    if not self.ReferenceToRas:
+      self.ReferenceToRas=slicer.vtkMRMLLinearTransformNode()
+      self.ReferenceToRas.SetName("ReferenceToRas")
+      m = vtk.vtkMatrix4x4()
+      m.SetElement( 0, 0, 0 )
+      m.SetElement( 0, 2, -1 )
+      m.SetElement( 1, 1, 0 )
+      m.SetElement( 1, 1, -1 )
+      m.SetElement( 2, 2, 0 )
+      m.SetElement( 2, 0, -1 )
+      self.ReferenceToRas.SetMatrixTransformToParent(m)
+      slicer.mrmlScene.AddNode(self.ReferenceToRas)
+
+    # setup feature scene
+    self.ultrasound.setupScene()
+
+  def onSaveSceneClicked(self):#common
+    #
+    # save the mrml scene to a temp directory, then zip it
+    #
+    applicationLogic = slicer.app.applicationLogic()
+    sceneSaveDirectory = self.saveDirectoryLineEdit.text
+
+    # Save the last used directory
+    self.setSavedScenesDirectory(sceneSaveDirectory)
+    
+    sceneSaveDirectory = sceneSaveDirectory + "/" + self.logic.moduleName + "-" + time.strftime("%Y%m%d-%H%M%S")
+    logging.info("Saving scene to: {0}".format(sceneSaveDirectory))
+    if not os.access(sceneSaveDirectory, os.F_OK):
+      os.makedirs(sceneSaveDirectory)
+    if applicationLogic.SaveSceneToSlicerDataBundleDirectory(sceneSaveDirectory, None):
+      logging.info("Scene saved to: {0}".format(sceneSaveDirectory)) 
+    else:
+      logging.error("Scene saving failed")
+
+  def setupConnections(self):
+    logging.debug('Guidelet.setupConnections()')
+    self.ultrasoundCollapsibleButton.connect('toggled(bool)', self.onUltrasoundPanelToggled)
+    self.ultrasound.setupConnections()
+    #advanced settings panel
+    self.showFullSlicerInterfaceButton.connect('clicked()', self.onShowFullSlicerInterfaceClicked)
+    self.saveSceneButton.connect('clicked()', self.onSaveSceneClicked)
+    self.linkInputSelector.connect("nodeActivated(vtkMRMLNode*)", self.onConnectorNodeActivated)
+    self.viewSelectorComboBox.connect('activated(int)', self.onViewSelect)
+
+  def disconnect(self):
+    self.removeConnectorObservers()
+     # Remove observer to old parameter node
+    self.removeParameterNodeObserver()
+
+    self.ultrasoundCollapsibleButton.disconnect('toggled(bool)', self.onUltrasoundPanelToggled)
+    #advanced settings panel
+    self.showFullSlicerInterfaceButton.disconnect('clicked()', self.onShowFullSlicerInterfaceClicked)
+    self.saveSceneButton.disconnect('clicked()', self.onSaveSceneClicked)
+    self.linkInputSelector.disconnect("nodeActivated(vtkMRMLNode*)", self.onConnectorNodeActivated)
+    self.viewSelectorComboBox.disconnect('activated(int)', self.onViewSelect)
+
+  def showFullScreen(self):
+  
+    # We hide all toolbars, etc. which is inconvenient as a default startup setting,
+    # therefore disable saving of window setup.
+    settings = qt.QSettings()
+    settings.setValue('MainWindow/RestoreGeometry', 'false')
+    
+    self.showToolbars(False)
+    self.showModulePanel(False)
+    self.showMenuBar(False)
+        
+    self.sliceletDockWidget.show()
+    mainWindow=slicer.util.mainWindow()
+    mainWindow.showFullScreen()
+
+  def onShowFullSlicerInterfaceClicked(self):
+    self.showToolbars(True)
+    self.showModulePanel(True)
+    self.showMenuBar(True)
+    slicer.util.mainWindow().showMaximized()
+    
+    # Save current state
+    settings = qt.QSettings()
+    settings.setValue('MainWindow/RestoreGeometry', 'true')
+
+  def executeCommand(self, command, commandResponseCallback):
+    command.RemoveObservers(slicer.modulelogic.vtkSlicerOpenIGTLinkCommand.CommandCompletedEvent)
+    command.AddObserver(slicer.modulelogic.vtkSlicerOpenIGTLinkCommand.CommandCompletedEvent, commandResponseCallback)
+    slicer.modules.openigtlinkremote.logic().SendCommand(command, self.connectorNode.GetID())
+    
+  def setAndObserveParameterNode(self, parameterNode):
+    if parameterNode == self.parameterNode and self.parameterNodeObserver:
+      # no change and node is already observed
+      return
+    # Remove observer to old parameter node
+    self.removeParameterNodeObserver()
+    # Set and observe new parameter node
+    self.parameterNode = parameterNode
+    if self.parameterNode:
+      self.parameterNodeObserver = self.parameterNode.AddObserver(vtk.vtkCommand.ModifiedEvent,
+                                                                  self.onParameterNodeModified)
+    # Update GUI
+    self.updateGUIFromParameterNode()
+
+  def removeParameterNodeObserver(self):
+    if self.parameterNode and self.parameterNodeObserver:
+      self.parameterNode.RemoveObserver(self.parameterNodeObserver)
+      self.parameterNodeObserver = None
+
+  def onParameterNodeModified(self, observer, eventid):
+    logging.debug('onParameterNodeModified')
+    self.updateGUIFromParameterNode()
+    
+  def updateGUIFromParameterNode(self):#TODO
+    parameterNode = self.parameterNode
+    if not parameterNode:
+      return
+  
+  def setupConnectorNode(self):
+    logging.info("setupConnectorNode")
+    self.connectorNodeObserverTagList = []
+    self.connectorNodeConnected = False
+    self.connectorNode = self.ultrasound.createPlusConnector()
+    self.connectorNode.Start()
+
+  def onConnectorNodeConnected(self, caller, event, force=False):
+    logging.info("onConnectorNodeConnected")
+    # Multiple notifications may be sent when connecting/disconnecting,
+    # so we just if we know about the state change already
+    if self.connectorNodeConnected and not force:
+        return
+    self.connectorNodeConnected = True
+    self.ultrasound.onConnectorNodeConnected()
+    self.delayedFitUltrasoundImageToView(5000)
+
+  def onConnectorNodeDisconnected(self, caller, event, force=False):
+    logging.info("onConnectorNodeDisconnected")
+    # Multiple notifications may be sent when connecting/disconnecting,
+    # so we just if we know about the state change already
+    if not self.connectorNodeConnected and not force:
+        return
+    self.connectorNodeConnected = False
+    self.ultrasound.onConnectorNodeDisconnected()
+
+  def onConnectorNodeActivated(self):
+    logging.debug('onConnectorNodeActivated')
+  
+    self.removeConnectorObservers()
+
+    # Start using new connector.
+    self.connectorNode = self.linkInputSelector.currentNode()
+
+    if not self.connectorNode:
+      logging.warning('No connector node found!')
+      return
+      
+    self.addConnectorObservers()
+
+  def removeConnectorObservers(self):
+    # Clean up observers to old connector.
+    if self.connectorNode and self.connectorNodeObserverTagList:
+      for tag in self.connectorNodeObserverTagList:
+        self.connectorNode.RemoveObserver(tag)
+      self.connectorNodeObserverTagList = []
+
+  def addConnectorObservers(self):
+
+    # Force initial update
+    if self.connectorNode.GetState() == slicer.vtkMRMLIGTLConnectorNode.STATE_CONNECTED:
+      self.onConnectorNodeConnected(None, None, True)
+    else:
+      self.onConnectorNodeDisconnected(None, None, True)
+
+    # Add observers for connect/disconnect events
+    events = [[slicer.vtkMRMLIGTLConnectorNode.ConnectedEvent, self.onConnectorNodeConnected],
+              [slicer.vtkMRMLIGTLConnectorNode.DisconnectedEvent, self.onConnectorNodeDisconnected]]
+    for tagEventHandler in events:
+      connectorNodeObserverTag = self.connectorNode.AddObserver(tagEventHandler[0], tagEventHandler[1])
+      self.connectorNodeObserverTagList.append(connectorNodeObserverTag)
+
+  def fitUltrasoundImageToView(self):
+    redWidget = self.layoutManager.sliceWidget('Red')
+    redWidget.sliceController().fitSliceToBackground()
+
+  def delayedFitUltrasoundImageToView(self, delayMsec=500):
+    qt.QTimer.singleShot(delayMsec, self.fitUltrasoundImageToView) 
+
+  def onViewSelect(self, layoutIndex):
+    logging.debug('onViewSelect: {0}'.format(layoutIndex))
+    if layoutIndex == self.viewUltrasound:      
+      self.layoutManager.setLayout(slicer.vtkMRMLLayoutNode.SlicerLayoutOneUpRedSliceView)
+      self.delayedFitUltrasoundImageToView()
+      self.showUltrasoundIn3dView(False)
+    elif layoutIndex == self.viewUltrasound3d:
+      self.layoutManager.setLayout(self.red3dCustomLayoutId)
+      self.delayedFitUltrasoundImageToView()
+      self.showUltrasoundIn3dView(True)
+    elif layoutIndex == self.viewUltrasoundDual3d:
+      self.layoutManager.setLayout(self.redDual3dCustomLayoutId)
+      self.delayedFitUltrasoundImageToView()
+      self.showUltrasoundIn3dView(True)
+    elif layoutIndex == self.view3d:
+      self.layoutManager.setLayout(slicer.vtkMRMLLayoutNode.SlicerLayoutOneUp3DView)
+      self.showUltrasoundIn3dView(True)
+    elif layoutIndex == self.viewDual3d:
+       self.layoutManager.setLayout(self.dual3dCustomLayoutId)
+       self.showUltrasoundIn3dView(False)
+
+  def writeTransformToSettings(self, transformName, transformMatrix):
+    transformMatrixArray = []
+    for r in xrange(4):
+      for c in xrange(4):
+        transformMatrixArray.append(transformMatrix.GetElement(r,c))
+    transformMatrixString = ' '.join(map(str, transformMatrixArray)) # string, numbers are separated by spaces
+    settings = slicer.app.userSettings()
+    settingString = self.logic.moduleName + '/Configurations/' + self.configurationName + '/{0}' # Write to selected configuration
+    settings.setValue(settingString.format(transformName), transformMatrixString)
+    
+  def readTransformFromSettings(self, transformName):
+    transformMatrix = vtk.vtkMatrix4x4()
+    settings = slicer.app.userSettings()
+    settingString = self.logic.moduleName + '/Configurations/' + self.configurationName + '/{0}' # Read from selected configuration
+    transformMatrixString = settings.value(settingString.format(transformName))
+    if not transformMatrixString: 
+      settingString = self.logic.moduleName + '/Configurations/Default/{0}' # Read from default configuration
+      transformMatrixString = settings.value(settingString.format(transformName))
+      if not transformMatrixString: 
+        return None
+    transformMatrixArray = map(float, transformMatrixString.split(' '))
+    for r in xrange(4):
+      for c in xrange(4):
+        transformMatrix.SetElement(r,c, transformMatrixArray[r*4+c])
+    return transformMatrix
+
+  def getSavedScenesDirectory(self):
+    settings = slicer.app.userSettings()
+    settingString = self.logic.moduleName + "/SavedScenesDirectory"
+    sceneSaveDirectory = settings.value(settingString)
+    if not sceneSaveDirectory:
+      sceneSaveDirectory = self.parameterNode.GetParameter('DefaultSavedScenesPath')
+    return sceneSaveDirectory
+
+  def setSavedScenesDirectory(self, sceneSaveDirectory):
+    settings = slicer.app.userSettings()
+    settingString = self.logic.moduleName + "/SavedScenesDirectory"
+    settings.setValue(settingString, sceneSaveDirectory)
+
+  def onUltrasoundPanelToggled(self, toggled):
+    if not toggled:
+      # deactivate placement mode
+      interactionNode = slicer.app.applicationLogic().GetInteractionNode()
+      interactionNode.SetCurrentInteractionMode(interactionNode.ViewTransform)   
+      return
+
+    logging.debug('onTumorContouringPanelToggled: {0}'.format(toggled))
+
+    self.showDefaultView()
+
+  def showDefaultView(self):
+    self.onViewSelect(self.viewUltrasound) # Red only layout
+
+
 class UltraSound(object):
+
+  DEFAULT_IMAGE_SIZE = [800, 600, 1]
 
   def __init__(self, guideletParent):
     self.guideletParent = guideletParent
@@ -201,11 +689,11 @@ class UltraSound(object):
     if os.path.isfile(iconPathStop):
       self.stopIcon = qt.QIcon(iconPathStop)
 
-  def enable(self):
+  def onConnectorNodeConnected(self):
     self.freezeUltrasoundButton.setText('Freeze')
     self.startStopRecordingButton.setEnabled(True)
 
-  def disable(self):
+  def onConnectorNodeDisconnected(self):
     self.freezeUltrasoundButton.setText('Un-freeze')
     self.startStopRecordingButton.setEnabled(False)
 
@@ -269,11 +757,10 @@ class UltraSound(object):
     liveUltrasoundNodeName = self.guideletParent.parameterNode.GetParameter('LiveUltrasoundNodeName')
     self.liveUltrasoundNode_Reference = slicer.util.getNode(liveUltrasoundNodeName)
     if not self.liveUltrasoundNode_Reference:
-      imageSize=[800, 600, 1]
       imageSpacing=[0.2, 0.2, 0.2]
       # Create an empty image volume
       imageData=vtk.vtkImageData()
-      imageData.SetDimensions(imageSize)
+      imageData.SetDimensions(self.DEFAULT_IMAGE_SIZE)
       imageData.AllocateScalars(vtk.VTK_UNSIGNED_CHAR, 1)
       thresholder=vtk.vtkImageThreshold()
       thresholder.SetInputData(imageData)
@@ -408,488 +895,3 @@ class UltraSound(object):
   def onBrightnessContrastBrighterClicked(self):
     logging.debug('onBrightnessContrastBrighterClicked')
     self.setImageMinMaxLevel(0,60)
-
-
-class Guidelet(object):
-
-  @staticmethod
-  def showToolbars(show):
-    for toolbar in slicer.util.mainWindow().findChildren('QToolBar'):
-      toolbar.setVisible(show)
-
-  @staticmethod
-  def showModulePanel(show):
-    slicer.util.mainWindow().findChildren('QDockWidget','PanelDockWidget')[0].setVisible(show)
-
-  @staticmethod
-  def showMenuBar(show):
-    for menubar in slicer.util.mainWindow().findChildren('QMenuBar'):
-      menubar.setVisible(show)
-
-  @staticmethod
-  def onGenericCommandResponseReceived(commandId, responseNode):
-    if responseNode:
-      logging.debug("Response from PLUS: {0}".format(responseNode.GetText(0)))
-    else:
-      logging.debug("Timeout. Command Id: {0}".format(commandId))
-
-  @staticmethod
-  def showUltrasoundIn3dView(show):
-    redNode = slicer.util.getNode('vtkMRMLSliceNodeRed')
-    if show:
-      redNode.SetSliceVisible(1)
-    else:
-      redNode.SetSliceVisible(0)
-
-  def __init__(self, parent, logic, parameterList=None, widgetClass=None, configurationName='Default'):
-    logging.debug('Guidelet.__init__')
-    self.parent = parent
-    self.logic = logic
-    self.configurationName = configurationName
-    self.parameterNodeObserver = None
-    self.parameterNode = self.logic.getParameterNode()
-
-    if parameterList is not None:
-      for parameter in parameterList:
-        self.parameterNode.SetParameter(parameter, str(parameterList[parameter]))
-        logging.info(parameter + ' ' + self.parameterNode.GetParameter(parameter))
-
-    self.setAndObserveParameterNode(self.parameterNode)
-
-    self.ultrasound = self.getUltrasoundClass()
-
-    self.setupConnectorNode()
-
-    self.sliceletDockWidget = qt.QDockWidget(self.parent)
-    style = "QDockWidget:title {background-color: #9ACEFF;}"    
-    self.sliceletDockWidget.setStyleSheet(style)
-
-    self.mainWindow=slicer.util.mainWindow()
-    self.sliceletDockWidget.setParent(self.mainWindow)
-    self.mainWindow.addDockWidget(qt.Qt.LeftDockWidgetArea, self.sliceletDockWidget)
-        
-    self.sliceletPanel = qt.QFrame(self.sliceletDockWidget)
-    self.sliceletPanelLayout = qt.QVBoxLayout(self.sliceletPanel)    
-    self.sliceletDockWidget.setWidget(self.sliceletPanel)
-    
-    # Color scheme: #C7DDF5, #9ACEFF, #669ACC, #336799
-    style = "QFrame {background-color: #336799; border-color: #9ACEFF;}"
-    self.sliceletPanel.setStyleSheet(style)
-
-    self.setupFeaturePanelList()
-    self.setupAdvancedPanel()
-    self.setupAdditionalPanel()
-
-    self.addConnectorObservers()
-
-    # Setting up callback functions for widgets.
-    self.setupConnections()
-
-  def setupFeaturePanelList(self):
-    featurePanelList = self.createFeaturePanels()
-
-    self.collapsibleButtonGroup = qt.QButtonGroup()
-    for panel in featurePanelList:
-      self.collapsibleButtonGroup.addButton(panel)
-
-  def getUltrasoundClass(self):
-    return UltraSound(self)
-    
-  def cleanup(self):
-    self.ultrasound.cleanup()
-    self.disconnect()
-
-  def createFeaturePanels(self):
-    self.ultrasoundCollapsibleButton = self.ultrasound.setupPanel(self.sliceletPanelLayout)
-    self.advancedCollapsibleButton = ctk.ctkCollapsibleButton()
-
-    featurePanelList = [self.ultrasoundCollapsibleButton, self.advancedCollapsibleButton]
-
-    return featurePanelList
-  
-  def setupAdvancedPanel(self):
-    logging.debug('setupAdvancedPanel')
-
-    self.advancedCollapsibleButton.setProperty('collapsedHeight', 20)
-    #self.setButtonStyle(self.advancedCollapsibleButton, 2.0)
-    self.advancedCollapsibleButton.text = "Settings"
-    self.sliceletPanelLayout.addWidget(self.advancedCollapsibleButton)
-
-    self.advancedLayout = qt.QFormLayout(self.advancedCollapsibleButton)
-    self.advancedLayout.setContentsMargins(12, 4, 4, 4)
-    self.advancedLayout.setSpacing(4)
-
-    # Layout selection combo box
-    self.viewSelectorComboBox = qt.QComboBox(self.advancedCollapsibleButton)
-    self.viewSelectorComboBox.addItem("Ultrasound")
-    self.viewSelectorComboBox.addItem("Ultrasound + 3D")
-    self.viewSelectorComboBox.addItem("Ultrasound + Dual 3D")
-    self.viewSelectorComboBox.addItem("3D")
-    self.viewSelectorComboBox.addItem("Dual 3D")
-    self.advancedLayout.addRow("Layout: ", self.viewSelectorComboBox)
-    
-    self.viewUltrasound = 0
-    self.viewUltrasound3d = 1
-    self.viewUltrasoundDual3d = 2
-    self.view3d = 3
-    self.viewDual3d = 4
-
-    self.layoutManager = slicer.app.layoutManager()
-
-    self.registerCustomLayouts(self.layoutManager)
-
-    # Activate default view
-    self.onViewSelect(self.viewUltrasound3d)
-
-    # OpenIGTLink connector node selection
-    self.linkInputSelector = slicer.qMRMLNodeComboBox()
-    self.linkInputSelector.nodeTypes = ("vtkMRMLIGTLConnectorNode", "")
-    self.linkInputSelector.selectNodeUponCreation = True
-    self.linkInputSelector.addEnabled = False
-    self.linkInputSelector.removeEnabled = True
-    self.linkInputSelector.noneEnabled = False
-    self.linkInputSelector.showHidden = False
-    self.linkInputSelector.showChildNodeTypes = False
-    self.linkInputSelector.setMRMLScene( slicer.mrmlScene )
-    self.linkInputSelector.setToolTip( "Select connector node" )
-    self.advancedLayout.addRow("OpenIGTLink connector: ", self.linkInputSelector)
-
-    self.showFullSlicerInterfaceButton = qt.QPushButton()
-    self.showFullSlicerInterfaceButton.setText("Show full user interface")
-    setButtonStyle(self.showFullSlicerInterfaceButton)
-    #self.showFullSlicerInterfaceButton.setSizePolicy(self.sizePolicy)
-    self.advancedLayout.addRow(self.showFullSlicerInterfaceButton)
-
-    self.saveSceneButton = qt.QPushButton()
-    self.saveSceneButton.setText("Save slicelet scene")
-    setButtonStyle(self.saveSceneButton)
-    self.advancedLayout.addRow(self.saveSceneButton)
-
-    self.saveDirectoryLineEdit = qt.QLineEdit()
-    self.saveDirectoryLineEdit.setText(self.getSavedScenesDirectory())
-    saveLabel = qt.QLabel()
-    saveLabel.setText("Save scene directory:")
-    hbox = qt.QHBoxLayout()
-    hbox.addWidget(saveLabel)
-    hbox.addWidget(self.saveDirectoryLineEdit)
-    self.advancedLayout.addRow(hbox)
-
-  def setupAdditionalPanel(self):
-    pass
-
-  def registerCustomLayouts(self, layoutManager):#common
-    
-    customLayout = ("<layout type=\"horizontal\" split=\"false\" >"
-      " <item>"
-      "  <view class=\"vtkMRMLViewNode\" singletontag=\"1\">"
-      "    <property name=\"viewlabel\" action=\"default\">1</property>"
-      "  </view>"
-      " </item>"
-      " <item>"
-      "  <view class=\"vtkMRMLViewNode\" singletontag=\"2\" type=\"secondary\">"
-      "   <property name=\"viewlabel\" action=\"default\">2</property>"
-      "  </view>"
-      " </item>"
-      "</layout>")
-    self.dual3dCustomLayoutId=503
-    layoutManager.layoutLogic().GetLayoutNode().AddLayoutDescription(self.dual3dCustomLayoutId, customLayout)
-
-    customLayout = ("<layout type=\"horizontal\" split=\"false\" >"
-      " <item>"
-      "  <view class=\"vtkMRMLViewNode\" singletontag=\"1\">"
-      "    <property name=\"viewlabel\" action=\"default\">1</property>"
-      "  </view>"
-      " </item>"
-      " <item>"
-      "  <view class=\"vtkMRMLSliceNode\" singletontag=\"Red\">"
-      "   <property name=\"orientation\" action=\"default\">Axial</property>"
-      "   <property name=\"viewlabel\" action=\"default\">R</property>"
-      "   <property name=\"viewcolor\" action=\"default\">#F34A33</property>"
-      "  </view>"
-      " </item>"
-      "</layout>")
-    self.red3dCustomLayoutId=504
-    layoutManager.layoutLogic().GetLayoutNode().AddLayoutDescription(self.red3dCustomLayoutId, customLayout)
-    
-    customLayout = ("<layout type=\"horizontal\" split=\"false\" >"
-      " <item>"
-      "  <view class=\"vtkMRMLViewNode\" singletontag=\"1\">"
-      "    <property name=\"viewlabel\" action=\"default\">1</property>"
-      "  </view>"
-      " </item>"
-      " <item>"
-      "  <view class=\"vtkMRMLViewNode\" singletontag=\"2\" type=\"secondary\">"
-      "   <property name=\"viewlabel\" action=\"default\">2</property>"
-      "  </view>"
-      " </item>"
-      " <item>"
-      "  <view class=\"vtkMRMLSliceNode\" singletontag=\"Red\">"
-      "   <property name=\"orientation\" action=\"default\">Axial</property>"
-      "   <property name=\"viewlabel\" action=\"default\">R</property>"
-      "   <property name=\"viewcolor\" action=\"default\">#F34A33</property>"
-      "  </view>"
-      " </item>"
-      "</layout>")
-    self.redDual3dCustomLayoutId=505
-    layoutManager.layoutLogic().GetLayoutNode().AddLayoutDescription(self.redDual3dCustomLayoutId, customLayout)
-
-  def setupScene(self):
-
-    #create transforms
-    self.ReferenceToRas = slicer.util.getNode('ReferenceToRas')
-    if not self.ReferenceToRas:
-      self.ReferenceToRas=slicer.vtkMRMLLinearTransformNode()
-      self.ReferenceToRas.SetName("ReferenceToRas")
-      m = vtk.vtkMatrix4x4()
-      m.SetElement( 0, 0, 0 )
-      m.SetElement( 0, 2, -1 )
-      m.SetElement( 1, 1, 0 )
-      m.SetElement( 1, 1, -1 )
-      m.SetElement( 2, 2, 0 )
-      m.SetElement( 2, 0, -1 )
-      self.ReferenceToRas.SetMatrixTransformToParent(m)
-      slicer.mrmlScene.AddNode(self.ReferenceToRas)
-
-    # setup feature scene
-    self.ultrasound.setupScene()
-
-  def onSaveSceneClicked(self):#common
-    #
-    # save the mrml scene to a temp directory, then zip it
-    #
-    applicationLogic = slicer.app.applicationLogic()
-    sceneSaveDirectory = self.saveDirectoryLineEdit.text
-
-    # Save the last used directory
-    self.setSavedScenesDirectory(sceneSaveDirectory)
-    
-    sceneSaveDirectory = sceneSaveDirectory + "/" + self.logic.moduleName + "-" + time.strftime("%Y%m%d-%H%M%S")
-    logging.info("Saving scene to: {0}".format(sceneSaveDirectory))
-    if not os.access(sceneSaveDirectory, os.F_OK):
-      os.makedirs(sceneSaveDirectory)
-    if applicationLogic.SaveSceneToSlicerDataBundleDirectory(sceneSaveDirectory, None):
-      logging.info("Scene saved to: {0}".format(sceneSaveDirectory)) 
-    else:
-      logging.error("Scene saving failed")
-
-  def setupConnections(self):
-    logging.debug('Guidelet.setupConnections()')
-    self.ultrasoundCollapsibleButton.connect('toggled(bool)', self.onUltrasoundPanelToggled)
-    self.ultrasound.setupConnections()
-    #advanced settings panel
-    self.showFullSlicerInterfaceButton.connect('clicked()', self.onShowFullSlicerInterfaceClicked)
-    self.saveSceneButton.connect('clicked()', self.onSaveSceneClicked)
-    self.linkInputSelector.connect("nodeActivated(vtkMRMLNode*)", self.onConnectorNodeActivated)
-    self.viewSelectorComboBox.connect('activated(int)', self.onViewSelect)
-
-  def disconnect(self):
-    self.removeConnectorObservers()
-     # Remove observer to old parameter node
-    self.removeParameterNodeObserver()
-    
-    self.ultrasoundCollapsibleButton.disconnect('toggled(bool)', self.onUltrasoundPanelToggled)
-    #advanced settings panel
-    self.showFullSlicerInterfaceButton.disconnect('clicked()', self.onShowFullSlicerInterfaceClicked)
-    self.saveSceneButton.disconnect('clicked()', self.onSaveSceneClicked)
-    self.linkInputSelector.disconnect("nodeActivated(vtkMRMLNode*)", self.onConnectorNodeActivated)
-    self.viewSelectorComboBox.disconnect('activated(int)', self.onViewSelect)
-
-  def showFullScreen(self):
-  
-    # We hide all toolbars, etc. which is inconvenient as a default startup setting,
-    # therefore disable saving of window setup.
-    settings = qt.QSettings()
-    settings.setValue('MainWindow/RestoreGeometry', 'false')
-    
-    self.showToolbars(False)
-    self.showModulePanel(False)
-    self.showMenuBar(False)
-        
-    self.sliceletDockWidget.show()
-    mainWindow=slicer.util.mainWindow()
-    mainWindow.showFullScreen()
-
-  def onShowFullSlicerInterfaceClicked(self):
-    self.showToolbars(True)
-    self.showModulePanel(True)
-    self.showMenuBar(True)
-    slicer.util.mainWindow().showMaximized()
-    
-    # Save current state
-    settings = qt.QSettings()
-    settings.setValue('MainWindow/RestoreGeometry', 'true')
-
-  def executeCommand(self, command, commandResponseCallback):
-    command.RemoveObservers(slicer.modulelogic.vtkSlicerOpenIGTLinkCommand.CommandCompletedEvent)
-    command.AddObserver(slicer.modulelogic.vtkSlicerOpenIGTLinkCommand.CommandCompletedEvent, commandResponseCallback)
-    slicer.modules.openigtlinkremote.logic().SendCommand(command, self.connectorNode.GetID())
-    
-  def setAndObserveParameterNode(self, parameterNode):
-    if parameterNode == self.parameterNode and self.parameterNodeObserver:
-      # no change and node is already observed
-      return
-    # Remove observer to old parameter node
-    self.removeParameterNodeObserver()
-    # Set and observe new parameter node
-    self.parameterNode = parameterNode
-    if self.parameterNode:
-      self.parameterNodeObserver = self.parameterNode.AddObserver(vtk.vtkCommand.ModifiedEvent,
-                                                                  self.onParameterNodeModified)
-    # Update GUI
-    self.updateGUIFromParameterNode()
-
-  def removeParameterNodeObserver(self):
-    if self.parameterNode and self.parameterNodeObserver:
-      self.parameterNode.RemoveObserver(self.parameterNodeObserver)
-      self.parameterNodeObserver = None
-
-  def onParameterNodeModified(self, observer, eventid):
-    logging.debug('onParameterNodeModified')
-    self.updateGUIFromParameterNode()
-    
-  def updateGUIFromParameterNode(self):#TODO
-    parameterNode = self.parameterNode
-    if not parameterNode:
-      return
-  
-  def setupConnectorNode(self):
-    self.connectorNodeObserverTagList = []
-    self.connectorNodeConnected = False
-    self.connectorNode = self.ultrasound.createPlusConnector()
-    self.connectorNode.Start()
-
-  def onConnectorNodeConnected(self, caller, event, force=False):
-    logging.info("onConnectorNodeConnected")
-    # Multiple notifications may be sent when connecting/disconnecting,
-    # so we just if we know about the state change already
-    if self.connectorNodeConnected and not force:
-        return
-    self.connectorNodeConnected = True
-    self.ultrasound.enable()
-    self.delayedFitUltrasoundImageToView(5000)
-
-  def onConnectorNodeDisconnected(self, caller, event, force=False):
-    logging.info("onConnectorNodeDisconnected")
-    # Multiple notifications may be sent when connecting/disconnecting,
-    # so we just if we know about the state change already
-    if not self.connectorNodeConnected and not force:
-        return
-    self.connectorNodeConnected = False
-    self.ultrasound.disable()
-
-  def onConnectorNodeActivated(self):
-    logging.debug('onConnectorNodeActivated')
-  
-    self.removeConnectorObservers()
-
-    # Start using new connector.
-    self.connectorNode = self.linkInputSelector.currentNode()
-
-    if not self.connectorNode:
-      logging.warning('No connector node found!')
-      return
-      
-    self.addConnectorObservers()
-
-  def removeConnectorObservers(self):
-    # Clean up observers to old connector.
-    if self.connectorNode and self.connectorNodeObserverTagList:
-      for tag in self.connectorNodeObserverTagList:
-        self.connectorNode.RemoveObserver(tag)
-      self.connectorNodeObserverTagList = []
-
-  def addConnectorObservers(self):
-
-    # Force initial update
-    if self.connectorNode.GetState() == slicer.vtkMRMLIGTLConnectorNode.STATE_CONNECTED:
-      self.onConnectorNodeConnected(None, None, True)
-    else:
-      self.onConnectorNodeDisconnected(None, None, True)
-
-    # Add observers for connect/disconnect events
-    events = [[slicer.vtkMRMLIGTLConnectorNode.ConnectedEvent, self.onConnectorNodeConnected],
-              [slicer.vtkMRMLIGTLConnectorNode.DisconnectedEvent, self.onConnectorNodeDisconnected]]
-    for tagEventHandler in events:
-      connectorNodeObserverTag = self.connectorNode.AddObserver(tagEventHandler[0], tagEventHandler[1])
-      self.connectorNodeObserverTagList.append(connectorNodeObserverTag)
-
-  def fitUltrasoundImageToView(self):
-    redWidget = self.layoutManager.sliceWidget('Red')
-    redWidget.sliceController().fitSliceToBackground()
-
-  def delayedFitUltrasoundImageToView(self, delayMsec=500):
-    qt.QTimer.singleShot(delayMsec, self.fitUltrasoundImageToView) 
-
-  def onViewSelect(self, layoutIndex):
-    logging.debug('onViewSelect: {0}'.format(layoutIndex))
-    if layoutIndex == self.viewUltrasound:      
-      self.layoutManager.setLayout(slicer.vtkMRMLLayoutNode.SlicerLayoutOneUpRedSliceView)
-      self.delayedFitUltrasoundImageToView()
-      self.showUltrasoundIn3dView(False)
-    elif layoutIndex == self.viewUltrasound3d:
-      self.layoutManager.setLayout(self.red3dCustomLayoutId)
-      self.delayedFitUltrasoundImageToView()
-      self.showUltrasoundIn3dView(True)
-    elif layoutIndex == self.viewUltrasoundDual3d:
-      self.layoutManager.setLayout(self.redDual3dCustomLayoutId)
-      self.delayedFitUltrasoundImageToView()
-      self.showUltrasoundIn3dView(True)
-    elif layoutIndex == self.view3d:
-      self.layoutManager.setLayout(slicer.vtkMRMLLayoutNode.SlicerLayoutOneUp3DView)
-      self.showUltrasoundIn3dView(True)
-    elif layoutIndex == self.viewDual3d:
-       self.layoutManager.setLayout(self.dual3dCustomLayoutId)
-       self.showUltrasoundIn3dView(False)
-
-  def writeTransformToSettings(self, transformName, transformMatrix):
-    transformMatrixArray = []
-    for r in xrange(4):
-      for c in xrange(4):
-        transformMatrixArray.append(transformMatrix.GetElement(r,c))
-    transformMatrixString = ' '.join(map(str, transformMatrixArray)) # string, numbers are separated by spaces
-    settings = slicer.app.userSettings()
-    settingString = self.logic.moduleName + '/Configurations/' + self.configurationName + '/{0}' # Write to selected configuration
-    settings.setValue(settingString.format(transformName), transformMatrixString)
-    
-  def readTransformFromSettings(self, transformName):
-    transformMatrix = vtk.vtkMatrix4x4()
-    settings = slicer.app.userSettings()
-    settingString = self.logic.moduleName + '/Configurations/' + self.configurationName + '/{0}' # Read from selected configuration
-    transformMatrixString = settings.value(settingString.format(transformName))
-    if not transformMatrixString: 
-      settingString = self.logic.moduleName + '/Configurations/Default/{0}' # Read from default configuration
-      transformMatrixString = settings.value(settingString.format(transformName))
-      if not transformMatrixString: 
-        return None
-    transformMatrixArray = map(float, transformMatrixString.split(' '))
-    for r in xrange(4):
-      for c in xrange(4):
-        transformMatrix.SetElement(r,c, transformMatrixArray[r*4+c])
-    return transformMatrix
-
-  def getSavedScenesDirectory(self):
-    settings = slicer.app.userSettings()
-    settingString = self.logic.moduleName + "/SavedScenesDirectory"
-    sceneSaveDirectory = settings.value(settingString)
-    if not sceneSaveDirectory:
-      sceneSaveDirectory = self.parameterNode.GetParameter('DefaultSavedScenesPath')
-    return sceneSaveDirectory
-
-  def setSavedScenesDirectory(self, sceneSaveDirectory):
-    settings = slicer.app.userSettings()
-    settingString = self.logic.moduleName + "/SavedScenesDirectory"
-    settings.setValue(settingString, sceneSaveDirectory)
-
-  def onUltrasoundPanelToggled(self, toggled):
-    if not toggled:
-      # deactivate placement mode
-      interactionNode = slicer.app.applicationLogic().GetInteractionNode()
-      interactionNode.SetCurrentInteractionMode(interactionNode.ViewTransform)   
-      return
-
-    logging.debug('onTumorContouringPanelToggled: {0}'.format(toggled))
-
-    self.showDefaultView()
-
-  def showDefaultView(self):
-    self.onViewSelect(self.viewUltrasound) # Red only layout
