@@ -214,6 +214,12 @@ class Guidelet(object):
     else:
       redNode.SetSliceVisible(0)
 
+  VIEW_ULTRASOUND = unicode("Ultrasound")
+  VIEW_ULTRASOUND_3D = unicode("Ultrasound + 3D")
+  VIEW_ULTRASOUND_DUAL_3D = unicode("Ultrasound + Dual 3D")
+  VIEW_3D = unicode("3D")
+  VIEW_DUAL_3D = unicode("Dual 3D")
+  
   def __init__(self, parent, logic, parameterList=None, widgetClass=None, configurationName='Default'):
     logging.debug('Guidelet.__init__')
     self.parent = parent
@@ -221,6 +227,7 @@ class Guidelet(object):
     self.configurationName = configurationName
     self.parameterNodeObserver = None
     self.parameterNode = self.logic.getParameterNode()
+    self.layoutManager = slicer.app.layoutManager()
 
     if parameterList is not None:
       for parameter in parameterList:
@@ -294,25 +301,13 @@ class Guidelet(object):
 
     # Layout selection combo box
     self.viewSelectorComboBox = qt.QComboBox(self.advancedCollapsibleButton)
-    self.viewSelectorComboBox.addItem("Ultrasound")
-    self.viewSelectorComboBox.addItem("Ultrasound + 3D")
-    self.viewSelectorComboBox.addItem("Ultrasound + Dual 3D")
-    self.viewSelectorComboBox.addItem("3D")
-    self.viewSelectorComboBox.addItem("Dual 3D")
+    self.setupViewerLayouts()
     self.advancedLayout.addRow("Layout: ", self.viewSelectorComboBox)
-    
-    self.viewUltrasound = 0
-    self.viewUltrasound3d = 1
-    self.viewUltrasoundDual3d = 2
-    self.view3d = 3
-    self.viewDual3d = 4
-
-    self.layoutManager = slicer.app.layoutManager()
 
     self.registerCustomLayouts()
 
     # Activate default view
-    self.onViewSelect(self.viewUltrasound3d)
+    self.onViewSelect(self.VIEW_ULTRASOUND_3D)
 
     # OpenIGTLink connector node selection
     self.linkInputSelector = slicer.qMRMLNodeComboBox()
@@ -347,11 +342,18 @@ class Guidelet(object):
     hbox.addWidget(self.saveDirectoryLineEdit)
     self.advancedLayout.addRow(hbox)
 
+  def setupViewerLayouts(self):
+    self.viewSelectorComboBox.addItem(self.VIEW_ULTRASOUND)
+    self.viewSelectorComboBox.addItem(self.VIEW_ULTRASOUND_3D)
+    self.viewSelectorComboBox.addItem(self.VIEW_ULTRASOUND_DUAL_3D)
+    self.viewSelectorComboBox.addItem(self.VIEW_3D)
+    self.viewSelectorComboBox.addItem(self.VIEW_DUAL_3D)
+
   def setupAdditionalPanel(self):
     pass
 
   def registerCustomLayouts(self):#common
-    layoutLogic = slicer.app.layoutManager().layoutLogic()
+    layoutLogic = self.layoutManager.layoutLogic()
     customLayout = ("<layout type=\"horizontal\" split=\"false\" >"
       " <item>"
       "  <view class=\"vtkMRMLViewNode\" singletontag=\"1\">"
@@ -592,26 +594,34 @@ class Guidelet(object):
     redWidget.sliceController().fitSliceToBackground()
 
   def delayedFitUltrasoundImageToView(self, delayMsec=500):
-    qt.QTimer.singleShot(delayMsec, self.fitUltrasoundImageToView) 
+    qt.QTimer.singleShot(delayMsec, self.fitUltrasoundImageToView)
+
+  def selectView(self, viewName):
+    index = self.viewSelectorComboBox.findText(viewName)
+    if index == -1:
+      index = 0
+    self.viewSelectorComboBox.setCurrentIndex(index)
+    self.onViewSelect(index)
 
   def onViewSelect(self, layoutIndex):
-    logging.debug('onViewSelect: {0}'.format(layoutIndex))
-    if layoutIndex == self.viewUltrasound:      
+    text = self.viewSelectorComboBox.currentText
+    logging.debug('onViewSelect: {0}'.format(text))
+    if text == self.VIEW_ULTRASOUND:
       self.layoutManager.setLayout(slicer.vtkMRMLLayoutNode.SlicerLayoutOneUpRedSliceView)
       self.delayedFitUltrasoundImageToView()
       self.showUltrasoundIn3dView(False)
-    elif layoutIndex == self.viewUltrasound3d:
+    elif text == self.VIEW_ULTRASOUND_3D:
       self.layoutManager.setLayout(self.red3dCustomLayoutId)
       self.delayedFitUltrasoundImageToView()
       self.showUltrasoundIn3dView(True)
-    elif layoutIndex == self.viewUltrasoundDual3d:
+    elif text == self.VIEW_ULTRASOUND_DUAL_3D:
       self.layoutManager.setLayout(self.redDual3dCustomLayoutId)
       self.delayedFitUltrasoundImageToView()
       self.showUltrasoundIn3dView(True)
-    elif layoutIndex == self.view3d:
+    elif text == self.VIEW_3D:
       self.layoutManager.setLayout(slicer.vtkMRMLLayoutNode.SlicerLayoutOneUp3DView)
       self.showUltrasoundIn3dView(True)
-    elif layoutIndex == self.viewDual3d:
+    elif text == self.VIEW_DUAL_3D:
        self.layoutManager.setLayout(self.dual3dCustomLayoutId)
        self.showUltrasoundIn3dView(False)
 
@@ -666,7 +676,7 @@ class Guidelet(object):
     self.showDefaultView()
 
   def showDefaultView(self):
-    self.onViewSelect(self.viewUltrasound) # Red only layout
+    self.selectView(self.VIEW_ULTRASOUND) # Red only layout
 
 
 class UltraSound(object):
@@ -751,7 +761,7 @@ class UltraSound(object):
     return collapsibleButton
 
   def setupScene(self):
-    layoutManager = slicer.app.layoutManager()
+    logging.info("UltraSound.setupScene")
 
     # live ultrasound
     liveUltrasoundNodeName = self.guideletParent.parameterNode.GetParameter('LiveUltrasoundNodeName')
