@@ -85,7 +85,7 @@ void vtkSlicerPivotCalibrationLogic::ProcessMRMLNodesEvents(vtkObject* caller, u
   if (caller != NULL)
   {
     vtkMRMLLinearTransformNode* transformNode = vtkMRMLLinearTransformNode::SafeDownCast(caller);
-    if ( event = vtkMRMLLinearTransformNode::TransformModifiedEvent && this->RecordingState == true && strcmp( transformNode->GetID(), this->ObservedTransformNode->GetID() ) == 0 )
+    if ( event == vtkMRMLLinearTransformNode::TransformModifiedEvent && this->RecordingState == true && strcmp( transformNode->GetID(), this->ObservedTransformNode->GetID() ) == 0 )
     {
 #ifdef TRANSFORM_NODE_MATRIX_COPY_REQUIRED
       vtkMatrix4x4* matrixCopy = vtkMatrix4x4::New();
