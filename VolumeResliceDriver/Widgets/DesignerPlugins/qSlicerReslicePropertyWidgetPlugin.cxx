@@ -22,52 +22,52 @@
 
 ==============================================================================*/
 
-#include "qSlicerSimpleMarkupsWidgetPlugin.h"
-#include "qSlicerSimpleMarkupsWidget.h"
+#include "qSlicerReslicePropertyWidgetPlugin.h"
+#include "qSlicerReslicePropertyWidget.h"
 
 //------------------------------------------------------------------------------
-qSlicerSimpleMarkupsWidgetPlugin
-::qSlicerSimpleMarkupsWidgetPlugin(QObject *_parent)
+qSlicerReslicePropertyWidgetPlugin
+::qSlicerReslicePropertyWidgetPlugin(QObject *_parent)
   : QObject(_parent)
 {
 
 }
 
 //------------------------------------------------------------------------------
-QWidget *qSlicerSimpleMarkupsWidgetPlugin
+QWidget *qSlicerReslicePropertyWidgetPlugin
 ::createWidget(QWidget *_parent)
 {
-  qSlicerSimpleMarkupsWidget* _widget
-    = new qSlicerSimpleMarkupsWidget(_parent);
+  qSlicerReslicePropertyWidget* _widget
+    = new qSlicerReslicePropertyWidget(_parent);
   return _widget;
 }
 
 //------------------------------------------------------------------------------
-QString qSlicerSimpleMarkupsWidgetPlugin
+QString qSlicerReslicePropertyWidgetPlugin
 ::domXml() const
 {
-  return "<widget class=\"qSlicerSimpleMarkupsWidget\" \
-          name=\"SimpleMarkupsWidget\">\n"
+  return "<widget class=\"qSlicerReslicePropertyWidget\" \
+          name=\"ReslicePropertyWidget\">\n"
           "</widget>\n";
 }
 
 //------------------------------------------------------------------------------
-QString qSlicerSimpleMarkupsWidgetPlugin
+QString qSlicerReslicePropertyWidgetPlugin
 ::includeFile() const
 {
-  return "qSlicerSimpleMarkupsWidget.h";
+  return "qSlicerReslicePropertyWidget.h";
 }
 
 //------------------------------------------------------------------------------
-bool qSlicerSimpleMarkupsWidgetPlugin
+bool qSlicerReslicePropertyWidgetPlugin
 ::isContainer() const
 {
   return false;
 }
 
 //------------------------------------------------------------------------------
-QString qSlicerSimpleMarkupsWidgetPlugin
+QString qSlicerReslicePropertyWidgetPlugin
 ::name() const
 {
-  return "qSlicerSimpleMarkupsWidget";
+  return "qSlicerReslicePropertyWidget";
 }

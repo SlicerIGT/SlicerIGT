@@ -18,22 +18,22 @@
 
 ==============================================================================*/\
 
-#ifndef __qSlicerMarkupsModuleWidgetsAbstractPlugin_h
-#define __qSlicerMarkupsModuleWidgetsAbstractPlugin_h
+#ifndef __qSlicerVolumeResliceDriverModuleWidgetsAbstractPlugin_h
+#define __qSlicerVolumeResliceDriverModuleWidgetsAbstractPlugin_h
 
 #include <QDesignerCustomWidgetInterface>
-#include "qSlicerMarkupsModuleWidgetsPluginsExport.h"
+#include "qSlicerVolumeResliceDriverModuleWidgetsPluginsExport.h"
 
-class Q_SLICER_MODULE_MARKUPS_WIDGETS_PLUGINS_EXPORT qSlicerMarkupsModuleWidgetsAbstractPlugin
+class Q_SLICER_MODULE_VOLUMERESLICEDRIVER_WIDGETS_PLUGINS_EXPORT qSlicerVolumeResliceDriverModuleWidgetsAbstractPlugin
     : public QDesignerCustomWidgetInterface
 {
   Q_INTERFACES(QDesignerCustomWidgetInterface);
 public:
 
-  qSlicerMarkupsModuleWidgetsAbstractPlugin();
-  // Don't reimplement this method.
+  qSlicerVolumeResliceDriverModuleWidgetsAbstractPlugin();
+  // Don't re implement this method.
   QString group() const;
-  // You can reimplement these methods
+  // You can re implement these methods
   virtual QIcon icon() const;
   virtual QString toolTip() const;
   virtual QString whatsThis() const;

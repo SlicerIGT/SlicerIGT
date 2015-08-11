@@ -18,33 +18,33 @@
 
 ==============================================================================*/
 
-#include "qSlicerMarkupsModuleWidgetsAbstractPlugin.h"
+#include "qSlicerVolumeResliceDriverModuleWidgetsAbstractPlugin.h"
 
 //-----------------------------------------------------------------------------
-qSlicerMarkupsModuleWidgetsAbstractPlugin::qSlicerMarkupsModuleWidgetsAbstractPlugin()
+qSlicerVolumeResliceDriverModuleWidgetsAbstractPlugin::qSlicerVolumeResliceDriverModuleWidgetsAbstractPlugin()
 {
 }
 
 //-----------------------------------------------------------------------------
-QString qSlicerMarkupsModuleWidgetsAbstractPlugin::group() const
+QString qSlicerVolumeResliceDriverModuleWidgetsAbstractPlugin::group() const
 {
-  return "Slicer [Markups Widgets]";
+  return "Slicer [Volume Reslice Driver Widgets]";
 }
 
 //-----------------------------------------------------------------------------
-QIcon qSlicerMarkupsModuleWidgetsAbstractPlugin::icon() const
+QIcon qSlicerVolumeResliceDriverModuleWidgetsAbstractPlugin::icon() const
 {
   return QIcon();
 }
 
 //-----------------------------------------------------------------------------
-QString qSlicerMarkupsModuleWidgetsAbstractPlugin::toolTip() const
+QString qSlicerVolumeResliceDriverModuleWidgetsAbstractPlugin::toolTip() const
 {
   return QString();
 }
 
 //-----------------------------------------------------------------------------
-QString qSlicerMarkupsModuleWidgetsAbstractPlugin::whatsThis() const
+QString qSlicerVolumeResliceDriverModuleWidgetsAbstractPlugin::whatsThis() const
 {
   return QString();
 }
