@@ -22,7 +22,6 @@
 #define __qSlicerReslicePropertyWidget_h
 
 // Qt includes
-//#include <QGroupBox>
 #include <QWidget>
 
 // CTK includes
@@ -30,7 +29,7 @@
 
 #include "qMRMLViewControllerBar.h"
 
-// OpenIGTLinkIF GUI includes
+// Export includes
 #include "qSlicerVolumeResliceDriverModuleWidgetsExport.h"
 
 class qSlicerReslicePropertyWidgetPrivate;
@@ -52,10 +51,12 @@ public:
   typedef qMRMLViewControllerBar Superclass;
   
   qSlicerReslicePropertyWidget( vtkSlicerVolumeResliceDriverLogic* logic, QWidget *parent = 0);
+  qSlicerReslicePropertyWidget( QWidget *parent = 0);
   virtual ~qSlicerReslicePropertyWidget();
 
   void showAdvanced( int show );
   
+  void setLogic(vtkSlicerVolumeResliceDriverLogic* logic);
   
 public slots:
   

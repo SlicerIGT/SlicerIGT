@@ -134,10 +134,26 @@ qSlicerReslicePropertyWidget
 {
   Q_D(qSlicerReslicePropertyWidget);
   d->init();
-  this->Logic = logic;
-  qvtkConnect( this->Logic, vtkCommand::ModifiedEvent, this, SLOT( onLogicModified() ) );
+  this->setLogic(logic);
 }
 
+qSlicerReslicePropertyWidget
+  ::qSlicerReslicePropertyWidget( QWidget *_parent )
+  : Superclass( new qSlicerReslicePropertyWidgetPrivate( *this ), _parent )
+{
+  Q_D(qSlicerReslicePropertyWidget);
+  d->init();
+}
+
+void qSlicerReslicePropertyWidget
+::setLogic(vtkSlicerVolumeResliceDriverLogic* logic)
+{
+  this->Logic = logic;
+  if ( this->Logic != NULL )
+  {
+    qvtkConnect( this->Logic, vtkCommand::ModifiedEvent, this, SLOT( onLogicModified() ) );
+  }
+}
 
 qSlicerReslicePropertyWidget
 ::~qSlicerReslicePropertyWidget()
