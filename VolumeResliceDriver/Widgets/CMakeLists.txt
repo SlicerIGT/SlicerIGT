@@ -11,6 +11,7 @@ set(${KIT}_INCLUDE_DIRECTORIES
 
 set(${KIT}_SRCS
   qSlicerReslicePropertyWidget.cxx
+  qSlicerReslicePropertyWidget.h
   )
 
 set(${KIT}_MOC_SRCS
