@@ -443,7 +443,7 @@ class Guidelet(object):
     else:
       redNode.SetSliceVisible(0)
 
-  def __init__(self, parent, logic, configurationName='Default', parameterList=None, widgetClass=None):    
+  def __init__(self, parent, logic, parameterList=None, widgetClass=None, configurationName='Default'):
     logging.debug('Guidelet.__init__')
     self.parent = parent
     self.logic = logic
@@ -838,13 +838,13 @@ class Guidelet(object):
       for c in xrange(4):
         transformMatrixArray.append(transformMatrix.GetElement(r,c))
     transformMatrixString = ' '.join(map(str, transformMatrixArray)) # string, numbers are separated by spaces
-    settings = slicer.app.userSettings()    
+    settings = slicer.app.userSettings()
     settingString = self.logic.moduleName + '/Configurations/' + self.configurationName + '/{0}' # Write to selected configuration
     settings.setValue(settingString.format(transformName), transformMatrixString)
     
   def readTransformFromSettings(self, transformName):
     transformMatrix = vtk.vtkMatrix4x4()
-    settings = slicer.app.userSettings()        
+    settings = slicer.app.userSettings()
     settingString = self.logic.moduleName + '/Configurations/' + self.configurationName + '/{0}' # Read from selected configuration
     transformMatrixString = settings.value(settingString.format(transformName))
     if not transformMatrixString: 
