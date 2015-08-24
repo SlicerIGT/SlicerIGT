@@ -443,10 +443,11 @@ class Guidelet(object):
     else:
       redNode.SetSliceVisible(0)
 
-  def __init__(self, parent, logic, parameterList=None, widgetClass=None):    
+  def __init__(self, parent, logic, parameterList=None, widgetClass=None, configurationName='Default'):
     logging.debug('Guidelet.__init__')
     self.parent = parent
     self.logic = logic
+    self.configurationName = configurationName
     self.parameterNodeObserver = None
     self.parameterNode = self.logic.getParameterNode()
 
@@ -838,16 +839,19 @@ class Guidelet(object):
         transformMatrixArray.append(transformMatrix.GetElement(r,c))
     transformMatrixString = ' '.join(map(str, transformMatrixArray)) # string, numbers are separated by spaces
     settings = slicer.app.userSettings()
-    settingString = self.logic.moduleName + '/{0}'
+    settingString = self.logic.moduleName + '/Configurations/' + self.configurationName + '/{0}' # Write to selected configuration
     settings.setValue(settingString.format(transformName), transformMatrixString)
     
   def readTransformFromSettings(self, transformName):
     transformMatrix = vtk.vtkMatrix4x4()
     settings = slicer.app.userSettings()
-    settingString = self.logic.moduleName + '/{0}'
+    settingString = self.logic.moduleName + '/Configurations/' + self.configurationName + '/{0}' # Read from selected configuration
     transformMatrixString = settings.value(settingString.format(transformName))
-    if not transformMatrixString:
-      return None
+    if not transformMatrixString: 
+      settingString = self.logic.moduleName + '/Configurations/Default/{0}' # Read from default configuration
+      transformMatrixString = settings.value(settingString.format(transformName))
+      if not transformMatrixString: 
+        return None
     transformMatrixArray = map(float, transformMatrixString.split(' '))
     for r in xrange(4):
       for c in xrange(4):
