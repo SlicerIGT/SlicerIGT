@@ -41,16 +41,13 @@ class GuideletWidget(ScriptedLoadableModuleWidget):
   """
 
   def __init__(self, parent=None):
-    self.guideletInstance = None
-    self.guideletLogic = None
     ScriptedLoadableModuleWidget.__init__(self, parent)
+    self.guideletInstance = None
+    self.guideletLogic = self.createGuideletLogic()
 
   def setup(self):
     ScriptedLoadableModuleWidget.setup(self)
     
-    if not self.guideletLogic:
-      self.guideletLogic = self.createGuideletLogic()
-
     # Launcher panel
     launcherCollapsibleButton = ctk.ctkCollapsibleButton()
     launcherCollapsibleButton.text = "Guidelet launcher"
@@ -109,18 +106,17 @@ class GuideletWidget(ScriptedLoadableModuleWidget):
     
     parameterList = self.collectParameterList()
 
-    if self.guideletInstance:
-      self.guideletInstance.showFullScreen()
-    else:
+    if not self.guideletInstance:
       self.guideletInstance = self.createGuideletInstance(parameterList)
-      
+    self.guideletInstance.showFullScreen()
+
   def collectParameterList(self):
-    parameterlist = None
+    parameterList = None
     settings = slicer.app.userSettings()
     if self.lineEdit.isEnabled() and self.lineEdit.text != '':
         settings.setValue(self.moduleName + '/PlusServerHostNamePort', self.lineEdit.text)        
-        parameterlist = {'PlusServerHostNamePort':self.lineEdit.text}
-    return parameterlist
+        parameterList = {'PlusServerHostNamePort':self.lineEdit.text}
+    return parameterList
 
   def createGuideletInstance(self, parameterList = None):
     raise NotImplementedError("Abstract method must be overridden!")
@@ -187,231 +183,6 @@ class GuideletTest(ScriptedLoadableModuleTest):
     # self.test_SliceletBase1() # Here the tests should be added that are common for all full screen applets e.g.  # TODO defines tests
 
 
-class UltraSound(object):
-
-  def __init__(self, guideletParent):
-
-    self.guideletParent = guideletParent
-    defaultCommandTimeoutSec = 15
-    self.cmdStartRecording = slicer.modulelogic.vtkSlicerOpenIGTLinkCommand()
-    self.cmdStartRecording.SetCommandTimeoutSec(defaultCommandTimeoutSec)
-    self.cmdStartRecording.SetCommandName('StartRecording')    
-    self.cmdStopRecording = slicer.modulelogic.vtkSlicerOpenIGTLinkCommand()
-    self.cmdStopRecording.SetCommandTimeoutSec(defaultCommandTimeoutSec)
-    self.cmdStopRecording.SetCommandName('StopRecording')
-    self.captureDeviceName='CaptureDevice'
-
-    moduledir = os.path.dirname(__file__)
-    iconPathRecord = os.path.join(moduledir, 'Resources', 'Icons', 'icon_Record.png')
-    iconPathStop = os.path.join(moduledir, 'Resources', 'Icons', 'icon_Stop.png')
-
-    if os.path.isfile(iconPathRecord):
-      self.recordIcon = qt.QIcon(iconPathRecord)
-
-    if os.path.isfile(iconPathStop):
-      self.stopIcon = qt.QIcon(iconPathStop)
-
-  def setupPanel(self, parentWidget):
-    logging.debug('UltraSound.setupPanel')
-    collapsibleButton = ctk.ctkCollapsibleButton()
-
-    collapsibleButton.setProperty('collapsedHeight', 20)
-    setButtonStyle(collapsibleButton, 2.0)
-    collapsibleButton.text = "Ultrasound"
-    #self.sliceletPanelLayout.addWidget(collapsibleButton)
-    parentWidget.addWidget(collapsibleButton)
-
-    ultrasoundLayout = qt.QFormLayout(collapsibleButton)
-    ultrasoundLayout.setContentsMargins(12,4,4,4)
-    ultrasoundLayout.setSpacing(4)
-
-    self.startStopRecordingButton = qt.QPushButton("  Start Recording")
-    self.startStopRecordingButton.setCheckable(True)
-    self.startStopRecordingButton.setIcon(self.recordIcon)
-    setButtonStyle(self.startStopRecordingButton)
-    self.startStopRecordingButton.setToolTip("If clicked, start recording")
-    
-    self.freezeUltrasoundButton = qt.QPushButton('Freeze')
-    setButtonStyle(self.freezeUltrasoundButton)
-
-    hbox = qt.QHBoxLayout()
-    hbox.addWidget(self.startStopRecordingButton)
-    hbox.addWidget(self.freezeUltrasoundButton)
-    ultrasoundLayout.addRow(hbox)
-
-    self.usFrozen=False
-
-    self.brigthnessContrastButtonNormal = qt.QPushButton()
-    self.brigthnessContrastButtonNormal.text = "Normal"
-    setButtonStyle(self.brigthnessContrastButtonNormal)
-    self.brigthnessContrastButtonNormal.setEnabled(True)
-
-    self.brigthnessContrastButtonBright = qt.QPushButton()
-    self.brigthnessContrastButtonBright.text = "Bright"
-    setButtonStyle(self.brigthnessContrastButtonBright)
-    self.brigthnessContrastButtonBright.setEnabled(True)
-
-    self.brigthnessContrastButtonBrighter = qt.QPushButton()
-    self.brigthnessContrastButtonBrighter.text = "Brighter"
-    setButtonStyle(self.brigthnessContrastButtonBrighter)
-    self.brigthnessContrastButtonBrighter.setEnabled(True)
-
-    brightnessContrastBox = qt.QHBoxLayout()
-    brightnessContrastBox.addWidget(self.brigthnessContrastButtonNormal)
-    brightnessContrastBox.addWidget(self.brigthnessContrastButtonBright)
-    brightnessContrastBox.addWidget(self.brigthnessContrastButtonBrighter)
-    ultrasoundLayout.addRow(brightnessContrastBox)
-    
-    return collapsibleButton, ultrasoundLayout
-
-  def setupScene(self):
-    layoutManager = slicer.app.layoutManager()
-
-    # live ultrasound
-    liveUltrasoundNodeName = self.guideletParent.parameterNode.GetParameter('LiveUltrasoundNodeName')
-    self.liveUltrasoundNode_Reference = slicer.util.getNode(liveUltrasoundNodeName)
-    if not self.liveUltrasoundNode_Reference:
-      imageSize=[800, 600, 1]
-      imageSpacing=[0.2, 0.2, 0.2]
-      # Create an empty image volume
-      imageData=vtk.vtkImageData()
-      imageData.SetDimensions(imageSize)
-      imageData.AllocateScalars(vtk.VTK_UNSIGNED_CHAR, 1)
-      thresholder=vtk.vtkImageThreshold()
-      thresholder.SetInputData(imageData)
-      thresholder.SetInValue(0)
-      thresholder.SetOutValue(0)
-      # Create volume node
-      self.liveUltrasoundNode_Reference=slicer.vtkMRMLScalarVolumeNode()
-      self.liveUltrasoundNode_Reference.SetName(liveUltrasoundNodeName)
-      self.liveUltrasoundNode_Reference.SetSpacing(imageSpacing)
-      self.liveUltrasoundNode_Reference.SetImageDataConnection(thresholder.GetOutputPort())
-      # Add volume to scene
-      slicer.mrmlScene.AddNode(self.liveUltrasoundNode_Reference)
-      displayNode=slicer.vtkMRMLScalarVolumeDisplayNode()
-      slicer.mrmlScene.AddNode(displayNode)
-      colorNode = slicer.util.getNode('Grey')
-      displayNode.SetAndObserveColorNodeID(colorNode.GetID())
-      self.liveUltrasoundNode_Reference.SetAndObserveDisplayNodeID(displayNode.GetID())
-      #self.liveUltrasoundNode_Reference.CreateDefaultStorageNode()
-
-    # Show ultrasound in red view.  
-    redSlice = layoutManager.sliceWidget('Red')
-    redSliceLogic = redSlice.sliceLogic()
-    redSliceLogic.GetSliceCompositeNode().SetBackgroundVolumeID(self.liveUltrasoundNode_Reference.GetID())
-
-    # Set up volume reslice driver.
-    resliceLogic = slicer.modules.volumereslicedriver.logic()
-    if resliceLogic:
-      redNode = slicer.util.getNode('vtkMRMLSliceNodeRed')
-      # Typically the image is zoomed in, therefore it is faster if the original resolution is used
-      # on the 3D slice (and also we can show the full image and not the shape and size of the 2D view)
-      redNode.SetSliceResolutionMode(slicer.vtkMRMLSliceNode.SliceResolutionMatchVolumes)
-      resliceLogic.SetDriverForSlice(self.liveUltrasoundNode_Reference.GetID(), redNode)
-      resliceLogic.SetModeForSlice(6, redNode) # Transverse mode, default for PLUS ultrasound.
-      resliceLogic.SetFlipForSlice(False, redNode)
-      resliceLogic.SetRotationForSlice(180, redNode)
-      redSliceLogic.FitSliceToAll()
-    else:
-      logging.warning('Logic not found for Volume Reslice Driver') 
-
-    self.liveUltrasoundNode_Reference.SetAndObserveTransformNodeID(self.guideletParent.ReferenceToRas.GetID())
-
-  def setupConnections(self):
-    self.startStopRecordingButton.connect('clicked(bool)', self.onStartStopRecordingClicked)
-    self.freezeUltrasoundButton.connect('clicked()', self.onFreezeUltrasoundClicked)
-    self.brigthnessContrastButtonNormal.connect('clicked()', self.onBrightnessContrastNormalClicked)
-    self.brigthnessContrastButtonBright.connect('clicked()', self.onBrightnessContrastBrightClicked)
-    self.brigthnessContrastButtonBrighter.connect('clicked()', self.onBrightnessContrastBrighterClicked)
-
-  def disconnect(self):
-    self.startStopRecordingButton.disconnect('clicked(bool)', self.onStartStopRecordingClicked)
-    self.freezeUltrasoundButton.disconnect('clicked()', self.onFreezeUltrasoundClicked)
-    self.brigthnessContrastButtonNormal.disconnect('clicked()', self.onBrightnessContrastNormalClicked)
-    self.brigthnessContrastButtonBright.disconnect('clicked()', self.onBrightnessContrastBrightClicked)
-    self.brigthnessContrastButtonBrighter.disconnect('clicked()', self.onBrightnessContrastBrighterClicked)
-
-
-  def createPlusConnector(self):
-    connectorNode = slicer.util.getNode('PlusConnector')
-    if not connectorNode:
-      connectorNode = slicer.vtkMRMLIGTLConnectorNode()
-      slicer.mrmlScene.AddNode(connectorNode)
-      connectorNode.SetName('PlusConnector')      
-      hostNamePort = self.guideletParent.parameterNode.GetParameter('PlusServerHostNamePort') # example: "localhost:18944"
-      [hostName, port] = hostNamePort.split(':')
-      connectorNode.SetTypeClient(hostName, int(port))
-      logging.debug("PlusConnector created")
-    return connectorNode
-
-  def recordingCommandCompleted(self, command):
-    statusText = "Command {0} [{1}]: {2}\n".format(command.GetCommandName(), command.GetID(), command.StatusToString(command.GetStatus()))
-    statusTextUser = "{0} {1}\n".format(command.GetCommandName(), command.StatusToString(command.GetStatus()))
-    if command.GetResponseMessage():
-      statusText = statusText + command.GetResponseMessage()
-      statusTextUser = command.GetResponseMessage()
-    elif command.GetResponseText():
-      statusText = statusText + command.GetResponseText()
-      statusTextUser = command.GetResponseText()
-    logging.info(statusText)
-    self.startStopRecordingButton.setToolTip(statusTextUser)  
-
-  def cleanup(self):
-    self.cmdStartRecording.RemoveObservers(slicer.modulelogic.vtkSlicerOpenIGTLinkCommand.CommandCompletedEvent)
-    self.cmdStopRecording.RemoveObservers(slicer.modulelogic.vtkSlicerOpenIGTLinkCommand.CommandCompletedEvent)
-    self.disconnect()
-
-  def onStartStopRecordingClicked(self):
-
-    if self.startStopRecordingButton.isChecked():      
-      self.startStopRecordingButton.setText("  Stop Recording")
-      self.startStopRecordingButton.setIcon(self.stopIcon)
-      self.startStopRecordingButton.setToolTip("Recording is being started...")
-      
-      # Important to save as .mhd because that does not require lengthy finalization (merging into a single file)
-      recordPrefix = self.guideletParent.parameterNode.GetParameter('RecordingFilenamePrefix')
-      recordExt = self.guideletParent.parameterNode.GetParameter('RecordingFilenameExtension')
-      recordingFileName =  recordPrefix + time.strftime("%Y%m%d-%H%M%S") + recordExt
-
-      logging.info("Starting recording to: {0}".format(recordingFileName))
-
-      self.cmdStartRecording.SetCommandAttribute('CaptureDeviceId', self.captureDeviceName)
-      self.cmdStartRecording.SetCommandAttribute('OutputFilename', recordingFileName)
-      self.guideletParent.executeCommand(self.cmdStartRecording, self.recordingCommandCompleted)
-
-    else:
-      logging.info("Stopping recording")
-      self.startStopRecordingButton.setText("  Start Recording")
-      self.startStopRecordingButton.setIcon(self.recordIcon)
-      self.startStopRecordingButton.setToolTip( "Recording is being stopped..." )
-      self.cmdStopRecording.SetCommandAttribute('CaptureDeviceId', self.captureDeviceName)
-      self.guideletParent.executeCommand(self.cmdStopRecording, self.recordingCommandCompleted)
-
-  def onFreezeUltrasoundClicked(self):
-    logging.debug('onFreezeUltrasoundClicked')
-    self.usFrozen = not self.usFrozen
-    if self.usFrozen:
-      self.guideletParent.connectorNode.Stop()
-    else:
-      self.guideletParent.connectorNode.Start()
-
-  def setImageMinMaxLevel(self, minLevel, maxLevel):
-    self.liveUltrasoundNode_Reference.GetDisplayNode().SetAutoWindowLevel(0)
-    self.liveUltrasoundNode_Reference.GetDisplayNode().SetWindowLevelMinMax(minLevel,maxLevel)
-    
-  def onBrightnessContrastNormalClicked(self):
-    logging.debug('onBrightnessContrastNormalClicked')
-    self.setImageMinMaxLevel(0,200)
-
-  def onBrightnessContrastBrightClicked(self):
-    logging.debug('onBrightnessContrastBrightClicked')
-    self.setImageMinMaxLevel(0,120)
-    
-  def onBrightnessContrastBrighterClicked(self):
-    logging.debug('onBrightnessContrastBrighterClicked')
-    self.setImageMinMaxLevel(0,60)
-
-
 class Guidelet(object):
 
   @staticmethod
@@ -443,6 +214,12 @@ class Guidelet(object):
     else:
       redNode.SetSliceVisible(0)
 
+  VIEW_ULTRASOUND = unicode("Ultrasound")
+  VIEW_ULTRASOUND_3D = unicode("Ultrasound + 3D")
+  VIEW_ULTRASOUND_DUAL_3D = unicode("Ultrasound + Dual 3D")
+  VIEW_3D = unicode("3D")
+  VIEW_DUAL_3D = unicode("Dual 3D")
+  
   def __init__(self, parent, logic, parameterList=None, widgetClass=None, configurationName='Default'):
     logging.debug('Guidelet.__init__')
     self.parent = parent
@@ -450,19 +227,17 @@ class Guidelet(object):
     self.configurationName = configurationName
     self.parameterNodeObserver = None
     self.parameterNode = self.logic.getParameterNode()
+    self.layoutManager = slicer.app.layoutManager()
 
     if parameterList is not None:
-        for parameter in parameterList:
-            self.parameterNode.SetParameter(parameter, str(parameterList[parameter]))
-            logging.info(parameter +' '+ self.parameterNode.GetParameter(parameter))
+      for parameter in parameterList:
+        self.parameterNode.SetParameter(parameter, str(parameterList[parameter]))
+        logging.info(parameter + ' ' + self.parameterNode.GetParameter(parameter))
 
     self.setAndObserveParameterNode(self.parameterNode)
 
-    self.ultrasound = UltraSound(self)
+    self.ultrasound = self.getUltrasoundClass()
 
-    self.connectorNode = None
-    self.connectorNodeObserverTagList = []
-    self.connectorNodeConnected = False
     self.setupConnectorNode()
 
     self.sliceletDockWidget = qt.QDockWidget(self.parent)
@@ -481,12 +256,24 @@ class Guidelet(object):
     style = "QFrame {background-color: #336799; border-color: #9ACEFF;}"
     self.sliceletPanel.setStyleSheet(style)
 
+    self.setupFeaturePanelList()
+    self.setupAdvancedPanel()
+    self.setupAdditionalPanel()
+
+    self.addConnectorObservers()
+
+    # Setting up callback functions for widgets.
+    self.setupConnections()
+
+  def setupFeaturePanelList(self):
     featurePanelList = self.createFeaturePanels()
 
     self.collapsibleButtonGroup = qt.QButtonGroup()
     for panel in featurePanelList:
       self.collapsibleButtonGroup.addButton(panel)
-    self.setupAdvancedPanel()
+
+  def getUltrasoundClass(self):
+    return UltraSound(self)
     
   def cleanup(self):
     self.ultrasound.cleanup()
@@ -514,25 +301,12 @@ class Guidelet(object):
 
     # Layout selection combo box
     self.viewSelectorComboBox = qt.QComboBox(self.advancedCollapsibleButton)
-    self.viewSelectorComboBox.addItem("Ultrasound")
-    self.viewSelectorComboBox.addItem("Ultrasound + 3D")
-    self.viewSelectorComboBox.addItem("Ultrasound + Dual 3D")
-    self.viewSelectorComboBox.addItem("3D")
-    self.viewSelectorComboBox.addItem("Dual 3D")
+    self.setupViewerLayouts()
     self.advancedLayout.addRow("Layout: ", self.viewSelectorComboBox)
-    
-    self.viewUltrasound = 0
-    self.viewUltrasound3d = 1
-    self.viewUltrasoundDual3d = 2
-    self.view3d = 3
-    self.viewDual3d = 4
 
-    self.layoutManager = slicer.app.layoutManager()
+    self.registerCustomLayouts()
 
-    self.registerCustomLayouts(self.layoutManager)
-
-    # Activate default view
-    self.onViewSelect(self.viewUltrasound3d)
+    self.selectView(self.VIEW_ULTRASOUND_3D)
 
     # OpenIGTLink connector node selection
     self.linkInputSelector = slicer.qMRMLNodeComboBox()
@@ -567,8 +341,18 @@ class Guidelet(object):
     hbox.addWidget(self.saveDirectoryLineEdit)
     self.advancedLayout.addRow(hbox)
 
-  def registerCustomLayouts(self, layoutManager):#common
-    
+  def setupViewerLayouts(self):
+    self.viewSelectorComboBox.addItem(self.VIEW_ULTRASOUND)
+    self.viewSelectorComboBox.addItem(self.VIEW_ULTRASOUND_3D)
+    self.viewSelectorComboBox.addItem(self.VIEW_ULTRASOUND_DUAL_3D)
+    self.viewSelectorComboBox.addItem(self.VIEW_3D)
+    self.viewSelectorComboBox.addItem(self.VIEW_DUAL_3D)
+
+  def setupAdditionalPanel(self):
+    pass
+
+  def registerCustomLayouts(self):#common
+    layoutLogic = self.layoutManager.layoutLogic()
     customLayout = ("<layout type=\"horizontal\" split=\"false\" >"
       " <item>"
       "  <view class=\"vtkMRMLViewNode\" singletontag=\"1\">"
@@ -582,7 +366,7 @@ class Guidelet(object):
       " </item>"
       "</layout>")
     self.dual3dCustomLayoutId=503
-    layoutManager.layoutLogic().GetLayoutNode().AddLayoutDescription(self.dual3dCustomLayoutId, customLayout)
+    layoutLogic.GetLayoutNode().AddLayoutDescription(self.dual3dCustomLayoutId, customLayout)
 
     customLayout = ("<layout type=\"horizontal\" split=\"false\" >"
       " <item>"
@@ -599,7 +383,7 @@ class Guidelet(object):
       " </item>"
       "</layout>")
     self.red3dCustomLayoutId=504
-    layoutManager.layoutLogic().GetLayoutNode().AddLayoutDescription(self.red3dCustomLayoutId, customLayout)
+    layoutLogic.GetLayoutNode().AddLayoutDescription(self.red3dCustomLayoutId, customLayout)
     
     customLayout = ("<layout type=\"horizontal\" split=\"false\" >"
       " <item>"
@@ -621,11 +405,11 @@ class Guidelet(object):
       " </item>"
       "</layout>")
     self.redDual3dCustomLayoutId=505
-    layoutManager.layoutLogic().GetLayoutNode().AddLayoutDescription(self.redDual3dCustomLayoutId, customLayout)
+    layoutLogic.GetLayoutNode().AddLayoutDescription(self.redDual3dCustomLayoutId, customLayout)
 
   def setupScene(self):
 
-    #create tranforms
+    #create transforms
     self.ReferenceToRas = slicer.util.getNode('ReferenceToRas')
     if not self.ReferenceToRas:
       self.ReferenceToRas=slicer.vtkMRMLLinearTransformNode()
@@ -676,14 +460,13 @@ class Guidelet(object):
     self.removeConnectorObservers()
      # Remove observer to old parameter node
     self.removeParameterNodeObserver()
-    
+
     self.ultrasoundCollapsibleButton.disconnect('toggled(bool)', self.onUltrasoundPanelToggled)
     #advanced settings panel
     self.showFullSlicerInterfaceButton.disconnect('clicked()', self.onShowFullSlicerInterfaceClicked)
     self.saveSceneButton.disconnect('clicked()', self.onSaveSceneClicked)
     self.linkInputSelector.disconnect("nodeActivated(vtkMRMLNode*)", self.onConnectorNodeActivated)
     self.viewSelectorComboBox.disconnect('activated(int)', self.onViewSelect)
-
 
   def showFullScreen(self):
   
@@ -713,7 +496,7 @@ class Guidelet(object):
   def executeCommand(self, command, commandResponseCallback):
     command.RemoveObservers(slicer.modulelogic.vtkSlicerOpenIGTLinkCommand.CommandCompletedEvent)
     command.AddObserver(slicer.modulelogic.vtkSlicerOpenIGTLinkCommand.CommandCompletedEvent, commandResponseCallback)
-    slicer.modules.openigtlinkremote.logic().SendCommand(command, self.connectorNode.GetID())        
+    slicer.modules.openigtlinkremote.logic().SendCommand(command, self.connectorNode.GetID())
     
   def setAndObserveParameterNode(self, parameterNode):
     if parameterNode == self.parameterNode and self.parameterNodeObserver:
@@ -744,9 +527,12 @@ class Guidelet(object):
       return
   
   def setupConnectorNode(self):
+    logging.info("setupConnectorNode")
+    self.connectorNodeObserverTagList = []
+    self.connectorNodeConnected = False
     self.connectorNode = self.ultrasound.createPlusConnector()
     self.connectorNode.Start()
-    
+
   def onConnectorNodeConnected(self, caller, event, force=False):
     logging.info("onConnectorNodeConnected")
     # Multiple notifications may be sent when connecting/disconnecting,
@@ -754,8 +540,7 @@ class Guidelet(object):
     if self.connectorNodeConnected and not force:
         return
     self.connectorNodeConnected = True
-    self.ultrasound.freezeUltrasoundButton.setText('Freeze')   
-    self.ultrasound.startStopRecordingButton.setEnabled(True)
+    self.ultrasound.onConnectorNodeConnected()
     self.delayedFitUltrasoundImageToView(5000)
 
   def onConnectorNodeDisconnected(self, caller, event, force=False):
@@ -765,8 +550,7 @@ class Guidelet(object):
     if not self.connectorNodeConnected and not force:
         return
     self.connectorNodeConnected = False
-    self.ultrasound.freezeUltrasoundButton.setText('Un-freeze')
-    self.ultrasound.startStopRecordingButton.setEnabled(False)
+    self.ultrasound.onConnectorNodeDisconnected()
 
   def onConnectorNodeActivated(self):
     logging.debug('onConnectorNodeActivated')
@@ -809,26 +593,34 @@ class Guidelet(object):
     redWidget.sliceController().fitSliceToBackground()
 
   def delayedFitUltrasoundImageToView(self, delayMsec=500):
-    qt.QTimer.singleShot(delayMsec, self.fitUltrasoundImageToView) 
+    qt.QTimer.singleShot(delayMsec, self.fitUltrasoundImageToView)
+
+  def selectView(self, viewName):
+    index = self.viewSelectorComboBox.findText(viewName)
+    if index == -1:
+      index = 0
+    self.viewSelectorComboBox.setCurrentIndex(index)
+    self.onViewSelect(index)
 
   def onViewSelect(self, layoutIndex):
-    logging.debug('onViewSelect: {0}'.format(layoutIndex))
-    if layoutIndex == self.viewUltrasound:      
+    text = self.viewSelectorComboBox.currentText
+    logging.debug('onViewSelect: {0}'.format(text))
+    if text == self.VIEW_ULTRASOUND:
       self.layoutManager.setLayout(slicer.vtkMRMLLayoutNode.SlicerLayoutOneUpRedSliceView)
       self.delayedFitUltrasoundImageToView()
       self.showUltrasoundIn3dView(False)
-    elif layoutIndex == self.viewUltrasound3d:
+    elif text == self.VIEW_ULTRASOUND_3D:
       self.layoutManager.setLayout(self.red3dCustomLayoutId)
       self.delayedFitUltrasoundImageToView()
       self.showUltrasoundIn3dView(True)
-    elif layoutIndex == self.viewUltrasoundDual3d:
+    elif text == self.VIEW_ULTRASOUND_DUAL_3D:
       self.layoutManager.setLayout(self.redDual3dCustomLayoutId)
       self.delayedFitUltrasoundImageToView()
       self.showUltrasoundIn3dView(True)
-    elif layoutIndex == self.view3d:
+    elif text == self.VIEW_3D:
       self.layoutManager.setLayout(slicer.vtkMRMLLayoutNode.SlicerLayoutOneUp3DView)
       self.showUltrasoundIn3dView(True)
-    elif layoutIndex == self.viewDual3d:
+    elif text == self.VIEW_DUAL_3D:
        self.layoutManager.setLayout(self.dual3dCustomLayoutId)
        self.showUltrasoundIn3dView(False)
 
@@ -880,4 +672,235 @@ class Guidelet(object):
 
     logging.debug('onTumorContouringPanelToggled: {0}'.format(toggled))
 
-    self.onViewSelect(self.viewUltrasound) # Red only layout
+    self.showDefaultView()
+
+  def showDefaultView(self):
+    self.selectView(self.VIEW_ULTRASOUND) # Red only layout
+
+
+class UltraSound(object):
+
+  DEFAULT_IMAGE_SIZE = [800, 600, 1]
+
+  def __init__(self, guideletParent):
+    self.guideletParent = guideletParent
+    self.captureDeviceName='CaptureDevice'
+
+    from PlusRemote import PlusRemoteLogic
+    self.plusRemoteLogic = PlusRemoteLogic()
+
+    moduleDir = os.path.dirname(__file__)
+    iconPathRecord = os.path.join(moduleDir, 'Resources', 'Icons', 'icon_Record.png')
+    iconPathStop = os.path.join(moduleDir, 'Resources', 'Icons', 'icon_Stop.png')
+
+    if os.path.isfile(iconPathRecord):
+      self.recordIcon = qt.QIcon(iconPathRecord)
+    if os.path.isfile(iconPathStop):
+      self.stopIcon = qt.QIcon(iconPathStop)
+
+  def onConnectorNodeConnected(self):
+    self.freezeUltrasoundButton.setText('Freeze')
+    self.startStopRecordingButton.setEnabled(True)
+
+  def onConnectorNodeDisconnected(self):
+    self.freezeUltrasoundButton.setText('Un-freeze')
+    self.startStopRecordingButton.setEnabled(False)
+
+  def setupPanel(self, parentWidget):
+    logging.debug('UltraSound.setupPanel')
+    collapsibleButton = ctk.ctkCollapsibleButton()
+
+    collapsibleButton.setProperty('collapsedHeight', 20)
+    setButtonStyle(collapsibleButton, 2.0)
+    collapsibleButton.text = "Ultrasound"
+    #self.sliceletPanelLayout.addWidget(collapsibleButton)
+    parentWidget.addWidget(collapsibleButton)
+
+    ultrasoundLayout = qt.QFormLayout(collapsibleButton)
+    ultrasoundLayout.setContentsMargins(12,4,4,4)
+    ultrasoundLayout.setSpacing(4)
+
+    self.startStopRecordingButton = qt.QPushButton("  Start Recording")
+    self.startStopRecordingButton.setCheckable(True)
+    self.startStopRecordingButton.setIcon(self.recordIcon)
+    setButtonStyle(self.startStopRecordingButton)
+    self.startStopRecordingButton.setToolTip("If clicked, start recording")
+
+    self.freezeUltrasoundButton = qt.QPushButton('Freeze')
+    setButtonStyle(self.freezeUltrasoundButton)
+
+    hbox = qt.QHBoxLayout()
+    hbox.addWidget(self.startStopRecordingButton)
+    hbox.addWidget(self.freezeUltrasoundButton)
+    ultrasoundLayout.addRow(hbox)
+
+    self.usFrozen=False
+
+    self.brigthnessContrastButtonNormal = qt.QPushButton()
+    self.brigthnessContrastButtonNormal.text = "Normal"
+    setButtonStyle(self.brigthnessContrastButtonNormal)
+    self.brigthnessContrastButtonNormal.setEnabled(True)
+
+    self.brigthnessContrastButtonBright = qt.QPushButton()
+    self.brigthnessContrastButtonBright.text = "Bright"
+    setButtonStyle(self.brigthnessContrastButtonBright)
+    self.brigthnessContrastButtonBright.setEnabled(True)
+
+    self.brigthnessContrastButtonBrighter = qt.QPushButton()
+    self.brigthnessContrastButtonBrighter.text = "Brighter"
+    setButtonStyle(self.brigthnessContrastButtonBrighter)
+    self.brigthnessContrastButtonBrighter.setEnabled(True)
+
+    brightnessContrastBox = qt.QHBoxLayout()
+    brightnessContrastBox.addWidget(self.brigthnessContrastButtonNormal)
+    brightnessContrastBox.addWidget(self.brigthnessContrastButtonBright)
+    brightnessContrastBox.addWidget(self.brigthnessContrastButtonBrighter)
+    ultrasoundLayout.addRow(brightnessContrastBox)
+
+    return collapsibleButton, ultrasoundLayout
+
+  def setupScene(self):
+    logging.info("UltraSound.setupScene")
+
+    # live ultrasound
+    liveUltrasoundNodeName = self.guideletParent.parameterNode.GetParameter('LiveUltrasoundNodeName')
+    self.liveUltrasoundNode_Reference = slicer.util.getNode(liveUltrasoundNodeName)
+    if not self.liveUltrasoundNode_Reference:
+      imageSpacing=[0.2, 0.2, 0.2]
+      # Create an empty image volume
+      imageData=vtk.vtkImageData()
+      imageData.SetDimensions(self.DEFAULT_IMAGE_SIZE)
+      imageData.AllocateScalars(vtk.VTK_UNSIGNED_CHAR, 1)
+      thresholder=vtk.vtkImageThreshold()
+      thresholder.SetInputData(imageData)
+      thresholder.SetInValue(0)
+      thresholder.SetOutValue(0)
+      # Create volume node
+      self.liveUltrasoundNode_Reference=slicer.vtkMRMLScalarVolumeNode()
+      self.liveUltrasoundNode_Reference.SetName(liveUltrasoundNodeName)
+      self.liveUltrasoundNode_Reference.SetSpacing(imageSpacing)
+      self.liveUltrasoundNode_Reference.SetImageDataConnection(thresholder.GetOutputPort())
+      # Add volume to scene
+      slicer.mrmlScene.AddNode(self.liveUltrasoundNode_Reference)
+      displayNode=slicer.vtkMRMLScalarVolumeDisplayNode()
+      slicer.mrmlScene.AddNode(displayNode)
+      colorNode = slicer.util.getNode('Grey')
+      displayNode.SetAndObserveColorNodeID(colorNode.GetID())
+      self.liveUltrasoundNode_Reference.SetAndObserveDisplayNodeID(displayNode.GetID())
+      #self.liveUltrasoundNode_Reference.CreateDefaultStorageNode()
+
+    self.setupResliceDriver()
+
+  def setupResliceDriver(self):
+    layoutManager = slicer.app.layoutManager()
+    # Show ultrasound in red view.
+    redSlice = layoutManager.sliceWidget('Red')
+    redSliceLogic = redSlice.sliceLogic()
+    redSliceLogic.GetSliceCompositeNode().SetBackgroundVolumeID(self.liveUltrasoundNode_Reference.GetID())
+    # Set up volume reslice driver.
+    resliceLogic = slicer.modules.volumereslicedriver.logic()
+    if resliceLogic:
+      redNode = slicer.util.getNode('vtkMRMLSliceNodeRed')
+      # Typically the image is zoomed in, therefore it is faster if the original resolution is used
+      # on the 3D slice (and also we can show the full image and not the shape and size of the 2D view)
+      redNode.SetSliceResolutionMode(slicer.vtkMRMLSliceNode.SliceResolutionMatchVolumes)
+      resliceLogic.SetDriverForSlice(self.liveUltrasoundNode_Reference.GetID(), redNode)
+      resliceLogic.SetModeForSlice(6, redNode) # Transverse mode, default for PLUS ultrasound.
+      resliceLogic.SetFlipForSlice(False, redNode)
+      resliceLogic.SetRotationForSlice(180, redNode)
+      redSliceLogic.FitSliceToAll()
+    else:
+      logging.warning('Logic not found for Volume Reslice Driver')
+
+    self.liveUltrasoundNode_Reference.SetAndObserveTransformNodeID(self.guideletParent.ReferenceToRas.GetID())
+
+  def setupConnections(self):
+    self.startStopRecordingButton.connect('clicked(bool)', self.onStartStopRecordingClicked)
+    self.freezeUltrasoundButton.connect('clicked()', self.onFreezeUltrasoundClicked)
+    self.brigthnessContrastButtonNormal.connect('clicked()', self.onBrightnessContrastNormalClicked)
+    self.brigthnessContrastButtonBright.connect('clicked()', self.onBrightnessContrastBrightClicked)
+    self.brigthnessContrastButtonBrighter.connect('clicked()', self.onBrightnessContrastBrighterClicked)
+
+  def disconnect(self):
+    self.startStopRecordingButton.disconnect('clicked(bool)', self.onStartStopRecordingClicked)
+    self.freezeUltrasoundButton.disconnect('clicked()', self.onFreezeUltrasoundClicked)
+    self.brigthnessContrastButtonNormal.disconnect('clicked()', self.onBrightnessContrastNormalClicked)
+    self.brigthnessContrastButtonBright.disconnect('clicked()', self.onBrightnessContrastBrightClicked)
+    self.brigthnessContrastButtonBrighter.disconnect('clicked()', self.onBrightnessContrastBrighterClicked)
+
+  def createPlusConnector(self):
+    connectorNode = slicer.util.getNode('PlusConnector')
+    if not connectorNode:
+      connectorNode = slicer.vtkMRMLIGTLConnectorNode()
+      slicer.mrmlScene.AddNode(connectorNode)
+      connectorNode.SetName('PlusConnector')
+      hostNamePort = self.guideletParent.parameterNode.GetParameter('PlusServerHostNamePort') # example: "localhost:18944"
+      [hostName, port] = hostNamePort.split(':')
+      connectorNode.SetTypeClient(hostName, int(port))
+      logging.debug("PlusConnector created")
+    return connectorNode
+
+  def recordingCommandCompleted(self, command, q):
+    statusText = "Command {0} [{1}]: {2}\n".format(command.GetCommandName(), command.GetID(), command.StatusToString(command.GetStatus()))
+    statusTextUser = "{0} {1}\n".format(command.GetCommandName(), command.StatusToString(command.GetStatus()))
+    if command.GetResponseMessage():
+      statusText = statusText + command.GetResponseMessage()
+      statusTextUser = command.GetResponseMessage()
+    elif command.GetResponseText():
+      statusText = statusText + command.GetResponseText()
+      statusTextUser = command.GetResponseText()
+    logging.info(statusText)
+    self.startStopRecordingButton.setToolTip(statusTextUser)
+
+  def cleanup(self):
+    self.disconnect()
+
+  def onStartStopRecordingClicked(self):
+
+    if self.startStopRecordingButton.isChecked():
+      self.startStopRecordingButton.setText("  Stop Recording")
+      self.startStopRecordingButton.setIcon(self.stopIcon)
+      self.startStopRecordingButton.setToolTip("Recording is being started...")
+
+      # Important to save as .mhd because that does not require lengthy finalization (merging into a single file)
+      recordPrefix = self.guideletParent.parameterNode.GetParameter('RecordingFilenamePrefix')
+      recordExt = self.guideletParent.parameterNode.GetParameter('RecordingFilenameExtension')
+      self.recordingFileName =  recordPrefix + time.strftime("%Y%m%d-%H%M%S") + recordExt
+
+      logging.info("Starting recording to: {0}".format(self.recordingFileName))
+
+      self.plusRemoteLogic.cmdStartRecording.SetCommandAttribute('CaptureDeviceId', self.captureDeviceName)
+      self.plusRemoteLogic.cmdStartRecording.SetCommandAttribute('OutputFilename', self.recordingFileName)
+      self.guideletParent.executeCommand(self.plusRemoteLogic.cmdStartRecording, self.recordingCommandCompleted)
+
+    else:
+      logging.info("Stopping recording")
+      self.startStopRecordingButton.setText("  Start Recording")
+      self.startStopRecordingButton.setIcon(self.recordIcon)
+      self.startStopRecordingButton.setToolTip( "Recording is being stopped..." )
+      self.plusRemoteLogic.cmdStopRecording.SetCommandAttribute('CaptureDeviceId', self.captureDeviceName)
+      self.guideletParent.executeCommand(self.plusRemoteLogic.cmdStopRecording, self.recordingCommandCompleted)
+
+  def onFreezeUltrasoundClicked(self):
+    logging.debug('onFreezeUltrasoundClicked')
+    self.usFrozen = not self.usFrozen
+    if self.usFrozen:
+      self.guideletParent.connectorNode.Stop()
+    else:
+      self.guideletParent.connectorNode.Start()
+
+  def setImageMinMaxLevel(self, minLevel, maxLevel):
+    self.liveUltrasoundNode_Reference.GetDisplayNode().SetAutoWindowLevel(0)
+    self.liveUltrasoundNode_Reference.GetDisplayNode().SetWindowLevelMinMax(minLevel,maxLevel)
+
+  def onBrightnessContrastNormalClicked(self):
+    logging.debug('onBrightnessContrastNormalClicked')
+    self.setImageMinMaxLevel(0,200)
+
+  def onBrightnessContrastBrightClicked(self):
+    logging.debug('onBrightnessContrastBrightClicked')
+    self.setImageMinMaxLevel(0,120)
+
+  def onBrightnessContrastBrighterClicked(self):
+    logging.debug('onBrightnessContrastBrighterClicked')
+    self.setImageMinMaxLevel(0,60)
