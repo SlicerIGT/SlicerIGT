@@ -280,7 +280,7 @@ class Guidelet(object):
     self.disconnect()
 
   def createFeaturePanels(self):
-    self.ultrasoundCollapsibleButton = self.ultrasound.setupPanel(self.sliceletPanelLayout)
+    self.ultrasoundCollapsibleButton, self.ultrasoundLayout = self.ultrasound.setupPanel(self.sliceletPanelLayout)
     self.advancedCollapsibleButton = ctk.ctkCollapsibleButton()
 
     featurePanelList = [self.ultrasoundCollapsibleButton, self.advancedCollapsibleButton]
@@ -306,8 +306,7 @@ class Guidelet(object):
 
     self.registerCustomLayouts()
 
-    # Activate default view
-    self.onViewSelect(self.VIEW_ULTRASOUND_3D)
+    self.selectView(self.VIEW_ULTRASOUND_3D)
 
     # OpenIGTLink connector node selection
     self.linkInputSelector = slicer.qMRMLNodeComboBox()
@@ -758,7 +757,7 @@ class UltraSound(object):
     brightnessContrastBox.addWidget(self.brigthnessContrastButtonBrighter)
     ultrasoundLayout.addRow(brightnessContrastBox)
 
-    return collapsibleButton
+    return collapsibleButton, ultrasoundLayout
 
   def setupScene(self):
     logging.info("UltraSound.setupScene")
