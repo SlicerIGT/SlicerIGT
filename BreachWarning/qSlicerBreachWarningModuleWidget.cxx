@@ -83,11 +83,13 @@ qSlicerBreachWarningModuleWidget::~qSlicerBreachWarningModuleWidget()
   // Make connections to update the mrml from the widget
   disconnect( d->ModelNodeComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onModelNodeChanged() ) );
   disconnect( d->ToolComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onToolTransformChanged() ) );
-  disconnect( d->ColorPickerButton, SIGNAL( colorChanged( QColor ) ), this, SLOT( UpdateWarningColor( QColor ) ) );
+  disconnect( d->WarningColorPickerButton, SIGNAL( colorChanged( QColor ) ), this, SLOT( UpdateWarningColor( QColor ) ) );
   disconnect(d->SoundCheckBox, SIGNAL(toggled(bool)), this, SLOT(PlayWarningSound(bool)));
-  disconnect(d->colorCheckBox, SIGNAL(toggled(bool)), this, SLOT(DisplayWarningColor(bool)));
-
-
+  disconnect(d->WarningCheckBox, SIGNAL(toggled(bool)), this, SLOT(DisplayWarningColor(bool)));
+  disconnect(d->RulerCheckBox, SIGNAL(toggled(bool)), this, SLOT(DisplayRuler(bool)));
+  disconnect( d->RulerColorPickerButton, SIGNAL( colorChanged( QColor ) ), this, SLOT( UpdateRulerColor( QColor ) ) );  
+  disconnect( d->RulerTextSizeSlider, SIGNAL( valueChanged (double ) ), this, SLOT( RulerTextSizeChanged( double ) ) );  
+  disconnect( d->RulerThicknessSlider, SIGNAL( valueChanged (double ) ), this, SLOT( RulerThicknessChanged( double ) ) );  
 }
 
 //-----------------------------------------------------------------------------
@@ -105,10 +107,14 @@ void qSlicerBreachWarningModuleWidget::setup()
   // Make connections to update the mrml from the widget
   connect( d->ModelNodeComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onModelNodeChanged() ) );
   connect( d->ToolComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onToolTransformChanged() ) );
-  connect( d->ColorPickerButton, SIGNAL( colorChanged( QColor ) ), this, SLOT( UpdateWarningColor( QColor ) ) );
+  connect( d->WarningColorPickerButton, SIGNAL( colorChanged( QColor ) ), this, SLOT( UpdateWarningColor( QColor ) ) );
   connect(d->SoundCheckBox, SIGNAL(toggled(bool)), this, SLOT(PlayWarningSound(bool)));
-  connect(d->colorCheckBox, SIGNAL(toggled(bool)), this, SLOT(DisplayWarningColor(bool)));
-  
+  connect(d->WarningCheckBox, SIGNAL(toggled(bool)), this, SLOT(DisplayWarningColor(bool)));
+  connect(d->RulerCheckBox, SIGNAL(toggled(bool)), this, SLOT(DisplayRuler(bool)));
+  connect( d->RulerColorPickerButton, SIGNAL( colorChanged( QColor ) ), this, SLOT( UpdateRulerColor( QColor ) ) );
+  connect( d->RulerTextSizeSlider, SIGNAL( valueChanged (double ) ), this, SLOT( RulerTextSizeChanged( double ) ) );  
+  connect( d->RulerThicknessSlider, SIGNAL( valueChanged (double ) ), this, SLOT( RulerThicknessChanged( double ) ) );  
+
   this->UpdateFromMRMLNode();
 }
 
@@ -208,7 +214,7 @@ void qSlicerBreachWarningModuleWidget::PlayWarningSound(bool playWarningSound)
   vtkMRMLBreachWarningNode* parameterNode = vtkMRMLBreachWarningNode::SafeDownCast( d->ParameterNodeComboBox->currentNode() );
   if ( parameterNode == NULL )
   {
-    qCritical( "Transform node should not be changed when no module node selected" );
+    qCritical( "No module node selected" );
     return;
   }
   parameterNode->SetPlayWarningSound(playWarningSound);
@@ -221,10 +227,23 @@ void qSlicerBreachWarningModuleWidget::DisplayWarningColor(bool displayWarningCo
   vtkMRMLBreachWarningNode* parameterNode = vtkMRMLBreachWarningNode::SafeDownCast( d->ParameterNodeComboBox->currentNode() );
   if ( parameterNode == NULL )
   {
-    qCritical( "Transform node should not be changed when no module node selected" );
+    qCritical( "No module node selected" );
     return;
   }
   parameterNode->SetDisplayWarningColor(displayWarningColor);
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerBreachWarningModuleWidget::DisplayRuler(bool displayRuler)
+{
+  Q_D(qSlicerBreachWarningModuleWidget);
+  vtkMRMLBreachWarningNode* parameterNode = vtkMRMLBreachWarningNode::SafeDownCast( d->ParameterNodeComboBox->currentNode() );
+  if ( parameterNode == NULL )
+  {
+    qCritical( "No module node selected" );
+    return;
+  }
+  parameterNode->SetDisplayRuler(displayRuler);
 }
 
 //-----------------------------------------------------------------------------
@@ -243,6 +262,51 @@ void qSlicerBreachWarningModuleWidget::UpdateWarningColor( QColor newColor )
 }
 
 //-----------------------------------------------------------------------------
+void qSlicerBreachWarningModuleWidget::UpdateRulerColor( QColor newColor )
+{
+  Q_D(qSlicerBreachWarningModuleWidget);
+
+  vtkMRMLBreachWarningNode* parameterNode = vtkMRMLBreachWarningNode::SafeDownCast( d->ParameterNodeComboBox->currentNode() );
+  if ( parameterNode == NULL )
+  {
+    qCritical( "Color selected without module node" );
+    return;
+  }
+
+  parameterNode->SetRulerColor( newColor.redF(), newColor.greenF(), newColor.blueF() );
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerBreachWarningModuleWidget::RulerTextSizeChanged( double size )
+{
+  Q_D(qSlicerBreachWarningModuleWidget);
+
+  vtkMRMLBreachWarningNode* parameterNode = vtkMRMLBreachWarningNode::SafeDownCast( d->ParameterNodeComboBox->currentNode() );
+  if ( parameterNode == NULL )
+  {
+    qCritical( "No module node selected" );
+    return;
+  }
+
+  parameterNode->SetRulerTextSize( size );
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerBreachWarningModuleWidget::RulerThicknessChanged( double thickness )
+{
+  Q_D(qSlicerBreachWarningModuleWidget);
+
+  vtkMRMLBreachWarningNode* parameterNode = vtkMRMLBreachWarningNode::SafeDownCast( d->ParameterNodeComboBox->currentNode() );
+  if ( parameterNode == NULL )
+  {
+    qCritical( "No module node selected" );
+    return;
+  }
+
+  parameterNode->SetRulerThickness( thickness );
+}
+
+//-----------------------------------------------------------------------------
 void qSlicerBreachWarningModuleWidget::UpdateFromMRMLNode()
 {
   Q_D( qSlicerBreachWarningModuleWidget );
@@ -254,26 +318,42 @@ void qSlicerBreachWarningModuleWidget::UpdateFromMRMLNode()
     d->ModelNodeComboBox->setCurrentNodeID( "" );
     d->ModelNodeComboBox->setEnabled( false );
     d->ToolComboBox->setEnabled( false );
-    d->colorCheckBox->setEnabled( false );
-    d->ColorPickerButton->setEnabled( false );
-    d->SoundCheckBox->setEnabled( false );
+    d->WarningCheckBox->setEnabled( false );
+    d->WarningColorPickerButton->setEnabled( false );
+    d->SoundCheckBox->setEnabled( false );        
+    d->RulerCheckBox->setEnabled( false );
+    d->RulerColorPickerButton->setEnabled( false );
+    d->RulerTextSizeSlider->setEnabled( false );
+    d->RulerThicknessSlider->setEnabled( false );
     return;
   }
     
   d->ModelNodeComboBox->setEnabled( true );
   d->ToolComboBox->setEnabled( true );
-  d->colorCheckBox->setEnabled( true );
-  d->ColorPickerButton->setEnabled( true );
+  d->WarningCheckBox->setEnabled( true );
+  d->WarningColorPickerButton->setEnabled( true );
   d->SoundCheckBox->setEnabled( true );
-  
+  d->RulerCheckBox->setEnabled( true );
+  d->RulerColorPickerButton->setEnabled( true );
+  d->RulerTextSizeSlider->setEnabled( true );
+  d->RulerThicknessSlider->setEnabled( true );
+
   d->ToolComboBox->setCurrentNode( bwNode->GetToolTransformNode() );
   d->ModelNodeComboBox->setCurrentNode( bwNode->GetWatchedModelNode() );
   
   double* warningColor = bwNode->GetWarningColor();
   QColor nodeWarningColor;
   nodeWarningColor.setRgbF(warningColor[0],warningColor[1],warningColor[2]);
-  d->ColorPickerButton->setColor(nodeWarningColor);
+  d->WarningColorPickerButton->setColor(nodeWarningColor);
 
-  d->colorCheckBox->setChecked( bwNode->GetDisplayWarningColor() );
-  d->SoundCheckBox->setChecked( bwNode->GetPlayWarningSound() );
+  double* rulerColor = bwNode->GetRulerColor();
+  QColor nodeRulerColor;
+  nodeRulerColor.setRgbF(rulerColor[0],rulerColor[1],rulerColor[2]);
+  d->RulerColorPickerButton->setColor(nodeRulerColor);
+
+  d->WarningCheckBox->setChecked( bwNode->GetDisplayWarningColor() );
+  d->SoundCheckBox->setChecked( bwNode->GetPlayWarningSound() );  
+  d->RulerCheckBox->setChecked( bwNode->GetDisplayRuler() );
+  d->RulerTextSizeSlider->setValue( bwNode->GetRulerTextSize() );
+  d->RulerThicknessSlider->setValue( bwNode->GetRulerThickness() );
 }

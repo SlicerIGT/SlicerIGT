@@ -25,6 +25,8 @@ set(${KIT}_TARGET_LIBRARIES
   ${ITK_LIBRARIES}
   ${MRML_LIBRARIES}
   SlicerBaseLogic
+  vtkSlicerAnnotationsModuleMRML
+  vtkSlicerAnnotationsModuleLogic
   )
 
 SlicerMacroBuildModuleMRML(
