@@ -32,7 +32,7 @@
 
 class vtkMRMLTransformNode;
 class vtkMRMLModelNode;
-
+class vtkMRMLMarkupsFiducialNode;
 
 class
 VTK_SLICER_BREACHWARNING_MODULE_MRML_EXPORT
@@ -89,8 +89,8 @@ public:
   virtual void SetPlayWarningSound(bool _arg);
 
   /// Indicates if color of the watched model should be changed.
-  /// False by default.
-  /// \sa SetPlayWarningSound(), GetPlayWarningSound(), PlayWarningSoundOn(), PlayWarningSoundOff()
+  /// True by default.
+  /// \sa SetDisplayWarningColor(), GetDisplayWarningColor(), DisplayWarningColorOn(), DisplayWarningColorOff()
   vtkGetMacro( DisplayWarningColor, bool );
   virtual void SetDisplayWarningColor(bool _arg);
 
@@ -101,6 +101,36 @@ public:
   vtkGetVector3Macro(OriginalColor, double);
   virtual void SetOriginalColor(double _arg1, double _arg2, double _arg3);
   virtual void SetOriginalColor(double _arg[3]);
+
+  /// Indicates if the trajectory should be displayed.
+  /// True by default.
+  /// \sa SetDisplayTrajectory(), GetDisplayTrajectory(), DisplayTrajectoryOn(), DisplayTrajectoryOff()
+  vtkGetMacro( DisplayTrajectory, bool );
+  virtual void SetDisplayTrajectory(bool _arg);
+
+  vtkGetVector3Macro(TrajectoryColor, double);
+  virtual void SetTrajectoryColor(double _arg1, double _arg2, double _arg3);
+  virtual void SetTrajectoryColor(double _arg[3]);
+
+  /// Indicates if the cross-hair should be displayed.
+  /// True by default.
+  /// \sa SetDisplayCrossHair(), GetDisplayCrossHair(), DisplayCrossHairOn(), DisplayCrossHairOff()
+  vtkGetMacro( DisplayCrossHair, bool );
+  virtual void SetDisplayCrossHair(bool _arg);
+
+  vtkGetVector3Macro(CrossHairColor, double);
+  virtual void SetCrossHairColor(double _arg1, double _arg2, double _arg3);
+  virtual void SetCrossHairColor(double _arg[3]);
+
+  /// Indicates if the distance (mm) should be displayed.
+  /// True by default.
+  /// \sa SetDisplayDistance(), GetDisplayDistance(), DisplayDistanceOn(), DisplayDistanceOff()
+  vtkGetMacro( DisplayDistance, bool );
+  virtual void SetDisplayDistance(bool _arg);
+
+  vtkGetVector3Macro(DistanceColor, double);
+  virtual void SetDistanceColor(double _arg1, double _arg2, double _arg3);
+  virtual void SetDistanceColor(double _arg[3]);
 
   // Watched model defines the risk area that needs to be avoided.
 
@@ -119,12 +149,25 @@ private:
 
   double WarningColor[3];
   double OriginalColor[3];
+  double TrajectoryColor[3];
+  double DistanceColor[3];
+  double CrossHairColor[3];
+
   bool DisplayWarningColor;
+  bool DisplayTrajectory;
+  bool DisplayCrossHair;
+  bool DisplayDistance;
   bool PlayWarningSound;
+
   // It is the closest distance to the model from the tool transform. If the distance is negative
   // the transform is inside the model.
   double ClosestDistanceToModelFromToolTip;
 
+  vtkMRMLModelNode* TrajectoryModelNode;
+
+  vtkMRMLMarkupsFiducialNode* CrossHairFiducialNode;
+
+  vtkMRMLMarkupsFiducialNode* TipFiducialNode;
 };
 
 #endif

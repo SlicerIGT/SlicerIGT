@@ -19,6 +19,13 @@
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
     <layout class="QGridLayout" name="gridLayout_2">
+     <item row="0" column="0">
+      <widget class="QLabel" name="label_3">
+       <property name="text">
+        <string>Parameter set:</string>
+       </property>
+      </widget>
+     </item>
      <item row="0" column="1">
       <widget class="qMRMLNodeComboBox" name="ParameterNodeComboBox">
        <property name="enabled">
@@ -34,13 +41,6 @@
        </property>
        <property name="selectNodeUponCreation">
         <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="0">
-      <widget class="QLabel" name="label_3">
-       <property name="text">
-        <string>Parameter set:</string>
        </property>
       </widget>
      </item>
@@ -142,11 +142,11 @@
      <property name="maximumSize">
       <size>
        <width>16777215</width>
-       <height>120</height>
+       <height>170</height>
       </size>
      </property>
      <property name="text">
-      <string>Display</string>
+      <string>Parameters</string>
      </property>
      <property name="collapsed">
       <bool>false</bool>
@@ -154,6 +154,9 @@
      <layout class="QVBoxLayout" name="verticalLayout_5">
       <item>
        <layout class="QFormLayout" name="formLayout">
+        <property name="fieldGrowthPolicy">
+         <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+        </property>
         <property name="labelAlignment">
          <set>Qt::AlignCenter</set>
         </property>
@@ -161,7 +164,7 @@
          <set>Qt::AlignCenter</set>
         </property>
         <item row="0" column="0">
-         <widget class="QCheckBox" name="colorCheckBox">
+         <widget class="QCheckBox" name="WarningCheckBox">
           <property name="layoutDirection">
            <enum>Qt::LeftToRight</enum>
           </property>
@@ -170,6 +173,72 @@
           </property>
           <property name="checked">
            <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="ctkColorPickerButton" name="WarningColorPickerButton"/>
+        </item>
+        <item row="2" column="0">
+         <widget class="QCheckBox" name="DistanceCheckBox">
+          <property name="text">
+           <string>Display distance (mm)</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="1">
+         <widget class="ctkColorPickerButton" name="DistanceColorPickerButton">
+          <property name="color">
+           <color>
+            <red>255</red>
+            <green>255</green>
+            <blue>255</blue>
+           </color>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="0">
+         <widget class="QCheckBox" name="TrajectoryCheckBox">
+          <property name="text">
+           <string>Display trajectory</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="1">
+         <widget class="ctkColorPickerButton" name="TrajectoryColorPickerButton">
+          <property name="color">
+           <color>
+            <red>0</red>
+            <green>255</green>
+            <blue>0</blue>
+           </color>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="0">
+         <widget class="QCheckBox" name="CrosshairCheckBox">
+          <property name="text">
+           <string>Display cross-hair</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="1">
+         <widget class="ctkColorPickerButton" name="CrossHairColorPickerButton">
+          <property name="color">
+           <color>
+            <red>0</red>
+            <green>0</green>
+            <blue>255</blue>
+           </color>
           </property>
          </widget>
         </item>
@@ -182,9 +251,6 @@
            <bool>true</bool>
           </property>
          </widget>
-        </item>
-        <item row="0" column="1">
-         <widget class="ctkColorPickerButton" name="ColorPickerButton"/>
         </item>
        </layout>
       </item>
