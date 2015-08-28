@@ -34,7 +34,7 @@
 #include "vtkMRMLSliceNode.h"
 #include "vtkMRMLLayoutLogic.h"
 
-
+#include "qSlicerReslicePropertyWidget.h"
 #include "vtkSlicerVolumeResliceDriverLogic.h"
 
 
