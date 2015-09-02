@@ -175,7 +175,7 @@ class GuideletTest(ScriptedLoadableModuleTest):
     """ Do whatever is needed to reset the state - typically a scene clear will be enough.
     """
     slicer.mrmlScene.Clear(0)
-	
+
   def runTest(self):
     """Run as few or as many tests as needed here.
     """
@@ -220,7 +220,7 @@ class Guidelet(object):
   VIEW_3D = unicode("3D")
   VIEW_DUAL_3D = unicode("Dual 3D")
   
-  def __init__(self, parent, logic, parameterList=None, widgetClass=None, configurationName='Default'):
+  def __init__(self, parent, logic, parameterList=None, configurationName='Default'):
     logging.debug('Guidelet.__init__')
     self.parent = parent
     self.logic = logic
@@ -458,7 +458,7 @@ class Guidelet(object):
 
   def disconnect(self):
     self.removeConnectorObservers()
-     # Remove observer to old parameter node
+    # Remove observer to old parameter node
     self.removeParameterNodeObserver()
 
     self.ultrasoundCollapsibleButton.disconnect('toggled(bool)', self.onUltrasoundPanelToggled)
@@ -621,8 +621,8 @@ class Guidelet(object):
       self.layoutManager.setLayout(slicer.vtkMRMLLayoutNode.SlicerLayoutOneUp3DView)
       self.showUltrasoundIn3dView(True)
     elif text == self.VIEW_DUAL_3D:
-       self.layoutManager.setLayout(self.dual3dCustomLayoutId)
-       self.showUltrasoundIn3dView(False)
+      self.layoutManager.setLayout(self.dual3dCustomLayoutId)
+      self.showUltrasoundIn3dView(False)
 
   def writeTransformToSettings(self, transformName, transformMatrix):
     transformMatrixArray = []
