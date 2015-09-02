@@ -341,6 +341,11 @@ class Guidelet(object):
     hbox.addWidget(self.saveDirectoryLineEdit)
     self.advancedLayout.addRow(hbox)
 
+    self.exitButton = qt.QPushButton()
+    self.exitButton.setText("Exit")
+    setButtonStyle(self.exitButton)
+    self.advancedLayout.addRow(self.exitButton)
+
   def setupViewerLayouts(self):
     self.viewSelectorComboBox.addItem(self.VIEW_ULTRASOUND)
     self.viewSelectorComboBox.addItem(self.VIEW_ULTRASOUND_3D)
@@ -446,6 +451,10 @@ class Guidelet(object):
     else:
       logging.error("Scene saving failed")
 
+  def onExitButtonClicked(self):
+    mainwindow = slicer.util.mainWindow()
+    mainwindow.close()
+
   def setupConnections(self):
     logging.debug('Guidelet.setupConnections()')
     self.ultrasoundCollapsibleButton.connect('toggled(bool)', self.onUltrasoundPanelToggled)
@@ -455,6 +464,7 @@ class Guidelet(object):
     self.saveSceneButton.connect('clicked()', self.onSaveSceneClicked)
     self.linkInputSelector.connect("nodeActivated(vtkMRMLNode*)", self.onConnectorNodeActivated)
     self.viewSelectorComboBox.connect('activated(int)', self.onViewSelect)
+    self.exitButton.connect('clicked()', self.onExitButtonClicked)
 
   def disconnect(self):
     self.removeConnectorObservers()
@@ -467,6 +477,7 @@ class Guidelet(object):
     self.saveSceneButton.disconnect('clicked()', self.onSaveSceneClicked)
     self.linkInputSelector.disconnect("nodeActivated(vtkMRMLNode*)", self.onConnectorNodeActivated)
     self.viewSelectorComboBox.disconnect('activated(int)', self.onViewSelect)
+    self.exitButton.disconnect('clicked()', self.onExitButtonClicked)
 
   def showFullScreen(self):
   
