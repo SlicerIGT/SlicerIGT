@@ -3,6 +3,7 @@
 #include "vtkMRMLBreachWarningNode.h"
 
 // Other MRML includes
+#include "vtkMRMLAnnotationRulerNode.h"
 #include "vtkMRMLDisplayNode.h"
 #include "vtkMRMLMarkupsFiducialNode.h"
 #include "vtkMRMLModelNode.h"
@@ -36,46 +37,7 @@ vtkMRMLBreachWarningNode
   events->InsertNextValue( vtkMRMLTransformableNode::TransformModifiedEvent );
 
   this->AddNodeReferenceRole( MODEL_ROLE, NULL, events.GetPointer() );
-  this->AddNodeReferenceRole( TOOL_ROLE, NULL, events.GetPointer() );  
-    
-  // TrajectoryModelNode
-	//vtkCollection* trajectoryModelNodeCollection = this->GetScene()->GetNodesByName("TrajectoryModel");
-	//vtkMRMLModelNode* trajectoryModelNode = vtkMRMLModelNode::SafeDownCast( trajectoryModelNodeCollection->GetItemAsObject( 0 ) );	
-	//if (trajectoryModelNode != NULL)
-	//{
-	//	this->TrajectoryModelNode = trajectoryModelNode;
-	//}
- // else
- // {
- //   
- // }
-	//trajectoryModelNodeCollection->Delete();
-  
- // // CrossHairFiducialNode  
-	//vtkCollection* crossHairFiducialNodeCollection = this->GetScene()->GetNodesByName("CrossHairFiducial");
-	//vtkMRMLMarkupsFiducialNode* crossHairFiducial = vtkMRMLMarkupsFiducialNode::SafeDownCast( crossHairFiducialNodeCollection->GetItemAsObject( 0 ) );	
-	//if (crossHairFiducial != NULL)
-	//{
-	//	this->CrossHairFiducialNode = crossHairFiducial;
-	//}
- // else
- // {
- //   
- // }
-	//crossHairFiducialNodeCollection->Delete();
-
- // // TipFiducialNode
- // vtkCollection* tipFiducialNodeCollection = this->GetScene()->GetNodesByName("TipFiducial");
-	//vtkMRMLMarkupsFiducialNode* tipFiducial = vtkMRMLMarkupsFiducialNode::SafeDownCast( tipFiducialNodeCollection->GetItemAsObject( 0 ) );	
-	//if (tipFiducial != NULL)
-	//{
-	//	this->TipFiducialNode = tipFiducial;
-	//}
- // else
- // {
- //   
- // }
-	//tipFiducialNodeCollection->Delete();
+  this->AddNodeReferenceRole( TOOL_ROLE, NULL, events.GetPointer() );      
 
   // Colors
   this->OriginalColor[0] = 0.5;
@@ -98,7 +60,6 @@ vtkMRMLBreachWarningNode
   this->CrossHairColor[1] = 0;
   this->CrossHairColor[2] = 1;
 
-  // Enabled
   this->DisplayWarningColor = true;
   this->PlayWarningSound = false;
   this->DisplayTrajectory = true;
@@ -106,11 +67,21 @@ vtkMRMLBreachWarningNode
   this->DisplayDistance = true;
 
   this->ClosestDistanceToModelFromToolTip = 0.0;
+
+  this->PointOnModel[0] = 0.0;
+  this->PointOnModel[1] = 0.0;
+  this->PointOnModel[2] = 0.0;
+
+  this->Trajectory = vtkMRMLAnnotationRulerNode::New();
 }
 
 vtkMRMLBreachWarningNode
 ::~vtkMRMLBreachWarningNode()
 {
+  if (this->Trajectory)
+  {
+    this->Trajectory->Delete();
+  }
 }
 
 void
@@ -131,6 +102,7 @@ vtkMRMLBreachWarningNode
   of << indent << " displayCrossHair=\"" << ( this->DisplayCrossHair ? "true" : "false" ) << "\"";
   of << indent << " displayDistance=\"" << ( this->DisplayDistance ? "true" : "false" ) << "\"";
   of << indent << " closestDistanceToModelFromToolTip=\"" << ClosestDistanceToModelFromToolTip << "\"";
+  of << indent << " pointOnModel=\"" << this->PointOnModel[0] << " " << this->PointOnModel[1] << " " << this->PointOnModel[2] << "\"";
 }
 
 void
@@ -272,6 +244,18 @@ vtkMRMLBreachWarningNode
       ss >> val;
       this->ClosestDistanceToModelFromToolTip = val;
     }
+   else if (!strcmp(attName, "pointOnModel"))
+    {
+      std::stringstream ss;
+      ss << attValue;
+      double val;
+      ss >> val;
+      this->PointOnModel[0] = val;
+      ss >> val;
+      this->PointOnModel[1] = val;
+      ss >> val;
+      this->PointOnModel[2] = val;
+    }
   }
 }
 
@@ -290,6 +274,7 @@ vtkMRMLBreachWarningNode
     this->TrajectoryColor[ i ] = node->TrajectoryColor[ i ];
     this->CrossHairColor[ i ] = node->CrossHairColor[ i ];
     this->DistanceColor[ i ] = node->DistanceColor[ i ];
+    this->PointOnModel[ i ] = node->PointOnModel[ i ];
   }
 
   this->PlayWarningSound = node->PlayWarningSound;  
@@ -297,6 +282,8 @@ vtkMRMLBreachWarningNode
   this->DisplayCrossHair = node->DisplayCrossHair;
   this->DisplayDistance = node->DisplayDistance;
   this->DisplayTrajectory = node->DisplayTrajectory;
+
+  this->Trajectory = node->Trajectory;
   
   this->Modified();
 }
@@ -319,6 +306,7 @@ vtkMRMLBreachWarningNode
   os << indent << "TrajectoryColor: " << this->TrajectoryColor[0] << ", " << this->TrajectoryColor[1] << ", " << this->TrajectoryColor[2] << std::endl;
   os << indent << "CrossHairColor: " << this->CrossHairColor[0] << ", " << this->CrossHairColor[1] << ", " << this->CrossHairColor[2] << std::endl;
   os << indent << "DistanceColor: " << this->DistanceColor[0] << ", " << this->DistanceColor[1] << ", " << this->DistanceColor[2] << std::endl;
+  os << indent << "PointOnModel: " << this->PointOnModel[0] << ", " << this->PointOnModel[1] << ", " << this->PointOnModel[2] << std::endl;
 }
 
 vtkMRMLModelNode*
@@ -564,4 +552,35 @@ void
 vtkMRMLBreachWarningNode::SetCrossHairColor(double _arg[3])
 {
   this->SetWarningColor(_arg[0], _arg[1], _arg[2]);
+}
+
+void 
+vtkMRMLBreachWarningNode::SetTrajectory(vtkMRMLAnnotationRulerNode* trajectory)
+{
+  if (this->Trajectory != trajectory)
+  {
+    this->Trajectory = trajectory;
+    this->Modified();
+    this->InvokeCustomModifiedEvent(InputDataModifiedEvent);
+  }
+}
+
+void 
+vtkMRMLBreachWarningNode::SetPointOnModel(double _arg1, double _arg2, double _arg3)
+{
+  vtkDebugMacro(<< this->GetClassName() << " (" << this << "): setting PointOnModel to (" << _arg1 << "," << _arg2 << "," << _arg3 << ")");
+  if ((this->PointOnModel[0] != _arg1)||(this->PointOnModel[1] != _arg2)||(this->PointOnModel[2] != _arg3))
+  {
+    this->PointOnModel[0] = _arg1;
+    this->PointOnModel[1] = _arg2;
+    this->PointOnModel[2] = _arg3;
+    this->Modified();
+    this->InvokeCustomModifiedEvent(InputDataModifiedEvent);
+  }
+}
+
+void 
+vtkMRMLBreachWarningNode::SetPointOnModel(double _arg[3])
+{
+  this->SetPointOnModel(_arg[0], _arg[1], _arg[2]);
 }

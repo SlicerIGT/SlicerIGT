@@ -32,7 +32,7 @@
 
 class vtkMRMLTransformNode;
 class vtkMRMLModelNode;
-class vtkMRMLMarkupsFiducialNode;
+class vtkMRMLAnnotationRulerNode;
 
 class
 VTK_SLICER_BREACHWARNING_MODULE_MRML_EXPORT
@@ -132,6 +132,13 @@ public:
   virtual void SetDistanceColor(double _arg1, double _arg2, double _arg3);
   virtual void SetDistanceColor(double _arg[3]);
 
+  vtkMRMLAnnotationRulerNode* GetTrajectory() {return this->Trajectory;}
+  virtual void SetTrajectory(vtkMRMLAnnotationRulerNode* trajectory);
+
+  vtkGetVector3Macro(PointOnModel, double);
+  virtual void SetPointOnModel(double _arg1, double _arg2, double _arg3);
+  virtual void SetPointOnModel(double _arg[3]);
+
   // Watched model defines the risk area that needs to be avoided.
 
   vtkMRMLModelNode* GetWatchedModelNode();
@@ -163,11 +170,9 @@ private:
   // the transform is inside the model.
   double ClosestDistanceToModelFromToolTip;
 
-  vtkMRMLModelNode* TrajectoryModelNode;
+  double PointOnModel[3];
 
-  vtkMRMLMarkupsFiducialNode* CrossHairFiducialNode;
-
-  vtkMRMLMarkupsFiducialNode* TipFiducialNode;
+  vtkMRMLAnnotationRulerNode* Trajectory; // TODO Add to Read/Write XML and PrintSelf
 };
 
 #endif

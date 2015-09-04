@@ -52,7 +52,6 @@ class vtkMRMLTransformNode;
 
 #include "vtkSlicerBreachWarningModuleLogicExport.h"
 
-
 /// \ingroup Slicer_QtModules_BreachWarning
 class VTK_SLICER_BREACHWARNING_MODULE_LOGIC_EXPORT vtkSlicerBreachWarningLogic :
   public vtkSlicerModuleLogic
@@ -89,8 +88,11 @@ private:
   vtkSlicerBreachWarningLogic(const vtkSlicerBreachWarningLogic&); // Not implemented
   void operator=(const vtkSlicerBreachWarningLogic&);               // Not implemented
 
+  void UpdateTrajectory(vtkMRMLBreachWarningNode* bwNode);
+
   std::deque< vtkWeakPointer< vtkMRMLBreachWarningNode > > WarningSoundPlayingNodes;
   bool WarningSoundPlaying;
+  bool TrajectoryInitialized;
 };
 
 #endif

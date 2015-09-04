@@ -19,6 +19,7 @@
 #include "vtkSlicerBreachWarningLogic.h"
 
 // MRML includes
+#include "vtkMRMLAnnotationRulerNode.h"
 #include "vtkMRMLBreachWarningNode.h"
 #include "vtkMRMLDisplayNode.h"
 #include "vtkMRMLModelNode.h"
@@ -26,11 +27,16 @@
 #include "vtkMRMLTransformNode.h"
 
 // VTK includes
+#include <vtkCellData.h>
+#include <vtkCellLocator.h>
 #include <vtkGeneralTransform.h>
+#include <vtkGenericCell.h>
 #include <vtkImplicitPolyDataDistance.h>
+#include <vtkMath.h>
 #include <vtkNew.h>
 #include <vtkObjectFactory.h>
 #include <vtkPolyData.h>
+#include <vtkPolygon.h>
 #include <vtkSmartPointer.h>
 #include <vtkTransformPolyDataFilter.h>
 
@@ -38,19 +44,235 @@
 
 // Slicer methods 
 
+//------------------------------------------------------------------------------
+class vtkImplicitPolyDataDistanceNew : public vtkImplicitPolyDataDistance
+{
+public:
+  static vtkImplicitPolyDataDistanceNew *New();
+  vtkTypeMacro(vtkImplicitPolyDataDistanceNew, vtkImplicitPolyDataDistance);
+  void PrintSelf(ostream &os, vtkIndent indent);
+
+protected:
+  vtkImplicitPolyDataDistanceNew(){}
+  ~vtkImplicitPolyDataDistanceNew(){}
+
+public:
+  double EvaluateFunction(double x[3], double p[3])
+  {
+    double n[3];
+    return this->SharedEvaluate(x, n, p); // distance value returned and point on vtkPolyData stored in p (normal not used).
+  }
+
+  double SharedEvaluate(double x[3], double n[3], double mp[3])
+  {
+    double ret = this->NoValue;
+    for( int i=0; i < 3; i++ )
+      {
+      n[i] = this->NoGradient[i];
+      }
+
+    // See if data set with polygons has been specified
+    if (this->Input == NULL || Input->GetNumberOfCells() == 0)
+      {
+      vtkErrorMacro(<<"No polygons to evaluate function!");
+      return ret;
+      }
+
+    double p[3];
+    vtkIdType cellId;
+    int subId;
+    double vlen2;
+
+    vtkDataArray* cnorms = 0;
+    if ( this->Input->GetCellData() && this->Input->GetCellData()->GetNormals() )
+      {
+      cnorms = this->Input->GetCellData()->GetNormals();
+      }
+
+    // Get point id of closest point in data set.
+    vtkSmartPointer<vtkGenericCell> cell =
+      vtkSmartPointer<vtkGenericCell>::New();
+    this->Locator->FindClosestPoint(x, p, cell, cellId, subId, vlen2);
+
+    if (cellId != -1)	// point located
+      {
+      // dist = | point - x |
+      ret = sqrt(vlen2);
+      // grad = (point - x) / dist
+      for (int i = 0; i < 3; i++)
+        {
+        n[i] = (p[i] - x[i]) / (ret == 0. ? 1. : ret);
+        }
+
+      double dist2, weights[3], pcoords[3], awnorm[3] = {0, 0, 0};
+      double closestPoint[3];
+      cell->EvaluatePosition(p, closestPoint, subId, pcoords, dist2, weights);
+
+      // Get point p on vtkPolyData
+      mp[0] = pcoords[0];
+      mp[1] = pcoords[1];
+      mp[2] = pcoords[2];
+
+      vtkIdList* idList = vtkIdList::New();
+      int count = 0;
+      for (int i = 0; i < 3; i++)
+        {
+        count += (fabs(weights[i]) < this->Tolerance ? 1 : 0);
+        }
+      // Face case - weights contains no 0s
+      if ( count == 0 )
+        {
+        // Compute face normal.
+        if ( cnorms )
+          {
+          cnorms->GetTuple(cellId, awnorm);
+          }
+        else
+          {
+          vtkPolygon::ComputeNormal(cell->Points, awnorm);
+          }
+        }
+      // Edge case - weights contain one 0
+      else if ( count == 1 )
+        {
+        // ... edge ... get two adjacent faces, compute average normal
+        int a = -1, b = -1;
+        for ( int edge = 0; edge < 3; edge++ )
+          {
+          if ( fabs(weights[edge]) < this->Tolerance )
+            {
+            a = cell->PointIds->GetId((edge + 1) % 3);
+            b = cell->PointIds->GetId((edge + 2) % 3);
+            break;
+            }
+          }
+
+        if ( a == -1 )
+          {
+          vtkErrorMacro( << "Could not find edge when closest point is "
+                         << "expected to be on an edge." );
+          return this->NoValue;
+          }
+
+        // The first argument is the cell ID. We pass a bogus cell ID so that
+        // all face IDs attached to the edge are returned in the idList.
+        this->Input->GetCellEdgeNeighbors(VTK_ID_MAX, a, b, idList);
+        for (int i = 0; i < idList->GetNumberOfIds(); i++)
+          {
+          double norm[3];
+          if (cnorms)
+            {
+            cnorms->GetTuple(idList->GetId(i), norm);
+            }
+          else
+            {
+            vtkPolygon::ComputeNormal(this->Input->GetCell(idList->GetId(i))->GetPoints(), norm);
+            }
+          awnorm[0] += norm[0];
+          awnorm[1] += norm[1];
+          awnorm[2] += norm[2];
+          }
+        vtkMath::Normalize(awnorm);
+        }
+
+      // Vertex case - weights contain two 0s
+      else if ( count == 2 )
+        {
+        // ... vertex ... this is the expensive case, get all adjacent
+        // faces and compute sum(a_i * n_i) Angle-Weighted Pseudo
+        // Normals, J. Andreas Baerentzen and Henrik Aanaes
+        int a = -1;
+        for (int i = 0; i < 3; i++)
+          {
+          if ( fabs( weights[i] ) > this->Tolerance )
+            {
+            a = cell->PointIds->GetId(i);
+            }
+          }
+
+        if ( a == -1 )
+          {
+          vtkErrorMacro( << "Could not find point when closest point is "
+                         << "expected to be a point." );
+          return this->NoValue;
+          }
+
+        this->Input->GetPointCells(a, idList);
+        for (int i = 0; i < idList->GetNumberOfIds(); i++)
+          {
+          double norm[3];
+          if ( cnorms )
+            {
+            cnorms->GetTuple(idList->GetId(i), norm);
+            }
+          else
+            {
+            vtkPolygon::ComputeNormal(this->Input->GetCell(idList->GetId(i))->GetPoints(), norm);
+            }
+
+          // Compute angle at point a
+          int b = this->Input->GetCell(idList->GetId(i))->GetPointId(0);
+          int c = this->Input->GetCell(idList->GetId(i))->GetPointId(1);
+          if (a == b)
+            {
+            b = this->Input->GetCell(idList->GetId(i))->GetPointId(2);
+            }
+          else if (a == c)
+            {
+            c = this->Input->GetCell(idList->GetId(i))->GetPointId(2);
+            }
+          double pa[3], pb[3], pc[3];
+          this->Input->GetPoint(a, pa);
+          this->Input->GetPoint(b, pb);
+          this->Input->GetPoint(c, pc);
+          for (int j = 0; j < 3; j++) { pb[j] -= pa[j]; pc[j] -= pa[j]; }
+          vtkMath::Normalize(pb);
+          vtkMath::Normalize(pc);
+          double alpha = acos(vtkMath::Dot(pb, pc));
+          awnorm[0] += alpha * norm[0];
+          awnorm[1] += alpha * norm[1];
+          awnorm[2] += alpha * norm[2];
+          }
+        vtkMath::Normalize(awnorm);
+        }
+      idList->Delete();
+
+      // sign(dist) = dot(grad, cell normal)
+      if (ret == 0)
+        {
+        for (int i = 0; i < 3; i++)
+          {
+          n[i] = awnorm[i];
+          }
+        }
+      ret *= (vtkMath::Dot(n, awnorm) < 0.) ? 1. : -1.;
+
+      if (ret > 0.)
+        {
+        for (int i = 0; i < 3; i++)
+          {
+          n[i] = -n[i];
+          }
+        }
+      }
+
+    return ret;
+  }
+};
+
+vtkStandardNewMacro(vtkImplicitPolyDataDistanceNew);
 vtkStandardNewMacro(vtkSlicerBreachWarningLogic);
 
 //------------------------------------------------------------------------------
 vtkSlicerBreachWarningLogic::vtkSlicerBreachWarningLogic()
 : WarningSoundPlaying(false)
-{
-}
+, TrajectoryInitialized(false)
+{}
 
 
 //------------------------------------------------------------------------------
 vtkSlicerBreachWarningLogic::~vtkSlicerBreachWarningLogic()
-{
-}
+{}
 
 //------------------------------------------------------------------------------
 void vtkSlicerBreachWarningLogic::PrintSelf(ostream& os, vtkIndent indent)
@@ -104,7 +326,7 @@ void vtkSlicerBreachWarningLogic::UpdateToolState( vtkMRMLBreachWarningNode* bwN
     return;
   }
   
-  vtkSmartPointer< vtkImplicitPolyDataDistance > implicitDistanceFilter = vtkSmartPointer< vtkImplicitPolyDataDistance >::New();
+  vtkSmartPointer< vtkImplicitPolyDataDistanceNew > implicitDistanceFilter = vtkSmartPointer< vtkImplicitPolyDataDistanceNew >::New();
 
   // Transform the body poly data if there is a parent transform.
   vtkMRMLTransformNode* bodyParentTransform = modelNode->GetParentTransformNode();
@@ -139,7 +361,9 @@ void vtkSlicerBreachWarningLogic::UpdateToolState( vtkMRMLBreachWarningNode* bwN
   double toolTipPosition_Tool[4] = { 0.0, 0.0, 0.0, 1.0 };
   double* toolTipPosition_Ras = toolToRasTransform->TransformDoublePoint( toolTipPosition_Tool);
 
-  bwNode->SetClosestDistanceToModelFromToolTip(implicitDistanceFilter->EvaluateFunction( toolTipPosition_Ras ));
+  double p[3] = {0, 0, 0};
+  bwNode->SetClosestDistanceToModelFromToolTip(implicitDistanceFilter->EvaluateFunction( toolTipPosition_Ras, p ));
+  bwNode->SetPointOnModel(p);
 }
 
 //------------------------------------------------------------------------------
@@ -369,3 +593,34 @@ void vtkSlicerBreachWarningLogic::ProcessMRMLNodesEvents( vtkObject* caller, uns
     this->SetWarningSoundPlaying(!this->WarningSoundPlayingNodes.empty());
   }
 }
+
+
+//------------------------------------------------------------------------------
+void vtkSlicerBreachWarningLogic::UpdateTrajectory( vtkMRMLBreachWarningNode* bwNode )
+{
+  vtkMRMLTransformNode* toolToRasNode = bwNode->GetToolTransformNode();
+  vtkSmartPointer<vtkGeneralTransform> toolToRasTransform = vtkSmartPointer<vtkGeneralTransform>::New();
+  toolToRasNode->GetTransformToWorld( toolToRasTransform ); 
+  double toolTipPosition_Tool[4] = { 0.0, 0.0, 0.0, 1.0 };
+  double* toolTipPosition_Ras = toolToRasTransform->TransformDoublePoint( toolTipPosition_Tool);
+
+  double tipPosition[3];
+  tipPosition[0] = toolTipPosition_Ras[0];
+  tipPosition[1] = toolTipPosition_Ras[1];
+  tipPosition[2] = toolTipPosition_Ras[2];
+  
+  double modelPosition[3];
+  bwNode->GetPointOnModel(modelPosition);
+
+  vtkMRMLAnnotationRulerNode* trajectory = bwNode->GetTrajectory();
+  trajectory->SetPosition1(tipPosition);
+  trajectory->SetPosition2(modelPosition);
+
+  if (!this->TrajectoryInitialized)
+  {
+    trajectory->Initialize(this->GetMRMLScene());
+    this->TrajectoryInitialized = true;
+    // Add to scene?
+  }
+}
+
