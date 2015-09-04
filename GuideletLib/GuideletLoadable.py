@@ -190,9 +190,13 @@ class Guidelet(object):
     for toolbar in slicer.util.mainWindow().findChildren('QToolBar'):
       toolbar.setVisible(show)
 
-  @staticmethod
-  def showModulePanel(show):
-    slicer.util.mainWindow().findChildren('QDockWidget','PanelDockWidget')[0].setVisible(show)
+  def showModulePanel(self, show):
+    modulePanelDockWidget = slicer.util.mainWindow().findChildren('QDockWidget','PanelDockWidget')[0]
+    modulePanelDockWidget.setVisible(show)
+
+    if show:
+      mainWindow=slicer.util.mainWindow()
+      mainWindow.tabifyDockWidget(self.sliceletDockWidget, modulePanelDockWidget)
 
   @staticmethod
   def showMenuBar(show):
@@ -322,10 +326,14 @@ class Guidelet(object):
     self.advancedLayout.addRow("OpenIGTLink connector: ", self.linkInputSelector)
 
     self.showFullSlicerInterfaceButton = qt.QPushButton()
-    self.showFullSlicerInterfaceButton.setText("Show full user interface")
+    self.showFullSlicerInterfaceButton.setText("Show Slicer3D user interface")
     setButtonStyle(self.showFullSlicerInterfaceButton)
-    #self.showFullSlicerInterfaceButton.setSizePolicy(self.sizePolicy)
     self.advancedLayout.addRow(self.showFullSlicerInterfaceButton)
+
+    self.showGuideletFullscreenButton = qt.QPushButton()
+    self.showGuideletFullscreenButton.setText("Show Guidelet in full screen")
+    setButtonStyle(self.showGuideletFullscreenButton)
+    self.advancedLayout.addRow(self.showGuideletFullscreenButton)
 
     self.saveSceneButton = qt.QPushButton()
     self.saveSceneButton.setText("Save slicelet scene")
@@ -461,6 +469,7 @@ class Guidelet(object):
     self.ultrasound.setupConnections()
     #advanced settings panel
     self.showFullSlicerInterfaceButton.connect('clicked()', self.onShowFullSlicerInterfaceClicked)
+    self.showGuideletFullscreenButton.connect('clicked()', self.onShowGuideletFullscreenButton)
     self.saveSceneButton.connect('clicked()', self.onSaveSceneClicked)
     self.linkInputSelector.connect("nodeActivated(vtkMRMLNode*)", self.onConnectorNodeActivated)
     self.viewSelectorComboBox.connect('activated(int)', self.onViewSelect)
@@ -474,6 +483,7 @@ class Guidelet(object):
     self.ultrasoundCollapsibleButton.disconnect('toggled(bool)', self.onUltrasoundPanelToggled)
     #advanced settings panel
     self.showFullSlicerInterfaceButton.disconnect('clicked()', self.onShowFullSlicerInterfaceClicked)
+    self.showGuideletFullscreenButton.disconnect('clicked()', self.onShowGuideletFullscreenButton)
     self.saveSceneButton.disconnect('clicked()', self.onSaveSceneClicked)
     self.linkInputSelector.disconnect("nodeActivated(vtkMRMLNode*)", self.onConnectorNodeActivated)
     self.viewSelectorComboBox.disconnect('activated(int)', self.onViewSelect)
@@ -489,8 +499,9 @@ class Guidelet(object):
     self.showToolbars(False)
     self.showModulePanel(False)
     self.showMenuBar(False)
-        
+
     self.sliceletDockWidget.show()
+
     mainWindow=slicer.util.mainWindow()
     mainWindow.showFullScreen()
 
@@ -503,6 +514,9 @@ class Guidelet(object):
     # Save current state
     settings = qt.QSettings()
     settings.setValue('MainWindow/RestoreGeometry', 'true')
+
+  def onShowGuideletFullscreenButton(self):
+    self.showFullScreen()
 
   def executeCommand(self, command, commandResponseCallback):
     command.RemoveObservers(slicer.modulelogic.vtkSlicerOpenIGTLinkCommand.CommandCompletedEvent)
