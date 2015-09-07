@@ -1,0 +1,8 @@
+<!DOCTYPE RCC><RCC version="1.0">
+  <qresource>
+    <file>Resources/Icons/GuideletLib.png</file>
+    <file>Resources/Icons/icon_Record.png</file>
+    <file>Resources/Icons/icon_Stop.png</file>
+    <file>Resources/StyleSheets/DefaultStyle.qss</file>
+  </qresource>
+</RCC>

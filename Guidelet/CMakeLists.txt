@@ -1,23 +1,21 @@
 #-----------------------------------------------------------------------------
-set(MODULE_NAME GuideletLib)
+set(MODULE_NAME Guidelet)
 
 #-----------------------------------------------------------------------------
 set(MODULE_PYTHON_SCRIPTS
-  GuideletLoadable
-  __init__
+  GuideletLoadable.py
+  ${MODULE_NAME}Lib/__init__.py
+  ${MODULE_NAME}Lib/UltraSound.py
   )
 
-set(MODULE_PYTHON_RESOURCES
-  Resources/Icons/${MODULE_NAME}.png
-  Resources/Icons/icon_Record.png
-  Resources/Icons/icon_Stop.png
+slicerFunctionAddPythonQtResources(MODULE_PYTHON_RESOURCES
+  ${MODULE_NAME}Lib/${MODULE_NAME}.qrc
   )
 
 #-----------------------------------------------------------------------------
 slicerMacroBuildScriptedModule(
   NAME ${MODULE_NAME}
-  SCRIPTS ${MODULE_PYTHON_SCRIPTS}
-  RESOURCES ${MODULE_PYTHON_RESOURCES}
+  SCRIPTS ${MODULE_PYTHON_SCRIPTS} ${MODULE_PYTHON_RESOURCES}
   WITH_GENERIC_TESTS
   WITH_SUBDIR
   )
