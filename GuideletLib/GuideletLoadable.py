@@ -5,14 +5,30 @@ import logging
 import time
 
 
-def setButtonStyle(button, textScale = 1.0): #TODO obsolete
-    style = """
-    {0}         {{border-style: outset; border-width: 2px; border-radius: 10px; background-color: #C7DDF5; border-color: #9ACEFF; font-size: {1}pt; height: {2}px}}
-    {0}:pressed  {{border-style: outset; border-width: 2px; border-radius: 10px; background-color: #9ACEFF; border-color: #9ACEFF; font-size: {1}pt; height: {2}px}}
-    {0}:checked {{border-style: outset; border-width: 2px; border-radius: 10px; background-color: #669ACC; border-color: #9ACEFF; font-size: {1}pt; height: {2}px}}
-    """.format(button.className(), 12*textScale, qt.QDesktopWidget().screenGeometry().height()*0.05)
-    
-    button.setStyleSheet(style)
+#===============================================================================
+# def setButtonStyle(button, textScale = 1.0): #TODO obsolete
+#     style = """
+#     {0}         {{border-style: outset; border-width: 2px; border-radius: 10px; background-color: #C7DDF5; border-color: #9ACEFF; font-size: {1}pt; height: {2}px}}
+#     {0}:pressed  {{border-style: outset; border-width: 2px; border-radius: 10px; background-color: #9ACEFF; border-color: #9ACEFF; font-size: {1}pt; height: {2}px}}
+#     {0}:checked {{border-style: outset; border-width: 2px; border-radius: 10px; background-color: #669ACC; border-color: #9ACEFF; font-size: {1}pt; height: {2}px}}
+#     """.format(button.className(), 12*textScale, qt.QDesktopWidget().screenGeometry().height()*0.05)
+#     
+#     button.setStyleSheet(style)
+#===============================================================================
+
+
+def loadStyleSheet():
+  moduleDir = os.path.dirname(__file__)
+  styleFile = os.path.join(moduleDir, 'style.qss')
+  f = qt.QFile(styleFile)
+  if not f.exists():
+    logging.debug("Unable to load stylesheet, file not found")
+    return ""
+  else:
+    f.open(qt.QFile.ReadOnly | qt.QFile.Text)
+    ts = qt.QTextStream(f)
+    stylesheet = ts.readAll()
+    return stylesheet
 
 #
 # GuideletLoadable
@@ -245,8 +261,6 @@ class Guidelet(object):
     self.setupConnectorNode()
 
     self.sliceletDockWidget = qt.QDockWidget(self.parent)
-    style = "QDockWidget:title {background-color: #9ACEFF;}"    
-    self.sliceletDockWidget.setStyleSheet(style)
 
     self.mainWindow=slicer.util.mainWindow()
     self.sliceletDockWidget.setParent(self.mainWindow)
@@ -256,10 +270,6 @@ class Guidelet(object):
     self.sliceletPanelLayout = qt.QVBoxLayout(self.sliceletPanel)    
     self.sliceletDockWidget.setWidget(self.sliceletPanel)
     
-    # Color scheme: #C7DDF5, #9ACEFF, #669ACC, #336799
-    style = "QFrame {background-color: #336799; border-color: #9ACEFF;}"
-    self.sliceletPanel.setStyleSheet(style)
-
     self.setupFeaturePanelList()
     self.setupAdvancedPanel()
     self.setupAdditionalPanel()
@@ -268,6 +278,8 @@ class Guidelet(object):
 
     # Setting up callback functions for widgets.
     self.setupConnections()
+
+    self.sliceletDockWidget.setStyleSheet(loadStyleSheet())
 
   def setupFeaturePanelList(self):
     featurePanelList = self.createFeaturePanels()
@@ -295,7 +307,6 @@ class Guidelet(object):
     logging.debug('setupAdvancedPanel')
 
     self.advancedCollapsibleButton.setProperty('collapsedHeight', 20)
-    #self.setButtonStyle(self.advancedCollapsibleButton, 2.0)
     self.advancedCollapsibleButton.text = "Settings"
     self.sliceletPanelLayout.addWidget(self.advancedCollapsibleButton)
 
@@ -327,17 +338,14 @@ class Guidelet(object):
 
     self.showFullSlicerInterfaceButton = qt.QPushButton()
     self.showFullSlicerInterfaceButton.setText("Show Slicer3D user interface")
-    setButtonStyle(self.showFullSlicerInterfaceButton)
     self.advancedLayout.addRow(self.showFullSlicerInterfaceButton)
 
     self.showGuideletFullscreenButton = qt.QPushButton()
     self.showGuideletFullscreenButton.setText("Show Guidelet in full screen")
-    setButtonStyle(self.showGuideletFullscreenButton)
     self.advancedLayout.addRow(self.showGuideletFullscreenButton)
 
     self.saveSceneButton = qt.QPushButton()
     self.saveSceneButton.setText("Save slicelet scene")
-    setButtonStyle(self.saveSceneButton)
     self.advancedLayout.addRow(self.saveSceneButton)
 
     self.saveDirectoryLineEdit = qt.QLineEdit()
@@ -351,7 +359,6 @@ class Guidelet(object):
 
     self.exitButton = qt.QPushButton()
     self.exitButton.setText("Exit")
-    setButtonStyle(self.exitButton)
     self.advancedLayout.addRow(self.exitButton)
 
   def setupViewerLayouts(self):
@@ -736,9 +743,7 @@ class UltraSound(object):
     collapsibleButton = ctk.ctkCollapsibleButton()
 
     collapsibleButton.setProperty('collapsedHeight', 20)
-    setButtonStyle(collapsibleButton, 2.0)
     collapsibleButton.text = "Ultrasound"
-    #self.sliceletPanelLayout.addWidget(collapsibleButton)
     parentWidget.addWidget(collapsibleButton)
 
     ultrasoundLayout = qt.QFormLayout(collapsibleButton)
@@ -748,11 +753,9 @@ class UltraSound(object):
     self.startStopRecordingButton = qt.QPushButton("  Start Recording")
     self.startStopRecordingButton.setCheckable(True)
     self.startStopRecordingButton.setIcon(self.recordIcon)
-    setButtonStyle(self.startStopRecordingButton)
     self.startStopRecordingButton.setToolTip("If clicked, start recording")
 
     self.freezeUltrasoundButton = qt.QPushButton('Freeze')
-    setButtonStyle(self.freezeUltrasoundButton)
 
     hbox = qt.QHBoxLayout()
     hbox.addWidget(self.startStopRecordingButton)
@@ -763,17 +766,14 @@ class UltraSound(object):
 
     self.brigthnessContrastButtonNormal = qt.QPushButton()
     self.brigthnessContrastButtonNormal.text = "Normal"
-    setButtonStyle(self.brigthnessContrastButtonNormal)
     self.brigthnessContrastButtonNormal.setEnabled(True)
 
     self.brigthnessContrastButtonBright = qt.QPushButton()
     self.brigthnessContrastButtonBright.text = "Bright"
-    setButtonStyle(self.brigthnessContrastButtonBright)
     self.brigthnessContrastButtonBright.setEnabled(True)
 
     self.brigthnessContrastButtonBrighter = qt.QPushButton()
     self.brigthnessContrastButtonBrighter.text = "Brighter"
-    setButtonStyle(self.brigthnessContrastButtonBrighter)
     self.brigthnessContrastButtonBrighter.setEnabled(True)
 
     brightnessContrastBox = qt.QHBoxLayout()
