@@ -72,7 +72,7 @@ class GuideletWidget(ScriptedLoadableModuleWidget):
     self.layout.addWidget(launcherCollapsibleButton)
     self.launcherFormLayout = qt.QFormLayout(launcherCollapsibleButton)
 
-    self.addLauncherWidgets()  
+    self.addLauncherWidgets()
 
     # Show guidelet button
     self.launchGuideletButton = qt.QPushButton("Start "+self.moduleName)
