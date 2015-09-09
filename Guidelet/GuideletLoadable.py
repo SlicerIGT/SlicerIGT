@@ -66,6 +66,8 @@ class GuideletWidget(ScriptedLoadableModuleWidget):
   def setup(self):
     ScriptedLoadableModuleWidget.setup(self)
     
+    self.setupConfiguration()
+
     # Launcher panel
     launcherCollapsibleButton = ctk.ctkCollapsibleButton()
     launcherCollapsibleButton.text = "Guidelet launcher"
@@ -82,6 +84,18 @@ class GuideletWidget(ScriptedLoadableModuleWidget):
 
     # Add vertical spacer
     self.layout.addStretch(1)
+
+  def setupConfiguration(self):
+    settings = slicer.app.userSettings()
+    settings.beginGroup(self.moduleName + '/Configurations/Default')
+    if not settings.allKeys(): # If no keys in /Configurations/Default
+      self.addDefaultConfiguration(settings)
+      logging.debug('Default configuration added')
+    settings.endGroup()
+
+  # Adds a default configurations to Slicer.ini
+  def addDefaultConfiguration(self, settings):
+    settings.setValue('StyleSheet', 'DefaultStyle.qss')
 
   def addLauncherWidgets(self):
     lnNode = slicer.util.getNode(self.moduleName)
@@ -111,6 +125,39 @@ class GuideletWidget(ScriptedLoadableModuleWidget):
         settings = slicer.app.userSettings()
         plusServerHostNamePort = settings.value(self.moduleName+'/PlusServerHostNamePort', 'localhost:18944')
         self.lineEdit.setText(plusServerHostNamePort)
+
+    self.addConfigurationsSelector()
+
+  # Adds a list box populated with the available configurations in the Slicer.ini file
+  def addConfigurationsSelector(self):
+    self.configurationsComboBox = qt.QComboBox()
+    configurationsLabel = qt.QLabel("Select Configuration: ")
+    hBox = qt.QHBoxLayout()
+    hBox.addWidget(configurationsLabel)
+    hBox.addWidget(self.configurationsComboBox)
+    hBox.setStretch(1,2)
+    self.launcherFormLayout.addRow(hBox)
+
+    # Populate configurationsComboBox with available configurations
+    settings = slicer.app.userSettings()
+    settings.beginGroup(self.moduleName + '/Configurations')
+    configurations = settings.childGroups()
+    for configuration in configurations:
+      self.configurationsComboBox.addItem(configuration)
+    settings.endGroup()
+
+    # Set latest used configuration
+    if settings.value(self.moduleName + '/MostRecentConfiguration'):
+      self.selectedConfigurationName = settings.value(self.moduleName + '/MostRecentConfiguration')
+      idx = self.configurationsComboBox.findText(settings.value(self.moduleName + '/MostRecentConfiguration'))
+      self.configurationsComboBox.setCurrentIndex(idx)
+
+    self.configurationsComboBox.connect('currentIndexChanged(const QString &)', self.onConfigurationChanged)
+
+  def onConfigurationChanged(self, selectedConfigurationName):
+    self.selectedConfigurationName = selectedConfigurationName
+    settings = slicer.app.userSettings()
+    settings.setValue(self.moduleName + '/MostRecentConfiguration', selectedConfigurationName)
 
   def cleanup(self):
     self.launchGuideletButton.disconnect('clicked()', self.onLaunchGuideletButtonClicked)
