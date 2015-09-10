@@ -108,23 +108,23 @@ class GuideletWidget(ScriptedLoadableModuleWidget):
       self.layout.addWidget(self.errorLabel)
       return
 
-    self.lineEdit = qt.QLineEdit()
+    self.plusServerHostNamePortLineEdit = qt.QLineEdit()
     leLabel = qt.QLabel()
     leLabel.setText("Set the Plus Server Host and Name Port:")
     hbox = qt.QHBoxLayout()
     hbox.addWidget(leLabel)
-    hbox.addWidget(self.lineEdit)
+    hbox.addWidget(self.plusServerHostNamePortLineEdit)
     self.launcherFormLayout.addRow(hbox)
 
     if lnNode is not None and lnNode.GetParameter('PlusServerHostNamePort'):
         #logging.debug("There is already a connector PlusServerHostNamePort parameter " + lnNode.GetParameter('PlusServerHostNamePort'))
-        self.lineEdit.setDisabled(True)
-        self.lineEdit.setText(lnNode.GetParameter('PlusServerHostNamePort'))
+        self.plusServerHostNamePortLineEdit.setDisabled(True)
+        self.plusServerHostNamePortLineEdit.setText(lnNode.GetParameter('PlusServerHostNamePort'))
     else:
-        #self.lineEdit.setDisabled(False)
+        #self.plusServerHostNamePortLineEdit.setDisabled(False)
         settings = slicer.app.userSettings()
         plusServerHostNamePort = settings.value(self.moduleName+'/PlusServerHostNamePort', 'localhost:18944')
-        self.lineEdit.setText(plusServerHostNamePort)
+        self.plusServerHostNamePortLineEdit.setText(plusServerHostNamePort)
 
     self.addConfigurationsSelector()
 
@@ -176,11 +176,11 @@ class GuideletWidget(ScriptedLoadableModuleWidget):
     self.guideletInstance.showFullScreen()
 
   def collectParameterList(self):
-    parameterList = None
+    parameterList = {}
     settings = slicer.app.userSettings()
-    if self.lineEdit.isEnabled() and self.lineEdit.text != '':
-        settings.setValue(self.moduleName + '/PlusServerHostNamePort', self.lineEdit.text)        
-        parameterList = {'PlusServerHostNamePort':self.lineEdit.text}
+    if self.plusServerHostNamePortLineEdit.isEnabled() and self.plusServerHostNamePortLineEdit.text != '':
+        settings.setValue(self.moduleName + '/PlusServerHostNamePort', self.plusServerHostNamePortLineEdit.text)
+        parameterList = {'PlusServerHostNamePort':self.plusServerHostNamePortLineEdit.text}
     return parameterList
 
   def createGuideletInstance(self, parameterList = None):
