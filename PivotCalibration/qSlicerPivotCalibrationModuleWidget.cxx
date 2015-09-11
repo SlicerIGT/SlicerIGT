@@ -283,18 +283,12 @@ void qSlicerPivotCalibrationModuleWidget::onPivotStop()
   d->logic()->ComputePivotCalibration();
   
   vtkMRMLLinearTransformNode* outputTransform = vtkMRMLLinearTransformNode::SafeDownCast(d->OutputComboBox->currentNode());
-#ifdef TRANSFORM_NODE_MATRIX_COPY_REQUIRED
   vtkSmartPointer<vtkMatrix4x4> outputMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
   outputTransform->GetMatrixTransformToParent(outputMatrix);
-#else
-  vtkMatrix4x4* outputMatrix = outputTransform->GetMatrixTransformToParent();
-#endif
 
   d->logic()->GetToolTipToToolMatrix( outputMatrix );
 
-#ifdef TRANSFORM_NODE_MATRIX_COPY_REQUIRED
   outputTransform->SetMatrixTransformToParent(outputMatrix);
-#endif
   
   std::stringstream ss;
   ss << d->logic()->GetPivotRMSE();
@@ -314,19 +308,18 @@ void qSlicerPivotCalibrationModuleWidget::onSpinStop()
   d->logic()->SetRecordingState(false);
   d->logic()->ComputeSpinCalibration( d->snapCheckBox->checkState() == Qt::Checked );
 
-  vtkMRMLLinearTransformNode* outputTransform = vtkMRMLLinearTransformNode::SafeDownCast(d->OutputComboBox->currentNode());
-#ifdef TRANSFORM_NODE_MATRIX_COPY_REQUIRED
   vtkSmartPointer<vtkMatrix4x4> outputMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-  outputTransform->GetMatrixTransformToParent(outputMatrix);
-#else
-  vtkMatrix4x4* outputMatrix = outputTransform->GetMatrixTransformToParent();
-#endif
-
   d->logic()->GetToolTipToToolMatrix( outputMatrix );
 
-#ifdef TRANSFORM_NODE_MATRIX_COPY_REQUIRED
-  outputTransform->SetMatrixTransformToParent(outputMatrix);
-#endif
+  vtkMRMLTransformNode* outputTransform = vtkMRMLTransformNode::SafeDownCast(d->OutputComboBox->currentNode());
+  if (outputTransform!=NULL)
+  {
+    outputTransform->SetMatrixTransformToParent(outputMatrix);
+  }
+  else
+  {
+    qCritical("qSlicerPivotCalibrationModuleWidget::onSpinStop failed: cannot save output transform");
+  }
    
   // Set the rmse label for the circle fitting rms error
   std::stringstream ss;
