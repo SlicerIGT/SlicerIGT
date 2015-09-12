@@ -142,6 +142,13 @@ vtkMRMLIGTLQueryNode* vtkSlicerOpenIGTLinkRemoteLogic::GetCommandQueryNode(vtkSl
   {
     if (it->Command.GetPointer()==NULL)
     {
+      // found a command that may be usable
+      if (it->CommandQueryNode->GetID()==NULL ||
+        this->GetMRMLScene()->GetNodeByID(it->CommandQueryNode->GetID())!=it->CommandQueryNode.GetPointer() )
+      {
+        // invalid query node, cannot use it (probably the query node has been removed from the scene)
+        continue;
+      }
       it->Command=command;
       return it->CommandQueryNode;
     }
@@ -284,7 +291,46 @@ void vtkSlicerOpenIGTLinkRemoteLogic::RegisterNodes()
 //----------------------------------------------------------------------------
 void vtkSlicerOpenIGTLinkRemoteLogic::UpdateFromMRMLScene()
 {
-  assert(this->GetMRMLScene() != 0);
+  if (this->GetMRMLScene()==0)
+  {
+    vtkErrorMacro("Scene is invalid");
+    return;
+  }
+
+  // Cancel and remove those commands for that the corresponding query node is deleted from the scene
+  std::vector< vtkSlicerOpenIGTLinkRemoteLogic::vtkInternal::CommandInfo* > commandInfoToBeDeleted;
+  for (std::vector<vtkSlicerOpenIGTLinkRemoteLogic::vtkInternal::CommandInfo>::iterator it=this->Internal->Commands.begin();
+    it!=this->Internal->Commands.end(); ++it)
+  {
+    if (it->CommandQueryNode->GetID()!=NULL
+      && this->GetMRMLScene()->GetNodeByID(it->CommandQueryNode->GetID())==it->CommandQueryNode.GetPointer())
+    {
+      // command query node is still in the scene
+      continue;
+    }
+    // command query node is not in the scene anymore, cancel the command
+    this->CancelCommand(it->Command);
+    commandInfoToBeDeleted.push_back(&(*it));
+  } 
+
+  // Delete all cancelled items
+  // Do it in a separate loop from the checking, as cancelling a command might have the side effect of adding/removing commands
+  for (std::vector< vtkSlicerOpenIGTLinkRemoteLogic::vtkInternal::CommandInfo* >::iterator itemToDeleteIt=commandInfoToBeDeleted.begin();
+    itemToDeleteIt!=commandInfoToBeDeleted.end(); ++itemToDeleteIt)
+  {
+    // find and delete command item
+    for (std::vector<vtkSlicerOpenIGTLinkRemoteLogic::vtkInternal::CommandInfo>::iterator it=this->Internal->Commands.begin();
+      it!=this->Internal->Commands.end(); ++it)
+    {
+      if ( (*itemToDeleteIt)== &(*it) )
+      {
+        // found it
+        this->Internal->Commands.erase(it);
+        break;
+      }
+    }
+  }
+
 }
 
 //---------------------------------------------------------------------------
@@ -293,8 +339,15 @@ void vtkSlicerOpenIGTLinkRemoteLogic::OnMRMLSceneNodeAdded(vtkMRMLNode* vtkNotUs
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerOpenIGTLinkRemoteLogic::OnMRMLSceneNodeRemoved(vtkMRMLNode* vtkNotUsed(node))
+void vtkSlicerOpenIGTLinkRemoteLogic::OnMRMLSceneNodeRemoved(vtkMRMLNode* node)
 {
+  if ( node && !node->IsA("vtkMRMLIGTLQueryNode"))
+  {
+    return;
+  }
+  // A vtkMRMLIGTLQueryNode has been deleted
+  // Make sure that our query nodes are still valid
+  UpdateFromMRMLScene();
 }
 
 //---------------------------------------------------------------------------
