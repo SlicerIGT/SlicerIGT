@@ -6,32 +6,6 @@ import time
 
 from GuideletLib import UltraSound
 
-
-#===============================================================================
-# def setButtonStyle(button, textScale = 1.0): #TODO obsolete
-#     style = """
-#     {0}         {{border-style: outset; border-width: 2px; border-radius: 10px; background-color: #C7DDF5; border-color: #9ACEFF; font-size: {1}pt; height: {2}px}}
-#     {0}:pressed  {{border-style: outset; border-width: 2px; border-radius: 10px; background-color: #9ACEFF; border-color: #9ACEFF; font-size: {1}pt; height: {2}px}}
-#     {0}:checked {{border-style: outset; border-width: 2px; border-radius: 10px; background-color: #669ACC; border-color: #9ACEFF; font-size: {1}pt; height: {2}px}}
-#     """.format(button.className(), 12*textScale, qt.QDesktopWidget().screenGeometry().height()*0.05)
-#     
-#     button.setStyleSheet(style)
-#===============================================================================
-
-
-def loadStyleSheet():
-  moduleDir = os.path.dirname(__file__)
-  styleFile = os.path.join(moduleDir, 'GuideletLib', 'Resources', 'StyleSheets', 'DefaultStyle.qss')
-  f = qt.QFile(styleFile)
-  if not f.exists():
-    logging.debug("Unable to load stylesheet, file not found")
-    return ""
-  else:
-    f.open(qt.QFile.ReadOnly | qt.QFile.Text)
-    ts = qt.QTextStream(f)
-    stylesheet = ts.readAll()
-    return stylesheet
-
 #
 # GuideletLoadable
 #
@@ -96,10 +70,13 @@ class GuideletWidget(ScriptedLoadableModuleWidget):
   # Adds a default configurations to Slicer.ini
   def addDefaultConfiguration(self, settings):
     settings.setValue('StyleSheet', 'DefaultStyle.qss')
+    settings.setValue('PlusServerHostNamePort', 'localhost:18944')
 
   def addLauncherWidgets(self):
     lnNode = slicer.util.getNode(self.moduleName)
 
+    self.addConfigurationsSelector()
+    
     # PlusServer
     try:
       slicer.modules.plusremote
@@ -123,10 +100,9 @@ class GuideletWidget(ScriptedLoadableModuleWidget):
     else:
         #self.plusServerHostNamePortLineEdit.setDisabled(False)
         settings = slicer.app.userSettings()
-        plusServerHostNamePort = settings.value(self.moduleName+'/PlusServerHostNamePort', 'localhost:18944')
+        #plusServerHostNamePort = settings.value(self.moduleName+'/PlusServerHostNamePort')
+        plusServerHostNamePort = settings.value(self.moduleName + '/Configurations/' + self.selectedConfigurationName + '/PlusServerHostNamePort')
         self.plusServerHostNamePortLineEdit.setText(plusServerHostNamePort)
-
-    self.addConfigurationsSelector()
 
   # Adds a list box populated with the available configurations in the Slicer.ini file
   def addConfigurationsSelector(self):
@@ -173,13 +149,15 @@ class GuideletWidget(ScriptedLoadableModuleWidget):
 
     if not self.guideletInstance:
       self.guideletInstance = self.createGuideletInstance(parameterList)
+    self.guideletInstance.setupScene()
     self.guideletInstance.showFullScreen()
 
   def collectParameterList(self):
     parameterList = {}
     settings = slicer.app.userSettings()
     if self.plusServerHostNamePortLineEdit.isEnabled() and self.plusServerHostNamePortLineEdit.text != '':
-        settings.setValue(self.moduleName + '/PlusServerHostNamePort', self.plusServerHostNamePortLineEdit.text)
+        #settings.setValue(self.moduleName + '/PlusServerHostNamePort', self.plusServerHostNamePortLineEdit.text)
+        settings.setValue(self.moduleName + '/Configurations/' + self.selectedConfigurationName + '/PlusServerHostNamePort', self.plusServerHostNamePortLineEdit.text)
         parameterList = {'PlusServerHostNamePort':self.plusServerHostNamePortLineEdit.text}
     return parameterList
 
@@ -328,8 +306,22 @@ class Guidelet(object):
     # Setting up callback functions for widgets.
     self.setupConnections()
 
-    self.sliceletDockWidget.setStyleSheet(loadStyleSheet())
+    self.sliceletDockWidget.setStyleSheet(self.loadStyleSheet())
 
+  def loadStyleSheet(self):
+    moduleDir = os.path.dirname(__file__)
+    style = self.parameterNode.GetParameter('StyleSheet')
+    styleFile = os.path.join(moduleDir, 'GuideletLib', 'Resources', 'StyleSheets', style)
+    f = qt.QFile(styleFile)
+    if not f.exists():
+      logging.debug("Unable to load stylesheet, file not found")
+      return ""
+    else:
+      f.open(qt.QFile.ReadOnly | qt.QFile.Text)
+      ts = qt.QTextStream(f)
+      stylesheet = ts.readAll()
+      return stylesheet
+  
   def setupFeaturePanelList(self):
     featurePanelList = self.createFeaturePanels()
 
