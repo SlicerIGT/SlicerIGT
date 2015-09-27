@@ -112,16 +112,6 @@ public:
   virtual void SetTrajectoryColor(double _arg1, double _arg2, double _arg3);
   virtual void SetTrajectoryColor(double _arg[3]);
 
-  /// Indicates if the cross-hair should be displayed.
-  /// True by default.
-  /// \sa SetDisplayCrossHair(), GetDisplayCrossHair(), DisplayCrossHairOn(), DisplayCrossHairOff()
-  vtkGetMacro( DisplayCrossHair, bool );
-  virtual void SetDisplayCrossHair(bool _arg);
-
-  vtkGetVector3Macro(CrossHairColor, double);
-  virtual void SetCrossHairColor(double _arg1, double _arg2, double _arg3);
-  virtual void SetCrossHairColor(double _arg[3]);
-
   /// Indicates if the distance (mm) should be displayed.
   /// True by default.
   /// \sa SetDisplayDistance(), GetDisplayDistance(), DisplayDistanceOn(), DisplayDistanceOff()
@@ -158,11 +148,9 @@ private:
   double OriginalColor[3];
   double TrajectoryColor[3];
   double DistanceColor[3];
-  double CrossHairColor[3];
 
   bool DisplayWarningColor;
   bool DisplayTrajectory;
-  bool DisplayCrossHair;
   bool DisplayDistance;
   bool PlayWarningSound;
 

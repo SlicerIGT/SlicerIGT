@@ -3,6 +3,7 @@
 #include "vtkMRMLBreachWarningNode.h"
 
 // Other MRML includes
+#include "vtkMRMLAnnotationLineDisplayNode.h"
 #include "vtkMRMLAnnotationRulerNode.h"
 #include "vtkMRMLDisplayNode.h"
 #include "vtkMRMLMarkupsFiducialNode.h"
@@ -52,18 +53,13 @@ vtkMRMLBreachWarningNode
   this->TrajectoryColor[1] = 1;
   this->TrajectoryColor[2] = 0;
 
-  this->DistanceColor[0] = 1; // White
+  this->DistanceColor[0] = 1; // Yellow
   this->DistanceColor[1] = 1;
-  this->DistanceColor[2] = 1;
-
-  this->CrossHairColor[0] = 0; // Blue
-  this->CrossHairColor[1] = 0;
-  this->CrossHairColor[2] = 1;
+  this->DistanceColor[2] = 0;  
 
   this->DisplayWarningColor = true;
   this->PlayWarningSound = false;
-  this->DisplayTrajectory = true;
-  this->DisplayCrossHair = true;
+  this->DisplayTrajectory = true;  
   this->DisplayDistance = true;
 
   this->ClosestDistanceToModelFromToolTip = 0.0;
@@ -73,6 +69,14 @@ vtkMRMLBreachWarningNode
   this->PointOnModel[2] = 0.0;
 
   this->Trajectory = vtkMRMLAnnotationRulerNode::New();
+  this->Trajectory->SetName("d");
+  this->Trajectory->SetDistanceAnnotationTextColour(this->DistanceColor);
+  vtkMRMLAnnotationLineDisplayNode* displayNode = vtkMRMLAnnotationLineDisplayNode::SafeDownCast(this->Trajectory->GetModelDisplayNode());
+  if (displayNode)
+  {
+    displayNode->SetColor(this->TrajectoryColor);
+    displayNode->SetLineThickness(3);
+  }  
 }
 
 vtkMRMLBreachWarningNode
@@ -94,12 +98,10 @@ vtkMRMLBreachWarningNode
   of << indent << " warningColor=\"" << this->WarningColor[0] << " " << this->WarningColor[1] << " " << this->WarningColor[2] << "\"";
   of << indent << " originalColor=\"" << this->OriginalColor[0] << " " << this->OriginalColor[1] << " " << this->OriginalColor[2] << "\"";
   of << indent << " trajectoryColor=\"" << this->TrajectoryColor[0] << " " << this->TrajectoryColor[1] << " " << this->TrajectoryColor[2] << "\"";
-  of << indent << " distanceColor=\"" << this->DistanceColor[0] << " " << this->DistanceColor[1] << " " << this->DistanceColor[2] << "\"";
-  of << indent << " crossHairColor=\"" << this->CrossHairColor[0] << " " << this->CrossHairColor[1] << " " << this->CrossHairColor[2] << "\"";
+  of << indent << " distanceColor=\"" << this->DistanceColor[0] << " " << this->DistanceColor[1] << " " << this->DistanceColor[2] << "\""; 
   of << indent << " displayWarningColor=\"" << ( this->DisplayWarningColor ? "true" : "false" ) << "\"";
   of << indent << " playWarningSound=\"" << ( this->PlayWarningSound ? "true" : "false" ) << "\"";
-  of << indent << " displayTrajectory=\"" << ( this->DisplayTrajectory ? "true" : "false" ) << "\"";
-  of << indent << " displayCrossHair=\"" << ( this->DisplayCrossHair ? "true" : "false" ) << "\"";
+  of << indent << " displayTrajectory=\"" << ( this->DisplayTrajectory ? "true" : "false" ) << "\"";  
   of << indent << " displayDistance=\"" << ( this->DisplayDistance ? "true" : "false" ) << "\"";
   of << indent << " closestDistanceToModelFromToolTip=\"" << ClosestDistanceToModelFromToolTip << "\"";
   of << indent << " pointOnModel=\"" << this->PointOnModel[0] << " " << this->PointOnModel[1] << " " << this->PointOnModel[2] << "\"";
@@ -167,20 +169,7 @@ vtkMRMLBreachWarningNode
       this->DistanceColor[1] = val;
       ss >> val;
       this->DistanceColor[2] = val;
-    }
-    else if (!strcmp(attName, "crossHairColor"))
-    {
-      std::stringstream ss;
-      ss << attValue;
-      double val;
-      ss >> val;
-      this->CrossHairColor[0] = val;
-      ss >> val;
-      this->CrossHairColor[1] = val;
-      ss >> val;
-      this->CrossHairColor[2] = val;
-    }
-
+    }    
     else if ( ! strcmp( attName, "displayWarningColor" ) )
     {
       if (!strcmp(attValue,"true"))
@@ -213,18 +202,7 @@ vtkMRMLBreachWarningNode
       {
         this->DisplayTrajectory = false;
       }
-    }
-    else if ( ! strcmp( attName, "displayCrossHair" ) )
-    {
-      if (!strcmp(attValue,"true"))
-      {
-        this->DisplayCrossHair = true;
-      }
-      else
-      {
-        this->DisplayCrossHair = false;
-      }
-    }
+    }    
     else if ( ! strcmp( attName, "displayDistance" ) )
     {
       if (!strcmp(attValue,"true"))
@@ -271,15 +249,13 @@ vtkMRMLBreachWarningNode
   {
     this->WarningColor[ i ] = node->WarningColor[ i ];
     this->OriginalColor[ i ] = node->OriginalColor[ i ];
-    this->TrajectoryColor[ i ] = node->TrajectoryColor[ i ];
-    this->CrossHairColor[ i ] = node->CrossHairColor[ i ];
+    this->TrajectoryColor[ i ] = node->TrajectoryColor[ i ];    
     this->DistanceColor[ i ] = node->DistanceColor[ i ];
     this->PointOnModel[ i ] = node->PointOnModel[ i ];
   }
 
   this->PlayWarningSound = node->PlayWarningSound;  
-  this->DisplayWarningColor = node->DisplayWarningColor;
-  this->DisplayCrossHair = node->DisplayCrossHair;
+  this->DisplayWarningColor = node->DisplayWarningColor;  
   this->DisplayDistance = node->DisplayDistance;
   this->DisplayTrajectory = node->DisplayTrajectory;
 
@@ -296,15 +272,13 @@ vtkMRMLBreachWarningNode
 
   os << indent << "WatchedModelID: " << this->GetWatchedModelNode()->GetID() << std::endl;
   os << indent << "ToolTipTransformID: " << this->GetToolTransformNode()->GetID() << std::endl;
-  os << indent << "DisplayWarningColor: " << this->DisplayWarningColor << std::endl;
-  os << indent << "DisplayCrossHair: " << this->DisplayCrossHair << std::endl;
+  os << indent << "DisplayWarningColor: " << this->DisplayWarningColor << std::endl;  
   os << indent << "DisplayTrajectory: " << this->DisplayTrajectory << std::endl;
   os << indent << "DisplayDistance: " << this->DisplayDistance << std::endl;
   os << indent << "PlayWarningSound: " << this->PlayWarningSound << std::endl;
   os << indent << "WarningColor: " << this->WarningColor[0] << ", " << this->WarningColor[1] << ", " << this->WarningColor[2] << std::endl;
   os << indent << "OriginalColor: " << this->OriginalColor[0] << ", " << this->OriginalColor[1] << ", " << this->OriginalColor[2] << std::endl;
-  os << indent << "TrajectoryColor: " << this->TrajectoryColor[0] << ", " << this->TrajectoryColor[1] << ", " << this->TrajectoryColor[2] << std::endl;
-  os << indent << "CrossHairColor: " << this->CrossHairColor[0] << ", " << this->CrossHairColor[1] << ", " << this->CrossHairColor[2] << std::endl;
+  os << indent << "TrajectoryColor: " << this->TrajectoryColor[0] << ", " << this->TrajectoryColor[1] << ", " << this->TrajectoryColor[2] << std::endl;  
   os << indent << "DistanceColor: " << this->DistanceColor[0] << ", " << this->DistanceColor[1] << ", " << this->DistanceColor[2] << std::endl;
   os << indent << "PointOnModel: " << this->PointOnModel[0] << ", " << this->PointOnModel[1] << ", " << this->PointOnModel[2] << std::endl;
 }
@@ -426,19 +400,8 @@ vtkMRMLBreachWarningNode::SetDisplayTrajectory(bool _arg)
   {
     this->DisplayTrajectory = _arg;
     this->Modified();
-    this->InvokeCustomModifiedEvent(InputDataModifiedEvent);
-  }
-}
-
-void 
-vtkMRMLBreachWarningNode::SetDisplayCrossHair(bool _arg)
-{
-  vtkDebugMacro(<< this->GetClassName() << " (" << this << "): setting DisplayCrossHair to " << _arg);
-  if (this->DisplayCrossHair != _arg)
-  {
-    this->DisplayCrossHair = _arg;
-    this->Modified();
-    this->InvokeCustomModifiedEvent(InputDataModifiedEvent);
+    this->Trajectory->SetDisplayVisibility(this->DisplayTrajectory);
+    //this->InvokeCustomModifiedEvent(InputDataModifiedEvent);
   }
 }
 
@@ -450,7 +413,8 @@ vtkMRMLBreachWarningNode::SetDisplayDistance(bool _arg)
   {
     this->DisplayDistance = _arg;
     this->Modified();
-    this->InvokeCustomModifiedEvent(InputDataModifiedEvent);
+    this->Trajectory->SetDistanceAnnotationVisibility(this->DisplayDistance);
+    //this->InvokeCustomModifiedEvent(InputDataModifiedEvent);
   }
 }
 
@@ -503,8 +467,14 @@ vtkMRMLBreachWarningNode::SetTrajectoryColor(double _arg1, double _arg2, double 
     this->TrajectoryColor[0] = _arg1;
     this->TrajectoryColor[1] = _arg2;
     this->TrajectoryColor[2] = _arg3;
+
+    vtkMRMLAnnotationLineDisplayNode* displayNode = vtkMRMLAnnotationLineDisplayNode::SafeDownCast(this->Trajectory->GetModelDisplayNode());
+    if (displayNode)
+    {   
+      displayNode->SetColor(this->TrajectoryColor);
+    }
     this->Modified();
-    this->InvokeCustomModifiedEvent(InputDataModifiedEvent);
+    //this->InvokeCustomModifiedEvent(InputDataModifiedEvent);  
   }
 }
 
@@ -523,33 +493,14 @@ vtkMRMLBreachWarningNode::SetDistanceColor(double _arg1, double _arg2, double _a
     this->DistanceColor[0] = _arg1;
     this->DistanceColor[1] = _arg2;
     this->DistanceColor[2] = _arg3;
+    this->Trajectory->SetDistanceAnnotationTextColour(this->DistanceColor);
     this->Modified();
-    this->InvokeCustomModifiedEvent(InputDataModifiedEvent);
+    //this->InvokeCustomModifiedEvent(InputDataModifiedEvent);    
   }
 }
 
 void 
 vtkMRMLBreachWarningNode::SetDistanceColor(double _arg[3])
-{
-  this->SetWarningColor(_arg[0], _arg[1], _arg[2]);
-}
-
-void 
-vtkMRMLBreachWarningNode::SetCrossHairColor(double _arg1, double _arg2, double _arg3)
-{
-  vtkDebugMacro(<< this->GetClassName() << " (" << this << "): setting CrossHairColor to (" << _arg1 << "," << _arg2 << "," << _arg3 << ")");
-  if ((this->CrossHairColor[0] != _arg1)||(this->CrossHairColor[1] != _arg2)||(this->CrossHairColor[2] != _arg3))
-  {
-    this->CrossHairColor[0] = _arg1;
-    this->CrossHairColor[1] = _arg2;
-    this->CrossHairColor[2] = _arg3;
-    this->Modified();
-    this->InvokeCustomModifiedEvent(InputDataModifiedEvent);
-  }
-}
-
-void 
-vtkMRMLBreachWarningNode::SetCrossHairColor(double _arg[3])
 {
   this->SetWarningColor(_arg[0], _arg[1], _arg[2]);
 }
@@ -561,7 +512,7 @@ vtkMRMLBreachWarningNode::SetTrajectory(vtkMRMLAnnotationRulerNode* trajectory)
   {
     this->Trajectory = trajectory;
     this->Modified();
-    this->InvokeCustomModifiedEvent(InputDataModifiedEvent);
+    //this->InvokeCustomModifiedEvent(InputDataModifiedEvent);
   }
 }
 
@@ -575,7 +526,7 @@ vtkMRMLBreachWarningNode::SetPointOnModel(double _arg1, double _arg2, double _ar
     this->PointOnModel[1] = _arg2;
     this->PointOnModel[2] = _arg3;
     this->Modified();
-    this->InvokeCustomModifiedEvent(InputDataModifiedEvent);
+    //this->InvokeCustomModifiedEvent(InputDataModifiedEvent);
   }
 }
 

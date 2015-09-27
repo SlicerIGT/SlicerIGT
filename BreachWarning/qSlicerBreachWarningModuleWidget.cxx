@@ -89,9 +89,7 @@ qSlicerBreachWarningModuleWidget::~qSlicerBreachWarningModuleWidget()
   disconnect(d->DistanceCheckBox, SIGNAL(toggled(bool)), this, SLOT(DisplayDistance(bool)));
   disconnect( d->DistanceColorPickerButton, SIGNAL( colorChanged( QColor ) ), this, SLOT( UpdateDistanceColor( QColor ) ) );
   disconnect(d->TrajectoryCheckBox, SIGNAL(toggled(bool)), this, SLOT(DisplayTrajectory(bool)));
-  disconnect( d->TrajectoryColorPickerButton, SIGNAL( colorChanged( QColor ) ), this, SLOT( UpdateTrajectoryColor( QColor ) ) );
-  disconnect(d->CrosshairCheckBox, SIGNAL(toggled(bool)), this, SLOT(DisplayCrossHair(bool)));
-  disconnect( d->CrossHairColorPickerButton, SIGNAL( colorChanged( QColor ) ), this, SLOT( UpdateCrossHairColor( QColor ) ) );
+  disconnect( d->TrajectoryColorPickerButton, SIGNAL( colorChanged( QColor ) ), this, SLOT( UpdateTrajectoryColor( QColor ) ) );  
 }
 
 //-----------------------------------------------------------------------------
@@ -116,8 +114,6 @@ void qSlicerBreachWarningModuleWidget::setup()
   connect( d->DistanceColorPickerButton, SIGNAL( colorChanged( QColor ) ), this, SLOT( UpdateDistanceColor( QColor ) ) );
   connect(d->TrajectoryCheckBox, SIGNAL(toggled(bool)), this, SLOT(DisplayTrajectory(bool)));
   connect( d->TrajectoryColorPickerButton, SIGNAL( colorChanged( QColor ) ), this, SLOT( UpdateTrajectoryColor( QColor ) ) );
-  connect(d->CrosshairCheckBox, SIGNAL(toggled(bool)), this, SLOT(DisplayCrossHair(bool)));
-  connect( d->CrossHairColorPickerButton, SIGNAL( colorChanged( QColor ) ), this, SLOT( UpdateCrossHairColor( QColor ) ) );
 
   this->UpdateFromMRMLNode();
 }
@@ -251,19 +247,6 @@ void qSlicerBreachWarningModuleWidget::DisplayTrajectory(bool displayTrajectory)
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerBreachWarningModuleWidget::DisplayCrossHair(bool displayCrossHair)
-{
-  Q_D(qSlicerBreachWarningModuleWidget);
-  vtkMRMLBreachWarningNode* parameterNode = vtkMRMLBreachWarningNode::SafeDownCast( d->ParameterNodeComboBox->currentNode() );
-  if ( parameterNode == NULL )
-  {
-    qCritical( "Transform node should not be changed when no module node selected" );
-    return;
-  }
-  parameterNode->SetDisplayCrossHair(displayCrossHair);
-}
-
-//-----------------------------------------------------------------------------
 void qSlicerBreachWarningModuleWidget::DisplayDistance(bool displayDistance)
 {
   Q_D(qSlicerBreachWarningModuleWidget);
@@ -322,21 +305,6 @@ void qSlicerBreachWarningModuleWidget::UpdateDistanceColor( QColor newColor )
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerBreachWarningModuleWidget::UpdateCrossHairColor( QColor newColor )
-{
-  Q_D(qSlicerBreachWarningModuleWidget);
-
-  vtkMRMLBreachWarningNode* parameterNode = vtkMRMLBreachWarningNode::SafeDownCast( d->ParameterNodeComboBox->currentNode() );
-  if ( parameterNode == NULL )
-  {
-    qCritical( "Color selected without module node" );
-    return;
-  }
-
-  parameterNode->SetCrossHairColor( newColor.redF(), newColor.greenF(), newColor.blueF() );
-}
-
-//-----------------------------------------------------------------------------
 void qSlicerBreachWarningModuleWidget::UpdateFromMRMLNode()
 {
   Q_D( qSlicerBreachWarningModuleWidget );
@@ -350,9 +318,7 @@ void qSlicerBreachWarningModuleWidget::UpdateFromMRMLNode()
     d->ToolComboBox->setEnabled( false );
     d->WarningCheckBox->setEnabled( false );
     d->WarningColorPickerButton->setEnabled( false );
-    d->SoundCheckBox->setEnabled( false );
-    d->CrosshairCheckBox->setEnabled( false );
-    d->CrossHairColorPickerButton->setEnabled( false );
+    d->SoundCheckBox->setEnabled( false );        
     d->DistanceCheckBox->setEnabled( false );
     d->DistanceColorPickerButton->setEnabled( false );
     d->TrajectoryCheckBox->setEnabled( false );
@@ -364,9 +330,7 @@ void qSlicerBreachWarningModuleWidget::UpdateFromMRMLNode()
   d->ToolComboBox->setEnabled( true );
   d->WarningCheckBox->setEnabled( true );
   d->WarningColorPickerButton->setEnabled( true );
-  d->SoundCheckBox->setEnabled( true );
-  d->CrosshairCheckBox->setEnabled( true );
-  d->CrossHairColorPickerButton->setEnabled( true );
+  d->SoundCheckBox->setEnabled( true );;
   d->DistanceCheckBox->setEnabled( true );
   d->DistanceColorPickerButton->setEnabled( true );
   d->TrajectoryCheckBox->setEnabled( true );
@@ -380,11 +344,6 @@ void qSlicerBreachWarningModuleWidget::UpdateFromMRMLNode()
   nodeWarningColor.setRgbF(warningColor[0],warningColor[1],warningColor[2]);
   d->WarningColorPickerButton->setColor(nodeWarningColor);
 
-  double* crossHairColor = bwNode->GetCrossHairColor();
-  QColor nodeCrossHairColor;
-  nodeCrossHairColor.setRgbF(crossHairColor[0],crossHairColor[1],crossHairColor[2]);
-  d->CrossHairColorPickerButton->setColor(nodeCrossHairColor);
-
   double* trajectoryColor = bwNode->GetTrajectoryColor();
   QColor nodeTrajectoryColor;
   nodeTrajectoryColor.setRgbF(trajectoryColor[0],trajectoryColor[1],trajectoryColor[2]);
@@ -396,8 +355,7 @@ void qSlicerBreachWarningModuleWidget::UpdateFromMRMLNode()
   d->DistanceColorPickerButton->setColor(nodeDistanceColor);
 
   d->WarningCheckBox->setChecked( bwNode->GetDisplayWarningColor() );
-  d->SoundCheckBox->setChecked( bwNode->GetPlayWarningSound() );
-  d->CrosshairCheckBox->setChecked( bwNode->GetDisplayCrossHair() );
+  d->SoundCheckBox->setChecked( bwNode->GetPlayWarningSound() );  
   d->DistanceCheckBox->setChecked( bwNode->GetDisplayDistance() );
   d->TrajectoryCheckBox->setChecked( bwNode->GetDisplayTrajectory() );
 }

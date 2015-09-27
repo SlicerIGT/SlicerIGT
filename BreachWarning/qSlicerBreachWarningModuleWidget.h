@@ -55,11 +55,9 @@ protected slots:
   void UpdateWarningColor( QColor newColor );
   void UpdateFromMRMLNode();
   void DisplayTrajectory(bool displayTrajectory);
-  void UpdateTrajectoryColor( QColor newColor );
-  void DisplayCrossHair(bool displayCrossHair);
+  void UpdateTrajectoryColor( QColor newColor );  
   void UpdateDistanceColor( QColor newColor );
-  void DisplayDistance(bool displayDistance);
-  void UpdateCrossHairColor( QColor newColor );
+  void DisplayDistance(bool displayDistance);  
 
 protected:
   QScopedPointer<qSlicerBreachWarningModuleWidgetPrivate> d_ptr;
