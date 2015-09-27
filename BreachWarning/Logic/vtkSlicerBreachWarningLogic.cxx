@@ -19,6 +19,7 @@
 #include "vtkSlicerBreachWarningLogic.h"
 
 // MRML includes
+#include "vtkMRMLAnnotationLineDisplayNode.h"
 #include "vtkMRMLAnnotationRulerNode.h"
 #include "vtkMRMLBreachWarningNode.h"
 #include "vtkMRMLDisplayNode.h"
@@ -189,7 +190,7 @@ void vtkSlicerBreachWarningLogic::UpdateDistanceSign( vtkMRMLBreachWarningNode* 
   {
     return;
   }
-  vtkMRMLAnnotationRulerNode* trajectory = bwNode->GetTrajectory();
+  vtkMRMLAnnotationRulerNode* trajectory = bwNode->GetTrajectory(); 
   if ( trajectory == NULL )
   {
     return;
@@ -428,6 +429,14 @@ void vtkSlicerBreachWarningLogic::UpdateTrajectory( vtkMRMLBreachWarningNode* bw
     if (!this->TrajectoryInitialized)
     {
       trajectory->Initialize(this->GetMRMLScene());
+      vtkMRMLAnnotationLineDisplayNode* displayNode = vtkMRMLAnnotationLineDisplayNode::SafeDownCast(trajectory->GetModelDisplayNode());
+      if (displayNode)
+      {
+        double color[3] = {0, 0, 0};
+        bwNode->GetTrajectoryColor(color);
+        displayNode->SetColor(color);
+        displayNode->SetLineThickness(3);
+      }  
       this->TrajectoryInitialized = true;
     }
   }  

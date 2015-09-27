@@ -71,12 +71,6 @@ vtkMRMLBreachWarningNode
   this->Trajectory = vtkMRMLAnnotationRulerNode::New();
   this->Trajectory->SetName("d");
   this->Trajectory->SetDistanceAnnotationTextColour(this->DistanceColor);
-  vtkMRMLAnnotationLineDisplayNode* displayNode = vtkMRMLAnnotationLineDisplayNode::SafeDownCast(this->Trajectory->GetModelDisplayNode());
-  if (displayNode)
-  {
-    displayNode->SetColor(this->TrajectoryColor);
-    displayNode->SetLineThickness(3);
-  }  
 }
 
 vtkMRMLBreachWarningNode
