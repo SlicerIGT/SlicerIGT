@@ -37,13 +37,16 @@
 #ifndef vtkImplicitPolyDataDistanceWithClosestPointCoordinate_h
 #define vtkImplicitPolyDataDistanceWithClosestPointCoordinate_h
 
-#include "vtkFiltersCoreModule.h" // For export macro
+// If this class is moved to VTK then the include file has to be changed to "vtkFiltersCoreModule.h"
+#include "vtkSlicerBreachWarningModuleLogicExport.h" // For export macro
+
 #include "vtkImplicitFunction.h"
 
 class vtkCellLocator;
 class vtkPolyData;
 
-class VTKFILTERSCORE_EXPORT vtkImplicitPolyDataDistanceWithClosestPointCoordinate : public vtkImplicitFunction
+// If this class is moved to VTK then export directive has to be changed to VTKFILTERSCORE_EXPORT
+class VTK_SLICER_BREACHWARNING_MODULE_LOGIC_EXPORT vtkImplicitPolyDataDistanceWithClosestPointCoordinate : public vtkImplicitFunction
 {
 public:
   static vtkImplicitPolyDataDistanceWithClosestPointCoordinate *New();
