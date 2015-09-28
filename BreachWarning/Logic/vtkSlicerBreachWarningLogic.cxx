@@ -145,9 +145,9 @@ void vtkSlicerBreachWarningLogic::UpdateToolState( vtkMRMLBreachWarningNode* bwN
   double toolTipPosition_Tool[4] = { 0.0, 0.0, 0.0, 1.0 };
   double* toolTipPosition_Ras = toolToRasTransform->TransformDoublePoint( toolTipPosition_Tool);
 
-  double p[3] = {0, 0, 0};
-  bwNode->SetClosestDistanceToModelFromToolTip(implicitDistanceFilter->EvaluateFunction( toolTipPosition_Ras, p ));
-  bwNode->SetPointOnModel(p);
+  double cp[3] = {0, 0, 0};
+  bwNode->SetClosestDistanceToModelFromToolTip(implicitDistanceFilter->EvaluateFunctionAndGetClosestPoint( toolTipPosition_Ras, cp ));
+  bwNode->SetPointOnModel(cp);
   if (bwNode->GetDisplayDistance() || bwNode->GetDisplayTrajectory())
   {
     this->UpdateTrajectory(bwNode, toolTipPosition_Ras);

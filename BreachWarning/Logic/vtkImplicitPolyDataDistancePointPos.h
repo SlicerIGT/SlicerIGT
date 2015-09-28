@@ -33,6 +33,11 @@
 // by Cory Quammen, Chris Weigle C., Russ Taylor
 // http://hdl.handle.net/10380/3262
 // http://www.midasjournal.org/browse/publication/797
+//
+// Enhancements (Mikael Brudfors & Andras Lasso):
+// - Made private members protected for access in derived classes
+// - NoClosestPoint (0,0,0)
+//
 
 #ifndef vtkImplicitPolyDataDistancePointPos_h
 #define vtkImplicitPolyDataDistancePointPos_h
@@ -62,12 +67,12 @@ public:
   double EvaluateFunction(double x[3]);
 
   // Description:
-  // Evaluate plane equation of nearest triangle to point x[3] and provides the position of the closest point.
-  double EvaluateFunction(double x[3], double cp[3]);
-
-  // Description:
   // Evaluate function gradient of nearest triangle to point x[3].
   void EvaluateGradient(double x[3], double g[3]);
+
+  // Description:
+  // Evaluate plane equation of nearest triangle to point x[3] and provides closest point on an input vtkPolyData.
+  double EvaluateFunctionAndGetClosestPoint (double x[3], double cp[3]);
 
   // Description:
   // Set the input vtkPolyData used for the implicit function
@@ -89,6 +94,12 @@ public:
   vtkGetVector3Macro(NoGradient, double);
 
   // Description:
+  // Set/get the closest point to use if no input vtkPolyData
+  // specified.
+  vtkSetVector3Macro(NoClosestPoint, double);
+  vtkGetVector3Macro(NoClosestPoint, double);
+
+  // Description:
   // Set/get the tolerance usued for the locator.
   vtkGetMacro(Tolerance, double);
   vtkSetMacro(Tolerance, double);
@@ -98,23 +109,20 @@ public:
   // An instance of vtkCellLocator is used by default.
   void SetLocator(vtkCellLocator *locator);
   vtkGetObjectMacro(Locator, vtkCellLocator);
-  
+
 protected:
   vtkImplicitPolyDataDistancePointPos();
   ~vtkImplicitPolyDataDistancePointPos();
 
   // Description:
-  // Release locator
-  void ReleaseLocator(void);
-
-  // Description:
   // Create default locator. Used to create one when none is specified.
   void CreateDefaultLocator(void);
 
-  double SharedEvaluate(double x[3], double n[3], double cp[3]);
-
-  double NoValue;
+  double SharedEvaluate(double x[3], double g[3], double cp[3]);
+  
   double NoGradient[3];
+  double NoClosestPoint[3];
+  double NoValue;
   double Tolerance;
 
   vtkPolyData       *Input;

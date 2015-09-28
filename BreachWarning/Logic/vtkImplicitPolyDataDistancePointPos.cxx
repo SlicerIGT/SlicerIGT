@@ -25,15 +25,20 @@
 #include "vtkSmartPointer.h"
 
 vtkStandardNewMacro(vtkImplicitPolyDataDistancePointPos);
+vtkCxxSetObjectMacro(vtkImplicitPolyDataDistancePointPos,Locator,vtkCellLocator);
 
 //-----------------------------------------------------------------------------
 vtkImplicitPolyDataDistancePointPos::vtkImplicitPolyDataDistancePointPos()
-{
-  this->NoValue = 0.0;
+{  
+  this->NoClosestPoint[0] = 0.0;
+  this->NoClosestPoint[1] = 0.0;
+  this->NoClosestPoint[2] = 0.0;
 
   this->NoGradient[0] = 0.0;
   this->NoGradient[1] = 0.0;
   this->NoGradient[2] = 1.0;
+
+  this->NoValue = 0.0;
 
   this->Input = NULL;
   this->Locator = NULL;
@@ -89,34 +94,7 @@ unsigned long vtkImplicitPolyDataDistancePointPos::GetMTime()
 //-----------------------------------------------------------------------------
 vtkImplicitPolyDataDistancePointPos::~vtkImplicitPolyDataDistancePointPos()
 {
-  this->ReleaseLocator();
-}
-
-//----------------------------------------------------------------------------
-void vtkImplicitPolyDataDistancePointPos::SetLocator(vtkCellLocator *locator)
-{
-  if (this->Locator == locator)
-    {
-    return;
-    }
-
-  if (this->Locator)
-    {
-    this->ReleaseLocator();
-    }
-
-  if (locator)
-    {
-    locator->Register(this);
-    }
-
-  this->Locator = locator;
-  this->Modified();
-}
-
-//----------------------------------------------------------------------------
-void vtkImplicitPolyDataDistancePointPos::ReleaseLocator(void) {
-  if (this->Locator)
+  if ( this->Locator )
     {
     this->Locator->UnRegister(this);
     this->Locator = NULL;
@@ -124,44 +102,50 @@ void vtkImplicitPolyDataDistancePointPos::ReleaseLocator(void) {
 }
 
 //----------------------------------------------------------------------------
-void vtkImplicitPolyDataDistancePointPos::CreateDefaultLocator() {
-  if (this->Locator)
+void vtkImplicitPolyDataDistancePointPos::CreateDefaultLocator() 
+{
+  if ( this->Locator == NULL )
     {
-    this->ReleaseLocator();
+    this->Locator = vtkCellLocator::New();
     }
-
-  this->Locator = vtkCellLocator::New();
 }
 
 //-----------------------------------------------------------------------------
 double vtkImplicitPolyDataDistancePointPos::EvaluateFunction(double x[3])
 {
-  double n[3];
+  double g[3];
   double cp[3];
-  return this->SharedEvaluate(x, n, cp); // get distance value returned, normal not used
+  return this->SharedEvaluate(x, g, cp); // get distance value returned, normal and closest point not used
 }
 
 //-----------------------------------------------------------------------------
-double vtkImplicitPolyDataDistancePointPos::EvaluateFunction(double x[3], double cp[3])
+double vtkImplicitPolyDataDistancePointPos::EvaluateFunctionAndGetClosestPoint(double x[3], double cp[3])
 {
-  double n[3];
-  return this->SharedEvaluate(x, n, cp); // distance value returned and point on vtkPolyData stored in p (normal not used).
+  double g[3];
+  return this->SharedEvaluate(x, g, cp); // distance value returned and point on vtkPolyData stored in cp (normal not used).
 }
 
 //-----------------------------------------------------------------------------
-void vtkImplicitPolyDataDistancePointPos::EvaluateGradient(double x[3], double n[3])
+void vtkImplicitPolyDataDistancePointPos::EvaluateGradient(double x[3], double g[3])
 {
   double cp[3];
-  this->SharedEvaluate(x, n, cp);	// get normal, returned distance value not used
+  this->SharedEvaluate(x, g, cp);	// get normal, returned distance value not used and closest point not used
 }
 
 //-----------------------------------------------------------------------------
-double vtkImplicitPolyDataDistancePointPos::SharedEvaluate(double x[3], double n[3], double cp[3])
+double vtkImplicitPolyDataDistancePointPos::SharedEvaluate(double x[3], double g[3], double cp[3])
 {
+  // Set defaults
   double ret = this->NoValue;
+
   for( int i=0; i < 3; i++ )
     {
-    n[i] = this->NoGradient[i];
+    g[i] = this->NoGradient[i];
+    }
+
+  for( int i=0; i < 3; i++ )
+    {
+    cp[i] = this->NoClosestPoint[i];
     }
 
   // See if data set with polygons has been specified
@@ -194,17 +178,12 @@ double vtkImplicitPolyDataDistancePointPos::SharedEvaluate(double x[3], double n
     // grad = (point - x) / dist
     for (int i = 0; i < 3; i++)
       {
-      n[i] = (p[i] - x[i]) / (ret == 0. ? 1. : ret);
+      g[i] = (p[i] - x[i]) / (ret == 0. ? 1. : ret);
       }
 
     double dist2, weights[3], pcoords[3], awnorm[3] = {0, 0, 0};
     double closestPoint[3];
-    cell->EvaluatePosition(p, closestPoint, subId, pcoords, dist2, weights);
-
-    // Get closest point cp on vtkPolyData
-    cp[0] = closestPoint[0];
-    cp[1] = closestPoint[1];
-    cp[2] = closestPoint[2];
+    cell->EvaluatePosition(p, cp, subId, pcoords, dist2, weights);
 
     vtkIdList* idList = vtkIdList::New();
     int count = 0;
@@ -335,16 +314,16 @@ double vtkImplicitPolyDataDistancePointPos::SharedEvaluate(double x[3], double n
       {
       for (int i = 0; i < 3; i++)
         {
-        n[i] = awnorm[i];
+        g[i] = awnorm[i];
         }
       }
-    ret *= (vtkMath::Dot(n, awnorm) < 0.) ? 1. : -1.;
+    ret *= (vtkMath::Dot(g, awnorm) < 0.) ? 1. : -1.;
 
     if (ret > 0.)
       {
       for (int i = 0; i < 3; i++)
         {
-        n[i] = -n[i];
+        g[i] = -g[i];
         }
       }
     }
