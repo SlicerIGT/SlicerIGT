@@ -36,8 +36,8 @@
 //
 // Enhancements (Mikael Brudfors & Andras Lasso):
 // - Made private members protected for access in derived classes
-// - NoClosestPoint (0,0,0)
-//
+// - Added a method EvaluateFunctionAndGetClosestPoint for accessing closest point on input vtkPolyData
+// - Added possibility of setting the locator
 
 #ifndef vtkImplicitPolyDataDistancePointPos_h
 #define vtkImplicitPolyDataDistancePointPos_h
