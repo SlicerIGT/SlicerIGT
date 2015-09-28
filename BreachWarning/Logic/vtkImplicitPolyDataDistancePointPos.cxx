@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Visualization Toolkit
-  Module:    vtkImplicitPolyDataDistanceWithClosestPointCoordinate.cxx
+  Module:    vtkImplicitPolyDataDistancePointPos.cxx
 
   Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
   All rights reserved.
@@ -12,7 +12,7 @@
      PURPOSE.  See the above copyright notice for more information.
 
 =========================================================================*/
-#include "vtkImplicitPolyDataDistanceWithClosestPointCoordinate.h"
+#include "vtkImplicitPolyDataDistancePointPos.h"
 
 #include "vtkCellData.h"
 #include "vtkCellLocator.h"
@@ -24,10 +24,10 @@
 #include "vtkTriangleFilter.h"
 #include "vtkSmartPointer.h"
 
-vtkStandardNewMacro(vtkImplicitPolyDataDistanceWithClosestPointCoordinate);
+vtkStandardNewMacro(vtkImplicitPolyDataDistancePointPos);
 
 //-----------------------------------------------------------------------------
-vtkImplicitPolyDataDistanceWithClosestPointCoordinate::vtkImplicitPolyDataDistanceWithClosestPointCoordinate()
+vtkImplicitPolyDataDistancePointPos::vtkImplicitPolyDataDistancePointPos()
 {
   this->NoValue = 0.0;
 
@@ -41,7 +41,7 @@ vtkImplicitPolyDataDistanceWithClosestPointCoordinate::vtkImplicitPolyDataDistan
 }
 
 //-----------------------------------------------------------------------------
-void vtkImplicitPolyDataDistanceWithClosestPointCoordinate::SetInput(vtkPolyData* input)
+void vtkImplicitPolyDataDistancePointPos::SetInput(vtkPolyData* input)
 {
   if ( this->Input != input )
     {
@@ -72,7 +72,7 @@ void vtkImplicitPolyDataDistanceWithClosestPointCoordinate::SetInput(vtkPolyData
 }
 
 //-----------------------------------------------------------------------------
-unsigned long vtkImplicitPolyDataDistanceWithClosestPointCoordinate::GetMTime()
+unsigned long vtkImplicitPolyDataDistancePointPos::GetMTime()
 {
   unsigned long mTime=this->vtkImplicitFunction::GetMTime();
   unsigned long InputMTime;
@@ -87,13 +87,13 @@ unsigned long vtkImplicitPolyDataDistanceWithClosestPointCoordinate::GetMTime()
 }
 
 //-----------------------------------------------------------------------------
-vtkImplicitPolyDataDistanceWithClosestPointCoordinate::~vtkImplicitPolyDataDistanceWithClosestPointCoordinate()
+vtkImplicitPolyDataDistancePointPos::~vtkImplicitPolyDataDistancePointPos()
 {
   this->ReleaseLocator();
 }
 
 //----------------------------------------------------------------------------
-void vtkImplicitPolyDataDistanceWithClosestPointCoordinate::SetLocator(vtkCellLocator *locator)
+void vtkImplicitPolyDataDistancePointPos::SetLocator(vtkCellLocator *locator)
 {
   if (this->Locator == locator)
     {
@@ -115,7 +115,7 @@ void vtkImplicitPolyDataDistanceWithClosestPointCoordinate::SetLocator(vtkCellLo
 }
 
 //----------------------------------------------------------------------------
-void vtkImplicitPolyDataDistanceWithClosestPointCoordinate::ReleaseLocator(void) {
+void vtkImplicitPolyDataDistancePointPos::ReleaseLocator(void) {
   if (this->Locator)
     {
     this->Locator->UnRegister(this);
@@ -124,7 +124,7 @@ void vtkImplicitPolyDataDistanceWithClosestPointCoordinate::ReleaseLocator(void)
 }
 
 //----------------------------------------------------------------------------
-void vtkImplicitPolyDataDistanceWithClosestPointCoordinate::CreateDefaultLocator() {
+void vtkImplicitPolyDataDistancePointPos::CreateDefaultLocator() {
   if (this->Locator)
     {
     this->ReleaseLocator();
@@ -134,7 +134,7 @@ void vtkImplicitPolyDataDistanceWithClosestPointCoordinate::CreateDefaultLocator
 }
 
 //-----------------------------------------------------------------------------
-double vtkImplicitPolyDataDistanceWithClosestPointCoordinate::EvaluateFunction(double x[3])
+double vtkImplicitPolyDataDistancePointPos::EvaluateFunction(double x[3])
 {
   double n[3];
   double cp[3];
@@ -142,21 +142,21 @@ double vtkImplicitPolyDataDistanceWithClosestPointCoordinate::EvaluateFunction(d
 }
 
 //-----------------------------------------------------------------------------
-double vtkImplicitPolyDataDistanceWithClosestPointCoordinate::EvaluateFunction(double x[3], double cp[3])
+double vtkImplicitPolyDataDistancePointPos::EvaluateFunction(double x[3], double cp[3])
 {
   double n[3];
   return this->SharedEvaluate(x, n, cp); // distance value returned and point on vtkPolyData stored in p (normal not used).
 }
 
 //-----------------------------------------------------------------------------
-void vtkImplicitPolyDataDistanceWithClosestPointCoordinate::EvaluateGradient(double x[3], double n[3])
+void vtkImplicitPolyDataDistancePointPos::EvaluateGradient(double x[3], double n[3])
 {
   double cp[3];
   this->SharedEvaluate(x, n, cp);	// get normal, returned distance value not used
 }
 
 //-----------------------------------------------------------------------------
-double vtkImplicitPolyDataDistanceWithClosestPointCoordinate::SharedEvaluate(double x[3], double n[3], double cp[3])
+double vtkImplicitPolyDataDistancePointPos::SharedEvaluate(double x[3], double n[3], double cp[3])
 {
   double ret = this->NoValue;
   for( int i=0; i < 3; i++ )
@@ -353,7 +353,7 @@ double vtkImplicitPolyDataDistanceWithClosestPointCoordinate::SharedEvaluate(dou
 }
 
 //-----------------------------------------------------------------------------
-void vtkImplicitPolyDataDistanceWithClosestPointCoordinate::PrintSelf(ostream& os, vtkIndent indent)
+void vtkImplicitPolyDataDistancePointPos::PrintSelf(ostream& os, vtkIndent indent)
 {
   vtkImplicitFunction::PrintSelf(os,indent);
 

@@ -10,8 +10,8 @@ set(${KIT}_INCLUDE_DIRECTORIES
 set(${KIT}_SRCS
   vtkSlicerBreachWarningLogic.cxx
   vtkSlicerBreachWarningLogic.h
-  vtkImplicitPolyDataDistanceWithClosestPointCoordinate.cxx
-  vtkImplicitPolyDataDistanceWithClosestPointCoordinate.h
+  vtkImplicitPolyDataDistancePointPos.cxx
+  vtkImplicitPolyDataDistancePointPos.h
   )
 
 set(${KIT}_TARGET_LIBRARIES

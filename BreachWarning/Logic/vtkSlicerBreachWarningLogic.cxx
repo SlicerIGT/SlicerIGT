@@ -32,7 +32,7 @@
 #include <vtkCellLocator.h>
 #include <vtkGeneralTransform.h>
 #include <vtkGenericCell.h>
-#include <vtkImplicitPolyDataDistanceWithClosestPointCoordinate.h>
+#include <vtkImplicitPolyDataDistancePointPos.h>
 #include <vtkMath.h>
 #include <vtkNew.h>
 #include <vtkObjectFactory.h>
@@ -110,7 +110,7 @@ void vtkSlicerBreachWarningLogic::UpdateToolState( vtkMRMLBreachWarningNode* bwN
     return;
   }
   
-  vtkSmartPointer< vtkImplicitPolyDataDistanceWithClosestPointCoordinate > implicitDistanceFilter = vtkSmartPointer< vtkImplicitPolyDataDistanceWithClosestPointCoordinate >::New();
+  vtkSmartPointer< vtkImplicitPolyDataDistancePointPos > implicitDistanceFilter = vtkSmartPointer< vtkImplicitPolyDataDistancePointPos >::New();
 
   // Transform the body poly data if there is a parent transform.
   vtkMRMLTransformNode* bodyParentTransform = modelNode->GetParentTransformNode();

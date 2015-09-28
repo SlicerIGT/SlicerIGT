@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Visualization Toolkit
-  Module:    vtkImplicitPolyDataDistanceWithClosestPointCoordinate.h
+  Module:    vtkImplicitPolyDataDistancePointPos.h
 
   Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
   All rights reserved.
@@ -12,7 +12,7 @@
      PURPOSE.  See the above copyright notice for more information.
 
 =========================================================================*/
-// .NAME vtkImplicitPolyDataDistanceWithClosestPointCoordinate
+// .NAME vtkImplicitPolyDataDistancePointPos
 // .SECTION Description
 //
 // Implicit function that computes the distance from a point x to the
@@ -34,8 +34,8 @@
 // http://hdl.handle.net/10380/3262
 // http://www.midasjournal.org/browse/publication/797
 
-#ifndef vtkImplicitPolyDataDistanceWithClosestPointCoordinate_h
-#define vtkImplicitPolyDataDistanceWithClosestPointCoordinate_h
+#ifndef vtkImplicitPolyDataDistancePointPos_h
+#define vtkImplicitPolyDataDistancePointPos_h
 
 // If this class is moved to VTK then the include file has to be changed to "vtkFiltersCoreModule.h"
 #include "vtkSlicerBreachWarningModuleLogicExport.h" // For export macro
@@ -46,11 +46,11 @@ class vtkCellLocator;
 class vtkPolyData;
 
 // If this class is moved to VTK then export directive has to be changed to VTKFILTERSCORE_EXPORT
-class VTK_SLICER_BREACHWARNING_MODULE_LOGIC_EXPORT vtkImplicitPolyDataDistanceWithClosestPointCoordinate : public vtkImplicitFunction
+class VTK_SLICER_BREACHWARNING_MODULE_LOGIC_EXPORT vtkImplicitPolyDataDistancePointPos : public vtkImplicitFunction
 {
 public:
-  static vtkImplicitPolyDataDistanceWithClosestPointCoordinate *New();
-  vtkTypeMacro(vtkImplicitPolyDataDistanceWithClosestPointCoordinate,vtkImplicitFunction);
+  static vtkImplicitPolyDataDistancePointPos *New();
+  vtkTypeMacro(vtkImplicitPolyDataDistancePointPos,vtkImplicitFunction);
   void PrintSelf(ostream& os, vtkIndent indent);
 
   // Description:
@@ -100,8 +100,8 @@ public:
   vtkGetObjectMacro(Locator, vtkCellLocator);
   
 protected:
-  vtkImplicitPolyDataDistanceWithClosestPointCoordinate();
-  ~vtkImplicitPolyDataDistanceWithClosestPointCoordinate();
+  vtkImplicitPolyDataDistancePointPos();
+  ~vtkImplicitPolyDataDistancePointPos();
 
   // Description:
   // Release locator
@@ -121,8 +121,8 @@ protected:
   vtkCellLocator    *Locator;
 
 private:
-  vtkImplicitPolyDataDistanceWithClosestPointCoordinate(const vtkImplicitPolyDataDistanceWithClosestPointCoordinate&);  // Not implemented.
-  void operator=(const vtkImplicitPolyDataDistanceWithClosestPointCoordinate&);  // Not implemented.
+  vtkImplicitPolyDataDistancePointPos(const vtkImplicitPolyDataDistancePointPos&);  // Not implemented.
+  void operator=(const vtkImplicitPolyDataDistancePointPos&);  // Not implemented.
 };
 
 #endif
