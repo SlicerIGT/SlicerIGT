@@ -202,11 +202,13 @@ void vtkSlicerBreachWarningLogic::UpdateDistanceSign( vtkMRMLBreachWarningNode* 
 
   if ( bwNode->IsToolTipInsideModel())
   {    
-    trajectory->SetDistanceAnnotationFormat("-%.0f mm");
+    //trajectory->SetDistanceAnnotationFormat("-%.0f mm");
+    trajectory->SetTextScale(0); // Hidden when inside of model
   }
   else
   {   
-    trajectory->SetDistanceAnnotationFormat("%.0f mm");
+    //trajectory->SetDistanceAnnotationFormat("%.0f mm");
+    trajectory->SetTextScale(4);
   }
 }
 
@@ -429,9 +431,12 @@ void vtkSlicerBreachWarningLogic::UpdateTrajectory( vtkMRMLBreachWarningNode* bw
     if (!this->TrajectoryInitialized)
     {
       trajectory->Initialize(this->GetMRMLScene());
+      trajectory->SetLocked(true);
+      trajectory->SetTextScale(4);
+      trajectory->SetName("d");
       vtkMRMLAnnotationLineDisplayNode* displayNode = vtkMRMLAnnotationLineDisplayNode::SafeDownCast(trajectory->GetModelDisplayNode());
       if (displayNode)
-      {
+      {                
         double color[3] = {0, 0, 0};
         bwNode->GetTrajectoryColor(color);
         displayNode->SetColor(color);

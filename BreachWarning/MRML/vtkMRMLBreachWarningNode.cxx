@@ -69,8 +69,6 @@ vtkMRMLBreachWarningNode
   this->PointOnModel[2] = 0.0;
 
   this->Trajectory = vtkMRMLAnnotationRulerNode::New();
-  this->Trajectory->SetName("d");
-  this->Trajectory->SetDistanceAnnotationTextColour(this->DistanceColor);
 }
 
 vtkMRMLBreachWarningNode
