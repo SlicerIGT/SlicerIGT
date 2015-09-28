@@ -68,7 +68,11 @@ vtkMRMLBreachWarningNode
   this->PointOnModel[1] = 0.0;
   this->PointOnModel[2] = 0.0;
 
+  this->DistanceTextSize = 4;
+
   this->Trajectory = vtkMRMLAnnotationRulerNode::New();
+  this->Trajectory->SetName("d");  
+  this->TrajectoryThickness = 3;
 }
 
 vtkMRMLBreachWarningNode
@@ -97,6 +101,9 @@ vtkMRMLBreachWarningNode
   of << indent << " displayDistance=\"" << ( this->DisplayDistance ? "true" : "false" ) << "\"";
   of << indent << " closestDistanceToModelFromToolTip=\"" << ClosestDistanceToModelFromToolTip << "\"";
   of << indent << " pointOnModel=\"" << this->PointOnModel[0] << " " << this->PointOnModel[1] << " " << this->PointOnModel[2] << "\"";
+  of << indent << " distanceTextSize=\"" << this->DistanceTextSize << "\"";
+  of << indent << " trajectoryThickness=\"" << this->TrajectoryThickness << "\"";
+
 }
 
 void
@@ -214,7 +221,7 @@ vtkMRMLBreachWarningNode
       ss >> val;
       this->ClosestDistanceToModelFromToolTip = val;
     }
-   else if (!strcmp(attName, "pointOnModel"))
+    else if (!strcmp(attName, "pointOnModel"))
     {
       std::stringstream ss;
       ss << attValue;
@@ -226,6 +233,22 @@ vtkMRMLBreachWarningNode
       ss >> val;
       this->PointOnModel[2] = val;
     }
+    else if (!strcmp(attName, "distanceTextSize"))
+    {
+      std::stringstream ss;
+      ss << attValue;
+      double val;
+      ss >> val;
+      this->DistanceTextSize = val;
+    }    
+    else if (!strcmp(attName, "trajectoryThickness"))
+    {
+      std::stringstream ss;
+      ss << attValue;
+      double val;
+      ss >> val;
+      this->TrajectoryThickness = val;
+    }    
   }
 }
 
@@ -252,6 +275,9 @@ vtkMRMLBreachWarningNode
   this->DisplayTrajectory = node->DisplayTrajectory;
 
   this->Trajectory = node->Trajectory;
+
+  this->DistanceTextSize = node->DistanceTextSize;
+  this->TrajectoryThickness = node->TrajectoryThickness;
   
   this->Modified();
 }
@@ -273,6 +299,8 @@ vtkMRMLBreachWarningNode
   os << indent << "TrajectoryColor: " << this->TrajectoryColor[0] << ", " << this->TrajectoryColor[1] << ", " << this->TrajectoryColor[2] << std::endl;  
   os << indent << "DistanceColor: " << this->DistanceColor[0] << ", " << this->DistanceColor[1] << ", " << this->DistanceColor[2] << std::endl;
   os << indent << "PointOnModel: " << this->PointOnModel[0] << ", " << this->PointOnModel[1] << ", " << this->PointOnModel[2] << std::endl;
+  os << indent << "DistanceTextSize: " << this->DistanceTextSize << std::endl;
+  os << indent << "TrajectoryThickness: " << this->TrajectoryThickness << std::endl;
 }
 
 vtkMRMLModelNode*
@@ -405,7 +433,14 @@ vtkMRMLBreachWarningNode::SetDisplayDistance(bool _arg)
   {
     this->DisplayDistance = _arg;
     this->Modified();
-    this->Trajectory->SetDistanceAnnotationVisibility(this->DisplayDistance);
+    if (this->DisplayDistance)
+    {
+      this->Trajectory->SetTextScale(4);
+    }
+    else if (!this->DisplayDistance)
+    {
+      this->Trajectory->SetTextScale(0); // Still visible in slice view
+    }
     //this->InvokeCustomModifiedEvent(InputDataModifiedEvent);
   }
 }
@@ -526,4 +561,37 @@ void
 vtkMRMLBreachWarningNode::SetPointOnModel(double _arg[3])
 {
   this->SetPointOnModel(_arg[0], _arg[1], _arg[2]);
+}
+
+void 
+vtkMRMLBreachWarningNode::SetDistanceTextSize(double _arg)
+{
+  vtkDebugMacro(<< this->GetClassName() << " (" << this << "): setting DistanceTextSize to " << _arg);
+  if (this->DistanceTextSize != _arg)
+  {
+    this->DistanceTextSize = _arg;
+
+    this->Trajectory->SetTextScale(this->DistanceTextSize);
+
+    this->Modified();
+    //this->InvokeCustomModifiedEvent(InputDataModifiedEvent);  
+  }
+}
+
+void 
+vtkMRMLBreachWarningNode::SetTrajectoryThickness(double _arg)
+{
+  vtkDebugMacro(<< this->GetClassName() << " (" << this << "): setting TrajectoryThickness to " << _arg);
+  if (this->TrajectoryThickness != _arg)
+  {
+    this->TrajectoryThickness = _arg;
+
+    vtkMRMLAnnotationLineDisplayNode* displayNode = vtkMRMLAnnotationLineDisplayNode::SafeDownCast(this->Trajectory->GetModelDisplayNode());
+    if (displayNode)
+    {   
+      displayNode->SetLineThickness(this->TrajectoryThickness);
+    }
+    this->Modified();
+    //this->InvokeCustomModifiedEvent(InputDataModifiedEvent);  
+  }
 }

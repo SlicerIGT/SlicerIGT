@@ -58,6 +58,8 @@ protected slots:
   void UpdateTrajectoryColor( QColor newColor );  
   void UpdateDistanceColor( QColor newColor );
   void DisplayDistance(bool displayDistance);  
+  void DistanceTextSizeChanged(double size);
+  void TrajectoryThicknessChanged(double thickness);
 
 protected:
   QScopedPointer<qSlicerBreachWarningModuleWidgetPrivate> d_ptr;

@@ -129,6 +129,12 @@ public:
   virtual void SetPointOnModel(double _arg1, double _arg2, double _arg3);
   virtual void SetPointOnModel(double _arg[3]);
 
+  vtkGetMacro( DistanceTextSize, double );
+  virtual void SetDistanceTextSize(double _arg);
+
+  vtkGetMacro( TrajectoryThickness, double );
+  virtual void SetTrajectoryThickness(double _arg);
+
   // Watched model defines the risk area that needs to be avoided.
 
   vtkMRMLModelNode* GetWatchedModelNode();
@@ -153,6 +159,9 @@ private:
   bool DisplayTrajectory;
   bool DisplayDistance;
   bool PlayWarningSound;
+
+  double DistanceTextSize;
+  double TrajectoryThickness;
 
   // It is the closest distance to the model from the tool transform. If the distance is negative
   // the transform is inside the model.

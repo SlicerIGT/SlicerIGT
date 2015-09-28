@@ -432,15 +432,14 @@ void vtkSlicerBreachWarningLogic::UpdateTrajectory( vtkMRMLBreachWarningNode* bw
     {
       trajectory->Initialize(this->GetMRMLScene());
       trajectory->SetLocked(true);
-      trajectory->SetTextScale(4);
-      trajectory->SetName("d");
+      trajectory->SetTextScale(bwNode->GetDistanceTextSize());      
       vtkMRMLAnnotationLineDisplayNode* displayNode = vtkMRMLAnnotationLineDisplayNode::SafeDownCast(trajectory->GetModelDisplayNode());
       if (displayNode)
       {                
         double color[3] = {0, 0, 0};
         bwNode->GetTrajectoryColor(color);
         displayNode->SetColor(color);
-        displayNode->SetLineThickness(3);
+        displayNode->SetLineThickness(bwNode->GetTrajectoryThickness());
       }  
       this->TrajectoryInitialized = true;
     }

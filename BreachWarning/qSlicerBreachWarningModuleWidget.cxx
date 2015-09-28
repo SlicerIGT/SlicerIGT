@@ -90,6 +90,8 @@ qSlicerBreachWarningModuleWidget::~qSlicerBreachWarningModuleWidget()
   disconnect( d->DistanceColorPickerButton, SIGNAL( colorChanged( QColor ) ), this, SLOT( UpdateDistanceColor( QColor ) ) );
   disconnect(d->TrajectoryCheckBox, SIGNAL(toggled(bool)), this, SLOT(DisplayTrajectory(bool)));
   disconnect( d->TrajectoryColorPickerButton, SIGNAL( colorChanged( QColor ) ), this, SLOT( UpdateTrajectoryColor( QColor ) ) );  
+  disconnect( d->DistanceTextSizeSlider, SIGNAL( valueChanged (double ) ), this, SLOT( DistanceTextSizeChanged( double ) ) );  
+  disconnect( d->TrajectoryThicknessSlider, SIGNAL( valueChanged (double ) ), this, SLOT( TrajectoryThicknessChanged( double ) ) );  
 }
 
 //-----------------------------------------------------------------------------
@@ -114,6 +116,8 @@ void qSlicerBreachWarningModuleWidget::setup()
   connect( d->DistanceColorPickerButton, SIGNAL( colorChanged( QColor ) ), this, SLOT( UpdateDistanceColor( QColor ) ) );
   connect(d->TrajectoryCheckBox, SIGNAL(toggled(bool)), this, SLOT(DisplayTrajectory(bool)));
   connect( d->TrajectoryColorPickerButton, SIGNAL( colorChanged( QColor ) ), this, SLOT( UpdateTrajectoryColor( QColor ) ) );
+  connect( d->DistanceTextSizeSlider, SIGNAL( valueChanged (double ) ), this, SLOT( DistanceTextSizeChanged( double ) ) );  
+  connect( d->TrajectoryThicknessSlider, SIGNAL( valueChanged (double ) ), this, SLOT( TrajectoryThicknessChanged( double ) ) );  
 
   this->UpdateFromMRMLNode();
 }
@@ -214,7 +218,7 @@ void qSlicerBreachWarningModuleWidget::PlayWarningSound(bool playWarningSound)
   vtkMRMLBreachWarningNode* parameterNode = vtkMRMLBreachWarningNode::SafeDownCast( d->ParameterNodeComboBox->currentNode() );
   if ( parameterNode == NULL )
   {
-    qCritical( "Transform node should not be changed when no module node selected" );
+    qCritical( "No module node selected" );
     return;
   }
   parameterNode->SetPlayWarningSound(playWarningSound);
@@ -227,7 +231,7 @@ void qSlicerBreachWarningModuleWidget::DisplayWarningColor(bool displayWarningCo
   vtkMRMLBreachWarningNode* parameterNode = vtkMRMLBreachWarningNode::SafeDownCast( d->ParameterNodeComboBox->currentNode() );
   if ( parameterNode == NULL )
   {
-    qCritical( "Transform node should not be changed when no module node selected" );
+    qCritical( "No module node selected" );
     return;
   }
   parameterNode->SetDisplayWarningColor(displayWarningColor);
@@ -240,7 +244,7 @@ void qSlicerBreachWarningModuleWidget::DisplayTrajectory(bool displayTrajectory)
   vtkMRMLBreachWarningNode* parameterNode = vtkMRMLBreachWarningNode::SafeDownCast( d->ParameterNodeComboBox->currentNode() );
   if ( parameterNode == NULL )
   {
-    qCritical( "Transform node should not be changed when no module node selected" );
+    qCritical( "No module node selected" );
     return;
   }
   parameterNode->SetDisplayTrajectory(displayTrajectory);
@@ -253,7 +257,7 @@ void qSlicerBreachWarningModuleWidget::DisplayDistance(bool displayDistance)
   vtkMRMLBreachWarningNode* parameterNode = vtkMRMLBreachWarningNode::SafeDownCast( d->ParameterNodeComboBox->currentNode() );
   if ( parameterNode == NULL )
   {
-    qCritical( "Transform node should not be changed when no module node selected" );
+    qCritical( "No module node selected" );
     return;
   }
   parameterNode->SetDisplayDistance(displayDistance);
@@ -305,6 +309,36 @@ void qSlicerBreachWarningModuleWidget::UpdateDistanceColor( QColor newColor )
 }
 
 //-----------------------------------------------------------------------------
+void qSlicerBreachWarningModuleWidget::DistanceTextSizeChanged( double size )
+{
+  Q_D(qSlicerBreachWarningModuleWidget);
+
+  vtkMRMLBreachWarningNode* parameterNode = vtkMRMLBreachWarningNode::SafeDownCast( d->ParameterNodeComboBox->currentNode() );
+  if ( parameterNode == NULL )
+  {
+    qCritical( "No module node selected" );
+    return;
+  }
+
+  parameterNode->SetDistanceTextSize( size );
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerBreachWarningModuleWidget::TrajectoryThicknessChanged( double thickness )
+{
+  Q_D(qSlicerBreachWarningModuleWidget);
+
+  vtkMRMLBreachWarningNode* parameterNode = vtkMRMLBreachWarningNode::SafeDownCast( d->ParameterNodeComboBox->currentNode() );
+  if ( parameterNode == NULL )
+  {
+    qCritical( "No module node selected" );
+    return;
+  }
+
+  parameterNode->SetTrajectoryThickness( thickness );
+}
+
+//-----------------------------------------------------------------------------
 void qSlicerBreachWarningModuleWidget::UpdateFromMRMLNode()
 {
   Q_D( qSlicerBreachWarningModuleWidget );
@@ -323,6 +357,8 @@ void qSlicerBreachWarningModuleWidget::UpdateFromMRMLNode()
     d->DistanceColorPickerButton->setEnabled( false );
     d->TrajectoryCheckBox->setEnabled( false );
     d->TrajectoryColorPickerButton->setEnabled( false );
+    d->DistanceTextSizeSlider->setEnabled( false );
+    d->TrajectoryThicknessSlider->setEnabled( false );
     return;
   }
     
@@ -335,6 +371,8 @@ void qSlicerBreachWarningModuleWidget::UpdateFromMRMLNode()
   d->DistanceColorPickerButton->setEnabled( true );
   d->TrajectoryCheckBox->setEnabled( true );
   d->TrajectoryColorPickerButton->setEnabled( true );
+  d->DistanceTextSizeSlider->setEnabled( true );
+  d->TrajectoryThicknessSlider->setEnabled( true );
 
   d->ToolComboBox->setCurrentNode( bwNode->GetToolTransformNode() );
   d->ModelNodeComboBox->setCurrentNode( bwNode->GetWatchedModelNode() );
@@ -358,4 +396,6 @@ void qSlicerBreachWarningModuleWidget::UpdateFromMRMLNode()
   d->SoundCheckBox->setChecked( bwNode->GetPlayWarningSound() );  
   d->DistanceCheckBox->setChecked( bwNode->GetDisplayDistance() );
   d->TrajectoryCheckBox->setChecked( bwNode->GetDisplayTrajectory() );
+  d->DistanceTextSizeSlider->setValue( bwNode->GetDistanceTextSize() );
+  d->TrajectoryThicknessSlider->setValue( bwNode->GetTrajectoryThickness() );
 }
