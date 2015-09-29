@@ -86,12 +86,10 @@ qSlicerBreachWarningModuleWidget::~qSlicerBreachWarningModuleWidget()
   disconnect( d->WarningColorPickerButton, SIGNAL( colorChanged( QColor ) ), this, SLOT( UpdateWarningColor( QColor ) ) );
   disconnect(d->SoundCheckBox, SIGNAL(toggled(bool)), this, SLOT(PlayWarningSound(bool)));
   disconnect(d->WarningCheckBox, SIGNAL(toggled(bool)), this, SLOT(DisplayWarningColor(bool)));
-  disconnect(d->DistanceCheckBox, SIGNAL(toggled(bool)), this, SLOT(DisplayDistance(bool)));
-  disconnect( d->DistanceColorPickerButton, SIGNAL( colorChanged( QColor ) ), this, SLOT( UpdateDistanceColor( QColor ) ) );
-  disconnect(d->TrajectoryCheckBox, SIGNAL(toggled(bool)), this, SLOT(DisplayTrajectory(bool)));
-  disconnect( d->TrajectoryColorPickerButton, SIGNAL( colorChanged( QColor ) ), this, SLOT( UpdateTrajectoryColor( QColor ) ) );  
-  disconnect( d->DistanceTextSizeSlider, SIGNAL( valueChanged (double ) ), this, SLOT( DistanceTextSizeChanged( double ) ) );  
-  disconnect( d->TrajectoryThicknessSlider, SIGNAL( valueChanged (double ) ), this, SLOT( TrajectoryThicknessChanged( double ) ) );  
+  disconnect(d->RulerCheckBox, SIGNAL(toggled(bool)), this, SLOT(DisplayRuler(bool)));
+  disconnect( d->RulerColorPickerButton, SIGNAL( colorChanged( QColor ) ), this, SLOT( UpdateRulerColor( QColor ) ) );  
+  disconnect( d->RulerTextSizeSlider, SIGNAL( valueChanged (double ) ), this, SLOT( RulerTextSizeChanged( double ) ) );  
+  disconnect( d->RulerThicknessSlider, SIGNAL( valueChanged (double ) ), this, SLOT( RulerThicknessChanged( double ) ) );  
 }
 
 //-----------------------------------------------------------------------------
@@ -112,12 +110,10 @@ void qSlicerBreachWarningModuleWidget::setup()
   connect( d->WarningColorPickerButton, SIGNAL( colorChanged( QColor ) ), this, SLOT( UpdateWarningColor( QColor ) ) );
   connect(d->SoundCheckBox, SIGNAL(toggled(bool)), this, SLOT(PlayWarningSound(bool)));
   connect(d->WarningCheckBox, SIGNAL(toggled(bool)), this, SLOT(DisplayWarningColor(bool)));
-  connect(d->DistanceCheckBox, SIGNAL(toggled(bool)), this, SLOT(DisplayDistance(bool)));
-  connect( d->DistanceColorPickerButton, SIGNAL( colorChanged( QColor ) ), this, SLOT( UpdateDistanceColor( QColor ) ) );
-  connect(d->TrajectoryCheckBox, SIGNAL(toggled(bool)), this, SLOT(DisplayTrajectory(bool)));
-  connect( d->TrajectoryColorPickerButton, SIGNAL( colorChanged( QColor ) ), this, SLOT( UpdateTrajectoryColor( QColor ) ) );
-  connect( d->DistanceTextSizeSlider, SIGNAL( valueChanged (double ) ), this, SLOT( DistanceTextSizeChanged( double ) ) );  
-  connect( d->TrajectoryThicknessSlider, SIGNAL( valueChanged (double ) ), this, SLOT( TrajectoryThicknessChanged( double ) ) );  
+  connect(d->RulerCheckBox, SIGNAL(toggled(bool)), this, SLOT(DisplayRuler(bool)));
+  connect( d->RulerColorPickerButton, SIGNAL( colorChanged( QColor ) ), this, SLOT( UpdateRulerColor( QColor ) ) );
+  connect( d->RulerTextSizeSlider, SIGNAL( valueChanged (double ) ), this, SLOT( RulerTextSizeChanged( double ) ) );  
+  connect( d->RulerThicknessSlider, SIGNAL( valueChanged (double ) ), this, SLOT( RulerThicknessChanged( double ) ) );  
 
   this->UpdateFromMRMLNode();
 }
@@ -238,7 +234,7 @@ void qSlicerBreachWarningModuleWidget::DisplayWarningColor(bool displayWarningCo
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerBreachWarningModuleWidget::DisplayTrajectory(bool displayTrajectory)
+void qSlicerBreachWarningModuleWidget::DisplayRuler(bool displayRuler)
 {
   Q_D(qSlicerBreachWarningModuleWidget);
   vtkMRMLBreachWarningNode* parameterNode = vtkMRMLBreachWarningNode::SafeDownCast( d->ParameterNodeComboBox->currentNode() );
@@ -247,20 +243,7 @@ void qSlicerBreachWarningModuleWidget::DisplayTrajectory(bool displayTrajectory)
     qCritical( "No module node selected" );
     return;
   }
-  parameterNode->SetDisplayTrajectory(displayTrajectory);
-}
-
-//-----------------------------------------------------------------------------
-void qSlicerBreachWarningModuleWidget::DisplayDistance(bool displayDistance)
-{
-  Q_D(qSlicerBreachWarningModuleWidget);
-  vtkMRMLBreachWarningNode* parameterNode = vtkMRMLBreachWarningNode::SafeDownCast( d->ParameterNodeComboBox->currentNode() );
-  if ( parameterNode == NULL )
-  {
-    qCritical( "No module node selected" );
-    return;
-  }
-  parameterNode->SetDisplayDistance(displayDistance);
+  parameterNode->SetDisplayRuler(displayRuler);
 }
 
 //-----------------------------------------------------------------------------
@@ -279,7 +262,7 @@ void qSlicerBreachWarningModuleWidget::UpdateWarningColor( QColor newColor )
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerBreachWarningModuleWidget::UpdateTrajectoryColor( QColor newColor )
+void qSlicerBreachWarningModuleWidget::UpdateRulerColor( QColor newColor )
 {
   Q_D(qSlicerBreachWarningModuleWidget);
 
@@ -290,26 +273,11 @@ void qSlicerBreachWarningModuleWidget::UpdateTrajectoryColor( QColor newColor )
     return;
   }
 
-  parameterNode->SetTrajectoryColor( newColor.redF(), newColor.greenF(), newColor.blueF() );
+  parameterNode->SetRulerColor( newColor.redF(), newColor.greenF(), newColor.blueF() );
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerBreachWarningModuleWidget::UpdateDistanceColor( QColor newColor )
-{
-  Q_D(qSlicerBreachWarningModuleWidget);
-
-  vtkMRMLBreachWarningNode* parameterNode = vtkMRMLBreachWarningNode::SafeDownCast( d->ParameterNodeComboBox->currentNode() );
-  if ( parameterNode == NULL )
-  {
-    qCritical( "Color selected without module node" );
-    return;
-  }
-
-  parameterNode->SetDistanceColor( newColor.redF(), newColor.greenF(), newColor.blueF() );
-}
-
-//-----------------------------------------------------------------------------
-void qSlicerBreachWarningModuleWidget::DistanceTextSizeChanged( double size )
+void qSlicerBreachWarningModuleWidget::RulerTextSizeChanged( double size )
 {
   Q_D(qSlicerBreachWarningModuleWidget);
 
@@ -320,11 +288,11 @@ void qSlicerBreachWarningModuleWidget::DistanceTextSizeChanged( double size )
     return;
   }
 
-  parameterNode->SetDistanceTextSize( size );
+  parameterNode->SetRulerTextSize( size );
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerBreachWarningModuleWidget::TrajectoryThicknessChanged( double thickness )
+void qSlicerBreachWarningModuleWidget::RulerThicknessChanged( double thickness )
 {
   Q_D(qSlicerBreachWarningModuleWidget);
 
@@ -335,7 +303,7 @@ void qSlicerBreachWarningModuleWidget::TrajectoryThicknessChanged( double thickn
     return;
   }
 
-  parameterNode->SetTrajectoryThickness( thickness );
+  parameterNode->SetRulerThickness( thickness );
 }
 
 //-----------------------------------------------------------------------------
@@ -353,12 +321,10 @@ void qSlicerBreachWarningModuleWidget::UpdateFromMRMLNode()
     d->WarningCheckBox->setEnabled( false );
     d->WarningColorPickerButton->setEnabled( false );
     d->SoundCheckBox->setEnabled( false );        
-    d->DistanceCheckBox->setEnabled( false );
-    d->DistanceColorPickerButton->setEnabled( false );
-    d->TrajectoryCheckBox->setEnabled( false );
-    d->TrajectoryColorPickerButton->setEnabled( false );
-    d->DistanceTextSizeSlider->setEnabled( false );
-    d->TrajectoryThicknessSlider->setEnabled( false );
+    d->RulerCheckBox->setEnabled( false );
+    d->RulerColorPickerButton->setEnabled( false );
+    d->RulerTextSizeSlider->setEnabled( false );
+    d->RulerThicknessSlider->setEnabled( false );
     return;
   }
     
@@ -366,13 +332,11 @@ void qSlicerBreachWarningModuleWidget::UpdateFromMRMLNode()
   d->ToolComboBox->setEnabled( true );
   d->WarningCheckBox->setEnabled( true );
   d->WarningColorPickerButton->setEnabled( true );
-  d->SoundCheckBox->setEnabled( true );;
-  d->DistanceCheckBox->setEnabled( true );
-  d->DistanceColorPickerButton->setEnabled( true );
-  d->TrajectoryCheckBox->setEnabled( true );
-  d->TrajectoryColorPickerButton->setEnabled( true );
-  d->DistanceTextSizeSlider->setEnabled( true );
-  d->TrajectoryThicknessSlider->setEnabled( true );
+  d->SoundCheckBox->setEnabled( true );
+  d->RulerCheckBox->setEnabled( true );
+  d->RulerColorPickerButton->setEnabled( true );
+  d->RulerTextSizeSlider->setEnabled( true );
+  d->RulerThicknessSlider->setEnabled( true );
 
   d->ToolComboBox->setCurrentNode( bwNode->GetToolTransformNode() );
   d->ModelNodeComboBox->setCurrentNode( bwNode->GetWatchedModelNode() );
@@ -382,20 +346,14 @@ void qSlicerBreachWarningModuleWidget::UpdateFromMRMLNode()
   nodeWarningColor.setRgbF(warningColor[0],warningColor[1],warningColor[2]);
   d->WarningColorPickerButton->setColor(nodeWarningColor);
 
-  double* trajectoryColor = bwNode->GetTrajectoryColor();
-  QColor nodeTrajectoryColor;
-  nodeTrajectoryColor.setRgbF(trajectoryColor[0],trajectoryColor[1],trajectoryColor[2]);
-  d->TrajectoryColorPickerButton->setColor(nodeTrajectoryColor);
-
-  double* distanceColor = bwNode->GetDistanceColor();
-  QColor nodeDistanceColor;
-  nodeDistanceColor.setRgbF(distanceColor[0],distanceColor[1],distanceColor[2]);
-  d->DistanceColorPickerButton->setColor(nodeDistanceColor);
+  double* rulerColor = bwNode->GetRulerColor();
+  QColor nodeRulerColor;
+  nodeRulerColor.setRgbF(rulerColor[0],rulerColor[1],rulerColor[2]);
+  d->RulerColorPickerButton->setColor(nodeRulerColor);
 
   d->WarningCheckBox->setChecked( bwNode->GetDisplayWarningColor() );
   d->SoundCheckBox->setChecked( bwNode->GetPlayWarningSound() );  
-  d->DistanceCheckBox->setChecked( bwNode->GetDisplayDistance() );
-  d->TrajectoryCheckBox->setChecked( bwNode->GetDisplayTrajectory() );
-  d->DistanceTextSizeSlider->setValue( bwNode->GetDistanceTextSize() );
-  d->TrajectoryThicknessSlider->setValue( bwNode->GetTrajectoryThickness() );
+  d->RulerCheckBox->setChecked( bwNode->GetDisplayRuler() );
+  d->RulerTextSizeSlider->setValue( bwNode->GetRulerTextSize() );
+  d->RulerThicknessSlider->setValue( bwNode->GetRulerThickness() );
 }

@@ -4,7 +4,9 @@
 
 // Other MRML includes
 #include "vtkMRMLAnnotationLineDisplayNode.h"
+#include "vtkMRMLAnnotationPointDisplayNode.h"
 #include "vtkMRMLAnnotationRulerNode.h"
+#include "vtkMRMLAnnotationTextDisplayNode.h"
 #include "vtkMRMLDisplayNode.h"
 #include "vtkMRMLMarkupsFiducialNode.h"
 #include "vtkMRMLModelNode.h"
@@ -49,18 +51,13 @@ vtkMRMLBreachWarningNode
   this->WarningColor[1] = 0;
   this->WarningColor[2] = 0;
 
-  this->TrajectoryColor[0] = 0; // Green
-  this->TrajectoryColor[1] = 1;
-  this->TrajectoryColor[2] = 0;
-
-  this->DistanceColor[0] = 1; // Yellow
-  this->DistanceColor[1] = 1;
-  this->DistanceColor[2] = 0;  
+  this->RulerColor[0] = 0; // Green
+  this->RulerColor[1] = 1;
+  this->RulerColor[2] = 0;
 
   this->DisplayWarningColor = true;
   this->PlayWarningSound = false;
-  this->DisplayTrajectory = true;  
-  this->DisplayDistance = true;
+  this->DisplayRuler = true;  
 
   this->ClosestDistanceToModelFromToolTip = 0.0;
 
@@ -68,19 +65,19 @@ vtkMRMLBreachWarningNode
   this->PointOnModel[1] = 0.0;
   this->PointOnModel[2] = 0.0;
 
-  this->DistanceTextSize = 4;
+  this->RulerTextSize = 2;
 
-  this->Trajectory = vtkMRMLAnnotationRulerNode::New();
-  this->Trajectory->SetName("d");  
-  this->TrajectoryThickness = 3;
+  this->Ruler = vtkMRMLAnnotationRulerNode::New();
+  this->Ruler->SetName("d");  
+  this->RulerThickness = 3;
 }
 
 vtkMRMLBreachWarningNode
 ::~vtkMRMLBreachWarningNode()
 {
-  if (this->Trajectory)
+  if (this->Ruler)
   {
-    this->Trajectory->Delete();
+    this->Ruler->Delete();
   }
 }
 
@@ -93,16 +90,14 @@ vtkMRMLBreachWarningNode
 
   of << indent << " warningColor=\"" << this->WarningColor[0] << " " << this->WarningColor[1] << " " << this->WarningColor[2] << "\"";
   of << indent << " originalColor=\"" << this->OriginalColor[0] << " " << this->OriginalColor[1] << " " << this->OriginalColor[2] << "\"";
-  of << indent << " trajectoryColor=\"" << this->TrajectoryColor[0] << " " << this->TrajectoryColor[1] << " " << this->TrajectoryColor[2] << "\"";
-  of << indent << " distanceColor=\"" << this->DistanceColor[0] << " " << this->DistanceColor[1] << " " << this->DistanceColor[2] << "\""; 
+  of << indent << " rulerColor=\"" << this->RulerColor[0] << " " << this->RulerColor[1] << " " << this->RulerColor[2] << "\"";  
   of << indent << " displayWarningColor=\"" << ( this->DisplayWarningColor ? "true" : "false" ) << "\"";
   of << indent << " playWarningSound=\"" << ( this->PlayWarningSound ? "true" : "false" ) << "\"";
-  of << indent << " displayTrajectory=\"" << ( this->DisplayTrajectory ? "true" : "false" ) << "\"";  
-  of << indent << " displayDistance=\"" << ( this->DisplayDistance ? "true" : "false" ) << "\"";
+  of << indent << " displayRuler=\"" << ( this->DisplayRuler ? "true" : "false" ) << "\"";  
   of << indent << " closestDistanceToModelFromToolTip=\"" << ClosestDistanceToModelFromToolTip << "\"";
   of << indent << " pointOnModel=\"" << this->PointOnModel[0] << " " << this->PointOnModel[1] << " " << this->PointOnModel[2] << "\"";
-  of << indent << " distanceTextSize=\"" << this->DistanceTextSize << "\"";
-  of << indent << " trajectoryThickness=\"" << this->TrajectoryThickness << "\"";
+  of << indent << " rulerTextSize=\"" << this->RulerTextSize << "\"";
+  of << indent << " rulerThickness=\"" << this->RulerThickness << "\"";
 
 }
 
@@ -145,30 +140,18 @@ vtkMRMLBreachWarningNode
       ss >> val;
       this->OriginalColor[2] = val;
     }
-    else if (!strcmp(attName, "trajectoryColor"))
+    else if (!strcmp(attName, "rulerColor"))
     {
       std::stringstream ss;
       ss << attValue;
       double val;
       ss >> val;
-      this->TrajectoryColor[0] = val;
+      this->RulerColor[0] = val;
       ss >> val;
-      this->TrajectoryColor[1] = val;
+      this->RulerColor[1] = val;
       ss >> val;
-      this->TrajectoryColor[2] = val;
-    }
-    else if (!strcmp(attName, "distanceColor"))
-    {
-      std::stringstream ss;
-      ss << attValue;
-      double val;
-      ss >> val;
-      this->DistanceColor[0] = val;
-      ss >> val;
-      this->DistanceColor[1] = val;
-      ss >> val;
-      this->DistanceColor[2] = val;
-    }    
+      this->RulerColor[2] = val;
+    }   
     else if ( ! strcmp( attName, "displayWarningColor" ) )
     {
       if (!strcmp(attValue,"true"))
@@ -191,28 +174,17 @@ vtkMRMLBreachWarningNode
         this->PlayWarningSound = false;
       }
     }
-    else if ( ! strcmp( attName, "displayTrajectory" ) )
+    else if ( ! strcmp( attName, "displayRuler" ) )
     {
       if (!strcmp(attValue,"true"))
       {
-        this->DisplayTrajectory = true;
+        this->DisplayRuler = true;
       }
       else
       {
-        this->DisplayTrajectory = false;
+        this->DisplayRuler = false;
       }
     }    
-    else if ( ! strcmp( attName, "displayDistance" ) )
-    {
-      if (!strcmp(attValue,"true"))
-      {
-        this->DisplayDistance = true;
-      }
-      else
-      {
-        this->DisplayDistance = false;
-      }
-    }
     else if (!strcmp(attName, "closestDistanceToModelFromToolTip"))
     {
       std::stringstream ss;
@@ -233,21 +205,21 @@ vtkMRMLBreachWarningNode
       ss >> val;
       this->PointOnModel[2] = val;
     }
-    else if (!strcmp(attName, "distanceTextSize"))
+    else if (!strcmp(attName, "rulerTextSize"))
     {
       std::stringstream ss;
       ss << attValue;
       double val;
       ss >> val;
-      this->DistanceTextSize = val;
+      this->RulerTextSize = val;
     }    
-    else if (!strcmp(attName, "trajectoryThickness"))
+    else if (!strcmp(attName, "rulerThickness"))
     {
       std::stringstream ss;
       ss << attValue;
       double val;
       ss >> val;
-      this->TrajectoryThickness = val;
+      this->RulerThickness = val;
     }    
   }
 }
@@ -264,20 +236,17 @@ vtkMRMLBreachWarningNode
   {
     this->WarningColor[ i ] = node->WarningColor[ i ];
     this->OriginalColor[ i ] = node->OriginalColor[ i ];
-    this->TrajectoryColor[ i ] = node->TrajectoryColor[ i ];    
-    this->DistanceColor[ i ] = node->DistanceColor[ i ];
+    this->RulerColor[ i ] = node->RulerColor[ i ];    
     this->PointOnModel[ i ] = node->PointOnModel[ i ];
   }
 
   this->PlayWarningSound = node->PlayWarningSound;  
   this->DisplayWarningColor = node->DisplayWarningColor;  
-  this->DisplayDistance = node->DisplayDistance;
-  this->DisplayTrajectory = node->DisplayTrajectory;
+  this->DisplayRuler = node->DisplayRuler;
 
-  this->Trajectory = node->Trajectory;
-
-  this->DistanceTextSize = node->DistanceTextSize;
-  this->TrajectoryThickness = node->TrajectoryThickness;
+  this->Ruler = node->Ruler;
+  this->RulerTextSize = node->RulerTextSize;
+  this->RulerThickness = node->RulerThickness;
   
   this->Modified();
 }
@@ -291,16 +260,14 @@ vtkMRMLBreachWarningNode
   os << indent << "WatchedModelID: " << this->GetWatchedModelNode()->GetID() << std::endl;
   os << indent << "ToolTipTransformID: " << this->GetToolTransformNode()->GetID() << std::endl;
   os << indent << "DisplayWarningColor: " << this->DisplayWarningColor << std::endl;  
-  os << indent << "DisplayTrajectory: " << this->DisplayTrajectory << std::endl;
-  os << indent << "DisplayDistance: " << this->DisplayDistance << std::endl;
+  os << indent << "DisplayRuler: " << this->DisplayRuler << std::endl;
   os << indent << "PlayWarningSound: " << this->PlayWarningSound << std::endl;
   os << indent << "WarningColor: " << this->WarningColor[0] << ", " << this->WarningColor[1] << ", " << this->WarningColor[2] << std::endl;
   os << indent << "OriginalColor: " << this->OriginalColor[0] << ", " << this->OriginalColor[1] << ", " << this->OriginalColor[2] << std::endl;
-  os << indent << "TrajectoryColor: " << this->TrajectoryColor[0] << ", " << this->TrajectoryColor[1] << ", " << this->TrajectoryColor[2] << std::endl;  
-  os << indent << "DistanceColor: " << this->DistanceColor[0] << ", " << this->DistanceColor[1] << ", " << this->DistanceColor[2] << std::endl;
+  os << indent << "RulerColor: " << this->RulerColor[0] << ", " << this->RulerColor[1] << ", " << this->RulerColor[2] << std::endl;    
   os << indent << "PointOnModel: " << this->PointOnModel[0] << ", " << this->PointOnModel[1] << ", " << this->PointOnModel[2] << std::endl;
-  os << indent << "DistanceTextSize: " << this->DistanceTextSize << std::endl;
-  os << indent << "TrajectoryThickness: " << this->TrajectoryThickness << std::endl;
+  os << indent << "RulerTextSize: " << this->RulerTextSize << std::endl;
+  os << indent << "RulerThickness: " << this->RulerThickness << std::endl;
 }
 
 vtkMRMLModelNode*
@@ -413,34 +380,14 @@ vtkMRMLBreachWarningNode::SetPlayWarningSound(bool _arg)
 }
 
 void 
-vtkMRMLBreachWarningNode::SetDisplayTrajectory(bool _arg)
+vtkMRMLBreachWarningNode::SetDisplayRuler(bool _arg)
 {
-  vtkDebugMacro(<< this->GetClassName() << " (" << this << "): setting DisplayTrajectory to " << _arg);
-  if (this->DisplayTrajectory != _arg)
+  vtkDebugMacro(<< this->GetClassName() << " (" << this << "): setting DisplayRuler to " << _arg);
+  if (this->DisplayRuler != _arg)
   {
-    this->DisplayTrajectory = _arg;
+    this->DisplayRuler = _arg;
     this->Modified();
-    this->Trajectory->SetDisplayVisibility(this->DisplayTrajectory);
-    //this->InvokeCustomModifiedEvent(InputDataModifiedEvent);
-  }
-}
-
-void 
-vtkMRMLBreachWarningNode::SetDisplayDistance(bool _arg)
-{
-  vtkDebugMacro(<< this->GetClassName() << " (" << this << "): setting DisplayDistance to " << _arg);
-  if (this->DisplayDistance != _arg)
-  {
-    this->DisplayDistance = _arg;
-    this->Modified();
-    if (this->DisplayDistance)
-    {
-      this->Trajectory->SetTextScale(4);
-    }
-    else if (!this->DisplayDistance)
-    {
-      this->Trajectory->SetTextScale(0); // Still visible in slice view
-    }
+    this->Ruler->SetDisplayVisibility(this->DisplayRuler);
     //this->InvokeCustomModifiedEvent(InputDataModifiedEvent);
   }
 }
@@ -486,60 +433,36 @@ vtkMRMLBreachWarningNode::SetOriginalColor(double _arg[3])
 }
 
 void 
-vtkMRMLBreachWarningNode::SetTrajectoryColor(double _arg1, double _arg2, double _arg3)
+vtkMRMLBreachWarningNode::SetRulerColor(double _arg1, double _arg2, double _arg3)
 {
-  vtkDebugMacro(<< this->GetClassName() << " (" << this << "): setting TrajectoryColor to (" << _arg1 << "," << _arg2 << "," << _arg3 << ")");
-  if ((this->TrajectoryColor[0] != _arg1)||(this->TrajectoryColor[1] != _arg2)||(this->TrajectoryColor[2] != _arg3))
+  vtkDebugMacro(<< this->GetClassName() << " (" << this << "): setting RulerColor to (" << _arg1 << "," << _arg2 << "," << _arg3 << ")");
+  if ((this->RulerColor[0] != _arg1)||(this->RulerColor[1] != _arg2)||(this->RulerColor[2] != _arg3))
   {
-    this->TrajectoryColor[0] = _arg1;
-    this->TrajectoryColor[1] = _arg2;
-    this->TrajectoryColor[2] = _arg3;
+    this->RulerColor[0] = _arg1;
+    this->RulerColor[1] = _arg2;
+    this->RulerColor[2] = _arg3;
+    
+    this->Ruler->GetAnnotationLineDisplayNode()->SetColor(this->RulerColor);
+    this->Ruler->GetAnnotationPointDisplayNode()->SetColor(this->RulerColor);
+    this->Ruler->GetAnnotationTextDisplayNode()->SetColor(this->RulerColor);
 
-    vtkMRMLAnnotationLineDisplayNode* displayNode = vtkMRMLAnnotationLineDisplayNode::SafeDownCast(this->Trajectory->GetModelDisplayNode());
-    if (displayNode)
-    {   
-      displayNode->SetColor(this->TrajectoryColor);
-    }
     this->Modified();
-    //this->InvokeCustomModifiedEvent(InputDataModifiedEvent);  
   }
 }
 
 void 
-vtkMRMLBreachWarningNode::SetTrajectoryColor(double _arg[3])
+vtkMRMLBreachWarningNode::SetRulerColor(double _arg[3])
 {
   this->SetWarningColor(_arg[0], _arg[1], _arg[2]);
 }
 
 void 
-vtkMRMLBreachWarningNode::SetDistanceColor(double _arg1, double _arg2, double _arg3)
+vtkMRMLBreachWarningNode::SetRuler(vtkMRMLAnnotationRulerNode* ruler)
 {
-  vtkDebugMacro(<< this->GetClassName() << " (" << this << "): setting DistanceColor to (" << _arg1 << "," << _arg2 << "," << _arg3 << ")");
-  if ((this->DistanceColor[0] != _arg1)||(this->DistanceColor[1] != _arg2)||(this->DistanceColor[2] != _arg3))
+  if (this->Ruler != ruler)
   {
-    this->DistanceColor[0] = _arg1;
-    this->DistanceColor[1] = _arg2;
-    this->DistanceColor[2] = _arg3;
-    this->Trajectory->SetDistanceAnnotationTextColour(this->DistanceColor);
+    this->Ruler = ruler;
     this->Modified();
-    //this->InvokeCustomModifiedEvent(InputDataModifiedEvent);    
-  }
-}
-
-void 
-vtkMRMLBreachWarningNode::SetDistanceColor(double _arg[3])
-{
-  this->SetWarningColor(_arg[0], _arg[1], _arg[2]);
-}
-
-void 
-vtkMRMLBreachWarningNode::SetTrajectory(vtkMRMLAnnotationRulerNode* trajectory)
-{
-  if (this->Trajectory != trajectory)
-  {
-    this->Trajectory = trajectory;
-    this->Modified();
-    //this->InvokeCustomModifiedEvent(InputDataModifiedEvent);
   }
 }
 
@@ -553,7 +476,6 @@ vtkMRMLBreachWarningNode::SetPointOnModel(double _arg1, double _arg2, double _ar
     this->PointOnModel[1] = _arg2;
     this->PointOnModel[2] = _arg3;
     this->Modified();
-    //this->InvokeCustomModifiedEvent(InputDataModifiedEvent);
   }
 }
 
@@ -564,34 +486,32 @@ vtkMRMLBreachWarningNode::SetPointOnModel(double _arg[3])
 }
 
 void 
-vtkMRMLBreachWarningNode::SetDistanceTextSize(double _arg)
+vtkMRMLBreachWarningNode::SetRulerTextSize(double _arg)
 {
-  vtkDebugMacro(<< this->GetClassName() << " (" << this << "): setting DistanceTextSize to " << _arg);
-  if (this->DistanceTextSize != _arg)
+  vtkDebugMacro(<< this->GetClassName() << " (" << this << "): setting RulerTextSize to " << _arg);
+  if (this->RulerTextSize != _arg)
   {
-    this->DistanceTextSize = _arg;
+    this->RulerTextSize = _arg;
 
-    this->Trajectory->SetTextScale(this->DistanceTextSize);
+    this->Ruler->SetTextScale(this->RulerTextSize);
 
-    this->Modified();
-    //this->InvokeCustomModifiedEvent(InputDataModifiedEvent);  
+    this->Modified(); 
   }
 }
 
 void 
-vtkMRMLBreachWarningNode::SetTrajectoryThickness(double _arg)
+vtkMRMLBreachWarningNode::SetRulerThickness(double _arg)
 {
-  vtkDebugMacro(<< this->GetClassName() << " (" << this << "): setting TrajectoryThickness to " << _arg);
-  if (this->TrajectoryThickness != _arg)
+  vtkDebugMacro(<< this->GetClassName() << " (" << this << "): setting RulerThickness to " << _arg);
+  if (this->RulerThickness != _arg)
   {
-    this->TrajectoryThickness = _arg;
+    this->RulerThickness = _arg;
 
-    vtkMRMLAnnotationLineDisplayNode* displayNode = vtkMRMLAnnotationLineDisplayNode::SafeDownCast(this->Trajectory->GetModelDisplayNode());
+    vtkMRMLAnnotationLineDisplayNode* displayNode = vtkMRMLAnnotationLineDisplayNode::SafeDownCast(this->Ruler->GetModelDisplayNode());
     if (displayNode)
     {   
-      displayNode->SetLineThickness(this->TrajectoryThickness);
+      displayNode->SetLineThickness(this->RulerThickness);
     }
     this->Modified();
-    //this->InvokeCustomModifiedEvent(InputDataModifiedEvent);  
   }
 }

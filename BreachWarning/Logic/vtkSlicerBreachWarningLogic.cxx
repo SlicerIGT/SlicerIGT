@@ -20,7 +20,9 @@
 
 // MRML includes
 #include "vtkMRMLAnnotationLineDisplayNode.h"
+#include "vtkMRMLAnnotationPointDisplayNode.h"
 #include "vtkMRMLAnnotationRulerNode.h"
+#include "vtkMRMLAnnotationTextDisplayNode.h"
 #include "vtkMRMLBreachWarningNode.h"
 #include "vtkMRMLDisplayNode.h"
 #include "vtkMRMLModelNode.h"
@@ -50,7 +52,7 @@ vtkStandardNewMacro(vtkSlicerBreachWarningLogic);
 //------------------------------------------------------------------------------
 vtkSlicerBreachWarningLogic::vtkSlicerBreachWarningLogic()
 : WarningSoundPlaying(false)
-, TrajectoryInitialized(false)
+, RulerInitialized(false)
 {}
 
 
@@ -148,9 +150,9 @@ void vtkSlicerBreachWarningLogic::UpdateToolState( vtkMRMLBreachWarningNode* bwN
   double cp[3] = {0, 0, 0};
   bwNode->SetClosestDistanceToModelFromToolTip(implicitDistanceFilter->EvaluateFunctionAndGetClosestPoint( toolTipPosition_Ras, cp ));
   bwNode->SetPointOnModel(cp);
-  if (bwNode->GetDisplayDistance() || bwNode->GetDisplayTrajectory())
+  if (bwNode->GetDisplayRuler())
   {
-    this->UpdateTrajectory(bwNode, toolTipPosition_Ras);
+    this->UpdateRuler(bwNode, toolTipPosition_Ras);
   }
 }
 
@@ -184,31 +186,29 @@ void vtkSlicerBreachWarningLogic::UpdateModelColor( vtkMRMLBreachWarningNode* bw
 }
 
 //------------------------------------------------------------------------------
-void vtkSlicerBreachWarningLogic::UpdateDistanceSign( vtkMRMLBreachWarningNode* bwNode )
+void vtkSlicerBreachWarningLogic::UpdateRulerInsideOrOutside( vtkMRMLBreachWarningNode* bwNode )
 {
   if ( bwNode == NULL )
   {
     return;
   }
-  vtkMRMLAnnotationRulerNode* trajectory = bwNode->GetTrajectory(); 
-  if ( trajectory == NULL )
+  vtkMRMLAnnotationRulerNode* ruler = bwNode->GetRuler(); 
+  if ( ruler == NULL )
   {
     return;
   }
-  if ( trajectory->GetDisplayNode() == NULL )
+  if ( ruler->GetDisplayNode() == NULL )
   {
     return;
   }
 
   if ( bwNode->IsToolTipInsideModel())
   {    
-    //trajectory->SetDistanceAnnotationFormat("-%.0f mm");
-    trajectory->SetTextScale(0); // Hidden when inside of model
+    ruler->SetName("d (in)");  
   }
   else
   {   
-    //trajectory->SetDistanceAnnotationFormat("%.0f mm");
-    trajectory->SetTextScale(4);
+    ruler->SetName("d");  
   }
 }
 
@@ -382,9 +382,9 @@ void vtkSlicerBreachWarningLogic::ProcessMRMLNodesEvents( vtkObject* caller, uns
     {
       this->UpdateModelColor(bwNode);
     }
-    if (bwNode->GetDisplayDistance())
+    if (bwNode->GetDisplayRuler())
     {
-      this->UpdateDistanceSign(bwNode);
+      this->UpdateRulerInsideOrOutside(bwNode);
     }
     std::deque< vtkWeakPointer< vtkMRMLBreachWarningNode > >::iterator foundPlayingNodeIt = this->WarningSoundPlayingNodes.begin();    
     for (; foundPlayingNodeIt!=this->WarningSoundPlayingNodes.end(); ++foundPlayingNodeIt)
@@ -417,31 +417,33 @@ void vtkSlicerBreachWarningLogic::ProcessMRMLNodesEvents( vtkObject* caller, uns
 
 
 //------------------------------------------------------------------------------
-void vtkSlicerBreachWarningLogic::UpdateTrajectory( vtkMRMLBreachWarningNode* bwNode, double* toolTipPosition )
+void vtkSlicerBreachWarningLogic::UpdateRuler( vtkMRMLBreachWarningNode* bwNode, double* toolTipPosition )
 {
-  vtkMRMLAnnotationRulerNode* trajectory = bwNode->GetTrajectory();
-  if (trajectory)
+  vtkMRMLAnnotationRulerNode* ruler = bwNode->GetRuler();
+  if (ruler)
   {        
     double closestPointOnModelPosition[3];
     bwNode->GetPointOnModel(closestPointOnModelPosition);    
 
-    trajectory->SetPosition1(toolTipPosition);
-    trajectory->SetPosition2(closestPointOnModelPosition);  
+    ruler->SetPosition1(toolTipPosition);
+    ruler->SetPosition2(closestPointOnModelPosition);  
 
-    if (!this->TrajectoryInitialized)
+    if (!this->RulerInitialized)
     {
-      trajectory->Initialize(this->GetMRMLScene());
-      trajectory->SetLocked(true);
-      trajectory->SetTextScale(bwNode->GetDistanceTextSize());      
-      vtkMRMLAnnotationLineDisplayNode* displayNode = vtkMRMLAnnotationLineDisplayNode::SafeDownCast(trajectory->GetModelDisplayNode());
+      ruler->Initialize(this->GetMRMLScene());
+      ruler->SetLocked(true);
+      ruler->SetTextScale(bwNode->GetRulerTextSize());    
+      double color[3] = {0, 0, 0};
+      bwNode->GetRulerColor(color);
+      ruler->GetAnnotationLineDisplayNode()->SetColor(color);
+      ruler->GetAnnotationPointDisplayNode()->SetColor(color);
+      ruler->GetAnnotationTextDisplayNode()->SetColor(color);
+      vtkMRMLAnnotationLineDisplayNode* displayNode = vtkMRMLAnnotationLineDisplayNode::SafeDownCast(ruler->GetModelDisplayNode());
       if (displayNode)
       {                
-        double color[3] = {0, 0, 0};
-        bwNode->GetTrajectoryColor(color);
-        displayNode->SetColor(color);
-        displayNode->SetLineThickness(bwNode->GetTrajectoryThickness());
+        displayNode->SetLineThickness(bwNode->GetRulerThickness());
       }  
-      this->TrajectoryInitialized = true;
+      this->RulerInitialized = true;
     }
   }  
 }

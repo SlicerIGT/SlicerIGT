@@ -83,17 +83,17 @@ protected:
 
   void UpdateToolState( vtkMRMLBreachWarningNode* bwNode );
   void UpdateModelColor( vtkMRMLBreachWarningNode* bwNode );
-  void UpdateDistanceSign( vtkMRMLBreachWarningNode* bwNode );
+  void UpdateRulerInsideOrOutside( vtkMRMLBreachWarningNode* bwNode );
   
 private:
   vtkSlicerBreachWarningLogic(const vtkSlicerBreachWarningLogic&); // Not implemented
   void operator=(const vtkSlicerBreachWarningLogic&);               // Not implemented
 
-  void UpdateTrajectory(vtkMRMLBreachWarningNode* bwNode, double* toolTipPosition);
+  void UpdateRuler(vtkMRMLBreachWarningNode* bwNode, double* toolTipPosition);
 
   std::deque< vtkWeakPointer< vtkMRMLBreachWarningNode > > WarningSoundPlayingNodes;
   bool WarningSoundPlaying;
-  bool TrajectoryInitialized;
+  bool RulerInitialized;
 };
 
 #endif
