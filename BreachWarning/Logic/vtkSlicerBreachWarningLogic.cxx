@@ -437,12 +437,12 @@ void vtkSlicerBreachWarningLogic::UpdateRuler( vtkMRMLBreachWarningNode* bwNode,
       bwNode->GetRulerColor(color);
       ruler->GetAnnotationLineDisplayNode()->SetColor(color);
       ruler->GetAnnotationPointDisplayNode()->SetColor(color);
-      ruler->GetAnnotationPointDisplayNode()->SetGlyphScale(bwNode->GetRulerSize());
+      ruler->GetAnnotationPointDisplayNode()->SetGlyphScale(bwNode->GetRulerThickness());
       ruler->GetAnnotationTextDisplayNode()->SetColor(color);
       vtkMRMLAnnotationLineDisplayNode* displayNode = vtkMRMLAnnotationLineDisplayNode::SafeDownCast(ruler->GetModelDisplayNode());
       if (displayNode)
       {                
-        displayNode->SetLineThickness(bwNode->GetRulerSize());
+        displayNode->SetLineThickness(bwNode->GetRulerThickness());
       }  
       this->RulerInitialized = true;
     }

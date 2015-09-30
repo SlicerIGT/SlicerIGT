@@ -57,7 +57,7 @@ protected slots:
   void DisplayRuler(bool displayRuler);
   void UpdateRulerColor( QColor newColor );  
   void RulerTextSizeChanged(double size);
-  void RulerSizeChanged(double thickness);
+  void RulerThicknessChanged(double thickness);
 
 protected:
   QScopedPointer<qSlicerBreachWarningModuleWidgetPrivate> d_ptr;

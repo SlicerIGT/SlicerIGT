@@ -236,15 +236,15 @@
         </property>
        </widget>
       </item>
-      <item row="2" column="0">
-       <widget class="QLabel" name="RulerSizeLabel">
+      <item row="4" column="0">
+       <widget class="QLabel" name="RulerThicknessLabel">
         <property name="text">
-         <string>Ruler size:</string>
+         <string>Ruler thickness:</string>
         </property>
        </widget>
       </item>
-      <item row="2" column="1">
-       <widget class="ctkSliderWidget" name="RulerSizeSlider">
+      <item row="4" column="1">
+       <widget class="ctkSliderWidget" name="RulerThicknessSlider">
         <property name="singleStep">
          <double>0.100000000000000</double>
         </property>

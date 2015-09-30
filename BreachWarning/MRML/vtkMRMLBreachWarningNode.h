@@ -122,8 +122,8 @@ public:
   vtkGetMacro( RulerTextSize, double );
   virtual void SetRulerTextSize(double _arg);
 
-  vtkGetMacro( RulerSize, double );
-  virtual void SetRulerSize(double _arg);
+  vtkGetMacro( RulerThickness, double );
+  virtual void SetRulerThickness(double _arg);
 
   // Watched model defines the risk area that needs to be avoided.
 
@@ -150,7 +150,7 @@ private:
   bool PlayWarningSound;
 
   double RulerTextSize;
-  double RulerSize;
+  double RulerThickness;
 
   // It is the closest distance to the model from the tool transform. If the distance is negative
   // the transform is inside the model.
