@@ -114,6 +114,7 @@ QStringList qSlicerBreachWarningModule::contributors()const
   moduleContributors << QString("Jaime Garcia Guevara (Queen's University)");
   moduleContributors << QString("Andras Lasso (Queen's University)");
   moduleContributors << QString("Tamas Ungi (Queen's University)");
+  moduleContributors << QString("Mikael Brudfors (UCL)");
   // ...
   return moduleContributors;
 }
