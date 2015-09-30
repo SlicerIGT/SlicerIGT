@@ -69,7 +69,7 @@ vtkMRMLBreachWarningNode
 
   this->Ruler = vtkMRMLAnnotationRulerNode::New();
   this->Ruler->SetName("d");  
-  this->RulerThickness = 3;
+  this->RulerSize = 3;
 }
 
 vtkMRMLBreachWarningNode
@@ -97,7 +97,7 @@ vtkMRMLBreachWarningNode
   of << indent << " closestDistanceToModelFromToolTip=\"" << ClosestDistanceToModelFromToolTip << "\"";
   of << indent << " pointOnModel=\"" << this->PointOnModel[0] << " " << this->PointOnModel[1] << " " << this->PointOnModel[2] << "\"";
   of << indent << " rulerTextSize=\"" << this->RulerTextSize << "\"";
-  of << indent << " rulerThickness=\"" << this->RulerThickness << "\"";
+  of << indent << " rulerSize=\"" << this->RulerSize << "\"";
 
 }
 
@@ -213,13 +213,13 @@ vtkMRMLBreachWarningNode
       ss >> val;
       this->RulerTextSize = val;
     }    
-    else if (!strcmp(attName, "rulerThickness"))
+    else if (!strcmp(attName, "rulerSize"))
     {
       std::stringstream ss;
       ss << attValue;
       double val;
       ss >> val;
-      this->RulerThickness = val;
+      this->RulerSize = val;
     }    
   }
 }
@@ -246,7 +246,7 @@ vtkMRMLBreachWarningNode
 
   this->Ruler = node->Ruler;
   this->RulerTextSize = node->RulerTextSize;
-  this->RulerThickness = node->RulerThickness;
+  this->RulerSize = node->RulerSize;
   
   this->Modified();
 }
@@ -267,7 +267,7 @@ vtkMRMLBreachWarningNode
   os << indent << "RulerColor: " << this->RulerColor[0] << ", " << this->RulerColor[1] << ", " << this->RulerColor[2] << std::endl;    
   os << indent << "PointOnModel: " << this->PointOnModel[0] << ", " << this->PointOnModel[1] << ", " << this->PointOnModel[2] << std::endl;
   os << indent << "RulerTextSize: " << this->RulerTextSize << std::endl;
-  os << indent << "RulerThickness: " << this->RulerThickness << std::endl;
+  os << indent << "RulerSize: " << this->RulerSize << std::endl;
 }
 
 vtkMRMLModelNode*
@@ -500,17 +500,18 @@ vtkMRMLBreachWarningNode::SetRulerTextSize(double _arg)
 }
 
 void 
-vtkMRMLBreachWarningNode::SetRulerThickness(double _arg)
+vtkMRMLBreachWarningNode::SetRulerSize(double _arg)
 {
-  vtkDebugMacro(<< this->GetClassName() << " (" << this << "): setting RulerThickness to " << _arg);
-  if (this->RulerThickness != _arg)
+  vtkDebugMacro(<< this->GetClassName() << " (" << this << "): setting RulerSize to " << _arg);
+  if (this->RulerSize != _arg)
   {
-    this->RulerThickness = _arg;
+    this->RulerSize = _arg;
 
+    this->Ruler->GetAnnotationPointDisplayNode()->SetGlyphScale(this->RulerSize);
     vtkMRMLAnnotationLineDisplayNode* displayNode = vtkMRMLAnnotationLineDisplayNode::SafeDownCast(this->Ruler->GetModelDisplayNode());
     if (displayNode)
     {   
-      displayNode->SetLineThickness(this->RulerThickness);
+      displayNode->SetLineThickness(this->RulerSize);      
     }
     this->Modified();
   }

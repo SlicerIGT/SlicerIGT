@@ -89,7 +89,7 @@ qSlicerBreachWarningModuleWidget::~qSlicerBreachWarningModuleWidget()
   disconnect(d->RulerCheckBox, SIGNAL(toggled(bool)), this, SLOT(DisplayRuler(bool)));
   disconnect( d->RulerColorPickerButton, SIGNAL( colorChanged( QColor ) ), this, SLOT( UpdateRulerColor( QColor ) ) );  
   disconnect( d->RulerTextSizeSlider, SIGNAL( valueChanged (double ) ), this, SLOT( RulerTextSizeChanged( double ) ) );  
-  disconnect( d->RulerThicknessSlider, SIGNAL( valueChanged (double ) ), this, SLOT( RulerThicknessChanged( double ) ) );  
+  disconnect( d->RulerSizeSlider, SIGNAL( valueChanged (double ) ), this, SLOT( RulerSizeChanged( double ) ) );  
 }
 
 //-----------------------------------------------------------------------------
@@ -113,7 +113,7 @@ void qSlicerBreachWarningModuleWidget::setup()
   connect(d->RulerCheckBox, SIGNAL(toggled(bool)), this, SLOT(DisplayRuler(bool)));
   connect( d->RulerColorPickerButton, SIGNAL( colorChanged( QColor ) ), this, SLOT( UpdateRulerColor( QColor ) ) );
   connect( d->RulerTextSizeSlider, SIGNAL( valueChanged (double ) ), this, SLOT( RulerTextSizeChanged( double ) ) );  
-  connect( d->RulerThicknessSlider, SIGNAL( valueChanged (double ) ), this, SLOT( RulerThicknessChanged( double ) ) );  
+  connect( d->RulerSizeSlider, SIGNAL( valueChanged (double ) ), this, SLOT( RulerSizeChanged( double ) ) );  
 
   this->UpdateFromMRMLNode();
 }
@@ -292,7 +292,7 @@ void qSlicerBreachWarningModuleWidget::RulerTextSizeChanged( double size )
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerBreachWarningModuleWidget::RulerThicknessChanged( double thickness )
+void qSlicerBreachWarningModuleWidget::RulerSizeChanged( double thickness )
 {
   Q_D(qSlicerBreachWarningModuleWidget);
 
@@ -303,7 +303,7 @@ void qSlicerBreachWarningModuleWidget::RulerThicknessChanged( double thickness )
     return;
   }
 
-  parameterNode->SetRulerThickness( thickness );
+  parameterNode->SetRulerSize( thickness );
 }
 
 //-----------------------------------------------------------------------------
@@ -324,7 +324,7 @@ void qSlicerBreachWarningModuleWidget::UpdateFromMRMLNode()
     d->RulerCheckBox->setEnabled( false );
     d->RulerColorPickerButton->setEnabled( false );
     d->RulerTextSizeSlider->setEnabled( false );
-    d->RulerThicknessSlider->setEnabled( false );
+    d->RulerSizeSlider->setEnabled( false );
     return;
   }
     
@@ -336,7 +336,7 @@ void qSlicerBreachWarningModuleWidget::UpdateFromMRMLNode()
   d->RulerCheckBox->setEnabled( true );
   d->RulerColorPickerButton->setEnabled( true );
   d->RulerTextSizeSlider->setEnabled( true );
-  d->RulerThicknessSlider->setEnabled( true );
+  d->RulerSizeSlider->setEnabled( true );
 
   d->ToolComboBox->setCurrentNode( bwNode->GetToolTransformNode() );
   d->ModelNodeComboBox->setCurrentNode( bwNode->GetWatchedModelNode() );
@@ -355,5 +355,5 @@ void qSlicerBreachWarningModuleWidget::UpdateFromMRMLNode()
   d->SoundCheckBox->setChecked( bwNode->GetPlayWarningSound() );  
   d->RulerCheckBox->setChecked( bwNode->GetDisplayRuler() );
   d->RulerTextSizeSlider->setValue( bwNode->GetRulerTextSize() );
-  d->RulerThicknessSlider->setValue( bwNode->GetRulerThickness() );
+  d->RulerSizeSlider->setValue( bwNode->GetRulerSize() );
 }

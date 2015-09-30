@@ -179,30 +179,7 @@
         </property>
        </widget>
       </item>
-      <item row="3" column="0">
-       <widget class="QLabel" name="RulerThicknessLabel">
-        <property name="text">
-         <string>Ruler thickness:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="1">
-       <widget class="ctkSliderWidget" name="RulerThicknessSlider">
-        <property name="singleStep">
-         <double>0.100000000000000</double>
-        </property>
-        <property name="minimum">
-         <double>1.000000000000000</double>
-        </property>
-        <property name="maximum">
-         <double>10.000000000000000</double>
-        </property>
-        <property name="value">
-         <double>3.000000000000000</double>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="0">
+      <item row="5" column="0">
        <widget class="QCheckBox" name="WarningCheckBox">
         <property name="layoutDirection">
          <enum>Qt::LeftToRight</enum>
@@ -215,7 +192,7 @@
         </property>
        </widget>
       </item>
-      <item row="4" column="1">
+      <item row="5" column="1">
        <widget class="ctkColorPickerButton" name="WarningColorPickerButton">
         <property name="color">
          <color>
@@ -229,7 +206,7 @@
         </property>
        </widget>
       </item>
-      <item row="5" column="0">
+      <item row="6" column="0">
        <widget class="QCheckBox" name="SoundCheckBox">
         <property name="text">
          <string>Play warning sound</string>
@@ -239,14 +216,14 @@
         </property>
        </widget>
       </item>
-      <item row="2" column="0">
+      <item row="3" column="0">
        <widget class="QLabel" name="RulerTextSizeLabel">
         <property name="text">
          <string>Ruler text size:</string>
         </property>
        </widget>
       </item>
-      <item row="2" column="1">
+      <item row="3" column="1">
        <widget class="ctkSliderWidget" name="RulerTextSizeSlider">
         <property name="singleStep">
          <double>0.100000000000000</double>
@@ -256,6 +233,29 @@
         </property>
         <property name="value">
          <double>2.000000000000000</double>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="RulerSizeLabel">
+        <property name="text">
+         <string>Ruler size:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="ctkSliderWidget" name="RulerSizeSlider">
+        <property name="singleStep">
+         <double>0.100000000000000</double>
+        </property>
+        <property name="minimum">
+         <double>1.000000000000000</double>
+        </property>
+        <property name="maximum">
+         <double>10.000000000000000</double>
+        </property>
+        <property name="value">
+         <double>3.000000000000000</double>
         </property>
        </widget>
       </item>
