@@ -156,9 +156,9 @@
        <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
       </property>
       <item row="1" column="0">
-       <widget class="QCheckBox" name="RulerCheckBox">
+       <widget class="QCheckBox" name="LineToClosestPointVisibilityCheckBox">
         <property name="text">
-         <string>Display ruler</string>
+         <string>Display line to closest point</string>
         </property>
         <property name="checked">
          <bool>true</bool>
@@ -166,7 +166,7 @@
        </widget>
       </item>
       <item row="1" column="1">
-       <widget class="ctkColorPickerButton" name="RulerColorPickerButton">
+       <widget class="ctkColorPickerButton" name="LineToClosestPointColorPickerButton">
         <property name="color">
          <color>
           <red>0</red>
@@ -175,7 +175,7 @@
          </color>
         </property>
         <property name="colorName">
-         <string>Ruler color</string>
+         <string>Line to closest point color</string>
         </property>
        </widget>
       </item>
@@ -217,14 +217,14 @@
        </widget>
       </item>
       <item row="3" column="0">
-       <widget class="QLabel" name="RulerTextSizeLabel">
+       <widget class="QLabel" name="LineToClosestPointTextSizeLabel">
         <property name="text">
-         <string>Ruler text size:</string>
+         <string>Line to closest point text size:</string>
         </property>
        </widget>
       </item>
       <item row="3" column="1">
-       <widget class="ctkSliderWidget" name="RulerTextSizeSlider">
+       <widget class="ctkSliderWidget" name="LineToClosestPointTextSizeSlider">
         <property name="singleStep">
          <double>0.100000000000000</double>
         </property>
@@ -237,14 +237,14 @@
        </widget>
       </item>
       <item row="4" column="0">
-       <widget class="QLabel" name="RulerThicknessLabel">
+       <widget class="QLabel" name="LineToClosestPointThicknessLabel">
         <property name="text">
-         <string>Ruler thickness:</string>
+         <string>Line to closest point thickness:</string>
         </property>
        </widget>
       </item>
       <item row="4" column="1">
-       <widget class="ctkSliderWidget" name="RulerThicknessSlider">
+       <widget class="ctkSliderWidget" name="LineToClosestPointThicknessSlider">
         <property name="singleStep">
          <double>0.100000000000000</double>
         </property>
