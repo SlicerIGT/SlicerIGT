@@ -1,1 +1,2 @@
-from GuideletLoadable import GuideletLoadable, Guidelet, GuideletLogic, GuideletTest, GuideletWidget
+from GuideletLoadable import GuideletLoadable, GuideletLogic, GuideletTest, GuideletWidget
+from GuideletLib import Guidelet
