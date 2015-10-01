@@ -32,7 +32,7 @@
 
 class vtkMRMLTransformNode;
 class vtkMRMLModelNode;
-
+class vtkMRMLAnnotationRulerNode;
 
 class
 VTK_SLICER_BREACHWARNING_MODULE_MRML_EXPORT
@@ -89,8 +89,8 @@ public:
   virtual void SetPlayWarningSound(bool _arg);
 
   /// Indicates if color of the watched model should be changed.
-  /// False by default.
-  /// \sa SetPlayWarningSound(), GetPlayWarningSound(), PlayWarningSoundOn(), PlayWarningSoundOff()
+  /// True by default.
+  /// \sa SetDisplayWarningColor(), GetDisplayWarningColor(), DisplayWarningColorOn(), DisplayWarningColorOff()
   vtkGetMacro( DisplayWarningColor, bool );
   virtual void SetDisplayWarningColor(bool _arg);
 
@@ -101,6 +101,29 @@ public:
   vtkGetVector3Macro(OriginalColor, double);
   virtual void SetOriginalColor(double _arg1, double _arg2, double _arg3);
   virtual void SetOriginalColor(double _arg[3]);
+
+  /// Indicates if the ruler should be displayed.
+  /// True by default.
+  /// \sa SetDisplayRuler(), GetDisplayRuler(), DisplayRulerOn(), DisplayRulerOff()
+  vtkGetMacro( DisplayRuler, bool );
+  virtual void SetDisplayRuler(bool _arg);
+
+  vtkGetVector3Macro(RulerColor, double);
+  virtual void SetRulerColor(double _arg1, double _arg2, double _arg3);
+  virtual void SetRulerColor(double _arg[3]);
+
+  vtkMRMLAnnotationRulerNode* GetRuler() {return this->Ruler;}
+  virtual void SetRuler(vtkMRMLAnnotationRulerNode* ruler);
+
+  vtkGetVector3Macro(PointOnModel, double);
+  virtual void SetPointOnModel(double _arg1, double _arg2, double _arg3);
+  virtual void SetPointOnModel(double _arg[3]);
+
+  vtkGetMacro( RulerTextSize, double );
+  virtual void SetRulerTextSize(double _arg);
+
+  vtkGetMacro( RulerThickness, double );
+  virtual void SetRulerThickness(double _arg);
 
   // Watched model defines the risk area that needs to be avoided.
 
@@ -119,12 +142,23 @@ private:
 
   double WarningColor[3];
   double OriginalColor[3];
+  double RulerColor[3];
+  double DistanceColor[3];
+
   bool DisplayWarningColor;
+  bool DisplayRuler;
   bool PlayWarningSound;
+
+  double RulerTextSize;
+  double RulerThickness;
+
   // It is the closest distance to the model from the tool transform. If the distance is negative
   // the transform is inside the model.
   double ClosestDistanceToModelFromToolTip;
 
+  double PointOnModel[3];
+
+  vtkMRMLAnnotationRulerNode* Ruler; // TODO Add to Read/Write XML and PrintSelf
 };
 
 #endif

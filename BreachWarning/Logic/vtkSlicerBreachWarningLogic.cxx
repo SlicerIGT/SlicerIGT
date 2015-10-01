@@ -19,6 +19,10 @@
 #include "vtkSlicerBreachWarningLogic.h"
 
 // MRML includes
+#include "vtkMRMLAnnotationLineDisplayNode.h"
+#include "vtkMRMLAnnotationPointDisplayNode.h"
+#include "vtkMRMLAnnotationRulerNode.h"
+#include "vtkMRMLAnnotationTextDisplayNode.h"
 #include "vtkMRMLBreachWarningNode.h"
 #include "vtkMRMLDisplayNode.h"
 #include "vtkMRMLModelNode.h"
@@ -26,11 +30,16 @@
 #include "vtkMRMLTransformNode.h"
 
 // VTK includes
+#include <vtkCellData.h>
+#include <vtkCellLocator.h>
 #include <vtkGeneralTransform.h>
-#include <vtkImplicitPolyDataDistance.h>
+#include <vtkGenericCell.h>
+#include <vtkImplicitPolyDataDistancePointPos.h>
+#include <vtkMath.h>
 #include <vtkNew.h>
 #include <vtkObjectFactory.h>
 #include <vtkPolyData.h>
+#include <vtkPolygon.h>
 #include <vtkSmartPointer.h>
 #include <vtkTransformPolyDataFilter.h>
 
@@ -43,14 +52,13 @@ vtkStandardNewMacro(vtkSlicerBreachWarningLogic);
 //------------------------------------------------------------------------------
 vtkSlicerBreachWarningLogic::vtkSlicerBreachWarningLogic()
 : WarningSoundPlaying(false)
-{
-}
+, RulerInitialized(false)
+{}
 
 
 //------------------------------------------------------------------------------
 vtkSlicerBreachWarningLogic::~vtkSlicerBreachWarningLogic()
-{
-}
+{}
 
 //------------------------------------------------------------------------------
 void vtkSlicerBreachWarningLogic::PrintSelf(ostream& os, vtkIndent indent)
@@ -104,7 +112,7 @@ void vtkSlicerBreachWarningLogic::UpdateToolState( vtkMRMLBreachWarningNode* bwN
     return;
   }
   
-  vtkSmartPointer< vtkImplicitPolyDataDistance > implicitDistanceFilter = vtkSmartPointer< vtkImplicitPolyDataDistance >::New();
+  vtkSmartPointer< vtkImplicitPolyDataDistancePointPos > implicitDistanceFilter = vtkSmartPointer< vtkImplicitPolyDataDistancePointPos >::New();
 
   // Transform the body poly data if there is a parent transform.
   vtkMRMLTransformNode* bodyParentTransform = modelNode->GetParentTransformNode();
@@ -139,7 +147,13 @@ void vtkSlicerBreachWarningLogic::UpdateToolState( vtkMRMLBreachWarningNode* bwN
   double toolTipPosition_Tool[4] = { 0.0, 0.0, 0.0, 1.0 };
   double* toolTipPosition_Ras = toolToRasTransform->TransformDoublePoint( toolTipPosition_Tool);
 
-  bwNode->SetClosestDistanceToModelFromToolTip(implicitDistanceFilter->EvaluateFunction( toolTipPosition_Ras ));
+  double cp[3] = {0, 0, 0};
+  bwNode->SetClosestDistanceToModelFromToolTip(implicitDistanceFilter->EvaluateFunctionAndGetClosestPoint( toolTipPosition_Ras, cp ));
+  bwNode->SetPointOnModel(cp);
+  if (bwNode->GetDisplayRuler())
+  {
+    this->UpdateRuler(bwNode, toolTipPosition_Ras);
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -168,6 +182,33 @@ void vtkSlicerBreachWarningLogic::UpdateModelColor( vtkMRMLBreachWarningNode* bw
   {
     double* color = bwNode->GetOriginalColor();
     modelNode->GetDisplayNode()->SetColor(color);
+  }
+}
+
+//------------------------------------------------------------------------------
+void vtkSlicerBreachWarningLogic::UpdateRulerInsideOrOutside( vtkMRMLBreachWarningNode* bwNode )
+{
+  if ( bwNode == NULL )
+  {
+    return;
+  }
+  vtkMRMLAnnotationRulerNode* ruler = bwNode->GetRuler(); 
+  if ( ruler == NULL )
+  {
+    return;
+  }
+  if ( ruler->GetDisplayNode() == NULL )
+  {
+    return;
+  }
+
+  if ( bwNode->IsToolTipInsideModel())
+  {    
+    ruler->SetName("d (in)");  
+  }
+  else
+  {   
+    ruler->SetName("d");  
   }
 }
 
@@ -336,10 +377,14 @@ void vtkSlicerBreachWarningLogic::ProcessMRMLNodesEvents( vtkObject* caller, uns
   {
     // only recompute output if the input is changed
     // (for example we do not recompute the distance if the computed distance is changed)
-    this->UpdateToolState(bwNode);
-    if(bwNode->GetDisplayWarningColor())
+    this->UpdateToolState(bwNode);    
+    if (bwNode->GetDisplayWarningColor())
     {
       this->UpdateModelColor(bwNode);
+    }
+    if (bwNode->GetDisplayRuler())
+    {
+      this->UpdateRulerInsideOrOutside(bwNode);
     }
     std::deque< vtkWeakPointer< vtkMRMLBreachWarningNode > >::iterator foundPlayingNodeIt = this->WarningSoundPlayingNodes.begin();    
     for (; foundPlayingNodeIt!=this->WarningSoundPlayingNodes.end(); ++foundPlayingNodeIt)
@@ -369,3 +414,38 @@ void vtkSlicerBreachWarningLogic::ProcessMRMLNodesEvents( vtkObject* caller, uns
     this->SetWarningSoundPlaying(!this->WarningSoundPlayingNodes.empty());
   }
 }
+
+
+//------------------------------------------------------------------------------
+void vtkSlicerBreachWarningLogic::UpdateRuler( vtkMRMLBreachWarningNode* bwNode, double* toolTipPosition )
+{
+  vtkMRMLAnnotationRulerNode* ruler = bwNode->GetRuler();
+  if (ruler)
+  {        
+    double closestPointOnModelPosition[3];
+    bwNode->GetPointOnModel(closestPointOnModelPosition);    
+
+    ruler->SetPosition1(toolTipPosition);
+    ruler->SetPosition2(closestPointOnModelPosition);  
+
+    if (!this->RulerInitialized)
+    {
+      ruler->Initialize(this->GetMRMLScene());
+      ruler->SetLocked(true);
+      ruler->SetTextScale(bwNode->GetRulerTextSize());    
+      double color[3] = {0, 0, 0};
+      bwNode->GetRulerColor(color);
+      ruler->GetAnnotationLineDisplayNode()->SetColor(color);
+      ruler->GetAnnotationPointDisplayNode()->SetColor(color);
+      ruler->GetAnnotationPointDisplayNode()->SetGlyphScale(bwNode->GetRulerThickness());
+      ruler->GetAnnotationTextDisplayNode()->SetColor(color);
+      vtkMRMLAnnotationLineDisplayNode* displayNode = vtkMRMLAnnotationLineDisplayNode::SafeDownCast(ruler->GetModelDisplayNode());
+      if (displayNode)
+      {                
+        displayNode->SetLineThickness(bwNode->GetRulerThickness());
+      }  
+      this->RulerInitialized = true;
+    }
+  }  
+}
+
