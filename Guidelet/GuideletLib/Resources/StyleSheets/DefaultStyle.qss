@@ -1,0 +1,40 @@
+QAbstractButton,
+QPushButton {
+    border-style: outset; 
+    border-width: 2px; 
+    border-radius: 10px; 
+    background-color: #C7DDF5; 
+    border-color: #9ACEFF; 
+    font-size: 16pt; height: 40px;
+}
+
+QAbstractButton:pressed,
+QPushButton:pressed {
+    border-style: outset; 
+    border-width: 2px; 
+    border-radius: 10px; 
+    background-color: #9ACEFF; 
+    border-color: #9ACEFF; 
+    font-size: 16pt; 
+    height: 40px;
+}
+
+QAbstractButton:checked,
+QPushButton:checked {
+    border-style: outset; 
+    border-width: 2px; 
+    border-radius: 10px; 
+    background-color: #669ACC; 
+    border-color: #9ACEFF; 
+    font-size: 16pt; 
+    height: 40px;
+}     
+
+QFrame {
+    background-color: #336799;
+    border-color: #9ACEFF;
+}
+
+QDockWidget:title {
+    background-color: #9ACEFF;
+}
