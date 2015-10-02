@@ -41,7 +41,6 @@ class PlusRemoteWidget(ScriptedLoadableModuleWidget):
     self.scoutVolumeFilename = "ScoutScan.mha" # constant
     self.scoutVolumeNodeName = "ScoutScan" # constant
     self.applyHoleFillingForSnapshot = False # constant
-    self.defaultParameterNode = None
 
   def setup(self):
     # Instantiate and connect widgets
@@ -573,36 +572,39 @@ class PlusRemoteWidget(ScriptedLoadableModuleWidget):
     #Default set created only if no parameterNode exists, to avoid creation of a new default set each time the module is reloaded
     existingParameterNodes = self.logic.getAllParameterNodes()
     if not existingParameterNodes:
-      self.defaultParameterNode = self.parameterNodeSelector.addNode()
+      self.parameterNodeSelector.addNode()
 
   def onParameterSetSelected(self):
-    self.parameterNode = self.parameterNodeSelector.currentNode()
     if self.parameterNode and self.parameterNodeObserver:
       self.parameterNode.RemoveObserver(self.parameterNodeObserver)
-      self.parameterNodeObserver = self.parameterNode.AddObserver('currentNodeChanged(vtkMRMLNode*)', self.updateGUIFromParameterNode)
-    # Set up default values for new nodes
+    self.parameterNode = self.parameterNodeSelector.currentNode()
     if self.parameterNode:
+      # Set up default values for new nodes
       self.logic.setDefaultParameters(self.parameterNode)
+      self.parameterNodeObserver = self.parameterNode.AddObserver('currentNodeChanged(vtkMRMLNode*)', self.updateGuiFromParameterNode)
     self.updateGuiFromParameterNode()
 
   def updateGuiFromParameterNode(self):
-    #Update interface using parameter node saved values
-    self.parameterNode = self.parameterNodeSelector.currentNode()
+  
+    if not self.parameterNode:
+      self.onConnectorNodeDisconnected(None, None, True)
+      return
 
+    #Update interface using parameter node saved values
     self.parameterValueList = {'OfflineReconstructionSpacing': self.offlineVolumeSpacingBox, 'ScoutScanSpacing': self.outputVolumeSpacingBox, 'LiveReconstructionSpacing': self.outputSpacingLiveReconstructionBox, 'SnapshotsNumber': self.snapshotIntervalSecSpinBox, 'RoiExtent1': self.outputExtentROIBoxDirection1, 'RoiExtent2': self.outputExtentROIBoxDirection2, 'RoiExtent3': self.outputExtentROIBoxDirection3}
     for parameter in self.parameterValueList:
       if self.parameterNode.GetParameter(parameter):
         #Block Signal to avoid call of updateParameterNodeFromGui when parameter is set programmatically - we only want to catch when user change values
         self.parameterValueList[parameter].blockSignals(True)
         self.parameterValueList[parameter].setValue(float(self.parameterNode.GetParameter(parameter)))
-      self.parameterValueList[parameter].blockSignals(False)
+        self.parameterValueList[parameter].blockSignals(False)
 
     self.parameterBoxList = {'RecordingFilename': self.filenameBox, 'OfflineOutputVolumeDevice': self.outpuVolumeDeviceBox, 'ScoutScanFilename': self.scoutScanRecordingLineEdit, 'LiveRecOutputVolumeDevice': self.liveOutputVolumeDeviceBox}
     for parameter in self.parameterBoxList:
       if self.parameterNode.GetParameter(parameter):
         self.parameterBoxList[parameter].blockSignals(True)
         self.parameterBoxList[parameter].setText(self.parameterNode.GetParameter(parameter))
-      self.parameterBoxList[parameter].blockSignals(False)
+        self.parameterBoxList[parameter].blockSignals(False)
 
     self.parameterCheckBoxList = {'RoiDisplay': self.displayRoiButton, 'RecordingFilenameCompletion': self.filenameCompletionBox, 'OfflineDefaultLayout': self.showOfflineReconstructionResultOnCompletionCheckBox, 'ScoutFilenameCompletion': self.scoutFilenameCompletionBox, 'ScoutDefaultLayout': self.showScoutReconstructionResultOnCompletionCheckBox, 'LiveFilenameCompletion': self.liveFilenameCompletionBox, 'LiveDefaultLayout': self.showLiveReconstructionResultOnCompletionCheckBox}
     for parameter in self.parameterCheckBoxList:
@@ -612,7 +614,7 @@ class PlusRemoteWidget(ScriptedLoadableModuleWidget):
           self.parameterCheckBoxList[parameter].setChecked(True)
         else:
           self.parameterCheckBoxList[parameter].setChecked(False)
-      self.parameterCheckBoxList[parameter].blockSignals(False)
+        self.parameterCheckBoxList[parameter].blockSignals(False)
       self.onDisplayRoiButtonClicked()
 
     self.parameterVolumeList = {'OfflineVolumeToReconstruct': self.offlineVolumeToReconstructSelector}
@@ -620,14 +622,14 @@ class PlusRemoteWidget(ScriptedLoadableModuleWidget):
       if self.parameterNode.GetParameter(parameter):
         self.parameterVolumeList[parameter].blockSignals(True)
         self.parameterVolumeList[parameter].setCurrentIndex(int(self.parameterNode.GetParameter(parameter)))
-      self.parameterVolumeList[parameter].blockSignals(False)
+        self.parameterVolumeList[parameter].blockSignals(False)
 
     self.parameterNodesList = {'OpenIGTLinkConnector': self.linkInputSelector}
     for parameter in self.parameterNodesList:
       if self.parameterNode.GetParameter(parameter):
         self.parameterNodesList[parameter].blockSignals(True)
         self.parameterNodesList[parameter].setCurrentNodeID(self.parameterNode.GetParameter(parameter))
-      self.parameterNodesList[parameter].blockSignals(False)
+        self.parameterNodesList[parameter].blockSignals(False)
 
     if self.parameterNode.GetParameter('CaptureID'):
       self.captureIDSelector.blockSignals(True)
@@ -645,10 +647,33 @@ class PlusRemoteWidget(ScriptedLoadableModuleWidget):
 
       self.roiNode = self.parameterNode.GetNthNodeReference('ROI', 0)
 
+      # Enable/disable buttons based on connector node status (when we updated the GUI the update signal was blocked)
+      self.onConnectorNodeSelected()
+
   def updateParameterNodeFromGui(self):
-    #Update parameter node value to save when user change value in the interface
+    # Update parameter node value to save when user change value in the interface
+
     if not self.parameterNode:
-      return
+      # Create a parameter node that can store values set in the GUI
+
+      if not self.linkInputSelector.currentNode():
+        # There is no valid connector node and no valid parameter node:
+        # don't create a new parameter node, as probably the scene has just been closed
+        return
+
+      # Block events so that onParameterSetSelected is not called,
+      # becuase it would update the GUI from the node.
+      self.parameterNodeSelector.blockSignals(True)
+      self.parameterNodeSelector.addNode()
+      self.parameterNodeSelector.blockSignals(False)
+      self.parameterNode = self.parameterNodeSelector.currentNode()
+      if not self.parameterNode:
+        logging.warning('Failed to create PlusRemote parameter node')
+        return
+      # Set up default values for new nodes
+      self.logic.setDefaultParameters(self.parameterNode)
+      self.parameterNodeObserver = self.parameterNode.AddObserver('currentNodeChanged(vtkMRMLNode*)', self.updateGuiFromParameterNode)
+
     self.parametersList = {'OpenIGTLinkConnector': self.linkInputSelector.currentNodeID, 'CaptureID': self.captureIDSelector.currentText, 'CaptureIdIndex': self.captureIDSelector.currentIndex, 'VolumeReconstructor': self.volumeReconstructorIDSelector.currentText, 'VolumeReconstructorIndex': self.volumeReconstructorIDSelector.currentIndex, 'RoiDisplay': self.displayRoiButton.isChecked(), 'RoiExtent1': self.outputExtentROIBoxDirection1.value, 'RoiExtent2': self.outputExtentROIBoxDirection2.value, 'RoiExtent3': self.outputExtentROIBoxDirection3.value, 'OfflineReconstructionSpacing': self.offlineVolumeSpacingBox.value, 'OfflineVolumeToReconstruct': self.offlineVolumeToReconstructSelector.currentIndex, 'ScoutScanSpacing': self.outputVolumeSpacingBox.value, 'LiveReconstructionSpacing': self.outputSpacingLiveReconstructionBox.value, 'RecordingFilename': self.filenameBox.text, 'OfflineOutputVolumeDevice': self.outpuVolumeDeviceBox.text, 'ScoutScanFilename': self.scoutScanRecordingLineEdit.text, 'LiveRecOutputVolumeDevice': self.liveOutputVolumeDeviceBox.text, 'RecordingFilenameCompletion': self.filenameCompletionBox.isChecked(), 'ScoutFilenameCompletion': self.scoutFilenameCompletionBox.isChecked(), 'LiveFilenameCompletion': self.liveFilenameCompletionBox.isChecked(), 'OfflineDefaultLayout': self.showOfflineReconstructionResultOnCompletionCheckBox.isChecked(), 'ScoutDefaultLayout': self.showScoutReconstructionResultOnCompletionCheckBox.isChecked(), 'SnapshotsNumber': self.snapshotIntervalSecSpinBox.value, 'LiveDefaultLayout': self.showLiveReconstructionResultOnCompletionCheckBox.isChecked()}
     for parameter in self.parametersList:
       self.parameterNode.SetParameter(parameter, str(self.parametersList[parameter]))
@@ -669,6 +694,8 @@ class PlusRemoteWidget(ScriptedLoadableModuleWidget):
 
     # Force initial update
     if self.connectorNode:
+
+      # Connector node is selected
       if self.connectorNode.GetState() == slicer.vtkMRMLIGTLConnectorNode.STATE_CONNECTED:
         self.onConnectorNodeConnected(None, None, True)
       else:
@@ -679,6 +706,11 @@ class PlusRemoteWidget(ScriptedLoadableModuleWidget):
       for tagEventHandler in events:
         connectorNodeObserverTag = self.connectorNode.AddObserver(tagEventHandler[0], tagEventHandler[1])
         self.connectorNodeObserverTagList.append(connectorNodeObserverTag)
+
+    else:
+
+      # No connector node is selected
+      self.onConnectorNodeDisconnected(None, None, True)
 
   def onConnectorNodeConnected(self, caller, event, force=False):
     # Multiple notifications may be sent when connecting/disconnecting,
@@ -1026,7 +1058,7 @@ class PlusRemoteWidget(ScriptedLoadableModuleWidget):
 
     if command.GetStatus() != command.CommandSuccess:
       self.recordingStatus.setIcon(qt.QMessageBox.Critical)
-      self.recordingStatus.setToolTip(stopRecordingMessage)
+      self.recordingStatus.setToolTip(command.GetResponseMessage())
       return
 
     volumeToReconstructFileName = os.path.basename(command.GetResponseMessage())

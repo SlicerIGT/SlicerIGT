@@ -54,6 +54,10 @@ protected slots:
   void DisplayWarningColor(bool displayWarningColor);
   void UpdateWarningColor( QColor newColor );
   void UpdateFromMRMLNode();
+  void LineToClosestPointVisibilityChanged(bool displayRuler);
+  void LineToClosestPointColorChanged( QColor newColor );  
+  void LineToClosestPointTextSizeChanged(double size);
+  void LineToClosestPointThicknessChanged(double thickness);
 
 protected:
   QScopedPointer<qSlicerBreachWarningModuleWidgetPrivate> d_ptr;

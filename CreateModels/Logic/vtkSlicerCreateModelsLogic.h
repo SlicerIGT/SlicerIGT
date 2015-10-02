@@ -15,10 +15,10 @@
 
 ==============================================================================*/
 
-// .NAME vtkSlicerCreateModelsLogic - slicer logic class for volumes manipulation
+// .NAME vtkSlicerCreateModelsLogic - slicer logic class for creating simple models
 // .SECTION Description
-// This class manages the logic associated with reading, saving,
-// and changing propertied of the volumes
+// This class contains methods that create model nodes useful for setting up IGT scenes.
+// These methods can be called from other modules.
 
 
 #ifndef __vtkSlicerCreateModelsLogic_h
@@ -27,17 +27,10 @@
 // Slicer includes
 #include "vtkSlicerModuleLogic.h"
 
-// MRML includes
-
-// STD includes
-#include <cstdlib>
-
 #include "vtkSlicerCreateModelsModuleLogicExport.h"
 
-#include "vtkPolyData.h"
-#include "vtkSmartPointer.h"
-
-
+class vtkMRMLModelNode;
+class vtkPolyData;
 
 /// \ingroup Slicer_QtModules_ExtensionTemplate
 class VTK_SLICER_CREATEMODELS_MODULE_LOGIC_EXPORT vtkSlicerCreateModelsLogic :
@@ -48,33 +41,25 @@ public:
   static vtkSlicerCreateModelsLogic *New();
   vtkTypeMacro(vtkSlicerCreateModelsLogic, vtkSlicerModuleLogic);
   void PrintSelf(ostream& os, vtkIndent indent);
-  
-  void CreateNeedle( double length, double radius, double tipRadius, bool markers );
-  void CreateCube( double x, double y, double z );
-  void CreateCylinder( double h, double r );
-  void CreateSphere( double radius );
-  void CreateCoordinate( double axisLength, double axisRadius );
-  
-  
+
+  vtkMRMLModelNode* CreateNeedle( double length, double radius, double tipRadius, bool markers );
+  vtkMRMLModelNode* CreateCube( double x, double y, double z );
+  vtkMRMLModelNode* CreateCylinder( double height, double radius );
+  vtkMRMLModelNode* CreateSphere( double radius );
+  vtkMRMLModelNode* CreateCoordinate( double axisLength, double axisRadius );  
+
 protected:
   vtkSlicerCreateModelsLogic();
   virtual ~vtkSlicerCreateModelsLogic();
 
-  virtual void SetMRMLSceneInternal(vtkMRMLScene* newScene);
-  /// Register MRML Node classes to Scene. Gets called automatically when the MRMLScene is attached to this logic class.
-  virtual void RegisterNodes();
-  virtual void UpdateFromMRMLScene();
-  virtual void OnMRMLSceneNodeAdded(vtkMRMLNode* node);
-  virtual void OnMRMLSceneNodeRemoved(vtkMRMLNode* node);
-
 private:
-  
+
   void CreateCylinderData( vtkPolyData* polyData, double height, double radius );
   void CreateConeData( vtkPolyData* polyData, double height, double radius );
-  
+
   vtkSlicerCreateModelsLogic(const vtkSlicerCreateModelsLogic&); // Not implemented
   void operator=(const vtkSlicerCreateModelsLogic&);             // Not implemented
-  
+
 };
 
 #endif

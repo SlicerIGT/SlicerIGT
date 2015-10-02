@@ -10,11 +10,15 @@ set(${KIT}_INCLUDE_DIRECTORIES
 set(${KIT}_SRCS
   vtkSlicerBreachWarningLogic.cxx
   vtkSlicerBreachWarningLogic.h
+  vtkImplicitPolyDataDistancePointPos.cxx
+  vtkImplicitPolyDataDistancePointPos.h
   )
 
 set(${KIT}_TARGET_LIBRARIES
   ${ITK_LIBRARIES}
   vtkSlicer${MODULE_NAME}ModuleMRML
+  vtkSlicerAnnotationsModuleMRML
+  vtkSlicerAnnotationsModuleLogic
   )
 
 #-----------------------------------------------------------------------------

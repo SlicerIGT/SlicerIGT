@@ -19,6 +19,10 @@
 #include "vtkSlicerBreachWarningLogic.h"
 
 // MRML includes
+#include "vtkMRMLAnnotationLineDisplayNode.h"
+#include "vtkMRMLAnnotationPointDisplayNode.h"
+#include "vtkMRMLAnnotationRulerNode.h"
+#include "vtkMRMLAnnotationTextDisplayNode.h"
 #include "vtkMRMLBreachWarningNode.h"
 #include "vtkMRMLDisplayNode.h"
 #include "vtkMRMLModelNode.h"
@@ -26,11 +30,16 @@
 #include "vtkMRMLTransformNode.h"
 
 // VTK includes
+#include <vtkCellData.h>
+#include <vtkCellLocator.h>
 #include <vtkGeneralTransform.h>
-#include <vtkImplicitPolyDataDistance.h>
+#include <vtkGenericCell.h>
+#include <vtkImplicitPolyDataDistancePointPos.h>
+#include <vtkMath.h>
 #include <vtkNew.h>
 #include <vtkObjectFactory.h>
 #include <vtkPolyData.h>
+#include <vtkPolygon.h>
 #include <vtkSmartPointer.h>
 #include <vtkTransformPolyDataFilter.h>
 
@@ -43,7 +52,12 @@ vtkStandardNewMacro(vtkSlicerBreachWarningLogic);
 //------------------------------------------------------------------------------
 vtkSlicerBreachWarningLogic::vtkSlicerBreachWarningLogic()
 : WarningSoundPlaying(false)
+, DefaultLineToClosestPointTextScale(2.0)
+, DefaultLineToClosestPointThickness(3.0)
 {
+  this->DefaultLineToClosestPointColor[0]=0;
+  this->DefaultLineToClosestPointColor[1]=1;
+  this->DefaultLineToClosestPointColor[2]=0;
 }
 
 
@@ -104,7 +118,7 @@ void vtkSlicerBreachWarningLogic::UpdateToolState( vtkMRMLBreachWarningNode* bwN
     return;
   }
   
-  vtkSmartPointer< vtkImplicitPolyDataDistance > implicitDistanceFilter = vtkSmartPointer< vtkImplicitPolyDataDistance >::New();
+  vtkSmartPointer< vtkImplicitPolyDataDistancePointPos > implicitDistanceFilter = vtkSmartPointer< vtkImplicitPolyDataDistancePointPos >::New();
 
   // Transform the body poly data if there is a parent transform.
   vtkMRMLTransformNode* bodyParentTransform = modelNode->GetParentTransformNode();
@@ -120,7 +134,7 @@ void vtkSlicerBreachWarningLogic::UpdateToolState( vtkMRMLBreachWarningNode* bwN
     bodyToRasFilter->SetInputData( body );
 #endif
     bodyToRasFilter->SetTransform( bodyToRasTransform );
-    bodyToRasFilter->Update();
+    bodyToRasFilter->Update(); // expensive: transforms all the points of the polydata
 
     implicitDistanceFilter->SetInput( bodyToRasFilter->GetOutput() ); // expensive: builds a locator
   }
@@ -139,7 +153,12 @@ void vtkSlicerBreachWarningLogic::UpdateToolState( vtkMRMLBreachWarningNode* bwN
   double toolTipPosition_Tool[4] = { 0.0, 0.0, 0.0, 1.0 };
   double* toolTipPosition_Ras = toolToRasTransform->TransformDoublePoint( toolTipPosition_Tool);
 
-  bwNode->SetClosestDistanceToModelFromToolTip(implicitDistanceFilter->EvaluateFunction( toolTipPosition_Ras ));
+  double closestPointOnModel_Ras[3] = {0};
+  double closestPointDistance = implicitDistanceFilter->EvaluateFunctionAndGetClosestPoint( toolTipPosition_Ras, closestPointOnModel_Ras);
+  bwNode->SetClosestDistanceToModelFromToolTip(closestPointDistance);
+  bwNode->SetClosestPointOnModel(closestPointOnModel_Ras);
+
+  this->UpdateLineToClosestPoint(bwNode, toolTipPosition_Ras, closestPointOnModel_Ras, closestPointDistance);
 }
 
 //------------------------------------------------------------------------------
@@ -232,6 +251,19 @@ void vtkSlicerBreachWarningLogic::OnMRMLSceneNodeRemoved( vtkMRMLNode* node )
       }
     }
     this->SetWarningSoundPlaying(!this->WarningSoundPlayingNodes.empty());
+
+    // Delete the line to closest point ruler
+    vtkMRMLBreachWarningNode* moduleNode = vtkMRMLBreachWarningNode::SafeDownCast(node);
+    if (moduleNode && moduleNode->GetLineToClosestPointNodeID())
+    {
+      // Need to get the ID and lookup the ruler node based on that ID,
+      // because the node is not in the scene anymore and therefore cannot get pointer to the referenced node.
+      vtkMRMLNode* rulerNode = this->GetMRMLScene()->GetNodeByID(moduleNode->GetLineToClosestPointNodeID());
+      if (rulerNode)
+      {
+        this->GetMRMLScene()->RemoveNode(rulerNode);
+      }
+    }
   }
 }
 
@@ -280,7 +312,6 @@ void vtkSlicerBreachWarningLogic::SetWatchedModelNode( vtkMRMLModelNode* newMode
   }
 }
 
-/*
 //------------------------------------------------------------------------------
 void vtkSlicerBreachWarningLogic::ProcessMRMLNodesEvents( vtkObject* caller, unsigned long event, void* callData )
 {
@@ -301,43 +332,7 @@ void vtkSlicerBreachWarningLogic::ProcessMRMLNodesEvents( vtkObject* caller, uns
     // only recompute output if the input is changed
     // (for example we do not recompute the distance if the computed distance is changed)
     this->UpdateToolState(bwNode);
-    if(bwNode->GetDisplayWarningColor())
-    {
-      this->UpdateModelColor(bwNode);
-    }
-    if(bwNode->GetPlayWarningSound() && bwNode->IsToolTipInsideModel())
-    {
-      this->SetWarningSoundPlaying(true);
-    }
-    else
-    {
-      this->SetWarningSoundPlaying(false);
-    }
-  }
-}
-*/
-
-//------------------------------------------------------------------------------
-void vtkSlicerBreachWarningLogic::ProcessMRMLNodesEvents( vtkObject* caller, unsigned long event, void* callData )
-{
-  vtkMRMLNode* callerNode = vtkMRMLNode::SafeDownCast( caller );
-  if (callerNode == NULL)
-  {
-    return;
-  }
-  
-  vtkMRMLBreachWarningNode* bwNode = vtkMRMLBreachWarningNode::SafeDownCast( callerNode );
-  if (bwNode == NULL)
-  {
-    return;
-  }
-  
-  if (event==vtkMRMLBreachWarningNode::InputDataModifiedEvent)
-  {
-    // only recompute output if the input is changed
-    // (for example we do not recompute the distance if the computed distance is changed)
-    this->UpdateToolState(bwNode);
-    if(bwNode->GetDisplayWarningColor())
+    if (bwNode->GetDisplayWarningColor())
     {
       this->UpdateModelColor(bwNode);
     }
@@ -369,3 +364,235 @@ void vtkSlicerBreachWarningLogic::ProcessMRMLNodesEvents( vtkObject* caller, uns
     this->SetWarningSoundPlaying(!this->WarningSoundPlayingNodes.empty());
   }
 }
+
+
+//------------------------------------------------------------------------------
+void vtkSlicerBreachWarningLogic::UpdateLineToClosestPoint(vtkMRMLBreachWarningNode* bwNode, double* toolTipPosition_Ras, double* closestPointOnModel_Ras, double closestPointDistance)
+{
+  if ( bwNode == NULL )
+  {
+    vtkErrorMacro("vtkSlicerBreachWarningLogic::UpdateLineToClosestPoint failed: invalid bwNode");
+    return;
+  }
+  vtkMRMLAnnotationRulerNode* ruler = bwNode->GetLineToClosestPointNode();
+  if (ruler == NULL)
+  {
+    // line to closest point is not displayed, no need to update
+    return;
+  }
+
+  ruler->SetPosition1(toolTipPosition_Ras);
+  ruler->SetPosition2(closestPointOnModel_Ras);
+  if (closestPointDistance<0)
+  {    
+    ruler->SetName("d (in)");
+  }
+  else
+  {   
+    ruler->SetName("d");
+  }
+}
+
+//------------------------------------------------------------------------------
+bool vtkSlicerBreachWarningLogic::GetLineToClosestPointVisibility(vtkMRMLBreachWarningNode* moduleNode)
+{
+  if ( moduleNode == NULL )
+  {
+    vtkErrorMacro("vtkSlicerBreachWarningLogic::GetLineToClosestPointColor failed: invalid moduleNode");
+    return false;
+  }
+  vtkMRMLAnnotationRulerNode* ruler = moduleNode->GetLineToClosestPointNode();
+  if ( ruler == NULL )
+  {
+    return false;
+  }
+  vtkMRMLDisplayNode* displayNode = ruler->GetDisplayNode();
+  if (displayNode == NULL)
+  {
+    vtkErrorMacro("vtkSlicerBreachWarningLogic::GetLineToClosestPointVisibility failed: invalid displayNode");
+    return false;
+  }
+  return displayNode->GetVisibility();
+}
+
+//------------------------------------------------------------------------------
+void vtkSlicerBreachWarningLogic::SetLineToClosestPointVisibility(bool visible, vtkMRMLBreachWarningNode* moduleNode)
+{
+  if ( moduleNode == NULL )
+  {
+    vtkErrorMacro("vtkSlicerBreachWarningLogic::SetLineToClosestPointVisible failed: invalid moduleNode");
+    return;
+  }
+  vtkMRMLScene* scene = this->GetMRMLScene();
+  if ( scene == NULL )
+  {
+    vtkErrorMacro("vtkSlicerBreachWarningLogic::SetLineToClosestPointVisible failed: invalid scene");
+    return;
+  }
+
+  vtkMRMLAnnotationRulerNode* ruler = moduleNode->GetLineToClosestPointNode();
+
+  if (ruler == NULL && visible)
+  {
+    // line does not exist yet, but should be visible - create it
+    vtkSmartPointer<vtkMRMLAnnotationRulerNode> newRuler = vtkSmartPointer<vtkMRMLAnnotationRulerNode>::New();
+    newRuler->SetName("d");
+    newRuler->Initialize(scene);
+    newRuler->SetLocked(true);
+    newRuler->SetTextScale(this->DefaultLineToClosestPointTextScale); // RulerTextSize
+    double color[3] = {0,1,0}; // green
+    newRuler->GetAnnotationLineDisplayNode()->SetColor(color);
+    newRuler->GetAnnotationPointDisplayNode()->SetColor(color);
+    newRuler->GetAnnotationTextDisplayNode()->SetColor(color);
+    newRuler->GetAnnotationPointDisplayNode()->SetGlyphScale(this->DefaultLineToClosestPointThickness);
+    newRuler->GetAnnotationLineDisplayNode()->SetLineThickness(this->DefaultLineToClosestPointThickness);
+    moduleNode->SetLineToClosestPointNodeID(newRuler->GetID());
+  }
+  else if (ruler != NULL)
+  {
+    // line exists, but it is not needed - hide it (don't delete it because it stores thickness, color, etc. parameters)
+    ruler->SetDisplayVisibility(visible);
+  }
+}
+
+//------------------------------------------------------------------------------
+double* vtkSlicerBreachWarningLogic::GetLineToClosestPointColor(vtkMRMLBreachWarningNode* moduleNode)
+{
+  if ( moduleNode == NULL )
+  {
+    vtkErrorMacro("vtkSlicerBreachWarningLogic::GetLineToClosestPointColor failed: invalid moduleNode");
+    return this->DefaultLineToClosestPointColor;
+  }
+  vtkMRMLAnnotationRulerNode* ruler = moduleNode->GetLineToClosestPointNode();
+  if ( ruler == NULL )
+  {
+    return this->DefaultLineToClosestPointColor;
+  }
+  vtkMRMLAnnotationLineDisplayNode* displayNode = ruler->GetAnnotationLineDisplayNode();
+  if ( displayNode == NULL )
+  {
+    vtkErrorMacro("vtkSlicerBreachWarningLogic::GetLineToClosestPointColor failed: displayNode is invalid")
+    return this->DefaultLineToClosestPointColor;
+  }
+  return displayNode->GetColor();
+}
+
+//------------------------------------------------------------------------------
+void vtkSlicerBreachWarningLogic::SetLineToClosestPointColor(double* color, vtkMRMLBreachWarningNode* moduleNode)
+{
+  if ( moduleNode == NULL )
+  {
+    vtkErrorMacro("vtkSlicerBreachWarningLogic::SetLineToClosestPointColor failed: invalid moduleNode");
+    return;
+  }
+
+  vtkMRMLAnnotationRulerNode* ruler = moduleNode->GetLineToClosestPointNode();
+  if (ruler == NULL)
+  {
+    vtkErrorMacro("vtkSlicerBreachWarningLogic::SetLineToClosestPointColor failed: invalid ruler");
+    return;
+  }
+
+  if (ruler->GetAnnotationLineDisplayNode())
+  {
+    ruler->GetAnnotationLineDisplayNode()->SetColor(color);
+  }
+  if (ruler->GetAnnotationPointDisplayNode())
+  {
+    ruler->GetAnnotationPointDisplayNode()->SetColor(color);
+  }
+  if (ruler->GetAnnotationTextDisplayNode())
+  {
+    ruler->GetAnnotationTextDisplayNode()->SetColor(color);
+  }
+}
+//------------------------------------------------------------------------------
+void vtkSlicerBreachWarningLogic::SetLineToClosestPointColor(double r, double g, double b, vtkMRMLBreachWarningNode* moduleNode)
+{
+  double color[3]={r,g,b};
+  this->SetLineToClosestPointColor(color, moduleNode);
+}
+
+//------------------------------------------------------------------------------
+double vtkSlicerBreachWarningLogic::GetLineToClosestPointTextScale(vtkMRMLBreachWarningNode* moduleNode)
+{
+  if ( moduleNode == NULL )
+  {
+    vtkErrorMacro("vtkSlicerBreachWarningLogic::GetLineToClosestPointTextScale failed: invalid moduleNode");
+    return this->DefaultLineToClosestPointTextScale;
+  }
+  vtkMRMLAnnotationRulerNode* ruler = moduleNode->GetLineToClosestPointNode();
+  if ( ruler == NULL )
+  {
+    return this->DefaultLineToClosestPointTextScale;
+  }
+  return ruler->GetTextScale();
+}
+
+//------------------------------------------------------------------------------
+void vtkSlicerBreachWarningLogic::SetLineToClosestPointTextScale(double scale, vtkMRMLBreachWarningNode* moduleNode)
+{
+  if ( moduleNode == NULL )
+  {
+    vtkErrorMacro("vtkSlicerBreachWarningLogic::SetLineToClosestPointTextScale failed: invalid moduleNode");
+    return;
+  }
+
+  vtkMRMLAnnotationRulerNode* ruler = moduleNode->GetLineToClosestPointNode();
+  if (ruler == NULL)
+  {
+    vtkErrorMacro("vtkSlicerBreachWarningLogic::SetLineToClosestPointTextScale failed: invalid ruler");
+    return;
+  }
+  
+  ruler->SetTextScale(scale);
+}
+
+//------------------------------------------------------------------------------
+double vtkSlicerBreachWarningLogic::GetLineToClosestPointThickness(vtkMRMLBreachWarningNode* moduleNode)
+{
+  if ( moduleNode == NULL )
+  {
+    vtkErrorMacro("vtkSlicerBreachWarningLogic::GetLineToClosestPointColor failed: invalid moduleNode");
+    return this->DefaultLineToClosestPointThickness;
+  }
+  vtkMRMLAnnotationRulerNode* ruler = moduleNode->GetLineToClosestPointNode();
+  if ( ruler == NULL )
+  {
+    return this->DefaultLineToClosestPointThickness;
+  }
+  vtkMRMLAnnotationLineDisplayNode* displayNode = ruler->GetAnnotationLineDisplayNode();
+  if ( displayNode == NULL )
+  {
+    vtkErrorMacro("vtkSlicerBreachWarningLogic::GetLineToClosestPointColor failed: displayNode is invalid")
+    return this->DefaultLineToClosestPointThickness;
+  }
+  return displayNode->GetLineThickness();
+}
+
+//------------------------------------------------------------------------------
+void vtkSlicerBreachWarningLogic::SetLineToClosestPointThickness(double thickness, vtkMRMLBreachWarningNode* moduleNode)
+{
+  if ( moduleNode == NULL )
+  {
+    vtkErrorMacro("vtkSlicerBreachWarningLogic::SetLineToClosestPointThickness failed: invalid moduleNode");
+    return;
+  }
+
+  vtkMRMLAnnotationRulerNode* ruler = moduleNode->GetLineToClosestPointNode();
+  if (ruler == NULL)
+  {
+    vtkErrorMacro("vtkSlicerBreachWarningLogic::SetLineToClosestPointThickness failed: invalid ruler");
+    return;
+  }
+
+  if (ruler->GetAnnotationLineDisplayNode())
+  {
+    ruler->GetAnnotationLineDisplayNode()->SetLineThickness(thickness);
+  }
+  if (ruler->GetAnnotationPointDisplayNode())
+  {
+    ruler->GetAnnotationPointDisplayNode()->SetGlyphScale(thickness);
+  }
+}
+
