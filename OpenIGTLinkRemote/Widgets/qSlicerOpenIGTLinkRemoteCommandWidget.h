@@ -23,7 +23,6 @@
 
 #include "qSlicerOpenIGTLinkRemoteModuleWidgetsExport.h"
 
-class QTimer;
 class qSlicerOpenIGTLinkRemoteCommandWidgetPrivate;
 class vtkMRMLNode;
 class vtkMRMLScene;
@@ -51,6 +50,8 @@ protected slots:
 
   void OnSendCommandClicked();
   void onQueryResponseReceived();
+
+protected:
 
   virtual void setup();
 

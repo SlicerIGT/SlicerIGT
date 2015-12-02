@@ -38,9 +38,6 @@ protected:
 private:
   Q_DECLARE_PRIVATE(qSlicerOpenIGTLinkRemoteModuleWidget);
   Q_DISABLE_COPY(qSlicerOpenIGTLinkRemoteModuleWidget);
-  
-  QTimer* Timer;
-  int LastCommandId;  // Id of the last command sent from this widget.
 };
 
 #endif

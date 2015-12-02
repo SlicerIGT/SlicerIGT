@@ -93,7 +93,14 @@ qSlicerOpenIGTLinkRemoteCommandWidget::~qSlicerOpenIGTLinkRemoteCommandWidget()
 void qSlicerOpenIGTLinkRemoteCommandWidget::OnSendCommandClicked()
 {
   Q_D(qSlicerOpenIGTLinkRemoteCommandWidget);
-  
+
+  // Cancel previous command if it was already in progress
+  if (d->command->GetStatus() == vtkSlicerOpenIGTLinkCommand::CommandWaiting)
+  {
+    qDebug("qSlicerOpenIGTLinkRemoteCommandWidgetPrivate::sendCommand: previous command was already in progress, cancel it now");
+    d->logic()->CancelCommand( d->command);
+  }
+
   vtkMRMLNode* connectorNode = d->ConnectorComboBox->currentNode();
   if ( connectorNode == NULL )
   {

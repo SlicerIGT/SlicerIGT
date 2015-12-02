@@ -1,7 +1,6 @@
 
 // Qt includes
 #include <QDebug>
-#include <QTimer>
 
 // SlicerQt includes
 #include "qSlicerOpenIGTLinkRemoteModuleWidget.h"
@@ -46,14 +45,11 @@ qSlicerOpenIGTLinkRemoteModuleWidget
   : Superclass( _parent )
   , d_ptr( new qSlicerOpenIGTLinkRemoteModuleWidgetPrivate( *this ) )
 {
-  this->Timer = new QTimer( this );
-  this->LastCommandId = 0;
 }
 
 
 qSlicerOpenIGTLinkRemoteModuleWidget::~qSlicerOpenIGTLinkRemoteModuleWidget()
 {
-  this->Timer->stop();
 }
 
 void qSlicerOpenIGTLinkRemoteModuleWidget::setup()

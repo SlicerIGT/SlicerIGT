@@ -46,12 +46,17 @@ public slots:
   void setConnectorNode(vtkMRMLNode* node);
   void queryRemoteList();
   void querySelectedItem();
-  void onImageReceived(vtkObject*, void*);
-  void onGetImageComplete(vtkObject*, void*);
-  void onQueryResponseReceived();
+  /// Changes node name from device name to name retrieved from metadata
+  void onNewDeviceAdded(vtkObject*, void*);
+  /// Data query response received (e.g., image is receieved), delete the query node
+  void onDataQueryResponseReceived(vtkObject*, void*);
+  /// Metadata query response received, show info on GUI
+  void onMetadataQueryResponseReceived();
   void onQueryTypeChanged(int id);
   void startTracking();
   void stopTracking();
+  void onRemoteDataListSelectionChanged();
+  void deleteCompletedDataQueryNodes();
 
   void getImage(std::string id);
   void getPointList(std::string id);
