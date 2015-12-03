@@ -956,7 +956,7 @@ class PlusRemoteWidget(ScriptedLoadableModuleWidget):
 # Commands
 #
   def onStartRecording(self):
-    self.logic.startRecording(self.linkInputSelector.currentNode().GetID(), self.captureIDSelector.currentText, self.generateRecordingOutputFilename(), str(self.enableCompressionBox.checked), self.printCommandResponse)
+    self.logic.startRecording(self.linkInputSelector.currentNode().GetID(), self.captureIDSelector.currentText, self.generateRecordingOutputFilename(), self.enableCompressionBox.checked, self.printCommandResponse)
 
   def onStopRecording(self):
     self.logic.stopRecording(self.linkInputSelector.currentNode().GetID(), self.captureIDSelector.currentText, self.onVolumeRecorded)
@@ -1480,7 +1480,7 @@ class PlusRemoteLogic(ScriptedLoadableModuleLogic):
   def startRecording(self, connectorNodeId, captureName, fileName, compression, responseCallbackMethod):
     self.cmdStartRecording.SetCommandAttribute('CaptureDeviceId', captureName)
     self.cmdStartRecording.SetCommandAttribute('OutputFilename', fileName)
-    self.cmdStartRecording.SetCommandAttribute('EnableCompression', compression)
+    self.cmdStartRecording.SetCommandAttribute('EnableCompression', str(compression))
     self.executeCommand(self.cmdStartRecording, connectorNodeId, responseCallbackMethod)
 
   def stopRecording(self, connectorNodeId, captureName, responseCallbackMethod):
