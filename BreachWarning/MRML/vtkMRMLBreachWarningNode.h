@@ -30,14 +30,12 @@
 // BreachWarning includes
 #include "vtkSlicerBreachWarningModuleMRMLExport.h"
 
+class vtkMRMLAnnotationRulerNode;
 class vtkMRMLTransformNode;
 class vtkMRMLModelNode;
 
 
-class
-VTK_SLICER_BREACHWARNING_MODULE_MRML_EXPORT
-vtkMRMLBreachWarningNode
-: public vtkMRMLNode
+class VTK_SLICER_BREACHWARNING_MODULE_MRML_EXPORT vtkMRMLBreachWarningNode: public vtkMRMLNode
 {
 public:
 
@@ -52,9 +50,9 @@ public:
   
   vtkTypeMacro( vtkMRMLBreachWarningNode, vtkMRMLNode );
   
-  // Standard MRML node methods  
+  // Standard MRML node methods
 
-  static vtkMRMLBreachWarningNode *New();  
+  static vtkMRMLBreachWarningNode *New();
 
   virtual vtkMRMLNode* CreateNodeInstance();
   virtual const char* GetNodeTagName() { return "BreachWarning"; };
@@ -75,9 +73,13 @@ protected:
   
 public:
 
-  /// Computed parameter
+  /// Distance of the closest point on the model to the tooltip. Computed parameter.
   vtkGetMacro( ClosestDistanceToModelFromToolTip, double );
   vtkSetMacro( ClosestDistanceToModelFromToolTip, double );
+
+  /// Position of the closest point on the model to the tooltip in RAS coordinate system. Computed parameter.
+  vtkGetVector3Macro( ClosestPointOnModel, double );
+  vtkSetVector3Macro( ClosestPointOnModel, double );
 
   /// Computed parameter
   bool IsToolTipInsideModel();
@@ -89,8 +91,8 @@ public:
   virtual void SetPlayWarningSound(bool _arg);
 
   /// Indicates if color of the watched model should be changed.
-  /// False by default.
-  /// \sa SetPlayWarningSound(), GetPlayWarningSound(), PlayWarningSoundOn(), PlayWarningSoundOff()
+  /// True by default.
+  /// \sa SetDisplayWarningColor(), GetDisplayWarningColor(), DisplayWarningColorOn(), DisplayWarningColorOff()
   vtkGetMacro( DisplayWarningColor, bool );
   virtual void SetDisplayWarningColor(bool _arg);
 
@@ -102,16 +104,20 @@ public:
   virtual void SetOriginalColor(double _arg1, double _arg2, double _arg3);
   virtual void SetOriginalColor(double _arg[3]);
 
-  // Watched model defines the risk area that needs to be avoided.
-
+  /// Watched model defines the area that may breached.
   vtkMRMLModelNode* GetWatchedModelNode();
-  void SetAndObserveWatchedModelNodeID( const char* modelId );  
+  void SetAndObserveWatchedModelNodeID( const char* modelId );
 
   // Tool transform is interpreted as ToolTipToRas. The origin of ToolTip 
   // coordinate system is the tip of the surgical tool that needs to avoid the
   // risk area.
   vtkMRMLTransformNode* GetToolTransformNode();
   void SetAndObserveToolTransformNodeId( const char* nodeId );
+
+  /// Node that displays the line from the tooltip to the closest point on the watched model
+  vtkMRMLAnnotationRulerNode* GetLineToClosestPointNode();
+  const char* GetLineToClosestPointNodeID();
+  void SetLineToClosestPointNodeID( const char* lineToClosestPointNodeId );
   
   void ProcessMRMLEvents( vtkObject *caller, unsigned long event, void *callData );
 
@@ -124,7 +130,7 @@ private:
   // It is the closest distance to the model from the tool transform. If the distance is negative
   // the transform is inside the model.
   double ClosestDistanceToModelFromToolTip;
+  double ClosestPointOnModel[3];
 
 };
-
 #endif

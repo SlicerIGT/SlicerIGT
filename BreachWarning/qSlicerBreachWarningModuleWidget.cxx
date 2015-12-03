@@ -83,11 +83,13 @@ qSlicerBreachWarningModuleWidget::~qSlicerBreachWarningModuleWidget()
   // Make connections to update the mrml from the widget
   disconnect( d->ModelNodeComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onModelNodeChanged() ) );
   disconnect( d->ToolComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onToolTransformChanged() ) );
-  disconnect( d->ColorPickerButton, SIGNAL( colorChanged( QColor ) ), this, SLOT( UpdateWarningColor( QColor ) ) );
-  disconnect(d->SoundCheckBox, SIGNAL(toggled(bool)), this, SLOT(PlayWarningSound(bool)));
-  disconnect(d->colorCheckBox, SIGNAL(toggled(bool)), this, SLOT(DisplayWarningColor(bool)));
-
-
+  disconnect( d->WarningColorPickerButton, SIGNAL( colorChanged( QColor ) ), this, SLOT( UpdateWarningColor( QColor ) ) );
+  disconnect( d->SoundCheckBox, SIGNAL(toggled(bool)), this, SLOT(PlayWarningSound(bool)));
+  disconnect( d->WarningCheckBox, SIGNAL(toggled(bool)), this, SLOT(DisplayWarningColor(bool)));
+  disconnect( d->LineToClosestPointVisibilityCheckBox, SIGNAL(toggled(bool)), this, SLOT(LineToClosestPointVisibilityChanged(bool)));
+  disconnect( d->LineToClosestPointColorPickerButton, SIGNAL( colorChanged( QColor ) ), this, SLOT( LineToClosestPointColorChanged( QColor ) ) );  
+  disconnect( d->LineToClosestPointTextSizeSlider, SIGNAL( valueChanged (double ) ), this, SLOT( LineToClosestPointTextSizeChanged( double ) ) );  
+  disconnect( d->LineToClosestPointThicknessSlider, SIGNAL( valueChanged (double ) ), this, SLOT( LineToClosestPointThicknessChanged( double ) ) );  
 }
 
 //-----------------------------------------------------------------------------
@@ -105,10 +107,14 @@ void qSlicerBreachWarningModuleWidget::setup()
   // Make connections to update the mrml from the widget
   connect( d->ModelNodeComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onModelNodeChanged() ) );
   connect( d->ToolComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onToolTransformChanged() ) );
-  connect( d->ColorPickerButton, SIGNAL( colorChanged( QColor ) ), this, SLOT( UpdateWarningColor( QColor ) ) );
+  connect( d->WarningColorPickerButton, SIGNAL( colorChanged( QColor ) ), this, SLOT( UpdateWarningColor( QColor ) ) );
   connect(d->SoundCheckBox, SIGNAL(toggled(bool)), this, SLOT(PlayWarningSound(bool)));
-  connect(d->colorCheckBox, SIGNAL(toggled(bool)), this, SLOT(DisplayWarningColor(bool)));
-  
+  connect(d->WarningCheckBox, SIGNAL(toggled(bool)), this, SLOT(DisplayWarningColor(bool)));
+  connect(d->LineToClosestPointVisibilityCheckBox, SIGNAL(toggled(bool)), this, SLOT(LineToClosestPointVisibilityChanged(bool)));
+  connect( d->LineToClosestPointColorPickerButton, SIGNAL( colorChanged( QColor ) ), this, SLOT( LineToClosestPointColorChanged( QColor ) ) );
+  connect( d->LineToClosestPointTextSizeSlider, SIGNAL( valueChanged (double ) ), this, SLOT( LineToClosestPointTextSizeChanged( double ) ) );  
+  connect( d->LineToClosestPointThicknessSlider, SIGNAL( valueChanged (double ) ), this, SLOT( LineToClosestPointThicknessChanged( double ) ) );  
+
   this->UpdateFromMRMLNode();
 }
 
@@ -208,7 +214,7 @@ void qSlicerBreachWarningModuleWidget::PlayWarningSound(bool playWarningSound)
   vtkMRMLBreachWarningNode* parameterNode = vtkMRMLBreachWarningNode::SafeDownCast( d->ParameterNodeComboBox->currentNode() );
   if ( parameterNode == NULL )
   {
-    qCritical( "Transform node should not be changed when no module node selected" );
+    qCritical( "No module node selected" );
     return;
   }
   parameterNode->SetPlayWarningSound(playWarningSound);
@@ -221,10 +227,23 @@ void qSlicerBreachWarningModuleWidget::DisplayWarningColor(bool displayWarningCo
   vtkMRMLBreachWarningNode* parameterNode = vtkMRMLBreachWarningNode::SafeDownCast( d->ParameterNodeComboBox->currentNode() );
   if ( parameterNode == NULL )
   {
-    qCritical( "Transform node should not be changed when no module node selected" );
+    qCritical( "No module node selected" );
     return;
   }
   parameterNode->SetDisplayWarningColor(displayWarningColor);
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerBreachWarningModuleWidget::LineToClosestPointVisibilityChanged(bool visible)
+{
+  Q_D(qSlicerBreachWarningModuleWidget);
+  vtkMRMLBreachWarningNode* parameterNode = vtkMRMLBreachWarningNode::SafeDownCast( d->ParameterNodeComboBox->currentNode() );
+  if ( parameterNode == NULL )
+  {
+    qCritical( "No module node selected" );
+    return;
+  }
+  d->logic()->SetLineToClosestPointVisibility( visible, parameterNode );
 }
 
 //-----------------------------------------------------------------------------
@@ -243,6 +262,51 @@ void qSlicerBreachWarningModuleWidget::UpdateWarningColor( QColor newColor )
 }
 
 //-----------------------------------------------------------------------------
+void qSlicerBreachWarningModuleWidget::LineToClosestPointColorChanged( QColor newColor )
+{
+  Q_D(qSlicerBreachWarningModuleWidget);
+
+  vtkMRMLBreachWarningNode* parameterNode = vtkMRMLBreachWarningNode::SafeDownCast( d->ParameterNodeComboBox->currentNode() );
+  if ( parameterNode == NULL )
+  {
+    qCritical( "Color selected without module node" );
+    return;
+  }
+
+  d->logic()->SetLineToClosestPointColor( newColor.redF(), newColor.greenF(), newColor.blueF(), parameterNode );
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerBreachWarningModuleWidget::LineToClosestPointTextSizeChanged( double size )
+{
+  Q_D(qSlicerBreachWarningModuleWidget);
+
+  vtkMRMLBreachWarningNode* parameterNode = vtkMRMLBreachWarningNode::SafeDownCast( d->ParameterNodeComboBox->currentNode() );
+  if ( parameterNode == NULL )
+  {
+    qCritical( "No module node selected" );
+    return;
+  }
+
+  d->logic()->SetLineToClosestPointTextScale( size, parameterNode );
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerBreachWarningModuleWidget::LineToClosestPointThicknessChanged( double thickness )
+{
+  Q_D(qSlicerBreachWarningModuleWidget);
+
+  vtkMRMLBreachWarningNode* parameterNode = vtkMRMLBreachWarningNode::SafeDownCast( d->ParameterNodeComboBox->currentNode() );
+  if ( parameterNode == NULL )
+  {
+    qCritical( "No module node selected" );
+    return;
+  }
+
+  d->logic()->SetLineToClosestPointThickness( thickness, parameterNode);
+}
+
+//-----------------------------------------------------------------------------
 void qSlicerBreachWarningModuleWidget::UpdateFromMRMLNode()
 {
   Q_D( qSlicerBreachWarningModuleWidget );
@@ -254,26 +318,42 @@ void qSlicerBreachWarningModuleWidget::UpdateFromMRMLNode()
     d->ModelNodeComboBox->setCurrentNodeID( "" );
     d->ModelNodeComboBox->setEnabled( false );
     d->ToolComboBox->setEnabled( false );
-    d->colorCheckBox->setEnabled( false );
-    d->ColorPickerButton->setEnabled( false );
-    d->SoundCheckBox->setEnabled( false );
+    d->WarningCheckBox->setEnabled( false );
+    d->WarningColorPickerButton->setEnabled( false );
+    d->SoundCheckBox->setEnabled( false );        
+    d->LineToClosestPointVisibilityCheckBox->setEnabled( false );
+    d->LineToClosestPointColorPickerButton->setEnabled( false );
+    d->LineToClosestPointTextSizeSlider->setEnabled( false );
+    d->LineToClosestPointThicknessSlider->setEnabled( false );
     return;
   }
     
   d->ModelNodeComboBox->setEnabled( true );
   d->ToolComboBox->setEnabled( true );
-  d->colorCheckBox->setEnabled( true );
-  d->ColorPickerButton->setEnabled( true );
+  d->WarningCheckBox->setEnabled( true );
+  d->WarningColorPickerButton->setEnabled( true );
   d->SoundCheckBox->setEnabled( true );
-  
+  d->LineToClosestPointVisibilityCheckBox->setEnabled( true );
+  d->LineToClosestPointColorPickerButton->setEnabled( true );
+  d->LineToClosestPointTextSizeSlider->setEnabled( true );
+  d->LineToClosestPointThicknessSlider->setEnabled( true );
+
   d->ToolComboBox->setCurrentNode( bwNode->GetToolTransformNode() );
   d->ModelNodeComboBox->setCurrentNode( bwNode->GetWatchedModelNode() );
   
   double* warningColor = bwNode->GetWarningColor();
-  QColor nodeWarningColor;
-  nodeWarningColor.setRgbF(warningColor[0],warningColor[1],warningColor[2]);
-  d->ColorPickerButton->setColor(nodeWarningColor);
+  QColor warningColorQt;
+  warningColorQt.setRgbF(warningColor[0],warningColor[1],warningColor[2]);
+  d->WarningColorPickerButton->setColor(warningColorQt);
 
-  d->colorCheckBox->setChecked( bwNode->GetDisplayWarningColor() );
-  d->SoundCheckBox->setChecked( bwNode->GetPlayWarningSound() );
+  double* lineToClosestPointColor = d->logic()->GetLineToClosestPointColor(bwNode);
+  QColor lineToClosestPointColorQt;
+  lineToClosestPointColorQt.setRgbF(lineToClosestPointColor[0],lineToClosestPointColor[1],lineToClosestPointColor[2]);
+  d->LineToClosestPointColorPickerButton->setColor(lineToClosestPointColorQt);
+
+  d->WarningCheckBox->setChecked( bwNode->GetDisplayWarningColor() );
+  d->SoundCheckBox->setChecked( bwNode->GetPlayWarningSound() );  
+  d->LineToClosestPointVisibilityCheckBox->setChecked( d->logic()->GetLineToClosestPointVisibility(bwNode) );
+  d->LineToClosestPointTextSizeSlider->setValue( d->logic()->GetLineToClosestPointTextScale(bwNode) );
+  d->LineToClosestPointThicknessSlider->setValue( d->logic()->GetLineToClosestPointThickness(bwNode) );
 }

@@ -13,12 +13,8 @@ class PlusRemote(ScriptedLoadableModule):
     self.parent.title = "Plus Remote"
     self.parent.categories = ["IGT"]
     self.parent.contributors = ["Amelie Meyer (PerkLab, Queen's University), Franklin King (PerkLab, Queen's University), Tamas Ungi (PerkLab, Queen's University), Andras Lasso (PerkLab, Queen's University)"]
-    self.parent.helpText = """
-This is a convenience module for sending commands a <a href="www.plustoolkit.org">PLUS server</a> for recording data and reconstruction of 3D volumes from tracked 2D image slices.
-"""
-    self.parent.acknowledgementText = """
-This work was funded by Cancer Care Ontario Applied Cancer Research Unit (ACRU) and the Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO) grants.
-"""
+    self.parent.helpText = """This is a convenience module for sending commands a <a href="www.plustoolkit.org">PLUS server</a> for recording data and reconstruction of 3D volumes from tracked 2D image slices."""
+    self.parent.acknowledgementText = """This work was funded by Cancer Care Ontario Applied Cancer Research Unit (ACRU) and the Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO) grants."""
 
 #
 # qPlusRemoteWidget
@@ -41,6 +37,7 @@ class PlusRemoteWidget(ScriptedLoadableModuleWidget):
     self.scoutVolumeFilename = "ScoutScan.mha" # constant
     self.scoutVolumeNodeName = "ScoutScan" # constant
     self.applyHoleFillingForSnapshot = False # constant
+    self.defaultParameterNode = None
 
   def setup(self):
     # Instantiate and connect widgets
@@ -156,22 +153,31 @@ class PlusRemoteWidget(ScriptedLoadableModuleWidget):
     self.filenameLabel = qt.QLabel()
     self.filenameLabel.setText("Filename:")
     self.filenameLabel.visible = False
-    recordParametersControlsLayout.addWidget(self.filenameLabel, 1, 0)
+    recordParametersControlsLayout.addWidget(self.filenameLabel, 0, 0)
 
     self.filenameBox = qt.QLineEdit()
     self.filenameBox.setToolTip("Set filename (optional)")
     self.filenameBox.visible = False
     self.filenameBox.setText("Recording.mha")
-    recordParametersControlsLayout.addWidget(self.filenameBox, 1, 1)
+    recordParametersControlsLayout.addWidget(self.filenameBox, 0, 1, 1, 3)
 
     self.filenameCompletionLabel = qt.QLabel()
     self.filenameCompletionLabel.setText("Add timestamp to filename:")
     self.filenameCompletionLabel.visible = False
-    recordParametersControlsLayout.addWidget(self.filenameCompletionLabel, 2, 0)
+    recordParametersControlsLayout.addWidget(self.filenameCompletionLabel, 1, 0)
 
     self.filenameCompletionBox = qt.QCheckBox()
     self.filenameCompletionBox.visible = False
-    recordParametersControlsLayout.addWidget(self.filenameCompletionBox, 2, 1)
+    recordParametersControlsLayout.addWidget(self.filenameCompletionBox, 1, 1)
+
+    self.enableCompressionLabel = qt.QLabel()
+    self.enableCompressionLabel.setText("Compression:")
+    self.enableCompressionLabel.visible = False
+    recordParametersControlsLayout.addWidget(self.enableCompressionLabel, 1, 2)
+
+    self.enableCompressionBox = qt.QCheckBox()
+    self.enableCompressionBox.visible = False
+    recordParametersControlsLayout.addWidget(self.enableCompressionBox, 1, 3)
 
     self.recordingStatus = qt.QMessageBox()
     self.recordingStatus.setIcon(qt.QMessageBox.Information)
@@ -537,6 +543,7 @@ class PlusRemoteWidget(ScriptedLoadableModuleWidget):
     #self.displayDefaultLayoutButton.connect('clicked(bool)', self.updateParameterNodeFromGui)
     self.filenameBox.connect('textEdited(QString)', self.updateParameterNodeFromGui)
     self.filenameCompletionBox.connect('clicked(bool)', self.updateParameterNodeFromGui)
+    self.enableCompressionBox.connect('clicked(bool)', self.updateParameterNodeFromGui)
     self.offlineVolumeSpacingBox.connect('valueChanged(double)', self.updateParameterNodeFromGui)
     self.outpuVolumeDeviceBox.connect('textEdited(QString)', self.updateParameterNodeFromGui)
     self.offlineVolumeToReconstructSelector.connect('currentIndexChanged(int)', self.updateParameterNodeFromGui)
@@ -606,7 +613,7 @@ class PlusRemoteWidget(ScriptedLoadableModuleWidget):
         self.parameterBoxList[parameter].setText(self.parameterNode.GetParameter(parameter))
         self.parameterBoxList[parameter].blockSignals(False)
 
-    self.parameterCheckBoxList = {'RoiDisplay': self.displayRoiButton, 'RecordingFilenameCompletion': self.filenameCompletionBox, 'OfflineDefaultLayout': self.showOfflineReconstructionResultOnCompletionCheckBox, 'ScoutFilenameCompletion': self.scoutFilenameCompletionBox, 'ScoutDefaultLayout': self.showScoutReconstructionResultOnCompletionCheckBox, 'LiveFilenameCompletion': self.liveFilenameCompletionBox, 'LiveDefaultLayout': self.showLiveReconstructionResultOnCompletionCheckBox}
+    self.parameterCheckBoxList = {'RoiDisplay': self.displayRoiButton, 'RecordingFilenameCompletion': self.filenameCompletionBox, 'EnableCompression':self.enableCompressionBox, 'OfflineDefaultLayout': self.showOfflineReconstructionResultOnCompletionCheckBox, 'ScoutFilenameCompletion': self.scoutFilenameCompletionBox, 'ScoutDefaultLayout': self.showScoutReconstructionResultOnCompletionCheckBox, 'LiveFilenameCompletion': self.liveFilenameCompletionBox, 'LiveDefaultLayout': self.showLiveReconstructionResultOnCompletionCheckBox}
     for parameter in self.parameterCheckBoxList:
       if self.parameterNode.GetParameter(parameter):
         self.parameterCheckBoxList[parameter].blockSignals(True)
@@ -821,6 +828,8 @@ class PlusRemoteWidget(ScriptedLoadableModuleWidget):
     self.filenameBox.visible = self.recordSettingsButton.checked
     self.filenameCompletionLabel.visible = self.recordSettingsButton.checked
     self.filenameCompletionBox.visible = self.recordSettingsButton.checked
+    self.enableCompressionLabel.visible = self.recordSettingsButton.checked
+    self.enableCompressionBox.visible = self.recordSettingsButton.checked
     #self.displayDefaultLayoutButton.visible = self.recordSettingsButton.checked
 
   def onOfflineReconstructSettingsButtonClicked(self):
@@ -947,14 +956,14 @@ class PlusRemoteWidget(ScriptedLoadableModuleWidget):
 # Commands
 #
   def onStartRecording(self):
-    self.logic.startRecording(self.linkInputSelector.currentNode().GetID(), self.captureIDSelector.currentText, self.generateRecordingOutputFilename(), self.printCommandResponse)
+    self.logic.startRecording(self.linkInputSelector.currentNode().GetID(), self.captureIDSelector.currentText, self.generateRecordingOutputFilename(), str(self.enableCompressionBox.checked), self.printCommandResponse)
 
   def onStopRecording(self):
     self.logic.stopRecording(self.linkInputSelector.currentNode().GetID(), self.captureIDSelector.currentText, self.onVolumeRecorded)
 
   def onStartScoutRecording(self):
     self.lastScoutRecordingOutputFilename = self.generateScoutRecordingOutputFilename()
-    self.logic.startRecording(self.linkInputSelector.currentNode().GetID(), self.captureIDSelector.currentText, self.lastScoutRecordingOutputFilename, self.printCommandResponse)
+    self.logic.startRecording(self.linkInputSelector.currentNode().GetID(), self.captureIDSelector.currentText, self.lastScoutRecordingOutputFilename, False, self.printCommandResponse)
 
   def onStopScoutRecording(self):
     self.logic.stopRecording(self.linkInputSelector.currentNode().GetID(), self.captureIDSelector.currentText, self.onScoutVolumeRecorded)
@@ -1468,9 +1477,10 @@ class PlusRemoteLogic(ScriptedLoadableModuleLogic):
     self.cmdReconstructRecorded.SetCommandAttribute('OutputVolDeviceName', outputVolumeDevice)
     self.executeCommand(self.cmdReconstructRecorded, connectorNodeId, responseCallbackMethod)
 
-  def startRecording(self, connectorNodeId, captureName, fileName, responseCallbackMethod):
+  def startRecording(self, connectorNodeId, captureName, fileName, compression, responseCallbackMethod):
     self.cmdStartRecording.SetCommandAttribute('CaptureDeviceId', captureName)
     self.cmdStartRecording.SetCommandAttribute('OutputFilename', fileName)
+    self.cmdStartRecording.SetCommandAttribute('EnableCompression', compression)
     self.executeCommand(self.cmdStartRecording, connectorNodeId, responseCallbackMethod)
 
   def stopRecording(self, connectorNodeId, captureName, responseCallbackMethod):

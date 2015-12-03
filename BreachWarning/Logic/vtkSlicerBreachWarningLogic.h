@@ -52,10 +52,8 @@ class vtkMRMLTransformNode;
 
 #include "vtkSlicerBreachWarningModuleLogicExport.h"
 
-
 /// \ingroup Slicer_QtModules_BreachWarning
-class VTK_SLICER_BREACHWARNING_MODULE_LOGIC_EXPORT vtkSlicerBreachWarningLogic :
-  public vtkSlicerModuleLogic
+class VTK_SLICER_BREACHWARNING_MODULE_LOGIC_EXPORT vtkSlicerBreachWarningLogic : public vtkSlicerModuleLogic
 {
 public:
   static vtkSlicerBreachWarningLogic *New();
@@ -64,6 +62,23 @@ public:
 
   /// Changes the watched model node, making sure the original color of the previously selected model node is restored
   void SetWatchedModelNode( vtkMRMLModelNode* newModel, vtkMRMLBreachWarningNode* moduleNode );
+
+  /// Show a line from the tooltip to the closest point on the model. Creates/deletes a ruler node.
+  void SetLineToClosestPointVisibility(bool visible, vtkMRMLBreachWarningNode* moduleNode);
+  bool GetLineToClosestPointVisibility(vtkMRMLBreachWarningNode* moduleNode);
+
+  /// Get color of the line from the tooltip to the closest point on the model. Returns default color if the line is not shown.
+  double* GetLineToClosestPointColor(vtkMRMLBreachWarningNode* moduleNode);  
+  void SetLineToClosestPointColor(double* color, vtkMRMLBreachWarningNode* moduleNode);  
+  void SetLineToClosestPointColor(double r, double g, double b, vtkMRMLBreachWarningNode* moduleNode);  
+
+  /// Get text size of the line from the tooltip to the closest point on the model.
+  double GetLineToClosestPointTextScale(vtkMRMLBreachWarningNode* moduleNode);
+  void SetLineToClosestPointTextScale(double scale, vtkMRMLBreachWarningNode* moduleNode);
+
+  /// Get thickness of the line from the tooltip to the closest point on the model.
+  double GetLineToClosestPointThickness(vtkMRMLBreachWarningNode* moduleNode);
+  void SetLineToClosestPointThickness(double thickness, vtkMRMLBreachWarningNode* moduleNode);
 
   void ProcessMRMLNodesEvents( vtkObject* caller, unsigned long event, void* callData );
 
@@ -84,13 +99,20 @@ protected:
 
   void UpdateToolState( vtkMRMLBreachWarningNode* bwNode );
   void UpdateModelColor( vtkMRMLBreachWarningNode* bwNode );
-
+  void UpdateLineToClosestPoint(vtkMRMLBreachWarningNode* bwNode, double* toolTipPosition_Ras, double* closestPointOnModel_Ras, double closestPointDistance);
+  
 private:
   vtkSlicerBreachWarningLogic(const vtkSlicerBreachWarningLogic&); // Not implemented
   void operator=(const vtkSlicerBreachWarningLogic&);               // Not implemented
 
+  void UpdateRuler(vtkMRMLBreachWarningNode* bwNode, double* toolTipPosition);
+
   std::deque< vtkWeakPointer< vtkMRMLBreachWarningNode > > WarningSoundPlayingNodes;
   bool WarningSoundPlaying;
+  
+  double DefaultLineToClosestPointColor[3];
+  double DefaultLineToClosestPointTextScale;
+  double DefaultLineToClosestPointThickness;
 };
 
 #endif
