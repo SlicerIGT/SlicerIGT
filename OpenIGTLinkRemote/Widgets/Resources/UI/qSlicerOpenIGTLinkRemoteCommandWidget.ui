@@ -79,7 +79,28 @@
         </property>
         <layout class="QVBoxLayout" name="verticalLayout_4">
          <item>
-          <widget class="QPlainTextEdit" name="ResponseTextEdit"/>
+          <widget class="QPlainTextEdit" name="ResponseTextEdit">
+           <property name="readOnly">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QCheckBox" name="ShowFullResponseCheckBox">
+           <property name="text">
+            <string>Show full response</string>
+           </property>
+           <property name="checked">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPlainTextEdit" name="FullResponseTextEdit">
+           <property name="readOnly">
+            <bool>true</bool>
+           </property>
+          </widget>
          </item>
         </layout>
        </widget>
@@ -117,6 +138,22 @@
     <hint type="destinationlabel">
      <x>274</x>
      <y>73</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>ShowFullResponseCheckBox</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>FullResponseTextEdit</receiver>
+   <slot>setVisible(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>169</x>
+     <y>430</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>169</x>
+     <y>519</y>
     </hint>
    </hints>
   </connection>
