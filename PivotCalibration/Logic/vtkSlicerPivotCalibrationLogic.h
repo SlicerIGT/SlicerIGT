@@ -49,61 +49,65 @@ public:
   vtkTypeMacro(vtkSlicerPivotCalibrationLogic, vtkSlicerModuleLogic);
   void PrintSelf(ostream& os, vtkIndent indent);
 
-  void ProcessMRMLNodesEvents( vtkObject* caller, unsigned long event, void* callData );
+  // Clears all previously acquired tool transforms.
+  // Call this before start adding transforms.
+  void ClearToolToReferenceMatrices();
 
+  // Add a tool transforms automatically by observing transform changes
+  vtkGetMacro(RecordingState, bool);
+  vtkSetMacro(RecordingState, bool);
   void SetAndObserveTransformNode( vtkMRMLLinearTransformNode* );
+
+  // Add a single tool transform manually
   void AddToolToReferenceMatrix( vtkMatrix4x4* );
 
-  void ComputePivotCalibration();
-  void ComputeSpinCalibration( bool snapRotation = false ); //Note: The neede orientation protocol assumes that the shaft of the tool lies along the positive x-axis
+  // Computes calibration results.
+  // Returns with false on failure
+  bool ComputePivotCalibration();
 
-  // Getters for the output
+  // Computes calibration results.
+  // Returns with false on failure
+  bool ComputeSpinCalibration( bool snapRotation = false ); //Note: The neede orientation protocol assumes that the shaft of the tool lies along the positive x-axis
+
+  // Get calibration results
   void GetToolTipToToolTranslation( vtkMatrix4x4* );
   void GetToolTipToToolRotation( vtkMatrix4x4* );
   void GetToolTipToToolMatrix( vtkMatrix4x4* );
+  vtkGetMacro(PivotRMSE, double);
+  vtkGetMacro(SpinRMSE, double);
 
-  double GetPivotRMSE();
-  double GetSpinRMSE();
-  
-  void SetRecordingState(bool);
-  bool GetRecordingState();
-  
-  void ClearToolToReferenceMatrices();
-  
+  // Returns human-readable description of the error occurred (non-empty if ComputePivotCalibration returns with failure)
+  vtkGetMacro(ErrorText, std::string);
   
 protected:
   vtkSlicerPivotCalibrationLogic();
   virtual ~vtkSlicerPivotCalibrationLogic();
   
-  virtual void SetMRMLSceneInternal(vtkMRMLScene* newScene);
-  /// Register MRML Node classes to Scene. Gets called automatically when the MRMLScene is attached to this logic class.
-  /*
-  virtual void RegisterNodes();
-  virtual void UpdateFromMRMLScene();
-  virtual void OnMRMLSceneEndImport();
-  virtual void OnMRMLSceneStartClose();
-  virtual void OnMRMLSceneEndClose();
-  virtual void OnMRMLSceneNodeAdded(vtkMRMLNode* node);
-  virtual void OnMRMLSceneNodeRemoved(vtkMRMLNode* node);
-  */
+  void ProcessMRMLNodesEvents( vtkObject* caller, unsigned long event, void* callData );
+
+  // Returns the orientation difference in degrees between two 4x4 homogeneous transformation matrix, in degrees.
+  double GetOrientationDifferenceDeg(vtkMatrix4x4* aMatrix, vtkMatrix4x4* bMatrix);
+  
+  // Computes the maximum orientation difference in degrees between the first tool transformation
+  // and all the others. Used for determining if there was enough variation in the input data.
+  double GetMaximumToolOrientationDifferenceDeg();
   
 private:
 
   vtkSlicerPivotCalibrationLogic(const vtkSlicerPivotCalibrationLogic&); // Not implemented
   void operator=(const vtkSlicerPivotCalibrationLogic&);               // Not implemented
 
-  //Move to protected, add accessors
-  vtkMatrix4x4* ToolTipToToolMatrix;
-  double PivotRMSE;
-  double SpinRMSE;
-
+  // Calibration inputs
+  double MinimumOrientationDifferenceDeg;
   std::vector< vtkMatrix4x4* > ToolToReferenceMatrices;
-  
   vtkMRMLLinearTransformNode* ObservedTransformNode;
-  
   bool RecordingState;
 
-
+  // Calibration results
+  vtkMatrix4x4* ToolTipToToolMatrix;
+  double PivotRMSE;
+  double SpinRMSE; 
+  std::string ErrorText;
 };
 
 #endif

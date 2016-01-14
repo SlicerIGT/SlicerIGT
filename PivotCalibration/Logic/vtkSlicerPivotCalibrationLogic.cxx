@@ -51,6 +51,7 @@ vtkSlicerPivotCalibrationLogic::vtkSlicerPivotCalibrationLogic()
 {
   this->ToolTipToToolMatrix = vtkMatrix4x4::New();
   this->ObservedTransformNode = NULL;
+  this->MinimumOrientationDifferenceDeg = 15.0;
 }
 
 //----------------------------------------------------------------------------
@@ -65,18 +66,6 @@ vtkSlicerPivotCalibrationLogic::~vtkSlicerPivotCalibrationLogic()
 void vtkSlicerPivotCalibrationLogic::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf( os, indent );
-}
-
-//---------------------------------------------------------------------------
-void vtkSlicerPivotCalibrationLogic::SetMRMLSceneInternal(vtkMRMLScene * newScene)
-{
-  vtkNew<vtkIntArray> events;
-  events->InsertNextValue(vtkMRMLScene::NodeAddedEvent);
-  events->InsertNextValue(vtkMRMLScene::NodeRemovedEvent);
-  events->InsertNextValue(vtkMRMLScene::EndImportEvent);
-  events->InsertNextValue(vtkMRMLScene::EndBatchProcessEvent);
-  events->InsertNextValue(vtkMRMLScene::StartCloseEvent);
-  this->SetAndObserveMRMLSceneEventsInternal(newScene, events.GetPointer());
 }
 
 //---------------------------------------------------------------------------
@@ -111,7 +100,7 @@ void vtkSlicerPivotCalibrationLogic::AddToolToReferenceMatrix(vtkMatrix4x4* tran
 //---------------------------------------------------------------------------
 void vtkSlicerPivotCalibrationLogic::ClearToolToReferenceMatrices()
 {
-  std::vector<vtkMatrix4x4*>::const_iterator it; 
+  std::vector<vtkMatrix4x4*>::const_iterator it;
   std::vector<vtkMatrix4x4*>::const_iterator matricesEnd = this->ToolToReferenceMatrices.end();
   for(it = this->ToolToReferenceMatrices.begin(); it != matricesEnd; it++)
   {
@@ -120,14 +109,63 @@ void vtkSlicerPivotCalibrationLogic::ClearToolToReferenceMatrices()
   this->ToolToReferenceMatrices.clear();
 }
 
-//---------------------------------------------------------------------------
-void vtkSlicerPivotCalibrationLogic::ComputePivotCalibration()
+//----------------------------------------------------------------------------
+double vtkSlicerPivotCalibrationLogic::GetOrientationDifferenceDeg(vtkMatrix4x4* aMatrix, vtkMatrix4x4* bMatrix)
 {
-  if (this->ToolToReferenceMatrices.size() == 0)
+  vtkSmartPointer<vtkMatrix4x4> diffMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
+  vtkSmartPointer<vtkMatrix4x4> invBmatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
+
+  vtkMatrix4x4::Invert(bMatrix, invBmatrix);  
+
+  vtkMatrix4x4::Multiply4x4(aMatrix, invBmatrix, diffMatrix); 
+
+  vtkSmartPointer<vtkTransform> diffTransform = vtkSmartPointer<vtkTransform>::New(); 
+  diffTransform->SetMatrix(diffMatrix); 
+
+  double angleDiff_rad= vtkMath::RadiansFromDegrees(diffTransform->GetOrientationWXYZ()[0]);
+
+  double normalizedAngleDiff_rad = atan2( sin(angleDiff_rad), cos(angleDiff_rad) ); // normalize angle to domain -pi, pi 
+
+  return vtkMath::DegreesFromRadians(normalizedAngleDiff_rad);
+}
+
+//---------------------------------------------------------------------------
+double vtkSlicerPivotCalibrationLogic::GetMaximumToolOrientationDifferenceDeg()
+{
+  // this will store the maximum difference in orientation between the first transform and all the other transforms
+  double maximumOrientationDifferenceDeg = 0;
+  
+    std::vector<vtkMatrix4x4*>::const_iterator it;
+  std::vector<vtkMatrix4x4*>::const_iterator matricesEnd = this->ToolToReferenceMatrices.end();
+  unsigned int currentRow;
+  vtkMatrix4x4* referenceOrientationMatrix = this->ToolToReferenceMatrices.front();
+  for(currentRow = 0, it = this->ToolToReferenceMatrices.begin(); it != matricesEnd; it++, currentRow += 3)
   {
-    return;
+    double orientationDifferenceDeg = GetOrientationDifferenceDeg(referenceOrientationMatrix, (*it));
+    if (maximumOrientationDifferenceDeg < orientationDifferenceDeg)
+    {
+      maximumOrientationDifferenceDeg = orientationDifferenceDeg;    
+    }
   }
 
+  return maximumOrientationDifferenceDeg;
+}
+
+//---------------------------------------------------------------------------
+bool vtkSlicerPivotCalibrationLogic::ComputePivotCalibration()
+{
+  if (this->ToolToReferenceMatrices.size() < 10)
+  {
+    this->ErrorText = "Not enough input transforms are available";
+    return false;
+  }
+
+  if (this->GetMaximumToolOrientationDifferenceDeg() < this->MinimumOrientationDifferenceDeg)
+  {
+    this->ErrorText = "Not enough variation in the input transforms";
+    return false;
+  }
+  
   unsigned int rows = 3 * this->ToolToReferenceMatrices.size();
   unsigned int columns = 6;
 
@@ -142,13 +180,13 @@ void vtkSlicerPivotCalibrationLogic::ComputePivotCalibration()
   vnl_vector<double> b(rows);
   vnl_vector<double> x(columns);
   vnl_vector<double> t(3);
-        
+
   std::vector<vtkMatrix4x4*>::const_iterator it;
   std::vector<vtkMatrix4x4*>::const_iterator matricesEnd = this->ToolToReferenceMatrices.end();
-
   unsigned int currentRow;
+  vtkMatrix4x4* referenceOrientationMatrix = this->ToolToReferenceMatrices.front();
   for(currentRow = 0, it = this->ToolToReferenceMatrices.begin(); it != matricesEnd; it++, currentRow += 3)
-  {
+  {    
     for (int i = 0; i < 3; i++)
     {
       t(i) = (*it)->GetElement(i, 3);
@@ -167,7 +205,6 @@ void vtkSlicerPivotCalibrationLogic::ComputePivotCalibration()
     A.update( minusI, currentRow, 3 );    
   }
     
-    
   vnl_svd<double> svdA(A);    
   svdA.zero_out_absolute( 1e-1 );    
   x = svdA.solve( b );
@@ -180,18 +217,25 @@ void vtkSlicerPivotCalibrationLogic::ComputePivotCalibration()
   this->ToolTipToToolMatrix->SetElement( 1, 3, x[ 1 ] );
   this->ToolTipToToolMatrix->SetElement( 2, 3, x[ 2 ] );
 
+  this->ErrorText.empty();
+  return true;
 }
 
-
 //---------------------------------------------------------------------------
-void vtkSlicerPivotCalibrationLogic::ComputeSpinCalibration( bool snapRotation )
+bool vtkSlicerPivotCalibrationLogic::ComputeSpinCalibration( bool snapRotation )
 {
-
-  if ( this->ToolToReferenceMatrices.size() == 0 )
+  if ( this->ToolToReferenceMatrices.size() < 10 )
   {
-    return;
+    this->ErrorText = "Not enough input transforms are available";
+    return false;
   }
 
+  if (this->GetMaximumToolOrientationDifferenceDeg() < this->MinimumOrientationDifferenceDeg)
+  {
+    this->ErrorText = "Not enough variation in the input transforms";
+    return false;
+  }
+  
   // Setup our system to find the axis of rotation
   unsigned int rows = 3, columns = 3;
 
@@ -202,6 +246,9 @@ void vtkSlicerPivotCalibrationLogic::ComputeSpinCalibration( bool snapRotation )
 
   vnl_matrix<double> RI( rows, columns );
 
+
+  // this will store the maximum difference in orientation between the first transform and all the other transforms
+  double maximumOrientationDifferenceDeg = 0;
 
   std::vector< vtkMatrix4x4* >::const_iterator previt = this->ToolToReferenceMatrices.end();
   for(std::vector< vtkMatrix4x4* >::const_iterator it = this->ToolToReferenceMatrices.begin(); it != this->ToolToReferenceMatrices.end(); it++ )
@@ -349,26 +396,13 @@ void vtkSlicerPivotCalibrationLogic::ComputeSpinCalibration( bool snapRotation )
       this->ToolTipToToolMatrix->SetElement( i, j, Rotation[ i ][ j ] );
     }
   }
-
+  
+  this->ErrorText.empty();
+  return true;
 }
 
-
-
-//-----------------------------------------------------------------------------
-void vtkSlicerPivotCalibrationLogic::SetRecordingState(bool state)
-{
-  this->RecordingState = state;
-}
-
-
-bool vtkSlicerPivotCalibrationLogic::GetRecordingState()
-{
-  return this->RecordingState;
-}
-
-
-void vtkSlicerPivotCalibrationLogic
-::GetToolTipToToolTranslation( vtkMatrix4x4* translationMatrix )
+//---------------------------------------------------------------------------
+void vtkSlicerPivotCalibrationLogic::GetToolTipToToolTranslation( vtkMatrix4x4* translationMatrix )
 {
   translationMatrix->Identity();
 
@@ -377,8 +411,8 @@ void vtkSlicerPivotCalibrationLogic
   translationMatrix->SetElement( 2, 3, this->ToolTipToToolMatrix->GetElement( 2, 3 ) );
 }
 
-void vtkSlicerPivotCalibrationLogic
-::GetToolTipToToolRotation( vtkMatrix4x4* rotationMatrix )
+//---------------------------------------------------------------------------
+void vtkSlicerPivotCalibrationLogic::GetToolTipToToolRotation( vtkMatrix4x4* rotationMatrix )
 {
   rotationMatrix->Identity();
 
@@ -393,38 +427,8 @@ void vtkSlicerPivotCalibrationLogic
   rotationMatrix->SetElement( 2, 2, this->ToolTipToToolMatrix->GetElement( 2, 2 ) );
 }
 
-void vtkSlicerPivotCalibrationLogic
-::GetToolTipToToolMatrix( vtkMatrix4x4* matrix )
+//---------------------------------------------------------------------------
+void vtkSlicerPivotCalibrationLogic::GetToolTipToToolMatrix( vtkMatrix4x4* matrix )
 {
   matrix->DeepCopy( this->ToolTipToToolMatrix );
 }
-
-
-double vtkSlicerPivotCalibrationLogic
-::GetPivotRMSE()
-{
-  return this->PivotRMSE;
-}
-
-
-double vtkSlicerPivotCalibrationLogic
-::GetSpinRMSE()
-{
-  return this->SpinRMSE;
-}
-
-
-/*
-//---------------------------------------------------------------------------
-void vtkSlicerPivotCalibrationLogic
-::OnMRMLSceneNodeAdded(vtkMRMLNode* vtkNotUsed(node))
-{
-}
-
-//---------------------------------------------------------------------------
-void vtkSlicerPivotCalibrationLogic
-::OnMRMLSceneNodeRemoved(vtkMRMLNode* vtkNotUsed(node))
-{
-}
-//*/
-
