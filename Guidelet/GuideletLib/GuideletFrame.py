@@ -154,11 +154,11 @@ class Guidelet(object):
     self.advancedLayout.addRow("OpenIGTLink connector: ", self.linkInputSelector)
 
     self.showFullSlicerInterfaceButton = qt.QPushButton()
-    self.showFullSlicerInterfaceButton.setText("Show Slicer3D user interface")
+    self.showFullSlicerInterfaceButton.setText("Show 3D Slicer user interface")
     self.advancedLayout.addRow(self.showFullSlicerInterfaceButton)
 
     self.showGuideletFullscreenButton = qt.QPushButton()
-    self.showGuideletFullscreenButton.setText("Show Guidelet in full screen")
+    self.showGuideletFullscreenButton.setText("Show guidelet in full screen")
     self.advancedLayout.addRow(self.showGuideletFullscreenButton)
 
     self.saveSceneButton = qt.QPushButton()
