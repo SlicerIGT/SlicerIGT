@@ -79,7 +79,7 @@ void vtkSlicerCreateModelsLogic::CreateConeData( vtkPolyData* polyData, double h
 }
 
 //----------------------------------------------------------------------------
-vtkMRMLModelNode* vtkSlicerCreateModelsLogic::CreateNeedle( double length, double radius, double tipRadius, bool markers )
+vtkMRMLModelNode* vtkSlicerCreateModelsLogic::CreateNeedle( double length, double radius, double tipRadius, bool markers, vtkMRMLModelNode* modelNodeToUpdate /* = NULL */ )
 {
   double tip = radius * 2.0;
   
@@ -277,78 +277,71 @@ vtkMRMLModelNode* vtkSlicerCreateModelsLogic::CreateNeedle( double length, doubl
    
   // Add the needle poly data to the scene as a model
 
-  vtkNew<vtkMRMLModelNode> needleModelNode;
-  this->GetMRMLScene()->AddNode( needleModelNode.GetPointer() );
-  needleModelNode->SetName( "NeedleModel" );
-  //needleModelNode->SetAndObservePolyData( needlePolyData.GetPointer() );
-  finalAppend->Update();
-  needleModelNode->SetAndObservePolyData( finalAppend->GetOutput() );
-	
-  vtkNew< vtkMRMLModelDisplayNode > needleDisplayNode;
-  this->GetMRMLScene()->AddNode( needleDisplayNode.GetPointer() );
-  needleDisplayNode->SetName( "NeedleModelDisplay" );
-  needleDisplayNode->SetColor( 0.0, 1.0, 1.0 );
-    
-  needleModelNode->SetAndObserveDisplayNodeID( needleDisplayNode->GetID() );
-  needleDisplayNode->SetAmbient( 0.2 );
-    
-  if (markers)
+  if (modelNodeToUpdate == NULL)
   {
-    needleDisplayNode->SetActiveScalarName(colorScalarName);
-    needleDisplayNode->SetAndObserveColorNodeID("vtkMRMLColorTableNodeFileGenericColors.txt");
-    needleDisplayNode->SetScalarVisibility(1);
-    needleDisplayNode->SetScalarRangeFlag(vtkMRMLDisplayNode::UseColorNodeScalarRange);
-    needleDisplayNode->SetAutoScalarRange(0);
+    vtkNew<vtkMRMLModelNode> needleModelNode;
+    this->GetMRMLScene()->AddNode( needleModelNode.GetPointer() );
+    needleModelNode->SetName( "NeedleModel" );
+    modelNodeToUpdate = needleModelNode.GetPointer();
   }
 
-  // Add the markers model to the scene
-/*  
-  if ( markers )
+  finalAppend->Update();
+  modelNodeToUpdate->SetAndObservePolyData( finalAppend->GetOutput() );
+	
+  if (modelNodeToUpdate->GetDisplayNode() == NULL)
   {
-    vtkNew< vtkMRMLModelNode > markersModelNode;
-    this->GetMRMLScene()->AddNode( markersModelNode.GetPointer() );
-    markersModelNode->SetName( "NeedleMarkersModel" );
-    markersModelNode->SetAndObservePolyData( needleMarkersPolyData );
+    vtkNew< vtkMRMLModelDisplayNode > needleDisplayNode;
+    this->GetMRMLScene()->AddNode( needleDisplayNode.GetPointer() );
+    needleDisplayNode->SetName( "NeedleModelDisplay" );
+    needleDisplayNode->SetColor( 0.0, 1.0, 1.0 );
+      
+    modelNodeToUpdate->SetAndObserveDisplayNodeID( needleDisplayNode->GetID() );
+    needleDisplayNode->SetAmbient( 0.2 );
     
-    vtkNew< vtkMRMLModelDisplayNode > markersDisplayNode;
-    this->GetMRMLScene()->AddNode( markersDisplayNode.GetPointer() );
-    markersDisplayNode->SetName( "NeedleMarkersDisplay" );
-    markersDisplayNode->SetColor( 0.0, 0.0, 0.0 );
-    
-    markersModelNode->SetAndObserveDisplayNodeID( markersDisplayNode->GetID() );
-    markersDisplayNode->SetAmbient( 0.2 );
+    if (markers)
+    {
+      needleDisplayNode->SetActiveScalarName(colorScalarName);
+      needleDisplayNode->SetAndObserveColorNodeID("vtkMRMLColorTableNodeFileGenericColors.txt");
+      needleDisplayNode->SetScalarVisibility(1);
+      needleDisplayNode->SetScalarRangeFlag(vtkMRMLDisplayNode::UseColorNodeScalarRange);
+      needleDisplayNode->SetAutoScalarRange(0);
+    }
   }
-  */
-  return needleModelNode.GetPointer();
+
+  return modelNodeToUpdate;
 }
 
 //----------------------------------------------------------------------------
-vtkMRMLModelNode* vtkSlicerCreateModelsLogic::CreateCube( double x, double y, double z )
+vtkMRMLModelNode* vtkSlicerCreateModelsLogic::CreateCube( double x, double y, double z, vtkMRMLModelNode* modelNodeToUpdate /* = NULL */ )
 {
   vtkNew< vtkCubeSource > cube;
   cube->SetXLength( x );
   cube->SetYLength( y );
   cube->SetZLength( z );
+  
+  if (modelNodeToUpdate == NULL)
+  {
+    vtkNew< vtkMRMLModelNode > modelNode;
+    this->GetMRMLScene()->AddNode( modelNode.GetPointer() );
+    modelNode->SetName( "CubeModel" );
+    modelNodeToUpdate = modelNode.GetPointer();
+  }
   cube->Update();
-  
-    // Add the needle poly data to the scene as a model
-  
-  vtkNew< vtkMRMLModelNode > modelNode;
-  this->GetMRMLScene()->AddNode( modelNode.GetPointer() );
-  modelNode->SetName( "CubeModel" );
-  modelNode->SetAndObservePolyData( cube->GetOutput() );
+  modelNodeToUpdate->SetAndObservePolyData( cube->GetOutput() );
 
-  vtkNew< vtkMRMLModelDisplayNode > displayNode;
-  this->GetMRMLScene()->AddNode( displayNode.GetPointer() );
-  displayNode->SetName( "CubeModelDisplay" );
-  
-  modelNode->SetAndObserveDisplayNodeID( displayNode->GetID() );
+  if (modelNodeToUpdate->GetDisplayNode() == NULL)
+  {
+    vtkNew< vtkMRMLModelDisplayNode > displayNode;
+    this->GetMRMLScene()->AddNode( displayNode.GetPointer() );
+    displayNode->SetName( "CubeModelDisplay" );
+    modelNodeToUpdate->SetAndObserveDisplayNodeID( displayNode->GetID() );
+  }
 
-  return modelNode.GetPointer();
+  return modelNodeToUpdate;
 }
 
 //----------------------------------------------------------------------------
-vtkMRMLModelNode* vtkSlicerCreateModelsLogic::CreateCylinder( double h, double r )
+vtkMRMLModelNode* vtkSlicerCreateModelsLogic::CreateCylinder( double h, double r, vtkMRMLModelNode* modelNodeToUpdate /* = NULL */ )
 {
   vtkNew< vtkCylinderSource > cylinder;
   cylinder->SetHeight( h );
@@ -369,48 +362,58 @@ vtkMRMLModelNode* vtkSlicerCreateModelsLogic::CreateCylinder( double h, double r
   transformFilter->SetInputConnection( cylinder->GetOutputPort() );
 #endif
 
-  // Add the needle poly data to the scene as a model
-  
-  vtkNew< vtkMRMLModelNode > modelNode;
-  this->GetMRMLScene()->AddNode( modelNode.GetPointer() );
-  modelNode->SetName( "CylinderModel" );
+  if (modelNodeToUpdate == NULL)
+  {  
+    vtkNew< vtkMRMLModelNode > modelNode;
+    this->GetMRMLScene()->AddNode( modelNode.GetPointer() );
+    modelNode->SetName( "CylinderModel" );
+    modelNodeToUpdate = modelNode.GetPointer();
+  }
   transformFilter->Update();
-  modelNode->SetAndObservePolyData( transformFilter->GetOutput() );
+  modelNodeToUpdate->SetAndObservePolyData( transformFilter->GetOutput() );
 
-  vtkNew< vtkMRMLModelDisplayNode > displayNode;
-  this->GetMRMLScene()->AddNode( displayNode.GetPointer() );
-  displayNode->SetName( "CylinderModelDisplay" );
-  
-  modelNode->SetAndObserveDisplayNodeID( displayNode->GetID() );
+  if (modelNodeToUpdate->GetDisplayNode() == NULL)
+  {
+    vtkNew< vtkMRMLModelDisplayNode > displayNode;
+    this->GetMRMLScene()->AddNode( displayNode.GetPointer() );
+    displayNode->SetName( "CylinderModelDisplay" );
+    modelNodeToUpdate->SetAndObserveDisplayNodeID( displayNode->GetID() );
+  }
 
-  return modelNode.GetPointer();
+  return modelNodeToUpdate;
 }
 
 //----------------------------------------------------------------------------
-vtkMRMLModelNode* vtkSlicerCreateModelsLogic::CreateSphere( double radius )
+vtkMRMLModelNode* vtkSlicerCreateModelsLogic::CreateSphere( double radius, vtkMRMLModelNode* modelNodeToUpdate /* = NULL */ )
 {
   vtkNew< vtkSphereSource > sphere;
   sphere->SetRadius( radius );
   sphere->SetThetaResolution( 24 );
   sphere->SetPhiResolution( 12 );
+  
+  if (modelNodeToUpdate == NULL)
+  {
+    vtkNew< vtkMRMLModelNode > modelNode;
+    this->GetMRMLScene()->AddNode( modelNode.GetPointer() );
+    modelNode->SetName( "SphereModel" );
+    modelNodeToUpdate = modelNode.GetPointer();
+  }
   sphere->Update();
+  modelNodeToUpdate->SetAndObservePolyData( sphere->GetOutput() );
   
-  vtkNew< vtkMRMLModelNode > modelNode;
-  this->GetMRMLScene()->AddNode( modelNode.GetPointer() );
-  modelNode->SetName( "SphereModel" );
-  modelNode->SetAndObservePolyData( sphere->GetOutput() );
-  
-  vtkNew< vtkMRMLModelDisplayNode > displayNode;
-  this->GetMRMLScene()->AddNode( displayNode.GetPointer() );
-  displayNode->SetName( "SphereModelDisplay" );
-  
-  modelNode->SetAndObserveDisplayNodeID( displayNode->GetID() );
+  if (modelNodeToUpdate->GetDisplayNode() == NULL)
+  {
+    vtkNew< vtkMRMLModelDisplayNode > displayNode;
+    this->GetMRMLScene()->AddNode( displayNode.GetPointer() );
+    displayNode->SetName( "SphereModelDisplay" );
+    modelNodeToUpdate->SetAndObserveDisplayNodeID( displayNode->GetID() );
+  }
 
-  return modelNode.GetPointer();
+  return modelNodeToUpdate;
 }
 
 //----------------------------------------------------------------------------
-vtkMRMLModelNode* vtkSlicerCreateModelsLogic::CreateCoordinate( double axisLength, double axisDiameter )
+vtkMRMLModelNode* vtkSlicerCreateModelsLogic::CreateCoordinate( double axisLength, double axisDiameter, vtkMRMLModelNode* modelNodeToUpdate /* = NULL */ )
 {
   vtkNew< vtkAppendPolyData > appendPolyData;
   
@@ -532,23 +535,24 @@ vtkMRMLModelNode* vtkSlicerCreateModelsLogic::CreateCoordinate( double axisLengt
 #else
   appendPolyData->AddInputData( zCylinderTransformFilter->GetOutput() );
 #endif
-
+  
+  if (modelNodeToUpdate == NULL)
+  {  
+    vtkNew< vtkMRMLModelNode > modelNode;
+    this->GetMRMLScene()->AddNode( modelNode.GetPointer() );
+    modelNode->SetName( "CoordinateModel" );
+    modelNodeToUpdate = modelNode.GetPointer();
+  }
   appendPolyData->Update();
+  modelNodeToUpdate->SetAndObservePolyData( appendPolyData->GetOutput() );
   
-  // Model node
-  
-  vtkNew< vtkMRMLModelNode > modelNode;
-  this->GetMRMLScene()->AddNode( modelNode.GetPointer() );
-  
-  modelNode->SetName( "CoordinateModel" );
-  modelNode->SetAndObservePolyData( appendPolyData->GetOutput() );
-  
-  vtkNew< vtkMRMLModelDisplayNode > displayNode;
-  this->GetMRMLScene()->AddNode( displayNode.GetPointer() );
-  
-  displayNode->SetName( "CoordinateModelDisplay" );
-  
-  modelNode->SetAndObserveDisplayNodeID( displayNode->GetID() );
+  if (modelNodeToUpdate->GetDisplayNode() == NULL)
+  {
+    vtkNew< vtkMRMLModelDisplayNode > displayNode;
+    this->GetMRMLScene()->AddNode( displayNode.GetPointer() );
+    displayNode->SetName( "CoordinateModelDisplay" );
+    modelNodeToUpdate->SetAndObserveDisplayNodeID( displayNode->GetID() );
+  }
 
-  return modelNode.GetPointer();
+  return modelNodeToUpdate;
 }

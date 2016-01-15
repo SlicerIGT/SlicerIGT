@@ -42,11 +42,12 @@ public:
   vtkTypeMacro(vtkSlicerCreateModelsLogic, vtkSlicerModuleLogic);
   void PrintSelf(ostream& os, vtkIndent indent);
 
-  vtkMRMLModelNode* CreateNeedle( double length, double radius, double tipRadius, bool markers );
-  vtkMRMLModelNode* CreateCube( double x, double y, double z );
-  vtkMRMLModelNode* CreateCylinder( double height, double radius );
-  vtkMRMLModelNode* CreateSphere( double radius );
-  vtkMRMLModelNode* CreateCoordinate( double axisLength, double axisRadius );  
+  // If modelNodeToUpdate is specified then instead of creating a new node, the existing node will be updated
+  vtkMRMLModelNode* CreateNeedle( double length, double radius, double tipRadius, bool markers, vtkMRMLModelNode* modelNodeToUpdate = NULL );
+  vtkMRMLModelNode* CreateCube( double x, double y, double z, vtkMRMLModelNode* modelNodeToUpdate = NULL );
+  vtkMRMLModelNode* CreateCylinder( double height, double radius, vtkMRMLModelNode* modelNodeToUpdate = NULL );
+  vtkMRMLModelNode* CreateSphere( double radius, vtkMRMLModelNode* modelNodeToUpdate = NULL );
+  vtkMRMLModelNode* CreateCoordinate( double axisLength, double axisRadius, vtkMRMLModelNode* modelNodeToUpdate = NULL );  
 
 protected:
   vtkSlicerCreateModelsLogic();
