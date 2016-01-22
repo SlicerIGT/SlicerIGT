@@ -39,8 +39,7 @@ public:
   explicit qSlicerMarkupsToModelModule(QObject *parent=0);
   virtual ~qSlicerMarkupsToModelModule();
 
-  qSlicerGetTitleMacro(QTMODULE_TITLE);
-
+  virtual QString title() const;
   virtual QString helpText()const;
   virtual QString acknowledgementText()const;
   virtual QStringList contributors()const;

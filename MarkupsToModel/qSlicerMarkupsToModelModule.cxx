@@ -62,9 +62,15 @@ qSlicerMarkupsToModelModule::~qSlicerMarkupsToModelModule()
 }
 
 //-----------------------------------------------------------------------------
+QString qSlicerMarkupsToModelModule::title() const
+{
+  return "Markups to Model";
+}
+
+//-----------------------------------------------------------------------------
 QString qSlicerMarkupsToModelModule::helpText() const
 {
-  return " create an enclosing closed surface from the markup points";
+  return "Create a model (closed surface, tube) based on points in a Markups fiducial list.";
 }
 
 //-----------------------------------------------------------------------------
@@ -79,6 +85,7 @@ QStringList qSlicerMarkupsToModelModule::contributors() const
   QStringList moduleContributors;
   moduleContributors << QString("Jaime Garcia Guevara (Queen's University)");
   moduleContributors << QString("Andras Lasso (Queen's University)");
+  moduleContributors << QString("Adam Rankin (Robarts Research Center, Western University");
   return moduleContributors;
 }
 
