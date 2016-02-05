@@ -15,7 +15,7 @@ class GuideletLoadable(ScriptedLoadableModule):
   def __init__(self, parent):
     ScriptedLoadableModule.__init__(self, parent)
     self.parent.title = "Guidelet"
-    self.parent.categories = ["Guidelet"] 
+    self.parent.categories = ["Guidelet"]
     self.parent.dependencies = []
     self.parent.contributors = [""]
 
@@ -128,7 +128,7 @@ class GuideletWidget(ScriptedLoadableModuleWidget):
       self.guideletLogic.cleanup()
     if self.guideletInstance:
       self.guideletInstance.cleanup()
-   
+
   def onLaunchGuideletButtonClicked(self):
     logging.debug('onLaunchGuideletButtonClicked')
 
@@ -172,7 +172,7 @@ class GuideletLogic(ScriptedLoadableModuleLogic):
 
   def cleanup(self):
     pass
-  
+
   def setupDefaultConfiguration(self):
     settings = slicer.app.userSettings()
     settings.beginGroup(self.moduleName + '/Configurations')
@@ -185,7 +185,7 @@ class GuideletLogic(ScriptedLoadableModuleLogic):
   def addValuesToDefaultConfiguration(self):
     moduleDir = os.path.dirname(__file__)
     defaultSavePath = os.path.join(moduleDir, 'SavedScenes')
-    
+
     settingList = {'StyleSheet' : 'DefaultStyle.qss',
                    'LiveUltrasoundNodeName' : 'Image_Reference',
                    'LiveUltrasoundNodeName_Needle' : 'Image_Needle',
@@ -198,11 +198,11 @@ class GuideletLogic(ScriptedLoadableModuleLogic):
 
   def updateUserPreferencesFromParameterNode(self, settingsNameValueMap, paramNode):
     raise NotImplementedError("not implemented, to-do")
-  
+
   def updateParameterNodeFromUserPreferences(self, paramNode, settingsNameValueMap):
     for name in settingsNameValueMap:
       paramNode.SetParameter(name, settingsNameValueMap[name])
-  
+
   def updateParameterNodeFromSettings(self, paramNode, configurationName):
     settings = slicer.app.userSettings()
     settings.beginGroup(self.moduleName + '/Configurations/' + configurationName)
@@ -210,14 +210,14 @@ class GuideletLogic(ScriptedLoadableModuleLogic):
     for key in keys:
       paramNode.SetParameter(key, settings.value(key))
     settings.endGroup()
-  
+
   def updateSettings(self, settingsNameValueMap, configurationName = None):#updateSettingsFromUserPreferences
     settings = slicer.app.userSettings()
     if not configurationName:
       groupString = self.moduleName
     else:
       groupString = self.moduleName + '/Configurations/' + configurationName
-    
+
     settings.beginGroup(groupString)
     for name in settingsNameValueMap:
       settings.setValue(name, settingsNameValueMap[name])
@@ -232,25 +232,29 @@ class GuideletLogic(ScriptedLoadableModuleLogic):
     settings = slicer.app.userSettings()
     settingString = self.moduleName + '/Configurations/' + configurationName + '/{0}' # Write to selected configuration
     settings.setValue(settingString.format(transformName), transformMatrixString)
-    
-  def readTransformFromSettings(self, transformName, configurationName):
+
+  def createMatrixFromString(self, transformMatrixString):
     transformMatrix = vtk.vtkMatrix4x4()
-    settings = slicer.app.userSettings()
-    settingString = self.moduleName + '/Configurations/' + configurationName + '/{0}' # Read from selected configuration
-    transformMatrixString = settings.value(settingString.format(transformName))
-    if not transformMatrixString: 
-      settingString = self.moduleName + '/Configurations/Default/{0}' # Read from default configuration
-      transformMatrixString = settings.value(settingString.format(transformName))
-      if not transformMatrixString: 
-        return None
     transformMatrixArray = map(float, transformMatrixString.split(' '))
     for r in xrange(4):
       for c in xrange(4):
         transformMatrix.SetElement(r,c, transformMatrixArray[r*4+c])
     return transformMatrix
 
+  def readTransformFromSettings(self, transformName, configurationName):
+    transformMatrix = vtk.vtkMatrix4x4()
+    settings = slicer.app.userSettings()
+    settingString = self.moduleName + '/Configurations/' + configurationName + '/{0}' # Read from selected configuration
+    transformMatrixString = settings.value(settingString.format(transformName))
+    if not transformMatrixString:
+      settingString = self.moduleName + '/Configurations/Default/{0}' # Read from default configuration
+      transformMatrixString = settings.value(settingString.format(transformName))
+      if not transformMatrixString:
+        return None
+    return self.createMatrixFromString(transformMatrixString)
+
 #
-#	GuideletTest
+# GuideletTest
 #
 
 class GuideletTest(ScriptedLoadableModuleTest):

@@ -130,7 +130,7 @@ class UltraSound(object):
     else:
       logging.warning('Logic not found for Volume Reslice Driver')
 
-    self.liveUltrasoundNode_Reference.SetAndObserveTransformNodeID(self.guideletParent.ReferenceToRas.GetID())
+    self.liveUltrasoundNode_Reference.SetAndObserveTransformNodeID(self.guideletParent.referenceToRas.GetID())
 
   def setupConnections(self):
     self.startStopRecordingButton.connect('clicked(bool)', self.onStartStopRecordingClicked)

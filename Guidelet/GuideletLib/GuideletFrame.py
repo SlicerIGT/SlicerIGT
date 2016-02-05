@@ -45,7 +45,8 @@ class Guidelet(object):
   VIEW_ULTRASOUND_DUAL_3D = unicode("Ultrasound + Dual 3D")
   VIEW_3D = unicode("3D")
   VIEW_DUAL_3D = unicode("Dual 3D")
-  
+  VIEW_TRIPLE_3D = unicode("Triple 3D")
+
   def __init__(self, parent, logic, configurationName='Default'):
     logging.debug('Guidelet.__init__')
     self.parent = parent
@@ -61,6 +62,8 @@ class Guidelet(object):
 
     self.ultrasound = self.getUltrasoundClass()
 
+    self.fitUltrasoundImageToViewOnConnect = True
+
     self.setupConnectorNode()
 
     self.sliceletDockWidget = qt.QDockWidget(self.parent)
@@ -68,11 +71,11 @@ class Guidelet(object):
     self.mainWindow=slicer.util.mainWindow()
     self.sliceletDockWidget.setParent(self.mainWindow)
     self.mainWindow.addDockWidget(qt.Qt.LeftDockWidgetArea, self.sliceletDockWidget)
-        
+
     self.sliceletPanel = qt.QFrame(self.sliceletDockWidget)
-    self.sliceletPanelLayout = qt.QVBoxLayout(self.sliceletPanel)    
+    self.sliceletPanelLayout = qt.QVBoxLayout(self.sliceletPanel)
     self.sliceletDockWidget.setWidget(self.sliceletPanel)
-    
+
     self.setupFeaturePanelList()
     self.setupAdvancedPanel()
     self.setupAdditionalPanel()
@@ -97,7 +100,7 @@ class Guidelet(object):
       ts = qt.QTextStream(f)
       stylesheet = ts.readAll()
       return stylesheet
-  
+
   def setupFeaturePanelList(self):
     featurePanelList = self.createFeaturePanels()
 
@@ -107,7 +110,7 @@ class Guidelet(object):
 
   def getUltrasoundClass(self):
     return UltraSound(self)
-    
+
   def cleanup(self):
     self.ultrasound.cleanup()
     self.disconnect()
@@ -119,7 +122,7 @@ class Guidelet(object):
     featurePanelList = [self.ultrasoundCollapsibleButton, self.advancedCollapsibleButton]
 
     return featurePanelList
-  
+
   def setupAdvancedPanel(self):
     logging.debug('setupAdvancedPanel')
 
@@ -186,6 +189,7 @@ class Guidelet(object):
     self.viewSelectorComboBox.addItem(self.VIEW_ULTRASOUND_DUAL_3D)
     self.viewSelectorComboBox.addItem(self.VIEW_3D)
     self.viewSelectorComboBox.addItem(self.VIEW_DUAL_3D)
+    self.viewSelectorComboBox.addItem(self.VIEW_TRIPLE_3D)
 
   def setupAdditionalPanel(self):
     pass
@@ -223,7 +227,7 @@ class Guidelet(object):
       "</layout>")
     self.red3dCustomLayoutId=504
     layoutLogic.GetLayoutNode().AddLayoutDescription(self.red3dCustomLayoutId, customLayout)
-    
+
     customLayout = ("<layout type=\"horizontal\" split=\"false\" >"
       " <item>"
       "  <view class=\"vtkMRMLViewNode\" singletontag=\"1\">"
@@ -246,22 +250,35 @@ class Guidelet(object):
     self.redDual3dCustomLayoutId=505
     layoutLogic.GetLayoutNode().AddLayoutDescription(self.redDual3dCustomLayoutId, customLayout)
 
-  def setupScene(self):
+    layoutLogic = self.layoutManager.layoutLogic()
+    customLayout = (
+      "<layout type=\"vertical\" split=\"true\" >"
+      " <item>"
+      "  <layout type=\"horizontal\" split=\"false\" >"
+      "   <item>"
+      "    <view class=\"vtkMRMLViewNode\" singletontag=\"1\">"
+      "      <property name=\"viewlabel\" action=\"default\">1</property>"
+      "    </view>"
+      "   </item>"
+      "   <item>"
+      "    <view class=\"vtkMRMLViewNode\" singletontag=\"2\" type=\"secondary\">"
+      "     <property name=\"viewlabel\" action=\"default\">2</property>"
+      "    </view>"
+      "   </item>"
+      "  </layout>"
+      " </item>"
+      " <item>"
+      "  <view class=\"vtkMRMLViewNode\" singletontag=\"3\">"
+      "    <property name=\"viewlabel\" action=\"default\">3</property>"
+      "  </view>"
+      " </item>"
+      "</layout>"
+      )
+    self.triple3dCustomLayoutId=506
+    layoutLogic.GetLayoutNode().AddLayoutDescription(self.triple3dCustomLayoutId, customLayout)
 
-    #create transforms
-    self.ReferenceToRas = slicer.util.getNode('ReferenceToRas')
-    if not self.ReferenceToRas:
-      self.ReferenceToRas=slicer.vtkMRMLLinearTransformNode()
-      self.ReferenceToRas.SetName("ReferenceToRas")
-      m = vtk.vtkMatrix4x4()
-      m.SetElement( 0, 0, 0 )
-      m.SetElement( 0, 2, -1 )
-      m.SetElement( 1, 1, 0 )
-      m.SetElement( 1, 1, -1 )
-      m.SetElement( 2, 2, 0 )
-      m.SetElement( 2, 0, -1 )
-      self.ReferenceToRas.SetMatrixTransformToParent(m)
-      slicer.mrmlScene.AddNode(self.ReferenceToRas)
+
+  def setupScene(self):
 
     # setup feature scene
     self.ultrasound.setupScene()
@@ -271,7 +288,7 @@ class Guidelet(object):
     self.logic.updateSettings({'SavedScenesDirectory' : sceneSaveDirectory}, self.configurationName)
     node = self.logic.getParameterNode()
     self.logic.updateParameterNodeFromUserPreferences(node, {'SavedScenesDirectory' : sceneSaveDirectory})
-    
+
   def onSaveSceneClicked(self):#common
     #
     # save the mrml scene to a temp directory, then zip it
@@ -282,10 +299,10 @@ class Guidelet(object):
     logging.info("Saving scene to: {0}".format(sceneSaveDirectory))
     if not os.access(sceneSaveDirectory, os.F_OK):
       os.makedirs(sceneSaveDirectory)
-      
+
     applicationLogic = slicer.app.applicationLogic()
     if applicationLogic.SaveSceneToSlicerDataBundleDirectory(sceneSaveDirectory, None):
-      logging.info("Scene saved to: {0}".format(sceneSaveDirectory)) 
+      logging.info("Scene saved to: {0}".format(sceneSaveDirectory))
     else:
       logging.error("Scene saving failed")
 
@@ -322,12 +339,12 @@ class Guidelet(object):
     self.saveDirectoryLineEdit.disconnect('editingFinished()', self.onSaveDirectoryPreferencesChanged)
 
   def showFullScreen(self):
-  
+
     # We hide all toolbars, etc. which is inconvenient as a default startup setting,
     # therefore disable saving of window setup.
     settings = qt.QSettings()
     settings.setValue('MainWindow/RestoreGeometry', 'false')
-    
+
     self.showToolbars(False)
     self.showModulePanel(False)
     self.showMenuBar(False)
@@ -342,7 +359,7 @@ class Guidelet(object):
     self.showModulePanel(True)
     self.showMenuBar(True)
     slicer.util.mainWindow().showMaximized()
-    
+
     # Save current state
     settings = qt.QSettings()
     settings.setValue('MainWindow/RestoreGeometry', 'true')
@@ -354,7 +371,7 @@ class Guidelet(object):
     command.RemoveObservers(slicer.modulelogic.vtkSlicerOpenIGTLinkCommand.CommandCompletedEvent)
     command.AddObserver(slicer.modulelogic.vtkSlicerOpenIGTLinkCommand.CommandCompletedEvent, commandResponseCallback)
     slicer.modules.openigtlinkremote.logic().SendCommand(command, self.connectorNode.GetID())
-    
+
   def setAndObserveParameterNode(self, parameterNode):
     if parameterNode == self.parameterNode and self.parameterNodeObserver:
       # no change and node is already observed
@@ -377,12 +394,12 @@ class Guidelet(object):
   def onParameterNodeModified(self, observer, eventid):
     logging.debug('onParameterNodeModified')
     self.updateGUIFromParameterNode()
-    
+
   def updateGUIFromParameterNode(self):#TODO
     parameterNode = self.parameterNode
     if not parameterNode:
       return
-  
+
   def setupConnectorNode(self):
     logging.info("setupConnectorNode")
     self.connectorNodeObserverTagList = []
@@ -398,7 +415,8 @@ class Guidelet(object):
         return
     self.connectorNodeConnected = True
     self.ultrasound.onConnectorNodeConnected()
-    self.delayedFitUltrasoundImageToView(5000)
+    if self.fitUltrasoundImageToViewOnConnect:
+      self.delayedFitUltrasoundImageToView(3000)
 
   def onConnectorNodeDisconnected(self, caller, event, force=False):
     logging.info("onConnectorNodeDisconnected")
@@ -411,7 +429,7 @@ class Guidelet(object):
 
   def onConnectorNodeActivated(self):
     logging.debug('onConnectorNodeActivated')
-  
+
     self.removeConnectorObservers()
 
     # Start using new connector.
@@ -420,7 +438,7 @@ class Guidelet(object):
     if not self.connectorNode:
       logging.warning('No connector node found!')
       return
-      
+
     self.addConnectorObservers()
 
   def removeConnectorObservers(self):
@@ -480,12 +498,15 @@ class Guidelet(object):
     elif text == self.VIEW_DUAL_3D:
       self.layoutManager.setLayout(self.dual3dCustomLayoutId)
       self.showUltrasoundIn3dView(False)
+    elif text == self.VIEW_TRIPLE_3D:
+      self.layoutManager.setLayout(self.triple3dCustomLayoutId)
+      self.showUltrasoundIn3dView(False)
 
   def onUltrasoundPanelToggled(self, toggled):
     if not toggled:
       # deactivate placement mode
       interactionNode = slicer.app.applicationLogic().GetInteractionNode()
-      interactionNode.SetCurrentInteractionMode(interactionNode.ViewTransform)   
+      interactionNode.SetCurrentInteractionMode(interactionNode.ViewTransform)
       return
 
     logging.debug('onTumorContouringPanelToggled: {0}'.format(toggled))
