@@ -10,95 +10,33 @@ from slicer.ScriptedLoadableModule import *
 class BreachWarningSelfTest(ScriptedLoadableModule):
   def __init__(self, parent):
     ScriptedLoadableModule.__init__(self, parent)
-    self.parent.title = "BreachWarningSelfTest" # TODO make this more human readable by adding spaces
+    self.parent.title = "BreachWarningSelfTest"
     self.parent.categories = ["Testing.IGT Tests"]
-    self.parent.dependencies = []
-    self.parent.contributors = ["Tamas Ungi (Queen's University) Jaime Garcia-Guevara (Queen's University)"] # replace with "Firstname Lastname (Organization)"
-    self.parent.helpText = """
-    This is a self test for the breach warning module.
-    """
-    self.parent.acknowledgementText = """
-    This work was was funded by Cancer Care Ontario and the Ontario Consortium for Adaptive Interventions in
-    Radiation Oncology (OCAIRO)
-""" 
+    self.parent.dependencies = ["CreateModels", "BreachWarning"]
+    self.parent.contributors = ["Tamas Ungi, Jaime Garcia-Guevara, Andras Lasso (Queen's University)"]
+    self.parent.helpText = """This is a self test for the breach warning module."""
+    self.parent.acknowledgementText = """This work was was funded by Cancer Care Ontario and the Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO)"""
+
+    # Add this test to the SelfTest module's list for discovery when the module
+    # is created.  Since this module may be discovered before SelfTests itself,
+    # create the list if it doesn't already exist.
+    try:
+      slicer.selfTests
+    except AttributeError:
+      slicer.selfTests = {}
+    slicer.selfTests['BreachWarningSelfTest'] = self.runTest
+
+  def runTest(self):
+    tester = BreachWarningSelfTestTest()
+    tester.runTest()
 
 #
 # BreachWarningSelfTestWidget
 #
 
-
 class BreachWarningSelfTestWidget(ScriptedLoadableModuleWidget):
-
   def setup(self):
     ScriptedLoadableModuleWidget.setup(self)
-    # Instantiate and connect widgets ...
-
-    speedLabel = qt.QLabel()
-    speedLabel.setText("Speed to execute the test")
-    self.speedSpinBox = qt.QSpinBox()
-    self.speedSpinBox
-    self.speedSpinBox.toolTip = "Speed to execute the test."
-    self.speedSpinBox.name = "WatchdogSelfTest Speed"
-    self.speedSpinBox.setValue(3)
-    hLayout =qt.QHBoxLayout()
-    hLayout.addStretch(1)
-    hLayout.addWidget(speedLabel)
-    hLayout.addWidget(self.speedSpinBox)
-    self.layout.addLayout(hLayout)
-
-    #
-    # Parameters Area
-    #
-    parametersCollapsibleButton = ctk.ctkCollapsibleButton()
-    parametersCollapsibleButton.text = "Parameters"
-    self.layout.addWidget(parametersCollapsibleButton)
-
-    # Layout within the dummy collapsible button
-    parametersFormLayout = qt.QFormLayout(parametersCollapsibleButton)
-
-    #
-    # Apply Button
-    #
-    self.applyButton = qt.QPushButton("Apply")
-    self.applyButton.toolTip = "Run the algorithm."
-    self.applyButton.enabled = True
-    parametersFormLayout.addRow(self.applyButton)
-    
-    self.applyButton.connect('clicked(bool)', self.onApplyButton)
-
-    # Add vertical spacer
-    self.layout.addStretch(1)
-
-  def cleanup(self):
-    pass
-
-  def onApplyButton(self):
-    logic = BreachWarningSelfTestLogic()
-    print("Run the algorithm")
-    logic.run()
-
-  def onReload(self,moduleName="BreachWarningSelfTest"):
-    """Generic reload method for any scripted module.
-    ModuleWizard will subsitute correct default moduleName.
-    """
-    globals()[moduleName] = slicer.util.reloadScriptedModule(moduleName)
-
-  def setSpeed(self,moduleName="BreachWarningSelfTest"):
-    globals()[moduleName] = slicer.util.reloadScriptedModule(moduleName)
-
-  def onReloadAndTest(self,moduleName="BreachWarningSelfTest"):
-    try:
-      self.onReload()
-      evalString = 'globals()["%s"].%sTest()' % (moduleName, moduleName)
-      tester = eval(evalString)
-      tester.setSpeed(self.speedSpinBox.value)
-      tester.runTest()
-    except Exception, e:
-      import traceback
-      traceback.print_exc()
-      qt.QMessageBox.warning(slicer.util.mainWindow(),
-          "Reload and Test", 'Exception!\n\n' + str(e) + "\n\nSee Python Console for Stack Trace")
-
 
 #
 # BreachWarningSelfTestLogic
@@ -111,23 +49,15 @@ class BreachWarningSelfTestLogic(ScriptedLoadableModuleLogic):
   this class and make use of the functionality without
   requiring an instance of the Widget
   """
-
-  def run(self):
-    """
-    Run the actual algorithm
-    """
-    print("Test the algorith logic here, not implemented yet")
-
+  def __init__(self):
+    pass
 
 class BreachWarningSelfTestTest(ScriptedLoadableModuleTest):
+  """This is the test case for your scripted module.
   """
-  This is the test case for your scripted module.
-  """
-  def setSpeed(self, speed=3):
-    self.Speed=speed
 
   def setUp(self):
-    """ Do whatever is needed to reset the state - typically a scene clear will be enough.
+    """Do whatever is needed to reset the state - typically a scene clear will be enough.
     """
     slicer.mrmlScene.Clear(0)
 
@@ -138,7 +68,7 @@ class BreachWarningSelfTestTest(ScriptedLoadableModuleTest):
     self.test_BreachWarningSelfTest1()
 
   def test_BreachWarningSelfTest1(self):
-    """ Ideally you should have several levels of tests.  At the lowest level
+    """Ideally you should have several levels of tests.  At the lowest level
     tests sould exercise the functionality of the logic with different inputs
     (both valid and invalid).  At higher levels your tests should emulate the
     way the user would interact with your code and confirm that it still works
@@ -151,110 +81,84 @@ class BreachWarningSelfTestTest(ScriptedLoadableModuleTest):
 
     self.delayDisplay("Starting the test")
 
-    scene = slicer.mrmlScene
+    self.delayDisplay("Create models")
+    modelNodes = []
+    createModelsLogic = slicer.modules.createmodels.logic()
+    sphereRadius = 10.0
+    sphereModel = createModelsLogic.CreateSphere(sphereRadius) # watched model
+    toolModel = createModelsLogic.CreateNeedle(50.0, 1.5, 0.0, False)
+
+    self.delayDisplay("Set up module GUI")
     mainWindow = slicer.util.mainWindow()
-
-    mainWindow.moduleSelector().selectModule('CreateModels')
-    createModelsWidget = slicer.modules.createmodels.widgetRepresentation()
-    createSphereButton = slicer.util.findChildren(widget=createModelsWidget, className='QPushButton', name='CreateSphereButton')[0]
-    createSphereButton.click()
-    createCylinderButton = slicer.util.findChildren(widget=createModelsWidget, className='QPushButton')[1]
-    createCylinderButton.click()
-
     mainWindow.moduleSelector().selectModule('BreachWarning')
     bwWidget = slicer.modules.breachwarning.widgetRepresentation()
-    
     bwColorPickerButton = slicer.util.findChildren(widget=bwWidget, className='ctkColorPickerButton', name='ColorPickerButton')[0]
-    color = qt.QColor(255,0,0,1)
+    bwModelNodeCombobox = slicer.util.findChildren(widget=bwWidget, name='ModelNodeComboBox')[0]
+    bwToolNodeCombobox = slicer.util.findChildren(widget=bwWidget, name='ToolComboBox')[0]
+
+    bwModelNodeCombobox.setCurrentNodeID(sphereModel.GetID())
+
+    warningColor = (1.0,0.0,0.0)
+    color = qt.QColor(warningColor[0]*255,warningColor[1]*255,warningColor[2]*255,1)
     bwColorPickerButton.setColor(color)
 
-    modelNodes=[]
-    modelNodes.append(slicer.util.getNode(pattern="SphereModel"))
-    modelNodes.append(slicer.util.getNode(pattern="CylinderModel"))
-    bwModelNodeCombobox = slicer.util.findChildren(widget=bwWidget, name='ModelNodeComboBox')[0]
-    bwModelNodeCombobox.setCurrentNodeID(modelNodes[0].GetID())
+    # Transform the sphere somewhere
+    sphereTransform = slicer.vtkMRMLLinearTransformNode()
+    sphereTransformMatrix = vtk.vtkMatrix4x4()
+    sphereTransformMatrix.SetElement(0, 3, 80)
+    sphereTransformMatrix.SetElement(1, 3, 40)
+    sphereTransformMatrix.SetElement(2, 3, 30)
+    sphereTransform.SetMatrixTransformToParent(sphereTransformMatrix)
+    slicer.mrmlScene.AddNode(sphereTransform)
+    sphereModel.SetAndObserveTransformNodeID(sphereTransform.GetID())
 
-    bwToolNodeCombobox = slicer.util.findChildren(widget=bwWidget, name='ToolComboBox')[0]  
-    # Create transforms node
-    i=0
+    # Create transforms node hierarchy for the tool
     transforms=[]
-    while i<2:
+    numberOfTransforms = 3
+    for i in range(numberOfTransforms):
         transforms.append(slicer.vtkMRMLLinearTransformNode())
         transformName = "Tool_"+str(i)
         transforms[i].SetName(slicer.mrmlScene.GenerateUniqueName(transformName))
         slicer.mrmlScene.AddNode(transforms[i])
-        i=i+1
-    bwToolNodeCombobox.setCurrentNodeID(transforms[0].GetID())
+        if i>0:
+          transforms[i].SetAndObserveTransformNodeID(transforms[i-1].GetID())
 
-    #Modify second transform to be outside
-    toParent1 = vtk.vtkMatrix4x4()
-    transforms[1].GetMatrixTransformToParent(toParent1)
-    toParent1.SetElement(0 ,3, 100)
-    transforms[1].SetMatrixTransformToParent(toParent1)
+    # Tool transform is the one at the bottom of the transform hierarchy
+    # (to make sure transform changes in the middle of the transform hierarchy are used correctly)
+    toolModel.SetAndObserveTransformNodeID(transforms[-1].GetID())
+    bwToolNodeCombobox.setCurrentNodeID(transforms[-1].GetID())
 
+    # Pick a transform in the middle of the transform hierarchy that we change to simulate tool motion,
+    # leave the rest of the transforms unchanged
+    toolToWorldTransform = transforms[1]
 
-    self.delayDisplay('At the begining Tool_1 is INSIDE the sphere',3000/self.Speed)
-    colorD=modelNodes[0].GetDisplayNode().GetColor()
-    if colorD != (1.0, 0.0, 0.0):
-        print("1) Error begin not same color INSIDE")
-    print (colorD)
-            
+    transformMatrixOutside = vtk.vtkMatrix4x4()
+    transformMatrixOutside.DeepCopy(sphereTransformMatrix)
+    transformMatrixOutside.SetElement(0, 3, transformMatrixOutside.GetElement(0,3) + sphereRadius*2.1)
+    transformMatrixOutside.SetElement(1, 3, transformMatrixOutside.GetElement(1,3) + sphereRadius*1.3)
+    transformMatrixOutside.SetElement(2, 3, transformMatrixOutside.GetElement(2, 3) + sphereRadius*3.2)
 
+    transformMatrixInside = vtk.vtkMatrix4x4()
+    transformMatrixInside.DeepCopy(sphereTransformMatrix)
+    transformMatrixInside.SetElement(0, 3, transformMatrixInside.GetElement(0,3) + sphereRadius*0.1)
+    transformMatrixInside.SetElement(1, 3, transformMatrixInside.GetElement(1,3) + sphereRadius*0.3)
+    transformMatrixInside.SetElement(2, 3, transformMatrixInside.GetElement(2,3) + sphereRadius*0.2)
 
-    numberOfModels=1
-    while numberOfModels>=0:
-        bwModelNodeCombobox.setCurrentNodeIndex(numberOfModels)
+    # Start breach warning checks
 
-       #switch tools
-        i=1
-        while i>=0:
-            bwToolNodeCombobox.setCurrentNodeID(transforms[i].GetID())
-            colorD=modelNodes[numberOfModels].GetDisplayNode().GetColor()
-            if(i==0):
-                if colorD != (1.0, 0.0, 0.0):
-                    print("2) Error begin not same color INSIDE "+'Tool_'+str( i))
-                self.delayDisplay('Switch tools while INSIDE '+'Tool_'+str( i),3000/self.Speed)
-            if (i==1):
-                if colorD == (1.0, 0.0, 0.0):
-                    print("3) Error begin not same color OUTSIDE "+'Tool_'+str( i))
-                self.delayDisplay('Switch tools while OUTSIDE '+'Tool_'+str( i),3000/self.Speed)
-            i=i-1
+    self.delayDisplay('Tool is outside the sphere')
+    toolToWorldTransform.SetMatrixTransformToParent(transformMatrixOutside)
+    sphereColor = sphereModel.GetDisplayNode().GetColor()
+    self.assertNotEqual(sphereColor, warningColor)
 
-        self.delayDisplay('Switch model while the tool it is INSIDE ',3000/self.Speed)
-        a=0
-        n=20
+    self.delayDisplay('Tool is inside the sphere')
+    toolToWorldTransform.SetMatrixTransformToParent(transformMatrixInside)
+    sphereColor = sphereModel.GetDisplayNode().GetColor()
+    self.assertEqual(sphereColor, warningColor)
 
-        limits=[]
-        limits.append(10)
-        limits.append(12)
-        while a < n:
-            a=a+2
-            toParent = vtk.vtkMatrix4x4()
-            transforms[0].GetMatrixTransformToParent(toParent)
-            toParent.SetElement(0 ,3, a)
-            transforms[0].SetMatrixTransformToParent(toParent)
-            if a>=limits[numberOfModels]:
-                if a==limits[numberOfModels]:
-                    self.delayDisplay('It should be OUTSIDE Model_'+str(numberOfModels),3000/self.Speed)
-                colorD=modelNodes[numberOfModels].GetDisplayNode().GetColor()
-                if colorD == (1.0, 0.0, 0.0,):
-                    print('4) Error not same color OUTSIDE Model_' +str(numberOfModels))
-                print(colorD) 
-        n=0
-        while a > n:
-            a=a-2
-            toParent = vtk.vtkMatrix4x4()
-            transforms[0].GetMatrixTransformToParent(toParent)
-            toParent.SetElement(0 ,3, a)
-            transforms[0].SetMatrixTransformToParent(toParent)
-
-            if a<10:
-                if a==8:
-                    self.delayDisplay('Now it should be INSIDE Model_'+str(numberOfModels),3000/self.Speed)
-                colorD=modelNodes[numberOfModels].GetDisplayNode().GetColor()
-                if colorD != (1.0, 0.0, 0.0):
-                    print("5) Error not same color INSIDE Model_" +str(numberOfModels))
-                print(colorD) 
-        numberOfModels=numberOfModels-1
+    self.delayDisplay('Tool is outside the sphere')
+    toolToWorldTransform.SetMatrixTransformToParent(transformMatrixOutside)
+    sphereColor = sphereModel.GetDisplayNode().GetColor()
+    self.assertNotEqual(sphereColor, warningColor)
 
     self.delayDisplay('Test passed!')
