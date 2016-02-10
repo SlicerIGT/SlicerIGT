@@ -410,7 +410,6 @@ void qSlicerWatchdogModuleWidget::updateWidget()
       QWidget *pStatusIconWidget = new QWidget();
       QLabel *label = new QLabel;
       label->setObjectName("StatusIcon");
-      //label->setPixmap(QPixmap(":/Icons/NodeValid.png"));
       QHBoxLayout *pStatusLayout = new QHBoxLayout(pStatusIconWidget);
       pStatusLayout->addWidget(label);
       pStatusLayout->setAlignment(Qt::AlignCenter);
@@ -462,10 +461,12 @@ void qSlicerWatchdogModuleWidget::updateWidget()
       if(d->WatchdogNode->GetWatchedNodeUpToDate(watchedNodeIndex))
       {
         statusIcon->setPixmap(QPixmap(":/Icons/NodeValid.png"));
+        statusIcon->setToolTip("valid");
       }
       else
       {
         statusIcon->setPixmap(QPixmap(":/Icons/NodeInvalid.png"));
+        statusIcon->setToolTip("invalid");
       }
     }
   }

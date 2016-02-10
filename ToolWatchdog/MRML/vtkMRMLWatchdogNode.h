@@ -110,6 +110,10 @@ public:
 
 protected:
 
+  ///
+  /// Called after a node reference ID is removed (list size decreased).
+  virtual void OnNodeReferenceRemoved(vtkMRMLNodeReference *reference);
+
   // Constructor/destructor methods
   vtkMRMLWatchdogNode();
   virtual ~vtkMRMLWatchdogNode();
