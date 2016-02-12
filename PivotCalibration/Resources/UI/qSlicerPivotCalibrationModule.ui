@@ -105,9 +105,9 @@
       </item>
       
       <item>
-       <layout class="QHBoxLayout" name="horizontalLayout">
+       <layout class="QHBoxLayout" name="horizontalLayout1">
         <item>
-         <widget class="QLabel" name="label_3">
+         <widget class="QLabel" name="label_31">
           <property name="text">
            <string>Delay and duration (seconds):  </string>
           </property>
