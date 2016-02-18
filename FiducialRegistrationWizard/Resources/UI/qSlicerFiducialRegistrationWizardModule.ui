@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>593</width>
-    <height>478</height>
+    <width>560</width>
+    <height>914</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -48,90 +48,90 @@
        </widget>
       </item>
       <item>
-       <widget class="QGroupBox" name="FromGroupBox">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
+       <widget class="ctkCollapsibleGroupBox" name="FromGroupBox">
         <property name="title">
          <string>From fiducials</string>
         </property>
-        <layout class="QVBoxLayout" name="verticalLayout_4"/>
+        <layout class="QVBoxLayout" name="verticalLayout_6">
+         <item>
+          <widget class="qSlicerSimpleMarkupsWidget" name="FromMarkupsWidget"/>
+         </item>
+        </layout>
        </widget>
       </item>
       <item>
-       <widget class="QGroupBox" name="ToGroupBox">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
+       <widget class="ctkCollapsibleGroupBox" name="ToGroupBox">
         <property name="title">
          <string>To fiducials</string>
         </property>
-        <layout class="QVBoxLayout" name="verticalLayout_5"/>
+        <layout class="QVBoxLayout" name="verticalLayout_4">
+         <item>
+          <widget class="qSlicerSimpleMarkupsWidget" name="ToMarkupsWidget"/>
+         </item>
+        </layout>
        </widget>
       </item>
       <item>
-       <widget class="ctkCollapsibleGroupBox" name="PlaceFiducialGroupBox">
+       <widget class="ctkCollapsibleGroupBox" name="ProbeTransformGroupBox">
+        <property name="toolTip">
+         <string>Place fiducials by using position component of transforms. Parent transforms are applied.</string>
+        </property>
         <property name="title">
-         <string>Place fiducials</string>
+         <string>Place fiducials using transforms</string>
         </property>
         <property name="collapsed">
          <bool>true</bool>
         </property>
-        <layout class="QVBoxLayout" name="verticalLayout_8">
-         <item>
-          <widget class="QLabel" name="ProbeTransformLabel">
+        <layout class="QGridLayout" name="gridLayout">
+         <item row="0" column="0">
+          <widget class="qMRMLNodeComboBox" name="ProbeTransformFromComboBox">
            <property name="sizePolicy">
-            <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
              <horstretch>0</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
            </property>
-           <property name="toolTip">
-            <string>Transform for locating fiducials</string>
+           <property name="nodeTypes">
+            <stringlist>
+             <string>vtkMRMLLinearTransformNode</string>
+            </stringlist>
            </property>
-           <property name="text">
-            <string>Probe transform (parents will be applied)</string>
+           <property name="noneEnabled">
+            <bool>true</bool>
+           </property>
+           <property name="addEnabled">
+            <bool>false</bool>
+           </property>
+           <property name="renameEnabled">
+            <bool>true</bool>
            </property>
           </widget>
          </item>
-         <item>
-          <layout class="QHBoxLayout" name="horizontalLayout">
-           <property name="topMargin">
-            <number>0</number>
+         <item row="1" column="0">
+          <widget class="qMRMLNodeComboBox" name="ProbeTransformToComboBox">
+           <property name="nodeTypes">
+            <stringlist>
+             <string>vtkMRMLLinearTransformNode</string>
+            </stringlist>
            </property>
-           <item>
-            <widget class="qMRMLNodeComboBox" name="ProbeTransformComboBox">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="nodeTypes">
-              <stringlist>
-               <string>vtkMRMLLinearTransformNode</string>
-              </stringlist>
-             </property>
-             <property name="noneEnabled">
-              <bool>true</bool>
-             </property>
-             <property name="renameEnabled">
-              <bool>true</bool>
-             </property>
-            </widget>
-           </item>
-          </layout>
+           <property name="noneEnabled">
+            <bool>true</bool>
+           </property>
+           <property name="addEnabled">
+            <bool>false</bool>
+           </property>
+           <property name="renameEnabled">
+            <bool>true</bool>
+           </property>
+          </widget>
          </item>
-         <item>
-          <widget class="QPushButton" name="RecordButton">
+         <item row="0" column="2">
+          <widget class="QPushButton" name="RecordFromButton">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
            <property name="sizePolicy">
-            <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+            <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
              <horstretch>0</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
@@ -140,7 +140,17 @@
             <string>Click when tracked device tip is placed at a fiducial point</string>
            </property>
            <property name="text">
-            <string>Place fiducial</string>
+            <string>Place 'From'</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="2">
+          <widget class="QPushButton" name="RecordToButton">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="text">
+            <string>Place 'To'</string>
            </property>
           </widget>
          </item>
@@ -230,6 +240,20 @@
           </layout>
          </item>
          <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_3">
+           <property name="topMargin">
+            <number>10</number>
+           </property>
+           <item>
+            <widget class="ctkMenuButton" name="UpdateButton">
+             <property name="text">
+              <string>Update</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
           <widget class="QLabel" name="StatusLabel">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
@@ -241,39 +265,6 @@
             <string>Status:</string>
            </property>
           </widget>
-         </item>
-         <item>
-          <layout class="QHBoxLayout" name="horizontalLayout_3">
-           <property name="topMargin">
-            <number>10</number>
-           </property>
-           <item>
-            <widget class="QPushButton" name="UpdateButton">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="text">
-              <string>Update</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QCheckBox" name="AutoUpdateCheckBox">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="text">
-              <string>Auto-Update</string>
-             </property>
-            </widget>
-           </item>
-          </layout>
          </item>
         </layout>
        </widget>
@@ -312,6 +303,28 @@
     </spacer>
    </item>
   </layout>
+  <action name="ActionAutoUpdate">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Auto-update</string>
+   </property>
+   <property name="toolTip">
+    <string>Update output transform automatically</string>
+   </property>
+  </action>
+  <action name="ActionManualUpdate">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Manual Update</string>
+   </property>
+   <property name="toolTip">
+    <string>Update output transform when Update button is clicked</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>
@@ -327,6 +340,11 @@
    <container>1</container>
   </customwidget>
   <customwidget>
+   <class>qSlicerSimpleMarkupsWidget</class>
+   <extends>qSlicerWidget</extends>
+   <header>qSlicerSimpleMarkupsWidget.h</header>
+  </customwidget>
+  <customwidget>
    <class>ctkCollapsibleButton</class>
    <extends>QWidget</extends>
    <header>ctkCollapsibleButton.h</header>
@@ -338,13 +356,18 @@
    <header>ctkCollapsibleGroupBox.h</header>
    <container>1</container>
   </customwidget>
+  <customwidget>
+   <class>ctkMenuButton</class>
+   <extends>QPushButton</extends>
+   <header>ctkMenuButton.h</header>
+  </customwidget>
  </customwidgets>
  <resources/>
  <connections>
   <connection>
    <sender>qSlicerFiducialRegistrationWizardModule</sender>
    <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
-   <receiver>ProbeTransformComboBox</receiver>
+   <receiver>ProbeTransformFromComboBox</receiver>
    <slot>setMRMLScene(vtkMRMLScene*)</slot>
    <hints>
     <hint type="sourcelabel">
@@ -386,6 +409,54 @@
     <hint type="destinationlabel">
      <x>279</x>
      <y>50</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>qSlicerFiducialRegistrationWizardModule</sender>
+   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+   <receiver>FromMarkupsWidget</receiver>
+   <slot>setMRMLScene(vtkMRMLScene*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>279</x>
+     <y>456</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>279</x>
+     <y>226</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>qSlicerFiducialRegistrationWizardModule</sender>
+   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+   <receiver>ToMarkupsWidget</receiver>
+   <slot>setMRMLScene(vtkMRMLScene*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>279</x>
+     <y>456</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>279</x>
+     <y>475</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>qSlicerFiducialRegistrationWizardModule</sender>
+   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+   <receiver>ProbeTransformToComboBox</receiver>
+   <slot>setMRMLScene(vtkMRMLScene*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>279</x>
+     <y>456</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>158</x>
+     <y>598</y>
     </hint>
    </hints>
   </connection>

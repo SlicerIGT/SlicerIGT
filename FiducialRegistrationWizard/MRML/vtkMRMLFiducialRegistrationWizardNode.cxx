@@ -26,7 +26,8 @@
 #include "vtkNew.h"
 
 // Constants ------------------------------------------------------------------
-static const char* PROBE_TRANSFORM_REFERENCE_ROLE = "ProbeTransform";
+static const char* PROBE_TRANSFORM_FROM_REFERENCE_ROLE = "ProbeTransformFrom";
+static const char* PROBE_TRANSFORM_TO_REFERENCE_ROLE = "ProbeTransformTo";
 static const char* FROM_FIDUCIAL_LIST_REFERENCE_ROLE = "FromFiducialList";
 static const char* TO_FIDUCIAL_LIST_REFERENCE_ROLE = "ToFiducialList";
 static const char* OUTPUT_TRANSFORM_REFERENCE_ROLE = "OutputTransform";
@@ -43,7 +44,8 @@ vtkMRMLFiducialRegistrationWizardNode::vtkMRMLFiducialRegistrationWizardNode()
   fiducialListEvents->InsertNextValue( vtkCommand::ModifiedEvent );
   fiducialListEvents->InsertNextValue( vtkMRMLMarkupsNode::PointModifiedEvent ); //PointEndInteractionEvent
 
-  this->AddNodeReferenceRole( PROBE_TRANSFORM_REFERENCE_ROLE );
+  this->AddNodeReferenceRole( PROBE_TRANSFORM_FROM_REFERENCE_ROLE );
+  this->AddNodeReferenceRole( PROBE_TRANSFORM_TO_REFERENCE_ROLE );
   this->AddNodeReferenceRole( FROM_FIDUCIAL_LIST_REFERENCE_ROLE, NULL, fiducialListEvents.GetPointer() );
   this->AddNodeReferenceRole( TO_FIDUCIAL_LIST_REFERENCE_ROLE, NULL, fiducialListEvents.GetPointer() );
   this->AddNodeReferenceRole( OUTPUT_TRANSFORM_REFERENCE_ROLE );
@@ -154,21 +156,40 @@ vtkMRMLMarkupsFiducialNode* vtkMRMLFiducialRegistrationWizardNode::GetToFiducial
 }
 
 //------------------------------------------------------------------------------
-void vtkMRMLFiducialRegistrationWizardNode::SetProbeTransformNodeId( const char* nodeId )
+void vtkMRMLFiducialRegistrationWizardNode::SetProbeTransformFromNodeId( const char* nodeId )
 {
-  const char* currentNodeId=this->GetNodeReferenceID(PROBE_TRANSFORM_REFERENCE_ROLE);
+  const char* currentNodeId=this->GetNodeReferenceID(PROBE_TRANSFORM_FROM_REFERENCE_ROLE);
   if (nodeId!=NULL && currentNodeId!=NULL && strcmp(nodeId,currentNodeId)==0)
   {
     // not changed
     return;
   }
-  this->SetAndObserveNodeReferenceID( PROBE_TRANSFORM_REFERENCE_ROLE, nodeId);
+  this->SetAndObserveNodeReferenceID( PROBE_TRANSFORM_FROM_REFERENCE_ROLE, nodeId);
 }
 
 //------------------------------------------------------------------------------
-vtkMRMLTransformNode* vtkMRMLFiducialRegistrationWizardNode::GetProbeTransformNode()
+vtkMRMLTransformNode* vtkMRMLFiducialRegistrationWizardNode::GetProbeTransformFromNode()
 {
-  vtkMRMLTransformNode* node = vtkMRMLTransformNode::SafeDownCast( this->GetNodeReference( PROBE_TRANSFORM_REFERENCE_ROLE ) );
+  vtkMRMLTransformNode* node = vtkMRMLTransformNode::SafeDownCast( this->GetNodeReference( PROBE_TRANSFORM_FROM_REFERENCE_ROLE ) );
+  return node;
+}
+
+//------------------------------------------------------------------------------
+void vtkMRMLFiducialRegistrationWizardNode::SetProbeTransformToNodeId( const char* nodeId )
+{
+  const char* currentNodeId=this->GetNodeReferenceID(PROBE_TRANSFORM_TO_REFERENCE_ROLE);
+  if (nodeId!=NULL && currentNodeId!=NULL && strcmp(nodeId,currentNodeId)==0)
+  {
+    // not changed
+    return;
+  }
+  this->SetAndObserveNodeReferenceID( PROBE_TRANSFORM_TO_REFERENCE_ROLE, nodeId);
+}
+
+//------------------------------------------------------------------------------
+vtkMRMLTransformNode* vtkMRMLFiducialRegistrationWizardNode::GetProbeTransformToNode()
+{
+  vtkMRMLTransformNode* node = vtkMRMLTransformNode::SafeDownCast( this->GetNodeReference( PROBE_TRANSFORM_TO_REFERENCE_ROLE ) );
   return node;
 }
 

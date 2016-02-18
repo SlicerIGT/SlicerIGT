@@ -51,19 +51,24 @@ protected slots:
   void UpdateToMRMLNode();
   void UpdateFromMRMLNode();
 
-  void PostProcessMarkupsWidgets();
+  // Update widget after node is added or deleted
+  void PostProcessFromMarkupsWidget();
+  void PostProcessToMarkupsWidget();
 
-  void onRecordButtonClicked();
+  void onRecordFromButtonClicked();
+  void onRecordToButtonClicked();
   void onUpdateButtonClicked();
+  void onUpdateButtonToggled(bool);
   void onFiducialRegistrationWizardNodeSelectionChanged();
+  void onAutoUpdateSelected();
+  void onManualUpdateSelected();
 
 protected:
   QScopedPointer<qSlicerFiducialRegistrationWizardModuleWidgetPrivate> d_ptr;
-  
+
   virtual void setup();
   virtual void enter();
-
-  void EnableAllWidgets( bool enable );
+  virtual bool eventFilter(QObject * obj, QEvent *event);
 
 private:
   Q_DECLARE_PRIVATE(qSlicerFiducialRegistrationWizardModuleWidget);

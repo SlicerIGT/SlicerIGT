@@ -176,11 +176,28 @@ void vtkSlicerFiducialRegistrationWizardLogic::AddFiducial( vtkMRMLLinearTransfo
     return;
   }
   
+  this->AddFiducial(probeTransformNode, activeMarkupsFiducialNode);
+}
+
+//------------------------------------------------------------------------------
+void vtkSlicerFiducialRegistrationWizardLogic::AddFiducial( vtkMRMLLinearTransformNode* probeTransformNode, vtkMRMLMarkupsFiducialNode* fiducialNode )
+{
+  if ( probeTransformNode == NULL )
+  {
+    vtkErrorMacro("vtkSlicerFiducialRegistrationWizardLogic::AddFiducial failed: input transform is invalid");
+    return;
+  }
+  if ( fiducialNode == NULL )
+  {
+    vtkErrorMacro("vtkSlicerFiducialRegistrationWizardLogic::AddFiducial failed: output fiducial node is invalid");
+    return;
+  }
+  
   vtkSmartPointer<vtkMatrix4x4> transformToWorld = vtkSmartPointer<vtkMatrix4x4>::New();
   probeTransformNode->GetMatrixTransformToWorld( transformToWorld );
 
   double coord[3] = { transformToWorld->GetElement( 0, 3 ), transformToWorld->GetElement( 1, 3 ), transformToWorld->GetElement( 2, 3 ) };
-  activeMarkupsFiducialNode->AddFiducialFromArray( coord );
+  fiducialNode->AddFiducialFromArray( coord );
 }
 
 //------------------------------------------------------------------------------
