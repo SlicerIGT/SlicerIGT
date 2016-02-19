@@ -253,7 +253,7 @@ void vtkMRMLFiducialRegistrationWizardNode::SetUpdateMode( std::string newUpdate
 }
 
 //------------------------------------------------------------------------------
-void vtkMRMLFiducialRegistrationWizardNode::ProcessMRMLEvents( vtkObject *caller, unsigned long event, void *callData )
+void vtkMRMLFiducialRegistrationWizardNode::ProcessMRMLEvents( vtkObject *caller, unsigned long vtkNotUsed(event), void* vtkNotUsed(callData) )
 {
   vtkMRMLNode* callerNode = vtkMRMLNode::SafeDownCast( caller );
   if ( callerNode == NULL ) 

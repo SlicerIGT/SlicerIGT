@@ -283,7 +283,7 @@ void vtkMRMLBreachWarningNode::SetAndObserveToolTransformNodeId( const char* nod
 }
 
 //------------------------------------------------------------------------------
-void vtkMRMLBreachWarningNode::ProcessMRMLEvents( vtkObject *caller, unsigned long event, void *callData )
+void vtkMRMLBreachWarningNode::ProcessMRMLEvents( vtkObject *caller, unsigned long vtkNotUsed(event), void *callData )
 {
   vtkMRMLNode* callerNode = vtkMRMLNode::SafeDownCast( caller );
   if ( callerNode == NULL ) return;

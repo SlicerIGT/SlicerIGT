@@ -69,7 +69,7 @@ void vtkSlicerPivotCalibrationLogic::PrintSelf(ostream& os, vtkIndent indent)
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerPivotCalibrationLogic::ProcessMRMLNodesEvents(vtkObject* caller, unsigned long event, void* callData)
+void vtkSlicerPivotCalibrationLogic::ProcessMRMLNodesEvents(vtkObject* caller, unsigned long event, void* vtkNotUsed(callData))
 {
   if (caller != NULL)
   {
@@ -184,7 +184,6 @@ bool vtkSlicerPivotCalibrationLogic::ComputePivotCalibration()
   std::vector<vtkMatrix4x4*>::const_iterator it;
   std::vector<vtkMatrix4x4*>::const_iterator matricesEnd = this->ToolToReferenceMatrices.end();
   unsigned int currentRow;
-  vtkMatrix4x4* referenceOrientationMatrix = this->ToolToReferenceMatrices.front();
   for(currentRow = 0, it = this->ToolToReferenceMatrices.begin(); it != matricesEnd; it++, currentRow += 3)
   {    
     for (int i = 0; i < 3; i++)
@@ -245,10 +244,6 @@ bool vtkSlicerPivotCalibrationLogic::ComputeSpinCalibration( bool snapRotation )
   I.set_identity();
 
   vnl_matrix<double> RI( rows, columns );
-
-
-  // this will store the maximum difference in orientation between the first transform and all the other transforms
-  double maximumOrientationDifferenceDeg = 0;
 
   std::vector< vtkMatrix4x4* >::const_iterator previt = this->ToolToReferenceMatrices.end();
   for(std::vector< vtkMatrix4x4* >::const_iterator it = this->ToolToReferenceMatrices.begin(); it != this->ToolToReferenceMatrices.end(); it++ )
