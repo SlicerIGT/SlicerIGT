@@ -19,6 +19,10 @@ class Guidelet(object):
     if show:
       mainWindow=slicer.util.mainWindow()
       mainWindow.tabifyDockWidget(self.sliceletDockWidget, modulePanelDockWidget)
+      self.sliceletDockWidget.setFeatures(qt.QDockWidget.DockWidgetClosable+qt.QDockWidget.DockWidgetMovable+qt.QDockWidget.DockWidgetFloatable)
+    else:
+      # Prevent accidental closing or undocking of the slicelet's left panel
+      self.sliceletDockWidget.setFeatures(0)      
 
   @staticmethod
   def showMenuBar(show):
