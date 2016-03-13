@@ -221,6 +221,7 @@ void qSlicerFiducialRegistrationWizardModuleWidget::setup()
   connect( d->OutputTransformComboBox, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(UpdateToMRMLNode()) );
   connect( d->RigidRadioButton, SIGNAL(toggled(bool)), this, SLOT(UpdateToMRMLNode()) );
   connect( d->SimilarityRadioButton, SIGNAL(toggled(bool)), this, SLOT(UpdateToMRMLNode()) );
+  connect( d->WarpingRadioButton, SIGNAL(toggled(bool)), this, SLOT(UpdateToMRMLNode()) );
 
   connect( d->FromMarkupsWidget, SIGNAL(markupsFiducialNodeChanged()), this, SLOT(UpdateToMRMLNode()) );
   connect( d->FromMarkupsWidget, SIGNAL(updateFinished()), this, SLOT(PostProcessFromMarkupsWidget()) );
@@ -293,7 +294,22 @@ void qSlicerFiducialRegistrationWizardModuleWidget::UpdateToMRMLNode()
   fiducialRegistrationWizardNode->SetAndObserveFromFiducialListNodeId(d->FromMarkupsWidget->currentNode()?d->FromMarkupsWidget->currentNode()->GetID():NULL);
   fiducialRegistrationWizardNode->SetAndObserveToFiducialListNodeId(d->ToMarkupsWidget->currentNode()?d->ToMarkupsWidget->currentNode()->GetID():NULL);
 
-  fiducialRegistrationWizardNode->SetRegistrationMode( d->SimilarityRadioButton->isChecked() ? "Similarity" : "Rigid" );
+  if (d->RigidRadioButton->isChecked())
+  {
+    fiducialRegistrationWizardNode->SetRegistrationModeToRigid();
+  }
+  else if (d->SimilarityRadioButton->isChecked())
+  {
+    fiducialRegistrationWizardNode->SetRegistrationModeToSimilarity();
+  }
+  else if (d->WarpingRadioButton->isChecked())
+  {
+    fiducialRegistrationWizardNode->SetRegistrationModeToWarping();
+  }
+  else
+  {
+    qWarning() << Q_FUNC_INFO << "Failed to set registration mode, GUI is in invalid state";
+  }
 
   this->qvtkBlockAll(allWasBlocked);
 
@@ -318,6 +334,7 @@ void qSlicerFiducialRegistrationWizardModuleWidget::UpdateFromMRMLNode()
     d->OutputTransformComboBox->setEnabled(false);
     d->RigidRadioButton->setEnabled(false);
     d->SimilarityRadioButton->setEnabled(false);
+    d->WarpingRadioButton->setEnabled(false);
     d->FromMarkupsWidget->setEnabled(false);
     d->ToMarkupsWidget->setEnabled(false);
     d->UpdateButton->setEnabled(false);
@@ -331,6 +348,7 @@ void qSlicerFiducialRegistrationWizardModuleWidget::UpdateFromMRMLNode()
   bool wasOutputTransformComboBoxBlocked = d->OutputTransformComboBox->blockSignals(true);
   bool wasRigidRadioButtonBlocked = d->RigidRadioButton->blockSignals(true);
   bool wasSimilarityRadioButtonBlocked = d->SimilarityRadioButton->blockSignals(true);
+  bool wasWarpingRadioButtonBlocked = d->WarpingRadioButton->blockSignals(true);
   bool wasActionAutoUpdateBlocked = d->ActionAutoUpdate->blockSignals(true);
   bool wasActionManualUpdateBlocked = d->ActionManualUpdate->blockSignals(true);
   bool wasFromMarkupsWidgetBlocked = d->FromMarkupsWidget->blockSignals(true);
@@ -344,15 +362,17 @@ void qSlicerFiducialRegistrationWizardModuleWidget::UpdateFromMRMLNode()
   d->FromMarkupsWidget->setCurrentNode( fiducialRegistrationWizardNode->GetFromFiducialListNode() );
   d->ToMarkupsWidget->setCurrentNode( fiducialRegistrationWizardNode->GetToFiducialListNode() );
 
-  if ( fiducialRegistrationWizardNode->GetRegistrationMode().compare( "Similarity" ) == 0 )
-  {
-    d->SimilarityRadioButton->setChecked( Qt::Checked );
-    d->RigidRadioButton->setChecked( Qt::Unchecked );
-  }
   if ( fiducialRegistrationWizardNode->GetRegistrationMode().compare( "Rigid" ) == 0 )
   {
     d->RigidRadioButton->setChecked( Qt::Checked );
-    d->SimilarityRadioButton->setChecked( Qt::Unchecked );
+  }
+  else if ( fiducialRegistrationWizardNode->GetRegistrationMode().compare( "Similarity" ) == 0 )
+  {
+    d->SimilarityRadioButton->setChecked( Qt::Checked );
+  }
+  else if ( fiducialRegistrationWizardNode->GetRegistrationMode().compare( "Warping" ) == 0 )
+  {
+    d->WarpingRadioButton->setChecked( Qt::Checked );
   }
 
   if ( fiducialRegistrationWizardNode->GetUpdateMode().compare( "Automatic" ) == 0 )
@@ -377,6 +397,7 @@ void qSlicerFiducialRegistrationWizardModuleWidget::UpdateFromMRMLNode()
   d->OutputTransformComboBox->blockSignals(wasOutputTransformComboBoxBlocked);
   d->RigidRadioButton->blockSignals(wasRigidRadioButtonBlocked);
   d->SimilarityRadioButton->blockSignals(wasSimilarityRadioButtonBlocked);
+  d->WarpingRadioButton->blockSignals(wasWarpingRadioButtonBlocked);
   d->ActionAutoUpdate->blockSignals(wasActionAutoUpdateBlocked);
   d->ActionManualUpdate->blockSignals(wasActionManualUpdateBlocked);
   d->FromMarkupsWidget->blockSignals(wasFromMarkupsWidgetBlocked);
@@ -398,6 +419,7 @@ void qSlicerFiducialRegistrationWizardModuleWidget::UpdateFromMRMLNode()
   d->OutputTransformComboBox->setEnabled(true);
   d->RigidRadioButton->setEnabled(true);
   d->SimilarityRadioButton->setEnabled(true);
+  d->WarpingRadioButton->setEnabled(true);
   d->UpdateButton->setEnabled(true);
 
   std::stringstream statusString;

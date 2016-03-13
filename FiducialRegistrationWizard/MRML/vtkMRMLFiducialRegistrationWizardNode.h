@@ -91,6 +91,9 @@ public:
 
   std::string GetRegistrationMode();
   void SetRegistrationMode( std::string newRegistrationMode);
+  void SetRegistrationModeToRigid() { this->SetRegistrationMode("Rigid"); };
+  void SetRegistrationModeToSimilarity() { this->SetRegistrationMode("Similarity"); };
+  void SetRegistrationModeToWarping() { this->SetRegistrationMode("Warping"); };
 
   std::string GetUpdateMode();
   void SetUpdateMode( std::string newUpdateMode);
