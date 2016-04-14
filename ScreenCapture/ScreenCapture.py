@@ -149,23 +149,15 @@ class ScreenCaptureWidget(ScriptedLoadableModuleWidget):
     self.videoFileNameWidget.setEnabled(False)
     outputFormLayout.addRow("Video file name:", self.videoFileNameWidget)
 
-    self.videoQualitySliderWidget = ctk.ctkSliderWidget()
-    self.videoQualitySliderWidget.singleStep = 0.1
-    self.videoQualitySliderWidget.minimum = 0
-    self.videoQualitySliderWidget.maximum = 20
-    self.videoQualitySliderWidget.value = 2
-    self.videoQualitySliderWidget.decimals = 1
-    self.videoQualitySliderWidget.setToolTip("Bit-rate of video. Higher value means higher quality and larger file size.")
-    outputFormLayout.addRow("Video quality:", self.videoQualitySliderWidget)
-
-    self.videoFrameRateSliderWidget = ctk.ctkSliderWidget()
-    self.videoFrameRateSliderWidget.singleStep = 0.1
-    self.videoFrameRateSliderWidget.minimum = 0.1
-    self.videoFrameRateSliderWidget.maximum = 60
-    self.videoFrameRateSliderWidget.value = 25
-    self.videoFrameRateSliderWidget.decimals = 0
-    self.videoFrameRateSliderWidget.setToolTip("Frames per second. Higher values mean faster, shorter videos.")
-    outputFormLayout.addRow("Frame rate:", self.videoFrameRateSliderWidget)
+    self.videoLengthSliderWidget = ctk.ctkSliderWidget()
+    self.videoLengthSliderWidget.singleStep = 0.1
+    self.videoLengthSliderWidget.minimum = 0.1
+    self.videoLengthSliderWidget.maximum = 30
+    self.videoLengthSliderWidget.value = 5
+    self.videoLengthSliderWidget.decimals = 0
+    self.videoLengthSliderWidget.setToolTip("Length of the exported video in seconds.")
+    self.videoLengthSliderWidget.setEnabled(False)
+    outputFormLayout.addRow("Video length:", self.videoLengthSliderWidget)
 
     # Capture button
     self.captureButton = qt.QPushButton("Capture")
@@ -182,7 +174,7 @@ class ScreenCaptureWidget(ScriptedLoadableModuleWidget):
     #
     self.advancedCollapsibleButton = ctk.ctkCollapsibleButton()
     self.advancedCollapsibleButton.text = "Advanced"
-    self.advancedCollapsibleButton.collapsed = (self.logic.getFfmpegPath() is not None)
+    self.advancedCollapsibleButton.collapsed = not (not self.logic.getFfmpegPath())
     self.layout.addWidget(self.advancedCollapsibleButton)
     advancedFormLayout = qt.QFormLayout(self.advancedCollapsibleButton)
 
@@ -197,8 +189,20 @@ class ScreenCaptureWidget(ScriptedLoadableModuleWidget):
     self.ffmpegPathSelector.nameFilters = ['ffmpeg.exe', 'ffmpeg']
     self.ffmpegPathSelector.setMaximumWidth(300)
     self.ffmpegPathSelector.setToolTip("Set the path to ffmpeg executable. Download from: https://www.ffmpeg.org/")
-    self.ffmpegPathSelector.setEnabled(False)
     advancedFormLayout.addRow("ffmpeg executable:", self.ffmpegPathSelector)
+
+    self.extraVideoOptionsWidget = qt.QLineEdit()
+    self.extraVideoOptionsWidget.text = "-c:v mpeg4 -qscale:v 5"
+    #self.extraVideoOptionsWidget.setToolTip("Additional video conversion options passed to ffmpeg.")
+    self.extraVideoOptionsWidget.setToolTip(
+        "<html>\n"
+        "  <b>Examples:</b>"
+        "  <ul>"
+        "    <li><b>MPEG4:</b> -c:v mpeg4 -qscale:v 5</li>"
+        "    <li><b>H264:</b> -c:v libx264 -preset veryslow -qp 0</li>"
+        "  </ul>"
+        "</html>")
+    advancedFormLayout.addRow("Video extra options:", self.extraVideoOptionsWidget)
 
     # Add vertical spacer
     self.layout.addStretch(1)
@@ -209,8 +213,8 @@ class ScreenCaptureWidget(ScriptedLoadableModuleWidget):
     self.startSliceOffsetSliderWidget.connect('valueChanged(double)', self.setSliceOffset)
     self.endSliceOffsetSliderWidget.connect('valueChanged(double)', self.setSliceOffset)
     self.videoExportCheckBox.connect('toggled(bool)', self.fileNamePatternWidget, 'setDisabled(bool)')
-    self.videoExportCheckBox.connect('toggled(bool)', self.ffmpegPathSelector, 'setEnabled(bool)')
     self.videoExportCheckBox.connect('toggled(bool)', self.videoFileNameWidget, 'setEnabled(bool)')
+    self.videoExportCheckBox.connect('toggled(bool)', self.videoLengthSliderWidget, 'setEnabled(bool)')
 
     self.onViewNodeSelected()
 
@@ -260,6 +264,8 @@ class ScreenCaptureWidget(ScriptedLoadableModuleWidget):
     self.captureButton.enabled = self.viewNodeSelector.currentNode()
 
   def onCaptureButton(self):
+    self.logic.setFfmpegPath(self.ffmpegPathSelector.currentPath)
+
     slicer.app.setOverrideCursor(qt.Qt.WaitCursor)
     self.statusLabel.plainText = ''
 
@@ -283,8 +289,8 @@ class ScreenCaptureWidget(ScriptedLoadableModuleWidget):
         raise ValueError('Unsupported view node type.')
 
       if videoOutputRequested:
-        self.logic.setFfmpegPath(self.ffmpegPathSelector.currentPath)
-        self.logic.createVideo(self.videoQualitySliderWidget.value, self.videoFrameRateSliderWidget.value,
+        fps = numberOfSteps / self.videoLengthSliderWidget.value
+        self.logic.createVideo(fps, self.extraVideoOptionsWidget.text,
                                outputDir, imageFileNamePattern, self.videoFileNameWidget.text)
         self.logic.deleteTemporaryFiles(outputDir, imageFileNamePattern, numberOfSteps)
 
@@ -439,7 +445,7 @@ class ScreenCaptureLogic(ScriptedLoadableModuleLogic):
     renderView.setPitchRollYawIncrement(originalPitchRollYawIncrement)
     renderView.yawDirection = originalYawDirection
 
-  def createVideo(self, bitRate, frameRate, outputDir, imageFileNamePattern, videoFileName):
+  def createVideo(self, frameRate, extraOptions, outputDir, imageFileNamePattern, videoFileName):
     self.addLog("Export to video...")
 
     # Get ffmpeg
@@ -455,13 +461,10 @@ class ScreenCaptureLogic(ScriptedLoadableModuleLogic):
     ffmpegParams = [ffmpegPath,
                     "-y", # overwrite without asking
                     "-r", str(frameRate),
-                    "-vb", "{0}M".format(bitRate),
                     "-start_number", "0",
-    #                "-vframes", str(numberOfSteps),
-                    "-i", str(filePathPattern),
-                    outputVideoFilePath]
-    #ffmpegParams = [ffmpegPath,
-    #                "-h"]
+                    "-i", str(filePathPattern)]
+    ffmpegParams += filter(None, extraOptions.split(' '))
+    ffmpegParams.append(outputVideoFilePath)
 
     logging.debug("ffmpeg parameters: "+repr(ffmpegParams))
 
