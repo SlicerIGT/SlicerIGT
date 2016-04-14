@@ -425,8 +425,17 @@ void qSlicerOpenIGTLinkRemoteQueryWidget::onMetadataQueryResponseReceived()
       time_t timer = (time_t) element.TimeStamp;
       struct tm *tst = localtime(&timer);
       std::stringstream timess;
-      timess << tst->tm_year+1900 << "-" << tst->tm_mon+1 << "-" << tst->tm_mday << " "
-        << tst->tm_hour << ":" << tst->tm_min << ":" << tst->tm_sec;
+      if (tst)
+      {
+        timess << tst->tm_year + 1900 << "-" << tst->tm_mon + 1 << "-" << tst->tm_mday << " "
+          << tst->tm_hour << ":" << tst->tm_min << ":" << tst->tm_sec;
+      }
+      else
+      {
+        // this can be null if element.TimeStamp is invalid
+        qWarning() << Q_FUNC_INFO << ": Received invalid timestamp in ImageMeta message";
+        timess << "(N/A)";
+      }
 
       QTableWidgetItem *deviceItem = new QTableWidgetItem(element.DeviceName.c_str());
       QTableWidgetItem *nameItem = new QTableWidgetItem(element.Name.c_str());

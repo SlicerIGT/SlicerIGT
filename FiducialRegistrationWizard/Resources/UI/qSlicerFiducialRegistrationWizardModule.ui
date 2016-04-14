@@ -183,6 +183,7 @@
            <property name="nodeTypes">
             <stringlist>
              <string>vtkMRMLLinearTransformNode</string>
+             <string>vtkMRMLTransformNode</string>
             </stringlist>
            </property>
            <property name="renameEnabled">
@@ -234,6 +235,19 @@
              </property>
              <property name="text">
               <string>Similarity</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QRadioButton" name="WarpingRadioButton">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string>Warping</string>
              </property>
             </widget>
            </item>
