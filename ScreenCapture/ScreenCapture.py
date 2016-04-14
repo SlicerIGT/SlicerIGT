@@ -63,33 +63,42 @@ class ScreenCaptureWidget(ScriptedLoadableModuleWidget):
     # Slice view options area
     #
     self.sliceViewOptionsCollapsibleButton = ctk.ctkCollapsibleButton()
-    self.sliceViewOptionsCollapsibleButton.text = "Slice viewer sweep"
+    self.sliceViewOptionsCollapsibleButton.text = "Slice view options"
     self.layout.addWidget(self.sliceViewOptionsCollapsibleButton)
     sliceViewOptionsLayout = qt.QFormLayout(self.sliceViewOptionsCollapsibleButton)
 
+    # Slice mode
+    self.sliceModeWidget = qt.QComboBox()
+    self.sliceModeWidget.addItem("sweep")
+    self.sliceModeWidget.addItem("fade")
+    self.sliceModeWidget.setToolTip("Select the property that will be adjusted")
+    sliceViewOptionsLayout.addRow("Mode:", self.sliceModeWidget)
+
     # Start slice offset position
+    self.startSliceOffsetSliderLabel = qt.QLabel("Start sweep offset:")
     self.startSliceOffsetSliderWidget = ctk.ctkSliderWidget()
     self.startSliceOffsetSliderWidget.singleStep = 30
     self.startSliceOffsetSliderWidget.minimum = -100
     self.startSliceOffsetSliderWidget.maximum = 100
     self.startSliceOffsetSliderWidget.value = 0
-    self.startSliceOffsetSliderWidget.setToolTip("Start slice offset.")
-    sliceViewOptionsLayout.addRow("Start offset:", self.startSliceOffsetSliderWidget)
+    self.startSliceOffsetSliderWidget.setToolTip("Start slice sweep offset.")
+    sliceViewOptionsLayout.addRow(self.startSliceOffsetSliderLabel, self.startSliceOffsetSliderWidget)
 
     # End slice offset position
+    self.endSliceOffsetSliderLabel = qt.QLabel("End sweep offset:")
     self.endSliceOffsetSliderWidget = ctk.ctkSliderWidget()
     self.endSliceOffsetSliderWidget.singleStep = 5
     self.endSliceOffsetSliderWidget.minimum = -100
     self.endSliceOffsetSliderWidget.maximum = 100
     self.endSliceOffsetSliderWidget.value = 0
-    self.endSliceOffsetSliderWidget.setToolTip("End slice offset.")
-    sliceViewOptionsLayout.addRow("End offset:", self.endSliceOffsetSliderWidget)
+    self.endSliceOffsetSliderWidget.setToolTip("End slice sweep offset.")
+    sliceViewOptionsLayout.addRow(self.endSliceOffsetSliderLabel, self.endSliceOffsetSliderWidget)
 
     #
     # 3D view options area
     #
     self.threeDViewOptionsCollapsibleButton = ctk.ctkCollapsibleButton()
-    self.threeDViewOptionsCollapsibleButton.text = "3D view rotation"
+    self.threeDViewOptionsCollapsibleButton.text = "3D view options"
     self.layout.addWidget(self.threeDViewOptionsCollapsibleButton)
     threeDViewOptionsLayout = qt.QFormLayout(self.threeDViewOptionsCollapsibleButton)
 
@@ -121,10 +130,10 @@ class ScreenCaptureWidget(ScriptedLoadableModuleWidget):
     
     # Number of steps value
     self.numberOfStepsSliderWidget = ctk.ctkSliderWidget()
-    self.numberOfStepsSliderWidget.singleStep = 5
+    self.numberOfStepsSliderWidget.singleStep = 10
     self.numberOfStepsSliderWidget.minimum = 2
     self.numberOfStepsSliderWidget.maximum = 150
-    self.numberOfStepsSliderWidget.value = 30
+    self.numberOfStepsSliderWidget.value = 31
     self.numberOfStepsSliderWidget.decimals = 0
     self.numberOfStepsSliderWidget.setToolTip("Number of images extracted between start and stop positions.")
     outputFormLayout.addRow("Number of images:", self.numberOfStepsSliderWidget)
@@ -204,12 +213,17 @@ class ScreenCaptureWidget(ScriptedLoadableModuleWidget):
         "</html>")
     advancedFormLayout.addRow("Video extra options:", self.extraVideoOptionsWidget)
 
+    # See encoding options at:
+    # https://trac.ffmpeg.org/wiki/Encode/H.264
+    # https://trac.ffmpeg.org/wiki/Encode/MPEG-4
+
     # Add vertical spacer
     self.layout.addStretch(1)
     
     # connections
     self.captureButton.connect('clicked(bool)', self.onCaptureButton)
     self.viewNodeSelector.connect("currentNodeChanged(vtkMRMLNode*)", self.onViewNodeSelected)
+    self.sliceModeWidget.connect("currentIndexChanged(int)", self.onSliceViewModeSelected)
     self.startSliceOffsetSliderWidget.connect('valueChanged(double)', self.setSliceOffset)
     self.endSliceOffsetSliderWidget.connect('valueChanged(double)', self.setSliceOffset)
     self.videoExportCheckBox.connect('toggled(bool)', self.fileNamePatternWidget, 'setDisabled(bool)')
@@ -256,6 +270,11 @@ class ScreenCaptureWidget(ScriptedLoadableModuleWidget):
     self.enableSliceViewOptions(viewNode.IsA("vtkMRMLSliceNode"))
     self.enable3dViewOptions(viewNode.IsA("vtkMRMLViewNode"))
 
+  def onSliceViewModeSelected(self):
+    sweepMode = (self.sliceModeWidget.currentText == "sweep")
+    self.startSliceOffsetSliderWidget.setEnabled(sweepMode)
+    self.endSliceOffsetSliderWidget.setEnabled(sweepMode)
+
   def setSliceOffset(self, offset):
     sliceLogic = self.logic.getSliceLogicFromSliceNode(self.viewNodeSelector.currentNode())
     sliceLogic.SetSliceOffset(offset) 
@@ -280,8 +299,10 @@ class ScreenCaptureWidget(ScriptedLoadableModuleWidget):
 
     try:
       if viewNode.IsA("vtkMRMLSliceNode"):
-        self.logic.captureSliceSweep(viewNode, self.startSliceOffsetSliderWidget.value, self.endSliceOffsetSliderWidget.value,
-                                     numberOfSteps, outputDir, imageFileNamePattern)
+        if self.sliceModeWidget.currentText == "sweep":
+          self.logic.captureSliceSweep(viewNode, self.startSliceOffsetSliderWidget.value, self.endSliceOffsetSliderWidget.value, numberOfSteps, outputDir, imageFileNamePattern)
+        elif self.sliceModeWidget.currentText == "fade":
+          self.logic.captureSliceFade(viewNode, numberOfSteps, outputDir, imageFileNamePattern)
       elif viewNode.IsA("vtkMRMLViewNode"):
         self.logic.capture3dViewRotation(viewNode, self.startRotationSliderWidget.value, self.endRotationSliderWidget.value,
                                          numberOfSteps, outputDir, imageFileNamePattern)
@@ -396,6 +417,32 @@ class ScreenCaptureLogic(ScriptedLoadableModuleLogic):
       pixmap.save(filename)
 
     sliceLogic.SetSliceOffset(originalSliceOffset)
+
+  def captureSliceFade(self, sliceNode, numberOfImages, outputDir,
+                        outputFilenamePattern):
+    if not sliceNode.IsMappedInLayout():
+      raise ValueError('Selected slice view is not visible in the current layout.')
+
+    if not os.path.exists(outputDir):
+      os.makedirs(outputDir)
+    filePathPattern = os.path.join(outputDir, outputFilenamePattern)
+
+    sliceLogic = self.getSliceLogicFromSliceNode(sliceNode)
+    sliceView = slicer.app.layoutManager().sliceWidget(sliceNode.GetLayoutName()).sliceView()
+    compositeNode = sliceLogic.GetSliceCompositeNode()
+    originalForegroundOpacity = compositeNode.GetForegroundOpacity()
+    startForegroundOpacity = 0.0
+    endForegroundOpacity = 1.0
+    opacityStepSize = (endForegroundOpacity - startForegroundOpacity) / (numberOfImages - 1)
+    for offsetIndex in range(numberOfImages):
+      compositeNode.SetForegroundOpacity(startForegroundOpacity + offsetIndex * opacityStepSize)
+      sliceView.forceRender()
+      pixmap = qt.QPixmap().grabWidget(sliceView)
+      filename = filePathPattern % offsetIndex
+      self.addLog("Write " + filename)
+      pixmap.save(filename)
+
+    compositeNode.SetForegroundOpacity(originalForegroundOpacity)
 
   def capture3dViewRotation(self, viewNode, startRotation, endRotation, numberOfImages, outputDir,
                         outputFilenamePattern):
