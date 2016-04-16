@@ -150,6 +150,7 @@ class UltraSound(object):
     connectorNode = slicer.util.getNode('PlusConnector')
     if not connectorNode:
       connectorNode = slicer.vtkMRMLIGTLConnectorNode()
+      connectorNode.SetLogErrorIfServerConnectionFailed(False)
       slicer.mrmlScene.AddNode(connectorNode)
       connectorNode.SetName('PlusConnector')
       hostNamePort = self.guideletParent.parameterNode.GetParameter('PlusServerHostNamePort') # example: "localhost:18944"

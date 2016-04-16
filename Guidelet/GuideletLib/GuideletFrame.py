@@ -18,11 +18,13 @@ class Guidelet(object):
 
     if show:
       mainWindow=slicer.util.mainWindow()
-      mainWindow.tabifyDockWidget(self.sliceletDockWidget, modulePanelDockWidget)
-      self.sliceletDockWidget.setFeatures(qt.QDockWidget.DockWidgetClosable+qt.QDockWidget.DockWidgetMovable+qt.QDockWidget.DockWidgetFloatable)
+      if self.sliceletDockWidgetPosition == qt.Qt.LeftDockWidgetArea:
+        mainWindow.tabifyDockWidget(self.sliceletDockWidget, modulePanelDockWidget)
+        self.sliceletDockWidget.setFeatures(qt.QDockWidget.DockWidgetClosable+qt.QDockWidget.DockWidgetMovable+qt.QDockWidget.DockWidgetFloatable)
     else:
-      # Prevent accidental closing or undocking of the slicelet's left panel
-      self.sliceletDockWidget.setFeatures(0)      
+      if self.sliceletDockWidgetPosition == qt.Qt.LeftDockWidgetArea:
+        # Prevent accidental closing or undocking of the slicelet's left panel
+        self.sliceletDockWidget.setFeatures(0)
 
   @staticmethod
   def showMenuBar(show):
@@ -51,8 +53,9 @@ class Guidelet(object):
   VIEW_DUAL_3D = unicode("Dual 3D")
   VIEW_TRIPLE_3D = unicode("Triple 3D")
 
-  def __init__(self, parent, logic, configurationName='Default'):
+  def __init__(self, parent, logic, configurationName='Default', sliceletDockWidgetPosition = qt.Qt.LeftDockWidgetArea):
     logging.debug('Guidelet.__init__')
+    self.sliceletDockWidgetPosition = sliceletDockWidgetPosition
     self.parent = parent
     self.logic = logic
     self.configurationName = configurationName
@@ -74,8 +77,7 @@ class Guidelet(object):
 
     self.mainWindow=slicer.util.mainWindow()
     self.sliceletDockWidget.setParent(self.mainWindow)
-    self.mainWindow.addDockWidget(qt.Qt.LeftDockWidgetArea, self.sliceletDockWidget)
-
+    self.mainWindow.addDockWidget(self.sliceletDockWidgetPosition, self.sliceletDockWidget)
     self.sliceletPanel = qt.QFrame(self.sliceletDockWidget)
     self.sliceletPanelLayout = qt.QVBoxLayout(self.sliceletPanel)
     self.sliceletDockWidget.setWidget(self.sliceletPanel)
