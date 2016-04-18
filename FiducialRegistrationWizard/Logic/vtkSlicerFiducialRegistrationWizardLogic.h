@@ -64,9 +64,8 @@ public:
   void AddFiducial( vtkMRMLLinearTransformNode* probeTransformNode, vtkMRMLMarkupsFiducialNode* fiducialNode );
 
   void ProcessMRMLNodesEvents( vtkObject* caller, unsigned long event, void* callData );
-  //void ProcessMRMLSceneEvents( vtkObject* caller, unsigned long event, void* callData );
 
-  void UpdateCalibration( vtkMRMLNode* node );
+  bool UpdateCalibration( vtkMRMLNode* node );
 
   vtkGetMacro(MarkupsLogic, vtkSlicerMarkupsLogic*);
   vtkSetMacro(MarkupsLogic, vtkSlicerMarkupsLogic*);
@@ -93,7 +92,7 @@ private:
 
   std::map< std::string, std::string > OutputMessages;
 
-  void SetOutputMessage( std::string nodeID, std::string newOutputMessage ); // The modified event will tell the widget to update (only needs to update when transform is calculated)
+  void SetOutputMessage( std::string nodeID, std::string newOutputMessage ); // The modified event will tell the widget to   (only needs to update when transform is calculated)
 
   vtkSlicerMarkupsLogic* MarkupsLogic;
 };
