@@ -90,11 +90,11 @@ qSlicerMarkupsToModelModuleWidget::~qSlicerMarkupsToModelModuleWidget()
   disconnect( d->DeleteLastPushButton, SIGNAL( clicked() ) , this, SLOT( onDeleteLastModelPushButton() ) );
   disconnect( d->PlacePushButton, SIGNAL( clicked() ), this, SLOT( onPlacePushButtonClicked() ) ); 
 
-  disconnect( d->AutoUpdateOutputCheckBox, SIGNAL( toggled( bool ) ), this, SLOT( onAutoUpdateOutputToogled( bool ) ) );
+  disconnect( d->AutoUpdateOutputCheckBox, SIGNAL( toggled( bool ) ), this, SLOT( onAutoUpdateOutputToggled( bool ) ) );
 
-  disconnect( d->ButterflySubdivisionCheckBox, SIGNAL( toggled( bool ) ), this, SLOT( onButterflySubdivisionToogled( bool ) ) );
+  disconnect( d->ButterflySubdivisionCheckBox, SIGNAL( toggled( bool ) ), this, SLOT( onButterflySubdivisionToggled( bool ) ) );
 
-  disconnect( d->CleanMarkupsCheckBox, SIGNAL( toggled( bool ) ), this, SLOT( onCleanMarkupsToogled( bool ) ) );
+  disconnect( d->CleanMarkupsCheckBox, SIGNAL( toggled( bool ) ), this, SLOT( onCleanMarkupsToggled( bool ) ) );
   disconnect( d->ClosedSurfaceRadioButton, SIGNAL( toggled( bool ) ), this, SLOT( onModeGroupBoxClicked( bool ) ) );
   disconnect( d->CurveRadioButton, SIGNAL( toggled( bool ) ), this, SLOT( onModeGroupBoxClicked( bool ) ) );
   disconnect( d->DelaunayAlphaDoubleSpinBox, SIGNAL( valueChanged( double ) ), this, SLOT( onDelaunayAlphaDoubleChanged( double ) ) );
@@ -106,8 +106,8 @@ qSlicerMarkupsToModelModuleWidget::~qSlicerMarkupsToModelModuleWidget()
 
   disconnect( d->OutputOpacitySlider, SIGNAL( valueChanged( double ) ), this, SLOT( onOutputOpacityValueChanged( double ) ) );
   disconnect( d->OutputColorPickerButton, SIGNAL( colorChanged( QColor ) ), this, SLOT( onOutputColorChanged( QColor ) ) );
-  disconnect( d->OutputVisiblityButton, SIGNAL( toggled( bool ) ), this, SLOT( onOutputVisibilityToogled( bool ) ) );
-  disconnect( d->OutputIntersectionVisibilityCheckBox, SIGNAL( toggled( bool ) ), this, SLOT( onOutputIntersectionVisibilityToogled( bool ) ) );
+  disconnect( d->OutputVisiblityButton, SIGNAL( toggled( bool ) ), this, SLOT( onOutputVisibilityToggled( bool ) ) );
+  disconnect( d->OutputIntersectionVisibilityCheckBox, SIGNAL( toggled( bool ) ), this, SLOT( onOutputIntersectionVisibilityToggled( bool ) ) );
 
   disconnect( d->LinearInterpolationButton, SIGNAL( toggled( bool ) ), this, SLOT( onInterpolationBoxClicked( bool ) ) );
   disconnect( d->CardinalInterpolationRadioButton, SIGNAL( toggled( bool ) ), this, SLOT( onInterpolationBoxClicked( bool ) ) );
@@ -172,11 +172,11 @@ void qSlicerMarkupsToModelModuleWidget::setup()
   connect( d->PlacePushButton, SIGNAL( clicked() ), this, SLOT( onPlacePushButtonClicked() ) ); 
   d->PlacePushButton->setIcon( QIcon( ":/Icons/MarkupsMouseModePlace.png" ) );
 
-  connect( d->AutoUpdateOutputCheckBox, SIGNAL( toggled( bool ) ), this, SLOT( onAutoUpdateOutputToogled( bool ) ) );
+  connect( d->AutoUpdateOutputCheckBox, SIGNAL( toggled( bool ) ), this, SLOT( onAutoUpdateOutputToggled( bool ) ) );
 
-  connect( d->ButterflySubdivisionCheckBox, SIGNAL( toggled( bool ) ), this, SLOT( onButterflySubdivisionToogled( bool ) ) );
+  connect( d->ButterflySubdivisionCheckBox, SIGNAL( toggled( bool ) ), this, SLOT( onButterflySubdivisionToggled( bool ) ) );
 
-  connect( d->CleanMarkupsCheckBox, SIGNAL( toggled( bool ) ), this, SLOT( onCleanMarkupsToogled( bool ) ) );
+  connect( d->CleanMarkupsCheckBox, SIGNAL( toggled( bool ) ), this, SLOT( onCleanMarkupsToggled( bool ) ) );
 
   d->CleanMarkupsCheckBox->setToolTip(QString("It will merge duplicate  points.  Duplicate points are the ones closer than tolerance distance. The tolerance distance is 1% diagonal size bounding box of total points."));
   
@@ -191,8 +191,8 @@ void qSlicerMarkupsToModelModuleWidget::setup()
 
   connect( d->OutputOpacitySlider, SIGNAL( valueChanged( double ) ), this, SLOT( onOutputOpacityValueChanged( double ) ) );
   connect( d->OutputColorPickerButton, SIGNAL( colorChanged( QColor ) ), this, SLOT( onOutputColorChanged( QColor ) ) );
-  connect( d->OutputVisiblityButton, SIGNAL( toggled( bool ) ), this, SLOT( onOutputVisibilityToogled( bool ) ) );
-  connect( d->OutputIntersectionVisibilityCheckBox, SIGNAL( toggled( bool ) ), this, SLOT( onOutputIntersectionVisibilityToogled( bool ) ) );
+  connect( d->OutputVisiblityButton, SIGNAL( toggled( bool ) ), this, SLOT( onOutputVisibilityToggled( bool ) ) );
+  connect( d->OutputIntersectionVisibilityCheckBox, SIGNAL( toggled( bool ) ), this, SLOT( onOutputIntersectionVisibilityToggled( bool ) ) );
   connect( d->TextScaleSlider, SIGNAL( valueChanged( double ) ), this, SLOT( onTextScaleChanged( double ) ) );
 
   connect( d->LinearInterpolationButton, SIGNAL( toggled( bool ) ), this, SLOT( onInterpolationBoxClicked( bool ) ) );
@@ -772,7 +772,7 @@ void qSlicerMarkupsToModelModuleWidget::onOutputColorChanged( QColor newColor )
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerMarkupsToModelModuleWidget::onOutputVisibilityToogled( bool outputVisibility )
+void qSlicerMarkupsToModelModuleWidget::onOutputVisibilityToggled( bool outputVisibility )
 {
   Q_D( qSlicerMarkupsToModelModuleWidget );
   vtkMRMLMarkupsToModelNode* markupsToModelModuleNode = vtkMRMLMarkupsToModelNode::SafeDownCast( d->ModuleNodeComboBox->currentNode() );
@@ -807,7 +807,7 @@ void qSlicerMarkupsToModelModuleWidget::onTextScaleChanged( double textScale )
 
 
 //-----------------------------------------------------------------------------
-void qSlicerMarkupsToModelModuleWidget::onOutputIntersectionVisibilityToogled( bool outputIntersectionVisibility )
+void qSlicerMarkupsToModelModuleWidget::onOutputIntersectionVisibilityToggled( bool outputIntersectionVisibility )
 {
   Q_D( qSlicerMarkupsToModelModuleWidget );
   vtkMRMLMarkupsToModelNode* markupsToModelModuleNode = vtkMRMLMarkupsToModelNode::SafeDownCast( d->ModuleNodeComboBox->currentNode() );
@@ -820,7 +820,7 @@ void qSlicerMarkupsToModelModuleWidget::onOutputIntersectionVisibilityToogled( b
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerMarkupsToModelModuleWidget::onCleanMarkupsToogled( bool cleanMarkups )
+void qSlicerMarkupsToModelModuleWidget::onCleanMarkupsToggled( bool cleanMarkups )
 {
   Q_D( qSlicerMarkupsToModelModuleWidget );
   vtkMRMLMarkupsToModelNode* markupsToModelModuleNode = vtkMRMLMarkupsToModelNode::SafeDownCast( d->ModuleNodeComboBox->currentNode() );
@@ -834,7 +834,7 @@ void qSlicerMarkupsToModelModuleWidget::onCleanMarkupsToogled( bool cleanMarkups
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerMarkupsToModelModuleWidget::onButterflySubdivisionToogled( bool butterflySubdivision )
+void qSlicerMarkupsToModelModuleWidget::onButterflySubdivisionToggled( bool butterflySubdivision )
 {
   Q_D( qSlicerMarkupsToModelModuleWidget );
   vtkMRMLMarkupsToModelNode* markupsToModelModuleNode = vtkMRMLMarkupsToModelNode::SafeDownCast( d->ModuleNodeComboBox->currentNode() );
@@ -848,7 +848,7 @@ void qSlicerMarkupsToModelModuleWidget::onButterflySubdivisionToogled( bool butt
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerMarkupsToModelModuleWidget::onAutoUpdateOutputToogled( bool autoUpdateOutput )
+void qSlicerMarkupsToModelModuleWidget::onAutoUpdateOutputToggled( bool autoUpdateOutput )
 {
   Q_D( qSlicerMarkupsToModelModuleWidget );
   vtkMRMLMarkupsToModelNode* markupsToModelModuleNode = vtkMRMLMarkupsToModelNode::SafeDownCast( d->ModuleNodeComboBox->currentNode() );

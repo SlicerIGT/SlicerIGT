@@ -78,12 +78,12 @@ public slots:
   void onKochanekTensionDoubleChanged( double kochanekTension );
 
   void onDelaunayAlphaDoubleChanged( double delaunayAlpha );
-  void onOutputVisibilityToogled( bool outputVisibility );
+  void onOutputVisibilityToggled( bool outputVisibility );
   void onTextScaleChanged( double textScale );
-  void onOutputIntersectionVisibilityToogled( bool outputIntersectionVisibility );
-  void onCleanMarkupsToogled( bool cleanMarkups );
-  void onAutoUpdateOutputToogled( bool autoUpdateOutput );
-  void onButterflySubdivisionToogled( bool butterflySubdivision );
+  void onOutputIntersectionVisibilityToggled( bool outputIntersectionVisibility );
+  void onCleanMarkupsToggled( bool cleanMarkups );
+  void onAutoUpdateOutputToggled( bool autoUpdateOutput );
+  void onButterflySubdivisionToggled( bool butterflySubdivision );
 
 
 protected:
