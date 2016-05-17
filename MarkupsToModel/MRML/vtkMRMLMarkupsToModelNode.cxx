@@ -57,6 +57,7 @@ vtkMRMLMarkupsToModelNode::vtkMRMLMarkupsToModelNode()
   this->ButterflySubdivision=true;
   this->DelaunayAlpha=0.0;
   this->TubeRadius=1.0;
+  this->ModelType = 0;
   this->InterpolationType = 0;
   this->NumberOfIntermediatePoints=20;
 
@@ -130,6 +131,15 @@ void vtkMRMLMarkupsToModelNode::ReadXMLAttributes( const char** atts )
     }
     else if ( ! strcmp( attName, "ModelType" ) )
     {
+      int id = this->GetModelTypeFromString(attValue);
+      if (id < 0)
+      {
+        vtkWarningMacro("Invalid ModelType: " << (attValue ? attValue : "(none)"));
+      }
+      else
+      {
+        this->ModelType = id;
+      }
       std::stringstream nameString;
       nameString << attValue;
       //int r = 0;
@@ -143,6 +153,15 @@ void vtkMRMLMarkupsToModelNode::ReadXMLAttributes( const char** atts )
     }
     else if ( ! strcmp( attName, "InterpolationType" ) )
     {
+      int id = this->GetInterpolationTypeFromString(attValue);
+      if (id < 0)
+      {
+        vtkWarningMacro("Invalid InterpolationType: " << (attValue ? attValue : "(none)"));
+      }
+      else
+      {
+        this->InterpolationType = id;
+      }
       std::stringstream nameString;
       nameString << attValue;
       nameString >> this->InterpolationType;
@@ -394,6 +413,71 @@ void vtkMRMLMarkupsToModelNode::GetOutputColor(double outputColor[3])
   }
 }
 
+//-----------------------------------------------------------------
+
+const char* vtkMRMLMarkupsToModelNode::GetModelTypeAsString(int id)
+{
+  switch(id)
+  {
+  case ClosedSurface: return "closed surface";
+  case Curve: return "curve";
+  default:
+    // invalid id
+    return "";
+  }
+}
+
+const char* vtkMRMLMarkupsToModelNode::GetInterpolationTypeAsString(int id)
+{
+  switch(id)
+  {
+  case Linear: return "linear";
+  case CardinalSpline: return "cardinal spline";
+  case HermiteSpline: return "hermite spline";
+  case KochanekSpline: return "kochanek spline";
+  default:
+    // invalid id
+    return "";
+  }
+}
+
+int vtkMRMLMarkupsToModelNode::GetModelTypeFromString(const char* name)
+{
+  if (name == NULL)
+  {
+    // invalid name
+    return -1;
+  }
+  for (int i=0; i < ModelType_Last; i++)
+  {
+    if (strcmp(name, GetModelTypeAsString(i)) == 0)
+    {
+      // found a matching name
+      return i;
+    }
+  }
+  // unknown name
+  return -1;
+}
+
+int vtkMRMLMarkupsToModelNode::GetInterpolationTypeFromString(const char* name)
+{
+  if (name == NULL)
+  {
+    // invalid name
+    return -1;
+  }
+  for (int i=0; i < InterpolationType_Last; i++)
+  {
+    if (strcmp(name, GetInterpolationTypeAsString(i)) == 0)
+    {
+      // found a matching name
+      return i;
+    }
+  }
+  // unknown name
+  return -1;
+}
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
