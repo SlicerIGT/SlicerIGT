@@ -419,7 +419,7 @@ const char* vtkMRMLMarkupsToModelNode::GetModelTypeAsString(int id)
 {
   switch(id)
   {
-  case ClosedSurface: return "closed surface";
+  case ClosedSurface: return "closedSurface";
   case Curve: return "curve";
   default:
     // invalid id
@@ -432,9 +432,9 @@ const char* vtkMRMLMarkupsToModelNode::GetInterpolationTypeAsString(int id)
   switch(id)
   {
   case Linear: return "linear";
-  case CardinalSpline: return "cardinal spline";
-  case HermiteSpline: return "hermite spline";
-  case KochanekSpline: return "kochanek spline";
+  case CardinalSpline: return "cardinalSpline";
+  case HermiteSpline: return "hermiteSpline";
+  case KochanekSpline: return "kochanekSpline";
   default:
     // invalid id
     return "";
