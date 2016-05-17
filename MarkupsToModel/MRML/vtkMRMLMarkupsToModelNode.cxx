@@ -118,7 +118,6 @@ void vtkMRMLMarkupsToModelNode::ReadXMLAttributes( const char** atts )
     //  int r = 0;
     //  nameString >> r;
     //}
-    std::stringstream nameString;
     if ( ! strcmp( attName, "MarkupsNodeID" ) )
     {
       this->MarkupsNodeID=(char*) attValue;
@@ -131,37 +130,44 @@ void vtkMRMLMarkupsToModelNode::ReadXMLAttributes( const char** atts )
     }
     else if ( ! strcmp( attName, "ModelType" ) )
     {
+      std::stringstream nameString;
       nameString << attValue;
       //int r = 0;
       nameString >> this->ModelType;
     }
     else if ( ! strcmp( attName, "CleanMarkups" ) )
     {
+      std::stringstream nameString;
       nameString << attValue;
       nameString >> this->CleanMarkups;
     }
     else if ( ! strcmp( attName, "InterpolationType" ) )
     {
+      std::stringstream nameString;
       nameString << attValue;
       nameString >> this->InterpolationType;
     }
     else if ( ! strcmp( attName, "TubeRadius" ) )
     {
+      std::stringstream nameString;
       nameString << attValue;
       nameString >> this->TubeRadius;
     }
     else if ( ! strcmp( attName, "KochanekBias" ) )
     {
+      std::stringstream nameString;
       nameString << attValue;
       nameString >> this->KochanekBias;
     }
     else if ( ! strcmp( attName, "KochanekContinuity" ) )
     {
+      std::stringstream nameString;
       nameString << attValue;
       nameString >> this->KochanekContinuity;
     }
     else if ( ! strcmp( attName, "KochanekTension" ) )
     {
+      std::stringstream nameString;
       nameString << attValue;
       nameString >> this->KochanekTension;
     }
