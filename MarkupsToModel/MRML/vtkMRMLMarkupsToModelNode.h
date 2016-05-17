@@ -76,7 +76,8 @@ public:
   enum ModelType
   {
     ClosedSurface =0,
-    Curve
+    Curve,
+    ModelType_Last // insert valid types above this line
   };
 
 
@@ -85,8 +86,8 @@ public:
     Linear =0,
     CardinalSpline,
     HermiteSpline,
-    KochanekSpline
-
+    KochanekSpline,
+    InterpolationType_Last // insert valid types above this line
   };
   
   vtkTypeMacro( vtkMRMLMarkupsToModelNode, vtkMRMLNode );
@@ -154,6 +155,12 @@ public:
   // 
   void SetAndObserveMarkupsNodeID( const char* markupsId );
   void ProcessMRMLEvents( vtkObject *caller, unsigned long event, void *callData );
+
+  // Convert between model and interpolation types IDs and names.
+  const char* GetModelTypeAsString(int id);
+  const char* GetInterpolationTypeAsString(int id);
+  int GetModelTypeFromString(const char* name);
+  int GetInterpolationTypeFromString(const char* name);
 
   /// Gets the specified tool watched from the tools' list
   vtkMRMLMarkupsFiducialNode * GetMarkupsNode();

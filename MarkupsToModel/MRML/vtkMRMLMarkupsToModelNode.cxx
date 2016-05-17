@@ -57,6 +57,7 @@ vtkMRMLMarkupsToModelNode::vtkMRMLMarkupsToModelNode()
   this->ButterflySubdivision=true;
   this->DelaunayAlpha=0.0;
   this->TubeRadius=1.0;
+  this->ModelType = 0;
   this->InterpolationType = 0;
   this->NumberOfIntermediatePoints=20;
 
@@ -124,44 +125,68 @@ void vtkMRMLMarkupsToModelNode::ReadXMLAttributes( const char** atts )
       //std::stringstream nameString;
       //nameString << attValue;
     }
-    if ( ! strcmp( attName, "ModelNodeID" ) )
+    else if ( ! strcmp( attName, "ModelNodeID" ) )
     {
       this->ModelNodeID=(char*)attValue;
     }
-    std::stringstream nameString;
-    if ( ! strcmp( attName, "ModelType" ) )
+    else if ( ! strcmp( attName, "ModelType" ) )
     {
+      int id = this->GetModelTypeFromString(attValue);
+      if (id < 0)
+      {
+        vtkWarningMacro("Invalid ModelType: " << (attValue ? attValue : "(none)"));
+      }
+      else
+      {
+        this->ModelType = id;
+      }
+      std::stringstream nameString;
       nameString << attValue;
       //int r = 0;
       nameString >> this->ModelType;
     }
-    if ( ! strcmp( attName, "CleanMarkups" ) )
+    else if ( ! strcmp( attName, "CleanMarkups" ) )
     {
+      std::stringstream nameString;
       nameString << attValue;
       nameString >> this->CleanMarkups;
     }
-    if ( ! strcmp( attName, "InterpolationType" ) )
+    else if ( ! strcmp( attName, "InterpolationType" ) )
     {
+      int id = this->GetInterpolationTypeFromString(attValue);
+      if (id < 0)
+      {
+        vtkWarningMacro("Invalid InterpolationType: " << (attValue ? attValue : "(none)"));
+      }
+      else
+      {
+        this->InterpolationType = id;
+      }
+      std::stringstream nameString;
       nameString << attValue;
       nameString >> this->InterpolationType;
     }
-    if ( ! strcmp( attName, "TubeRadius" ) )
+    else if ( ! strcmp( attName, "TubeRadius" ) )
     {
+      std::stringstream nameString;
       nameString << attValue;
       nameString >> this->TubeRadius;
     }
-    if ( ! strcmp( attName, "KochanekBias" ) )
+    else if ( ! strcmp( attName, "KochanekBias" ) )
     {
+      std::stringstream nameString;
       nameString << attValue;
       nameString >> this->KochanekBias;
     }
-    if ( ! strcmp( attName, "KochanekContinuity" ) )
+    else if ( ! strcmp( attName, "KochanekContinuity" ) )
     {
+      std::stringstream nameString;
       nameString << attValue;
       nameString >> this->KochanekContinuity;
     }
-    if ( ! strcmp( attName, "KochanekTension" ) )
+    else if ( ! strcmp( attName, "KochanekTension" ) )
     {
+      std::stringstream nameString;
       nameString << attValue;
       nameString >> this->KochanekTension;
     }
@@ -388,6 +413,71 @@ void vtkMRMLMarkupsToModelNode::GetOutputColor(double outputColor[3])
   }
 }
 
+//-----------------------------------------------------------------
+
+const char* vtkMRMLMarkupsToModelNode::GetModelTypeAsString(int id)
+{
+  switch(id)
+  {
+  case ClosedSurface: return "closedSurface";
+  case Curve: return "curve";
+  default:
+    // invalid id
+    return "";
+  }
+}
+
+const char* vtkMRMLMarkupsToModelNode::GetInterpolationTypeAsString(int id)
+{
+  switch(id)
+  {
+  case Linear: return "linear";
+  case CardinalSpline: return "cardinalSpline";
+  case HermiteSpline: return "hermiteSpline";
+  case KochanekSpline: return "kochanekSpline";
+  default:
+    // invalid id
+    return "";
+  }
+}
+
+int vtkMRMLMarkupsToModelNode::GetModelTypeFromString(const char* name)
+{
+  if (name == NULL)
+  {
+    // invalid name
+    return -1;
+  }
+  for (int i=0; i < ModelType_Last; i++)
+  {
+    if (strcmp(name, GetModelTypeAsString(i)) == 0)
+    {
+      // found a matching name
+      return i;
+    }
+  }
+  // unknown name
+  return -1;
+}
+
+int vtkMRMLMarkupsToModelNode::GetInterpolationTypeFromString(const char* name)
+{
+  if (name == NULL)
+  {
+    // invalid name
+    return -1;
+  }
+  for (int i=0; i < InterpolationType_Last; i++)
+  {
+    if (strcmp(name, GetInterpolationTypeAsString(i)) == 0)
+    {
+      // found a matching name
+      return i;
+    }
+  }
+  // unknown name
+  return -1;
+}
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
