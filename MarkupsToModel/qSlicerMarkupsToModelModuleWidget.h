@@ -93,10 +93,13 @@ protected:
 
   virtual void setup();
   virtual void enter();
+  virtual void exit();
 
 private:
   Q_DECLARE_PRIVATE(qSlicerMarkupsToModelModuleWidget);
   Q_DISABLE_COPY(qSlicerMarkupsToModelModuleWidget);
+
+  int previouslyPersistent;
 };
 
 #endif

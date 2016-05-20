@@ -18,6 +18,8 @@
 // Qt includes
 #include <QDebug>
 
+#include "qSlicerApplication.h"
+
 // SlicerQt includes
 #include "qSlicerMarkupsToModelModuleWidget.h"
 #include "ui_qSlicerMarkupsToModelModuleWidget.h"
@@ -235,6 +237,9 @@ void qSlicerMarkupsToModelModuleWidget::enter()
   }
   onModeGroupBoxClicked( true );
 
+  this->previouslyPersistent = qSlicerApplication::application()->applicationLogic()->GetInteractionNode()->GetPlaceModePersistence();
+  qSlicerApplication::application()->applicationLogic()->GetInteractionNode()->SetPlaceModePersistence(1);
+
   //TODO UPDATE selectionNode according to markups toolbox when markups module enter selected
   vtkMRMLMarkupsToModelNode* markupsToModelModuleNode = vtkMRMLMarkupsToModelNode::SafeDownCast( d->ModuleNodeComboBox->currentNode() );
   if ( markupsToModelModuleNode == NULL )
@@ -258,7 +263,11 @@ void qSlicerMarkupsToModelModuleWidget::enter()
   this->updateFromMRMLNode();
 }
 
-
+void qSlicerMarkupsToModelModuleWidget::exit()
+{
+  qSlicerApplication::application()->applicationLogic()->GetInteractionNode()->SetPlaceModePersistence(this->previouslyPersistent);
+  Superclass::exit();
+}
 
 //-----------------------------------------------------------------------------
 void qSlicerMarkupsToModelModuleWidget::setMRMLScene( vtkMRMLScene* scene )
