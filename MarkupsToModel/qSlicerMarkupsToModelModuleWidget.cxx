@@ -655,25 +655,25 @@ void qSlicerMarkupsToModelModuleWidget::onModeGroupBoxClicked( bool nana )
     d->TubeRadiusLabel->setVisible( true );
     d->TubeRadiusDoubleSpinBox->setVisible( true );
     markupsToModelModuleNode->SetModelType( vtkMRMLMarkupsToModelNode::Curve );
-  }
 
-  if(d->KochanekInterpolationRadioButton->isChecked())
-  {
-    d->KochanekBiasLabel->setVisible( true );
-    d->KochanekBiasDoubleSpinBox->setVisible( true );
-    d->KochanekTensionLabel->setVisible( true );
-    d->KochanekTensionDoubleSpinBox->setVisible( true );
-    d->KochanekContinuityLabel->setVisible( true );
-    d->KochanekContinuityDoubleSpinBox->setVisible( true );
-  }
-  else
-  {
-    d->KochanekBiasLabel->setVisible( false );
-    d->KochanekBiasDoubleSpinBox->setVisible( false );
-    d->KochanekTensionLabel->setVisible( false );
-    d->KochanekTensionDoubleSpinBox->setVisible( false );
-    d->KochanekContinuityLabel->setVisible( false );
-    d->KochanekContinuityDoubleSpinBox->setVisible( false );
+    if(d->KochanekInterpolationRadioButton->isChecked())
+    {
+      d->KochanekBiasLabel->setVisible( true );
+      d->KochanekBiasDoubleSpinBox->setVisible( true );
+      d->KochanekTensionLabel->setVisible( true );
+      d->KochanekTensionDoubleSpinBox->setVisible( true );
+      d->KochanekContinuityLabel->setVisible( true );
+      d->KochanekContinuityDoubleSpinBox->setVisible( true );
+    }
+    else
+    {
+      d->KochanekBiasLabel->setVisible( false );
+      d->KochanekBiasDoubleSpinBox->setVisible( false );
+      d->KochanekTensionLabel->setVisible( false );
+      d->KochanekTensionDoubleSpinBox->setVisible( false );
+      d->KochanekContinuityLabel->setVisible( false );
+      d->KochanekContinuityDoubleSpinBox->setVisible( false );
+    }
   }
 
   UpdateOutputModel();
