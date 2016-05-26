@@ -18,6 +18,8 @@
 // Qt includes
 #include <QDebug>
 
+#include "qSlicerApplication.h"
+
 // SlicerQt includes
 #include "qSlicerMarkupsToModelModuleWidget.h"
 #include "ui_qSlicerMarkupsToModelModuleWidget.h"
@@ -235,6 +237,9 @@ void qSlicerMarkupsToModelModuleWidget::enter()
   }
   onModeGroupBoxClicked( true );
 
+  this->previouslyPersistent = qSlicerApplication::application()->applicationLogic()->GetInteractionNode()->GetPlaceModePersistence();
+  qSlicerApplication::application()->applicationLogic()->GetInteractionNode()->SetPlaceModePersistence(1);
+
   //TODO UPDATE selectionNode according to markups toolbox when markups module enter selected
   vtkMRMLMarkupsToModelNode* markupsToModelModuleNode = vtkMRMLMarkupsToModelNode::SafeDownCast( d->ModuleNodeComboBox->currentNode() );
   if ( markupsToModelModuleNode == NULL )
@@ -258,7 +263,11 @@ void qSlicerMarkupsToModelModuleWidget::enter()
   this->updateFromMRMLNode();
 }
 
-
+void qSlicerMarkupsToModelModuleWidget::exit()
+{
+  qSlicerApplication::application()->applicationLogic()->GetInteractionNode()->SetPlaceModePersistence(this->previouslyPersistent);
+  Superclass::exit();
+}
 
 //-----------------------------------------------------------------------------
 void qSlicerMarkupsToModelModuleWidget::setMRMLScene( vtkMRMLScene* scene )
@@ -646,25 +655,25 @@ void qSlicerMarkupsToModelModuleWidget::onModeGroupBoxClicked( bool nana )
     d->TubeRadiusLabel->setVisible( true );
     d->TubeRadiusDoubleSpinBox->setVisible( true );
     markupsToModelModuleNode->SetModelType( vtkMRMLMarkupsToModelNode::Curve );
-  }
 
-  if(d->KochanekInterpolationRadioButton->isChecked())
-  {
-    d->KochanekBiasLabel->setVisible( true );
-    d->KochanekBiasDoubleSpinBox->setVisible( true );
-    d->KochanekTensionLabel->setVisible( true );
-    d->KochanekTensionDoubleSpinBox->setVisible( true );
-    d->KochanekContinuityLabel->setVisible( true );
-    d->KochanekContinuityDoubleSpinBox->setVisible( true );
-  }
-  else
-  {
-    d->KochanekBiasLabel->setVisible( false );
-    d->KochanekBiasDoubleSpinBox->setVisible( false );
-    d->KochanekTensionLabel->setVisible( false );
-    d->KochanekTensionDoubleSpinBox->setVisible( false );
-    d->KochanekContinuityLabel->setVisible( false );
-    d->KochanekContinuityDoubleSpinBox->setVisible( false );
+    if(d->KochanekInterpolationRadioButton->isChecked())
+    {
+      d->KochanekBiasLabel->setVisible( true );
+      d->KochanekBiasDoubleSpinBox->setVisible( true );
+      d->KochanekTensionLabel->setVisible( true );
+      d->KochanekTensionDoubleSpinBox->setVisible( true );
+      d->KochanekContinuityLabel->setVisible( true );
+      d->KochanekContinuityDoubleSpinBox->setVisible( true );
+    }
+    else
+    {
+      d->KochanekBiasLabel->setVisible( false );
+      d->KochanekBiasDoubleSpinBox->setVisible( false );
+      d->KochanekTensionLabel->setVisible( false );
+      d->KochanekTensionDoubleSpinBox->setVisible( false );
+      d->KochanekContinuityLabel->setVisible( false );
+      d->KochanekContinuityDoubleSpinBox->setVisible( false );
+    }
   }
 
   UpdateOutputModel();

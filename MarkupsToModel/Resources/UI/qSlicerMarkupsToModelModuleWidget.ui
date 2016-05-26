@@ -9,7 +9,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>386</width>
+    <width>415</width>
     <height>789</height>
    </rect>
   </property>
@@ -18,25 +18,25 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="qMRMLNodeComboBox" name="ModuleNodeComboBox">
+    <widget class="qMRMLNodeComboBox" name="ModuleNodeComboBox" native="true">
      <property name="enabled">
       <bool>true</bool>
      </property>
-     <property name="nodeTypes">
+     <property name="nodeTypes" stdset="0">
       <stringlist>
        <string>vtkMRMLMarkupsToModelNode</string>
       </stringlist>
      </property>
-     <property name="renameEnabled">
+     <property name="renameEnabled" stdset="0">
       <bool>true</bool>
      </property>
-     <property name="selectNodeUponCreation">
+     <property name="selectNodeUponCreation" stdset="0">
       <bool>true</bool>
      </property>
     </widget>
    </item>
    <item>
-    <widget class="ctkCollapsibleButton" name="InputsCTKCollapsibleButton">
+    <widget class="ctkCollapsibleButton" name="InputsCTKCollapsibleButton" native="true">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
        <horstretch>0</horstretch>
@@ -49,7 +49,7 @@
        <height>250</height>
       </size>
      </property>
-     <property name="text">
+     <property name="text" stdset="0">
       <string>Inputs</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_3">
@@ -65,34 +65,51 @@
            </widget>
           </item>
           <item row="0" column="1">
-           <widget class="qMRMLNodeComboBox" name="MarkupsNodeComboBox">
+           <widget class="qMRMLNodeComboBox" name="MarkupsNodeComboBox" native="true">
             <property name="enabled">
              <bool>true</bool>
             </property>
-            <property name="nodeTypes">
+            <property name="nodeTypes" stdset="0">
              <stringlist>
               <string>vtkMRMLMarkupsFiducialNode</string>
              </stringlist>
             </property>
-            <property name="baseName">
+            <property name="baseName" stdset="0">
              <string>M</string>
             </property>
-            <property name="noneEnabled">
+            <property name="noneEnabled" stdset="0">
              <bool>false</bool>
             </property>
-            <property name="addEnabled">
+            <property name="addEnabled" stdset="0">
              <bool>true</bool>
             </property>
-            <property name="removeEnabled">
+            <property name="removeEnabled" stdset="0">
              <bool>true</bool>
             </property>
-            <property name="editEnabled">
+            <property name="editEnabled" stdset="0">
              <bool>false</bool>
             </property>
-            <property name="renameEnabled">
+            <property name="renameEnabled" stdset="0">
              <bool>true</bool>
             </property>
            </widget>
+          </item>
+          <item row="1" column="0">
+           <layout class="QHBoxLayout" name="horizontalLayout_5">
+            <item>
+             <widget class="QPushButton" name="PlacePushButton">
+              <property name="maximumSize">
+               <size>
+                <width>32</width>
+                <height>32</height>
+               </size>
+              </property>
+              <property name="text">
+               <string/>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </item>
           <item row="1" column="1">
            <layout class="QHBoxLayout" name="horizontalLayout_4">
@@ -125,25 +142,8 @@
               </property>
               <property name="maximumSize">
                <size>
-                <width>40</width>
-                <height>40</height>
-               </size>
-              </property>
-              <property name="text">
-               <string/>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item row="1" column="0">
-           <layout class="QHBoxLayout" name="horizontalLayout_5">
-            <item>
-             <widget class="QPushButton" name="PlacePushButton">
-              <property name="maximumSize">
-               <size>
-                <width>40</width>
-                <height>40</height>
+                <width>32</width>
+                <height>32</height>
                </size>
               </property>
               <property name="text">
@@ -161,7 +161,7 @@
     </widget>
    </item>
    <item>
-    <widget class="ctkCollapsibleButton" name="OutputCTKCollapsibleButton">
+    <widget class="ctkCollapsibleButton" name="OutputCTKCollapsibleButton" native="true">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
        <horstretch>0</horstretch>
@@ -180,7 +180,7 @@
        <height>250</height>
       </size>
      </property>
-     <property name="text">
+     <property name="text" stdset="0">
       <string>Output</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_38">
@@ -189,25 +189,25 @@
         <item>
          <layout class="QGridLayout" name="OutputGridLayout">
           <item row="1" column="1">
-           <widget class="qMRMLNodeComboBox" name="ModelNodeComboBox">
+           <widget class="qMRMLNodeComboBox" name="ModelNodeComboBox" native="true">
             <property name="enabled">
              <bool>true</bool>
             </property>
-            <property name="nodeTypes">
+            <property name="nodeTypes" stdset="0">
              <stringlist>
               <string>vtkMRMLModelNode</string>
              </stringlist>
             </property>
-            <property name="noneEnabled">
+            <property name="noneEnabled" stdset="0">
              <bool>true</bool>
             </property>
-            <property name="addEnabled">
+            <property name="addEnabled" stdset="0">
              <bool>true</bool>
             </property>
-            <property name="removeEnabled">
+            <property name="removeEnabled" stdset="0">
              <bool>true</bool>
             </property>
-            <property name="renameEnabled">
+            <property name="renameEnabled" stdset="0">
              <bool>true</bool>
             </property>
            </widget>
@@ -219,16 +219,6 @@
             </property>
             <property name="checked">
              <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="0">
-           <widget class="QLabel" name="OutputLabel">
-            <property name="text">
-             <string>Output Model:</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
             </property>
            </widget>
           </item>
@@ -258,6 +248,22 @@
              </widget>
             </item>
            </layout>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="OutputLabel">
+            <property name="maximumSize">
+             <size>
+              <width>110</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>Output Model:</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+            </property>
+           </widget>
           </item>
          </layout>
         </item>
@@ -290,9 +296,9 @@
           <widget class="QRadioButton" name="CurveRadioButton">
            <property name="geometry">
             <rect>
-             <x>120</x>
+             <x>150</x>
              <y>20</y>
-             <width>51</width>
+             <width>81</width>
              <height>17</height>
             </rect>
            </property>
@@ -311,7 +317,7 @@
             <rect>
              <x>10</x>
              <y>20</y>
-             <width>101</width>
+             <width>131</width>
              <height>17</height>
             </rect>
            </property>
@@ -336,7 +342,7 @@
     </widget>
    </item>
    <item>
-    <widget class="ctkCollapsibleButton" name="DisplayCTKCollapsibleButton">
+    <widget class="ctkCollapsibleButton" name="DisplayCTKCollapsibleButton" native="true">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
        <horstretch>0</horstretch>
@@ -349,10 +355,10 @@
        <height>120</height>
       </size>
      </property>
-     <property name="text">
+     <property name="text" stdset="0">
       <string>Display</string>
      </property>
-     <property name="collapsed">
+     <property name="collapsed" stdset="0">
       <bool>false</bool>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_5">
@@ -394,35 +400,22 @@
            </widget>
           </item>
           <item>
-           <widget class="ctkSliderWidget" name="OutputOpacitySlider">
-            <property name="singleStep">
+           <widget class="ctkSliderWidget" name="OutputOpacitySlider" native="true">
+            <property name="singleStep" stdset="0">
              <double>0.010000000000000</double>
             </property>
-            <property name="pageStep">
+            <property name="pageStep" stdset="0">
              <double>0.100000000000000</double>
             </property>
-            <property name="maximum">
+            <property name="maximum" stdset="0">
              <double>1.000000000000000</double>
             </property>
-            <property name="value">
+            <property name="value" stdset="0">
              <double>1.000000000000000</double>
             </property>
            </widget>
           </item>
          </layout>
-        </item>
-        <item row="0" column="1">
-         <widget class="ctkColorPickerButton" name="OutputColorPickerButton"/>
-        </item>
-        <item row="1" column="1">
-         <widget class="QCheckBox" name="OutputIntersectionVisibilityCheckBox">
-          <property name="text">
-           <string>Show model slice intersection</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
         </item>
         <item row="1" column="0">
          <layout class="QHBoxLayout" name="horizontalLayout_8">
@@ -437,22 +430,42 @@
            </widget>
           </item>
           <item>
-           <widget class="ctkSliderWidget" name="TextScaleSlider">
+           <widget class="ctkSliderWidget" name="TextScaleSlider" native="true">
             <property name="maximumSize">
              <size>
               <width>130</width>
               <height>80</height>
              </size>
             </property>
-            <property name="maximum">
+            <property name="maximum" stdset="0">
              <double>20.000000000000000</double>
             </property>
-            <property name="value">
+            <property name="value" stdset="0">
              <double>4.500000000000000</double>
             </property>
            </widget>
           </item>
          </layout>
+        </item>
+        <item row="1" column="1">
+         <widget class="QCheckBox" name="OutputIntersectionVisibilityCheckBox">
+          <property name="text">
+           <string>Show model slice intersection</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="ctkColorPickerButton" name="OutputColorPickerButton">
+          <property name="maximumSize">
+           <size>
+            <width>150</width>
+            <height>16777215</height>
+           </size>
+          </property>
+         </widget>
         </item>
        </layout>
       </item>
@@ -460,7 +473,7 @@
     </widget>
    </item>
    <item>
-    <widget class="ctkCollapsibleButton" name="AdvancedConversionParametersCTKCollapsibleButton">
+    <widget class="ctkCollapsibleButton" name="AdvancedConversionParametersCTKCollapsibleButton" native="true">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
        <horstretch>0</horstretch>
@@ -473,11 +486,8 @@
        <height>350</height>
       </size>
      </property>
-     <property name="text">
+     <property name="text" stdset="0">
       <string>Advance conversion parameters</string>
-     </property>
-     <property name="indicatorAlignment">
-      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop|Qt::AlignVCenter</set>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_39">
       <item>
@@ -515,8 +525,8 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>351</width>
-           <height>24</height>
+           <width>396</width>
+           <height>29</height>
           </rect>
          </property>
          <layout class="QHBoxLayout" name="horizontalLayout">
