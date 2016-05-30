@@ -1380,36 +1380,36 @@ class PlusRemoteLogic(ScriptedLoadableModuleLogic):
     self.defaultCommandTimeoutSec = 30
 
     # Create commands
-    self.cmdGetCaptureDeviceIds = slicer.modulelogic.vtkSlicerOpenIGTLinkCommand()
+    self.cmdGetCaptureDeviceIds = slicer.vtkSlicerOpenIGTLinkCommand()
     self.cmdGetCaptureDeviceIds.SetCommandTimeoutSec(self.defaultCommandTimeoutSec);
     self.cmdGetCaptureDeviceIds.SetCommandName('RequestDeviceIds')
     self.cmdGetCaptureDeviceIds.SetCommandAttribute('DeviceType','VirtualDiscCapture')        
-    self.cmdGetReconstructorDeviceIds = slicer.modulelogic.vtkSlicerOpenIGTLinkCommand()
+    self.cmdGetReconstructorDeviceIds = slicer.vtkSlicerOpenIGTLinkCommand()
     self.cmdGetReconstructorDeviceIds.SetCommandTimeoutSec(self.defaultCommandTimeoutSec);
     self.cmdGetReconstructorDeviceIds.SetCommandName('RequestDeviceIds')
     self.cmdGetReconstructorDeviceIds.SetCommandAttribute('DeviceType','VirtualVolumeReconstructor')
-    self.cmdStartVolumeReconstruction = slicer.modulelogic.vtkSlicerOpenIGTLinkCommand()
+    self.cmdStartVolumeReconstruction = slicer.vtkSlicerOpenIGTLinkCommand()
     self.cmdStartVolumeReconstruction.SetCommandTimeoutSec(self.defaultCommandTimeoutSec);
     self.cmdStartVolumeReconstruction.SetCommandName('StartVolumeReconstruction')    
-    self.cmdStopVolumeReconstruction = slicer.modulelogic.vtkSlicerOpenIGTLinkCommand()
+    self.cmdStopVolumeReconstruction = slicer.vtkSlicerOpenIGTLinkCommand()
     self.cmdStopVolumeReconstruction.SetCommandTimeoutSec(self.defaultCommandTimeoutSec);
     self.cmdStopVolumeReconstruction.SetCommandName('StopVolumeReconstruction')    
-    self.cmdReconstructRecorded = slicer.modulelogic.vtkSlicerOpenIGTLinkCommand()
+    self.cmdReconstructRecorded = slicer.vtkSlicerOpenIGTLinkCommand()
     self.cmdReconstructRecorded.SetCommandTimeoutSec(2*self.defaultCommandTimeoutSec);
     self.cmdReconstructRecorded.SetCommandName('ReconstructVolume')
-    self.cmdStartRecording = slicer.modulelogic.vtkSlicerOpenIGTLinkCommand()
+    self.cmdStartRecording = slicer.vtkSlicerOpenIGTLinkCommand()
     self.cmdStartRecording.SetCommandTimeoutSec(self.defaultCommandTimeoutSec);
     self.cmdStartRecording.SetCommandName('StartRecording')    
-    self.cmdStopRecording = slicer.modulelogic.vtkSlicerOpenIGTLinkCommand()
+    self.cmdStopRecording = slicer.vtkSlicerOpenIGTLinkCommand()
     self.cmdStopRecording.SetCommandTimeoutSec(self.defaultCommandTimeoutSec);
     self.cmdStopRecording.SetCommandName('StopRecording')    
-    self.cmdGetVolumeReconstructionSnapshot = slicer.modulelogic.vtkSlicerOpenIGTLinkCommand()
+    self.cmdGetVolumeReconstructionSnapshot = slicer.vtkSlicerOpenIGTLinkCommand()
     self.cmdGetVolumeReconstructionSnapshot.SetCommandTimeoutSec(self.defaultCommandTimeoutSec);
     self.cmdGetVolumeReconstructionSnapshot.SetCommandName('GetVolumeReconstructionSnapshot')    
-    self.cmdUpdateTransform = slicer.modulelogic.vtkSlicerOpenIGTLinkCommand()
+    self.cmdUpdateTransform = slicer.vtkSlicerOpenIGTLinkCommand()
     self.cmdUpdateTransform.SetCommandTimeoutSec(self.defaultCommandTimeoutSec);
     self.cmdUpdateTransform.SetCommandName('UpdateTransform')    
-    self.cmdSaveConfig = slicer.modulelogic.vtkSlicerOpenIGTLinkCommand()
+    self.cmdSaveConfig = slicer.vtkSlicerOpenIGTLinkCommand()
     self.cmdSaveConfig.SetCommandTimeoutSec(self.defaultCommandTimeoutSec);
     self.cmdSaveConfig.SetCommandName('SaveConfig')    
         
@@ -1417,16 +1417,16 @@ class PlusRemoteLogic(ScriptedLoadableModuleLogic):
 
   def __del__(self):
     # Clean up commands
-    self.cmdGetCaptureDeviceIds.RemoveObservers(slicer.modulelogic.vtkSlicerOpenIGTLinkCommand.CommandCompletedEvent)
-    self.cmdGetReconstructorDeviceIds.RemoveObservers(slicer.modulelogic.vtkSlicerOpenIGTLinkCommand.CommandCompletedEvent)
-    self.cmdStartVolumeReconstruction.RemoveObservers(slicer.modulelogic.vtkSlicerOpenIGTLinkCommand.CommandCompletedEvent)
-    self.cmdStopVolumeReconstruction.RemoveObservers(slicer.modulelogic.vtkSlicerOpenIGTLinkCommand.CommandCompletedEvent)
-    self.cmdReconstructRecorded.RemoveObservers(slicer.modulelogic.vtkSlicerOpenIGTLinkCommand.CommandCompletedEvent)
-    self.cmdStartRecording.RemoveObservers(slicer.modulelogic.vtkSlicerOpenIGTLinkCommand.CommandCompletedEvent)
-    self.cmdStopRecording.RemoveObservers(slicer.modulelogic.vtkSlicerOpenIGTLinkCommand.CommandCompletedEvent)
-    self.cmdGetVolumeReconstructionSnapshot.RemoveObservers(slicer.modulelogic.vtkSlicerOpenIGTLinkCommand.CommandCompletedEvent)
-    self.cmdUpdateTransform.RemoveObservers(slicer.modulelogic.vtkSlicerOpenIGTLinkCommand.CommandCompletedEvent)
-    self.cmdSaveConfig.RemoveObservers(slicer.modulelogic.vtkSlicerOpenIGTLinkCommand.CommandCompletedEvent)
+    self.cmdGetCaptureDeviceIds.RemoveObservers(slicer.vtkSlicerOpenIGTLinkCommand.CommandCompletedEvent)
+    self.cmdGetReconstructorDeviceIds.RemoveObservers(slicer.vtkSlicerOpenIGTLinkCommand.CommandCompletedEvent)
+    self.cmdStartVolumeReconstruction.RemoveObservers(slicer.vtkSlicerOpenIGTLinkCommand.CommandCompletedEvent)
+    self.cmdStopVolumeReconstruction.RemoveObservers(slicer.vtkSlicerOpenIGTLinkCommand.CommandCompletedEvent)
+    self.cmdReconstructRecorded.RemoveObservers(slicer.vtkSlicerOpenIGTLinkCommand.CommandCompletedEvent)
+    self.cmdStartRecording.RemoveObservers(slicer.vtkSlicerOpenIGTLinkCommand.CommandCompletedEvent)
+    self.cmdStopRecording.RemoveObservers(slicer.vtkSlicerOpenIGTLinkCommand.CommandCompletedEvent)
+    self.cmdGetVolumeReconstructionSnapshot.RemoveObservers(slicer.vtkSlicerOpenIGTLinkCommand.CommandCompletedEvent)
+    self.cmdUpdateTransform.RemoveObservers(slicer.vtkSlicerOpenIGTLinkCommand.CommandCompletedEvent)
+    self.cmdSaveConfig.RemoveObservers(slicer.vtkSlicerOpenIGTLinkCommand.CommandCompletedEvent)
     
   def setDefaultParameters(self, parameterNode):
     parameterList = {'RoiDisplay': False, 'RecordingFilename': "Recording.mha", 'RecordingFilenameCompletion': False, 'OfflineReconstructionSpacing': 3.0, 'OfflineVolumeToReconstruct': 0, 'OfflineOutputVolumeDevice': "RecVol_Reference" , 'OfflineDefaultLayout': True, 'ScoutScanSpacing': 3.0, 'ScoutScanFilename': "ScoutScanRecording.mha", 'ScoutFilenameCompletion': False, 'ScoutDefaultLayout': True, 'LiveReconstructionSpacing': 1.0, 'LiveRecOutputVolumeDevice': "liveReconstruction", 'RoiExtent1': 0.0, 'RoiExtent2': 0.0, 'RoiExtent3': 0.0, 'SnapshotsNumber': 3, 'LiveFilenameCompletion': False, 'LiveDefaultLayout': True}
@@ -1445,8 +1445,8 @@ class PlusRemoteLogic(ScriptedLoadableModuleLogic):
     return re.sub('(\.mh[ad]$)|$','{0}\g<0>'.format(timestamp),filename, 1, re.IGNORECASE)
     
   def executeCommand(self, command, connectorNodeId, responseCallbackMethod):
-    command.RemoveObservers(slicer.modulelogic.vtkSlicerOpenIGTLinkCommand.CommandCompletedEvent)
-    command.AddObserver(slicer.modulelogic.vtkSlicerOpenIGTLinkCommand.CommandCompletedEvent, responseCallbackMethod)
+    command.RemoveObservers(slicer.vtkSlicerOpenIGTLinkCommand.CommandCompletedEvent)
+    command.AddObserver(slicer.vtkSlicerOpenIGTLinkCommand.CommandCompletedEvent, responseCallbackMethod)
     slicer.modules.openigtlinkremote.logic().SendCommand(command, connectorNodeId)
 
   def getCaptureDeviceIds(self, connectorNodeId, responseCallbackMethod):

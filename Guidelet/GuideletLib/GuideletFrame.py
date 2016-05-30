@@ -374,8 +374,8 @@ class Guidelet(object):
     self.showFullScreen()
 
   def executeCommand(self, command, commandResponseCallback):
-    command.RemoveObservers(slicer.modulelogic.vtkSlicerOpenIGTLinkCommand.CommandCompletedEvent)
-    command.AddObserver(slicer.modulelogic.vtkSlicerOpenIGTLinkCommand.CommandCompletedEvent, commandResponseCallback)
+    command.RemoveObservers(slicer.vtkSlicerOpenIGTLinkCommand.CommandCompletedEvent)
+    command.AddObserver(slicer.vtkSlicerOpenIGTLinkCommand.CommandCompletedEvent, commandResponseCallback)
     slicer.modules.openigtlinkremote.logic().SendCommand(command, self.connectorNode.GetID())
 
   def setAndObserveParameterNode(self, parameterNode):
