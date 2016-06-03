@@ -405,6 +405,11 @@ void vtkSlicerPivotCalibrationLogic::GetToolTipToToolMatrix( vtkMatrix4x4* matri
   matrix->DeepCopy( this->ToolTipToToolMatrix );
 }
 
+//---------------------------------------------------------------------------
+void vtkSlicerPivotCalibrationLogic::SetToolTipToToolMatrix( vtkMatrix4x4* matrix )
+{
+  this->ToolTipToToolMatrix->DeepCopy( matrix );
+}
 
 //---------------------------------------------------------------------------
 vnl_vector< double > vtkSlicerPivotCalibrationLogic::ComputeSecondaryAxis( vnl_vector< double > shaftAxis_ToolTip )
@@ -445,9 +450,10 @@ void vtkSlicerPivotCalibrationLogic::VerifyShaftDirection()
 
   double toolTipToToolTranslation_Shaft[ 4 ] = { 0, 0, 0, 0 }; // This is a vector, not a point, so the last element is 0
   rotationMatrix->MultiplyPoint( toolTipToToolTranslation_ToolTip, toolTipToToolTranslation_Shaft );
+  double toolTipToToolTranslation3_Shaft[ 3 ] = { toolTipToToolTranslation_Shaft[ 0 ], toolTipToToolTranslation_Shaft[ 1 ], toolTipToToolTranslation_Shaft[ 2 ] };
   
   // Check if it is parallel or opposite to shaft direction
-  if ( toolTipToToolTranslation_Shaft[ 3 ] < 0 )
+  if ( vtkMath::Dot( SHAFT_AXIS, toolTipToToolTranslation3_Shaft ) > 0 )
   {
     this->FlipShaftDirection();
   }

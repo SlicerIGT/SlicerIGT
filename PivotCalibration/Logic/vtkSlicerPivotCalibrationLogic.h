@@ -76,6 +76,7 @@ public:
   void GetToolTipToToolTranslation( vtkMatrix4x4* );
   void GetToolTipToToolRotation( vtkMatrix4x4* );
   void GetToolTipToToolMatrix( vtkMatrix4x4* );
+  void SetToolTipToToolMatrix( vtkMatrix4x4* );
   vtkGetMacro(PivotRMSE, double);
   vtkGetMacro(SpinRMSE, double);
 

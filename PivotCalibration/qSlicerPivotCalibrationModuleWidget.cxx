@@ -269,16 +269,22 @@ void qSlicerPivotCalibrationModuleWidget::onSpinSamplingTimeout()
 void qSlicerPivotCalibrationModuleWidget::onPivotStop()
 {
   Q_D(qSlicerPivotCalibrationModuleWidget);
-  
-  d->logic()->SetRecordingState(false);
-  d->logic()->ComputePivotCalibration();
-  
+
   vtkMRMLLinearTransformNode* outputTransform = vtkMRMLLinearTransformNode::SafeDownCast(d->OutputComboBox->currentNode());
+  if (outputTransform==NULL)
+  {
+    qCritical("qSlicerPivotCalibrationModuleWidget::onPivotStop failed: cannot save output transform");
+    return;
+  }
+
   vtkSmartPointer<vtkMatrix4x4> outputMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
   outputTransform->GetMatrixTransformToParent(outputMatrix);
+  d->logic()->SetToolTipToToolMatrix( outputMatrix ); // Sync logic's matrix with the scene's matrix
+  
+  d->logic()->SetRecordingState(false);  
+  d->logic()->ComputePivotCalibration();  
 
   d->logic()->GetToolTipToToolMatrix( outputMatrix );
-
   outputTransform->SetMatrixTransformToParent(outputMatrix);
   
   std::stringstream ss;
@@ -286,8 +292,6 @@ void qSlicerPivotCalibrationModuleWidget::onPivotStop()
   d->rmseLabel->setText(ss.str().c_str());
   
   d->logic()->ClearToolToReferenceMatrices();
-
-  d->startSpinButton->setEnabled( true );
 }
 
 
@@ -295,22 +299,23 @@ void qSlicerPivotCalibrationModuleWidget::onPivotStop()
 void qSlicerPivotCalibrationModuleWidget::onSpinStop()
 {
   Q_D(qSlicerPivotCalibrationModuleWidget);
-  
-  d->logic()->SetRecordingState(false);
-  d->logic()->ComputeSpinCalibration( d->snapCheckBox->checkState() == Qt::Checked );
 
-  vtkSmartPointer<vtkMatrix4x4> outputMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-  d->logic()->GetToolTipToToolMatrix( outputMatrix );
-
-  vtkMRMLTransformNode* outputTransform = vtkMRMLTransformNode::SafeDownCast(d->OutputComboBox->currentNode());
-  if (outputTransform!=NULL)
-  {
-    outputTransform->SetMatrixTransformToParent(outputMatrix);
-  }
-  else
+  vtkMRMLLinearTransformNode* outputTransform = vtkMRMLLinearTransformNode::SafeDownCast(d->OutputComboBox->currentNode());
+  if (outputTransform==NULL)
   {
     qCritical("qSlicerPivotCalibrationModuleWidget::onSpinStop failed: cannot save output transform");
+    return;
   }
+
+  vtkSmartPointer<vtkMatrix4x4> outputMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+  outputTransform->GetMatrixTransformToParent(outputMatrix);
+  d->logic()->SetToolTipToToolMatrix( outputMatrix ); // Sync logic's matrix with the scene's matrix
+  
+  d->logic()->SetRecordingState(false);  
+  d->logic()->ComputeSpinCalibration( d->snapCheckBox->checkState() == Qt::Checked ); 
+
+  d->logic()->GetToolTipToToolMatrix( outputMatrix );
+  outputTransform->SetMatrixTransformToParent(outputMatrix);
    
   // Set the rmse label for the circle fitting rms error
   std::stringstream ss;
@@ -337,20 +342,21 @@ void qSlicerPivotCalibrationModuleWidget::onFlipButtonClicked()
 {
   Q_D(qSlicerPivotCalibrationModuleWidget);
 
-  d->logic()->FlipShaftDirection();
-
-  vtkSmartPointer<vtkMatrix4x4> outputMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-  d->logic()->GetToolTipToToolMatrix( outputMatrix );
-
-  vtkMRMLTransformNode* outputTransform = vtkMRMLTransformNode::SafeDownCast(d->OutputComboBox->currentNode());
-  if (outputTransform!=NULL)
-  {
-    outputTransform->SetMatrixTransformToParent(outputMatrix);
-  }
-  else
+  vtkMRMLLinearTransformNode* outputTransform = vtkMRMLLinearTransformNode::SafeDownCast(d->OutputComboBox->currentNode());
+  if (outputTransform==NULL)
   {
     qCritical("qSlicerPivotCalibrationModuleWidget::onSpinStop failed: cannot save output transform");
+    return;
   }
+
+  vtkSmartPointer<vtkMatrix4x4> outputMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+  outputTransform->GetMatrixTransformToParent(outputMatrix);
+  d->logic()->SetToolTipToToolMatrix( outputMatrix ); // Sync logic's matrix with the scene's matrix
+
+  d->logic()->FlipShaftDirection();
+
+  d->logic()->GetToolTipToToolMatrix( outputMatrix );
+  outputTransform->SetMatrixTransformToParent(outputMatrix);
 
   // Set the rmse label for the circle fitting rms error
   d->rmseLabel->setText("Flipped.");
