@@ -69,6 +69,9 @@ public:
   // Returns with false on failure
   bool ComputeSpinCalibration( bool snapRotation = false ); //Note: The neede orientation protocol assumes that the shaft of the tool lies along the positive x-axis
 
+  // Flip the direction of the shaft axis
+  void FlipShaftDirection();
+
   // Get calibration results
   void GetToolTipToToolTranslation( vtkMatrix4x4* );
   void GetToolTipToToolRotation( vtkMatrix4x4* );
@@ -91,6 +94,13 @@ protected:
   // Computes the maximum orientation difference in degrees between the first tool transformation
   // and all the others. Used for determining if there was enough variation in the input data.
   double GetMaximumToolOrientationDifferenceDeg();
+
+  // Check if the shaft direction is ok, and flip it if necessary
+  void VerifyShaftDirection();
+
+  // Helper method to compute the secondary axis, given a shaft axis
+  static vnl_vector< double > ComputeSecondaryAxis( vnl_vector< double > shaftAxis_ToolTip );
+
   
 private:
 

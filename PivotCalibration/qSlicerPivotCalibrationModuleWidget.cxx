@@ -116,15 +116,6 @@ void qSlicerPivotCalibrationModuleWidget::initializeObserver(vtkMRMLNode* node)
 
 
 //-----------------------------------------------------------------------------
-void qSlicerPivotCalibrationModuleWidget::disableSpinCalibration()
-{
-  Q_D(qSlicerPivotCalibrationModuleWidget);
-  
-  d->startSpinButton->setEnabled( false );
-}
-
-
-//-----------------------------------------------------------------------------
 void qSlicerPivotCalibrationModuleWidget::setup()
 {
   Q_D(qSlicerPivotCalibrationModuleWidget);
@@ -139,14 +130,14 @@ void qSlicerPivotCalibrationModuleWidget::setup()
   connect(spinSamplingTimer, SIGNAL( timeout() ), this, SLOT( onSpinSamplingTimeout() )); 
   
   connect( d->InputComboBox, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(initializeObserver(vtkMRMLNode*)) );
-  connect( d->InputComboBox, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(disableSpinCalibration()) );
-  connect( d->OutputComboBox, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(disableSpinCalibration()) );
   
   connect( d->startPivotButton, SIGNAL( clicked() ), this, SLOT( onStartPivotPart() ) );
   connect( d->startSpinButton, SIGNAL( clicked() ), this, SLOT( onStartSpinPart() ) );
   
   connect( d->startupTimerEdit, SIGNAL( valueChanged(double) ), this, SLOT( setStartupDurationSec(double) ) );
   connect( d->durationTimerEdit, SIGNAL( valueChanged(double) ), this, SLOT( setSamplingDurationSec(double) ) );
+
+  connect( d->flipButton, SIGNAL( clicked() ), this, SLOT( onFlipButtonClicked() ) );
 }
 
 //-----------------------------------------------------------------------------
@@ -342,3 +333,25 @@ void qSlicerPivotCalibrationModuleWidget::setSamplingDurationSec(double timeSec)
   this->samplingDurationSec = (int)timeSec;
 }
 
+void qSlicerPivotCalibrationModuleWidget::onFlipButtonClicked()
+{
+  Q_D(qSlicerPivotCalibrationModuleWidget);
+
+  d->logic()->FlipShaftDirection();
+
+  vtkSmartPointer<vtkMatrix4x4> outputMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+  d->logic()->GetToolTipToToolMatrix( outputMatrix );
+
+  vtkMRMLTransformNode* outputTransform = vtkMRMLTransformNode::SafeDownCast(d->OutputComboBox->currentNode());
+  if (outputTransform!=NULL)
+  {
+    outputTransform->SetMatrixTransformToParent(outputMatrix);
+  }
+  else
+  {
+    qCritical("qSlicerPivotCalibrationModuleWidget::onSpinStop failed: cannot save output transform");
+  }
+
+  // Set the rmse label for the circle fitting rms error
+  d->rmseLabel->setText("Flipped.");
+}
