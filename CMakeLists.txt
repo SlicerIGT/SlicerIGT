@@ -39,6 +39,7 @@ add_subdirectory(ToolWatchdog)
 add_subdirectory(TransformFusion)
 add_subdirectory(UltrasoundSnapshots)
 add_subdirectory(VolumeResliceDriver)
+add_subdirectory(PlusModelCatalogBrowser)
 ## NEXT_MODULE
 if(SLICERIGT_ENABLE_EXPERIMENTAL_MODULES)
   add_subdirectory(Experimental)
