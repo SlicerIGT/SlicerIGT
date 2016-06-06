@@ -40,6 +40,10 @@
 
 
 /// \ingroup Slicer_QtModules_ExtensionTemplate
+/// Module for calibrating a tracked pointer/stylus device.
+/// Includes pivot calibration for determining tip position and spin calibration for determining orientation.
+/// Shaft direction is determined from both spin calibration and pivot calibration.
+/// Pivot and spin calibrations may be performed in arbitrary order.
 class VTK_SLICER_PIVOTCALIBRATION_MODULE_LOGIC_EXPORT vtkSlicerPivotCalibrationLogic :
   public vtkSlicerModuleLogic
 {
@@ -67,7 +71,7 @@ public:
 
   // Computes calibration results.
   // Returns with false on failure
-  bool ComputeSpinCalibration( bool snapRotation = false ); //Note: The neede orientation protocol assumes that the shaft of the tool lies along the positive x-axis
+  bool ComputeSpinCalibration( bool snapRotation = false ); // Note: The neede orientation protocol assumes that the shaft of the tool lies along the negative z-axis
 
   // Flip the direction of the shaft axis
   void FlipShaftDirection();
@@ -96,8 +100,10 @@ protected:
   // and all the others. Used for determining if there was enough variation in the input data.
   double GetMaximumToolOrientationDifferenceDeg();
 
-  // Check if the shaft direction is ok, and flip it if necessary
-  void VerifyShaftDirection();
+  // Verify whether the tool's shaft is in the same direction as the ToolTip to Tool vector.
+  // Rotate the ToolTip coordinate frame by 180 degrees about the secondary axis to make the 
+  // shaft in the same direction as the ToolTip to Tool vector, if this is not already the case.
+  void UpdateShaftDirection();
 
   // Helper method to compute the secondary axis, given a shaft axis
   static vnl_vector< double > ComputeSecondaryAxis( vnl_vector< double > shaftAxis_ToolTip );

@@ -22,6 +22,9 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
+  <property name="toolTip">
+   <string/>
+  </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
     <widget class="ctkCollapsibleButton" name="IOCollapsibleButton">
@@ -171,9 +174,15 @@
         <property name="checked">
          <bool>false</bool>
         </property>
+        <property name="collapsed">
+         <bool>true</bool>
+        </property>
         <layout class="QVBoxLayout" name="verticalLayout_3">
          <item>
           <widget class="QCheckBox" name="snapCheckBox">
+           <property name="toolTip">
+            <string>Force snap the tool's orientation to be along the closest coordinate axis.</string>
+           </property>
            <property name="text">
             <string>Snap rotation to right-angle</string>
            </property>
@@ -181,6 +190,9 @@
          </item>
          <item>
           <widget class="QPushButton" name="flipButton">
+           <property name="toolTip">
+            <string>If the tool points in the wrong direction, flip it to point in the opposite direction.</string>
+           </property>
            <property name="text">
             <string>Flip</string>
            </property>

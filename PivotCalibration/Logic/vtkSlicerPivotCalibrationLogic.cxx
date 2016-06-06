@@ -222,7 +222,7 @@ bool vtkSlicerPivotCalibrationLogic::ComputePivotCalibration()
   this->ToolTipToToolMatrix->SetElement( 0, 3, x[ 0 ] );
   this->ToolTipToToolMatrix->SetElement( 1, 3, x[ 1 ] );
   this->ToolTipToToolMatrix->SetElement( 2, 3, x[ 2 ] );
-  this->VerifyShaftDirection(); // Flip it if necessary
+  this->UpdateShaftDirection(); // Flip it if necessary
 
   this->ErrorText.empty();
   return true;
@@ -367,7 +367,7 @@ bool vtkSlicerPivotCalibrationLogic::ComputeSpinCalibration( bool snapRotation )
       this->ToolTipToToolMatrix->SetElement( i, j, Rotation[ i ][ j ] );
     }
   }
-  this->VerifyShaftDirection(); // Flip it if necessary
+  this->UpdateShaftDirection(); // Flip it if necessary
   
   this->ErrorText.empty();
   return true;
@@ -436,7 +436,7 @@ vnl_vector< double > vtkSlicerPivotCalibrationLogic::ComputeSecondaryAxis( vnl_v
 
 
 //---------------------------------------------------------------------------
-void vtkSlicerPivotCalibrationLogic::VerifyShaftDirection()
+void vtkSlicerPivotCalibrationLogic::UpdateShaftDirection()
 {
   // We need to verify that the ToolTipToTool vector in the Shaft coordinate system is in the opposite direction of the shaft
   vtkSmartPointer< vtkMatrix4x4 > rotationMatrix = vtkSmartPointer< vtkMatrix4x4 >::New();
