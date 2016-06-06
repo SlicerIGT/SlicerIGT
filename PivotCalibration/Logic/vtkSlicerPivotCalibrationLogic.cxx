@@ -48,7 +48,7 @@ static const double PARALLEL_ANGLE_THRESHOLD_DEGREES = 20.0;
 // If StylusX is parallel to ShaftAxis then: shaft axis -z, orthogonal axis +y
 static const double SHAFT_AXIS[ 3 ] = { 0, 0, -1 };
 static const double ORTHOGONAL_AXIS[ 3 ] = { 1, 0, 0 };
-static const double BACKUP_AXIS[ 3 ] = { 1, 0, 0 };
+static const double BACKUP_AXIS[ 3 ] = { 0, 1, 0 };
 
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSlicerPivotCalibrationLogic);
