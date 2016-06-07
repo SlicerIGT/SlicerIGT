@@ -893,41 +893,6 @@ class PlusRemoteWidget(ScriptedLoadableModuleWidget):
     if self.displayDefaultLayoutButton.isChecked():
       self.displayRoiButton.setToolTip("If clicked, hide live image")
       redLogic.GetSliceCompositeNode().SetBackgroundVolumeID(slicer.util.getNode('Image_Reference').GetID())
-    #Reslice it
-      #imageReferenceNode = slicer.util.getNode('Image_Reference')
-      #imageReferenceNode = slicer.mrmlScene.GetNodesByName('Image_Reference')
-#       imageReferenceMRMLNode = slicer.vtkMRMLNode.SafeDownCast(imageReferenceNode.GetItemAsObject(0))
-#       print imageReferenceMRMLNode
-      #redSliceNode = slicer.vtkMRMLSliceNode.SafeDownCast(imageReferenceNode.GetItemAsObject(0))
-      #print redSliceNode
-      #redSliceNode.SetOrientationToReformat()
-
-      #vtkSlicerVolumeResliceDriverLogic SetModeForSlice( int mode, vtkMRMLSliceNode* sliceNode )
-      #vtkMRMLSliceNode SetOrientation("Reformat") ou SetOrientationToReformat()
-      #qMRMLSliceControllerWidget setSliceOrientation("Reformat")
-
-      #redWidget = slicer.app.layoutManager().sliceWidget('Red')
-      #redWidget.setSliceOrientation("Reformat")
-      #controller = redWidget.sliceController()
-      #controller.showReformatWidget(True)
-
-#       driverToRASMatrix = vtk.vtkMatrix4x4()
-#       driverToRASMatrix.Identity()
-#       driverToRASTransform = vtk.vtkTransform()
-#       driverToRASTransform.SetMatrix(driverToRASMatrix)
-#       driverToRASTransform.Update()
-#       sliceToDriverTransform = vtk.vtkTransform()
-#       sliceToDriverTransform.Identity()
-#       sliceToDriverTransform.RotateZ(180)
-#       sliceToRASTransform = vtk.vtkTransform()
-#       sliceToRASTransform.Identity()
-#       sliceToRASTransform.Concatenate(driverToRASTransform )
-#       sliceToRASTransform.Concatenate(sliceToDriverTransform)
-#       sliceToRASTransform.Update()
-#       redNode = slicer.util.getNode('Image_Reference')
-#       redNode.SetSliceToRAS(sliceToRASTransform.GetMatrix())
-#       redNode.UpdateMatrices()
-
     else:
       self.displayRoiButton.setToolTip("If clicked, show live image")
       redLogic.GetSliceCompositeNode().SetBackgroundVolumeID(slicer.util.getNode('None'))
