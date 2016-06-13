@@ -210,7 +210,6 @@ private:
   double DelaunayAlpha;
   bool ConvexHull;
   double TubeRadius;
-
   double KochanekTension;
   double KochanekBias; 
   double KochanekContinuity;
