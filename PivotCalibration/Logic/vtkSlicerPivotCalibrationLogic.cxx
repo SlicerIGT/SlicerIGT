@@ -42,6 +42,13 @@
 
 
 static const double PARALLEL_ANGLE_THRESHOLD_DEGREES = 20.0;
+// Note: If the needle orientation protocol changes, only the definitions of shaftAxis and secondaryAxes need to be changed
+// Define the shaft axis and the secondary shaft axis
+// Current needle orientation protocol dictates: shaft axis -z, orthogonal axis +x
+// If StylusX is parallel to ShaftAxis then: shaft axis -z, orthogonal axis +y
+static const double SHAFT_AXIS[ 3 ] = { 0, 0, -1 };
+static const double ORTHOGONAL_AXIS[ 3 ] = { 1, 0, 0 };
+static const double BACKUP_AXIS[ 3 ] = { 0, 1, 0 };
 
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSlicerPivotCalibrationLogic);
@@ -215,6 +222,7 @@ bool vtkSlicerPivotCalibrationLogic::ComputePivotCalibration()
   this->ToolTipToToolMatrix->SetElement( 0, 3, x[ 0 ] );
   this->ToolTipToToolMatrix->SetElement( 1, 3, x[ 1 ] );
   this->ToolTipToToolMatrix->SetElement( 2, 3, x[ 2 ] );
+  this->UpdateShaftDirection(); // Flip it if necessary
 
   this->ErrorText.empty();
   return true;
@@ -274,13 +282,10 @@ bool vtkSlicerPivotCalibrationLogic::ComputeSpinCalibration( bool snapRotation )
     previt = it;
   }
 
-  // Note: If the needle orientation protocol changes, only the definitions of shaftAxis and secondaryAxes need to be changed
-  // Define the shaft axis and the secondary shaft axis
-  // Current needle orientation protocol dictates: shaft axis -z, orthogonal axis +x
-  // If StylusX is parallel to ShaftAxis then: shaft axis -z, orthogonal axis +y
-  vnl_vector<double> shaftAxis_Shaft( columns, 0 ); shaftAxis_Shaft( 0 ) = 0; shaftAxis_Shaft( 1 ) = 0; shaftAxis_Shaft( 2 ) = -1;
-  vnl_vector<double> orthogonalAxis_Shaft( columns, 0 ); orthogonalAxis_Shaft( 0 ) = 1; orthogonalAxis_Shaft( 1 ) = 0; orthogonalAxis_Shaft( 2 ) = 0;
-  vnl_vector<double> backupAxis_Shaft( columns, 0 ); backupAxis_Shaft( 0 ) = 0; backupAxis_Shaft( 1 ) = 1; backupAxis_Shaft( 2 ) = 0;
+  // Setup the axes
+  vnl_vector<double> shaftAxis_Shaft( columns, columns, SHAFT_AXIS );
+  vnl_vector<double> orthogonalAxis_Shaft( columns, columns, ORTHOGONAL_AXIS );
+  vnl_vector<double> backupAxis_Shaft( columns, columns, BACKUP_AXIS );
 
   // Find the eigenvector associated with the smallest eigenvalue
   // This is the best axis of rotation over all instantaneous rotations
@@ -300,17 +305,7 @@ bool vtkSlicerPivotCalibrationLogic::ComputeSpinCalibration( bool snapRotation )
   {
     int closestCoordinateAxis = element_product( shaftAxis_ToolTip, shaftAxis_ToolTip ).arg_max();
     shaftAxis_ToolTip.fill( 0 );
-    shaftAxis_ToolTip.put( closestCoordinateAxis, 1 ); // Doesn't matter the direction, will be sorted out in the next step
-  }
-
-  // Make sure it is in the correct direction (opposite the StylusTipToStylus translation)
-  vnl_vector<double> toolTipToToolTranslation( 3 );
-  toolTipToToolTranslation( 0 ) = this->ToolTipToToolMatrix->GetElement( 0, 3 );
-  toolTipToToolTranslation( 1 ) = this->ToolTipToToolMatrix->GetElement( 1, 3 );
-  toolTipToToolTranslation( 2 ) = this->ToolTipToToolMatrix->GetElement( 2, 3 );
-  if ( dot_product( shaftAxis_ToolTip, toolTipToToolTranslation ) > 0 )
-  {
-    shaftAxis_ToolTip = shaftAxis_ToolTip * ( -1 );
+    shaftAxis_ToolTip.put( closestCoordinateAxis, 1 ); // Doesn't matter the direction, will be sorted out later
   }
 
   //set the RMSE
@@ -318,26 +313,7 @@ bool vtkSlicerPivotCalibrationLogic::ComputeSpinCalibration( bool snapRotation )
 
 
   // If the secondary axis 1 is parallel to the shaft axis in the tooltip frame, then use secondary axis 2
-  vnl_vector<double> orthogonalAxis_ToolTip;
-  double angle = acos( dot_product( shaftAxis_ToolTip, orthogonalAxis_Shaft ) );
-  // Force angle to be between -pi/2 and +pi/2
-  if ( angle > vtkMath::Pi() / 2 )
-  {
-    angle -= vtkMath::Pi();
-  }
-  if ( angle < - vtkMath::Pi() / 2 )
-  {
-    angle += vtkMath::Pi();
-  }
-  if ( fabs( angle ) > vtkMath::RadiansFromDegrees( PARALLEL_ANGLE_THRESHOLD_DEGREES ) ) // If shaft axis and orthogonal axis are not parallel
-  {
-    orthogonalAxis_ToolTip = orthogonalAxis_Shaft;
-  }
-  else
-  {
-    orthogonalAxis_ToolTip = backupAxis_Shaft;
-  }
-
+  vnl_vector<double> orthogonalAxis_ToolTip = this->ComputeSecondaryAxis( shaftAxis_ToolTip );
   // Do the registration find the appropriate rotation
   orthogonalAxis_ToolTip = orthogonalAxis_ToolTip - dot_product( orthogonalAxis_ToolTip, shaftAxis_ToolTip ) * shaftAxis_ToolTip;
   orthogonalAxis_ToolTip.normalize();
@@ -391,6 +367,7 @@ bool vtkSlicerPivotCalibrationLogic::ComputeSpinCalibration( bool snapRotation )
       this->ToolTipToToolMatrix->SetElement( i, j, Rotation[ i ][ j ] );
     }
   }
+  this->UpdateShaftDirection(); // Flip it if necessary
   
   this->ErrorText.empty();
   return true;
@@ -426,4 +403,81 @@ void vtkSlicerPivotCalibrationLogic::GetToolTipToToolRotation( vtkMatrix4x4* rot
 void vtkSlicerPivotCalibrationLogic::GetToolTipToToolMatrix( vtkMatrix4x4* matrix )
 {
   matrix->DeepCopy( this->ToolTipToToolMatrix );
+}
+
+//---------------------------------------------------------------------------
+void vtkSlicerPivotCalibrationLogic::SetToolTipToToolMatrix( vtkMatrix4x4* matrix )
+{
+  this->ToolTipToToolMatrix->DeepCopy( matrix );
+}
+
+//---------------------------------------------------------------------------
+vnl_vector< double > vtkSlicerPivotCalibrationLogic::ComputeSecondaryAxis( vnl_vector< double > shaftAxis_ToolTip )
+{
+  // If the secondary axis 1 is parallel to the shaft axis in the tooltip frame, then use secondary axis 2
+  vnl_vector< double > orthogonalAxis_Shaft( 3, 3, ORTHOGONAL_AXIS );
+  double angle = acos( dot_product( shaftAxis_ToolTip, orthogonalAxis_Shaft ) );
+  // Force angle to be between -pi/2 and +pi/2
+  if ( angle > vtkMath::Pi() / 2 )
+  {
+    angle -= vtkMath::Pi();
+  }
+  if ( angle < - vtkMath::Pi() / 2 )
+  {
+    angle += vtkMath::Pi();
+  }
+
+  if ( fabs( angle ) < vtkMath::RadiansFromDegrees( PARALLEL_ANGLE_THRESHOLD_DEGREES ) ) // If shaft axis and orthogonal axis are not parallel
+  {
+    return vnl_vector< double >( 3, 3, BACKUP_AXIS );
+  }
+  return orthogonalAxis_Shaft;
+}
+
+
+//---------------------------------------------------------------------------
+void vtkSlicerPivotCalibrationLogic::UpdateShaftDirection()
+{
+  // We need to verify that the ToolTipToTool vector in the Shaft coordinate system is in the opposite direction of the shaft
+  vtkSmartPointer< vtkMatrix4x4 > rotationMatrix = vtkSmartPointer< vtkMatrix4x4 >::New();
+  this->GetToolTipToToolRotation( rotationMatrix );
+  rotationMatrix->Invert();
+
+  double toolTipToToolTranslation_ToolTip[ 4 ] = { 0, 0, 0, 0 }; // This is a vector, not a point, so the last element is 0
+  toolTipToToolTranslation_ToolTip[ 0 ] = this->ToolTipToToolMatrix->GetElement( 0, 3 );
+  toolTipToToolTranslation_ToolTip[ 1 ] = this->ToolTipToToolMatrix->GetElement( 1, 3 );
+  toolTipToToolTranslation_ToolTip[ 2 ] = this->ToolTipToToolMatrix->GetElement( 2, 3 );
+
+  double toolTipToToolTranslation_Shaft[ 4 ] = { 0, 0, 0, 0 }; // This is a vector, not a point, so the last element is 0
+  rotationMatrix->MultiplyPoint( toolTipToToolTranslation_ToolTip, toolTipToToolTranslation_Shaft );
+  double toolTipToToolTranslation3_Shaft[ 3 ] = { toolTipToToolTranslation_Shaft[ 0 ], toolTipToToolTranslation_Shaft[ 1 ], toolTipToToolTranslation_Shaft[ 2 ] };
+  
+  // Check if it is parallel or opposite to shaft direction
+  if ( vtkMath::Dot( SHAFT_AXIS, toolTipToToolTranslation3_Shaft ) > 0 )
+  {
+    this->FlipShaftDirection();
+  }
+
+}
+
+//---------------------------------------------------------------------------
+void vtkSlicerPivotCalibrationLogic::FlipShaftDirection()
+{
+  // Need to rotate around the orthogonal axis
+  vtkSmartPointer< vtkMatrix4x4 > rotationMatrix = vtkSmartPointer< vtkMatrix4x4 >::New();
+  this->GetToolTipToToolRotation( rotationMatrix );
+
+  double shaftAxis_Shaft[ 4 ] = { SHAFT_AXIS[ 0 ], SHAFT_AXIS[ 1 ], SHAFT_AXIS[ 2 ], 0 }; // This is a vector, not a point, so the last element is 0
+  double shaftAxis_ToolTip[ 4 ] = { 0, 0, 0, 0 };
+  rotationMatrix->MultiplyPoint( shaftAxis_Shaft, shaftAxis_ToolTip );
+
+  vnl_vector< double > orthogonalAxis_Shaft = this->ComputeSecondaryAxis( vnl_vector< double >( 3, 3, shaftAxis_ToolTip ) );
+
+  vtkSmartPointer< vtkTransform > flipTransform = vtkSmartPointer< vtkTransform >::New();
+  flipTransform->RotateWXYZ( 180, orthogonalAxis_Shaft.get( 0 ), orthogonalAxis_Shaft.get( 1 ), orthogonalAxis_Shaft.get( 2 ) );
+  vtkSmartPointer< vtkTransform > originalTransform = vtkSmartPointer< vtkTransform >::New();
+  originalTransform->SetMatrix( this->ToolTipToToolMatrix );
+  originalTransform->PreMultiply();
+  originalTransform->Concatenate( flipTransform );
+  originalTransform->GetMatrix( this->ToolTipToToolMatrix );
 }

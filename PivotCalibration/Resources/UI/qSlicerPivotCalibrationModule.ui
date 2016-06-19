@@ -22,6 +22,9 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
+  <property name="toolTip">
+   <string/>
+  </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
     <widget class="ctkCollapsibleButton" name="IOCollapsibleButton">
@@ -103,7 +106,6 @@
         </item>
        </layout>
       </item>
-      
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout1">
         <item>
@@ -131,7 +133,6 @@
         </item>
        </layout>
       </item>
-      
       <item>
        <widget class="QLabel" name="label_5">
         <property name="layoutDirection">
@@ -152,7 +153,7 @@
       <item>
        <widget class="QPushButton" name="startSpinButton">
         <property name="enabled">
-         <bool>false</bool>
+         <bool>true</bool>
         </property>
         <property name="text">
          <string>Start Spin Calibration</string>
@@ -160,10 +161,44 @@
        </widget>
       </item>
       <item>
-       <widget class="QCheckBox" name="snapCheckBox">
-        <property name="text">
-         <string>Snap rotation to right-angle</string>
+       <widget class="ctkCollapsibleGroupBox" name="settingsGroupBox">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
         </property>
+        <property name="title">
+         <string>Settings</string>
+        </property>
+        <property name="checked">
+         <bool>false</bool>
+        </property>
+        <property name="collapsed">
+         <bool>true</bool>
+        </property>
+        <layout class="QVBoxLayout" name="verticalLayout_3">
+         <item>
+          <widget class="QCheckBox" name="snapCheckBox">
+           <property name="toolTip">
+            <string>Force snap the tool's orientation to be along the closest coordinate axis.</string>
+           </property>
+           <property name="text">
+            <string>Snap rotation to right-angle</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="flipButton">
+           <property name="toolTip">
+            <string>If the tool points in the wrong direction, flip it to point in the opposite direction.</string>
+           </property>
+           <property name="text">
+            <string>Flip</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </widget>
       </item>
       <item>
@@ -253,6 +288,12 @@
    <class>ctkCollapsibleButton</class>
    <extends>QWidget</extends>
    <header>ctkCollapsibleButton.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>ctkCollapsibleGroupBox</class>
+   <extends>QGroupBox</extends>
+   <header>ctkCollapsibleGroupBox.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
