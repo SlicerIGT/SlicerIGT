@@ -673,9 +673,8 @@ void vtkSlicerVolumeResliceDriverLogic
       return;
       break;
     };
-  
-  
-  sliceNode->SetSliceToRAS( sliceToRASTransform->GetMatrix() );
+
+  sliceNode->GetSliceToRAS()->DeepCopy(sliceToRASTransform->GetMatrix());
   sliceNode->UpdateMatrices();
 }
 
