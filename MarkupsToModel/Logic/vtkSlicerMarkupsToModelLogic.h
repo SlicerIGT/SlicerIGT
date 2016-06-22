@@ -41,7 +41,7 @@ class vtkMRMLMarkupsToModelNode;
 class vtkPolyData;
 
 static const int MINIMUM_MARKUPS_NUMBER = 3;
-static const double MINIMUM_THICKNESS = 5.0;
+static const double MINIMUM_THICKNESS = 3.0;
 static const double CLEAN_POLYDATA_TOLERANCE=0.01;
 
 /// \ingroup Slicer_QtModules_ExtensionTemplate
@@ -96,7 +96,7 @@ private:
   vtkSlicerMarkupsToModelLogic(const vtkSlicerMarkupsToModelLogic&); // Not implemented
   void operator=(const vtkSlicerMarkupsToModelLogic&); // Not implemented
   int ImportingScene;
-  bool OpenSurface;
+  bool PlanarSurface;
 };
 
 #endif

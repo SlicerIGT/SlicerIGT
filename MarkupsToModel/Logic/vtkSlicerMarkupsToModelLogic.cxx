@@ -45,6 +45,7 @@
 #include <vtkOBBTree.h>
 #include <vtkObjectFactory.h>
 #include <vtkPoints.h>
+#include <vtkPolyDataNormals.h>
 #include <vtkSphereSource.h>
 #include <vtkSplineFilter.h>
 #include <vtkTubeFilter.h>
@@ -60,8 +61,8 @@ vtkStandardNewMacro(vtkSlicerMarkupsToModelLogic);
 //----------------------------------------------------------------------------
 vtkSlicerMarkupsToModelLogic::vtkSlicerMarkupsToModelLogic()
 {
-  ImportingScene=0;
-  OpenSurface = true;
+  this->ImportingScene=0;
+  this->PlanarSurface = true;
 }
 
 //----------------------------------------------------------------------------
@@ -136,13 +137,14 @@ void vtkSlicerMarkupsToModelLogic::OnMRMLSceneEndImport()
   markupsToModelNodeIt->Delete();
   markupsToModelNodes->Delete();
   this->Modified();
-  ImportingScene=0;
+  this->ImportingScene=0;
+  this->PlanarSurface = true;
 }
 
 //---------------------------------------------------------------------------
 void vtkSlicerMarkupsToModelLogic::OnMRMLSceneStartImport()
 {
-  ImportingScene=1;
+  this->ImportingScene=1;
 }
 
 //---------------------------------------------------------------------------
@@ -276,6 +278,7 @@ void vtkSlicerMarkupsToModelLogic::UpdateOutputCloseSurfaceModel(vtkMRMLMarkupsT
   vtkMRMLMarkupsFiducialNode* markups = markupsToModelModuleNode->GetMarkupsNode();
   if(markups == NULL)
   {
+    this->PlanarSurface = true;
     return;
   }
   int numberOfMarkups = markups->GetNumberOfFiducials();
@@ -289,6 +292,7 @@ void vtkSlicerMarkupsToModelLogic::UpdateOutputCloseSurfaceModel(vtkMRMLMarkupsT
       sphereSource->SetRadius(0.00001);
       markupsToModelModuleNode->GetModelNode()->SetPolyDataConnection(sphereSource->GetOutputPort());
     }
+    this->PlanarSurface = true;
     return;
   }
 
@@ -347,7 +351,7 @@ void vtkSlicerMarkupsToModelLogic::UpdateOutputCloseSurfaceModel(vtkMRMLMarkupsT
     double distance = std::abs(A*x1 + B*y1 + C*z1 + D) / std::sqrt(A*A + B*B + C*C);
     if (distance >= MINIMUM_THICKNESS)
     {
-      OpenSurface = false;
+      this->PlanarSurface = false;
     }
   }
 
@@ -358,7 +362,7 @@ void vtkSlicerMarkupsToModelLogic::UpdateOutputCloseSurfaceModel(vtkMRMLMarkupsT
   vtkSmartPointer< vtkDelaunay3D > delaunay = vtkSmartPointer< vtkDelaunay3D >::New();
   delaunay->SetAlpha(markupsToModelModuleNode->GetDelaunayAlpha());
 
-  if (OpenSurface)
+  if (this->PlanarSurface)
   {
     vtkSmartPointer<vtkCubeSource> cube = vtkSmartPointer<vtkCubeSource>::New();
     vtkSmartPointer<vtkGlyph3D> glyph = vtkSmartPointer<vtkGlyph3D>::New();
@@ -405,29 +409,41 @@ void vtkSlicerMarkupsToModelLogic::UpdateOutputCloseSurfaceModel(vtkMRMLMarkupsT
     modelNode = markupsToModelModuleNode->GetModelNode();
   }
 
-  if(markupsToModelModuleNode->GetButterflySubdivision() and not OpenSurface)
+  if(markupsToModelModuleNode->GetButterflySubdivision())
   {
-    vtkSmartPointer< vtkButterflySubdivisionFilter > subdivisionFilter = vtkSmartPointer< vtkButterflySubdivisionFilter >::New();
-    subdivisionFilter->SetInputConnection(surfaceFilter->GetOutputPort());
-    subdivisionFilter->SetNumberOfSubdivisions(3);
-    subdivisionFilter->Update();
-    modelNode->SetAndObservePolyData( subdivisionFilter->GetOutput() );
-    if(markupsToModelModuleNode->GetConvexHull())
+    if (this->PlanarSurface)
     {
-      vtkSmartPointer<vtkDelaunay3D> convexHull = vtkSmartPointer<vtkDelaunay3D>::New();
-      convexHull->SetAlpha(markupsToModelModuleNode->GetDelaunayAlpha());
-      convexHull->SetInputConnection(subdivisionFilter->GetOutputPort());
-      convexHull->Update();
-      vtkSmartPointer<vtkDataSetSurfaceFilter> surfaceFilter = vtkSmartPointer<vtkDataSetSurfaceFilter>::New();
-      surfaceFilter->SetInputData(convexHull->GetOutput());
       surfaceFilter->Update();
-      modelNode->SetAndObservePolyData(surfaceFilter->GetOutput());
+      vtkSmartPointer<vtkPolyDataNormals> normals = vtkSmartPointer<vtkPolyDataNormals>::New();
+      normals->SetInputConnection(surfaceFilter->GetOutputPort());
+      normals->SetFeatureAngle(100);
+      normals->Update();
+      modelNode->SetPolyDataConnection(normals->GetOutputPort());
+    }
+    else
+    {
+      vtkSmartPointer< vtkButterflySubdivisionFilter > subdivisionFilter = vtkSmartPointer< vtkButterflySubdivisionFilter >::New();
+      subdivisionFilter->SetInputConnection(surfaceFilter->GetOutputPort());
+      subdivisionFilter->SetNumberOfSubdivisions(3);
+      subdivisionFilter->Update();
+      modelNode->SetAndObservePolyData( subdivisionFilter->GetOutput() );
+      if(markupsToModelModuleNode->GetConvexHull())
+      {
+        vtkSmartPointer<vtkDelaunay3D> convexHull = vtkSmartPointer<vtkDelaunay3D>::New();
+        convexHull->SetAlpha(markupsToModelModuleNode->GetDelaunayAlpha());
+        convexHull->SetInputConnection(subdivisionFilter->GetOutputPort());
+        convexHull->Update();
+        vtkSmartPointer<vtkDataSetSurfaceFilter> surfaceFilter = vtkSmartPointer<vtkDataSetSurfaceFilter>::New();
+        surfaceFilter->SetInputData(convexHull->GetOutput());
+        surfaceFilter->Update();
+        modelNode->SetAndObservePolyData(surfaceFilter->GetOutput());
+      }
     }
   }
   else
   {
     surfaceFilter->Update();
-    modelNode->SetAndObservePolyData( surfaceFilter->GetOutput() );
+    modelNode->SetAndObservePolyData(surfaceFilter->GetOutput());
   }
 
   if(markupsToModelModuleNode->GetModelNode() == NULL)
@@ -438,6 +454,7 @@ void vtkSlicerMarkupsToModelLogic::UpdateOutputCloseSurfaceModel(vtkMRMLMarkupsT
     modelNode->SetAndObserveDisplayNodeID( displayNode->GetID() );
     markupsToModelModuleNode->SetModelNode(modelNode);
   }
+  this->PlanarSurface = true;
 }
 
 //------------------------------------------------------------------------------
@@ -638,7 +655,7 @@ void vtkSlicerMarkupsToModelLogic::UpdateOutputCurveModel(vtkMRMLMarkupsToModelN
 //------------------------------------------------------------------------------
 void vtkSlicerMarkupsToModelLogic::UpdateOutputModel(vtkMRMLMarkupsToModelNode* markupsToModelModuleNode)
 {
-  if(ImportingScene==1)
+  if(this->ImportingScene==1)
   {
     return;
   }
