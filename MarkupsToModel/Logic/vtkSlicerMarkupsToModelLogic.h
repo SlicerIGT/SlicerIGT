@@ -41,7 +41,7 @@ class vtkMRMLMarkupsToModelNode;
 class vtkPolyData;
 
 static const int MINIMUM_MARKUPS_NUMBER = 3;
-static const int MINIMUM_MARKUPS_CLOSED_SURFACE_NUMBER = 4;
+static const double MINIMUM_THICKNESS = 3.0;
 static const double CLEAN_POLYDATA_TOLERANCE=0.01;
 
 /// \ingroup Slicer_QtModules_ExtensionTemplate
@@ -62,16 +62,16 @@ public:
   void UpdateSelectionNode( vtkMRMLMarkupsToModelNode* markupsToModelModuleNode );
   // Updates closed surface or curve output model from markups
   void UpdateOutputModel(vtkMRMLMarkupsToModelNode* moduleNode);
-  // Generates the closed surface from the markups using vtkDelaunay3D. Uses Delanauy alpha value, subdivision filter and clean markups 
+  // Generates the closed surface from the markups using vtkDelaunay3D. Uses Delanauy alpha value, subdivision filter and clean markups
   // options from the module node.
   void UpdateOutputCloseSurfaceModel(vtkMRMLMarkupsToModelNode* markupsToModelModuleNode);
-  // Generates the curve model from the markups connecting consecutive segments. 
-  // Each segment can be linear, cardinal or Kochanek Splines (described and implemented in UpdateOutputCurveModel, UpdateOutputLinearModel 
+  // Generates the curve model from the markups connecting consecutive segments.
+  // Each segment can be linear, cardinal or Kochanek Splines (described and implemented in UpdateOutputCurveModel, UpdateOutputLinearModel
   // and UpdateOutputHermiteSplineModel methods). Uses Tube radius and clean markups option from the module node.
   void UpdateOutputCurveModel(vtkMRMLMarkupsToModelNode* markupsToModelModuleNode);
   // Generates the linear curve model connecting linear tubes from each markup.
   void UpdateOutputLinearModel(vtkMRMLMarkupsToModelNode* markupsToModelModuleNode, vtkPolyData * markupsPointsPolyData);
-  // Generates cardinal or Kochanek Spline curve model. If the Kochanek Spline the bias, continuity and tension parameters from de module node 
+  // Generates cardinal or Kochanek Spline curve model. If the Kochanek Spline the bias, continuity and tension parameters from de module node
   // are used.
   void UpdateOutputHermiteSplineModel(vtkMRMLMarkupsToModelNode* markupsToModelModuleNode, vtkPolyData * markupsPointsPolyData);
 
@@ -96,6 +96,7 @@ private:
   vtkSlicerMarkupsToModelLogic(const vtkSlicerMarkupsToModelLogic&); // Not implemented
   void operator=(const vtkSlicerMarkupsToModelLogic&); // Not implemented
   int ImportingScene;
+  bool PlanarSurface;
 };
 
 #endif

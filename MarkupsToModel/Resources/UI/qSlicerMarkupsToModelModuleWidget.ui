@@ -575,7 +575,7 @@
          <property name="geometry">
           <rect>
            <x>0</x>
-           <y>30</y>
+           <y>60</y>
            <width>351</width>
            <height>162</height>
           </rect>
@@ -751,6 +751,28 @@
            <layout class="QVBoxLayout" name="verticalLayout_4"/>
           </item>
          </layout>
+        </widget>
+        <widget class="QCheckBox" name="ConvexHullCheckBox">
+         <property name="enabled">
+          <bool>true</bool>
+         </property>
+         <property name="geometry">
+          <rect>
+           <x>0</x>
+           <y>30</y>
+           <width>379</width>
+           <height>22</height>
+          </rect>
+         </property>
+         <property name="toolTip">
+          <string extracomment="Create a convex hull around the model to remove self-intersection."/>
+         </property>
+         <property name="text">
+          <string>Convex hull</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
         </widget>
        </widget>
       </item>

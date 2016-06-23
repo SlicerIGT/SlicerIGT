@@ -54,6 +54,7 @@ vtkMRMLMarkupsToModelNode::vtkMRMLMarkupsToModelNode()
 
   this->AutoUpdateOutput=true;
   this->CleanMarkups=true;
+  this->ConvexHull=true;
   this->ButterflySubdivision=true;
   this->DelaunayAlpha=0.0;
   this->TubeRadius=1.0;
@@ -92,6 +93,7 @@ void vtkMRMLMarkupsToModelNode::WriteXML( ostream& of, int nIndent )
   of << indent << " ModelNodeID=\"" << this->ModelNodeID << "\"";
   of << indent << " ModelType=\"" << this->ModelType << "\"";
   of << indent << " CleanMarkups =\"" << this->CleanMarkups << "\"";
+  of << indent << " ConvexHull =\"" << this->ConvexHull << "\"";
   of << indent << " InterpolationType=\"" << this->InterpolationType << "\"";
   of << indent << " TubeRadius=\"" << this->TubeRadius << "\"";
   of << indent << " KochanekBias=\"" << this->KochanekBias << "\"";
@@ -150,6 +152,12 @@ void vtkMRMLMarkupsToModelNode::ReadXMLAttributes( const char** atts )
       std::stringstream nameString;
       nameString << attValue;
       nameString >> this->CleanMarkups;
+    }
+    else if ( ! strcmp( attName, "ConvexHull" ) )
+    {
+      std::stringstream nameString;
+      nameString << attValue;
+      nameString >> this->ConvexHull;
     }
     else if ( ! strcmp( attName, "InterpolationType" ) )
     {
