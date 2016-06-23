@@ -51,14 +51,14 @@ public slots:
   void onModelNodeChanged();
 
   /// Update the selection node from the combobox
-  void onMarkupsToModelModuleNodeChanged();
+  void onParameterNodeChanged();
   void onNodeAboutToBeEdited(vtkMRMLNode* node);
 
 
   void onCurrentMarkupsNodeChanged();
   /// When the user clicks the combobox to create a new MarkupsToModel node,
   /// connects the toolbar with widget for visibility control
-  void onMarkupsToModelModuleNodeAddedByUser(vtkMRMLNode* nodeAdded);
+  void onParameterNodeAddedByUser(vtkMRMLNode* nodeAdded);
   /// Clean up the table when toolMarkupsToModel node is about to be removed
   //void onMarkupsToModelModuleNodeAboutToBeRemoved(vtkMRMLNode* nodeToBeRemoved);
 

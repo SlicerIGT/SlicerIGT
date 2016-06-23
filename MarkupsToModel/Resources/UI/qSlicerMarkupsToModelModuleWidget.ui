@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>415</width>
-    <height>789</height>
+    <width>443</width>
+    <height>911</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -18,743 +18,451 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="qMRMLNodeComboBox" name="ModuleNodeComboBox" native="true">
-     <property name="enabled">
-      <bool>true</bool>
+    <layout class="QGridLayout" name="ParameterLayout">
+     <property name="bottomMargin">
+      <number>0</number>
      </property>
-     <property name="nodeTypes" stdset="0">
-      <stringlist>
-       <string>vtkMRMLMarkupsToModelNode</string>
-      </stringlist>
+     <property name="spacing">
+      <number>7</number>
      </property>
-     <property name="renameEnabled" stdset="0">
-      <bool>true</bool>
+     <item row="0" column="1">
+      <widget class="qMRMLNodeComboBox" name="ParameterNodeSelector">
+       <property name="nodeTypes">
+        <stringlist>
+         <string>vtkMRMLMarkupsToModelNode</string>
+        </stringlist>
+       </property>
+       <property name="renameEnabled">
+        <bool>true</bool>
+       </property>
+       <property name="selectNodeUponCreation">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <layout class="QGridLayout" name="ModeSelectionLayout">
+       <item row="0" column="0">
+        <widget class="QRadioButton" name="ModeClosedSurfaceRadioButton">
+         <property name="text">
+          <string>Closed surface</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QRadioButton" name="ModeCurveRadioButton">
+         <property name="text">
+          <string>Curve</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item row="0" column="0">
+      <widget class="QLabel" name="ParameterNodeLabel">
+       <property name="text">
+        <string>Parameter node:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0">
+      <widget class="QLabel" name="ModeLabel">
+       <property name="text">
+        <string>Mode:</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QVBoxLayout" name="MarkupsLayout">
+     <property name="bottomMargin">
+      <number>20</number>
      </property>
-     <property name="selectNodeUponCreation" stdset="0">
-      <bool>true</bool>
+     <item>
+      <widget class="qSlicerSimpleMarkupsWidget" name="MarkupsSelector"/>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QGridLayout" name="ModelNodeLayout">
+     <item row="0" column="0">
+      <widget class="QLabel" name="ModelNodeLabel">
+       <property name="text">
+        <string>Model Output Node:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <widget class="qMRMLNodeComboBox" name="ModelNodeSelector">
+       <property name="nodeTypes">
+        <stringlist>
+         <string>vtkMRMLModelNode</string>
+        </stringlist>
+       </property>
+       <property name="noneEnabled">
+        <bool>true</bool>
+       </property>
+       <property name="renameEnabled">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <widget class="ctkMenuButton" name="UpdateButton">
+     <property name="text">
+      <string>Update</string>
      </property>
     </widget>
    </item>
    <item>
-    <widget class="ctkCollapsibleButton" name="InputsCTKCollapsibleButton" native="true">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
+    <widget class="ctkCollapsibleGroupBox" name="AdvancedGroupBox">
+     <property name="title">
+      <string>Advanced Model Options</string>
      </property>
-     <property name="maximumSize">
-      <size>
-       <width>16777215</width>
-       <height>250</height>
-      </size>
-     </property>
-     <property name="text" stdset="0">
-      <string>Inputs</string>
-     </property>
-     <layout class="QVBoxLayout" name="verticalLayout_3">
-      <item>
-       <layout class="QVBoxLayout" name="InputsVerticalLayout">
-        <item>
-         <layout class="QGridLayout" name="InputsGridLayout">
-          <item row="0" column="0">
-           <widget class="QLabel" name="InputMarkupsLabel">
-            <property name="text">
-             <string>Input markups:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="1">
-           <widget class="qMRMLNodeComboBox" name="MarkupsNodeComboBox" native="true">
-            <property name="enabled">
-             <bool>true</bool>
-            </property>
-            <property name="nodeTypes" stdset="0">
-             <stringlist>
-              <string>vtkMRMLMarkupsFiducialNode</string>
-             </stringlist>
-            </property>
-            <property name="baseName" stdset="0">
-             <string>M</string>
-            </property>
-            <property name="noneEnabled" stdset="0">
-             <bool>false</bool>
-            </property>
-            <property name="addEnabled" stdset="0">
-             <bool>true</bool>
-            </property>
-            <property name="removeEnabled" stdset="0">
-             <bool>true</bool>
-            </property>
-            <property name="editEnabled" stdset="0">
-             <bool>false</bool>
-            </property>
-            <property name="renameEnabled" stdset="0">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="0">
-           <layout class="QHBoxLayout" name="horizontalLayout_5">
-            <item>
-             <widget class="QPushButton" name="PlacePushButton">
-              <property name="maximumSize">
-               <size>
-                <width>32</width>
-                <height>32</height>
-               </size>
-              </property>
-              <property name="text">
-               <string/>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item row="1" column="1">
-           <layout class="QHBoxLayout" name="horizontalLayout_4">
-            <item>
-             <widget class="QPushButton" name="DeleteAllPushButton">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="maximumSize">
-               <size>
-                <width>32</width>
-                <height>32</height>
-               </size>
-              </property>
-              <property name="text">
-               <string/>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="DeleteLastPushButton">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="maximumSize">
-               <size>
-                <width>32</width>
-                <height>32</height>
-               </size>
-              </property>
-              <property name="text">
-               <string/>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-         </layout>
-        </item>
-       </layout>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item>
-    <widget class="ctkCollapsibleButton" name="OutputCTKCollapsibleButton" native="true">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="minimumSize">
-      <size>
-       <width>0</width>
-       <height>160</height>
-      </size>
-     </property>
-     <property name="maximumSize">
-      <size>
-       <width>16777215</width>
-       <height>250</height>
-      </size>
-     </property>
-     <property name="text" stdset="0">
-      <string>Output</string>
-     </property>
-     <layout class="QVBoxLayout" name="verticalLayout_38">
-      <item>
-       <layout class="QVBoxLayout" name="OutputVerticalLayout">
-        <item>
-         <layout class="QGridLayout" name="OutputGridLayout">
-          <item row="1" column="1">
-           <widget class="qMRMLNodeComboBox" name="ModelNodeComboBox" native="true">
-            <property name="enabled">
-             <bool>true</bool>
-            </property>
-            <property name="nodeTypes" stdset="0">
-             <stringlist>
-              <string>vtkMRMLModelNode</string>
-             </stringlist>
-            </property>
-            <property name="noneEnabled" stdset="0">
-             <bool>true</bool>
-            </property>
-            <property name="addEnabled" stdset="0">
-             <bool>true</bool>
-            </property>
-            <property name="removeEnabled" stdset="0">
-             <bool>true</bool>
-            </property>
-            <property name="renameEnabled" stdset="0">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="0">
-           <widget class="QCheckBox" name="AutoUpdateOutputCheckBox">
-            <property name="text">
-             <string>Auto-update</string>
-            </property>
-            <property name="checked">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="1">
-           <layout class="QHBoxLayout" name="UpdateHorizontalLayout">
-            <item>
-             <spacer name="horizontalSpacer">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="sizeType">
-               <enum>QSizePolicy::Expanding</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>40</width>
-                <height>20</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-            <item>
-             <widget class="QPushButton" name="UpdateOutputModelPushButton">
-              <property name="text">
-               <string>Update</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item row="1" column="0">
-           <widget class="QLabel" name="OutputLabel">
-            <property name="maximumSize">
-             <size>
-              <width>110</width>
-              <height>16777215</height>
-             </size>
-            </property>
-            <property name="text">
-             <string>Output Model:</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-        <item>
-         <widget class="QGroupBox" name="ModeGroupBox">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="minimumSize">
-           <size>
-            <width>0</width>
-            <height>20</height>
-           </size>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>16777215</width>
-            <height>45</height>
-           </size>
-          </property>
-          <property name="title">
-           <string>Mode</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
-          </property>
-          <widget class="QRadioButton" name="CurveRadioButton">
-           <property name="geometry">
-            <rect>
-             <x>150</x>
-             <y>20</y>
-             <width>81</width>
-             <height>17</height>
-            </rect>
-           </property>
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="text">
-            <string>Curve</string>
-           </property>
-          </widget>
-          <widget class="QRadioButton" name="ClosedSurfaceRadioButton">
-           <property name="geometry">
-            <rect>
-             <x>10</x>
-             <y>20</y>
-             <width>131</width>
-             <height>17</height>
-            </rect>
-           </property>
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="text">
-            <string>Closed surface</string>
-           </property>
-           <property name="checked">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </widget>
-        </item>
-       </layout>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item>
-    <widget class="ctkCollapsibleButton" name="DisplayCTKCollapsibleButton" native="true">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="maximumSize">
-      <size>
-       <width>16777215</width>
-       <height>120</height>
-      </size>
-     </property>
-     <property name="text" stdset="0">
-      <string>Display</string>
-     </property>
-     <property name="collapsed" stdset="0">
+     <property name="flat">
       <bool>false</bool>
      </property>
-     <layout class="QVBoxLayout" name="verticalLayout_5">
-      <item>
-       <layout class="QFormLayout" name="DisplayFormLayout">
-        <property name="fieldGrowthPolicy">
-         <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+     <property name="collapsed">
+      <bool>true</bool>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_4">
+      <item row="10" column="0">
+       <widget class="QLabel" name="KochanekBiasLabel">
+        <property name="text">
+         <string>Kochanek Bias:</string>
         </property>
-        <property name="labelAlignment">
-         <set>Qt::AlignCenter</set>
+       </widget>
+      </item>
+      <item row="4" column="0">
+       <widget class="QLabel" name="ButterflySubdivisionLabel">
+        <property name="text">
+         <string>Butterfly Subdivision:</string>
         </property>
-        <property name="formAlignment">
-         <set>Qt::AlignCenter</set>
+       </widget>
+      </item>
+      <item row="8" column="1">
+       <widget class="QDoubleSpinBox" name="DelaunayAlphaDoubleSpinBox">
+        <property name="value">
+         <double>0.000000000000000</double>
         </property>
-        <item row="0" column="0">
-         <layout class="QHBoxLayout" name="TransparencyHorizontalLayout">
-          <item>
-           <widget class="QPushButton" name="OutputVisiblityButton">
-            <property name="toolTip">
-             <string>Turns visibility on for all models (does not include hierarchies)</string>
-            </property>
-            <property name="text">
-             <string/>
-            </property>
-            <property name="icon">
-             <iconset>
-              <normaloff>:/Icons/Small/SlicerVisible.png</normaloff>:/Icons/Small/SlicerVisible.png</iconset>
-            </property>
-            <property name="checkable">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLabel" name="TransparencyLabel">
-            <property name="text">
-             <string>Opacity</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="ctkSliderWidget" name="OutputOpacitySlider" native="true">
-            <property name="singleStep" stdset="0">
-             <double>0.010000000000000</double>
-            </property>
-            <property name="pageStep" stdset="0">
-             <double>0.100000000000000</double>
-            </property>
-            <property name="maximum" stdset="0">
-             <double>1.000000000000000</double>
-            </property>
-            <property name="value" stdset="0">
-             <double>1.000000000000000</double>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-        <item row="1" column="0">
-         <layout class="QHBoxLayout" name="horizontalLayout_8">
-          <property name="sizeConstraint">
-           <enum>QLayout::SetMaximumSize</enum>
-          </property>
-          <item>
-           <widget class="QLabel" name="label">
-            <property name="text">
-             <string>Markups Text Scale</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="ctkSliderWidget" name="TextScaleSlider" native="true">
-            <property name="maximumSize">
-             <size>
-              <width>130</width>
-              <height>80</height>
-             </size>
-            </property>
-            <property name="maximum" stdset="0">
-             <double>20.000000000000000</double>
-            </property>
-            <property name="value" stdset="0">
-             <double>4.500000000000000</double>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-        <item row="1" column="1">
-         <widget class="QCheckBox" name="OutputIntersectionVisibilityCheckBox">
+       </widget>
+      </item>
+      <item row="8" column="0">
+       <widget class="QLabel" name="DelaunayAlphaLabel">
+        <property name="text">
+         <string>Delaunay Alpha:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0">
+       <widget class="QLabel" name="TubeRadiusLabel">
+        <property name="text">
+         <string>Tube Radius:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="12" column="0">
+       <widget class="QLabel" name="KochanekTensionLabel">
+        <property name="text">
+         <string>Kochanek Tension:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="qMRMLSpinBox" name="TubeFacesSpinBox">
+        <property name="decimals">
+         <number>0</number>
+        </property>
+       </widget>
+      </item>
+      <item row="7" column="1">
+       <layout class="QHBoxLayout" name="SplineInterpolationLayout">
+        <item>
+         <widget class="QRadioButton" name="KochanekInterpolationRadioButton">
           <property name="text">
-           <string>Show model slice intersection</string>
+           <string>Kochanek</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QRadioButton" name="CardinalInterpolationRadioButton">
+          <property name="text">
+           <string>Cardinal</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QRadioButton" name="LinearInterpolationButton">
+          <property name="text">
+           <string>Linear</string>
           </property>
           <property name="checked">
            <bool>true</bool>
           </property>
          </widget>
         </item>
-        <item row="0" column="1">
-         <widget class="ctkColorPickerButton" name="OutputColorPickerButton">
-          <property name="maximumSize">
-           <size>
-            <width>150</width>
-            <height>16777215</height>
-           </size>
-          </property>
-         </widget>
-        </item>
        </layout>
       </item>
-     </layout>
-    </widget>
-   </item>
-   <item>
-    <widget class="ctkCollapsibleButton" name="AdvancedConversionParametersCTKCollapsibleButton" native="true">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="maximumSize">
-      <size>
-       <width>16777215</width>
-       <height>350</height>
-      </size>
-     </property>
-     <property name="text" stdset="0">
-      <string>Advance conversion parameters</string>
-     </property>
-     <layout class="QVBoxLayout" name="verticalLayout_39">
-      <item>
-       <widget class="QCheckBox" name="CleanMarkupsCheckBox">
-        <property name="toolTip">
-         <string extracomment="It will merge duplicate  points.  Duplicate points are the ones closer than tolerance distance. The tolerance distance is 1% diagonal size bounding box of total points."/>
+      <item row="10" column="1">
+       <widget class="QDoubleSpinBox" name="KochanekBiasDoubleSpinBox">
+        <property name="minimum">
+         <double>-1.000000000000000</double>
         </property>
+        <property name="maximum">
+         <double>1.000000000000000</double>
+        </property>
+        <property name="singleStep">
+         <double>0.100000000000000</double>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="TubeSegmentsLabel">
         <property name="text">
-         <string>Clean duplicated markups</string>
+         <string>Tube Segments Per Point:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="7" column="0">
+       <widget class="QLabel" name="SplineInterpolationLabel">
+        <property name="text">
+         <string>Spline Interpolation:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="12" column="1">
+       <widget class="QDoubleSpinBox" name="KochanekTensionDoubleSpinBox">
+        <property name="minimum">
+         <double>-1.000000000000000</double>
+        </property>
+        <property name="maximum">
+         <double>1.000000000000000</double>
+        </property>
+        <property name="singleStep">
+         <double>0.100000000000000</double>
+        </property>
+       </widget>
+      </item>
+      <item row="11" column="0">
+       <widget class="QLabel" name="KochanekContinuityLabel">
+        <property name="text">
+         <string>Kochanek Continuity</string>
+        </property>
+       </widget>
+      </item>
+      <item row="11" column="1">
+       <widget class="QDoubleSpinBox" name="KochanekContinuityDoubleSpinBox">
+        <property name="minimum">
+         <double>-1.000000000000000</double>
+        </property>
+        <property name="maximum">
+         <double>1.000000000000000</double>
+        </property>
+        <property name="singleStep">
+         <double>0.100000000000000</double>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QDoubleSpinBox" name="TubeRadiusDoubleSpinBox">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="value">
+         <double>1.000000000000000</double>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="qMRMLSpinBox" name="TubeSegmentsSpinBox">
+        <property name="decimals">
+         <number>0</number>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="TubeFacesLabel">
+        <property name="text">
+         <string>Tube Faces:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="6" column="1">
+       <widget class="QCheckBox" name="ConvexHullResultCheckBox">
+        <property name="text">
+         <string/>
         </property>
         <property name="checked">
          <bool>true</bool>
         </property>
        </widget>
       </item>
-      <item>
-       <widget class="QWidget" name="widget" native="true">
-        <property name="enabled">
-         <bool>true</bool>
-        </property>
+      <item row="4" column="1">
+       <widget class="QCheckBox" name="ButterflySubdivisionCheckBox">
         <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+         <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
           <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>
         </property>
-        <property name="minimumSize">
-         <size>
-          <width>0</width>
-          <height>180</height>
-         </size>
+        <property name="text">
+         <string/>
         </property>
-        <widget class="QWidget" name="horizontalLayoutWidget">
-         <property name="geometry">
-          <rect>
-           <x>0</x>
-           <y>0</y>
-           <width>396</width>
-           <height>29</height>
-          </rect>
-         </property>
-         <layout class="QHBoxLayout" name="horizontalLayout">
-          <item>
-           <widget class="QCheckBox" name="ButterflySubdivisionCheckBox">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="text">
-             <string>Butterfly subdivision filter</string>
-            </property>
-            <property name="checked">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLabel" name="DelaunayAlphaLabel">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="text">
-             <string>Delaunay alpha</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QDoubleSpinBox" name="DelaunayAlphaDoubleSpinBox">
-            <property name="value">
-             <double>0.000000000000000</double>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-        <widget class="QWidget" name="horizontalLayoutWidget_2">
-         <property name="geometry">
-          <rect>
-           <x>0</x>
-           <y>30</y>
-           <width>351</width>
-           <height>162</height>
-          </rect>
-         </property>
-         <layout class="QHBoxLayout" name="horizontalLayout_2">
-          <property name="sizeConstraint">
-           <enum>QLayout::SetNoConstraint</enum>
-          </property>
-          <item>
-           <widget class="QGroupBox" name="CurveInterpolationGroupBox">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>0</width>
-              <height>100</height>
-             </size>
-            </property>
-            <property name="maximumSize">
-             <size>
-              <width>16777215</width>
-              <height>130</height>
-             </size>
-            </property>
-            <property name="title">
-             <string>Interpolation</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
-            </property>
-            <widget class="QRadioButton" name="LinearInterpolationButton">
-             <property name="geometry">
-              <rect>
-               <x>10</x>
-               <y>20</y>
-               <width>82</width>
-               <height>17</height>
-              </rect>
-             </property>
-             <property name="text">
-              <string>Linear</string>
-             </property>
-             <property name="checked">
-              <bool>true</bool>
-             </property>
-            </widget>
-            <widget class="QRadioButton" name="CardinalInterpolationRadioButton">
-             <property name="geometry">
-              <rect>
-               <x>10</x>
-               <y>50</y>
-               <width>91</width>
-               <height>17</height>
-              </rect>
-             </property>
-             <property name="text">
-              <string>Cardinal Spline</string>
-             </property>
-            </widget>
-            <widget class="QRadioButton" name="KochanekInterpolationRadioButton">
-             <property name="geometry">
-              <rect>
-               <x>10</x>
-               <y>80</y>
-               <width>101</width>
-               <height>17</height>
-              </rect>
-             </property>
-             <property name="text">
-              <string>Kochanek Spline</string>
-             </property>
-            </widget>
-           </widget>
-          </item>
-          <item>
-           <layout class="QGridLayout" name="gridLayout">
-            <item row="3" column="0">
-             <widget class="QLabel" name="KochanekTensionLabel">
-              <property name="text">
-               <string>Tension</string>
-              </property>
-             </widget>
-            </item>
-            <item row="2" column="0">
-             <widget class="QLabel" name="KochanekContinuityLabel">
-              <property name="text">
-               <string>Continuity</string>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="0">
-             <widget class="QLabel" name="KochanekBiasLabel">
-              <property name="text">
-               <string>Bias</string>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="1">
-             <widget class="QDoubleSpinBox" name="KochanekBiasDoubleSpinBox">
-              <property name="minimum">
-               <double>-1.000000000000000</double>
-              </property>
-              <property name="maximum">
-               <double>1.000000000000000</double>
-              </property>
-              <property name="singleStep">
-               <double>0.100000000000000</double>
-              </property>
-             </widget>
-            </item>
-            <item row="3" column="1">
-             <widget class="QDoubleSpinBox" name="KochanekTensionDoubleSpinBox">
-              <property name="minimum">
-               <double>-1.000000000000000</double>
-              </property>
-              <property name="maximum">
-               <double>1.000000000000000</double>
-              </property>
-              <property name="singleStep">
-               <double>0.100000000000000</double>
-              </property>
-             </widget>
-            </item>
-            <item row="2" column="1">
-             <widget class="QDoubleSpinBox" name="KochanekContinuityDoubleSpinBox">
-              <property name="minimum">
-               <double>-1.000000000000000</double>
-              </property>
-              <property name="maximum">
-               <double>1.000000000000000</double>
-              </property>
-              <property name="singleStep">
-               <double>0.100000000000000</double>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="0">
-             <widget class="QLabel" name="TubeRadiusLabel">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="text">
-               <string>Tube radius</string>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="1">
-             <widget class="QDoubleSpinBox" name="TubeRadiusDoubleSpinBox">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="value">
-               <double>1.000000000000000</double>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <layout class="QVBoxLayout" name="verticalLayout_4"/>
-          </item>
-         </layout>
-        </widget>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="6" column="0">
+       <widget class="QLabel" name="ConvexHullResultLabel">
+        <property name="text">
+         <string>Convex Hull on Result</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0">
+       <widget class="QLabel" name="CleanMarkupsLabel">
+        <property name="text">
+         <string>Clean Duplicated Markups:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1">
+       <widget class="QCheckBox" name="CleanMarkupsCheckBox">
+        <property name="toolTip">
+         <string extracomment="It will merge duplicate  points.  Duplicate points are the ones closer than tolerance distance. The tolerance distance is 1% diagonal size bounding box of total points."/>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
        </widget>
       </item>
      </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="ctkCollapsibleGroupBox" name="CollapsibleGroupBox">
+     <property name="title">
+      <string>Display Options</string>
+     </property>
+     <property name="collapsed">
+      <bool>true</bool>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_2">
+      <item row="0" column="0">
+       <widget class="QLabel" name="ModelVisibilityLabel">
+        <property name="text">
+         <string>Model Visibility:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="ModelOpacityLabel">
+        <property name="text">
+         <string>Model Opacity:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="ModelColorLabel">
+        <property name="text">
+         <string>Model Color:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="ctkSliderWidget" name="ModelOpacitySlider">
+        <property name="singleStep">
+         <double>0.010000000000000</double>
+        </property>
+        <property name="pageStep">
+         <double>0.100000000000000</double>
+        </property>
+        <property name="maximum">
+         <double>1.000000000000000</double>
+        </property>
+        <property name="value">
+         <double>1.000000000000000</double>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QPushButton" name="ModelVisiblityButton">
+        <property name="toolTip">
+         <string>Turns visibility on for all models (does not include hierarchies)</string>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+        <property name="icon">
+         <iconset>
+          <normaloff>:/Icons/Small/SlicerVisible.png</normaloff>:/Icons/Small/SlicerVisible.png</iconset>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="1">
+       <widget class="ctkSliderWidget" name="MarkupsTextScaleSlider">
+        <property name="maximum">
+         <double>20.000000000000000</double>
+        </property>
+        <property name="value">
+         <double>4.500000000000000</double>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="1">
+       <widget class="QCheckBox" name="ModelSliceIntersectionCheckbox">
+        <property name="text">
+         <string/>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="0">
+       <widget class="QLabel" name="ModelSliceIntersectionsLabel">
+        <property name="text">
+         <string>Model Slice Intersections:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="ctkColorPickerButton" name="ModelColorSelector"/>
+      </item>
+      <item row="5" column="0">
+       <widget class="QLabel" name="MarkupsTextScaleLabel">
+        <property name="text">
+         <string>Markups Text Scale:</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+     <zorder>ModelOpacityLabel</zorder>
+     <zorder>ModelOpacitySlider</zorder>
+     <zorder>ModelColorLabel</zorder>
+     <zorder>MarkupsTextScaleLabel</zorder>
+     <zorder>MarkupsTextScaleSlider</zorder>
+     <zorder>ModelVisiblityButton</zorder>
+     <zorder>ModelVisibilityLabel</zorder>
+     <zorder>ModelColorSelector</zorder>
+     <zorder>ModelSliceIntersectionCheckbox</zorder>
+     <zorder>ModelSliceIntersectionsLabel</zorder>
     </widget>
    </item>
    <item>
@@ -771,6 +479,22 @@
     </spacer>
    </item>
   </layout>
+  <action name="ActionUpdateAuto">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Auto-Update</string>
+   </property>
+  </action>
+  <action name="ActionUpdateManual">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Update</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>
@@ -780,21 +504,41 @@
    <container>1</container>
   </customwidget>
   <customwidget>
+   <class>qMRMLSpinBox</class>
+   <extends>ctkDoubleSpinBox</extends>
+   <header>qMRMLSpinBox.h</header>
+  </customwidget>
+  <customwidget>
    <class>qSlicerWidget</class>
    <extends>QWidget</extends>
    <header>qSlicerWidget.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
-   <class>ctkCollapsibleButton</class>
-   <extends>QWidget</extends>
-   <header>ctkCollapsibleButton.h</header>
+   <class>qSlicerSimpleMarkupsWidget</class>
+   <extends>qSlicerWidget</extends>
+   <header>qSlicerSimpleMarkupsWidget.h</header>
+  </customwidget>
+  <customwidget>
+   <class>ctkCollapsibleGroupBox</class>
+   <extends>QGroupBox</extends>
+   <header>ctkCollapsibleGroupBox.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
    <class>ctkColorPickerButton</class>
    <extends>QPushButton</extends>
    <header>ctkColorPickerButton.h</header>
+  </customwidget>
+  <customwidget>
+   <class>ctkDoubleSpinBox</class>
+   <extends>QWidget</extends>
+   <header>ctkDoubleSpinBox.h</header>
+  </customwidget>
+  <customwidget>
+   <class>ctkMenuButton</class>
+   <extends>QPushButton</extends>
+   <header>ctkMenuButton.h</header>
   </customwidget>
   <customwidget>
    <class>ctkSliderWidget</class>
@@ -807,48 +551,48 @@
   <connection>
    <sender>qSlicerMarkupsToModelModuleWidget</sender>
    <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
-   <receiver>MarkupsNodeComboBox</receiver>
+   <receiver>ParameterNodeSelector</receiver>
    <slot>setMRMLScene(vtkMRMLScene*)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>216</x>
-     <y>316</y>
+     <x>414</x>
+     <y>9</y>
     </hint>
     <hint type="destinationlabel">
-     <x>286</x>
-     <y>52</y>
+     <x>412</x>
+     <y>21</y>
     </hint>
    </hints>
   </connection>
   <connection>
    <sender>qSlicerMarkupsToModelModuleWidget</sender>
    <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
-   <receiver>ModelNodeComboBox</receiver>
+   <receiver>ModelNodeSelector</receiver>
    <slot>setMRMLScene(vtkMRMLScene*)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>265</x>
-     <y>613</y>
+     <x>406</x>
+     <y>409</y>
     </hint>
     <hint type="destinationlabel">
-     <x>265</x>
-     <y>384</y>
+     <x>430</x>
+     <y>314</y>
     </hint>
    </hints>
   </connection>
   <connection>
    <sender>qSlicerMarkupsToModelModuleWidget</sender>
    <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
-   <receiver>ModuleNodeComboBox</receiver>
+   <receiver>MarkupsSelector</receiver>
    <slot>setMRMLScene(vtkMRMLScene*)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>366</x>
-     <y>600</y>
+     <x>94</x>
+     <y>66</y>
     </hint>
     <hint type="destinationlabel">
-     <x>371</x>
-     <y>511</y>
+     <x>101</x>
+     <y>79</y>
     </hint>
    </hints>
   </connection>

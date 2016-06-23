@@ -16,6 +16,7 @@
 ==============================================================================*/
 
 // Qt includes
+#include <QtGui>
 #include <QDebug>
 
 #include "qSlicerApplication.h"
@@ -23,6 +24,8 @@
 // SlicerQt includes
 #include "qSlicerMarkupsToModelModuleWidget.h"
 #include "ui_qSlicerMarkupsToModelModuleWidget.h"
+#include "qSlicerSimpleMarkupsWidget.h"
+
 
 #include "vtkMRMLMarkupsToModelNode.h"
 #include "vtkMRMLModelNode.h"
@@ -76,29 +79,28 @@ qSlicerMarkupsToModelModuleWidget::qSlicerMarkupsToModelModuleWidget( QWidget* _
 qSlicerMarkupsToModelModuleWidget::~qSlicerMarkupsToModelModuleWidget()
 {
   Q_D( qSlicerMarkupsToModelModuleWidget );
-  disconnect( d->ModuleNodeComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onMarkupsToModelModuleNodeChanged() ) );
-  disconnect( d->ModuleNodeComboBox, SIGNAL( nodeAddedByUser( vtkMRMLNode* ) ), this, SLOT( onMarkupsToModelModuleNodeAddedByUser( vtkMRMLNode* ) ) );
+  disconnect( d->ParameterNodeSelector, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onParameterNodeChanged() ) );
+  disconnect( d->ParameterNodeSelector, SIGNAL( nodeAddedByUser( vtkMRMLNode* ) ), this, SLOT( onParameterNodeAddedByUser( vtkMRMLNode* ) ) );
   //disconnect( d->ModuleNodeComboBox, SIGNAL( nodeAboutToBeRemoved( vtkMRMLNode* ) ), this, SLOT( onMarkupsToModelModuleNodeAboutToBeRemoved( vtkMRMLNode* ) ) );
 
-  disconnect( d->ModelNodeComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onModelNodeChanged() ) );
+  disconnect( d->ModelNodeSelector, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onModelNodeChanged() ) );
   //connect( d->ModelNodeComboBox, SIGNAL(nodeAddedByUser(vtkMRMLNode* )), this, SLOT(onModelNodeAddedByUser(vtkMRMLNode* ) ) );
   //connect( d->ModelNodeComboBox, SIGNAL(nodeAboutToBeRemoved(vtkMRMLNode* )), this, SLOT(onMarkupsToModelModelNodeAboutToBeRemoved(vtkMRMLNode* ) ) );
 
-  disconnect( d->MarkupsNodeComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onCurrentMarkupsNodeChanged() ) );
-  disconnect( d->MarkupsNodeComboBox, SIGNAL( nodeAboutToBeEdited( vtkMRMLNode* ) ), this, SLOT( onNodeAboutToBeEdited( vtkMRMLNode* ) ) );
+  disconnect( d->MarkupsSelector, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onCurrentMarkupsNodeChanged() ) );
+  disconnect( d->MarkupsSelector, SIGNAL( nodeAboutToBeEdited( vtkMRMLNode* ) ), this, SLOT( onNodeAboutToBeEdited( vtkMRMLNode* ) ) );
 
-  disconnect( d->UpdateOutputModelPushButton, SIGNAL( clicked() ) , this, SLOT( onUpdateOutputModelPushButton() ) );
-  disconnect( d->DeleteAllPushButton, SIGNAL( clicked() ) , this, SLOT( onDeleteAllPushButton() ) );
-  disconnect( d->DeleteLastPushButton, SIGNAL( clicked() ) , this, SLOT( onDeleteLastModelPushButton() ) );
-  disconnect( d->PlacePushButton, SIGNAL( clicked() ), this, SLOT( onPlacePushButtonClicked() ) ); 
-
-  disconnect( d->AutoUpdateOutputCheckBox, SIGNAL( toggled( bool ) ), this, SLOT( onAutoUpdateOutputToggled( bool ) ) );
+  //disconnect( d->UpdateOutputModelPushButton, SIGNAL( clicked() ) , this, SLOT( onUpdateOutputModelPushButton() ) );
+  //disconnect( d->AutoUpdateOutputCheckBox, SIGNAL( toggled( bool ) ), this, SLOT( onAutoUpdateOutputToggled( bool ) ) );
+  //disconnect( d->DeleteAllPushButton, SIGNAL( clicked() ) , this, SLOT( onDeleteAllPushButton() ) );
+  //disconnect( d->DeleteLastPushButton, SIGNAL( clicked() ) , this, SLOT( onDeleteLastModelPushButton() ) );
+  //disconnect( d->PlacePushButton, SIGNAL( clicked() ), this, SLOT( onPlacePushButtonClicked() ) );
 
   disconnect( d->ButterflySubdivisionCheckBox, SIGNAL( toggled( bool ) ), this, SLOT( onButterflySubdivisionToggled( bool ) ) );
 
   disconnect( d->CleanMarkupsCheckBox, SIGNAL( toggled( bool ) ), this, SLOT( onCleanMarkupsToggled( bool ) ) );
-  disconnect( d->ClosedSurfaceRadioButton, SIGNAL( toggled( bool ) ), this, SLOT( onModeGroupBoxClicked( bool ) ) );
-  disconnect( d->CurveRadioButton, SIGNAL( toggled( bool ) ), this, SLOT( onModeGroupBoxClicked( bool ) ) );
+  disconnect( d->ModeClosedSurfaceRadioButton, SIGNAL( toggled( bool ) ), this, SLOT( onModeGroupBoxClicked( bool ) ) );
+  disconnect( d->ModeCurveRadioButton, SIGNAL( toggled( bool ) ), this, SLOT( onModeGroupBoxClicked( bool ) ) );
   disconnect( d->DelaunayAlphaDoubleSpinBox, SIGNAL( valueChanged( double ) ), this, SLOT( onDelaunayAlphaDoubleChanged( double ) ) );
   disconnect( d->TubeRadiusDoubleSpinBox, SIGNAL( valueChanged( double ) ), this, SLOT( onTubeRadiusDoubleChanged( double ) ) );
 
@@ -106,10 +108,11 @@ qSlicerMarkupsToModelModuleWidget::~qSlicerMarkupsToModelModuleWidget()
   disconnect( d->KochanekContinuityDoubleSpinBox, SIGNAL( valueChanged( double ) ), this, SLOT( onKochanekContinuityDoubleChanged( double ) ) );
   disconnect( d->KochanekTensionDoubleSpinBox, SIGNAL( valueChanged( double ) ), this, SLOT( onKochanekTensionDoubleChanged( double ) ) );
 
-  disconnect( d->OutputOpacitySlider, SIGNAL( valueChanged( double ) ), this, SLOT( onOutputOpacityValueChanged( double ) ) );
-  disconnect( d->OutputColorPickerButton, SIGNAL( colorChanged( QColor ) ), this, SLOT( onOutputColorChanged( QColor ) ) );
-  disconnect( d->OutputVisiblityButton, SIGNAL( toggled( bool ) ), this, SLOT( onOutputVisibilityToggled( bool ) ) );
-  disconnect( d->OutputIntersectionVisibilityCheckBox, SIGNAL( toggled( bool ) ), this, SLOT( onOutputIntersectionVisibilityToggled( bool ) ) );
+  disconnect( d->ModelOpacitySlider, SIGNAL( valueChanged( double ) ), this, SLOT( onOutputOpacityValueChanged( double ) ) );
+  disconnect( d->ModelColorSelector, SIGNAL( colorChanged( QColor ) ), this, SLOT( onOutputColorChanged( QColor ) ) );
+  disconnect( d->ModelVisiblityButton, SIGNAL( toggled( bool ) ), this, SLOT( onOutputVisibilityToggled( bool ) ) );
+  disconnect( d->ModelSliceIntersectionCheckbox, SIGNAL( toggled( bool ) ), this, SLOT( onOutputIntersectionVisibilityToggled( bool ) ) );
+  disconnect( d->MarkupsTextScaleSlider, SIGNAL( valueChanged( double ) ), this, SLOT( onTextScaleChanged( double ) ) );
 
   disconnect( d->LinearInterpolationButton, SIGNAL( toggled( bool ) ), this, SLOT( onInterpolationBoxClicked( bool ) ) );
   disconnect( d->CardinalInterpolationRadioButton, SIGNAL( toggled( bool ) ), this, SLOT( onInterpolationBoxClicked( bool ) ) );
@@ -128,7 +131,7 @@ void qSlicerMarkupsToModelModuleWidget::onCurrentMarkupsNodeChanged()
 {
   Q_D( qSlicerMarkupsToModelModuleWidget );
 
-  vtkMRMLMarkupsToModelNode* markupsToModelModuleNode = vtkMRMLMarkupsToModelNode::SafeDownCast( d->ModuleNodeComboBox->currentNode() );
+  vtkMRMLMarkupsToModelNode* markupsToModelModuleNode = vtkMRMLMarkupsToModelNode::SafeDownCast( d->ParameterNodeSelector->currentNode() );
   if ( markupsToModelModuleNode == NULL )
   {
     qCritical( "Model node changed with no module node selection" );
@@ -137,7 +140,7 @@ void qSlicerMarkupsToModelModuleWidget::onCurrentMarkupsNodeChanged()
 
   this->qvtkConnect( markupsToModelModuleNode, vtkMRMLMarkupsToModelNode::InputDataModifiedEvent, this, SLOT( updateFromMRMLNode() ) );
 
-  vtkMRMLMarkupsFiducialNode* markupsNode = vtkMRMLMarkupsFiducialNode::SafeDownCast( d->MarkupsNodeComboBox->currentNode() );
+  vtkMRMLMarkupsFiducialNode* markupsNode = vtkMRMLMarkupsFiducialNode::SafeDownCast( d->MarkupsSelector->currentNode() );
   d->logic()->SetMarkupsNode( markupsNode, markupsToModelModuleNode );
   if( markupsToModelModuleNode->GetAutoUpdateOutput() )
   {
@@ -155,26 +158,46 @@ void qSlicerMarkupsToModelModuleWidget::setup()
   d->setupUi( this );
   this->Superclass::setup();
 
-  connect( d->ModuleNodeComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onMarkupsToModelModuleNodeChanged() ) );
-  connect( d->ModuleNodeComboBox, SIGNAL( nodeAddedByUser( vtkMRMLNode* ) ), this, SLOT( onMarkupsToModelModuleNodeAddedByUser( vtkMRMLNode* ) ) );
+  // Setup Update button menu
+  // Install event filter to override menu position to show it on the right side of the button.
+  // This is necessary because the update button is very wide and the
+  // menu arrow is on the right side. With the default QMenu the menu would appear
+  // on the left side, which would be very inconvenient because the mouse would need
+  // to be moved a lot to click the manual/auto option.
+  QMenu* updateMenu = new QMenu(tr("Update options"), this);
+  updateMenu->installEventFilter(this);
+  updateMenu->setObjectName("UpdateOptions");
+  QActionGroup* updateActions = new QActionGroup(d->UpdateButton);
+  updateActions->setExclusive(true);
+  updateMenu->addAction( d->ActionUpdateAuto );
+  updateActions->addAction( d->ActionUpdateAuto );
+  QObject::connect( d->ActionUpdateAuto, SIGNAL( triggered() ), this, SLOT(onAutoUpdateSelected() ) );
+  updateMenu->addAction( d->ActionUpdateManual );
+  updateActions->addAction( d->ActionUpdateManual );
+  QObject::connect( d->ActionUpdateManual, SIGNAL( triggered() ), this, SLOT(onManualUpdateSelected() ) );
+  d->UpdateButton->setMenu(updateMenu);
+
+  connect( d->ParameterNodeSelector, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onParameterNodeChanged() ) );
+  connect( d->ParameterNodeSelector, SIGNAL( nodeAddedByUser( vtkMRMLNode* ) ), this, SLOT( onParameterNodeAddedByUser( vtkMRMLNode* ) ) );
   //connect( d->ModuleNodeComboBox, SIGNAL( nodeAboutToBeRemoved( vtkMRMLNode* ) ), this, SLOT( onMarkupsToModelModuleNodeAboutToBeRemoved( vtkMRMLNode* ) ) );
 
-  connect( d->ModelNodeComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onModelNodeChanged() ) );
+  connect( d->ModelNodeSelector, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onModelNodeChanged() ) );
   //connect( d->ModelNodeComboBox, SIGNAL(nodeAddedByUser(vtkMRMLNode* )), this, SLOT(onModelNodeAddedByUser(vtkMRMLNode* ) ) );
   //connect( d->ModelNodeComboBox, SIGNAL(nodeAboutToBeRemoved(vtkMRMLNode* )), this, SLOT(onMarkupsToModelModelNodeAboutToBeRemoved(vtkMRMLNode* ) ) );
 
-  connect( d->MarkupsNodeComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onCurrentMarkupsNodeChanged() ) );
-  connect( d->MarkupsNodeComboBox, SIGNAL( nodeAboutToBeEdited( vtkMRMLNode* ) ), this, SLOT( onNodeAboutToBeEdited( vtkMRMLNode* ) ) );
+  connect( d->MarkupsSelector, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onCurrentMarkupsNodeChanged() ) );
+  connect( d->MarkupsSelector, SIGNAL( nodeAboutToBeEdited( vtkMRMLNode* ) ), this, SLOT( onNodeAboutToBeEdited( vtkMRMLNode* ) ) );
 
-  connect( d->UpdateOutputModelPushButton, SIGNAL( clicked() ) , this, SLOT( onUpdateOutputModelPushButton() ) );
-  connect( d->DeleteAllPushButton, SIGNAL( clicked() ) , this, SLOT( onDeleteAllPushButton() ) );
-  d->DeleteAllPushButton->setIcon( QIcon( ":/Icons/MarkupsDeleteAllRows.png" ) );
-  connect( d->DeleteLastPushButton, SIGNAL( clicked() ) , this, SLOT( onDeleteLastModelPushButton() ) );
-  d->DeleteLastPushButton->setIcon( QIcon( ":/Icons/MarkupsDeleteLast.png" ) );
-  connect( d->PlacePushButton, SIGNAL( clicked() ), this, SLOT( onPlacePushButtonClicked() ) ); 
-  d->PlacePushButton->setIcon( QIcon( ":/Icons/MarkupsMouseModePlace.png" ) );
-
-  connect( d->AutoUpdateOutputCheckBox, SIGNAL( toggled( bool ) ), this, SLOT( onAutoUpdateOutputToggled( bool ) ) );
+  //connect( d->UpdateOutputModelPushButton, SIGNAL( clicked() ) , this, SLOT( onUpdateOutputModelPushButton() ) );
+  //connect( d->DeleteAllPushButton, SIGNAL( clicked() ) , this, SLOT( onDeleteAllPushButton() ) );
+  //d->DeleteAllPushButton->setIcon( QIcon( ":/Icons/MarkupsDeleteAllRows.png" ) );
+  //connect( d->DeleteLastPushButton, SIGNAL( clicked() ) , this, SLOT( onDeleteLastModelPushButton() ) );
+  //d->DeleteLastPushButton->setIcon( QIcon( ":/Icons/MarkupsDeleteLast.png" ) );
+  //connect( d->PlacePushButton, SIGNAL( clicked() ), this, SLOT( onPlacePushButtonClicked() ) ); 
+  //d->PlacePushButton->setIcon( QIcon( ":/Icons/MarkupsMouseModePlace.png" ) );
+  //connect( d->AutoUpdateOutputCheckBox, SIGNAL( toggled( bool ) ), this, SLOT( onAutoUpdateOutputToggled( bool ) ) );
+  connect( d->UpdateButton, SIGNAL(clicked()), this, SLOT(onUpdateOutputModelPushButton()) );
+  connect( d->UpdateButton, SIGNAL(toggled(bool)), this, SLOT(onAutoUpdateOutputToggled(bool)) );
 
   connect( d->ButterflySubdivisionCheckBox, SIGNAL( toggled( bool ) ), this, SLOT( onButterflySubdivisionToggled( bool ) ) );
 
@@ -182,8 +205,8 @@ void qSlicerMarkupsToModelModuleWidget::setup()
 
   d->CleanMarkupsCheckBox->setToolTip(QString("It will merge duplicate  points.  Duplicate points are the ones closer than tolerance distance. The tolerance distance is 1% diagonal size bounding box of total points."));
   
-  connect( d->ClosedSurfaceRadioButton, SIGNAL( toggled( bool ) ), this, SLOT( onModeGroupBoxClicked( bool ) ) );
-  connect( d->CurveRadioButton, SIGNAL( toggled( bool ) ), this, SLOT( onModeGroupBoxClicked( bool ) ) );
+  connect( d->ModeClosedSurfaceRadioButton, SIGNAL( toggled( bool ) ), this, SLOT( onModeGroupBoxClicked( bool ) ) );
+  connect( d->ModeCurveRadioButton, SIGNAL( toggled( bool ) ), this, SLOT( onModeGroupBoxClicked( bool ) ) );
   connect( d->DelaunayAlphaDoubleSpinBox, SIGNAL( valueChanged( double ) ), this, SLOT( onDelaunayAlphaDoubleChanged( double ) ) );
   connect( d->TubeRadiusDoubleSpinBox, SIGNAL( valueChanged( double ) ), this, SLOT( onTubeRadiusDoubleChanged( double ) ) );
   
@@ -191,11 +214,11 @@ void qSlicerMarkupsToModelModuleWidget::setup()
   connect( d->KochanekContinuityDoubleSpinBox, SIGNAL( valueChanged( double ) ), this, SLOT( onKochanekContinuityDoubleChanged( double ) ) );
   connect( d->KochanekTensionDoubleSpinBox, SIGNAL( valueChanged( double ) ), this, SLOT( onKochanekTensionDoubleChanged( double ) ) );
 
-  connect( d->OutputOpacitySlider, SIGNAL( valueChanged( double ) ), this, SLOT( onOutputOpacityValueChanged( double ) ) );
-  connect( d->OutputColorPickerButton, SIGNAL( colorChanged( QColor ) ), this, SLOT( onOutputColorChanged( QColor ) ) );
-  connect( d->OutputVisiblityButton, SIGNAL( toggled( bool ) ), this, SLOT( onOutputVisibilityToggled( bool ) ) );
-  connect( d->OutputIntersectionVisibilityCheckBox, SIGNAL( toggled( bool ) ), this, SLOT( onOutputIntersectionVisibilityToggled( bool ) ) );
-  connect( d->TextScaleSlider, SIGNAL( valueChanged( double ) ), this, SLOT( onTextScaleChanged( double ) ) );
+  connect( d->ModelOpacitySlider, SIGNAL( valueChanged( double ) ), this, SLOT( onOutputOpacityValueChanged( double ) ) );
+  connect( d->ModelColorSelector, SIGNAL( colorChanged( QColor ) ), this, SLOT( onOutputColorChanged( QColor ) ) );
+  connect( d->ModelVisiblityButton, SIGNAL( toggled( bool ) ), this, SLOT( onOutputVisibilityToggled( bool ) ) );
+  connect( d->ModelSliceIntersectionCheckbox, SIGNAL( toggled( bool ) ), this, SLOT( onOutputIntersectionVisibilityToggled( bool ) ) );
+  connect( d->MarkupsTextScaleSlider, SIGNAL( valueChanged( double ) ), this, SLOT( onTextScaleChanged( double ) ) );
 
   connect( d->LinearInterpolationButton, SIGNAL( toggled( bool ) ), this, SLOT( onInterpolationBoxClicked( bool ) ) );
   connect( d->CardinalInterpolationRadioButton, SIGNAL( toggled( bool ) ), this, SLOT( onInterpolationBoxClicked( bool ) ) );
@@ -231,9 +254,9 @@ void qSlicerMarkupsToModelModuleWidget::enter()
   }
 
   //// For convenience, select a default module.
-  if ( d->ModuleNodeComboBox->currentNode() == NULL )
+  if ( d->ParameterNodeSelector->currentNode() == NULL )
   {
-    d->ModuleNodeComboBox->setCurrentNodeID( node->GetID() );
+    d->ParameterNodeSelector->setCurrentNodeID( node->GetID() );
   }
   onModeGroupBoxClicked( true );
 
@@ -241,7 +264,7 @@ void qSlicerMarkupsToModelModuleWidget::enter()
   qSlicerApplication::application()->applicationLogic()->GetInteractionNode()->SetPlaceModePersistence(1);
 
   //TODO UPDATE selectionNode according to markups toolbox when markups module enter selected
-  vtkMRMLMarkupsToModelNode* markupsToModelModuleNode = vtkMRMLMarkupsToModelNode::SafeDownCast( d->ModuleNodeComboBox->currentNode() );
+  vtkMRMLMarkupsToModelNode* markupsToModelModuleNode = vtkMRMLMarkupsToModelNode::SafeDownCast( d->ParameterNodeSelector->currentNode() );
   if ( markupsToModelModuleNode == NULL )
   {
     qCritical( "Selected node not a valid module node" );
@@ -250,7 +273,7 @@ void qSlicerMarkupsToModelModuleWidget::enter()
 
   this->qvtkConnect( markupsToModelModuleNode, vtkMRMLMarkupsToModelNode::InputDataModifiedEvent, this, SLOT( updateFromMRMLNode() ) );
 
-  vtkMRMLMarkupsFiducialNode* markupsNode = vtkMRMLMarkupsFiducialNode::SafeDownCast( d->MarkupsNodeComboBox->currentNode() );
+  vtkMRMLMarkupsFiducialNode* markupsNode = vtkMRMLMarkupsFiducialNode::SafeDownCast( d->MarkupsSelector->currentNode() );
   d->logic()->SetMarkupsNode( markupsNode, markupsToModelModuleNode );
   if( markupsToModelModuleNode->GetAutoUpdateOutput() )
   {
@@ -294,71 +317,71 @@ void qSlicerMarkupsToModelModuleWidget::updateWidget()
 {
   //qCritical( "HOLAS" );
   Q_D( qSlicerMarkupsToModelModuleWidget );
-  vtkMRMLNode* currentModuleNode = d->ModuleNodeComboBox->currentNode();
+  vtkMRMLNode* currentModuleNode = d->ParameterNodeSelector->currentNode();
   if ( currentModuleNode == NULL )
   {
-    d->MarkupsNodeComboBox->setCurrentNodeID( "" );
-    d->MarkupsNodeComboBox->setEnabled( false );
+    d->MarkupsSelector->setCurrentNode( NULL );
+    d->MarkupsSelector->setEnabled( false );
     return;
   }
-  vtkMRMLMarkupsToModelNode* markupsToModelModuleNode = vtkMRMLMarkupsToModelNode::SafeDownCast( currentModuleNode );
-  if ( markupsToModelModuleNode == NULL )
-  {
-    qCritical( "Selected node not a valid module node" );
-    return;
-  }
-  vtkMRMLDisplayableNode* currentMarkupsNode = vtkMRMLDisplayableNode::SafeDownCast( d->MarkupsNodeComboBox->currentNode() );
-  d->DeleteAllPushButton->blockSignals( true );
-  d->DeleteLastPushButton->blockSignals( true );
-  d->UpdateOutputModelPushButton->blockSignals( true );
-  if ( currentMarkupsNode == NULL )
-  {
-    d->DeleteAllPushButton->setChecked( Qt::Unchecked );
-    d->DeleteLastPushButton->setChecked( Qt::Unchecked );
-    d->UpdateOutputModelPushButton->setChecked( Qt::Unchecked );
-    // This will ensure that we refresh the widget next time we move to a non-null widget ( since there is guaranteed to be a modified status of larger than zero )
-    //return;
-    d->DeleteAllPushButton->setEnabled( false );
-    d->DeleteLastPushButton->setEnabled( false );
-    d->UpdateOutputModelPushButton->setEnabled( false );
-  }
-  else
-  {
-    // Set the button indicating if this list is active
-    if ( markupsToModelModuleNode->GetMarkupsNode()!=NULL && markupsToModelModuleNode->GetMarkupsNode()->GetNumberOfFiducials() > 0 )
-    {
-      d->DeleteAllPushButton->setEnabled( true );
-      d->DeleteLastPushButton->setEnabled( true );
-      if( markupsToModelModuleNode->GetMarkupsNode()->GetNumberOfFiducials() >= MINIMUM_MARKUPS_NUMBER )
-      {
-        d->UpdateOutputModelPushButton->setEnabled( true );
-      }
-      else
-      {
-        d->UpdateOutputModelPushButton->setEnabled( false );
-      }
-    }
-    else
-    {
-      d->DeleteAllPushButton->setEnabled( false );
-      d->DeleteLastPushButton->setEnabled( false );
-      d->UpdateOutputModelPushButton->setEnabled( false );
-    }
-  }
-  d->DeleteAllPushButton->blockSignals( false );
-  d->DeleteLastPushButton->blockSignals( false );
-  d->UpdateOutputModelPushButton->blockSignals( false );
+  //vtkMRMLMarkupsToModelNode* markupsToModelModuleNode = vtkMRMLMarkupsToModelNode::SafeDownCast( currentModuleNode );
+  //if ( markupsToModelModuleNode == NULL )
+  //{
+  //  qCritical( "Selected node not a valid module node" );
+  //  return;
+  //}
+  //vtkMRMLDisplayableNode* currentMarkupsNode = vtkMRMLDisplayableNode::SafeDownCast( d->MarkupsSelector->currentNode() );
+  //d->DeleteAllPushButton->blockSignals( true );
+  //d->DeleteLastPushButton->blockSignals( true );
+  //d->UpdateOutputModelPushButton->blockSignals( true );
+  //if ( currentMarkupsNode == NULL )
+  //{
+  //  d->DeleteAllPushButton->setChecked( Qt::Unchecked );
+  //  d->DeleteLastPushButton->setChecked( Qt::Unchecked );
+  //  d->UpdateOutputModelPushButton->setChecked( Qt::Unchecked );
+  //  // This will ensure that we refresh the widget next time we move to a non-null widget ( since there is guaranteed to be a modified status of larger than zero )
+  //  //return;
+  //  d->DeleteAllPushButton->setEnabled( false );
+  //  d->DeleteLastPushButton->setEnabled( false );
+  //  d->UpdateOutputModelPushButton->setEnabled( false );
+  //}
+  //else
+  //{
+  //  // Set the button indicating if this list is active
+  //  if ( markupsToModelModuleNode->GetMarkupsNode()!=NULL && markupsToModelModuleNode->GetMarkupsNode()->GetNumberOfFiducials() > 0 )
+  //  {
+  //    d->DeleteAllPushButton->setEnabled( true );
+  //    d->DeleteLastPushButton->setEnabled( true );
+  //    if( markupsToModelModuleNode->GetMarkupsNode()->GetNumberOfFiducials() >= MINIMUM_MARKUPS_NUMBER )
+  //    {
+  //      d->UpdateOutputModelPushButton->setEnabled( true );
+  //    }
+  //    else
+  //    {
+  //      d->UpdateOutputModelPushButton->setEnabled( false );
+  //    }
+  //  }
+  //  else
+  //  {
+  //    d->DeleteAllPushButton->setEnabled( false );
+  //    d->DeleteLastPushButton->setEnabled( false );
+  //    d->UpdateOutputModelPushButton->setEnabled( false );
+  //  }
+  //}
+  //d->DeleteAllPushButton->blockSignals( false );
+  //d->DeleteLastPushButton->blockSignals( false );
+  //d->UpdateOutputModelPushButton->blockSignals( false );
 }
 
 //-----------------------------------------------------------------------------
 void qSlicerMarkupsToModelModuleWidget::updateFromMRMLNode()
 {
   Q_D( qSlicerMarkupsToModelModuleWidget );
-  vtkMRMLNode* currentNode = d->ModuleNodeComboBox->currentNode();
+  vtkMRMLNode* currentNode = d->ParameterNodeSelector->currentNode();
   if ( currentNode == NULL )
   {
-    d->MarkupsNodeComboBox->setCurrentNodeID( "" );
-    d->MarkupsNodeComboBox->setEnabled( false );
+    d->MarkupsSelector->setCurrentNode( NULL );
+    d->MarkupsSelector->setEnabled( false );
     return;
   }
   vtkMRMLMarkupsToModelNode* MarkupsToModelNode = vtkMRMLMarkupsToModelNode::SafeDownCast( currentNode );
@@ -367,47 +390,49 @@ void qSlicerMarkupsToModelModuleWidget::updateFromMRMLNode()
     qCritical( "Selected node not a valid module node" );
     return;
   }
-  d->MarkupsNodeComboBox->setEnabled( true );
+  d->MarkupsSelector->setEnabled( true );
 
   if ( /*d->ModelNodeComboBox->currentNode() == 0 &&*/ MarkupsToModelNode->GetMarkupsNode() != NULL )
   {
-    d->MarkupsNodeComboBox->setCurrentNodeID( MarkupsToModelNode->GetMarkupsNode()->GetID() );
+    d->MarkupsSelector->setCurrentNode( MarkupsToModelNode->GetMarkupsNode() );
   }
   else
   {
-    d->MarkupsNodeComboBox->setCurrentNodeIndex( 0 );
+    d->MarkupsSelector->setCurrentNode( NULL );
   }
 
   if ( /*d->ModelNodeComboBox->currentNode() == 0 && */MarkupsToModelNode->GetModelNode() != NULL )
   {
-    d->ModelNodeComboBox->setCurrentNodeID( MarkupsToModelNode->GetModelNode()->GetID() );
+    d->ModelNodeSelector->setCurrentNodeID( MarkupsToModelNode->GetModelNode()->GetID() );
     //qCritical( "Model not null" );
   }
   else
   {
-    d->ModelNodeComboBox->setCurrentNodeID( "None" );
+    d->ModelNodeSelector->setCurrentNodeID( "None" );
   }
-  d->AutoUpdateOutputCheckBox->setChecked( MarkupsToModelNode->GetAutoUpdateOutput() );
+  //d->AutoUpdateOutputCheckBox->setChecked( MarkupsToModelNode->GetAutoUpdateOutput() );
 
-  d->OutputOpacitySlider->setValue( MarkupsToModelNode->GetOutputOpacity() );
+  d->ModelOpacitySlider->setValue( MarkupsToModelNode->GetOutputOpacity() );
   double outputColor[3];
   MarkupsToModelNode->GetOutputColor( outputColor );
   QColor nodeOutputColor;
   nodeOutputColor.setRgbF( outputColor[0],outputColor[1],outputColor[2] );
-  d->OutputColorPickerButton->setColor( nodeOutputColor );
-  d->OutputVisiblityButton->setChecked( MarkupsToModelNode->GetOutputVisibility() );
-  d->OutputIntersectionVisibilityCheckBox->setChecked( MarkupsToModelNode->GetOutputIntersectionVisibility() );
+  d->ModelColorSelector->setColor( nodeOutputColor );
+  d->ModelVisiblityButton->setChecked( MarkupsToModelNode->GetOutputVisibility() );
+  d->ModelSliceIntersectionCheckbox->setChecked( MarkupsToModelNode->GetOutputIntersectionVisibility() );
 
   d->CleanMarkupsCheckBox->setChecked( MarkupsToModelNode->GetCleanMarkups() );
 
   switch( MarkupsToModelNode->GetModelType() )
   {
   case vtkMRMLMarkupsToModelNode::ClosedSurface: 
-    d->ClosedSurfaceRadioButton->setChecked( 1 ); break;
+    d->ModeClosedSurfaceRadioButton->setChecked( 1 );
     d->ButterflySubdivisionCheckBox->setChecked( MarkupsToModelNode->GetButterflySubdivision() );
     d->DelaunayAlphaDoubleSpinBox->setValue( MarkupsToModelNode->GetDelaunayAlpha() );
+    break;
 
-  case vtkMRMLMarkupsToModelNode::Curve: d->CurveRadioButton->setChecked( 1 );
+  case vtkMRMLMarkupsToModelNode::Curve:
+    d->ModeCurveRadioButton->setChecked( 1 );
     d->TubeRadiusDoubleSpinBox->setValue(MarkupsToModelNode->GetTubeRadius());
     switch( MarkupsToModelNode->GetInterpolationType() )
     {
@@ -434,7 +459,7 @@ void qSlicerMarkupsToModelModuleWidget::onModelNodeChanged()
 {
   Q_D( qSlicerMarkupsToModelModuleWidget );
   
-  vtkMRMLNode* currentNode = d->ModuleNodeComboBox->currentNode();
+  vtkMRMLNode* currentNode = d->ParameterNodeSelector->currentNode();
   if ( currentNode == NULL )
   {
     return;
@@ -446,7 +471,7 @@ void qSlicerMarkupsToModelModuleWidget::onModelNodeChanged()
     return;
   }
 
-  vtkMRMLModelNode* modelNode = vtkMRMLModelNode::SafeDownCast( d->ModelNodeComboBox->currentNode() );
+  vtkMRMLModelNode* modelNode = vtkMRMLModelNode::SafeDownCast( d->ModelNodeSelector->currentNode() );
   if ( modelNode == NULL )
   {
     qCritical( "Selected node not a valid model node" );
@@ -483,10 +508,10 @@ void qSlicerMarkupsToModelModuleWidget::onModelNodeChanged()
 //}
 
 //-----------------------------------------------------------------------------
-void qSlicerMarkupsToModelModuleWidget::onMarkupsToModelModuleNodeChanged()
+void qSlicerMarkupsToModelModuleWidget::onParameterNodeChanged()
 {
   Q_D( qSlicerMarkupsToModelModuleWidget );
-  vtkMRMLMarkupsToModelNode* markupsToModelModuleNode = vtkMRMLMarkupsToModelNode::SafeDownCast( d->ModuleNodeComboBox->currentNode() );
+  vtkMRMLMarkupsToModelNode* markupsToModelModuleNode = vtkMRMLMarkupsToModelNode::SafeDownCast( d->ParameterNodeSelector->currentNode() );
   if ( markupsToModelModuleNode == NULL )
   {
     qCritical( "Model node changed with no module node selection" );
@@ -497,7 +522,7 @@ void qSlicerMarkupsToModelModuleWidget::onMarkupsToModelModuleNodeChanged()
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerMarkupsToModelModuleWidget::onMarkupsToModelModuleNodeAddedByUser( vtkMRMLNode* nodeAdded )
+void qSlicerMarkupsToModelModuleWidget::onParameterNodeAddedByUser( vtkMRMLNode* nodeAdded )
 {
   Q_D( qSlicerMarkupsToModelModuleWidget );
   if ( this->mrmlScene() == NULL )
@@ -524,7 +549,7 @@ void qSlicerMarkupsToModelModuleWidget::onUpdateOutputModelPushButton()
 {
   Q_D( qSlicerMarkupsToModelModuleWidget );
 
-  vtkMRMLMarkupsToModelNode* markupsToModelModuleNode = vtkMRMLMarkupsToModelNode::SafeDownCast( d->ModuleNodeComboBox->currentNode() );
+  vtkMRMLMarkupsToModelNode* markupsToModelModuleNode = vtkMRMLMarkupsToModelNode::SafeDownCast( d->ParameterNodeSelector->currentNode() );
   if ( markupsToModelModuleNode == NULL )
   {
     qCritical( "Model node changed with no module node selection" );
@@ -538,7 +563,7 @@ void qSlicerMarkupsToModelModuleWidget::UpdateOutputModel()
 {
   Q_D( qSlicerMarkupsToModelModuleWidget );
 
-  vtkMRMLMarkupsToModelNode* markupsToModelModuleNode = vtkMRMLMarkupsToModelNode::SafeDownCast( d->ModuleNodeComboBox->currentNode() );
+  vtkMRMLMarkupsToModelNode* markupsToModelModuleNode = vtkMRMLMarkupsToModelNode::SafeDownCast( d->ParameterNodeSelector->currentNode() );
   if ( markupsToModelModuleNode == NULL )
   {
     qCritical( "Model node changed with no module node selection" );
@@ -555,7 +580,7 @@ void qSlicerMarkupsToModelModuleWidget::onDeleteAllPushButton()
 {
   Q_D( qSlicerMarkupsToModelModuleWidget );
 
-  vtkMRMLMarkupsToModelNode* markupsToModelModuleNode = vtkMRMLMarkupsToModelNode::SafeDownCast( d->ModuleNodeComboBox->currentNode() );
+  vtkMRMLMarkupsToModelNode* markupsToModelModuleNode = vtkMRMLMarkupsToModelNode::SafeDownCast( d->ParameterNodeSelector->currentNode() );
   if ( markupsToModelModuleNode == NULL )
   {
     qCritical( "Model node changed with no module node selection" );
@@ -570,7 +595,7 @@ void qSlicerMarkupsToModelModuleWidget::onInterpolationBoxClicked( bool nana )
 {
   Q_D( qSlicerMarkupsToModelModuleWidget );
 
-  vtkMRMLMarkupsToModelNode* markupsToModelModuleNode = vtkMRMLMarkupsToModelNode::SafeDownCast( d->ModuleNodeComboBox->currentNode() );
+  vtkMRMLMarkupsToModelNode* markupsToModelModuleNode = vtkMRMLMarkupsToModelNode::SafeDownCast( d->ParameterNodeSelector->currentNode() );
   if ( markupsToModelModuleNode == NULL )
   {
     qCritical( "Conversion Mode changed with no module node selection" );
@@ -621,20 +646,20 @@ void qSlicerMarkupsToModelModuleWidget::onModeGroupBoxClicked( bool nana )
 {
   Q_D( qSlicerMarkupsToModelModuleWidget );
   //qCritical( "HOLAS" );
-  vtkMRMLMarkupsToModelNode* markupsToModelModuleNode = vtkMRMLMarkupsToModelNode::SafeDownCast( d->ModuleNodeComboBox->currentNode() );
+  vtkMRMLMarkupsToModelNode* markupsToModelModuleNode = vtkMRMLMarkupsToModelNode::SafeDownCast( d->ParameterNodeSelector->currentNode() );
   if ( markupsToModelModuleNode == NULL )
   {
     qCritical( "Conversion Mode changed with no module node selection" );
     return;
   }
 
-  if( d->ClosedSurfaceRadioButton->isChecked() )
+  if( d->ModeClosedSurfaceRadioButton->isChecked() )
   {
     d->ButterflySubdivisionCheckBox->setVisible( true );
     d->DelaunayAlphaLabel->setVisible( true );
     d->DelaunayAlphaDoubleSpinBox->setVisible( true );
 
-    d->CurveInterpolationGroupBox->setVisible( false );
+    d->SplineInterpolationLayout->setEnabled(false);
     d->TubeRadiusLabel->setVisible( false );
     d->TubeRadiusDoubleSpinBox->setVisible( false );
     d->KochanekBiasLabel->setVisible( false );
@@ -651,7 +676,7 @@ void qSlicerMarkupsToModelModuleWidget::onModeGroupBoxClicked( bool nana )
     d->DelaunayAlphaLabel->setVisible( false );
     d->DelaunayAlphaDoubleSpinBox->setVisible( false );
 
-    d->CurveInterpolationGroupBox->setVisible( true );
+    d->SplineInterpolationLayout->setEnabled(true);
     d->TubeRadiusLabel->setVisible( true );
     d->TubeRadiusDoubleSpinBox->setVisible( true );
     markupsToModelModuleNode->SetModelType( vtkMRMLMarkupsToModelNode::Curve );
@@ -684,7 +709,7 @@ void qSlicerMarkupsToModelModuleWidget::onTubeRadiusDoubleChanged( double tubeRa
 {
   Q_D( qSlicerMarkupsToModelModuleWidget );
 
-  vtkMRMLMarkupsToModelNode* markupsToModelModuleNode = vtkMRMLMarkupsToModelNode::SafeDownCast( d->ModuleNodeComboBox->currentNode() );
+  vtkMRMLMarkupsToModelNode* markupsToModelModuleNode = vtkMRMLMarkupsToModelNode::SafeDownCast( d->ParameterNodeSelector->currentNode() );
   if ( markupsToModelModuleNode == NULL )
   {
     qCritical( "Model node changed with no module node selection" );
@@ -699,7 +724,7 @@ void qSlicerMarkupsToModelModuleWidget::onKochanekContinuityDoubleChanged( doubl
 {
   Q_D( qSlicerMarkupsToModelModuleWidget );
 
-  vtkMRMLMarkupsToModelNode* markupsToModelModuleNode = vtkMRMLMarkupsToModelNode::SafeDownCast( d->ModuleNodeComboBox->currentNode() );
+  vtkMRMLMarkupsToModelNode* markupsToModelModuleNode = vtkMRMLMarkupsToModelNode::SafeDownCast( d->ParameterNodeSelector->currentNode() );
   if ( markupsToModelModuleNode == NULL )
   {
     qCritical( "Model node changed with no module node selection" );
@@ -714,7 +739,7 @@ void qSlicerMarkupsToModelModuleWidget::onKochanekBiasDoubleChanged( double koch
 {
   Q_D( qSlicerMarkupsToModelModuleWidget );
 
-  vtkMRMLMarkupsToModelNode* markupsToModelModuleNode = vtkMRMLMarkupsToModelNode::SafeDownCast( d->ModuleNodeComboBox->currentNode() );
+  vtkMRMLMarkupsToModelNode* markupsToModelModuleNode = vtkMRMLMarkupsToModelNode::SafeDownCast( d->ParameterNodeSelector->currentNode() );
   if ( markupsToModelModuleNode == NULL )
   {
     qCritical( "Model node changed with no module node selection" );
@@ -729,7 +754,7 @@ void qSlicerMarkupsToModelModuleWidget::onKochanekTensionDoubleChanged( double k
 {
   Q_D( qSlicerMarkupsToModelModuleWidget );
 
-  vtkMRMLMarkupsToModelNode* markupsToModelModuleNode = vtkMRMLMarkupsToModelNode::SafeDownCast( d->ModuleNodeComboBox->currentNode() );
+  vtkMRMLMarkupsToModelNode* markupsToModelModuleNode = vtkMRMLMarkupsToModelNode::SafeDownCast( d->ParameterNodeSelector->currentNode() );
   if ( markupsToModelModuleNode == NULL )
   {
     qCritical( "Model node changed with no module node selection" );
@@ -743,7 +768,7 @@ void qSlicerMarkupsToModelModuleWidget::onKochanekTensionDoubleChanged( double k
 void qSlicerMarkupsToModelModuleWidget::onDelaunayAlphaDoubleChanged( double delaunayAlpha )
 {
   Q_D( qSlicerMarkupsToModelModuleWidget );
-  vtkMRMLMarkupsToModelNode* markupsToModelModuleNode = vtkMRMLMarkupsToModelNode::SafeDownCast( d->ModuleNodeComboBox->currentNode() );
+  vtkMRMLMarkupsToModelNode* markupsToModelModuleNode = vtkMRMLMarkupsToModelNode::SafeDownCast( d->ParameterNodeSelector->currentNode() );
   if ( markupsToModelModuleNode == NULL )
   {
     qCritical( "Model node changed with no module node selection" );
@@ -757,7 +782,7 @@ void qSlicerMarkupsToModelModuleWidget::onDelaunayAlphaDoubleChanged( double del
 void qSlicerMarkupsToModelModuleWidget::onOutputOpacityValueChanged( double outputOpacity )
 {
   Q_D( qSlicerMarkupsToModelModuleWidget );
-  vtkMRMLMarkupsToModelNode* markupsToModelModuleNode = vtkMRMLMarkupsToModelNode::SafeDownCast( d->ModuleNodeComboBox->currentNode() );
+  vtkMRMLMarkupsToModelNode* markupsToModelModuleNode = vtkMRMLMarkupsToModelNode::SafeDownCast( d->ParameterNodeSelector->currentNode() );
   if ( markupsToModelModuleNode == NULL )
   {
     qCritical( "Model node changed with no module node selection" );
@@ -771,7 +796,7 @@ void qSlicerMarkupsToModelModuleWidget::onOutputColorChanged( QColor newColor )
 {
    Q_D( qSlicerMarkupsToModelModuleWidget );
 
-  vtkMRMLMarkupsToModelNode* markupsToModelModuleNode = vtkMRMLMarkupsToModelNode::SafeDownCast( d->ModuleNodeComboBox->currentNode() );
+  vtkMRMLMarkupsToModelNode* markupsToModelModuleNode = vtkMRMLMarkupsToModelNode::SafeDownCast( d->ParameterNodeSelector->currentNode() );
   if ( markupsToModelModuleNode == NULL )
   {
     qCritical( "Model node changed with no module node selection" );
@@ -784,7 +809,7 @@ void qSlicerMarkupsToModelModuleWidget::onOutputColorChanged( QColor newColor )
 void qSlicerMarkupsToModelModuleWidget::onOutputVisibilityToggled( bool outputVisibility )
 {
   Q_D( qSlicerMarkupsToModelModuleWidget );
-  vtkMRMLMarkupsToModelNode* markupsToModelModuleNode = vtkMRMLMarkupsToModelNode::SafeDownCast( d->ModuleNodeComboBox->currentNode() );
+  vtkMRMLMarkupsToModelNode* markupsToModelModuleNode = vtkMRMLMarkupsToModelNode::SafeDownCast( d->ParameterNodeSelector->currentNode() );
   if ( markupsToModelModuleNode == NULL )
   {
     qCritical( "Model node changed with no module node selection" );
@@ -803,7 +828,7 @@ void qSlicerMarkupsToModelModuleWidget::onTextScaleChanged( double textScale )
     return;
   }
 
-  vtkMRMLMarkupsFiducialNode* markupsNode = vtkMRMLMarkupsFiducialNode::SafeDownCast( d->MarkupsNodeComboBox->currentNode() );
+  vtkMRMLMarkupsFiducialNode* markupsNode = vtkMRMLMarkupsFiducialNode::SafeDownCast( d->MarkupsSelector->currentNode() );
   if ( markupsNode == NULL )
   {
     qCritical( "Model node changed with no module node selection" );
@@ -819,7 +844,7 @@ void qSlicerMarkupsToModelModuleWidget::onTextScaleChanged( double textScale )
 void qSlicerMarkupsToModelModuleWidget::onOutputIntersectionVisibilityToggled( bool outputIntersectionVisibility )
 {
   Q_D( qSlicerMarkupsToModelModuleWidget );
-  vtkMRMLMarkupsToModelNode* markupsToModelModuleNode = vtkMRMLMarkupsToModelNode::SafeDownCast( d->ModuleNodeComboBox->currentNode() );
+  vtkMRMLMarkupsToModelNode* markupsToModelModuleNode = vtkMRMLMarkupsToModelNode::SafeDownCast( d->ParameterNodeSelector->currentNode() );
   if ( markupsToModelModuleNode == NULL )
   {
     qCritical( "Model node changed with no module node selection" );
@@ -832,7 +857,7 @@ void qSlicerMarkupsToModelModuleWidget::onOutputIntersectionVisibilityToggled( b
 void qSlicerMarkupsToModelModuleWidget::onCleanMarkupsToggled( bool cleanMarkups )
 {
   Q_D( qSlicerMarkupsToModelModuleWidget );
-  vtkMRMLMarkupsToModelNode* markupsToModelModuleNode = vtkMRMLMarkupsToModelNode::SafeDownCast( d->ModuleNodeComboBox->currentNode() );
+  vtkMRMLMarkupsToModelNode* markupsToModelModuleNode = vtkMRMLMarkupsToModelNode::SafeDownCast( d->ParameterNodeSelector->currentNode() );
   if ( markupsToModelModuleNode == NULL )
   {
     qCritical( "Model node changed with no module node selection" );
@@ -846,7 +871,7 @@ void qSlicerMarkupsToModelModuleWidget::onCleanMarkupsToggled( bool cleanMarkups
 void qSlicerMarkupsToModelModuleWidget::onButterflySubdivisionToggled( bool butterflySubdivision )
 {
   Q_D( qSlicerMarkupsToModelModuleWidget );
-  vtkMRMLMarkupsToModelNode* markupsToModelModuleNode = vtkMRMLMarkupsToModelNode::SafeDownCast( d->ModuleNodeComboBox->currentNode() );
+  vtkMRMLMarkupsToModelNode* markupsToModelModuleNode = vtkMRMLMarkupsToModelNode::SafeDownCast( d->ParameterNodeSelector->currentNode() );
   if ( markupsToModelModuleNode == NULL )
   {
     qCritical( "Model node changed with no module node selection" );
@@ -860,7 +885,7 @@ void qSlicerMarkupsToModelModuleWidget::onButterflySubdivisionToggled( bool butt
 void qSlicerMarkupsToModelModuleWidget::onAutoUpdateOutputToggled( bool autoUpdateOutput )
 {
   Q_D( qSlicerMarkupsToModelModuleWidget );
-  vtkMRMLMarkupsToModelNode* markupsToModelModuleNode = vtkMRMLMarkupsToModelNode::SafeDownCast( d->ModuleNodeComboBox->currentNode() );
+  vtkMRMLMarkupsToModelNode* markupsToModelModuleNode = vtkMRMLMarkupsToModelNode::SafeDownCast( d->ParameterNodeSelector->currentNode() );
   if ( markupsToModelModuleNode == NULL )
   {
     qCritical( "Model node changed with no module node selection" );
@@ -875,7 +900,7 @@ void qSlicerMarkupsToModelModuleWidget::onDeleteLastModelPushButton()
 {
   Q_D( qSlicerMarkupsToModelModuleWidget );
 
-  vtkMRMLMarkupsToModelNode* markupsToModelModuleNode = vtkMRMLMarkupsToModelNode::SafeDownCast( d->ModuleNodeComboBox->currentNode() );
+  vtkMRMLMarkupsToModelNode* markupsToModelModuleNode = vtkMRMLMarkupsToModelNode::SafeDownCast( d->ParameterNodeSelector->currentNode() );
   if ( markupsToModelModuleNode == NULL )
   {
     qCritical( "Model node changed with no module node selection" );
@@ -891,7 +916,7 @@ void qSlicerMarkupsToModelModuleWidget::onPlacePushButtonClicked()
 
   Q_D( qSlicerMarkupsToModelModuleWidget );
 
-  vtkMRMLMarkupsNode* currentMarkupsNode = vtkMRMLMarkupsNode::SafeDownCast( d->MarkupsNodeComboBox->currentNode() );
+  vtkMRMLMarkupsNode* currentMarkupsNode = vtkMRMLMarkupsNode::SafeDownCast( d->MarkupsSelector->currentNode() );
 
   // Depending to the current state, change the activeness and placeness for the current markups node
   vtkMRMLInteractionNode *interactionNode = vtkMRMLInteractionNode::SafeDownCast( this->mrmlScene()->GetNodeByID( "vtkMRMLInteractionNodeSingleton" ) );
