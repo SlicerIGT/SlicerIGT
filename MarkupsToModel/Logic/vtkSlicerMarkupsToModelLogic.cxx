@@ -409,35 +409,32 @@ void vtkSlicerMarkupsToModelLogic::UpdateOutputCloseSurfaceModel(vtkMRMLMarkupsT
     modelNode = markupsToModelModuleNode->GetModelNode();
   }
 
-  if(markupsToModelModuleNode->GetButterflySubdivision())
+  if(markupsToModelModuleNode->GetSmoothingType() == 1 || this->PlanarSurface)
   {
-    if (this->PlanarSurface)
+    surfaceFilter->Update();
+    vtkSmartPointer<vtkPolyDataNormals> normals = vtkSmartPointer<vtkPolyDataNormals>::New();
+    normals->SetInputConnection(surfaceFilter->GetOutputPort());
+    normals->SetFeatureAngle(100);
+    normals->Update();
+    modelNode->SetPolyDataConnection(normals->GetOutputPort());
+  }
+  else if(markupsToModelModuleNode->GetSmoothingType() == 2)
+  {
+    vtkSmartPointer< vtkButterflySubdivisionFilter > subdivisionFilter = vtkSmartPointer< vtkButterflySubdivisionFilter >::New();
+    subdivisionFilter->SetInputConnection(surfaceFilter->GetOutputPort());
+    subdivisionFilter->SetNumberOfSubdivisions(3);
+    subdivisionFilter->Update();
+    modelNode->SetAndObservePolyData( subdivisionFilter->GetOutput() );
+    if(markupsToModelModuleNode->GetConvexHull())
     {
+      vtkSmartPointer<vtkDelaunay3D> convexHull = vtkSmartPointer<vtkDelaunay3D>::New();
+      convexHull->SetAlpha(markupsToModelModuleNode->GetDelaunayAlpha());
+      convexHull->SetInputConnection(subdivisionFilter->GetOutputPort());
+      convexHull->Update();
+      vtkSmartPointer<vtkDataSetSurfaceFilter> surfaceFilter = vtkSmartPointer<vtkDataSetSurfaceFilter>::New();
+      surfaceFilter->SetInputData(convexHull->GetOutput());
       surfaceFilter->Update();
-      vtkSmartPointer<vtkPolyDataNormals> normals = vtkSmartPointer<vtkPolyDataNormals>::New();
-      normals->SetInputConnection(surfaceFilter->GetOutputPort());
-      normals->SetFeatureAngle(100);
-      normals->Update();
-      modelNode->SetPolyDataConnection(normals->GetOutputPort());
-    }
-    else
-    {
-      vtkSmartPointer< vtkButterflySubdivisionFilter > subdivisionFilter = vtkSmartPointer< vtkButterflySubdivisionFilter >::New();
-      subdivisionFilter->SetInputConnection(surfaceFilter->GetOutputPort());
-      subdivisionFilter->SetNumberOfSubdivisions(3);
-      subdivisionFilter->Update();
-      modelNode->SetAndObservePolyData( subdivisionFilter->GetOutput() );
-      if(markupsToModelModuleNode->GetConvexHull())
-      {
-        vtkSmartPointer<vtkDelaunay3D> convexHull = vtkSmartPointer<vtkDelaunay3D>::New();
-        convexHull->SetAlpha(markupsToModelModuleNode->GetDelaunayAlpha());
-        convexHull->SetInputConnection(subdivisionFilter->GetOutputPort());
-        convexHull->Update();
-        vtkSmartPointer<vtkDataSetSurfaceFilter> surfaceFilter = vtkSmartPointer<vtkDataSetSurfaceFilter>::New();
-        surfaceFilter->SetInputData(convexHull->GetOutput());
-        surfaceFilter->Update();
-        modelNode->SetAndObservePolyData(surfaceFilter->GetOutput());
-      }
+      modelNode->SetAndObservePolyData(surfaceFilter->GetOutput());
     }
   }
   else

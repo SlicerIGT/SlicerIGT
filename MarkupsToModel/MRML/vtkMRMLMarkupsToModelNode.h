@@ -80,7 +80,6 @@ public:
     ModelType_Last // insert valid types above this line
   };
 
-
   enum InterpolationType
   {
     Linear =0,
@@ -88,6 +87,14 @@ public:
     HermiteSpline,
     KochanekSpline,
     InterpolationType_Last // insert valid types above this line
+  };
+
+  enum SmoothingType
+  {
+    NoFilter = 0,
+    NormalsFilter,
+    ButterflyFilter,
+    SmoothingType_Last // insert valid types above this line
   };
   
   vtkTypeMacro( vtkMRMLMarkupsToModelNode, vtkMRMLNode );
@@ -125,6 +132,8 @@ public:
   vtkSetMacro( ModelType, int );
   vtkGetMacro( InterpolationType, int );
   vtkSetMacro( InterpolationType, int );
+  vtkGetMacro( SmoothingType, int );
+  vtkSetMacro( SmoothingType, int );
   vtkGetMacro( NumberOfIntermediatePoints, int );
   vtkSetMacro( NumberOfIntermediatePoints, int );
   
@@ -161,8 +170,10 @@ public:
   // Convert between model and interpolation types IDs and names.
   const char* GetModelTypeAsString(int id);
   const char* GetInterpolationTypeAsString(int id);
+  const char* GetSmoothingTypeAsString(int id);
   int GetModelTypeFromString(const char* name);
   int GetInterpolationTypeFromString(const char* name);
+  int GetSmoothingTypeFromString(const char* name);
 
   /// Gets the specified tool watched from the tools' list
   vtkMRMLMarkupsFiducialNode * GetMarkupsNode();
@@ -203,6 +214,7 @@ private:
   std::string ModelNodeID;
   int ModelType;
   int InterpolationType;
+  int SmoothingType;
   int NumberOfIntermediatePoints;
   bool AutoUpdateOutput;
   bool CleanMarkups;

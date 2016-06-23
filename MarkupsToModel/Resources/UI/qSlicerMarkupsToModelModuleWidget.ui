@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>415</width>
-    <height>789</height>
+    <width>505</width>
+    <height>717</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -18,25 +18,26 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="qMRMLNodeComboBox" name="ModuleNodeComboBox" native="true">
+    <widget class="qMRMLNodeComboBox" name="ModuleNodeComboBox">
      <property name="enabled">
       <bool>true</bool>
      </property>
-     <property name="nodeTypes" stdset="0">
+     <property name="nodeTypes">
       <stringlist>
        <string>vtkMRMLMarkupsToModelNode</string>
       </stringlist>
      </property>
-     <property name="renameEnabled" stdset="0">
+     <property name="renameEnabled">
       <bool>true</bool>
      </property>
-     <property name="selectNodeUponCreation" stdset="0">
+     <property name="selectNodeUponCreation">
       <bool>true</bool>
      </property>
+     <zorder></zorder>
     </widget>
    </item>
    <item>
-    <widget class="ctkCollapsibleButton" name="InputsCTKCollapsibleButton" native="true">
+    <widget class="ctkCollapsibleButton" name="InputsCTKCollapsibleButton">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
        <horstretch>0</horstretch>
@@ -49,7 +50,7 @@
        <height>250</height>
       </size>
      </property>
-     <property name="text" stdset="0">
+     <property name="text">
       <string>Inputs</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_3">
@@ -65,31 +66,31 @@
            </widget>
           </item>
           <item row="0" column="1">
-           <widget class="qMRMLNodeComboBox" name="MarkupsNodeComboBox" native="true">
+           <widget class="qMRMLNodeComboBox" name="MarkupsNodeComboBox">
             <property name="enabled">
              <bool>true</bool>
             </property>
-            <property name="nodeTypes" stdset="0">
+            <property name="nodeTypes">
              <stringlist>
               <string>vtkMRMLMarkupsFiducialNode</string>
              </stringlist>
             </property>
-            <property name="baseName" stdset="0">
+            <property name="baseName">
              <string>M</string>
             </property>
-            <property name="noneEnabled" stdset="0">
+            <property name="noneEnabled">
              <bool>false</bool>
             </property>
-            <property name="addEnabled" stdset="0">
+            <property name="addEnabled">
              <bool>true</bool>
             </property>
-            <property name="removeEnabled" stdset="0">
+            <property name="removeEnabled">
              <bool>true</bool>
             </property>
-            <property name="editEnabled" stdset="0">
+            <property name="editEnabled">
              <bool>false</bool>
             </property>
-            <property name="renameEnabled" stdset="0">
+            <property name="renameEnabled">
              <bool>true</bool>
             </property>
            </widget>
@@ -161,7 +162,7 @@
     </widget>
    </item>
    <item>
-    <widget class="ctkCollapsibleButton" name="OutputCTKCollapsibleButton" native="true">
+    <widget class="ctkCollapsibleButton" name="OutputCTKCollapsibleButton">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
        <horstretch>0</horstretch>
@@ -180,7 +181,7 @@
        <height>250</height>
       </size>
      </property>
-     <property name="text" stdset="0">
+     <property name="text">
       <string>Output</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_38">
@@ -189,25 +190,25 @@
         <item>
          <layout class="QGridLayout" name="OutputGridLayout">
           <item row="1" column="1">
-           <widget class="qMRMLNodeComboBox" name="ModelNodeComboBox" native="true">
+           <widget class="qMRMLNodeComboBox" name="ModelNodeComboBox">
             <property name="enabled">
              <bool>true</bool>
             </property>
-            <property name="nodeTypes" stdset="0">
+            <property name="nodeTypes">
              <stringlist>
               <string>vtkMRMLModelNode</string>
              </stringlist>
             </property>
-            <property name="noneEnabled" stdset="0">
+            <property name="noneEnabled">
              <bool>true</bool>
             </property>
-            <property name="addEnabled" stdset="0">
+            <property name="addEnabled">
              <bool>true</bool>
             </property>
-            <property name="removeEnabled" stdset="0">
+            <property name="removeEnabled">
              <bool>true</bool>
             </property>
-            <property name="renameEnabled" stdset="0">
+            <property name="renameEnabled">
              <bool>true</bool>
             </property>
            </widget>
@@ -338,11 +339,373 @@
         </item>
        </layout>
       </item>
+      <item>
+       <widget class="QCheckBox" name="CleanMarkupsCheckBox">
+        <property name="toolTip">
+         <string extracomment="It will merge duplicate  points.  Duplicate points are the ones closer than tolerance distance. The tolerance distance is 1% diagonal size bounding box of total points."/>
+        </property>
+        <property name="text">
+         <string>Clean duplicated markups</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
      </layout>
     </widget>
    </item>
    <item>
-    <widget class="ctkCollapsibleButton" name="DisplayCTKCollapsibleButton" native="true">
+    <widget class="QTabWidget" name="ModeTab">
+     <property name="currentIndex">
+      <number>0</number>
+     </property>
+     <widget class="QWidget" name="ClosedSurfaceParameters">
+      <attribute name="title">
+       <string>Closed surface parameters</string>
+      </attribute>
+      <widget class="QGroupBox" name="SmoothingFilterGroupBox">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>10</y>
+         <width>471</width>
+         <height>90</height>
+        </rect>
+       </property>
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>20</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>16777215</width>
+         <height>90</height>
+        </size>
+       </property>
+       <property name="title">
+        <string>Smoothing filter</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+       </property>
+       <widget class="QRadioButton" name="NoFilterRadioButton">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>20</y>
+          <width>71</width>
+          <height>17</height>
+         </rect>
+        </property>
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="text">
+         <string>None</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+       <widget class="QRadioButton" name="ButterflyFilterRadioButton">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>60</y>
+          <width>171</width>
+          <height>17</height>
+         </rect>
+        </property>
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="text">
+         <string>Butterfly subdivision</string>
+        </property>
+       </widget>
+       <widget class="QRadioButton" name="NormalsFilterRadioButton">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>40</y>
+          <width>161</width>
+          <height>17</height>
+         </rect>
+        </property>
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="text">
+         <string>Compute normals</string>
+        </property>
+       </widget>
+       <widget class="QCheckBox" name="ConvexHullCheckBox">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
+        <property name="geometry">
+         <rect>
+          <x>260</x>
+          <y>20</y>
+          <width>111</width>
+          <height>22</height>
+         </rect>
+        </property>
+        <property name="toolTip">
+         <string extracomment="Create a convex hull around the model to remove self-intersection."/>
+        </property>
+        <property name="text">
+         <string>Convex hull</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+       <widget class="QLabel" name="DelaunayAlphaLabel">
+        <property name="geometry">
+         <rect>
+          <x>260</x>
+          <y>40</y>
+          <width>111</width>
+          <height>31</height>
+         </rect>
+        </property>
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="text">
+         <string>Delaunay alpha</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
+       </widget>
+       <widget class="QDoubleSpinBox" name="DelaunayAlphaDoubleSpinBox">
+        <property name="geometry">
+         <rect>
+          <x>380</x>
+          <y>40</y>
+          <width>61</width>
+          <height>27</height>
+         </rect>
+        </property>
+        <property name="value">
+         <double>0.000000000000000</double>
+        </property>
+       </widget>
+      </widget>
+     </widget>
+     <widget class="QWidget" name="CurveParameters">
+      <attribute name="title">
+       <string>Curve parameters</string>
+      </attribute>
+      <widget class="QWidget" name="horizontalLayoutWidget_2">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>0</y>
+         <width>351</width>
+         <height>162</height>
+        </rect>
+       </property>
+       <layout class="QHBoxLayout" name="horizontalLayout_2">
+        <property name="sizeConstraint">
+         <enum>QLayout::SetNoConstraint</enum>
+        </property>
+        <item>
+         <widget class="QGroupBox" name="CurveInterpolationGroupBox">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>100</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>16777215</width>
+            <height>130</height>
+           </size>
+          </property>
+          <property name="title">
+           <string>Interpolation</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+          </property>
+          <widget class="QRadioButton" name="LinearInterpolationButton">
+           <property name="geometry">
+            <rect>
+             <x>10</x>
+             <y>20</y>
+             <width>82</width>
+             <height>17</height>
+            </rect>
+           </property>
+           <property name="text">
+            <string>Linear</string>
+           </property>
+           <property name="checked">
+            <bool>true</bool>
+           </property>
+          </widget>
+          <widget class="QRadioButton" name="CardinalInterpolationRadioButton">
+           <property name="geometry">
+            <rect>
+             <x>10</x>
+             <y>50</y>
+             <width>141</width>
+             <height>17</height>
+            </rect>
+           </property>
+           <property name="text">
+            <string>Cardinal Spline</string>
+           </property>
+          </widget>
+          <widget class="QRadioButton" name="KochanekInterpolationRadioButton">
+           <property name="geometry">
+            <rect>
+             <x>10</x>
+             <y>80</y>
+             <width>141</width>
+             <height>17</height>
+            </rect>
+           </property>
+           <property name="text">
+            <string>Kochanek Spline</string>
+           </property>
+          </widget>
+         </widget>
+        </item>
+        <item>
+         <layout class="QGridLayout" name="gridLayout">
+          <item row="3" column="0">
+           <widget class="QLabel" name="KochanekTensionLabel">
+            <property name="text">
+             <string>Tension</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="KochanekContinuityLabel">
+            <property name="text">
+             <string>Continuity</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="KochanekBiasLabel">
+            <property name="text">
+             <string>Bias</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QDoubleSpinBox" name="KochanekBiasDoubleSpinBox">
+            <property name="minimum">
+             <double>-1.000000000000000</double>
+            </property>
+            <property name="maximum">
+             <double>1.000000000000000</double>
+            </property>
+            <property name="singleStep">
+             <double>0.100000000000000</double>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1">
+           <widget class="QDoubleSpinBox" name="KochanekTensionDoubleSpinBox">
+            <property name="minimum">
+             <double>-1.000000000000000</double>
+            </property>
+            <property name="maximum">
+             <double>1.000000000000000</double>
+            </property>
+            <property name="singleStep">
+             <double>0.100000000000000</double>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QDoubleSpinBox" name="KochanekContinuityDoubleSpinBox">
+            <property name="minimum">
+             <double>-1.000000000000000</double>
+            </property>
+            <property name="maximum">
+             <double>1.000000000000000</double>
+            </property>
+            <property name="singleStep">
+             <double>0.100000000000000</double>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="0">
+           <widget class="QLabel" name="TubeRadiusLabel">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>Tube radius</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QDoubleSpinBox" name="TubeRadiusDoubleSpinBox">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="value">
+             <double>1.000000000000000</double>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QVBoxLayout" name="verticalLayout_4"/>
+        </item>
+       </layout>
+      </widget>
+     </widget>
+    </widget>
+   </item>
+   <item>
+    <widget class="ctkCollapsibleButton" name="DisplayCTKCollapsibleButton">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
        <horstretch>0</horstretch>
@@ -355,10 +718,10 @@
        <height>120</height>
       </size>
      </property>
-     <property name="text" stdset="0">
+     <property name="text">
       <string>Display</string>
      </property>
-     <property name="collapsed" stdset="0">
+     <property name="collapsed">
       <bool>false</bool>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_5">
@@ -400,17 +763,17 @@
            </widget>
           </item>
           <item>
-           <widget class="ctkSliderWidget" name="OutputOpacitySlider" native="true">
-            <property name="singleStep" stdset="0">
+           <widget class="ctkSliderWidget" name="OutputOpacitySlider">
+            <property name="singleStep">
              <double>0.010000000000000</double>
             </property>
-            <property name="pageStep" stdset="0">
+            <property name="pageStep">
              <double>0.100000000000000</double>
             </property>
-            <property name="maximum" stdset="0">
+            <property name="maximum">
              <double>1.000000000000000</double>
             </property>
-            <property name="value" stdset="0">
+            <property name="value">
              <double>1.000000000000000</double>
             </property>
            </widget>
@@ -430,17 +793,17 @@
            </widget>
           </item>
           <item>
-           <widget class="ctkSliderWidget" name="TextScaleSlider" native="true">
+           <widget class="ctkSliderWidget" name="TextScaleSlider">
             <property name="maximumSize">
              <size>
               <width>130</width>
               <height>80</height>
              </size>
             </property>
-            <property name="maximum" stdset="0">
+            <property name="maximum">
              <double>20.000000000000000</double>
             </property>
-            <property name="value" stdset="0">
+            <property name="value">
              <double>4.500000000000000</double>
             </property>
            </widget>
@@ -471,326 +834,6 @@
       </item>
      </layout>
     </widget>
-   </item>
-   <item>
-    <widget class="ctkCollapsibleButton" name="AdvancedConversionParametersCTKCollapsibleButton" native="true">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="maximumSize">
-      <size>
-       <width>16777215</width>
-       <height>350</height>
-      </size>
-     </property>
-     <property name="text" stdset="0">
-      <string>Advance conversion parameters</string>
-     </property>
-     <layout class="QVBoxLayout" name="verticalLayout_39">
-      <item>
-       <widget class="QCheckBox" name="CleanMarkupsCheckBox">
-        <property name="toolTip">
-         <string extracomment="It will merge duplicate  points.  Duplicate points are the ones closer than tolerance distance. The tolerance distance is 1% diagonal size bounding box of total points."/>
-        </property>
-        <property name="text">
-         <string>Clean duplicated markups</string>
-        </property>
-        <property name="checked">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QWidget" name="widget" native="true">
-        <property name="enabled">
-         <bool>true</bool>
-        </property>
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="minimumSize">
-         <size>
-          <width>0</width>
-          <height>180</height>
-         </size>
-        </property>
-        <widget class="QWidget" name="horizontalLayoutWidget">
-         <property name="geometry">
-          <rect>
-           <x>0</x>
-           <y>0</y>
-           <width>396</width>
-           <height>29</height>
-          </rect>
-         </property>
-         <layout class="QHBoxLayout" name="horizontalLayout">
-          <item>
-           <widget class="QCheckBox" name="ButterflySubdivisionCheckBox">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="text">
-             <string>Butterfly subdivision filter</string>
-            </property>
-            <property name="checked">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLabel" name="DelaunayAlphaLabel">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="text">
-             <string>Delaunay alpha</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QDoubleSpinBox" name="DelaunayAlphaDoubleSpinBox">
-            <property name="value">
-             <double>0.000000000000000</double>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-        <widget class="QWidget" name="horizontalLayoutWidget_2">
-         <property name="geometry">
-          <rect>
-           <x>0</x>
-           <y>60</y>
-           <width>351</width>
-           <height>162</height>
-          </rect>
-         </property>
-         <layout class="QHBoxLayout" name="horizontalLayout_2">
-          <property name="sizeConstraint">
-           <enum>QLayout::SetNoConstraint</enum>
-          </property>
-          <item>
-           <widget class="QGroupBox" name="CurveInterpolationGroupBox">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>0</width>
-              <height>100</height>
-             </size>
-            </property>
-            <property name="maximumSize">
-             <size>
-              <width>16777215</width>
-              <height>130</height>
-             </size>
-            </property>
-            <property name="title">
-             <string>Interpolation</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
-            </property>
-            <widget class="QRadioButton" name="LinearInterpolationButton">
-             <property name="geometry">
-              <rect>
-               <x>10</x>
-               <y>20</y>
-               <width>82</width>
-               <height>17</height>
-              </rect>
-             </property>
-             <property name="text">
-              <string>Linear</string>
-             </property>
-             <property name="checked">
-              <bool>true</bool>
-             </property>
-            </widget>
-            <widget class="QRadioButton" name="CardinalInterpolationRadioButton">
-             <property name="geometry">
-              <rect>
-               <x>10</x>
-               <y>50</y>
-               <width>91</width>
-               <height>17</height>
-              </rect>
-             </property>
-             <property name="text">
-              <string>Cardinal Spline</string>
-             </property>
-            </widget>
-            <widget class="QRadioButton" name="KochanekInterpolationRadioButton">
-             <property name="geometry">
-              <rect>
-               <x>10</x>
-               <y>80</y>
-               <width>101</width>
-               <height>17</height>
-              </rect>
-             </property>
-             <property name="text">
-              <string>Kochanek Spline</string>
-             </property>
-            </widget>
-           </widget>
-          </item>
-          <item>
-           <layout class="QGridLayout" name="gridLayout">
-            <item row="3" column="0">
-             <widget class="QLabel" name="KochanekTensionLabel">
-              <property name="text">
-               <string>Tension</string>
-              </property>
-             </widget>
-            </item>
-            <item row="2" column="0">
-             <widget class="QLabel" name="KochanekContinuityLabel">
-              <property name="text">
-               <string>Continuity</string>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="0">
-             <widget class="QLabel" name="KochanekBiasLabel">
-              <property name="text">
-               <string>Bias</string>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="1">
-             <widget class="QDoubleSpinBox" name="KochanekBiasDoubleSpinBox">
-              <property name="minimum">
-               <double>-1.000000000000000</double>
-              </property>
-              <property name="maximum">
-               <double>1.000000000000000</double>
-              </property>
-              <property name="singleStep">
-               <double>0.100000000000000</double>
-              </property>
-             </widget>
-            </item>
-            <item row="3" column="1">
-             <widget class="QDoubleSpinBox" name="KochanekTensionDoubleSpinBox">
-              <property name="minimum">
-               <double>-1.000000000000000</double>
-              </property>
-              <property name="maximum">
-               <double>1.000000000000000</double>
-              </property>
-              <property name="singleStep">
-               <double>0.100000000000000</double>
-              </property>
-             </widget>
-            </item>
-            <item row="2" column="1">
-             <widget class="QDoubleSpinBox" name="KochanekContinuityDoubleSpinBox">
-              <property name="minimum">
-               <double>-1.000000000000000</double>
-              </property>
-              <property name="maximum">
-               <double>1.000000000000000</double>
-              </property>
-              <property name="singleStep">
-               <double>0.100000000000000</double>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="0">
-             <widget class="QLabel" name="TubeRadiusLabel">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="text">
-               <string>Tube radius</string>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="1">
-             <widget class="QDoubleSpinBox" name="TubeRadiusDoubleSpinBox">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="value">
-               <double>1.000000000000000</double>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <layout class="QVBoxLayout" name="verticalLayout_4"/>
-          </item>
-         </layout>
-        </widget>
-        <widget class="QCheckBox" name="ConvexHullCheckBox">
-         <property name="enabled">
-          <bool>true</bool>
-         </property>
-         <property name="geometry">
-          <rect>
-           <x>0</x>
-           <y>30</y>
-           <width>379</width>
-           <height>22</height>
-          </rect>
-         </property>
-         <property name="toolTip">
-          <string extracomment="Create a convex hull around the model to remove self-intersection."/>
-         </property>
-         <property name="text">
-          <string>Convex hull</string>
-         </property>
-         <property name="checked">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item>
-    <spacer name="verticalSpacer">
-     <property name="orientation">
-      <enum>Qt::Vertical</enum>
-     </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>20</width>
-       <height>40</height>
-      </size>
-     </property>
-    </spacer>
    </item>
   </layout>
  </widget>
