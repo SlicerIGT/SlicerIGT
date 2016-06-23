@@ -137,6 +137,8 @@ public:
   vtkSetMacro( ButterflySubdivision, bool );
   vtkGetMacro( DelaunayAlpha, double );
   vtkSetMacro( DelaunayAlpha, double );
+  vtkGetMacro( ConvexHull, bool );
+  vtkSetMacro( ConvexHull, bool );
 
 protected:
 
@@ -206,8 +208,8 @@ private:
   bool CleanMarkups;
   bool ButterflySubdivision;
   double DelaunayAlpha;
+  bool ConvexHull;
   double TubeRadius;
-
   double KochanekTension;
   double KochanekBias; 
   double KochanekContinuity;

@@ -84,6 +84,7 @@ public slots:
   void onCleanMarkupsToggled( bool cleanMarkups );
   void onAutoUpdateOutputToggled( bool autoUpdateOutput );
   void onButterflySubdivisionToggled( bool butterflySubdivision );
+  void onConvexHullToggled( bool convexHull );
 
 
 protected:

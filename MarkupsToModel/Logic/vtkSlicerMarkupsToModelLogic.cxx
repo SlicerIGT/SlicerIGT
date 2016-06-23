@@ -30,23 +30,30 @@
 // VTK includes
 #include <vtkAppendPolyData.h>
 #include <vtkButterflySubdivisionFilter.h>
-#include <vtkCellArray.h> 
+#include <vtkCellArray.h>
 #include <vtkCleanPolyData.h>
 #include <vtkCollection.h>
 #include <vtkCollectionIterator.h>
+#include <vtkCubeSource.h>
 #include <vtkDataSetSurfaceFilter.h>
 #include <vtkDelaunay3D.h>
+#include <vtkGlyph3D.h>
 #include <vtkIntArray.h>
 #include <vtkKochanekSpline.h>
+#include <vtkMath.h>
 #include <vtkNew.h>
+#include <vtkOBBTree.h>
 #include <vtkObjectFactory.h>
 #include <vtkPoints.h>
+#include <vtkPolyDataNormals.h>
 #include <vtkSphereSource.h>
 #include <vtkSplineFilter.h>
 #include <vtkTubeFilter.h>
+#include <vtkUnstructuredGrid.h>
 
 // STD includes
 #include <cassert>
+#include <cmath>
 
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSlicerMarkupsToModelLogic);
@@ -54,7 +61,8 @@ vtkStandardNewMacro(vtkSlicerMarkupsToModelLogic);
 //----------------------------------------------------------------------------
 vtkSlicerMarkupsToModelLogic::vtkSlicerMarkupsToModelLogic()
 {
-  ImportingScene=0;
+  this->ImportingScene=0;
+  this->PlanarSurface = true;
 }
 
 //----------------------------------------------------------------------------
@@ -129,13 +137,14 @@ void vtkSlicerMarkupsToModelLogic::OnMRMLSceneEndImport()
   markupsToModelNodeIt->Delete();
   markupsToModelNodes->Delete();
   this->Modified();
-  ImportingScene=0;
+  this->ImportingScene=0;
+  this->PlanarSurface = true;
 }
 
 //---------------------------------------------------------------------------
 void vtkSlicerMarkupsToModelLogic::OnMRMLSceneStartImport()
 {
-  ImportingScene=1;
+  this->ImportingScene=1;
 }
 
 //---------------------------------------------------------------------------
@@ -199,7 +208,7 @@ void vtkSlicerMarkupsToModelLogic::SetMarkupsNode( vtkMRMLMarkupsFiducialNode* n
 //------------------------------------------------------------------------------
 void vtkSlicerMarkupsToModelLogic::UpdateSelectionNode( vtkMRMLMarkupsToModelNode* markupsToModelModuleNode )
 {
-  vtkMRMLMarkupsFiducialNode* markupsNode = markupsToModelModuleNode->GetMarkupsNode(); 
+  vtkMRMLMarkupsFiducialNode* markupsNode = markupsToModelModuleNode->GetMarkupsNode();
   if(markupsNode == NULL)
   {
     vtkWarningMacro("No markups yet");
@@ -266,25 +275,24 @@ void vtkSlicerMarkupsToModelLogic::UpdateSelectionNode( vtkMRMLMarkupsToModelNod
 //------------------------------------------------------------------------------
 void vtkSlicerMarkupsToModelLogic::UpdateOutputCloseSurfaceModel(vtkMRMLMarkupsToModelNode* markupsToModelModuleNode)
 {
-  vtkMRMLMarkupsFiducialNode* markups = markupsToModelModuleNode->GetMarkupsNode(); 
+  vtkMRMLMarkupsFiducialNode* markups = markupsToModelModuleNode->GetMarkupsNode();
   if(markups == NULL)
   {
-    vtkWarningMacro("No markups yet");
+    this->PlanarSurface = true;
     return;
   }
   int numberOfMarkups = markups->GetNumberOfFiducials();
 
-  if(numberOfMarkups< MINIMUM_MARKUPS_CLOSED_SURFACE_NUMBER)
+  if(numberOfMarkups < 1)
   {
-    //vtkWarningMacro("Not enough fiducials for closed surface");
     if(markupsToModelModuleNode->GetModelNode()!=NULL)
     {
       vtkSmartPointer< vtkSphereSource > sphereSource = vtkSmartPointer< vtkSphereSource >::New();
       markupsToModelModuleNode->GetModelNode()->GetPolyData()->Reset();
       sphereSource->SetRadius(0.00001);
       markupsToModelModuleNode->GetModelNode()->SetPolyDataConnection(sphereSource->GetOutputPort());
-      //vtkWarningMacro("RESET");
     }
+    this->PlanarSurface = true;
     return;
   }
 
@@ -292,18 +300,59 @@ void vtkSlicerMarkupsToModelLogic::UpdateOutputCloseSurfaceModel(vtkMRMLMarkupsT
   vtkSmartPointer< vtkCellArray > modelCellArray = vtkSmartPointer< vtkCellArray >::New();
 
   modelPoints->SetNumberOfPoints(numberOfMarkups);
-  double markupPoint [3] = {0.0, 0.0, 0.0};
-
-  for (int i=0; i<numberOfMarkups;i++)
-  {
-    markups->GetNthFiducialPosition(i,markupPoint);
-    modelPoints->SetPoint(i, markupPoint);
-  }
-
   modelCellArray->InsertNextCell(numberOfMarkups);
-  for (int i=0; i < numberOfMarkups;i++)
+
+  double markupPoint[3] = {0.0, 0.0, 0.0};
+  double coords[numberOfMarkups][3];
+  double meanPoint[3] = {0.0, 0.0, 0.0};
+
+  for (int i = 0; i < numberOfMarkups; i++)
   {
+    markups->GetNthFiducialPosition(i, markupPoint);
+    modelPoints->SetPoint(i, markupPoint);
+    vtkMath::Add(meanPoint, markupPoint, meanPoint);
+    coords[i][0] = markupPoint[0];
+    coords[i][1] = markupPoint[1];
+    coords[i][2] = markupPoint[2];
     modelCellArray->InsertCellPoint(i);
+  }
+  vtkMath::MultiplyScalar(meanPoint, 1.0 / numberOfMarkups);
+
+  double corner[3] = {0.0, 0.0, 0.0};
+  double normal[3] = {0.0, 0.0, 0.0};
+  double temp[3] = {0.0, 0.0, 0.0};
+  vtkSmartPointer<vtkOBBTree> obbTree = vtkSmartPointer<vtkOBBTree>::New();
+  obbTree->ComputeOBB(modelPoints, corner, temp, temp, normal, temp);
+
+  double relative[3] = {0.0, 0.0, 0.0};
+  vtkMath::Subtract(meanPoint, corner, relative);
+  vtkMath::Normalize(normal);
+  double proj[3];
+  std::copy(normal, normal+3, proj);
+  double dotProd = vtkMath::Dot(relative, normal);
+  vtkMath::MultiplyScalar(proj, dotProd);
+
+  double origin[3];
+  vtkMath::Add(corner, proj, origin);
+
+  double A = normal[0];
+  double B = normal[1];
+  double C = normal[2];
+  double x0 = origin[0];
+  double y0 = origin[1];
+  double z0 = origin[2];
+  double D = (-1)*A*x0 - B*y0 - C*z0;
+
+  for (int i = 0; i < numberOfMarkups; i++)
+  {
+    double x1 = coords[i][0];
+    double y1 = coords[i][1];
+    double z1 = coords[i][2];
+    double distance = std::abs(A*x1 + B*y1 + C*z1 + D) / std::sqrt(A*A + B*B + C*C);
+    if (distance >= MINIMUM_THICKNESS)
+    {
+      this->PlanarSurface = false;
+    }
   }
 
   vtkSmartPointer< vtkPolyData > pointPolyData = vtkSmartPointer< vtkPolyData >::New();
@@ -312,25 +361,37 @@ void vtkSlicerMarkupsToModelLogic::UpdateOutputCloseSurfaceModel(vtkMRMLMarkupsT
 
   vtkSmartPointer< vtkDelaunay3D > delaunay = vtkSmartPointer< vtkDelaunay3D >::New();
   delaunay->SetAlpha(markupsToModelModuleNode->GetDelaunayAlpha());
-  if(markupsToModelModuleNode->GetCleanMarkups())
+
+  if (this->PlanarSurface)
   {
-    vtkSmartPointer< vtkCleanPolyData > cleanPointPolyData = vtkSmartPointer< vtkCleanPolyData >::New();
-#if (VTK_MAJOR_VERSION <= 5)
-    cleanPointPolyData->SetInput(pointPolyData);
-#else
-    cleanPointPolyData->SetInputData(pointPolyData);
-#endif
-;
-    cleanPointPolyData->SetTolerance(CLEAN_POLYDATA_TOLERANCE);
-    delaunay->SetInputConnection(cleanPointPolyData->GetOutputPort()); //TODO SET VTK5
+    vtkSmartPointer<vtkCubeSource> cube = vtkSmartPointer<vtkCubeSource>::New();
+    vtkSmartPointer<vtkGlyph3D> glyph = vtkSmartPointer<vtkGlyph3D>::New();
+    glyph->SetSourceConnection(cube->GetOutputPort());
+    glyph->SetInputData(pointPolyData);
+    glyph->Update();
+    delaunay->SetInputConnection(glyph->GetOutputPort());
   }
   else
   {
+    if(markupsToModelModuleNode->GetCleanMarkups())
+    {
+      vtkSmartPointer< vtkCleanPolyData > cleanPointPolyData = vtkSmartPointer< vtkCleanPolyData >::New();
 #if (VTK_MAJOR_VERSION <= 5)
-    delaunay->SetInput( pointPolyData );
+      cleanPointPolyData->SetInput(pointPolyData);
 #else
-    delaunay->SetInputData(pointPolyData);
+      cleanPointPolyData->SetInputData(pointPolyData);
 #endif
+      cleanPointPolyData->SetTolerance(CLEAN_POLYDATA_TOLERANCE);
+      delaunay->SetInputConnection(cleanPointPolyData->GetOutputPort());
+    }
+    else
+    {
+#if (VTK_MAJOR_VERSION <= 5)
+      delaunay->SetInput(pointPolyData);
+#else
+      delaunay->SetInputData(pointPolyData);
+#endif
+    }
   }
 
   vtkSmartPointer< vtkDataSetSurfaceFilter > surfaceFilter = vtkSmartPointer< vtkDataSetSurfaceFilter >::New();
@@ -350,16 +411,39 @@ void vtkSlicerMarkupsToModelLogic::UpdateOutputCloseSurfaceModel(vtkMRMLMarkupsT
 
   if(markupsToModelModuleNode->GetButterflySubdivision())
   {
-    vtkSmartPointer< vtkButterflySubdivisionFilter > subdivisionFilter = vtkSmartPointer< vtkButterflySubdivisionFilter >::New();
-    subdivisionFilter->SetInputConnection(surfaceFilter->GetOutputPort());
-    subdivisionFilter->SetNumberOfSubdivisions(3);
-    subdivisionFilter->Update();
-    modelNode->SetAndObservePolyData( subdivisionFilter->GetOutput() );
+    if (this->PlanarSurface)
+    {
+      surfaceFilter->Update();
+      vtkSmartPointer<vtkPolyDataNormals> normals = vtkSmartPointer<vtkPolyDataNormals>::New();
+      normals->SetInputConnection(surfaceFilter->GetOutputPort());
+      normals->SetFeatureAngle(100);
+      normals->Update();
+      modelNode->SetPolyDataConnection(normals->GetOutputPort());
+    }
+    else
+    {
+      vtkSmartPointer< vtkButterflySubdivisionFilter > subdivisionFilter = vtkSmartPointer< vtkButterflySubdivisionFilter >::New();
+      subdivisionFilter->SetInputConnection(surfaceFilter->GetOutputPort());
+      subdivisionFilter->SetNumberOfSubdivisions(3);
+      subdivisionFilter->Update();
+      modelNode->SetAndObservePolyData( subdivisionFilter->GetOutput() );
+      if(markupsToModelModuleNode->GetConvexHull())
+      {
+        vtkSmartPointer<vtkDelaunay3D> convexHull = vtkSmartPointer<vtkDelaunay3D>::New();
+        convexHull->SetAlpha(markupsToModelModuleNode->GetDelaunayAlpha());
+        convexHull->SetInputConnection(subdivisionFilter->GetOutputPort());
+        convexHull->Update();
+        vtkSmartPointer<vtkDataSetSurfaceFilter> surfaceFilter = vtkSmartPointer<vtkDataSetSurfaceFilter>::New();
+        surfaceFilter->SetInputData(convexHull->GetOutput());
+        surfaceFilter->Update();
+        modelNode->SetAndObservePolyData(surfaceFilter->GetOutput());
+      }
+    }
   }
   else
   {
     surfaceFilter->Update();
-    modelNode->SetAndObservePolyData( surfaceFilter->GetOutput() );
+    modelNode->SetAndObservePolyData(surfaceFilter->GetOutput());
   }
 
   if(markupsToModelModuleNode->GetModelNode() == NULL)
@@ -370,6 +454,7 @@ void vtkSlicerMarkupsToModelLogic::UpdateOutputCloseSurfaceModel(vtkMRMLMarkupsT
     modelNode->SetAndObserveDisplayNodeID( displayNode->GetID() );
     markupsToModelModuleNode->SetModelNode(modelNode);
   }
+  this->PlanarSurface = true;
 }
 
 //------------------------------------------------------------------------------
@@ -467,7 +552,7 @@ void vtkSlicerMarkupsToModelLogic::UpdateOutputHermiteSplineModel(vtkMRMLMarkups
 #endif
 
   splineFilter->SetNumberOfSubdivisions(totalNumberOfPoints);
-  
+
   vtkSmartPointer<vtkKochanekSpline> spline;
   if (markupsToModelModuleNode->GetInterpolationType()== vtkMRMLMarkupsToModelNode::KochanekSpline)
   {
@@ -503,10 +588,9 @@ void vtkSlicerMarkupsToModelLogic::UpdateOutputHermiteSplineModel(vtkMRMLMarkups
 void vtkSlicerMarkupsToModelLogic::UpdateOutputCurveModel(vtkMRMLMarkupsToModelNode* markupsToModelModuleNode)
 {
 
-  vtkMRMLMarkupsFiducialNode* markupsNode=markupsToModelModuleNode->GetMarkupsNode(); 
+  vtkMRMLMarkupsFiducialNode* markupsNode=markupsToModelModuleNode->GetMarkupsNode();
   if(markupsNode==NULL)
   {
-    //vtkWarningMacro("No markups yet");
     return;
   }
 
@@ -543,7 +627,7 @@ void vtkSlicerMarkupsToModelLogic::UpdateOutputCurveModel(vtkMRMLMarkupsToModelN
   vtkSmartPointer< vtkCleanPolyData > cleanPointPolyData = vtkSmartPointer< vtkCleanPolyData >::New();
   if(markupsToModelModuleNode->GetCleanMarkups())
   {
-    //vtkWarningMacro("PUTOS " << markupsPointsPolyData->GetNumberOfPoints() ); 
+    //vtkWarningMacro("PUTOS " << markupsPointsPolyData->GetNumberOfPoints() );
 
 #if (VTK_MAJOR_VERSION <= 5)
     cleanPointPolyData->SetInput(markupsPointsPolyData);
@@ -571,7 +655,7 @@ void vtkSlicerMarkupsToModelLogic::UpdateOutputCurveModel(vtkMRMLMarkupsToModelN
 //------------------------------------------------------------------------------
 void vtkSlicerMarkupsToModelLogic::UpdateOutputModel(vtkMRMLMarkupsToModelNode* markupsToModelModuleNode)
 {
-  if(ImportingScene==1)
+  if(this->ImportingScene==1)
   {
     return;
   }
@@ -606,5 +690,3 @@ void vtkSlicerMarkupsToModelLogic::ProcessMRMLNodesEvents( vtkObject* caller, un
     }
   }
 }
-
-
