@@ -1,0 +1,39 @@
+QAbstractButton,
+QPushButton {
+    border-style: outset;
+    border-width: 3px;
+    border-radius: 10px;
+    background-color: beige;
+    border-color: gray;
+    font-size: 16pt; height: 30px;
+}
+
+QAbstractButton:pressed,
+QPushButton:pressed {
+    border-style: outset;
+    border-width: 3px;
+    border-radius: 10px;
+    background-color: gray;
+    border-color: gray;
+    font-size: 16pt; height: 30px;
+}
+
+QFrame {
+    background-color: #008000;
+    border-color: #008000;
+    color: #ffffff
+}
+
+QLabel {
+    font-size: 12pt;
+}
+
+QDockWidget:title {
+    background-color: #008000;
+    text-align: center;
+}
+
+QDockWidget {
+    color: #ffffff;
+    font-size: 12pt; 
+}
