@@ -31,7 +31,8 @@
 // MarkupsToModel includes
 #include "vtkSlicerMarkupsToModelModuleMRMLExport.h"
 
-static const char* MARKUPS_ROLE = "markupsToModelRoleNode";
+static const char* INPUT_MARKUPS_ROLE = "markupsToModelInputMarkups";
+static const char* OUTPUT_MODEL_ROLE = "markupsToModelOutputModel";
 
 class vtkMRMLModelNode;
 class vtkMRMLMarkupsFiducialNode;
@@ -102,15 +103,6 @@ public:
   virtual void WriteXML( ostream& of, int indent );
   virtual void Copy( vtkMRMLNode *node );
 
-  //vtkGetMacro( ModelNodeName, char* );
-  vtkSetMacro( ModelNodeID, std::string );
-  vtkSetMacro( MarkupsNodeID, std::string );
-  vtkGetMacro( ModelNodeID, std::string );
-  vtkGetMacro( MarkupsNodeID, std::string );
-
-  vtkGetMacro( ModelNode, vtkMRMLModelNode * );
-  vtkSetMacro( ModelNode, vtkMRMLModelNode * );
-
   vtkGetMacro( KochanekTension, double );
   vtkSetMacro( KochanekTension, double );
   vtkGetMacro( KochanekBias, double );
@@ -119,14 +111,16 @@ public:
   vtkSetMacro( KochanekContinuity, double );
 
 
-  vtkGetMacro( TubeRadius, double );
-  vtkSetMacro( TubeRadius, double );
   vtkGetMacro( ModelType, int );
   vtkSetMacro( ModelType, int );
   vtkGetMacro( InterpolationType, int );
   vtkSetMacro( InterpolationType, int );
-  vtkGetMacro( NumberOfIntermediatePoints, int );
-  vtkSetMacro( NumberOfIntermediatePoints, int );
+  vtkGetMacro( TubeRadius, double );
+  vtkSetMacro( TubeRadius, double );
+  vtkGetMacro( TubeResolutionLength, int );
+  vtkSetMacro( TubeResolutionLength, int );
+  vtkGetMacro( TubeResolutionAround, int );
+  vtkSetMacro( TubeResolutionAround, int );
   
   
   vtkGetMacro( AutoUpdateOutput, bool );
@@ -156,64 +150,50 @@ public:
 
   // 
   void SetAndObserveMarkupsNodeID( const char* markupsId );
+  void SetAndObserveModelNodeID( const char* modelId );
   void ProcessMRMLEvents( vtkObject *caller, unsigned long event, void *callData );
 
   // Convert between model and interpolation types IDs and names.
-  const char* GetModelTypeAsString(int id);
-  const char* GetInterpolationTypeAsString(int id);
-  int GetModelTypeFromString(const char* name);
-  int GetInterpolationTypeFromString(const char* name);
+  const char* GetModelTypeAsString( int id );
+  const char* GetInterpolationTypeAsString( int id );
+  int GetModelTypeFromString( const char* name );
+  int GetInterpolationTypeFromString( const char* name );
 
-  /// Gets the specified tool watched from the tools' list
-  vtkMRMLMarkupsFiducialNode * GetMarkupsNode();
-  /// Gets the list of tools 
-  //std::list<MarkupsTool>* GetToolNodes();
-  /// Adds the displayble node into the tools list, adding label, status,id, and last time stamp information.
-  //void AddMarkupsNode( vtkMRMLMarkupsFiducialNode* markupsAdded);
-  /// Removes the specified tool watched from the tools' list
-  void RemoveAllMarkups();
-  void RemoveLastMarkup();
-  /// Swaps the specified tools watched from the tools' list
-  void SwapTools( int toolA, int toolB );
-  /// Returns True if the list of tools already contains the tool name
-  bool HasTool(char * toolName);
-  /// Returns the size of the list of tools
-  //int GetNumberOfMarkups();
-  std::string GetModelNodeName();
-  std::string GetDisplayNodeName();
+  vtkMRMLMarkupsFiducialNode * GetMarkupsNode( );
+  vtkMRMLModelNode* GetModelNode( );
+  std::string GetModelNodeName( );
+  std::string GetModelDisplayNodeName( );
+  std::string GetMarkupsDisplayNodeName( );
 
-
-  void SetOutputIntersectionVisibility(bool outputIntersectionVisibility);
-  void SetOutputVisibility(bool outputVisibility);
-  void SetOutputOpacity(double outputOpacity);
-  //vtkGetVector3Macro(WarningColor, double);
-  virtual void SetOutputColor(double redComponent, double greenComponent, double blueComponent);
-  //virtual void SetWarningColor(double _arg[3]);
+  void SetOutputIntersectionVisibility( bool outputIntersectionVisibility );
+  void SetOutputVisibility( bool outputVisibility );
+  void SetOutputOpacity( double outputOpacity );
+  virtual void SetOutputColor( double redComponent, double greenComponent, double blueComponent );
+  void SetMarkupsTextScale( double scale );
 
   bool GetOutputIntersectionVisibility( );
   bool GetOutputVisibility( );
   double GetOutputOpacity( );
-  //vtkGetVector3Macro(WarningColor, double);
-  void GetOutputColor( double outputColor[3]  );
+  void GetOutputColor( double outputColor[3] );
+  double GetMarkupsTextScale( );
+
+  void createAndObserveModelDisplayNode( );
+  void createAndObserveMarkupsDisplayNode( );
 
 private:
-  vtkMRMLMarkupsFiducialNode * Markups;
-  vtkMRMLModelNode * ModelNode;
-  std::string MarkupsNodeID;
-  std::string ModelNodeID;
-  int ModelType;
-  int InterpolationType;
-  int NumberOfIntermediatePoints;
-  bool AutoUpdateOutput;
-  bool CleanMarkups;
-  bool ButterflySubdivision;
+  int    ModelType;
+  int    InterpolationType;
+  bool   AutoUpdateOutput;
+  bool   CleanMarkups;
+  bool   ButterflySubdivision;
   double DelaunayAlpha;
-  bool ConvexHull;
+  bool   ConvexHull;
   double TubeRadius;
+  int    TubeResolutionLength;
+  int    TubeResolutionAround;
   double KochanekTension;
   double KochanekBias; 
   double KochanekContinuity;
-
 };
 
 #endif

@@ -41,60 +41,27 @@ public:
 public slots:
   void setMRMLScene( vtkMRMLScene* scene );
   void onSceneImportedEvent();
-  //void onModelNodeChanged();
-  /// Refresh the gui from the currently active toolwatchdog node 
+
   void updateFromMRMLNode();
-  /// Deletes and creates a table. Updates gui accordingly to node state
-  void updateWidget();
+  void updateToMRMLNode();
 
+  void blockAllSignals();
+  void unblockAllSignals();
+  void enableAllWidgets();
+  void disableAllWidgets();
+  
+  void UpdateOutputModel();
 
-  void onModelNodeChanged();
-
-  /// Update the selection node from the combobox
-  void onParameterNodeChanged();
-  void onNodeAboutToBeEdited(vtkMRMLNode* node);
-
-
-  void onCurrentMarkupsNodeChanged();
-  /// When the user clicks the combobox to create a new MarkupsToModel node,
-  /// connects the toolbar with widget for visibility control
-  void onParameterNodeAddedByUser(vtkMRMLNode* nodeAdded);
-  /// Clean up the table when toolMarkupsToModel node is about to be removed
-  //void onMarkupsToModelModuleNodeAboutToBeRemoved(vtkMRMLNode* nodeToBeRemoved);
-
-  void onUpdateOutputModelPushButton();
-
-  void onDeleteAllPushButton();
-  void onDeleteLastModelPushButton();
-  void onPlacePushButtonClicked();
-
-  void onInterpolationBoxClicked( bool nana );
-  void onModeGroupBoxClicked( bool nana );
-  void onOutputOpacityValueChanged( double outputTransparency );
-  void onOutputColorChanged( QColor newColor );
-  void onTubeRadiusDoubleChanged( double tubeRadius );
-  void onKochanekContinuityDoubleChanged( double kochanekContinuity );
-  void onKochanekBiasDoubleChanged( double kochanekBias );
-  void onKochanekTensionDoubleChanged( double kochanekTension );
-
-  void onDelaunayAlphaDoubleChanged( double delaunayAlpha );
-  void onOutputVisibilityToggled( bool outputVisibility );
-  void onTextScaleChanged( double textScale );
-  void onOutputIntersectionVisibilityToggled( bool outputIntersectionVisibility );
-  void onCleanMarkupsToggled( bool cleanMarkups );
-  void onAutoUpdateOutputToggled( bool autoUpdateOutput );
-  void onButterflySubdivisionToggled( bool butterflySubdivision );
-  void onConvexHullToggled( bool convexHull );
-
+  void onActionUpdateAuto();
+  void onActionUpdateManual();
 
 protected:
   QScopedPointer<qSlicerMarkupsToModelModuleWidgetPrivate> d_ptr;
 
-  void UpdateOutputModel();
-
   virtual void setup();
   virtual void enter();
   virtual void exit();
+  virtual bool eventFilter(QObject * obj, QEvent *event);
 
 private:
   Q_DECLARE_PRIVATE(qSlicerMarkupsToModelModuleWidget);
