@@ -129,7 +129,7 @@
       <bool>false</bool>
      </property>
      <property name="collapsed">
-      <bool>true</bool>
+      <bool>false</bool>
      </property>
      <layout class="QGridLayout" name="gridLayout_4">
       <item row="10" column="0">
@@ -297,7 +297,7 @@
        </widget>
       </item>
       <item row="6" column="1">
-       <widget class="QCheckBox" name="ConvexHullResultCheckBox">
+       <widget class="QCheckBox" name="ConvexHullCheckBox">
         <property name="text">
          <string/>
         </property>
@@ -323,7 +323,7 @@
        </widget>
       </item>
       <item row="6" column="0">
-       <widget class="QLabel" name="ConvexHullResultLabel">
+       <widget class="QLabel" name="ConvexHullLabel">
         <property name="text">
          <string>Convex Hull on Result</string>
         </property>

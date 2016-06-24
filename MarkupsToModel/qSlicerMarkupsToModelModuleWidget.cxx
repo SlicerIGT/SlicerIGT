@@ -97,6 +97,7 @@ qSlicerMarkupsToModelModuleWidget::~qSlicerMarkupsToModelModuleWidget()
   //disconnect( d->PlacePushButton, SIGNAL( clicked() ), this, SLOT( onPlacePushButtonClicked() ) );
 
   disconnect( d->ButterflySubdivisionCheckBox, SIGNAL( toggled( bool ) ), this, SLOT( onButterflySubdivisionToggled( bool ) ) );
+  disconnect( d->ConvexHullCheckBox, SIGNAL( toggled( bool ) ), this, SLOT( onConvexHullToggled( bool ) ) );
 
   disconnect( d->CleanMarkupsCheckBox, SIGNAL( toggled( bool ) ), this, SLOT( onCleanMarkupsToggled( bool ) ) );
   disconnect( d->ModeClosedSurfaceRadioButton, SIGNAL( toggled( bool ) ), this, SLOT( onModeGroupBoxClicked( bool ) ) );
@@ -200,6 +201,7 @@ void qSlicerMarkupsToModelModuleWidget::setup()
   connect( d->UpdateButton, SIGNAL(toggled(bool)), this, SLOT(onAutoUpdateOutputToggled(bool)) );
 
   connect( d->ButterflySubdivisionCheckBox, SIGNAL( toggled( bool ) ), this, SLOT( onButterflySubdivisionToggled( bool ) ) );
+  connect( d->ConvexHullCheckBox, SIGNAL( toggled( bool ) ), this, SLOT( onConvexHullToggled( bool ) ) );
 
   connect( d->CleanMarkupsCheckBox, SIGNAL( toggled( bool ) ), this, SLOT( onCleanMarkupsToggled( bool ) ) );
 
@@ -426,10 +428,10 @@ void qSlicerMarkupsToModelModuleWidget::updateFromMRMLNode()
   switch( MarkupsToModelNode->GetModelType() )
   {
   case vtkMRMLMarkupsToModelNode::ClosedSurface: 
-    d->ModeClosedSurfaceRadioButton->setChecked( 1 );
+    d->ModeClosedSurfaceRadioButton->setChecked( 1 ); break;
     d->ButterflySubdivisionCheckBox->setChecked( MarkupsToModelNode->GetButterflySubdivision() );
     d->DelaunayAlphaDoubleSpinBox->setValue( MarkupsToModelNode->GetDelaunayAlpha() );
-    break;
+    d->ConvexHullCheckBox->setChecked( MarkupsToModelNode->GetConvexHull() );
 
   case vtkMRMLMarkupsToModelNode::Curve:
     d->ModeCurveRadioButton->setChecked( 1 );
@@ -658,6 +660,7 @@ void qSlicerMarkupsToModelModuleWidget::onModeGroupBoxClicked( bool nana )
     d->ButterflySubdivisionCheckBox->setVisible( true );
     d->DelaunayAlphaLabel->setVisible( true );
     d->DelaunayAlphaDoubleSpinBox->setVisible( true );
+    d->ConvexHullCheckBox->setVisible( true );
 
     d->SplineInterpolationLayout->setEnabled(false);
     d->TubeRadiusLabel->setVisible( false );
@@ -675,6 +678,7 @@ void qSlicerMarkupsToModelModuleWidget::onModeGroupBoxClicked( bool nana )
     d->ButterflySubdivisionCheckBox->setVisible( false );
     d->DelaunayAlphaLabel->setVisible( false );
     d->DelaunayAlphaDoubleSpinBox->setVisible( false );
+    d->ConvexHullCheckBox->setVisible( false );
 
     d->SplineInterpolationLayout->setEnabled(true);
     d->TubeRadiusLabel->setVisible( true );
@@ -878,6 +882,20 @@ void qSlicerMarkupsToModelModuleWidget::onButterflySubdivisionToggled( bool butt
     return;
   }
   markupsToModelModuleNode->SetButterflySubdivision( butterflySubdivision );
+  UpdateOutputModel();
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerMarkupsToModelModuleWidget::onConvexHullToggled( bool convexHull )
+{
+  Q_D( qSlicerMarkupsToModelModuleWidget );
+  vtkMRMLMarkupsToModelNode* markupsToModelModuleNode = vtkMRMLMarkupsToModelNode::SafeDownCast( d->ModuleNodeComboBox->currentNode() );
+  if ( markupsToModelModuleNode == NULL )
+  {
+    qCritical( "Model node changed with no module node selection" );
+    return;
+  }
+  markupsToModelModuleNode->SetConvexHull( convexHull );
   UpdateOutputModel();
 }
 
