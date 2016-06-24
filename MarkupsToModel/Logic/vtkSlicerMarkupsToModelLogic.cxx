@@ -303,7 +303,7 @@ void vtkSlicerMarkupsToModelLogic::UpdateOutputCloseSurfaceModel(vtkMRMLMarkupsT
   modelCellArray->InsertNextCell(numberOfMarkups);
 
   double markupPoint[3] = {0.0, 0.0, 0.0};
-  double coords[numberOfMarkups][3];
+  double* coords = new double[numberOfMarkups*3];
   double meanPoint[3] = {0.0, 0.0, 0.0};
 
   for (int i = 0; i < numberOfMarkups; i++)
@@ -311,9 +311,9 @@ void vtkSlicerMarkupsToModelLogic::UpdateOutputCloseSurfaceModel(vtkMRMLMarkupsT
     markups->GetNthFiducialPosition(i, markupPoint);
     modelPoints->SetPoint(i, markupPoint);
     vtkMath::Add(meanPoint, markupPoint, meanPoint);
-    coords[i][0] = markupPoint[0];
-    coords[i][1] = markupPoint[1];
-    coords[i][2] = markupPoint[2];
+    coords[i * 3 + 0] = markupPoint[0];
+    coords[i * 3 + 1] = markupPoint[1];
+    coords[i * 3 + 2] = markupPoint[2];
     modelCellArray->InsertCellPoint(i);
   }
   vtkMath::MultiplyScalar(meanPoint, 1.0 / numberOfMarkups);
@@ -345,15 +345,17 @@ void vtkSlicerMarkupsToModelLogic::UpdateOutputCloseSurfaceModel(vtkMRMLMarkupsT
 
   for (int i = 0; i < numberOfMarkups; i++)
   {
-    double x1 = coords[i][0];
-    double y1 = coords[i][1];
-    double z1 = coords[i][2];
+    double x1 = coords[i * 3 + 0];
+    double y1 = coords[i * 3 + 1];
+    double z1 = coords[i * 3 + 2];
     double distance = std::abs(A*x1 + B*y1 + C*z1 + D) / std::sqrt(A*A + B*B + C*C);
     if (distance >= MINIMUM_THICKNESS)
     {
       this->PlanarSurface = false;
     }
   }
+
+  delete[] coords;
 
   vtkSmartPointer< vtkPolyData > pointPolyData = vtkSmartPointer< vtkPolyData >::New();
   pointPolyData->SetLines(modelCellArray);
