@@ -302,7 +302,7 @@ void vtkSlicerMarkupsToModelLogic::UpdateOutputCloseSurfaceModel(vtkMRMLMarkupsT
   modelCellArray->InsertNextCell(numberOfMarkups);
 
   double markupPoint[3] = {0.0, 0.0, 0.0};
-  double* coords = new double[numberOfMarkups * 3];
+  double* coords = new double[numberOfMarkups*3];
   double meanPoint[3] = {0.0, 0.0, 0.0};
 
   for (int i = 0; i < numberOfMarkups; i++)
@@ -310,9 +310,9 @@ void vtkSlicerMarkupsToModelLogic::UpdateOutputCloseSurfaceModel(vtkMRMLMarkupsT
     markups->GetNthFiducialPosition(i, markupPoint);
     modelPoints->SetPoint(i, markupPoint);
     vtkMath::Add(meanPoint, markupPoint, meanPoint);
-    coords[3 * i + 0] = markupPoint[0];
-    coords[3 * i + 1] = markupPoint[1];
-    coords[3 * i + 2] = markupPoint[2];
+    coords[i * 3 + 0] = markupPoint[0];
+    coords[i * 3 + 1] = markupPoint[1];
+    coords[i * 3 + 2] = markupPoint[2];
     modelCellArray->InsertCellPoint(i);
   }
   vtkMath::MultiplyScalar(meanPoint, 1.0 / numberOfMarkups);
