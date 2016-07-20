@@ -1405,9 +1405,10 @@ class PlusRemoteLogic(ScriptedLoadableModuleLogic):
     # Get timestamp, for example: 20140528_133802
     timestamp = time.strftime("%Y%m%d_%H%M%S")
     # Add timestamp to filename:
-    # - if .mha or .mhd extension specified: find the last occurrence ($) of .mhd or .mha and insert timestamp before that
+    # - if .mha, .mhd, or nrrd extension specified: find the last occurrence ($) of .mhd, .mha or nrrd, and insert timestamp before that
     # - if no extension found then append timestamp to the end
-    return re.sub('(\.mh[ad]$)|$','{0}\g<0>'.format(timestamp),filename, 1, re.IGNORECASE)
+    return re.sub('(\.nrrd$)|(\.mh[ad]$)|$','{0}\g<0>'.format(timestamp),filename, 1, re.IGNORECASE)
+
     
   def executeCommand(self, command, connectorNodeId, responseCallbackMethod):
     command.RemoveObservers(slicer.vtkSlicerOpenIGTLinkCommand.CommandCompletedEvent)
