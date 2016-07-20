@@ -70,6 +70,7 @@ public slots:
 
   void onInterpolationBoxClicked( bool nana );
   void onModeGroupBoxClicked( bool nana );
+  void onSmoothingFilterGroupBoxClicked( bool nana );
   void onOutputOpacityValueChanged( double outputTransparency );
   void onOutputColorChanged( QColor newColor );
   void onTubeRadiusDoubleChanged( double tubeRadius );
@@ -83,7 +84,6 @@ public slots:
   void onOutputIntersectionVisibilityToggled( bool outputIntersectionVisibility );
   void onCleanMarkupsToggled( bool cleanMarkups );
   void onAutoUpdateOutputToggled( bool autoUpdateOutput );
-  void onButterflySubdivisionToggled( bool butterflySubdivision );
   void onConvexHullToggled( bool convexHull );
 
 

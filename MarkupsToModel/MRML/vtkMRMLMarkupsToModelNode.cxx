@@ -54,8 +54,7 @@ vtkMRMLMarkupsToModelNode::vtkMRMLMarkupsToModelNode()
 
   this->AutoUpdateOutput=true;
   this->CleanMarkups=true;
-  this->ConvexHull=true;
-  this->ButterflySubdivision=true;
+  this->SmoothingType = 0;
   this->DelaunayAlpha=0.0;
   this->TubeRadius=1.0;
   this->ModelType = 0;
@@ -449,6 +448,19 @@ const char* vtkMRMLMarkupsToModelNode::GetInterpolationTypeAsString(int id)
   }
 }
 
+const char* vtkMRMLMarkupsToModelNode::GetSmoothingTypeAsString(int id)
+{
+  switch(id)
+  {
+  case NoFilter: return "noFilter";
+  case NormalsFilter: return "normalsFilter";
+  case ButterflyFilter: return "butterflyilter";
+  default:
+    // invalid id
+    return "";
+  }
+}
+
 int vtkMRMLMarkupsToModelNode::GetModelTypeFromString(const char* name)
 {
   if (name == NULL)
@@ -478,6 +490,25 @@ int vtkMRMLMarkupsToModelNode::GetInterpolationTypeFromString(const char* name)
   for (int i=0; i < InterpolationType_Last; i++)
   {
     if (strcmp(name, GetInterpolationTypeAsString(i)) == 0)
+    {
+      // found a matching name
+      return i;
+    }
+  }
+  // unknown name
+  return -1;
+}
+
+int vtkMRMLMarkupsToModelNode::GetSmoothingTypeFromString(const char* name)
+{
+  if (name == NULL)
+  {
+    // invalid name
+    return -1;
+  }
+  for (int i=0; i < SmoothingType_Last; i++)
+  {
+    if (strcmp(name, GetSmoothingTypeAsString(i)) == 0)
     {
       // found a matching name
       return i;
