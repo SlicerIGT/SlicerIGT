@@ -325,6 +325,7 @@ bool vtkSlicerFiducialRegistrationWizardLogic::UpdateCalibration( vtkMRMLNode* n
     {
       // we cannot reuse the existing transform, create a new one
       vtkNew<vtkThinPlateSplineTransform> newTpsTransform;
+      newTpsTransform->SetBasisToR();
       tpsTransform = newTpsTransform.GetPointer();
       outputTransformNode->SetAndObserveTransformFromParent(tpsTransform);
     }
