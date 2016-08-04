@@ -15,6 +15,9 @@
 // Other includes
 #include <sstream>
 
+static const char* INPUT_MARKUPS_ROLE = "InputMarkups";
+static const char* OUTPUT_MODEL_ROLE = "OutputModel";
+
 vtkMRMLMarkupsToModelNode* vtkMRMLMarkupsToModelNode::New()
 {
   // First try to create the object from the vtkObjectFactory
@@ -45,8 +48,8 @@ vtkMRMLMarkupsToModelNode::vtkMRMLMarkupsToModelNode()
   this->ButterflySubdivision = true;
   this->DelaunayAlpha = 0.0;
   this->TubeRadius = 1.0;
-  this->TubeResolutionLength = 20;
-  this->TubeResolutionAround = 20;
+  this->TubeSamplingFrequency = 5;
+  this->TubeNumberOfSides = 8;
   this->ModelType = 0;
   this->InterpolationType = 0;
 
@@ -84,8 +87,8 @@ void vtkMRMLMarkupsToModelNode::WriteXML( ostream& of, int nIndent )
   of << indent << " DelaunayAlpha =\"" << this->DelaunayAlpha << "\"";
   of << indent << " InterpolationType=\"" << this->InterpolationType << "\"";
   of << indent << " TubeRadius=\"" << this->TubeRadius << "\"";
-  of << indent << " TubeResolutionAround=\"" << this->TubeResolutionAround << "\"";
-  of << indent << " TubeResolutionLength=\"" << this->TubeResolutionLength << "\"";
+  of << indent << " TubeResolutionAround=\"" << this->TubeNumberOfSides << "\"";
+  of << indent << " TubeResolutionLength=\"" << this->TubeSamplingFrequency << "\"";
   of << indent << " KochanekBias=\"" << this->KochanekBias << "\"";
   of << indent << " KochanekContinuity=\"" << this->KochanekContinuity << "\"";
   of << indent << " KochanekTension=\"" << this->KochanekTension << "\"";
@@ -94,6 +97,8 @@ void vtkMRMLMarkupsToModelNode::WriteXML( ostream& of, int nIndent )
 
 void vtkMRMLMarkupsToModelNode::ReadXMLAttributes( const char** atts )
 {
+  int disabledModify = this->StartModify();
+
   Superclass::ReadXMLAttributes(atts); // This will take care of referenced nodes
 
   // Read all MRML node attributes from two arrays of names and values
@@ -106,104 +111,135 @@ void vtkMRMLMarkupsToModelNode::ReadXMLAttributes( const char** atts )
     attValue = *(atts++);
     if ( ! strcmp( attName, "ModelType" ) )
     {
-      int id = this->GetModelTypeFromString(attValue);
-      if (id < 0)
-      {
-        vtkWarningMacro("Invalid ModelType: " << (attValue ? attValue : "(none)"));
-      }
-      else
-      {
-        this->ModelType = id;
-      }
+      int modelType = 0;
       std::stringstream nameString;
       nameString << attValue;
-      //int r = 0;
-      nameString >> this->ModelType;
+      nameString >> modelType;
+      if (modelType < 0 || modelType >= ModelType_Last)
+      {
+        vtkWarningMacro("Model type " << modelType << " is invalid. Using 0 (" << GetModelTypeAsString(modelType) << ")");
+        modelType = 0;
+      }
+      SetModelType(modelType);
     }
     else if ( ! strcmp( attName, "AutoUpdateOutput" ) )
     {
-      std::stringstream nameString;
-      nameString << attValue;
-      nameString >> this->AutoUpdateOutput;
+      SetAutoUpdateOutput(!strcmp(attValue,"true"));
     }
     else if ( ! strcmp( attName, "CleanMarkups" ) )
     {
-      std::stringstream nameString;
-      nameString << attValue;
-      nameString >> this->CleanMarkups;
+      SetCleanMarkups(!strcmp(attValue,"true"));
     }
     else if ( ! strcmp( attName, "ConvexHull" ) )
     {
-      std::stringstream nameString;
-      nameString << attValue;
-      nameString >> this->ConvexHull;
+      SetConvexHull(!strcmp(attValue,"true"));
     }
     else if ( ! strcmp( attName, "ButterflySubdivision" ) )
     {
-      std::stringstream nameString;
-      nameString << attValue;
-      nameString >> this->ButterflySubdivision;
+      SetButterflySubdivision(!strcmp(attValue,"true"));
     }
     else if ( ! strcmp( attName, "DelaunayAlpha" ) )
     {
+      double delaunayAlpha = 0.0;
       std::stringstream nameString;
       nameString << attValue;
-      nameString >> this->DelaunayAlpha;
+      nameString >> delaunayAlpha;
+      SetDelaunayAlpha(delaunayAlpha);
     }
     else if ( ! strcmp( attName, "InterpolationType" ) )
     {
-      int id = this->GetInterpolationTypeFromString(attValue);
-      if (id < 0)
-      {
-        vtkWarningMacro("Invalid InterpolationType: " << (attValue ? attValue : "(none)"));
-      }
-      else
-      {
-        this->InterpolationType = id;
-      }
+      int interpolationType = 0;
       std::stringstream nameString;
       nameString << attValue;
-      nameString >> this->InterpolationType;
+      nameString >> interpolationType;
+      if (interpolationType < 0 || interpolationType >= InterpolationType_Last)
+      {
+        vtkWarningMacro("Interpolation type " << interpolationType << " is invalid. Using 0 (" << GetInterpolationTypeAsString(interpolationType) << ")");
+        interpolationType = 0;
+      }
+      SetInterpolationType(interpolationType);
     }
     else if ( ! strcmp( attName, "TubeRadius" ) )
     {
+      double tubeRadius = 0.0;
       std::stringstream nameString;
       nameString << attValue;
-      nameString >> this->TubeRadius;
+      nameString >> tubeRadius;
+      SetTubeRadius(tubeRadius);
     }
-    else if ( ! strcmp( attName, "TubeResolutionAround" ) )
+    else if ( ! strcmp( attName, "TubeNumberOfSides" ) )
     {
+      double tubeNumberOfSides = 0.0;
       std::stringstream nameString;
       nameString << attValue;
-      nameString >> this->TubeResolutionAround;
+      nameString >> tubeNumberOfSides;
+      SetTubeNumberOfSides(tubeNumberOfSides);
     }
-    else if ( ! strcmp( attName, "TubeResolutionLength" ) )
+    else if ( ! strcmp( attName, "TubeSamplingFrequency" ) )
     {
+      double tubeSamplingFrequency = 0.0;
       std::stringstream nameString;
       nameString << attValue;
-      nameString >> this->TubeResolutionLength;
+      nameString >> tubeSamplingFrequency;
+      SetTubeSamplingFrequency(tubeSamplingFrequency);
     }
     else if ( ! strcmp( attName, "KochanekBias" ) )
     {
+      double kochanekBias = 0.0;
       std::stringstream nameString;
       nameString << attValue;
-      nameString >> this->KochanekBias;
+      nameString >> kochanekBias;
+      if (kochanekBias < -1.0)
+      {
+        vtkWarningMacro("Kochanek Bias " << kochanekBias << " is too small. Setting to -1.0.)");
+        kochanekBias = -1.0;
+      }
+      else if (kochanekBias > 1.0)
+      {
+        vtkWarningMacro("Kochanek Bias " << kochanekBias << " is too small. Setting to 1.0.)");
+        kochanekBias = 1.0;
+      }
+      SetKochanekBias(kochanekBias);
     }
     else if ( ! strcmp( attName, "KochanekContinuity" ) )
     {
+      double kochanekContinuity = 0.0;
       std::stringstream nameString;
       nameString << attValue;
-      nameString >> this->KochanekContinuity;
+      nameString >> kochanekContinuity;
+      if (kochanekContinuity < -1.0)
+      {
+        vtkWarningMacro("Kochanek Continuity " << kochanekContinuity << " is too small. Setting to -1.0.)");
+        kochanekContinuity = -1.0;
+      }
+      else if (kochanekContinuity > 1.0)
+      {
+        vtkWarningMacro("Kochanek Continuity " << kochanekContinuity << " is too small. Setting to 1.0.)");
+        kochanekContinuity = 1.0;
+      }
+      SetKochanekContinuity(kochanekContinuity);
     }
     else if ( ! strcmp( attName, "KochanekTension" ) )
     {
+      double kochanekTension = 0.0;
       std::stringstream nameString;
       nameString << attValue;
-      nameString >> this->KochanekTension;
+      nameString >> kochanekTension;
+      if (kochanekTension < -1.0)
+      {
+        vtkWarningMacro("Kochanek Tension " << kochanekTension << " is too small. Setting to -1.0.)");
+        kochanekTension = -1.0;
+      }
+      else if (kochanekTension > 1.0)
+      {
+        vtkWarningMacro("Kochanek Tension " << kochanekTension << " is too small. Setting to 1.0.)");
+        kochanekTension = 1.0;
+      }
+      SetKochanekTension(kochanekTension);
     }
   }
 
-  this->Modified();
+  this->EndModify(disabledModify);
 }
 
 void vtkMRMLMarkupsToModelNode::Copy( vtkMRMLNode *anode )
@@ -233,9 +269,6 @@ vtkMRMLModelNode * vtkMRMLMarkupsToModelNode::GetModelNode()
 
 void vtkMRMLMarkupsToModelNode::SetAndObserveMarkupsNodeID( const char* markupsId )
 {
-  // SetAndObserveNodeReferenceID does not handle nicely setting of the same
-  // node (it should simply ignore the request, but it adds another observer instead)
-  // so check for node equality here.
   const char* currentNodeId=this->GetNodeReferenceID(INPUT_MARKUPS_ROLE);
   if (markupsId!=NULL && currentNodeId!=NULL)
   {
@@ -254,9 +287,6 @@ void vtkMRMLMarkupsToModelNode::SetAndObserveMarkupsNodeID( const char* markupsI
 
 void vtkMRMLMarkupsToModelNode::SetAndObserveModelNodeID( const char* modelId )
 {
-  // SetAndObserveNodeReferenceID does not handle nicely setting of the same
-  // node (it should simply ignore the request, but it adds another observer instead)
-  // so check for node equality here.
   const char* currentNodeId = this->GetNodeReferenceID( OUTPUT_MODEL_ROLE );
   if ( modelId != NULL && currentNodeId != NULL )
   {
@@ -278,282 +308,6 @@ void vtkMRMLMarkupsToModelNode::ProcessMRMLEvents( vtkObject *caller, unsigned l
   {
     this->InvokeCustomModifiedEvent(InputDataModifiedEvent);
   }
-}
-
-std::string vtkMRMLMarkupsToModelNode::GetModelNodeName()
-{
-  vtkMRMLModelNode* modelNode = vtkMRMLModelNode::SafeDownCast( this->GetNodeReference( OUTPUT_MODEL_ROLE ) );
-  if ( modelNode == NULL )
-  {
-    return std::string( this->GetID() ).append( "Model" );
-  }
-  else
-  {
-    return std::string( modelNode->GetName() );
-  }
-}
-
-std::string vtkMRMLMarkupsToModelNode::GetModelDisplayNodeName()
-{
-  vtkMRMLModelNode* modelNode = vtkMRMLModelNode::SafeDownCast( this->GetNodeReference( OUTPUT_MODEL_ROLE ) );
-  if ( modelNode == NULL )
-  {
-    return std::string( this->GetID() ).append( "ModelDisplay" );
-  }
-  
-  vtkMRMLModelDisplayNode* displayNode = vtkMRMLModelDisplayNode::SafeDownCast( modelNode->GetDisplayNode() );
-  if ( displayNode == NULL )
-  {
-    return std::string( this->GetID() ).append( "ModelDisplay" );
-  }
-
-  return std::string( displayNode->GetName() );
-}
-
-std::string vtkMRMLMarkupsToModelNode::GetMarkupsDisplayNodeName()
-{
-  vtkMRMLModelNode* markupsNode = vtkMRMLModelNode::SafeDownCast( this->GetNodeReference( OUTPUT_MODEL_ROLE ) );
-  if ( markupsNode == NULL )
-  {
-    return std::string( this->GetID() ).append( "MarkupsDisplay" );
-  }
-  
-  vtkMRMLMarkupsDisplayNode* displayNode = vtkMRMLMarkupsDisplayNode::SafeDownCast( markupsNode->GetDisplayNode() );
-  if ( displayNode == NULL )
-  {
-    return std::string( this->GetID() ).append( "MarkupsDisplay" );
-  }
-
-  return std::string( displayNode->GetName() );
-}
-
-void vtkMRMLMarkupsToModelNode::SetOutputOpacity( double outputOpacity )
-{
-  vtkMRMLModelNode* modelNode = vtkMRMLModelNode::SafeDownCast( this->GetNodeReference( OUTPUT_MODEL_ROLE ) );
-  if ( modelNode == NULL )
-  {
-    return;
-  }
-  
-  vtkMRMLModelDisplayNode* displayNode = vtkMRMLModelDisplayNode::SafeDownCast( modelNode->GetDisplayNode() );
-  if ( displayNode == NULL )
-  {
-    this->createAndObserveModelDisplayNode();
-    displayNode = vtkMRMLModelDisplayNode::SafeDownCast( modelNode->GetDisplayNode() );
-  }
-
-  displayNode->SetOpacity( outputOpacity );
-}
-
-void vtkMRMLMarkupsToModelNode::SetOutputVisibility( bool outputVisibility )
-{
-  vtkMRMLModelNode* modelNode = vtkMRMLModelNode::SafeDownCast( this->GetNodeReference( OUTPUT_MODEL_ROLE ) );
-  if ( modelNode == NULL )
-  {
-    return;
-  }
-  
-  vtkMRMLModelDisplayNode* displayNode = vtkMRMLModelDisplayNode::SafeDownCast( modelNode->GetDisplayNode() );
-  if ( displayNode == NULL )
-  {
-    this->createAndObserveModelDisplayNode();
-    displayNode = vtkMRMLModelDisplayNode::SafeDownCast( modelNode->GetDisplayNode() );
-  }
-
-  if ( outputVisibility )
-  {
-    displayNode->VisibilityOn();
-  }
-  else
-  {
-    displayNode->VisibilityOff();
-  }
-}
-
-void vtkMRMLMarkupsToModelNode::SetOutputIntersectionVisibility( bool outputIntersectionVisibility )
-{
-  vtkMRMLModelNode* modelNode = vtkMRMLModelNode::SafeDownCast( this->GetNodeReference( OUTPUT_MODEL_ROLE ) );
-  if ( modelNode == NULL )
-  {
-    return;
-  }
-  
-  vtkMRMLModelDisplayNode* displayNode = vtkMRMLModelDisplayNode::SafeDownCast( modelNode->GetDisplayNode() );
-  if ( displayNode == NULL )
-  {
-    this->createAndObserveModelDisplayNode();
-    displayNode = vtkMRMLModelDisplayNode::SafeDownCast( modelNode->GetDisplayNode() );
-  }
-
-  if ( outputIntersectionVisibility )
-  {
-    displayNode->SliceIntersectionVisibilityOn();
-  }
-  else
-  {
-    displayNode->SliceIntersectionVisibilityOff();
-  }
-}
-
-void vtkMRMLMarkupsToModelNode::SetOutputColor( double redComponent, double greenComponent, double blueComponent )
-{
-  vtkMRMLModelNode* modelNode = vtkMRMLModelNode::SafeDownCast( this->GetNodeReference( OUTPUT_MODEL_ROLE ) );
-  if ( modelNode == NULL )
-  {
-    return;
-  }
-  
-  vtkMRMLModelDisplayNode* displayNode = vtkMRMLModelDisplayNode::SafeDownCast( modelNode->GetDisplayNode() );
-  if ( displayNode == NULL )
-  {
-    this->createAndObserveModelDisplayNode();
-    displayNode = vtkMRMLModelDisplayNode::SafeDownCast( modelNode->GetDisplayNode() );
-  }
-
-  double outputColor[3];
-  outputColor[0] = redComponent;
-  outputColor[1] = greenComponent;
-  outputColor[2] = blueComponent;
-  displayNode->SetColor( outputColor );
-}
-
-void vtkMRMLMarkupsToModelNode::SetMarkupsTextScale( double scale )
-{
-  vtkMRMLMarkupsFiducialNode* markupsNode = vtkMRMLMarkupsFiducialNode::SafeDownCast( this->GetNodeReference( INPUT_MARKUPS_ROLE ) );
-  if ( markupsNode == NULL )
-  {
-    return;
-  }
-
-  vtkMRMLMarkupsDisplayNode * displayNode = vtkMRMLMarkupsDisplayNode::SafeDownCast( markupsNode->GetDisplayNode() );
-  if ( displayNode == NULL )
-  {
-    this->createAndObserveMarkupsDisplayNode();
-    displayNode = vtkMRMLMarkupsDisplayNode::SafeDownCast( markupsNode->GetDisplayNode() );
-  }
-  displayNode->SetTextScale( scale );
-}
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-double vtkMRMLMarkupsToModelNode::GetOutputOpacity()
-{
-  vtkMRMLModelNode* modelNode = vtkMRMLModelNode::SafeDownCast( this->GetNodeReference( OUTPUT_MODEL_ROLE ) );
-  if ( modelNode == NULL )
-  {
-    return 1.0;
-  }
-  
-  vtkMRMLModelDisplayNode* displayNode = vtkMRMLModelDisplayNode::SafeDownCast( modelNode->GetDisplayNode() );
-  if ( displayNode == NULL )
-  {
-    this->createAndObserveModelDisplayNode();
-    displayNode = vtkMRMLModelDisplayNode::SafeDownCast( modelNode->GetDisplayNode() );
-  }
-  return displayNode->GetOpacity();
-}
-
-bool vtkMRMLMarkupsToModelNode::GetOutputVisibility()
-{
-  vtkMRMLModelNode* modelNode = vtkMRMLModelNode::SafeDownCast( this->GetNodeReference( OUTPUT_MODEL_ROLE ) );
-  if ( modelNode == NULL )
-  {
-    return true;
-  }
-  
-  vtkMRMLModelDisplayNode* displayNode = vtkMRMLModelDisplayNode::SafeDownCast( modelNode->GetDisplayNode() );
-  if ( displayNode == NULL )
-  {
-    this->createAndObserveModelDisplayNode();
-    displayNode = vtkMRMLModelDisplayNode::SafeDownCast( modelNode->GetDisplayNode() );
-  }
-  return displayNode->GetVisibility();  
-}
-
-bool vtkMRMLMarkupsToModelNode::GetOutputIntersectionVisibility()
-{
-  vtkMRMLModelNode* modelNode = vtkMRMLModelNode::SafeDownCast( this->GetNodeReference( OUTPUT_MODEL_ROLE ) );
-  if ( modelNode == NULL)
-  {
-    return true;
-  }
-  
-  vtkMRMLModelDisplayNode* displayNode = vtkMRMLModelDisplayNode::SafeDownCast( modelNode->GetDisplayNode() );
-  if ( displayNode == NULL )
-  {
-    this->createAndObserveModelDisplayNode();
-    displayNode = vtkMRMLModelDisplayNode::SafeDownCast( modelNode->GetDisplayNode() );
-  }
-  return displayNode->GetSliceIntersectionVisibility();
-}
-
-void vtkMRMLMarkupsToModelNode::GetOutputColor( double outputColor[3] )
-{
-  vtkMRMLModelNode* modelNode = vtkMRMLModelNode::SafeDownCast( this->GetNodeReference( OUTPUT_MODEL_ROLE ) );
-  if ( modelNode == NULL )
-  {
-    outputColor[0] = 0;
-    outputColor[1] = 0;
-    outputColor[2] = 0;
-    return;
-  }
-  
-  vtkMRMLModelDisplayNode* displayNode = vtkMRMLModelDisplayNode::SafeDownCast( modelNode->GetDisplayNode() );
-  if ( displayNode == NULL )
-  {
-    this->createAndObserveModelDisplayNode();
-    displayNode = vtkMRMLModelDisplayNode::SafeDownCast( modelNode->GetDisplayNode() );
-  }
-  displayNode->GetColor( outputColor[0], outputColor[1], outputColor[2] );
-}
-
-double vtkMRMLMarkupsToModelNode::GetMarkupsTextScale()
-{
-  vtkMRMLMarkupsFiducialNode* markupsNode = vtkMRMLMarkupsFiducialNode::SafeDownCast( this->GetNodeReference( INPUT_MARKUPS_ROLE ) );
-  if ( markupsNode == NULL )
-  {
-    return 1.0;
-  }
-
-  vtkMRMLMarkupsDisplayNode * displayNode = vtkMRMLMarkupsDisplayNode::SafeDownCast( markupsNode->GetDisplayNode() );
-  if ( displayNode == NULL )
-  {
-    this->createAndObserveMarkupsDisplayNode();
-    displayNode = vtkMRMLMarkupsDisplayNode::SafeDownCast( markupsNode->GetDisplayNode() );
-  }
-  return displayNode->GetTextScale();
-}
-
-//-----------------------------------------------------------------
-void vtkMRMLMarkupsToModelNode::createAndObserveModelDisplayNode()
-{
-  vtkMRMLModelNode* modelNode = vtkMRMLModelNode::SafeDownCast( this->GetNodeReference( OUTPUT_MODEL_ROLE ) );
-  if ( modelNode == NULL)
-  {
-    return;
-  }
-  
-  vtkNew< vtkMRMLModelDisplayNode > displayNode;
-  this->GetScene()->AddNode( displayNode.GetPointer() );
-  displayNode->SetName( GetModelDisplayNodeName().c_str() );
-  displayNode->SetColor( 0.5, 0.5, 0.5 );
-  modelNode->SetAndObserveDisplayNodeID( displayNode->GetID() );
-}
-
-//-----------------------------------------------------------------
-void vtkMRMLMarkupsToModelNode::createAndObserveMarkupsDisplayNode()
-{
-  vtkMRMLMarkupsNode* markupsNode = vtkMRMLMarkupsNode::SafeDownCast( this->GetNodeReference( INPUT_MARKUPS_ROLE ) );
-  if ( markupsNode == NULL)
-  {
-    return;
-  }
-
-  vtkNew< vtkMRMLMarkupsDisplayNode > displayNode;
-  this->GetScene()->AddNode( displayNode.GetPointer() );
-  displayNode->SetName( this->GetModelDisplayNodeName().c_str() );
-  displayNode->SetColor( 1.0, 0.5, 0.5 );
-  markupsNode->SetAndObserveDisplayNodeID( displayNode->GetID() );
 }
 
 //-----------------------------------------------------------------

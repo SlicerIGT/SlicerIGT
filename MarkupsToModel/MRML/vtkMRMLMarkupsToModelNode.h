@@ -31,9 +31,6 @@
 // MarkupsToModel includes
 #include "vtkSlicerMarkupsToModelModuleMRMLExport.h"
 
-static const char* INPUT_MARKUPS_ROLE = "markupsToModelInputMarkups";
-static const char* OUTPUT_MODEL_ROLE = "markupsToModelOutputModel";
-
 class vtkMRMLModelNode;
 class vtkMRMLMarkupsFiducialNode;
 
@@ -117,10 +114,10 @@ public:
   vtkSetMacro( InterpolationType, int );
   vtkGetMacro( TubeRadius, double );
   vtkSetMacro( TubeRadius, double );
-  vtkGetMacro( TubeResolutionLength, int );
-  vtkSetMacro( TubeResolutionLength, int );
-  vtkGetMacro( TubeResolutionAround, int );
-  vtkSetMacro( TubeResolutionAround, int );
+  vtkGetMacro( TubeSamplingFrequency, int );
+  vtkSetMacro( TubeSamplingFrequency, int );
+  vtkGetMacro( TubeNumberOfSides, int );
+  vtkSetMacro( TubeNumberOfSides, int );
   
   
   vtkGetMacro( AutoUpdateOutput, bool );
@@ -161,24 +158,6 @@ public:
 
   vtkMRMLMarkupsFiducialNode * GetMarkupsNode( );
   vtkMRMLModelNode* GetModelNode( );
-  std::string GetModelNodeName( );
-  std::string GetModelDisplayNodeName( );
-  std::string GetMarkupsDisplayNodeName( );
-
-  void SetOutputIntersectionVisibility( bool outputIntersectionVisibility );
-  void SetOutputVisibility( bool outputVisibility );
-  void SetOutputOpacity( double outputOpacity );
-  virtual void SetOutputColor( double redComponent, double greenComponent, double blueComponent );
-  void SetMarkupsTextScale( double scale );
-
-  bool GetOutputIntersectionVisibility( );
-  bool GetOutputVisibility( );
-  double GetOutputOpacity( );
-  void GetOutputColor( double outputColor[3] );
-  double GetMarkupsTextScale( );
-
-  void createAndObserveModelDisplayNode( );
-  void createAndObserveMarkupsDisplayNode( );
 
 private:
   int    ModelType;
@@ -189,8 +168,8 @@ private:
   double DelaunayAlpha;
   bool   ConvexHull;
   double TubeRadius;
-  int    TubeResolutionLength;
-  int    TubeResolutionAround;
+  int    TubeSamplingFrequency;
+  int    TubeNumberOfSides;
   double KochanekTension;
   double KochanekBias; 
   double KochanekContinuity;

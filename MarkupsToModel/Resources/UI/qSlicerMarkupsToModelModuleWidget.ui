@@ -150,7 +150,7 @@
       <bool>false</bool>
      </property>
      <property name="collapsed">
-      <bool>false</bool>
+      <bool>true</bool>
      </property>
      <layout class="QGridLayout" name="gridLayout_4">
       <item row="10" column="0">

@@ -26,12 +26,17 @@
 #include "ui_qSlicerMarkupsToModelModuleWidget.h"
 #include "qSlicerSimpleMarkupsWidget.h"
 
-
+// Slicer MRML includes
 #include "vtkMRMLMarkupsToModelNode.h"
+#include "vtkMRMLModelDisplayNode.h"
+#include "vtkMRMLMarkupsDisplayNode.h"
+#include "vtkMRMLDisplayNode.h"
 #include "vtkMRMLModelNode.h"
-#include "vtkSlicerMarkupsToModelLogic.h"
 #include "vtkMRMLMarkupsFiducialNode.h"
 #include "vtkMRMLInteractionNode.h"
+
+// logic
+#include "vtkSlicerMarkupsToModelLogic.h"
 
 
 //-----------------------------------------------------------------------------
@@ -75,36 +80,35 @@ qSlicerMarkupsToModelModuleWidget::~qSlicerMarkupsToModelModuleWidget()
 {
   Q_D( qSlicerMarkupsToModelModuleWidget );
   disconnect( d->ParameterNodeSelector, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( updateFromMRMLNode() ) );
-
-  disconnect( d->ModelNodeSelector, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( updateToMRMLNode() ) );
-  disconnect( d->MarkupsSelector, SIGNAL( markupsFiducialNodeChanged() ), this, SLOT( updateToMRMLNode() ) );
+  disconnect( d->ModelNodeSelector, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( updateModelToMRMLNode() ) );
+  disconnect( d->MarkupsSelector, SIGNAL( markupsFiducialNodeChanged() ), this, SLOT( updateMarkupsToMRMLNode() ) );
   disconnect( d->UpdateButton, SIGNAL( clicked() ), this, SLOT( UpdateOutputModel() ) );
   disconnect( d->UpdateButton, SIGNAL( toggled( bool ) ), this, SLOT( updateFromMRMLNode() ) );
 
-  disconnect( d->ButterflySubdivisionCheckBox, SIGNAL( clicked() ), this, SLOT( updateToMRMLNode() ) );
-  disconnect( d->ConvexHullCheckBox, SIGNAL( clicked() ), this, SLOT( updateToMRMLNode() ) );
-  disconnect( d->CleanMarkupsCheckBox, SIGNAL( clicked() ), this, SLOT( updateToMRMLNode() ) );
+  disconnect( d->ButterflySubdivisionCheckBox, SIGNAL( clicked() ), this, SLOT( updateParametersToMRMLNode() ) );
+  disconnect( d->ConvexHullCheckBox, SIGNAL( clicked() ), this, SLOT( updateParametersToMRMLNode() ) );
+  disconnect( d->CleanMarkupsCheckBox, SIGNAL( clicked() ), this, SLOT( updateParametersToMRMLNode() ) );
 
-  disconnect( d->ModeClosedSurfaceRadioButton, SIGNAL( clicked() ), this, SLOT( updateToMRMLNode() ) );
-  disconnect( d->ModeCurveRadioButton, SIGNAL( clicked() ), this, SLOT( updateToMRMLNode() ) );
-  disconnect( d->DelaunayAlphaDoubleSpinBox, SIGNAL( valueChanged( double ) ), this, SLOT( updateToMRMLNode() ) );
-  disconnect( d->TubeRadiusDoubleSpinBox, SIGNAL( valueChanged( double ) ), this, SLOT( updateToMRMLNode() ) );
-  disconnect( d->TubeSegmentsSpinBox, SIGNAL( valueChanged( double ) ), this, SLOT( updateToMRMLNode() ) );
-  disconnect( d->TubeSidesSpinBox, SIGNAL( valueChanged( double ) ), this, SLOT( updateToMRMLNode() ) );
+  disconnect( d->ModeClosedSurfaceRadioButton, SIGNAL( clicked() ), this, SLOT( updateParametersToMRMLNode() ) );
+  disconnect( d->ModeCurveRadioButton, SIGNAL( clicked() ), this, SLOT( updateParametersToMRMLNode() ) );
+  disconnect( d->DelaunayAlphaDoubleSpinBox, SIGNAL( valueChanged( double ) ), this, SLOT( updateParametersToMRMLNode() ) );
+  disconnect( d->TubeRadiusDoubleSpinBox, SIGNAL( valueChanged( double ) ), this, SLOT( updateParametersToMRMLNode() ) );
+  disconnect( d->TubeSegmentsSpinBox, SIGNAL( valueChanged( double ) ), this, SLOT( updateParametersToMRMLNode() ) );
+  disconnect( d->TubeSidesSpinBox, SIGNAL( valueChanged( double ) ), this, SLOT( updateParametersToMRMLNode() ) );
   
-  disconnect( d->KochanekBiasDoubleSpinBox, SIGNAL( valueChanged( double ) ), this, SLOT( updateToMRMLNode() ) );
-  disconnect( d->KochanekContinuityDoubleSpinBox, SIGNAL( valueChanged( double ) ), this, SLOT( updateToMRMLNode() ) );
-  disconnect( d->KochanekTensionDoubleSpinBox, SIGNAL( valueChanged( double ) ), this, SLOT( updateToMRMLNode() ) );
+  disconnect( d->KochanekBiasDoubleSpinBox, SIGNAL( valueChanged( double ) ), this, SLOT( updateParametersToMRMLNode() ) );
+  disconnect( d->KochanekContinuityDoubleSpinBox, SIGNAL( valueChanged( double ) ), this, SLOT( updateParametersToMRMLNode() ) );
+  disconnect( d->KochanekTensionDoubleSpinBox, SIGNAL( valueChanged( double ) ), this, SLOT( updateParametersToMRMLNode() ) );
 
-  disconnect( d->ModelOpacitySlider, SIGNAL( valueChanged( double ) ), this, SLOT( updateToMRMLNode() ) );
-  disconnect( d->ModelColorSelector, SIGNAL( clicked() ), this, SLOT( updateToMRMLNode() ) );
-  disconnect( d->ModelVisiblityButton, SIGNAL( clicked() ), this, SLOT( updateToMRMLNode() ) );
-  disconnect( d->ModelSliceIntersectionCheckbox, SIGNAL( clicked() ), this, SLOT( updateToMRMLNode() ) );
-  disconnect( d->MarkupsTextScaleSlider, SIGNAL( valueChanged( double ) ), this, SLOT( updateToMRMLNode() ) );
+  disconnect( d->ModelOpacitySlider, SIGNAL( valueChanged( double ) ), this, SLOT( updateToRenderedNodes() ) );
+  disconnect( d->ModelColorSelector, SIGNAL( clicked() ), this, SLOT( updateToRenderedNodes() ) );
+  disconnect( d->ModelVisiblityButton, SIGNAL( clicked() ), this, SLOT( updateToRenderedNodes() ) );
+  disconnect( d->ModelSliceIntersectionCheckbox, SIGNAL( clicked() ), this, SLOT( updateToRenderedNodes() ) );
+  disconnect( d->MarkupsTextScaleSlider, SIGNAL( valueChanged( double ) ), this, SLOT( updateToRenderedNodes() ) );
 
-  disconnect( d->LinearInterpolationButton, SIGNAL( clicked() ), this, SLOT( updateToMRMLNode() ) );
-  disconnect( d->CardinalInterpolationRadioButton, SIGNAL( clicked() ), this, SLOT( updateToMRMLNode() ) );
-  disconnect( d->KochanekInterpolationRadioButton, SIGNAL( clicked() ), this, SLOT( updateToMRMLNode() ) );
+  disconnect( d->LinearInterpolationButton, SIGNAL( clicked() ), this, SLOT( updateParametersToMRMLNode() ) );
+  disconnect( d->CardinalInterpolationRadioButton, SIGNAL( clicked() ), this, SLOT( updateParametersToMRMLNode() ) );
+  disconnect( d->KochanekInterpolationRadioButton, SIGNAL( clicked() ), this, SLOT( updateParametersToMRMLNode() ) );
 }
 
 //-----------------------------------------------------------------------------
@@ -141,36 +145,35 @@ void qSlicerMarkupsToModelModuleWidget::setup()
   d->MarkupsSelector->setDefaultNodeColor( markupDefaultColor );
 
   connect( d->ParameterNodeSelector, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( updateFromMRMLNode() ) );
-
-  connect( d->ModelNodeSelector, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( updateToMRMLNode() ) );
-  connect( d->MarkupsSelector, SIGNAL( markupsFiducialNodeChanged() ), this, SLOT( updateToMRMLNode() ) );
+  connect( d->ModelNodeSelector, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( updateModelToMRMLNode() ) );
+  connect( d->MarkupsSelector, SIGNAL( markupsFiducialNodeChanged() ), this, SLOT( updateMarkupsToMRMLNode() ) );
   connect( d->UpdateButton, SIGNAL( clicked() ), this, SLOT( UpdateOutputModel() ) );
   connect( d->UpdateButton, SIGNAL( toggled( bool ) ), this, SLOT( updateFromMRMLNode() ) );
 
-  connect( d->ButterflySubdivisionCheckBox, SIGNAL( toggled( bool ) ), this, SLOT( updateToMRMLNode() ) );
-  connect( d->ConvexHullCheckBox, SIGNAL( toggled( bool ) ), this, SLOT( updateToMRMLNode() ) );
-  connect( d->CleanMarkupsCheckBox, SIGNAL( toggled( bool ) ), this, SLOT( updateToMRMLNode() ) );
+  connect( d->ButterflySubdivisionCheckBox, SIGNAL( toggled( bool ) ), this, SLOT( updateParametersToMRMLNode() ) );
+  connect( d->ConvexHullCheckBox, SIGNAL( toggled( bool ) ), this, SLOT( updateParametersToMRMLNode() ) );
+  connect( d->CleanMarkupsCheckBox, SIGNAL( toggled( bool ) ), this, SLOT( updateParametersToMRMLNode() ) );
 
-  connect( d->ModeClosedSurfaceRadioButton, SIGNAL( clicked() ), this, SLOT( updateToMRMLNode() ) );
-  connect( d->ModeCurveRadioButton, SIGNAL( clicked() ), this, SLOT( updateToMRMLNode() ) );
-  connect( d->DelaunayAlphaDoubleSpinBox, SIGNAL( valueChanged( double ) ), this, SLOT( updateToMRMLNode() ) );
-  connect( d->TubeRadiusDoubleSpinBox, SIGNAL( valueChanged( double ) ), this, SLOT( updateToMRMLNode() ) );
-  connect( d->TubeSegmentsSpinBox, SIGNAL( valueChanged( double ) ), this, SLOT( updateToMRMLNode() ) );
-  connect( d->TubeSidesSpinBox, SIGNAL( valueChanged( double ) ), this, SLOT( updateToMRMLNode() ) );
+  connect( d->ModeClosedSurfaceRadioButton, SIGNAL( clicked() ), this, SLOT( updateParametersToMRMLNode() ) );
+  connect( d->ModeCurveRadioButton, SIGNAL( clicked() ), this, SLOT( updateParametersToMRMLNode() ) );
+  connect( d->DelaunayAlphaDoubleSpinBox, SIGNAL( valueChanged( double ) ), this, SLOT( updateParametersToMRMLNode() ) );
+  connect( d->TubeRadiusDoubleSpinBox, SIGNAL( valueChanged( double ) ), this, SLOT( updateParametersToMRMLNode() ) );
+  connect( d->TubeSegmentsSpinBox, SIGNAL( valueChanged( double ) ), this, SLOT( updateParametersToMRMLNode() ) );
+  connect( d->TubeSidesSpinBox, SIGNAL( valueChanged( double ) ), this, SLOT( updateParametersToMRMLNode() ) );
   
-  connect( d->KochanekBiasDoubleSpinBox, SIGNAL( valueChanged( double ) ), this, SLOT( updateToMRMLNode() ) );
-  connect( d->KochanekContinuityDoubleSpinBox, SIGNAL( valueChanged( double ) ), this, SLOT( updateToMRMLNode() ) );
-  connect( d->KochanekTensionDoubleSpinBox, SIGNAL( valueChanged( double ) ), this, SLOT( updateToMRMLNode() ) );
+  connect( d->KochanekBiasDoubleSpinBox, SIGNAL( valueChanged( double ) ), this, SLOT( updateParametersToMRMLNode() ) );
+  connect( d->KochanekContinuityDoubleSpinBox, SIGNAL( valueChanged( double ) ), this, SLOT( updateParametersToMRMLNode() ) );
+  connect( d->KochanekTensionDoubleSpinBox, SIGNAL( valueChanged( double ) ), this, SLOT( updateParametersToMRMLNode() ) );
 
-  connect( d->ModelOpacitySlider, SIGNAL( valueChanged( double ) ), this, SLOT( updateToMRMLNode() ) );
-  connect( d->ModelColorSelector, SIGNAL( clicked() ), this, SLOT( updateToMRMLNode() ) );
-  connect( d->ModelVisiblityButton, SIGNAL( toggled( bool ) ), this, SLOT( updateToMRMLNode() ) );
-  connect( d->ModelSliceIntersectionCheckbox, SIGNAL( toggled( bool ) ), this, SLOT( updateToMRMLNode() ) );
-  connect( d->MarkupsTextScaleSlider, SIGNAL( valueChanged( double ) ), this, SLOT( updateToMRMLNode() ) );
+  connect( d->ModelOpacitySlider, SIGNAL( valueChanged( double ) ), this, SLOT( updateToRenderedNodes() ) );
+  connect( d->ModelColorSelector, SIGNAL( clicked() ), this, SLOT( updateToRenderedNodes() ) );
+  connect( d->ModelVisiblityButton, SIGNAL( toggled( bool ) ), this, SLOT( updateToRenderedNodes() ) );
+  connect( d->ModelSliceIntersectionCheckbox, SIGNAL( toggled( bool ) ), this, SLOT( updateToRenderedNodes() ) );
+  connect( d->MarkupsTextScaleSlider, SIGNAL( valueChanged( double ) ), this, SLOT( updateToRenderedNodes() ) );
 
-  connect( d->LinearInterpolationButton, SIGNAL( clicked() ), this, SLOT( updateToMRMLNode() ) );
-  connect( d->CardinalInterpolationRadioButton, SIGNAL( clicked() ), this, SLOT( updateToMRMLNode() ) );
-  connect( d->KochanekInterpolationRadioButton, SIGNAL( clicked() ), this, SLOT( updateToMRMLNode() ) );
+  connect( d->LinearInterpolationButton, SIGNAL( clicked() ), this, SLOT( updateParametersToMRMLNode() ) );
+  connect( d->CardinalInterpolationRadioButton, SIGNAL( clicked() ), this, SLOT( updateParametersToMRMLNode() ) );
+  connect( d->KochanekInterpolationRadioButton, SIGNAL( clicked() ), this, SLOT( updateParametersToMRMLNode() ) );
 }
 
 //-----------------------------------------------------------------------------
@@ -222,7 +225,10 @@ void qSlicerMarkupsToModelModuleWidget::enter()
 
   vtkMRMLMarkupsFiducialNode* markupsNode = vtkMRMLMarkupsFiducialNode::SafeDownCast( d->MarkupsSelector->currentNode() );
   d->logic()->SetMarkupsNode( markupsNode, markupsToModelModuleNode );
-  d->logic()->UpdateSelectionNode( markupsToModelModuleNode );
+  if (markupsNode)
+  {
+    d->logic()->UpdateSelectionNode( markupsToModelModuleNode );
+  }
 
   if( markupsToModelModuleNode->GetAutoUpdateOutput() )
   {
@@ -258,16 +264,75 @@ void qSlicerMarkupsToModelModuleWidget::onSceneImportedEvent()
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerMarkupsToModelModuleWidget::updateToMRMLNode()
+void qSlicerMarkupsToModelModuleWidget::updateModelToMRMLNode()
 {
   Q_D( qSlicerMarkupsToModelModuleWidget );
 
-  vtkMRMLNode* currentMRMLNode = d->ParameterNodeSelector->currentNode();
-  if ( currentMRMLNode == NULL )
+  vtkMRMLMarkupsToModelNode* markupsToModelModuleNode = vtkMRMLMarkupsToModelNode::SafeDownCast( d->ParameterNodeSelector->currentNode() );
+  if ( markupsToModelModuleNode == NULL )
   {
+    qCritical( "Selected node not a valid module node" );
     return;
   }
-  vtkMRMLMarkupsToModelNode* markupsToModelModuleNode = vtkMRMLMarkupsToModelNode::SafeDownCast( currentMRMLNode );
+  
+  vtkMRMLNode* currentMRMLNode = d->ModelNodeSelector->currentNode();
+  if ( currentMRMLNode == NULL )
+  {
+    return; // if "None" is selected, don't output any errors
+  }
+
+  vtkMRMLModelNode* modelNode = vtkMRMLModelNode::SafeDownCast( currentMRMLNode );
+  if ( modelNode == NULL )
+  {
+    qWarning( "Selected node not a valid model node" );
+    markupsToModelModuleNode->SetAndObserveModelNodeID( NULL );
+    return;
+  }
+
+  std::string modelNodeID = modelNode->GetID();
+  markupsToModelModuleNode->SetAndObserveModelNodeID( modelNodeID.c_str() );
+  
+  this->updateFromMRMLNode();
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerMarkupsToModelModuleWidget::updateMarkupsToMRMLNode()
+{
+  Q_D( qSlicerMarkupsToModelModuleWidget );
+
+  vtkMRMLMarkupsToModelNode* markupsToModelModuleNode = vtkMRMLMarkupsToModelNode::SafeDownCast( d->ParameterNodeSelector->currentNode() );
+  if ( markupsToModelModuleNode == NULL )
+  {
+    qCritical( "Selected node not a valid module node" );
+    return;
+  }
+  
+  vtkMRMLNode* currentMRMLNode = d->MarkupsSelector->currentNode();
+  if ( currentMRMLNode == NULL )
+  {
+    return; // if "None" is selected, don't output any errors
+  }
+
+  vtkMRMLMarkupsFiducialNode* markupsNode = vtkMRMLMarkupsFiducialNode::SafeDownCast( currentMRMLNode );
+  if ( markupsNode == NULL )
+  {
+    qWarning( "Selected node not a valid markups node" );
+    markupsToModelModuleNode->SetAndObserveMarkupsNodeID( NULL );
+    return;
+  }
+
+  std::string markupsNodeID = markupsNode->GetID();
+  markupsToModelModuleNode->SetAndObserveMarkupsNodeID( markupsNodeID.c_str() );
+  
+  this->updateFromMRMLNode();
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerMarkupsToModelModuleWidget::updateParametersToMRMLNode()
+{
+  Q_D( qSlicerMarkupsToModelModuleWidget );
+
+  vtkMRMLMarkupsToModelNode* markupsToModelModuleNode = vtkMRMLMarkupsToModelNode::SafeDownCast( d->ParameterNodeSelector->currentNode() );
   if ( markupsToModelModuleNode == NULL )
   {
     qCritical( "Selected node not a valid module node" );
@@ -294,8 +359,8 @@ void qSlicerMarkupsToModelModuleWidget::updateToMRMLNode()
   markupsToModelModuleNode->SetButterflySubdivision( d->ButterflySubdivisionCheckBox->isChecked() );
   
   markupsToModelModuleNode->SetTubeRadius( d->TubeRadiusDoubleSpinBox->value() );
-  markupsToModelModuleNode->SetTubeResolutionLength( d->TubeSegmentsSpinBox->value() );
-  markupsToModelModuleNode->SetTubeResolutionAround( d->TubeSidesSpinBox->value() );
+  markupsToModelModuleNode->SetTubeSamplingFrequency( d->TubeSegmentsSpinBox->value() );
+  markupsToModelModuleNode->SetTubeNumberOfSides( d->TubeSidesSpinBox->value() );
   if ( d->LinearInterpolationButton->isChecked() )
   {
     markupsToModelModuleNode->SetInterpolationType( vtkMRMLMarkupsToModelNode::Linear );
@@ -311,37 +376,7 @@ void qSlicerMarkupsToModelModuleWidget::updateToMRMLNode()
   markupsToModelModuleNode->SetKochanekBias( d->KochanekBiasDoubleSpinBox->value() );
   markupsToModelModuleNode->SetKochanekContinuity( d->KochanekContinuityDoubleSpinBox->value() );
   markupsToModelModuleNode->SetKochanekTension( d->KochanekTensionDoubleSpinBox->value() );
-
-  markupsToModelModuleNode->SetOutputVisibility( d->ModelVisiblityButton->isChecked() );
-  markupsToModelModuleNode->SetOutputOpacity( d->ModelOpacitySlider->value() );
-  markupsToModelModuleNode->SetOutputColor( d->ModelColorSelector->color().redF(), d->ModelColorSelector->color().greenF(), d->ModelColorSelector->color().blueF() );
-  markupsToModelModuleNode->SetOutputIntersectionVisibility( d->ModelSliceIntersectionCheckbox->isChecked() );
-  markupsToModelModuleNode->SetMarkupsTextScale( d->MarkupsTextScaleSlider->value() );
   
-  vtkMRMLModelNode* modelNode = vtkMRMLModelNode::SafeDownCast( d->ModelNodeSelector->currentNode() );
-  if ( modelNode == NULL )
-  {
-    qWarning( "Selected node not a valid model node" );
-    markupsToModelModuleNode->SetAndObserveModelNodeID( NULL ); // TODO: Verify this is correct
-  }
-  else
-  {
-    std::string modelNodeID = modelNode->GetID();
-    markupsToModelModuleNode->SetAndObserveModelNodeID( modelNodeID.c_str() );
-  }
-
-  vtkMRMLMarkupsFiducialNode* markupsNode = vtkMRMLMarkupsFiducialNode::SafeDownCast( d->MarkupsSelector->currentNode() );
-  if ( markupsNode == NULL )
-  {
-    qWarning( "Selected node not a valid markups node" );
-    markupsToModelModuleNode->SetAndObserveMarkupsNodeID( NULL ); // TODO: Verify this is correct
-  }
-  else
-  {
-    std::string markupsNodeID = markupsNode->GetID();
-    markupsToModelModuleNode->SetAndObserveMarkupsNodeID( markupsNodeID.c_str() );
-  }
-
   this->updateFromMRMLNode();
 }
 
@@ -368,74 +403,74 @@ void qSlicerMarkupsToModelModuleWidget::updateFromMRMLNode()
   // if a return is called after this line, then unblockAllSignals should also be called.
   this->blockAllSignals();
 
-  // Set the button indicating if this list is active
-  if ( MarkupsToModelNode->GetMarkupsNode() != NULL &&
-       MarkupsToModelNode->GetMarkupsNode()->GetNumberOfFiducials() >= MINIMUM_MARKUPS_NUMBER &&
-       MarkupsToModelNode->GetModelNode() != NULL )
-  {
-    d->UpdateButton->setEnabled( true );
-  }
-  else
-  {
-    d->UpdateButton->setEnabled( false );
-  }
-
-  // make all widget inputs match the MRML node
+  // match the high-level widgets to the MRML node
   switch( MarkupsToModelNode->GetModelType() )
   {
   case vtkMRMLMarkupsToModelNode::ClosedSurface: d->ModeClosedSurfaceRadioButton->setChecked( 1 ); break;
   case vtkMRMLMarkupsToModelNode::Curve: d->ModeCurveRadioButton->setChecked( 1 ); break;
   }
   d->MarkupsSelector->setCurrentNode( MarkupsToModelNode->GetMarkupsNode() );
-  d->logic()->UpdateSelectionNode( MarkupsToModelNode );
-  d->ModelNodeSelector->setCurrentNode( MarkupsToModelNode->GetModelNode() );
-  if ( MarkupsToModelNode->GetAutoUpdateOutput() )
+  if ( MarkupsToModelNode->GetMarkupsNode() )
   {
-    d->UpdateButton->setCheckable( true );
-    d->UpdateButton->setChecked( true );
-    d->UpdateButton->setText( "Automatic Update" );
-    d->ActionUpdateAuto->setChecked( Qt::Checked );
-    d->ActionUpdateManual->setChecked( Qt::Unchecked );
+    d->logic()->UpdateSelectionNode( MarkupsToModelNode );
+  }
+  d->ModelNodeSelector->setCurrentNode( MarkupsToModelNode->GetModelNode() );
+
+  // Set the button indicating if this list is active
+  if ( MarkupsToModelNode->GetMarkupsNode() != NULL &&
+       //MarkupsToModelNode->GetMarkupsNode()->GetNumberOfFiducials() >= MINIMUM_MARKUPS_NUMBER && // TODO: Evaluate if this call is necessary
+       MarkupsToModelNode->GetModelNode() != NULL )
+  {
+    d->UpdateButton->setEnabled( true );
+    d->AdvancedGroupBox->setEnabled( true );
+    d->DisplayGroupBox->setEnabled( true );
+    
+    // match the low-level widgets to the MRML node
+    if ( MarkupsToModelNode->GetAutoUpdateOutput() )
+    {
+      d->UpdateButton->setCheckable( true );
+      d->UpdateButton->setChecked( true );
+      d->UpdateButton->setText( "Automatic Update" );
+      d->ActionUpdateAuto->setChecked( Qt::Checked );
+      d->ActionUpdateManual->setChecked( Qt::Unchecked );
+    }
+    else
+    {
+      d->UpdateButton->setChecked( false );
+      d->UpdateButton->setCheckable( false );
+      d->UpdateButton->setText( "Update" );
+      d->ActionUpdateAuto->setChecked( Qt::Unchecked );
+      d->ActionUpdateManual->setChecked( Qt::Checked );
+    }
+
+    // advanced options
+    d->CleanMarkupsCheckBox->setChecked( MarkupsToModelNode->GetCleanMarkups() );
+    // closed surface
+    d->ButterflySubdivisionCheckBox->setChecked( MarkupsToModelNode->GetButterflySubdivision() );
+    d->DelaunayAlphaDoubleSpinBox->setValue( MarkupsToModelNode->GetDelaunayAlpha() );
+    d->ConvexHullCheckBox->setChecked( MarkupsToModelNode->GetConvexHull() );
+    // curve
+    d->TubeRadiusDoubleSpinBox->setValue( MarkupsToModelNode->GetTubeRadius() );
+    d->TubeSidesSpinBox->setValue( MarkupsToModelNode->GetTubeNumberOfSides() );
+    d->TubeSegmentsSpinBox->setValue( MarkupsToModelNode->GetTubeSamplingFrequency() );
+    switch( MarkupsToModelNode->GetInterpolationType() )
+    {
+    case vtkMRMLMarkupsToModelNode::Linear: d->LinearInterpolationButton->setChecked( 1 ); break;
+    case vtkMRMLMarkupsToModelNode::CardinalSpline: d->CardinalInterpolationRadioButton->setChecked( 1 ); break;
+    case vtkMRMLMarkupsToModelNode::KochanekSpline: d->KochanekInterpolationRadioButton->setChecked( 1 ); break;
+    }
+    d->KochanekBiasDoubleSpinBox->setValue(MarkupsToModelNode->GetKochanekBias());
+    d->KochanekContinuityDoubleSpinBox->setValue(MarkupsToModelNode->GetKochanekContinuity());
+    d->KochanekTensionDoubleSpinBox->setValue(MarkupsToModelNode->GetKochanekTension());
+
+    updateFromRenderedNodes();
   }
   else
   {
-    d->UpdateButton->setChecked( false );
-    d->UpdateButton->setCheckable( false );
-    d->UpdateButton->setText( "Update" );
-    d->ActionUpdateAuto->setChecked( Qt::Unchecked );
-    d->ActionUpdateManual->setChecked( Qt::Checked );
-  }
-
-  // advanced options
-  d->CleanMarkupsCheckBox->setChecked( MarkupsToModelNode->GetCleanMarkups() );
-  // closed surface
-  d->ButterflySubdivisionCheckBox->setChecked( MarkupsToModelNode->GetButterflySubdivision() );
-  d->DelaunayAlphaDoubleSpinBox->setValue( MarkupsToModelNode->GetDelaunayAlpha() );
-  d->ConvexHullCheckBox->setChecked( MarkupsToModelNode->GetConvexHull() );
-  // curve
-  d->TubeRadiusDoubleSpinBox->setValue( MarkupsToModelNode->GetTubeRadius() );
-  d->TubeSidesSpinBox->setValue( MarkupsToModelNode->GetTubeResolutionAround() );
-  d->TubeSegmentsSpinBox->setValue( MarkupsToModelNode->GetTubeResolutionLength() );
-  switch( MarkupsToModelNode->GetInterpolationType() )
-  {
-  case vtkMRMLMarkupsToModelNode::Linear: d->LinearInterpolationButton->setChecked( 1 ); break;
-  case vtkMRMLMarkupsToModelNode::CardinalSpline: d->CardinalInterpolationRadioButton->setChecked( 1 ); break;
-  case vtkMRMLMarkupsToModelNode::KochanekSpline: d->KochanekInterpolationRadioButton->setChecked( 1 ); break;
-  }
-  d->KochanekBiasDoubleSpinBox->setValue(MarkupsToModelNode->GetKochanekBias());
-  d->KochanekContinuityDoubleSpinBox->setValue(MarkupsToModelNode->GetKochanekContinuity());
-  d->KochanekTensionDoubleSpinBox->setValue(MarkupsToModelNode->GetKochanekTension());
-
-  // display options
-  d->ModelVisiblityButton->setChecked( MarkupsToModelNode->GetOutputVisibility() );
-  d->ModelOpacitySlider->setValue( MarkupsToModelNode->GetOutputOpacity() );
-  double outputColor[3];
-  MarkupsToModelNode->GetOutputColor( outputColor );
-  QColor nodeOutputColor;
-  nodeOutputColor.setRgbF( outputColor[0],outputColor[1],outputColor[2] );
-  d->ModelColorSelector->setColor( nodeOutputColor );
-  d->ModelSliceIntersectionCheckbox->setChecked( MarkupsToModelNode->GetOutputIntersectionVisibility() );
-  d->MarkupsTextScaleSlider->setValue(MarkupsToModelNode->GetMarkupsTextScale());
+    d->UpdateButton->setEnabled( false );
+    d->AdvancedGroupBox->setEnabled( false );
+    d->DisplayGroupBox->setEnabled( false );
+  }  
 
   // determine visibility of widgets
   if( d->ModeClosedSurfaceRadioButton->isChecked() )
@@ -513,6 +548,34 @@ void qSlicerMarkupsToModelModuleWidget::updateFromMRMLNode()
   {
     UpdateOutputModel();
   }
+}
+
+void qSlicerMarkupsToModelModuleWidget::updateFromRenderedNodes()
+{
+  Q_D( qSlicerMarkupsToModelModuleWidget );
+
+  // display options
+  d->ModelVisiblityButton->setChecked( this->GetOutputVisibility() );
+  d->ModelOpacitySlider->setValue( this->GetOutputOpacity() );
+  double outputColor[3];
+  this->GetOutputColor( outputColor );
+  QColor nodeOutputColor;
+  nodeOutputColor.setRgbF( outputColor[0],outputColor[1],outputColor[2] );
+  d->ModelColorSelector->setColor( nodeOutputColor );
+  d->ModelSliceIntersectionCheckbox->setChecked( this->GetOutputIntersectionVisibility() );
+  d->MarkupsTextScaleSlider->setValue( this->GetMarkupsTextScale() );
+}
+
+void qSlicerMarkupsToModelModuleWidget::updateToRenderedNodes()
+{
+  Q_D( qSlicerMarkupsToModelModuleWidget );
+  this->blockAllSignals();
+  this->SetOutputVisibility( d->ModelVisiblityButton->isChecked() );
+  this->SetOutputOpacity( d->ModelOpacitySlider->value() );
+  this->SetOutputColor( d->ModelColorSelector->color().redF(), d->ModelColorSelector->color().greenF(), d->ModelColorSelector->color().blueF() );
+  this->SetOutputIntersectionVisibility( d->ModelSliceIntersectionCheckbox->isChecked() );
+  this->SetMarkupsTextScale( d->MarkupsTextScaleSlider->value() );
+  this->unblockAllSignals();
 }
 
 //-----------------------------------------------------------------------------
@@ -673,3 +736,169 @@ bool qSlicerMarkupsToModelModuleWidget::eventFilter(QObject * obj, QEvent *event
   }
   return false;
 }
+
+//-----------------------------------------------------------------------------
+
+vtkMRMLModelNode* qSlicerMarkupsToModelModuleWidget::GetModelNode( )
+{
+  Q_D( qSlicerMarkupsToModelModuleWidget );
+  vtkMRMLMarkupsToModelNode* markupsToModelNode = vtkMRMLMarkupsToModelNode::SafeDownCast( d->ParameterNodeSelector->currentNode() );
+  if ( markupsToModelNode == NULL )
+  {
+    qCritical( "Selected node not a valid module node" );
+    return NULL;
+  }
+  return markupsToModelNode->GetModelNode();
+}
+
+vtkMRMLModelDisplayNode* qSlicerMarkupsToModelModuleWidget::GetModelDisplayNode( )
+{
+  Q_D( qSlicerMarkupsToModelModuleWidget );
+
+  vtkMRMLModelNode* modelNode = GetModelNode();
+  if (modelNode == NULL)
+  {
+    qCritical( "Cannot get Model Node" );
+    return NULL;
+  }
+  vtkMRMLModelDisplayNode* modelDisplayNode = vtkMRMLModelDisplayNode::SafeDownCast( modelNode->GetDisplayNode() );
+  if (modelDisplayNode == NULL) // if there is no display node, create one
+  {
+    modelNode->CreateDefaultDisplayNodes();
+    vtkMRMLMarkupsToModelNode* markupsToModelNode = vtkMRMLMarkupsToModelNode::SafeDownCast( d->ParameterNodeSelector->currentNode() );
+    modelDisplayNode = vtkMRMLModelDisplayNode::SafeDownCast( modelNode->GetDisplayNode() );
+    modelDisplayNode->SetName( vtkSlicerMarkupsToModelLogic::GetModelDisplayNodeName(markupsToModelNode).c_str() );
+    modelDisplayNode->SetColor( 0.5, 0.5, 0.5 );
+  }
+  return modelDisplayNode;
+}
+
+vtkMRMLMarkupsFiducialNode* qSlicerMarkupsToModelModuleWidget::GetMarkupsNode( )
+{
+  Q_D( qSlicerMarkupsToModelModuleWidget );
+  vtkMRMLMarkupsToModelNode* markupsToModelNode = vtkMRMLMarkupsToModelNode::SafeDownCast( d->ParameterNodeSelector->currentNode() );
+  if ( markupsToModelNode == NULL )
+  {
+    qCritical( "Selected node not a valid module node" );
+    return NULL;
+  }
+  return markupsToModelNode->GetMarkupsNode();
+}
+
+vtkMRMLMarkupsDisplayNode* qSlicerMarkupsToModelModuleWidget::GetMarkupsDisplayNode( )
+{
+  Q_D( qSlicerMarkupsToModelModuleWidget );
+
+  vtkMRMLMarkupsFiducialNode* markupsNode = GetMarkupsNode();
+  if (markupsNode == NULL)
+  {
+    qCritical( "Cannot get Markups Node" );
+    return NULL;
+  }
+  vtkMRMLMarkupsDisplayNode* markupsDisplayNode = vtkMRMLMarkupsDisplayNode::SafeDownCast( markupsNode->GetDisplayNode() );
+  if (markupsDisplayNode == NULL) // if there is no display node, create one
+  {
+    markupsNode->CreateDefaultDisplayNodes();
+    vtkMRMLMarkupsToModelNode* markupsToModelNode = vtkMRMLMarkupsToModelNode::SafeDownCast( d->ParameterNodeSelector->currentNode() );
+    markupsDisplayNode = vtkMRMLMarkupsDisplayNode::SafeDownCast( markupsNode->GetDisplayNode() );
+    markupsDisplayNode->SetName( vtkSlicerMarkupsToModelLogic::GetModelDisplayNodeName(markupsToModelNode).c_str() );
+    markupsDisplayNode->SetColor( 1.0, 0.5, 0.5 );
+  }
+  return markupsDisplayNode;
+}
+
+//-----------------------------------------------------------------------------
+
+void qSlicerMarkupsToModelModuleWidget::SetOutputOpacity( double outputOpacity )
+{
+  vtkMRMLModelDisplayNode* displayNode = GetModelDisplayNode();
+  if (displayNode == NULL)
+    return;
+  displayNode->SetOpacity( outputOpacity );
+}
+
+void qSlicerMarkupsToModelModuleWidget::SetOutputVisibility( bool outputVisibility )
+{
+  vtkMRMLModelDisplayNode* displayNode = GetModelDisplayNode();
+  if (displayNode == NULL)
+    return;
+  if ( outputVisibility )
+    displayNode->VisibilityOn();
+  else
+    displayNode->VisibilityOff();
+}
+
+void qSlicerMarkupsToModelModuleWidget::SetOutputIntersectionVisibility( bool outputIntersectionVisibility )
+{
+  vtkMRMLModelDisplayNode* displayNode = GetModelDisplayNode();
+  if (displayNode == NULL)
+    return;
+  if ( outputIntersectionVisibility )
+    displayNode->SliceIntersectionVisibilityOn();
+  else
+    displayNode->SliceIntersectionVisibilityOff();
+}
+
+void qSlicerMarkupsToModelModuleWidget::SetOutputColor( double redComponent, double greenComponent, double blueComponent )
+{
+  vtkMRMLModelDisplayNode* displayNode = GetModelDisplayNode();
+  if (displayNode == NULL)
+    return;
+  double outputColor[3];
+  outputColor[0] = redComponent;
+  outputColor[1] = greenComponent;
+  outputColor[2] = blueComponent;
+  displayNode->SetColor( outputColor );
+}
+
+void qSlicerMarkupsToModelModuleWidget::SetMarkupsTextScale( double scale )
+{
+  vtkMRMLMarkupsDisplayNode * displayNode = GetMarkupsDisplayNode();
+  if (displayNode == NULL)
+    return;
+  displayNode->SetTextScale( scale );
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+double qSlicerMarkupsToModelModuleWidget::GetOutputOpacity()
+{
+  vtkMRMLModelDisplayNode* displayNode = GetModelDisplayNode();
+  if (displayNode == NULL)
+    return 0.0;
+  return displayNode->GetOpacity();
+}
+
+bool qSlicerMarkupsToModelModuleWidget::GetOutputVisibility()
+{
+  vtkMRMLModelDisplayNode* displayNode = GetModelDisplayNode();
+  if (displayNode == NULL)
+    return false;
+  return displayNode->GetVisibility();  
+}
+
+bool qSlicerMarkupsToModelModuleWidget::GetOutputIntersectionVisibility()
+{
+  vtkMRMLModelDisplayNode* displayNode = GetModelDisplayNode();
+  if (displayNode == NULL)
+    return false;
+  return displayNode->GetSliceIntersectionVisibility();
+}
+
+void qSlicerMarkupsToModelModuleWidget::GetOutputColor( double outputColor[3] )
+{
+  vtkMRMLModelDisplayNode* displayNode = GetModelDisplayNode();
+  if (displayNode == NULL)
+    return;
+  displayNode->GetColor( outputColor[0], outputColor[1], outputColor[2] );
+}
+
+double qSlicerMarkupsToModelModuleWidget::GetMarkupsTextScale()
+{
+  vtkMRMLMarkupsDisplayNode* displayNode = GetMarkupsDisplayNode();
+  if (displayNode == NULL)
+    return 0.0;
+  return displayNode->GetTextScale();
+}
+
+

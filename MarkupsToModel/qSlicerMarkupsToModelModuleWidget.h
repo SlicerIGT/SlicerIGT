@@ -18,6 +18,13 @@
 #ifndef __qSlicerMarkupsToModelModuleWidget_h
 #define __qSlicerMarkupsToModelModuleWidget_h
 
+// Slicer MRML includes
+#include "vtkMRMLModelNode.h"
+#include "vtkMRMLMarkupsFiducialNode.h"
+#include "vtkMRMLModelDisplayNode.h"
+#include "vtkMRMLMarkupsDisplayNode.h"
+#include "vtkMRMLMarkupsToModelNode.h"
+
 // SlicerQt includes
 #include "qSlicerAbstractModuleWidget.h"
 
@@ -43,7 +50,11 @@ public slots:
   void onSceneImportedEvent();
 
   void updateFromMRMLNode();
-  void updateToMRMLNode();
+  void updateParametersToMRMLNode();
+  void updateModelToMRMLNode();
+  void updateMarkupsToMRMLNode();
+  void updateFromRenderedNodes();
+  void updateToRenderedNodes();
 
   void blockAllSignals();
   void unblockAllSignals();
@@ -62,6 +73,25 @@ protected:
   virtual void enter();
   virtual void exit();
   virtual bool eventFilter(QObject * obj, QEvent *event);
+
+  // functions for manipulating other MRML nodes
+  vtkMRMLModelNode* GetModelNode( );
+  vtkMRMLModelDisplayNode* GetModelDisplayNode( );
+  vtkMRMLMarkupsFiducialNode* GetMarkupsNode( );
+  vtkMRMLMarkupsDisplayNode* GetMarkupsDisplayNode( );
+
+  void SetOutputIntersectionVisibility( bool outputIntersectionVisibility );
+  void SetOutputVisibility( bool outputVisibility );
+  void SetOutputOpacity( double outputOpacity );
+  virtual void SetOutputColor( double redComponent, double greenComponent, double blueComponent );
+  void SetMarkupsTextScale( double scale );
+
+  bool GetOutputIntersectionVisibility( );
+  bool GetOutputVisibility( );
+  double GetOutputOpacity( );
+  void GetOutputColor( double outputColor[3] );
+  double GetMarkupsTextScale( );
+
 
 private:
   Q_DECLARE_PRIVATE(qSlicerMarkupsToModelModuleWidget);
