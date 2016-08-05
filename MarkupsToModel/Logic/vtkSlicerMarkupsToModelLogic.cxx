@@ -62,7 +62,6 @@ vtkStandardNewMacro(vtkSlicerMarkupsToModelLogic);
 vtkSlicerMarkupsToModelLogic::vtkSlicerMarkupsToModelLogic()
 {
   this->ImportingScene=0;
-  this->PlanarSurface = true;
 }
 
 //----------------------------------------------------------------------------
@@ -139,7 +138,6 @@ void vtkSlicerMarkupsToModelLogic::OnMRMLSceneEndImport()
   markupsToModelNodes->Delete();
   this->Modified();
   this->ImportingScene=0;
-  this->PlanarSurface = true;
 }
 
 //---------------------------------------------------------------------------
@@ -277,7 +275,6 @@ void vtkSlicerMarkupsToModelLogic::UpdateOutputCloseSurfaceModel(vtkMRMLMarkupsT
   vtkMRMLMarkupsFiducialNode* markups = markupsToModelModuleNode->GetMarkupsNode();
   if(markups == NULL)
   {
-    this->PlanarSurface = true;
     return;
   }
   int numberOfMarkups = markups->GetNumberOfFiducials();
@@ -334,7 +331,9 @@ void vtkSlicerMarkupsToModelLogic::UpdateOutputCloseSurfaceModel(vtkMRMLMarkupsT
   double y0 = origin[1];
   double z0 = origin[2];
   double D = (-1)*A*x0 - B*y0 - C*z0;
-
+  
+  // assume by default that the surface is planar
+  bool planarSurface = true;
   for (int i = 0; i < numberOfMarkups; i++)
   {
     double x1 = coords[3 * i + 0];
@@ -343,7 +342,7 @@ void vtkSlicerMarkupsToModelLogic::UpdateOutputCloseSurfaceModel(vtkMRMLMarkupsT
     double distance = std::abs(A*x1 + B*y1 + C*z1 + D) / std::sqrt(A*A + B*B + C*C);
     if (distance >= MINIMUM_THICKNESS)
     {
-      this->PlanarSurface = false;
+      planarSurface = false;
     }
   }
 
@@ -356,7 +355,7 @@ void vtkSlicerMarkupsToModelLogic::UpdateOutputCloseSurfaceModel(vtkMRMLMarkupsT
   vtkSmartPointer< vtkDelaunay3D > delaunay = vtkSmartPointer< vtkDelaunay3D >::New();
   delaunay->SetAlpha(markupsToModelModuleNode->GetDelaunayAlpha());
 
-  if (this->PlanarSurface)
+  if (planarSurface)
   {
     vtkSmartPointer<vtkCubeSource> cube = vtkSmartPointer<vtkCubeSource>::New();
     vtkSmartPointer<vtkGlyph3D> glyph = vtkSmartPointer<vtkGlyph3D>::New();
@@ -394,7 +393,7 @@ void vtkSlicerMarkupsToModelLogic::UpdateOutputCloseSurfaceModel(vtkMRMLMarkupsT
   vtkSmartPointer<vtkPolyDataNormals> normals = vtkSmartPointer<vtkPolyDataNormals>::New();
   normals->SetFeatureAngle(100);
 
-  if ( markupsToModelModuleNode->GetButterflySubdivision() && !this->PlanarSurface )
+  if ( markupsToModelModuleNode->GetButterflySubdivision() && !planarSurface )
   {
     vtkSmartPointer< vtkButterflySubdivisionFilter > subdivisionFilter = vtkSmartPointer< vtkButterflySubdivisionFilter >::New();
     subdivisionFilter->SetInputConnection(surfaceFilter->GetOutputPort());
