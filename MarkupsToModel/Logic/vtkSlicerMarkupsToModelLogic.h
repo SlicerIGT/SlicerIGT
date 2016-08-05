@@ -64,18 +64,23 @@ public:
   void UpdateOutputModel(vtkMRMLMarkupsToModelNode* moduleNode);
   // Generates the closed surface from the markups using vtkDelaunay3D. Uses Delanauy alpha value, subdivision filter and clean markups
   // options from the module node.
-  void UpdateOutputCloseSurfaceModel(vtkMRMLMarkupsToModelNode* markupsToModelModuleNode);
+  void UpdateOutputCloseSurfaceModel(vtkMRMLMarkupsToModelNode* markupsToModelModuleNode, vtkPolyData* outputPolyData);
   // Generates the curve model from the markups connecting consecutive segments.
   // Each segment can be linear, cardinal or Kochanek Splines (described and implemented in UpdateOutputCurveModel, UpdateOutputLinearModel
   // and UpdateOutputHermiteSplineModel methods). Uses Tube radius and clean markups option from the module node.
-  void UpdateOutputCurveModel(vtkMRMLMarkupsToModelNode* markupsToModelModuleNode);
+  void UpdateOutputCurveModel(vtkMRMLMarkupsToModelNode* markupsToModelModuleNode, vtkPolyData* outputPolyData);
   // Generates the linear curve model connecting linear tubes from each markup.
-  void UpdateOutputLinearModel(vtkMRMLMarkupsToModelNode* markupsToModelModuleNode, vtkPolyData * markupsPointsPolyData);
+  void UpdateOutputLinearModel(vtkMRMLMarkupsToModelNode* markupsToModelModuleNode, vtkPolyData * markupsPointsPolyData, vtkPolyData* outputPolyData);
   // Generates cardinal or Kochanek Spline curve model. If the Kochanek Spline the bias, continuity and tension parameters from de module node
   // are used.
-  void UpdateOutputHermiteSplineModel(vtkMRMLMarkupsToModelNode* markupsToModelModuleNode, vtkPolyData * markupsPointsPolyData);
+  void UpdateOutputHermiteSplineModel(vtkMRMLMarkupsToModelNode* markupsToModelModuleNode, vtkPolyData * markupsPointsPolyData, vtkPolyData* outputPolyData);
 
   void ProcessMRMLNodesEvents( vtkObject* caller, unsigned long event, void* callData );
+
+  static std::string GetMarkupsNodeName(vtkMRMLMarkupsToModelNode* );
+  static std::string GetModelNodeName(vtkMRMLMarkupsToModelNode* );
+  static std::string GetMarkupsDisplayNodeName(vtkMRMLMarkupsToModelNode* );
+  static std::string GetModelDisplayNodeName(vtkMRMLMarkupsToModelNode* );
 
 protected:
   vtkSlicerMarkupsToModelLogic();
