@@ -18,6 +18,7 @@ set(MODULE_INCLUDE_DIRECTORIES
   ${CMAKE_CURRENT_BINARY_DIR}/Logic
   ${CMAKE_CURRENT_SOURCE_DIR}/MRML
   ${CMAKE_CURRENT_BINARY_DIR}/MRML
+  ${qSlicerMarkupsModuleWidgets_INCLUDE_DIRS}
   )
 
 set(MODULE_SRCS
@@ -40,6 +41,7 @@ set(MODULE_TARGET_LIBRARIES
   vtkSlicer${MODULE_NAME}ModuleMRML
   vtkSlicer${MODULE_NAME}ModuleLogic
   vtkSlicerMarkupsModuleMRML
+  qSlicerMarkupsModuleWidgets
   )
 
 set(MODULE_RESOURCES
@@ -57,7 +59,6 @@ slicerMacroBuildQtModule(
   UI_SRCS ${MODULE_UI_SRCS}
   TARGET_LIBRARIES ${MODULE_TARGET_LIBRARIES}
   RESOURCES ${MODULE_RESOURCES}
-  WITH_GENERIC_TESTS
   )
 
 #-----------------------------------------------------------------------------
