@@ -92,7 +92,7 @@ class BreachWarningSelfTestTest(ScriptedLoadableModuleTest):
     mainWindow = slicer.util.mainWindow()
     mainWindow.moduleSelector().selectModule('BreachWarning')
     bwWidget = slicer.modules.breachwarning.widgetRepresentation()
-    bwColorPickerButton = slicer.util.findChildren(widget=bwWidget, className='ctkColorPickerButton', name='ColorPickerButton')[0]
+    bwColorPickerButton = slicer.util.findChildren(widget=bwWidget, className='ctkColorPickerButton', name='WarningColorPickerButton')[0]
     bwModelNodeCombobox = slicer.util.findChildren(widget=bwWidget, name='ModelNodeComboBox')[0]
     bwToolNodeCombobox = slicer.util.findChildren(widget=bwWidget, name='ToolComboBox')[0]
 
