@@ -82,7 +82,7 @@ void vtkSlicerMarkupsToModelLogic::SetMRMLSceneInternal(vtkMRMLScene * newScene)
   vtkNew<vtkIntArray> events;
   events->InsertNextValue(vtkMRMLScene::NodeAddedEvent);
   events->InsertNextValue(vtkMRMLScene::NodeRemovedEvent);
-  events->InsertNextValue(vtkMRMLScene::EndBatchProcessEvent);
+  events->InsertNextValue(vtkMRMLScene::StartBatchProcessEvent);
   events->InsertNextValue(vtkMRMLScene::EndBatchProcessEvent);
   events->InsertNextValue(vtkMRMLScene::StartImportEvent);
   events->InsertNextValue(vtkMRMLScene::EndImportEvent);
