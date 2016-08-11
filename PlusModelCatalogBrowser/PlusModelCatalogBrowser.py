@@ -45,7 +45,7 @@ class PlusModelCatalogBrowserWidget(ScriptedLoadableModuleWidget):
     self.showButton.setStyleSheet("background-color: rgb(150, 255, 150); color: rgb(0, 0, 0); height: 40px")
     self.layout.addWidget(self.showButton)
     self.showButton.connect('toggled(bool)', self.showButtonClicked)
- 
+
     modelsButton = qt.QPushButton("Go to models module")
     modelsButton.toolTip = "Switch to Models module"
     self.layout.addWidget(modelsButton)
@@ -55,12 +55,12 @@ class PlusModelCatalogBrowserWidget(ScriptedLoadableModuleWidget):
     plusToolkitLabel.setOpenExternalLinks(True)
     plusToolkitLabel.setAlignment(qt.Qt.AlignCenter)
     self.layout.addWidget(plusToolkitLabel)
-    
+
     # Add vertical spacer
     self.layout.addStretch(1)
-    
+
     self.logic = PlusModelCatalogBrowserLogic()
-    
+
     self.showButton.setChecked(True)
 
   def cleanup(self):
@@ -105,64 +105,68 @@ class PlusModelCatalogBrowserLogic(ScriptedLoadableModuleLogic):
   def __init__(self):
     self.catalogMainUrl = qt.QUrl('http://perk-software.cs.queensu.ca/plus/doc/nightly/modelcatalog/')
     self.catalogName = 'Plus toolkit 3D model catalog'
-  
+
     self.browser = qt.QWebView()
     # Change QWebView such that link clicks are not automatically acted on
     # When links are clicked, run the handleClick() function
-    self.browser.page().setLinkDelegationPolicy(qt.QWebPage.DelegateAllLinks)        
+    self.browser.page().setLinkDelegationPolicy(qt.QWebPage.DelegateAllLinks)
     self.browser.linkClicked.connect(self.handleClick)
-    
+
     self.downloadProgressBar = qt.QProgressDialog()
     self.downloadProgressBar.setLabelText('Downloading File')
-    
+
   def showBrowser(self):
     self.browser.setWindowTitle(self.catalogName)
     self.browser.setUrl(self.catalogMainUrl)
     self.browser.resize(1050,800)
     self.browser.show()
-    
+
   def hideBrowser(self):
-    self.browser.hide() 
-    
+    self.browser.hide()
+
   def downloadFile(self, dlUrl):
     import urllib
 
     # Set download directory to a folder in Slicer cache
     destinationDir = slicer.mrmlScene.GetCacheManager().GetRemoteCacheDirectory()
 
-    fileInfo = qt.QFileInfo(dlUrl.path())        
-    destinationFilePath = destinationDir + "/" + fileInfo.fileName()        
+    fileInfo = qt.QFileInfo(dlUrl.path())
+    destinationFilePath = destinationDir + "/" + fileInfo.fileName()
     logging.info("Downloading model file: {0}".format(destinationFilePath))
 
     self.downloadProgressBar.show()
     urllib.urlretrieve(dlUrl.toString(), destinationFilePath, self.reportProgress)
-    self.downloadProgressBar.close()       
-      
+    self.downloadProgressBar.close()
+
     return destinationFilePath
-  
+
   def extract(self, ZipSource):
     """Extract all files from a zip"""
     zip = zipfile.ZipFile(ZipSource)
-    
+
     # Extract name of the folder inside the zip
     zipList = zip.namelist()
     folderName = zipList[0]
-    
+
     #Returns final directory including the folder that was in the zip
     extractDir = slicer.mrmlScene.GetCacheManager().GetRemoteCacheDirectory()
     zip.extractall(path = extractDir)
     finalDir = extractDir + '/' + folderName
     return finalDir
-  
-  def loadModel(self, filePath):
-    """Load model into Slicer"""
-    return slicer.util.loadModel(filePath)
-     
+
   def loadFiles(self, folderToLoad):
     """Loads all the models inside a folder into Slicer"""
     fileList = dircache.listdir(folderToLoad) # lists all the files inside a folder
     for filename in fileList:
-      self.loadModel(folderToLoad + "/" + filename)
+      self.loadFile(folderToLoad + "/" + filename)
+
+  def loadFile(self, filePath):
+    if ".stl" in filePath.lower():
+      slicer.util.loadModel(filePath)
+    elif ".mha" in filePath.lower() or ".nrrd" in filePath.lower():
+      slicer.util.loadVolume(filePath)
+    else:
+      logging.error("File type not recognized: "+filePath)
 
   def reportProgress(self, blocks, blockSize, totalSize):
     """Changes value of ProgressBar based on download progress.
@@ -173,18 +177,24 @@ class PlusModelCatalogBrowserLogic(ScriptedLoadableModuleLogic):
   def handleClick(self, url):
     """Main function that runs whenever a link is clicked"""
     urlString = url.toString()
-    if ".stl" in urlString or ".STL" in urlString:
-      # STL file is clicked
-      filePath = self.downloadFile(url)
-      self.loadModel(filePath)
-    elif ".zip" in urlString or ".ZIP" in urlString:
+
+    loadableFileExtensions = ["stl", "mha", "nrrd"]
+    for loadableFileExtension in loadableFileExtensions:
+      if "."+loadableFileExtension in urlString.lower():
+        # loadable file is clicked
+        filePath = self.downloadFile(url)
+        self.loadFile(filePath)
+        return
+
+    if ".zip" in urlString.lower():
       # ZIP file is clicked
       filePath = self.downloadFile(url)
       finalDir = self.extract(filePath)
       self.loadFiles(finalDir)
-    else:
-      # other link is clicked, navigate to new link
-      self.browser.setUrl(url)
+      return
+
+    # other link is clicked, navigate to new link
+    self.browser.setUrl(url)
 
 class PlusModelCatalogBrowserTest(ScriptedLoadableModuleTest):
   """
@@ -207,7 +217,7 @@ class PlusModelCatalogBrowserTest(ScriptedLoadableModuleTest):
   def test_PlusModelCatalogBrowser1(self):
 
     self.delayDisplay("Starting the test")
-    
+
     logic = PlusModelCatalogBrowserLogic()
     logic.showBrowser()
     logic.handleClick(qt.QUrl('http://perk-software.cs.queensu.ca/plus/doc/nightly/modelcatalog/'))
