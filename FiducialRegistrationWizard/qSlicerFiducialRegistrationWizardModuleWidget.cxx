@@ -191,7 +191,7 @@ void qSlicerFiducialRegistrationWizardModuleWidget::setup()
   // Setup Update button menu
   QMenu* updateMenu = new QMenu(tr("Update options"), this);
   // Install event filter to override menu position to show it on the right side of the button.
-  // This is necessary becayse the update button is very wide and the
+  // This is necessary because the update button is very wide and the
   // menu arrow is on the right side. With the default QMenu the menu would appear
   // on the left side, which would be very inconvenient because the mouse would need
   // to be moved a lot to click the manual/auto option.

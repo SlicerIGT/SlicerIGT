@@ -62,7 +62,6 @@ vtkStandardNewMacro(vtkSlicerMarkupsToModelLogic);
 vtkSlicerMarkupsToModelLogic::vtkSlicerMarkupsToModelLogic()
 {
   this->ImportingScene=0;
-  this->PlanarSurface = true;
 }
 
 //----------------------------------------------------------------------------
@@ -82,7 +81,7 @@ void vtkSlicerMarkupsToModelLogic::SetMRMLSceneInternal(vtkMRMLScene * newScene)
   vtkNew<vtkIntArray> events;
   events->InsertNextValue(vtkMRMLScene::NodeAddedEvent);
   events->InsertNextValue(vtkMRMLScene::NodeRemovedEvent);
-  events->InsertNextValue(vtkMRMLScene::EndBatchProcessEvent);
+  events->InsertNextValue(vtkMRMLScene::StartBatchProcessEvent);
   events->InsertNextValue(vtkMRMLScene::EndBatchProcessEvent);
   events->InsertNextValue(vtkMRMLScene::StartImportEvent);
   events->InsertNextValue(vtkMRMLScene::EndImportEvent);
@@ -120,12 +119,13 @@ void vtkSlicerMarkupsToModelLogic::OnMRMLSceneEndImport()
     {
       vtkWarningMacro( "OnMRMLSceneEndImport: Module node added. Set the model pointer " );
 
-      if( markupsToModelNode->GetModelNodeName().compare("")!=0 && markupsToModelNode->GetModelNode()==NULL)
+      if( GetModelNodeName(markupsToModelNode).compare("")!=0 &&
+          markupsToModelNode->GetModelNode()==NULL)
       {
-        vtkMRMLNode* modelNodeFromScene = this->GetMRMLScene()->GetNodeByID(markupsToModelNode->GetModelNodeID());
-        if(modelNodeFromScene!=NULL)
+        vtkMRMLNode* modelNodeFromScene = this->GetMRMLScene()->GetNodeByID(markupsToModelNode->GetModelNode()->GetID());
+        if ( modelNodeFromScene != NULL )
         {
-          markupsToModelNode->SetModelNode(vtkMRMLModelNode::SafeDownCast(modelNodeFromScene));
+          markupsToModelNode->SetAndObserveModelNodeID( modelNodeFromScene->GetID() );
         }
         else
         {
@@ -138,7 +138,6 @@ void vtkSlicerMarkupsToModelLogic::OnMRMLSceneEndImport()
   markupsToModelNodes->Delete();
   this->Modified();
   this->ImportingScene=0;
-  this->PlanarSurface = true;
 }
 
 //---------------------------------------------------------------------------
@@ -199,8 +198,6 @@ void vtkSlicerMarkupsToModelLogic::SetMarkupsNode( vtkMRMLMarkupsFiducialNode* n
     // no change
     return;
   }
-  moduleNode->SetMarkupsNodeID(newMarkups->GetID());
-
   // Switch to the new model node
   moduleNode->SetAndObserveMarkupsNodeID( (newMarkups!=NULL) ? newMarkups->GetID() : NULL );
 }
@@ -209,14 +206,14 @@ void vtkSlicerMarkupsToModelLogic::SetMarkupsNode( vtkMRMLMarkupsFiducialNode* n
 void vtkSlicerMarkupsToModelLogic::UpdateSelectionNode( vtkMRMLMarkupsToModelNode* markupsToModelModuleNode )
 {
   vtkMRMLMarkupsFiducialNode* markupsNode = markupsToModelModuleNode->GetMarkupsNode();
-  if(markupsNode == NULL)
+  if ( markupsNode == NULL )
   {
     vtkWarningMacro("No markups yet");
     return;
   }
   std::string selectionNodeID = std::string("");
 
-  if (!this->GetMRMLScene())
+  if ( !this->GetMRMLScene() )
   {
     vtkErrorMacro("UpdateSelectionNode: no scene defined!");
     return;
@@ -273,26 +270,17 @@ void vtkSlicerMarkupsToModelLogic::UpdateSelectionNode( vtkMRMLMarkupsToModelNod
 }
 
 //------------------------------------------------------------------------------
-void vtkSlicerMarkupsToModelLogic::UpdateOutputCloseSurfaceModel(vtkMRMLMarkupsToModelNode* markupsToModelModuleNode)
+void vtkSlicerMarkupsToModelLogic::UpdateOutputCloseSurfaceModel(vtkMRMLMarkupsToModelNode* markupsToModelModuleNode, vtkPolyData* output)
 {
   vtkMRMLMarkupsFiducialNode* markups = markupsToModelModuleNode->GetMarkupsNode();
   if(markups == NULL)
   {
-    this->PlanarSurface = true;
     return;
   }
   int numberOfMarkups = markups->GetNumberOfFiducials();
 
-  if(numberOfMarkups < 1)
+  if (numberOfMarkups == 0)
   {
-    if(markupsToModelModuleNode->GetModelNode()!=NULL)
-    {
-      vtkSmartPointer< vtkSphereSource > sphereSource = vtkSmartPointer< vtkSphereSource >::New();
-      markupsToModelModuleNode->GetModelNode()->GetPolyData()->Reset();
-      sphereSource->SetRadius(0.00001);
-      markupsToModelModuleNode->GetModelNode()->SetPolyDataConnection(sphereSource->GetOutputPort());
-    }
-    this->PlanarSurface = true;
     return;
   }
 
@@ -316,7 +304,8 @@ void vtkSlicerMarkupsToModelLogic::UpdateOutputCloseSurfaceModel(vtkMRMLMarkupsT
     coords[i * 3 + 2] = markupPoint[2];
     modelCellArray->InsertCellPoint(i);
   }
-  vtkMath::MultiplyScalar(meanPoint, 1.0 / numberOfMarkups);
+  if (numberOfMarkups > 0)
+    vtkMath::MultiplyScalar(meanPoint, 1.0 / numberOfMarkups);
 
   double corner[3] = {0.0, 0.0, 0.0};
   double normal[3] = {0.0, 0.0, 0.0};
@@ -342,16 +331,18 @@ void vtkSlicerMarkupsToModelLogic::UpdateOutputCloseSurfaceModel(vtkMRMLMarkupsT
   double y0 = origin[1];
   double z0 = origin[2];
   double D = (-1)*A*x0 - B*y0 - C*z0;
-
+  
+  // assume by default that the surface is planar
+  bool planarSurface = true;
   for (int i = 0; i < numberOfMarkups; i++)
   {
-    double x1 = coords[i * 3 + 0];
-    double y1 = coords[i * 3 + 1];
-    double z1 = coords[i * 3 + 2];
+    double x1 = coords[3 * i + 0];
+    double y1 = coords[3 * i + 1];
+    double z1 = coords[3 * i + 2];
     double distance = std::abs(A*x1 + B*y1 + C*z1 + D) / std::sqrt(A*A + B*B + C*C);
     if (distance >= MINIMUM_THICKNESS)
     {
-      this->PlanarSurface = false;
+      planarSurface = false;
     }
   }
 
@@ -364,7 +355,7 @@ void vtkSlicerMarkupsToModelLogic::UpdateOutputCloseSurfaceModel(vtkMRMLMarkupsT
   vtkSmartPointer< vtkDelaunay3D > delaunay = vtkSmartPointer< vtkDelaunay3D >::New();
   delaunay->SetAlpha(markupsToModelModuleNode->GetDelaunayAlpha());
 
-  if (this->PlanarSurface)
+  if (planarSurface)
   {
     vtkSmartPointer<vtkCubeSource> cube = vtkSmartPointer<vtkCubeSource>::New();
     vtkSmartPointer<vtkGlyph3D> glyph = vtkSmartPointer<vtkGlyph3D>::New();
@@ -398,65 +389,38 @@ void vtkSlicerMarkupsToModelLogic::UpdateOutputCloseSurfaceModel(vtkMRMLMarkupsT
 
   vtkSmartPointer< vtkDataSetSurfaceFilter > surfaceFilter = vtkSmartPointer< vtkDataSetSurfaceFilter >::New();
   surfaceFilter->SetInputConnection(delaunay->GetOutputPort());
+  surfaceFilter->Update();
+  vtkSmartPointer<vtkPolyDataNormals> normals = vtkSmartPointer<vtkPolyDataNormals>::New();
+  normals->SetFeatureAngle(100);
 
-  vtkSmartPointer< vtkMRMLModelNode > modelNode;
-  if(markupsToModelModuleNode->GetModelNode() == NULL)
+  if ( markupsToModelModuleNode->GetButterflySubdivision() && !planarSurface )
   {
-    modelNode = vtkSmartPointer< vtkMRMLModelNode >::New();
-    this->GetMRMLScene()->AddNode( modelNode );
-    modelNode->SetName( markupsToModelModuleNode->GetModelNodeName().c_str() );
-  }
-  else
-  {
-    modelNode = markupsToModelModuleNode->GetModelNode();
-  }
-
-  if(markupsToModelModuleNode->GetButterflySubdivision())
-  {
-    if (this->PlanarSurface)
+    vtkSmartPointer< vtkButterflySubdivisionFilter > subdivisionFilter = vtkSmartPointer< vtkButterflySubdivisionFilter >::New();
+    subdivisionFilter->SetInputConnection(surfaceFilter->GetOutputPort());
+    subdivisionFilter->SetNumberOfSubdivisions(3);
+    subdivisionFilter->Update();
+    if(markupsToModelModuleNode->GetConvexHull())
     {
+      vtkSmartPointer<vtkDelaunay3D> convexHull = vtkSmartPointer<vtkDelaunay3D>::New();
+      convexHull->SetAlpha(markupsToModelModuleNode->GetDelaunayAlpha());
+      convexHull->SetInputConnection(subdivisionFilter->GetOutputPort());
+      convexHull->Update();
+      vtkSmartPointer<vtkDataSetSurfaceFilter> surfaceFilter = vtkSmartPointer<vtkDataSetSurfaceFilter>::New();
+      surfaceFilter->SetInputData(convexHull->GetOutput());
       surfaceFilter->Update();
-      vtkSmartPointer<vtkPolyDataNormals> normals = vtkSmartPointer<vtkPolyDataNormals>::New();
       normals->SetInputConnection(surfaceFilter->GetOutputPort());
-      normals->SetFeatureAngle(100);
-      normals->Update();
-      modelNode->SetPolyDataConnection(normals->GetOutputPort());
     }
     else
     {
-      vtkSmartPointer< vtkButterflySubdivisionFilter > subdivisionFilter = vtkSmartPointer< vtkButterflySubdivisionFilter >::New();
-      subdivisionFilter->SetInputConnection(surfaceFilter->GetOutputPort());
-      subdivisionFilter->SetNumberOfSubdivisions(3);
-      subdivisionFilter->Update();
-      modelNode->SetAndObservePolyData( subdivisionFilter->GetOutput() );
-      if(markupsToModelModuleNode->GetConvexHull())
-      {
-        vtkSmartPointer<vtkDelaunay3D> convexHull = vtkSmartPointer<vtkDelaunay3D>::New();
-        convexHull->SetAlpha(markupsToModelModuleNode->GetDelaunayAlpha());
-        convexHull->SetInputConnection(subdivisionFilter->GetOutputPort());
-        convexHull->Update();
-        vtkSmartPointer<vtkDataSetSurfaceFilter> surfaceFilter = vtkSmartPointer<vtkDataSetSurfaceFilter>::New();
-        surfaceFilter->SetInputData(convexHull->GetOutput());
-        surfaceFilter->Update();
-        modelNode->SetAndObservePolyData(surfaceFilter->GetOutput());
-      }
+      normals->SetInputConnection(subdivisionFilter->GetOutputPort());
     }
   }
   else
   {
-    surfaceFilter->Update();
-    modelNode->SetAndObservePolyData(surfaceFilter->GetOutput());
+    normals->SetInputConnection(surfaceFilter->GetOutputPort());
   }
-
-  if(markupsToModelModuleNode->GetModelNode() == NULL)
-  {
-    vtkSmartPointer< vtkMRMLModelDisplayNode > displayNode = vtkSmartPointer< vtkMRMLModelDisplayNode >::New();
-    this->GetMRMLScene()->AddNode( displayNode );
-    displayNode->SetName( markupsToModelModuleNode->GetDisplayNodeName().c_str());
-    modelNode->SetAndObserveDisplayNodeID( displayNode->GetID() );
-    markupsToModelModuleNode->SetModelNode(modelNode);
-  }
-  this->PlanarSurface = true;
+  normals->Update();
+  output->DeepCopy(normals->GetOutput());
 }
 
 //------------------------------------------------------------------------------
@@ -485,10 +449,8 @@ void markupsToPath(vtkMRMLMarkupsFiducialNode* markupsNode, vtkPolyData* markups
 }
 
 //------------------------------------------------------------------------------
-void vtkSlicerMarkupsToModelLogic::UpdateOutputLinearModel(vtkMRMLMarkupsToModelNode* markupsToModelModuleNode, vtkPolyData * markupsPointsPolyData)
+void vtkSlicerMarkupsToModelLogic::UpdateOutputLinearModel(vtkMRMLMarkupsToModelNode* markupsToModelModuleNode, vtkPolyData * markupsPointsPolyData, vtkPolyData* outputPolyData)
 {
-  vtkSmartPointer< vtkMRMLModelNode > modelNode;
-  modelNode = markupsToModelModuleNode->GetModelNode();
   vtkSmartPointer< vtkAppendPolyData> append = vtkSmartPointer< vtkAppendPolyData>::New();
 
   vtkPoints * points;
@@ -536,16 +498,14 @@ void vtkSlicerMarkupsToModelLogic::UpdateOutputLinearModel(vtkMRMLMarkupsToModel
   }
 
   append->Update();
-  modelNode->SetAndObservePolyData( append->GetOutput() );
+
+  outputPolyData->DeepCopy(append->GetOutput());
 }
 
 //------------------------------------------------------------------------------
-void vtkSlicerMarkupsToModelLogic::UpdateOutputHermiteSplineModel(vtkMRMLMarkupsToModelNode* markupsToModelModuleNode, vtkPolyData * markupsPointsPolyData)
+void vtkSlicerMarkupsToModelLogic::UpdateOutputHermiteSplineModel(vtkMRMLMarkupsToModelNode* markupsToModelModuleNode, vtkPolyData * markupsPointsPolyData, vtkPolyData* outputPolyData)
 {
-  vtkSmartPointer< vtkMRMLModelNode > modelNode;
-    modelNode = markupsToModelModuleNode->GetModelNode();
-
-  int totalNumberOfPoints = markupsToModelModuleNode->GetNumberOfIntermediatePoints()*markupsPointsPolyData->GetNumberOfPoints();
+  int totalNumberOfPoints = markupsToModelModuleNode->GetTubeSamplingFrequency()*markupsPointsPolyData->GetNumberOfPoints();
   vtkSmartPointer< vtkSplineFilter > splineFilter = vtkSmartPointer< vtkSplineFilter >::New();
 #if (VTK_MAJOR_VERSION <= 5)
   splineFilter->SetInput(markupsPointsPolyData);
@@ -570,102 +530,95 @@ void vtkSlicerMarkupsToModelLogic::UpdateOutputHermiteSplineModel(vtkMRMLMarkups
   vtkSmartPointer< vtkTubeFilter> cardinalSplineTubeFilter = vtkSmartPointer< vtkTubeFilter>::New();
   cardinalSplineTubeFilter->SetInputConnection(splineFilter->GetOutputPort());
   cardinalSplineTubeFilter->SetRadius(markupsToModelModuleNode->GetTubeRadius());
-  cardinalSplineTubeFilter->SetNumberOfSides(20);
+  cardinalSplineTubeFilter->SetNumberOfSides(markupsToModelModuleNode->GetTubeNumberOfSides());
   cardinalSplineTubeFilter->CappingOn();
   cardinalSplineTubeFilter->Update();
 
-  modelNode->SetAndObservePolyData( cardinalSplineTubeFilter->GetOutput() );
-
-  if(markupsToModelModuleNode->GetModelNode() == NULL)
-  {
-    vtkSmartPointer< vtkMRMLModelDisplayNode > displayNode = vtkSmartPointer< vtkMRMLModelDisplayNode >::New();
-    this->GetMRMLScene()->AddNode( displayNode );
-    displayNode->SetName( markupsToModelModuleNode->GetDisplayNodeName().c_str());
-    modelNode->SetAndObserveDisplayNodeID( displayNode->GetID() );
-    markupsToModelModuleNode->SetModelNode(modelNode);
-  }
+  outputPolyData->DeepCopy(cardinalSplineTubeFilter->GetOutput());
 }
 
 //------------------------------------------------------------------------------
-void vtkSlicerMarkupsToModelLogic::UpdateOutputCurveModel(vtkMRMLMarkupsToModelNode* markupsToModelModuleNode)
+void vtkSlicerMarkupsToModelLogic::UpdateOutputCurveModel(vtkMRMLMarkupsToModelNode* markupsToModelModuleNode, vtkPolyData* outputPolyData)
 {
 
-  vtkMRMLMarkupsFiducialNode* markupsNode=markupsToModelModuleNode->GetMarkupsNode();
-  if(markupsNode==NULL)
+  vtkMRMLMarkupsFiducialNode* markupsNode = markupsToModelModuleNode->GetMarkupsNode( );
+  if( markupsNode == NULL )
   {
     return;
   }
 
-  int numberOfMarkups = markupsNode->GetNumberOfFiducials();
-  if(numberOfMarkups< MINIMUM_MARKUPS_NUMBER )
-  {
-      if(markupsToModelModuleNode->GetModelNode()!=NULL)
-      {
-        vtkSmartPointer< vtkSphereSource > sphereSource = vtkSmartPointer< vtkSphereSource >::New();
-        markupsToModelModuleNode->GetModelNode()->GetPolyData()->Reset();
-        sphereSource->SetRadius(0.00001);
-        markupsToModelModuleNode->GetModelNode()->SetPolyDataConnection(sphereSource->GetOutputPort());
-      }
-    return;
-  }
-
-  vtkSmartPointer< vtkMRMLModelNode > modelNode;
-  if(markupsToModelModuleNode->GetModelNode() == NULL)
-  {
-    modelNode = vtkSmartPointer< vtkMRMLModelNode >::New();
-    this->GetMRMLScene()->AddNode( modelNode );
-    modelNode->SetName( markupsToModelModuleNode->GetModelNodeName().c_str() );
-    vtkSmartPointer< vtkMRMLModelDisplayNode > displayNode = vtkSmartPointer< vtkMRMLModelDisplayNode >::New();
-    this->GetMRMLScene()->AddNode( displayNode );
-    displayNode->SetName( markupsToModelModuleNode->GetDisplayNodeName().c_str());
-    modelNode->SetAndObserveDisplayNodeID( displayNode->GetID() );
-    markupsToModelModuleNode->SetModelNode(modelNode);
-  }
-
-  vtkSmartPointer< vtkPolyData > markupsPointsPolyData = vtkSmartPointer< vtkPolyData >::New();
-  markupsToPath( markupsNode, markupsPointsPolyData);
+  vtkSmartPointer< vtkPolyData > markupsPointsPolyData = vtkSmartPointer< vtkPolyData >::New( );
+  markupsToPath( markupsNode, markupsPointsPolyData );
   vtkSmartPointer< vtkPolyData > finalMarkupsPointsPolyData;
 
-  vtkSmartPointer< vtkCleanPolyData > cleanPointPolyData = vtkSmartPointer< vtkCleanPolyData >::New();
-  if(markupsToModelModuleNode->GetCleanMarkups())
+  vtkSmartPointer< vtkCleanPolyData > cleanPointPolyData = vtkSmartPointer< vtkCleanPolyData >::New( );
+  if ( markupsToModelModuleNode->GetCleanMarkups( ) )
   {
-    //vtkWarningMacro("PUTOS " << markupsPointsPolyData->GetNumberOfPoints() );
-
 #if (VTK_MAJOR_VERSION <= 5)
-    cleanPointPolyData->SetInput(markupsPointsPolyData);
+    cleanPointPolyData->SetInput( markupsPointsPolyData );
 #else
-    cleanPointPolyData->SetInputData(markupsPointsPolyData);
+    cleanPointPolyData->SetInputData( markupsPointsPolyData );
 #endif
-    cleanPointPolyData->SetTolerance(CLEAN_POLYDATA_TOLERANCE);
-    cleanPointPolyData->Update();
-    finalMarkupsPointsPolyData= cleanPointPolyData->GetOutput();
-    //vtkWarningMacro("PUNTOS " << finalMarkupsPointsPolyData->GetNumberOfPoints() );
+    cleanPointPolyData->SetTolerance( CLEAN_POLYDATA_TOLERANCE );
+    cleanPointPolyData->Update( );
+    finalMarkupsPointsPolyData= cleanPointPolyData->GetOutput( );
   }
   else
   {
-    finalMarkupsPointsPolyData=markupsPointsPolyData;
+    finalMarkupsPointsPolyData = markupsPointsPolyData;
   }
 
-  switch(markupsToModelModuleNode->GetInterpolationType())
+  switch( markupsToModelModuleNode->GetInterpolationType() )
   {
-  case vtkMRMLMarkupsToModelNode::Linear: UpdateOutputLinearModel(markupsToModelModuleNode,finalMarkupsPointsPolyData); break;
-  case vtkMRMLMarkupsToModelNode::CardinalSpline: UpdateOutputHermiteSplineModel(markupsToModelModuleNode,finalMarkupsPointsPolyData); break;
-  case vtkMRMLMarkupsToModelNode::KochanekSpline: UpdateOutputHermiteSplineModel(markupsToModelModuleNode,finalMarkupsPointsPolyData); break;
+  case vtkMRMLMarkupsToModelNode::Linear: UpdateOutputLinearModel( markupsToModelModuleNode, finalMarkupsPointsPolyData, outputPolyData ); break;
+  case vtkMRMLMarkupsToModelNode::CardinalSpline: UpdateOutputHermiteSplineModel( markupsToModelModuleNode, finalMarkupsPointsPolyData, outputPolyData ); break;
+  case vtkMRMLMarkupsToModelNode::KochanekSpline: UpdateOutputHermiteSplineModel( markupsToModelModuleNode, finalMarkupsPointsPolyData, outputPolyData ); break;
   }
 }
 
 //------------------------------------------------------------------------------
 void vtkSlicerMarkupsToModelLogic::UpdateOutputModel(vtkMRMLMarkupsToModelNode* markupsToModelModuleNode)
 {
-  if(this->ImportingScene==1)
+  if ( this->ImportingScene == 1 )
   {
     return;
   }
-  switch(markupsToModelModuleNode->GetModelType())
+
+  if ( markupsToModelModuleNode->GetModelNode() == NULL || markupsToModelModuleNode->GetMarkupsNode() == NULL )
   {
-  case vtkMRMLMarkupsToModelNode::ClosedSurface: UpdateOutputCloseSurfaceModel(markupsToModelModuleNode); break;
-  case vtkMRMLMarkupsToModelNode::Curve: UpdateOutputCurveModel(markupsToModelModuleNode); break;
+    return;
   }
+
+  // store the output poly data in this pointer
+  vtkSmartPointer<vtkPolyData> outputPolyData = vtkSmartPointer<vtkPolyData>::New();
+
+  switch ( markupsToModelModuleNode->GetModelType() )
+  {
+  case vtkMRMLMarkupsToModelNode::ClosedSurface: UpdateOutputCloseSurfaceModel( markupsToModelModuleNode, outputPolyData ); break;
+  case vtkMRMLMarkupsToModelNode::Curve: UpdateOutputCurveModel( markupsToModelModuleNode, outputPolyData ); break;
+  }
+
+  // assign the poly data to the model node
+  vtkSmartPointer< vtkMRMLModelNode > modelNode = markupsToModelModuleNode->GetModelNode();
+  if ( markupsToModelModuleNode->GetModelNode() == NULL )
+  {
+    modelNode = vtkSmartPointer< vtkMRMLModelNode >::New();
+    this->GetMRMLScene()->AddNode( modelNode );
+    modelNode->SetName( GetModelNodeName(markupsToModelModuleNode).c_str() );
+  }
+  modelNode->SetAndObservePolyData( outputPolyData );
+
+  vtkSmartPointer< vtkMRMLModelDisplayNode > displayNode = vtkMRMLModelDisplayNode::SafeDownCast(modelNode->GetDisplayNode());
+  if ( displayNode == NULL )
+  {
+    modelNode->CreateDefaultDisplayNodes();
+    displayNode = vtkMRMLModelDisplayNode::SafeDownCast(modelNode->GetDisplayNode());
+    this->GetMRMLScene()->AddNode( displayNode );
+    displayNode->SetName( GetModelDisplayNodeName(markupsToModelModuleNode).c_str());
+    modelNode->SetAndObserveDisplayNodeID( displayNode->GetID() );
+  }
+
+  markupsToModelModuleNode->SetAndObserveModelNodeID(modelNode->GetID());
 }
 
 //------------------------------------------------------------------------------
@@ -691,4 +644,52 @@ void vtkSlicerMarkupsToModelLogic::ProcessMRMLNodesEvents( vtkObject* caller, un
       this->UpdateOutputModel(markupsToModelModuleNode);
     }
   }
+}
+
+//------------------------------------------------------------------------------
+std::string vtkSlicerMarkupsToModelLogic::GetMarkupsNodeName(vtkMRMLMarkupsToModelNode* mrmlNode)
+{
+  vtkMRMLMarkupsNode* markupsNode = mrmlNode->GetMarkupsNode();
+  if ( markupsNode == NULL )
+    return std::string( mrmlNode->GetID() ).append( "Markups" );
+
+  return std::string( markupsNode->GetName() );
+}
+
+//------------------------------------------------------------------------------
+std::string vtkSlicerMarkupsToModelLogic::GetModelNodeName(vtkMRMLMarkupsToModelNode* mrmlNode)
+{
+  vtkMRMLModelNode* modelNode = mrmlNode->GetModelNode();
+  if ( modelNode == NULL )
+    return std::string( mrmlNode->GetID() ).append( "Model" );
+
+  return std::string( modelNode->GetName() );
+}
+
+//------------------------------------------------------------------------------
+std::string vtkSlicerMarkupsToModelLogic::GetMarkupsDisplayNodeName(vtkMRMLMarkupsToModelNode* mrmlNode)
+{
+  vtkMRMLMarkupsNode* markupsNode = mrmlNode->GetMarkupsNode();
+  if ( markupsNode == NULL )
+    return std::string( mrmlNode->GetID() ).append( "MarkupsDisplay" );
+
+  vtkMRMLModelDisplayNode* markupsDisplayNode = vtkMRMLModelDisplayNode::SafeDownCast( markupsNode->GetDisplayNode() );
+  if ( markupsDisplayNode == NULL )
+    return std::string( mrmlNode->GetID() ).append( "MarkupsDisplay" );
+
+  return std::string( markupsDisplayNode->GetName() );
+}
+
+//------------------------------------------------------------------------------
+std::string vtkSlicerMarkupsToModelLogic::GetModelDisplayNodeName(vtkMRMLMarkupsToModelNode* mrmlNode)
+{
+  vtkMRMLModelNode* modelNode = mrmlNode->GetModelNode();
+  if ( modelNode == NULL )
+    return std::string( mrmlNode->GetID() ).append( "ModelDisplay" );
+
+  vtkMRMLModelDisplayNode* modelDisplayNode = vtkMRMLModelDisplayNode::SafeDownCast( modelNode->GetDisplayNode() );
+  if ( modelDisplayNode == NULL )
+    return std::string( mrmlNode->GetID() ).append( "ModelDisplay" );
+
+  return std::string( modelDisplayNode->GetName() );
 }

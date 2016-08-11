@@ -68,22 +68,22 @@ qSlicerPivotCalibrationModuleWidget::qSlicerPivotCalibrationModuleWidget(QWidget
 {
   this->startupDurationSec = 5;
   this->samplingDurationSec = 5;
-  
+
   this->pivotStartupTimer = new QTimer();
   pivotStartupTimer->setSingleShot(false);
   pivotStartupTimer->setInterval(1000); // 1 sec
   this->pivotStartupRemainingTimerPeriodCount = 0;
-  
+
   this->pivotSamplingTimer = new QTimer();
   pivotSamplingTimer->setSingleShot(false);
   pivotSamplingTimer->setInterval(1000); // 1 sec
   this->pivotSamplingRemainingTimerPeriodCount = 0;
-  
+
   this->spinStartupTimer = new QTimer();
   spinStartupTimer->setSingleShot(false);
   spinStartupTimer->setInterval(1000); // 1 sec
   this->spinStartupRemainingTimerPeriodCount = 0;
-  
+
   this->spinSamplingTimer = new QTimer();
   spinSamplingTimer->setSingleShot(false);
   spinSamplingTimer->setInterval(1000); // 1 sec
@@ -109,7 +109,7 @@ void qSlicerPivotCalibrationModuleWidget::enter()
 void qSlicerPivotCalibrationModuleWidget::initializeObserver(vtkMRMLNode* node)
 {
   Q_D(qSlicerPivotCalibrationModuleWidget);
-  
+
   vtkMRMLLinearTransformNode* transformNode = vtkMRMLLinearTransformNode::SafeDownCast( node );
   d->logic()->SetAndObserveTransformNode( transformNode );
 }
@@ -120,20 +120,20 @@ void qSlicerPivotCalibrationModuleWidget::setup()
 {
   Q_D(qSlicerPivotCalibrationModuleWidget);
   d->setupUi(this);
-  
+
 
   this->Superclass::setup();
-  
+
   connect(pivotStartupTimer, SIGNAL( timeout() ), this, SLOT( onPivotStartupTimeout() ));
   connect(pivotSamplingTimer, SIGNAL( timeout() ), this, SLOT( onPivotSamplingTimeout() ));
   connect(spinStartupTimer, SIGNAL( timeout() ), this, SLOT( onSpinStartupTimeout() ));
-  connect(spinSamplingTimer, SIGNAL( timeout() ), this, SLOT( onSpinSamplingTimeout() )); 
-  
+  connect(spinSamplingTimer, SIGNAL( timeout() ), this, SLOT( onSpinSamplingTimeout() ));
+
   connect( d->InputComboBox, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(initializeObserver(vtkMRMLNode*)) );
-  
+
   connect( d->startPivotButton, SIGNAL( clicked() ), this, SLOT( onStartPivotPart() ) );
   connect( d->startSpinButton, SIGNAL( clicked() ), this, SLOT( onStartSpinPart() ) );
-  
+
   connect( d->startupTimerEdit, SIGNAL( valueChanged(double) ), this, SLOT( setStartupDurationSec(double) ) );
   connect( d->durationTimerEdit, SIGNAL( valueChanged(double) ), this, SLOT( setSamplingDurationSec(double) ) );
 
@@ -150,8 +150,8 @@ void qSlicerPivotCalibrationModuleWidget::onStartPivotPart()
 
   std::stringstream ss;
   ss << this->pivotStartupRemainingTimerPeriodCount << " seconds until start";
-  d->CountdownLabel->setText(ss.str().c_str());  
-  
+  d->CountdownLabel->setText(ss.str().c_str());
+
   pivotStartupTimer->start();
 }
 
@@ -165,8 +165,8 @@ void qSlicerPivotCalibrationModuleWidget::onStartSpinPart()
 
   std::stringstream ss;
   ss << this->spinStartupRemainingTimerPeriodCount << " seconds until start";
-  d->CountdownLabel->setText(ss.str().c_str());  
-  
+  d->CountdownLabel->setText(ss.str().c_str());
+
   spinStartupTimer->start();
 }
 
@@ -177,7 +177,7 @@ void qSlicerPivotCalibrationModuleWidget::onPivotStartupTimeout()
   Q_D(qSlicerPivotCalibrationModuleWidget);
 
   std::stringstream ss1;
-  
+
   --this->pivotStartupRemainingTimerPeriodCount;
   ss1 << this->pivotStartupRemainingTimerPeriodCount << " seconds until start";
   d->CountdownLabel->setText(ss1.str().c_str());
@@ -188,7 +188,7 @@ void qSlicerPivotCalibrationModuleWidget::onPivotStartupTimeout()
     this->pivotSamplingRemainingTimerPeriodCount = this->samplingDurationSec;
     ss2 << "Sampling time left: " << this->pivotSamplingRemainingTimerPeriodCount;
     d->CountdownLabel->setText(ss2.str().c_str());
-    
+
     this->pivotStartupTimer->stop();
     d->logic()->SetRecordingState(true);
     this->pivotSamplingTimer->start();
@@ -199,22 +199,22 @@ void qSlicerPivotCalibrationModuleWidget::onPivotStartupTimeout()
 void qSlicerPivotCalibrationModuleWidget::onPivotSamplingTimeout()
 {
   Q_D(qSlicerPivotCalibrationModuleWidget);
-  
+
   std::stringstream ss;
 
   //std::cout<<this->samplingCount<<std::endl;
-  
+
   --this->pivotSamplingRemainingTimerPeriodCount;
   ss << "Sampling time left: " << this->pivotSamplingRemainingTimerPeriodCount;
-  d->CountdownLabel->setText(ss.str().c_str());  
-  
+  d->CountdownLabel->setText(ss.str().c_str());
+
   if (this->pivotSamplingRemainingTimerPeriodCount <= 0)
   {
     d->CountdownLabel->setText("Sampling complete");
-    
+
     this->pivotSamplingTimer->stop();
     this->onPivotStop();
-  }  
+  }
 }
 
 
@@ -224,7 +224,7 @@ void qSlicerPivotCalibrationModuleWidget::onSpinStartupTimeout()
   Q_D(qSlicerPivotCalibrationModuleWidget);
 
   std::stringstream ss1;
-  
+
   --this->spinStartupRemainingTimerPeriodCount;
   ss1 << this->spinStartupRemainingTimerPeriodCount << " seconds until start";
   d->CountdownLabel->setText(ss1.str().c_str());
@@ -235,7 +235,7 @@ void qSlicerPivotCalibrationModuleWidget::onSpinStartupTimeout()
     this->spinSamplingRemainingTimerPeriodCount = this->samplingDurationSec;
     ss2 << "Sampling time left: " << this->spinSamplingRemainingTimerPeriodCount;
     d->CountdownLabel->setText(ss2.str().c_str());
-    
+
     this->spinStartupTimer->stop();
     d->logic()->SetRecordingState(true);
     this->spinSamplingTimer->start();
@@ -246,22 +246,22 @@ void qSlicerPivotCalibrationModuleWidget::onSpinStartupTimeout()
 void qSlicerPivotCalibrationModuleWidget::onSpinSamplingTimeout()
 {
   Q_D(qSlicerPivotCalibrationModuleWidget);
-  
+
   std::stringstream ss;
 
   //std::cout<<this->samplingCount<<std::endl;
-  
+
   --this->spinSamplingRemainingTimerPeriodCount;
   ss << "Sampling time left: " << this->spinSamplingRemainingTimerPeriodCount;
-  d->CountdownLabel->setText(ss.str().c_str());  
-  
+  d->CountdownLabel->setText(ss.str().c_str());
+
   if (this->spinSamplingRemainingTimerPeriodCount <= 0)
   {
     d->CountdownLabel->setText("Sampling complete");
-    
+
     this->spinSamplingTimer->stop();
     this->onSpinStop();
-  }  
+  }
 }
 
 
@@ -280,17 +280,25 @@ void qSlicerPivotCalibrationModuleWidget::onPivotStop()
   vtkSmartPointer<vtkMatrix4x4> outputMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
   outputTransform->GetMatrixTransformToParent(outputMatrix);
   d->logic()->SetToolTipToToolMatrix( outputMatrix ); // Sync logic's matrix with the scene's matrix
-  
-  d->logic()->SetRecordingState(false);  
-  d->logic()->ComputePivotCalibration();  
 
-  d->logic()->GetToolTipToToolMatrix( outputMatrix );
-  outputTransform->SetMatrixTransformToParent(outputMatrix);
-  
-  std::stringstream ss;
-  ss << d->logic()->GetPivotRMSE();
-  d->rmseLabel->setText(ss.str().c_str());
-  
+  d->logic()->SetRecordingState(false);
+
+  if (d->logic()->ComputePivotCalibration())
+  {
+    d->logic()->GetToolTipToToolMatrix(outputMatrix);
+    outputTransform->SetMatrixTransformToParent(outputMatrix);
+    std::stringstream ss;
+    ss << d->logic()->GetPivotRMSE();
+    d->rmseLabel->setText(ss.str().c_str());
+  }
+  else
+  {
+    qWarning() << "qSlicerPivotCalibrationModuleWidget::onPivotStop failed: ComputePivotCalibration returned with error: " << d->logic()->GetErrorText().c_str();
+    std::string fullMessage = std::string("Pivot calibration failed: ") + d->logic()->GetErrorText();
+    d->CountdownLabel->setText(fullMessage.c_str());
+    d->rmseLabel->setText("N/A");
+  }
+
   d->logic()->ClearToolToReferenceMatrices();
 }
 
@@ -310,18 +318,18 @@ void qSlicerPivotCalibrationModuleWidget::onSpinStop()
   vtkSmartPointer<vtkMatrix4x4> outputMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
   outputTransform->GetMatrixTransformToParent(outputMatrix);
   d->logic()->SetToolTipToToolMatrix( outputMatrix ); // Sync logic's matrix with the scene's matrix
-  
-  d->logic()->SetRecordingState(false);  
-  d->logic()->ComputeSpinCalibration( d->snapCheckBox->checkState() == Qt::Checked ); 
+
+  d->logic()->SetRecordingState(false);
+  d->logic()->ComputeSpinCalibration( d->snapCheckBox->checkState() == Qt::Checked );
 
   d->logic()->GetToolTipToToolMatrix( outputMatrix );
   outputTransform->SetMatrixTransformToParent(outputMatrix);
-   
+
   // Set the rmse label for the circle fitting rms error
   std::stringstream ss;
   ss << d->logic()->GetSpinRMSE();
   d->rmseLabel->setText(ss.str().c_str());
-  
+
   d->logic()->ClearToolToReferenceMatrices();
 }
 
