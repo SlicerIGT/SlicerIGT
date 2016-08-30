@@ -99,6 +99,7 @@ qSlicerMarkupsToModelModuleWidget::~qSlicerMarkupsToModelModuleWidget()
   disconnect( d->KochanekBiasDoubleSpinBox, SIGNAL( valueChanged( double ) ), this, SLOT( updateParametersToMRMLNode() ) );
   disconnect( d->KochanekContinuityDoubleSpinBox, SIGNAL( valueChanged( double ) ), this, SLOT( updateParametersToMRMLNode() ) );
   disconnect( d->KochanekTensionDoubleSpinBox, SIGNAL( valueChanged( double ) ), this, SLOT( updateParametersToMRMLNode() ) );
+  disconnect( d->PolynomialOrderSpinBox, SIGNAL( valueChanged( double ) ), this, SLOT( updateParametersToMRMLNode() ) );
 
   disconnect( d->ModelOpacitySlider, SIGNAL( valueChanged( double ) ), this, SLOT( updateToRenderedNodes() ) );
   disconnect( d->ModelColorSelector, SIGNAL( clicked() ), this, SLOT( updateToRenderedNodes() ) );
@@ -109,6 +110,7 @@ qSlicerMarkupsToModelModuleWidget::~qSlicerMarkupsToModelModuleWidget()
   disconnect( d->LinearInterpolationButton, SIGNAL( clicked() ), this, SLOT( updateParametersToMRMLNode() ) );
   disconnect( d->CardinalInterpolationRadioButton, SIGNAL( clicked() ), this, SLOT( updateParametersToMRMLNode() ) );
   disconnect( d->KochanekInterpolationRadioButton, SIGNAL( clicked() ), this, SLOT( updateParametersToMRMLNode() ) );
+  disconnect( d->PolynomialInterpolationRadioButton, SIGNAL( clicked() ), this, SLOT( updateParametersToMRMLNode() ) );
 }
 
 //-----------------------------------------------------------------------------
@@ -164,6 +166,7 @@ void qSlicerMarkupsToModelModuleWidget::setup()
   connect( d->KochanekBiasDoubleSpinBox, SIGNAL( valueChanged( double ) ), this, SLOT( updateParametersToMRMLNode() ) );
   connect( d->KochanekContinuityDoubleSpinBox, SIGNAL( valueChanged( double ) ), this, SLOT( updateParametersToMRMLNode() ) );
   connect( d->KochanekTensionDoubleSpinBox, SIGNAL( valueChanged( double ) ), this, SLOT( updateParametersToMRMLNode() ) );
+  connect( d->PolynomialOrderSpinBox, SIGNAL( valueChanged( double ) ), this, SLOT( updateParametersToMRMLNode() ) );
 
   connect( d->ModelOpacitySlider, SIGNAL( valueChanged( double ) ), this, SLOT( updateToRenderedNodes() ) );
   connect( d->ModelColorSelector, SIGNAL( clicked() ), this, SLOT( updateToRenderedNodes() ) );
@@ -174,6 +177,7 @@ void qSlicerMarkupsToModelModuleWidget::setup()
   connect( d->LinearInterpolationButton, SIGNAL( clicked() ), this, SLOT( updateParametersToMRMLNode() ) );
   connect( d->CardinalInterpolationRadioButton, SIGNAL( clicked() ), this, SLOT( updateParametersToMRMLNode() ) );
   connect( d->KochanekInterpolationRadioButton, SIGNAL( clicked() ), this, SLOT( updateParametersToMRMLNode() ) );
+  connect( d->PolynomialInterpolationRadioButton, SIGNAL( clicked() ), this, SLOT( updateParametersToMRMLNode() ) );
 }
 
 //-----------------------------------------------------------------------------
@@ -373,9 +377,14 @@ void qSlicerMarkupsToModelModuleWidget::updateParametersToMRMLNode()
   {
     markupsToModelModuleNode->SetInterpolationType( vtkMRMLMarkupsToModelNode::KochanekSpline );
   }
+  else if ( d->PolynomialInterpolationRadioButton->isChecked() )
+  {
+    markupsToModelModuleNode->SetInterpolationType( vtkMRMLMarkupsToModelNode::Polynomial );
+  }
   markupsToModelModuleNode->SetKochanekBias( d->KochanekBiasDoubleSpinBox->value() );
   markupsToModelModuleNode->SetKochanekContinuity( d->KochanekContinuityDoubleSpinBox->value() );
   markupsToModelModuleNode->SetKochanekTension( d->KochanekTensionDoubleSpinBox->value() );
+  markupsToModelModuleNode->SetPolynomialOrder( d->PolynomialOrderSpinBox->value() );
   
   this->updateFromMRMLNode();
 }
@@ -458,10 +467,12 @@ void qSlicerMarkupsToModelModuleWidget::updateFromMRMLNode()
     case vtkMRMLMarkupsToModelNode::Linear: d->LinearInterpolationButton->setChecked( 1 ); break;
     case vtkMRMLMarkupsToModelNode::CardinalSpline: d->CardinalInterpolationRadioButton->setChecked( 1 ); break;
     case vtkMRMLMarkupsToModelNode::KochanekSpline: d->KochanekInterpolationRadioButton->setChecked( 1 ); break;
+    case vtkMRMLMarkupsToModelNode::Polynomial: d->PolynomialInterpolationRadioButton->setChecked( 1 ); break;
     }
     d->KochanekBiasDoubleSpinBox->setValue(MarkupsToModelNode->GetKochanekBias());
     d->KochanekContinuityDoubleSpinBox->setValue(MarkupsToModelNode->GetKochanekContinuity());
     d->KochanekTensionDoubleSpinBox->setValue(MarkupsToModelNode->GetKochanekTension());
+    d->PolynomialOrderSpinBox->setValue(MarkupsToModelNode->GetPolynomialOrder());
 
     updateFromRenderedNodes();
   }
@@ -485,8 +496,9 @@ void qSlicerMarkupsToModelModuleWidget::updateFromMRMLNode()
     d->SplineInterpolationLayout->setEnabled(false);
     d->SplineInterpolationLabel->setVisible(false);
     d->LinearInterpolationButton->setVisible(false);
-    d->KochanekInterpolationRadioButton->setVisible(false);
     d->CardinalInterpolationRadioButton->setVisible(false);
+    d->KochanekInterpolationRadioButton->setVisible(false);
+    d->PolynomialInterpolationRadioButton->setVisible(false);
     d->TubeRadiusLabel->setVisible( false );
     d->TubeRadiusDoubleSpinBox->setVisible( false );
     d->TubeSidesLabel->setVisible( false );
@@ -499,6 +511,8 @@ void qSlicerMarkupsToModelModuleWidget::updateFromMRMLNode()
     d->KochanekTensionDoubleSpinBox->setVisible( false );
     d->KochanekContinuityLabel->setVisible( false );
     d->KochanekContinuityDoubleSpinBox->setVisible( false );
+    d->PolynomialOrderLabel->setVisible( false );
+    d->PolynomialOrderSpinBox->setVisible( false );
   }
   else
   {
@@ -512,8 +526,9 @@ void qSlicerMarkupsToModelModuleWidget::updateFromMRMLNode()
     d->SplineInterpolationLayout->setEnabled(true);
     d->SplineInterpolationLabel->setVisible(true);
     d->LinearInterpolationButton->setVisible(true);
-    d->KochanekInterpolationRadioButton->setVisible(true);
     d->CardinalInterpolationRadioButton->setVisible(true);
+    d->KochanekInterpolationRadioButton->setVisible(true);
+    d->PolynomialInterpolationRadioButton->setVisible(true);
     d->TubeRadiusLabel->setVisible( true );
     d->TubeRadiusDoubleSpinBox->setVisible( true );
     d->TubeSidesLabel->setVisible( true );
@@ -538,6 +553,17 @@ void qSlicerMarkupsToModelModuleWidget::updateFromMRMLNode()
       d->KochanekTensionDoubleSpinBox->setVisible( false );
       d->KochanekContinuityLabel->setVisible( false );
       d->KochanekContinuityDoubleSpinBox->setVisible( false );
+    }
+    
+    if(d->PolynomialInterpolationRadioButton->isChecked())
+    {
+      d->PolynomialOrderLabel->setVisible( true );
+      d->PolynomialOrderSpinBox->setVisible( true );
+    }
+    else
+    {
+      d->PolynomialOrderLabel->setVisible( false );
+      d->PolynomialOrderSpinBox->setVisible( false );
     }
   }
 
@@ -631,9 +657,11 @@ void qSlicerMarkupsToModelModuleWidget::blockAllSignals()
   d->LinearInterpolationButton->blockSignals( true );
   d->CardinalInterpolationRadioButton->blockSignals( true );
   d->KochanekInterpolationRadioButton->blockSignals( true );
+  d->PolynomialInterpolationRadioButton->blockSignals( true );
   d->KochanekBiasDoubleSpinBox->blockSignals( true );
   d->KochanekContinuityDoubleSpinBox->blockSignals( true );
   d->KochanekTensionDoubleSpinBox->blockSignals( true );
+  d->PolynomialOrderSpinBox->blockSignals( true );
 
   // display options
   d->ModelVisiblityButton->blockSignals( true );
@@ -670,9 +698,11 @@ void qSlicerMarkupsToModelModuleWidget::unblockAllSignals()
   d->LinearInterpolationButton->blockSignals( false );
   d->CardinalInterpolationRadioButton->blockSignals( false );
   d->KochanekInterpolationRadioButton->blockSignals( false );
+  d->PolynomialInterpolationRadioButton->blockSignals( false );
   d->KochanekBiasDoubleSpinBox->blockSignals( false );
   d->KochanekContinuityDoubleSpinBox->blockSignals( false );
   d->KochanekTensionDoubleSpinBox->blockSignals( false );
+  d->PolynomialOrderSpinBox->blockSignals( false );
 
   // display options
   d->ModelVisiblityButton->blockSignals( false );

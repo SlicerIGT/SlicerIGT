@@ -35,12 +35,16 @@
 #include <vtkCollection.h>
 #include <vtkCollectionIterator.h>
 #include <vtkCubeSource.h>
+#include <vtkDoubleArray.h> // TODO: Evaluate whether needed
 #include <vtkDataSetSurfaceFilter.h>
 #include <vtkDelaunay3D.h>
 #include <vtkGlyph3D.h>
+#include <vtkImageData.h> // TODO: Evaluate whether needed
+#include <vtkInformation.h> // TODO: Evaluate whether needed
 #include <vtkIntArray.h>
 #include <vtkKochanekSpline.h>
 #include <vtkMath.h>
+#include <vtkMutableUndirectedGraph.h> // TODO: Evaluate whether needed
 #include <vtkNew.h>
 #include <vtkOBBTree.h>
 #include <vtkObjectFactory.h>
@@ -54,6 +58,7 @@
 // STD includes
 #include <cassert>
 #include <cmath>
+#include <vector> // TODO: Evaluate whether needed
 
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSlicerMarkupsToModelLogic);
@@ -538,6 +543,262 @@ void vtkSlicerMarkupsToModelLogic::UpdateOutputHermiteSplineModel(vtkMRMLMarkups
 }
 
 //------------------------------------------------------------------------------
+void vtkSlicerMarkupsToModelLogic::DetermineCurveFitWeights(vtkPolyData * markupsPointsPolyData, vtkDoubleArray* markupsPointsParameters)
+{
+  vtkPoints* points = markupsPointsPolyData->GetPoints();
+  int numPoints = points->GetNumberOfPoints();
+
+  // vtk boost algorithms cannot be used because they are not built with 3D Slicer
+  // so this is a custom implementation of:
+  // 1. constructing an undirected graph as a 2D array
+  // 2. running prim's algorithm on the graph
+  // 3. extract the "trunk" path from the last vertex to the first
+  // 4. based on the distance along that path, assign each vertex a weight
+
+  // construct an undirected graph
+  std::vector<double> distances(numPoints*numPoints);
+  distances.assign(numPoints*numPoints, 0.0);
+  for (int v = 0; v < numPoints; v++)
+  {
+    for (int u = 0; u < numPoints; u++)
+    {
+      double pointU[3], pointV[3];
+      points->GetPoint(u, pointU);
+      points->GetPoint(v, pointV);
+      double distX = (pointU[0] - pointV[0]); double distXsq = distX * distX;
+      double distY = (pointU[1] - pointV[1]); double distYsq = distY * distY;
+      double distZ = (pointU[2] - pointV[2]); double distZsq = distZ * distZ;
+      distances[v * numPoints + u] = sqrt(distXsq+distYsq+distZsq);
+    }
+  }
+  // use the 1D vector as a 2D vector
+  std::vector<double*> graph(numPoints);
+  for (int v = 0; v < numPoints; v++)
+    graph[v] = &(distances[v * numPoints]);
+
+  // implementation of Prim's algorithm based on http://www.geeksforgeeks.org/greedy-algorithms-set-5-prims-minimum-spanning-tree-mst-2/
+  std::vector<int> parent(numPoints); // Array to store constructed MST
+  std::vector<double> key(numPoints);   // Key values used to pick minimum weight edge in cut
+  std::vector<bool> mstSet(numPoints);  // To represent set of vertices not yet included in MST
+ 
+  // Initialize all keys as INFINITE
+  for (int i = 0; i < numPoints; i++)
+  {
+    key[i] = VTK_DOUBLE_MAX;
+    mstSet[i] = false;
+  }
+ 
+  // Always include first 1st vertex in MST.
+  key[0] = 0.0;     // Make key 0 so that this vertex is picked as first vertex
+  parent[0] = -1; // First node is always root of MST 
+ 
+  // The MST will have numPoints vertices
+  for (int count = 0; count < numPoints-1; count++)
+  {
+    // Pick thd minimum key vertex from the set of vertices
+    // not yet included in MST
+    int nextPointIndex = -1;
+    double minDistance = VTK_DOUBLE_MAX, min_index;
+    for (int v = 0; v < numPoints; v++)
+    {
+      if (mstSet[v] == false &&
+          key[v] < minDistance)
+      {
+        minDistance = key[v];
+        nextPointIndex = v;
+      }
+    }
+ 
+    // Add the picked vertex to the MST Set
+    mstSet[nextPointIndex] = true;
+ 
+    // Update key value and parent index of the adjacent vertices of
+    // the picked vertex. Consider only those vertices which are not yet
+    // included in MST
+    for (int v = 0; v < numPoints; v++)
+ 
+        // graph[u][v] is non zero only for adjacent vertices of m
+        // mstSet[v] is false for vertices not yet included in MST
+        // Update the key only if graph[u][v] is smaller than key[v]
+      if (graph[nextPointIndex][v] >= 0 && 
+          mstSet[v] == false &&
+          graph[nextPointIndex][v] <  key[v])
+      {
+        parent[v] = nextPointIndex;
+        key[v] = graph[nextPointIndex][v];
+      }
+  }
+ 
+  // determine the "trunk" path of the tree, from first index to last index
+  std::vector<int> pathIndices;
+  int currentPathIndex = numPoints-1;
+  while (currentPathIndex != -1)
+  {
+    pathIndices.push_back(currentPathIndex);
+    currentPathIndex = parent[currentPathIndex]; // go up the tree one layer
+  }
+    
+  // find the sum of distances along the trunk path of the tree
+  double sumOfDistances = 0.0;
+  for (int i = 0; i < pathIndices.size() - 1; i++)
+    sumOfDistances += graph[i][i+1];
+
+  if (sumOfDistances == 0)
+    sumOfDistances += 1; // TODO: Output a meaningful error message here
+
+  // find the weights along the trunk path of the tree
+  std::vector<double> pathWeights;
+  double currentDistance = 0.0;
+  for (int i = 0; i < pathIndices.size() - 1; i++)
+  {
+    pathWeights.push_back(currentDistance/sumOfDistances);
+    currentDistance += graph[i][i+1];
+  }
+  pathWeights.push_back(currentDistance/sumOfDistances); // this should be 1.0
+
+  // finally assign weights to each point, and store in the output array
+  for (int i = 0; i < numPoints; i++)
+  {
+    int currentIndex = i;
+    bool alongPath = false;
+    int indexAlongPath = -1;
+    for (int j = 0; j < pathIndices.size(); j++)
+    {
+      if (pathIndices[j] == currentIndex)
+      {
+        alongPath = true;
+        indexAlongPath = j;
+        break;
+      }
+    }
+    while (!alongPath)
+    {
+      currentIndex = parent[currentIndex];
+      for (int j = 0; j < pathIndices.size(); j++)
+      {
+        if (pathIndices[j] == currentIndex)
+        {
+          alongPath = true;
+          indexAlongPath = j;
+          break;
+        }
+      }
+    }
+    markupsPointsParameters->InsertNextTuple1(pathWeights[indexAlongPath]);
+  }
+}
+
+//------------------------------------------------------------------------------
+void vtkSlicerMarkupsToModelLogic::UpdateOutputPolynomialFitModel(vtkMRMLMarkupsToModelNode* markupsToModelModuleNode, vtkPolyData * markupsPointsPolyData, vtkDoubleArray* markupsPointsParameters, vtkPolyData* outputPolyData)
+{
+  vtkPoints* points = markupsPointsPolyData->GetPoints();
+  int numPoints = points->GetNumberOfPoints();
+
+  const int numDimensions = 3; // this should never be changed from 3
+  int numPolynomialCoefficients = markupsToModelModuleNode->GetPolynomialOrder() + 1;
+
+  // independent values (parameter along the curve)
+  int numIndependentValues = numPoints * numPolynomialCoefficients;
+  std::vector<double> independentValues(numIndependentValues); // independent values
+  independentValues.assign(numIndependentValues, 0.0);
+  for (int c = 0; c < numPolynomialCoefficients; c++) // o = degree index
+  {
+    for (int p = 0; p < numPoints; p++) // p = point index
+    {
+      double value = std::pow( markupsPointsParameters->GetValue(p), c );
+      independentValues[p * numPolynomialCoefficients + c] = value;
+    }
+  }
+  std::vector<double*> independentMatrix(numPoints);
+  independentMatrix.assign(numPoints, NULL);
+  for (int p = 0; p < numPoints; p++)
+  {
+    independentMatrix[p] = &(independentValues[p * numPolynomialCoefficients]);
+  }
+  double** independentMatrixPtr = &(independentMatrix[0]);
+
+  // dependent values
+  int numDependentValues = numPoints * numDimensions;
+  std::vector<double> dependentValues(numDependentValues); // dependent values
+  dependentValues.assign(numDependentValues, 0.0);
+  for (int p = 0; p < numPoints; p++) // p = point index
+  {
+    double* currentPoint = points->GetPoint(p);
+    for (int d = 0; d < numDimensions; d++) // d = dimension index
+    {
+      double value = currentPoint[d];
+      dependentValues[p * numDimensions + d] = value;
+    }
+  }
+  std::vector<double*> dependentMatrix(numPoints);
+  dependentMatrix.assign(numPoints, NULL);
+  for (int p = 0; p < numPoints; p++)
+  {
+    dependentMatrix[p] = &(dependentValues[p * numDimensions]);
+  }
+  double** dependentMatrixPtr = &(dependentMatrix[0]);
+
+  // solution to least squares
+  int totalNumberCoefficients = numDimensions*numPolynomialCoefficients;
+  std::vector<double> coefficientValues(totalNumberCoefficients);
+  coefficientValues.assign(totalNumberCoefficients, 0.0);
+  std::vector<double*> coefficientMatrix(numPolynomialCoefficients);
+  for (int c = 0; c < numPolynomialCoefficients; c++)
+  {
+    coefficientMatrix[c] = &(coefficientValues[c * numDimensions]);
+  }
+  double** coefficientMatrixPtr = &(coefficientMatrix[0]); // the solution
+
+  // Input the forumulation into SolveLeastSquares
+  vtkMath::SolveLeastSquares(numPoints, independentMatrixPtr, numPolynomialCoefficients, dependentMatrixPtr, numDimensions, coefficientMatrixPtr);
+
+  // Use the values to generate points along the polynomial curve
+  vtkSmartPointer<vtkPoints> smoothedPoints = vtkSmartPointer<vtkPoints>::New(); // points
+  vtkSmartPointer< vtkCellArray > smoothedLines = vtkSmartPointer<  vtkCellArray >::New(); // lines
+  int numControlPointsOnTube = numPoints * markupsToModelModuleNode->GetTubeSamplingFrequency();
+  for (int p = 0; p < numControlPointsOnTube; p++) // p = point index
+  {
+    double pointMm[3];
+    for (int d = 0; d < numDimensions; d++)
+    {
+      pointMm[d] = 0.0;
+      for (int c = 0; c < numPolynomialCoefficients; c++)
+      {
+        double coefficient = coefficientValues[c * numDimensions + d];
+        pointMm[d] += coefficient * std::pow( (double(p)/(numControlPointsOnTube-1)), c );
+      }
+    }
+    smoothedPoints->InsertPoint(p, pointMm);
+    // now connect to the previous point as a line
+    if (p > 0)
+    {
+      smoothedLines->InsertNextCell(2);
+      smoothedLines->InsertCellPoint(p-1);
+      smoothedLines->InsertCellPoint(p);
+    }
+  }
+
+  // Convert the points to a tube model
+  vtkSmartPointer< vtkPolyData >smoothedSegments = vtkSmartPointer< vtkPolyData >::New();
+  smoothedSegments->Initialize();
+  smoothedSegments->SetPoints(smoothedPoints);
+  smoothedSegments->SetLines(smoothedLines);
+  
+  vtkSmartPointer< vtkTubeFilter> tubeFilter = vtkSmartPointer< vtkTubeFilter>::New();
+#if (VTK_MAJOR_VERSION <= 5)
+  tubeFilter->SetInput(smoothedSegments);
+#else
+  tubeFilter->SetInputData(smoothedSegments);
+#endif
+  tubeFilter->SetRadius(markupsToModelModuleNode->GetTubeRadius());
+  tubeFilter->SetNumberOfSides(markupsToModelModuleNode->GetTubeNumberOfSides());
+  tubeFilter->CappingOn();
+  tubeFilter->Update();
+
+  outputPolyData->DeepCopy(tubeFilter->GetOutput());
+}
+
+//------------------------------------------------------------------------------
 void vtkSlicerMarkupsToModelLogic::UpdateOutputCurveModel(vtkMRMLMarkupsToModelNode* markupsToModelModuleNode, vtkPolyData* outputPolyData)
 {
 
@@ -570,9 +831,28 @@ void vtkSlicerMarkupsToModelLogic::UpdateOutputCurveModel(vtkMRMLMarkupsToModelN
 
   switch( markupsToModelModuleNode->GetInterpolationType() )
   {
-  case vtkMRMLMarkupsToModelNode::Linear: UpdateOutputLinearModel( markupsToModelModuleNode, finalMarkupsPointsPolyData, outputPolyData ); break;
-  case vtkMRMLMarkupsToModelNode::CardinalSpline: UpdateOutputHermiteSplineModel( markupsToModelModuleNode, finalMarkupsPointsPolyData, outputPolyData ); break;
-  case vtkMRMLMarkupsToModelNode::KochanekSpline: UpdateOutputHermiteSplineModel( markupsToModelModuleNode, finalMarkupsPointsPolyData, outputPolyData ); break;
+    case vtkMRMLMarkupsToModelNode::Linear:
+    {
+      UpdateOutputLinearModel( markupsToModelModuleNode, finalMarkupsPointsPolyData, outputPolyData );
+      break;
+    }
+    case vtkMRMLMarkupsToModelNode::CardinalSpline:
+    {
+      UpdateOutputHermiteSplineModel( markupsToModelModuleNode, finalMarkupsPointsPolyData, outputPolyData );
+      break;
+    }
+    case vtkMRMLMarkupsToModelNode::KochanekSpline:
+    {
+      UpdateOutputHermiteSplineModel( markupsToModelModuleNode, finalMarkupsPointsPolyData, outputPolyData );
+      break;
+    }
+    case vtkMRMLMarkupsToModelNode::Polynomial:
+    {
+      vtkSmartPointer<vtkDoubleArray> sourcePointDistanceWeights = vtkSmartPointer<vtkDoubleArray>::New();
+      DetermineCurveFitWeights(finalMarkupsPointsPolyData,sourcePointDistanceWeights);
+      UpdateOutputPolynomialFitModel(markupsToModelModuleNode,finalMarkupsPointsPolyData,sourcePointDistanceWeights,outputPolyData);
+      break;
+    }
   }
 }
 

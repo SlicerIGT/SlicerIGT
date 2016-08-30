@@ -83,8 +83,8 @@ public:
   {
     Linear =0,
     CardinalSpline,
-    HermiteSpline,
     KochanekSpline,
+    Polynomial,
     InterpolationType_Last // insert valid types above this line
   };
   
@@ -107,6 +107,8 @@ public:
   vtkGetMacro( KochanekContinuity, double );
   vtkSetMacro( KochanekContinuity, double );
 
+  vtkGetMacro( PolynomialOrder, int );
+  vtkSetMacro( PolynomialOrder, int );
 
   vtkGetMacro( ModelType, int );
   vtkSetMacro( ModelType, int );
@@ -170,6 +172,7 @@ private:
   double TubeRadius;
   int    TubeSamplingFrequency;
   int    TubeNumberOfSides;
+  int    PolynomialOrder;
   double KochanekTension;
   double KochanekBias; 
   double KochanekContinuity;

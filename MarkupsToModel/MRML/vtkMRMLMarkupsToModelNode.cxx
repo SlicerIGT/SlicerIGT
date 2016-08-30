@@ -56,6 +56,8 @@ vtkMRMLMarkupsToModelNode::vtkMRMLMarkupsToModelNode()
   this->KochanekTension = 0;
   this->KochanekBias = 0;
   this->KochanekContinuity = 0;
+
+  this->PolynomialOrder = 3;
 }
 
 vtkMRMLMarkupsToModelNode::~vtkMRMLMarkupsToModelNode()
@@ -329,8 +331,8 @@ const char* vtkMRMLMarkupsToModelNode::GetInterpolationTypeAsString( int id )
   {
   case Linear: return "linear";
   case CardinalSpline: return "cardinalSpline";
-  case HermiteSpline: return "hermiteSpline";
   case KochanekSpline: return "kochanekSpline";
+  case Polynomial: return "polynomial";
   default:
     // invalid id
     return "";
