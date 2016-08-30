@@ -185,6 +185,109 @@
         </property>
        </widget>
       </item>
+      <item row="0" column="0">
+       <widget class="QLabel" name="TubeRadiusLabel">
+        <property name="text">
+         <string>Radius (mm)</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="qMRMLSpinBox" name="TubeSegmentsSpinBox">
+        <property name="toolTip">
+         <string extracomment="Set the curve model's resolution (number of segments between individual markups)">Set the curve model's resolution (number of segments between individual markups)</string>
+        </property>
+        <property name="decimals">
+         <number>0</number>
+        </property>
+        <property name="minimum">
+         <double>1.000000000000000</double>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1">
+       <widget class="QCheckBox" name="CleanMarkupsCheckBox">
+        <property name="toolTip">
+         <string extracomment="Merge duplicate points. Duplicate points are the ones closer than the tolerance distance. The tolerance distance is 1% of the diagonal size bounding box of all input markups.">Merge duplicate points. Duplicate points are the ones closer than the tolerance distance. The tolerance distance is 1% of the diagonal size bounding box of all input markups.</string>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0">
+       <widget class="QLabel" name="CleanMarkupsLabel">
+        <property name="text">
+         <string>Clean Duplicated Markups:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="TubeSidesLabel">
+        <property name="text">
+         <string>Number of Sides:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="qMRMLSpinBox" name="TubeSidesSpinBox">
+        <property name="toolTip">
+         <string extracomment="Set the curve model's resolution (number of faces that make up the tube).">Set the curve model's resolution (number of faces that make up the tube).</string>
+        </property>
+        <property name="decimals">
+         <number>0</number>
+        </property>
+        <property name="minimum">
+         <double>3.000000000000000</double>
+        </property>
+       </widget>
+      </item>
+      <item row="8" column="1">
+       <widget class="QDoubleSpinBox" name="DelaunayAlphaDoubleSpinBox">
+        <property name="toolTip">
+         <string extracomment="Compute only tetrahedra whose vertices lie on a sphere with radius &gt;= alpha. Default is 0, which creates a convex hull.">Compute only tetrahedra whose vertices lie on a sphere with radius &gt;= alpha. Default is 0, which creates a convex hull.</string>
+        </property>
+        <property name="value">
+         <double>0.000000000000000</double>
+        </property>
+       </widget>
+      </item>
+      <item row="12" column="0">
+       <widget class="QLabel" name="KochanekTensionLabel">
+        <property name="text">
+         <string>Kochanek Tension:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="13" column="0">
+       <widget class="QLabel" name="PolynomialOrderLabel">
+        <property name="text">
+         <string>Polynomial Order:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="1">
+       <widget class="QCheckBox" name="ButterflySubdivisionCheckBox">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="toolTip">
+         <string extracomment="Smooth the output mesh. The butterfly subdivision algorithm is used, but may result in self-intersections. Check &quot;Convex Hull on Result&quot; to fix this.">Smooth the output mesh. The butterfly subdivision algorithm is used, but may result in self-intersections. Check &quot;Convex Hull on Result&quot; to fix this.</string>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
       <item row="7" column="1">
        <layout class="QGridLayout" name="SplineInterpolationLayout">
         <item row="0" column="1">
@@ -222,31 +325,15 @@
         </item>
         <item row="1" column="0">
          <widget class="QRadioButton" name="PolynomialInterpolationRadioButton">
+          <property name="toolTip">
+           <string>Polynomial Interpolation. The curve model will fit *between* markups. In general, it will pass through points more accurately with a high polynomial order. The curve will start at the first markup in the list and end at the last markup in the list. EXPERIMENTAL.</string>
+          </property>
           <property name="text">
            <string>Polynomial</string>
           </property>
          </widget>
         </item>
        </layout>
-      </item>
-      <item row="4" column="1">
-       <widget class="QCheckBox" name="ButterflySubdivisionCheckBox">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="toolTip">
-         <string extracomment="Smooth the output mesh. The butterfly subdivision algorithm is used, but may result in self-intersections. Check &quot;Convex Hull on Result&quot; to fix this.">Smooth the output mesh. The butterfly subdivision algorithm is used, but may result in self-intersections. Check &quot;Convex Hull on Result&quot; to fix this.</string>
-        </property>
-        <property name="text">
-         <string/>
-        </property>
-        <property name="checked">
-         <bool>true</bool>
-        </property>
-       </widget>
       </item>
       <item row="10" column="1">
        <widget class="QDoubleSpinBox" name="KochanekBiasDoubleSpinBox">
@@ -284,40 +371,6 @@
         </property>
        </widget>
       </item>
-      <item row="11" column="0">
-       <widget class="QLabel" name="KochanekContinuityLabel">
-        <property name="text">
-         <string>Kochanek Continuity</string>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="1">
-       <widget class="qMRMLSpinBox" name="TubeSegmentsSpinBox">
-        <property name="toolTip">
-         <string extracomment="Set the curve model's resolution (number of segments between individual markups)">Set the curve model's resolution (number of segments between individual markups)</string>
-        </property>
-        <property name="decimals">
-         <number>0</number>
-        </property>
-        <property name="minimum">
-         <double>1.000000000000000</double>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="0">
-       <widget class="QLabel" name="TubeSidesLabel">
-        <property name="text">
-         <string>Number of Sides:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="0">
-       <widget class="QLabel" name="CleanMarkupsLabel">
-        <property name="text">
-         <string>Clean Duplicated Markups:</string>
-        </property>
-       </widget>
-      </item>
       <item row="12" column="1">
        <widget class="QDoubleSpinBox" name="KochanekTensionDoubleSpinBox">
         <property name="toolTip">
@@ -334,74 +387,10 @@
         </property>
        </widget>
       </item>
-      <item row="2" column="0">
-       <widget class="QLabel" name="TubeSegmentsLabel">
-        <property name="text">
-         <string>Segments Per Point:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="1">
-       <widget class="QCheckBox" name="CleanMarkupsCheckBox">
-        <property name="toolTip">
-         <string extracomment="Merge duplicate points. Duplicate points are the ones closer than the tolerance distance. The tolerance distance is 1% of the diagonal size bounding box of all input markups.">Merge duplicate points. Duplicate points are the ones closer than the tolerance distance. The tolerance distance is 1% of the diagonal size bounding box of all input markups.</string>
-        </property>
-        <property name="text">
-         <string/>
-        </property>
-        <property name="checked">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="6" column="0">
-       <widget class="QLabel" name="ConvexHullLabel">
-        <property name="text">
-         <string>Convex Hull on Result</string>
-        </property>
-       </widget>
-      </item>
-      <item row="8" column="1">
-       <widget class="QDoubleSpinBox" name="DelaunayAlphaDoubleSpinBox">
-        <property name="toolTip">
-         <string extracomment="Compute only tetrahedra whose vertices lie on a sphere with radius &gt;= alpha. Default is 0, which creates a convex hull.">Compute only tetrahedra whose vertices lie on a sphere with radius &gt;= alpha. Default is 0, which creates a convex hull.</string>
-        </property>
-        <property name="value">
-         <double>0.000000000000000</double>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="0">
-       <widget class="QLabel" name="TubeRadiusLabel">
-        <property name="text">
-         <string>Radius (mm)</string>
-        </property>
-       </widget>
-      </item>
       <item row="8" column="0">
        <widget class="QLabel" name="DelaunayAlphaLabel">
         <property name="text">
          <string>Delaunay Alpha:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="1">
-       <widget class="qMRMLSpinBox" name="TubeSidesSpinBox">
-        <property name="toolTip">
-         <string extracomment="Set the curve model's resolution (number of faces that make up the tube).">Set the curve model's resolution (number of faces that make up the tube).</string>
-        </property>
-        <property name="decimals">
-         <number>0</number>
-        </property>
-        <property name="minimum">
-         <double>3.000000000000000</double>
-        </property>
-       </widget>
-      </item>
-      <item row="12" column="0">
-       <widget class="QLabel" name="KochanekTensionLabel">
-        <property name="text">
-         <string>Kochanek Tension:</string>
         </property>
        </widget>
       </item>
@@ -412,6 +401,20 @@
         </property>
        </widget>
       </item>
+      <item row="11" column="0">
+       <widget class="QLabel" name="KochanekContinuityLabel">
+        <property name="text">
+         <string>Kochanek Continuity</string>
+        </property>
+       </widget>
+      </item>
+      <item row="6" column="0">
+       <widget class="QLabel" name="ConvexHullLabel">
+        <property name="text">
+         <string>Convex Hull on Result</string>
+        </property>
+       </widget>
+      </item>
       <item row="4" column="0">
        <widget class="QLabel" name="ButterflySubdivisionLabel">
         <property name="text">
@@ -419,20 +422,23 @@
         </property>
        </widget>
       </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="TubeSegmentsLabel">
+        <property name="text">
+         <string>Segments Per Point:</string>
+        </property>
+       </widget>
+      </item>
       <item row="13" column="1">
        <widget class="qMRMLSpinBox" name="PolynomialOrderSpinBox">
+        <property name="toolTip">
+         <string>The order of the polynomial. 1 is linear, 2 is quadratic, 3 is cubic, and so on. Default = 3 (cubic)</string>
+        </property>
         <property name="decimals">
          <number>0</number>
         </property>
         <property name="minimum">
          <double>1.000000000000000</double>
-        </property>
-       </widget>
-      </item>
-      <item row="13" column="0">
-       <widget class="QLabel" name="PolynomialOrderLabel">
-        <property name="text">
-         <string>Polynomial Order:</string>
         </property>
        </widget>
       </item>
