@@ -79,9 +79,10 @@ public:
   void UpdateOutputHermiteSplineModel(vtkMRMLMarkupsToModelNode* markupsToModelModuleNode, vtkPolyData * markupsPointsPolyData, vtkPolyData* outputPolyData);
   // Generates a polynomial curve model. Parameters are determined from the parameter node.
   void UpdateOutputPolynomialFitModel(vtkMRMLMarkupsToModelNode* markupsToModelModuleNode, vtkPolyData * markupsPointsPolyData, vtkDoubleArray* markupsPointsParameters, vtkPolyData* outputPolyData);
-
-  // A method for determining the curve distance weights to use when using an approximating spline such as polynomial fitting
-  void DetermineCurveFitWeights(vtkPolyData * markupsPointsPolyData, vtkDoubleArray* markupsPointsParameters);
+  // Assign parameter values to points based on their position in the markups list (good for ordered point sets)
+  void ComputePointParametersRawIndices(vtkPolyData * markupsPointsPolyData, vtkDoubleArray* markupsPointsParameters);
+  // Assign parameter values to points based on their position in a minimum spanning tree between the two farthest points (good for unordered point sets)
+  void ComputePointParametersMinimumSpanningTree(vtkPolyData * markupsPointsPolyData, vtkDoubleArray* markupsPointsParameters);
 
   void ProcessMRMLNodesEvents( vtkObject* caller, unsigned long event, void* callData );
 

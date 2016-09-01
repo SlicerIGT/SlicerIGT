@@ -87,6 +87,13 @@ public:
     Polynomial,
     InterpolationType_Last // insert valid types above this line
   };
+
+  enum PointParameterType
+  {
+    RawIndices = 0,
+    MinimumSpanningTree,
+    PointParameterType_Last // insert valid types above this line
+  };
   
   vtkTypeMacro( vtkMRMLMarkupsToModelNode, vtkMRMLNode );
   
@@ -114,13 +121,14 @@ public:
   vtkSetMacro( ModelType, int );
   vtkGetMacro( InterpolationType, int );
   vtkSetMacro( InterpolationType, int );
+  vtkGetMacro( PointParameterType, int );
+  vtkSetMacro( PointParameterType, int );
   vtkGetMacro( TubeRadius, double );
   vtkSetMacro( TubeRadius, double );
   vtkGetMacro( TubeSamplingFrequency, int );
   vtkSetMacro( TubeSamplingFrequency, int );
   vtkGetMacro( TubeNumberOfSides, int );
   vtkSetMacro( TubeNumberOfSides, int );
-  
   
   vtkGetMacro( AutoUpdateOutput, bool );
   vtkSetMacro( AutoUpdateOutput, bool );
@@ -155,15 +163,18 @@ public:
   // Convert between model and interpolation types IDs and names.
   const char* GetModelTypeAsString( int id );
   const char* GetInterpolationTypeAsString( int id );
+  const char* GetPointParameterTypeAsString( int id );
   int GetModelTypeFromString( const char* name );
   int GetInterpolationTypeFromString( const char* name );
+  int GetPointParameterTypeFromString( const char* name );
 
   vtkMRMLMarkupsFiducialNode * GetMarkupsNode( );
   vtkMRMLModelNode* GetModelNode( );
 
 private:
   int    ModelType;
-  int    InterpolationType;
+  int    InterpolationType; // Rename to CurveType? Can now be approximating.
+  int    PointParameterType;
   bool   AutoUpdateOutput;
   bool   CleanMarkups;
   bool   ButterflySubdivision;
@@ -172,10 +183,10 @@ private:
   double TubeRadius;
   int    TubeSamplingFrequency;
   int    TubeNumberOfSides;
-  int    PolynomialOrder;
   double KochanekTension;
   double KochanekBias; 
   double KochanekContinuity;
+  int    PolynomialOrder;
 };
 
 #endif

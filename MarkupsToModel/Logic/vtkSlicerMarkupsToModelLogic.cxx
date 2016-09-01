@@ -543,7 +543,28 @@ void vtkSlicerMarkupsToModelLogic::UpdateOutputHermiteSplineModel(vtkMRMLMarkups
 }
 
 //------------------------------------------------------------------------------
-void vtkSlicerMarkupsToModelLogic::DetermineCurveFitWeights(vtkPolyData * markupsPointsPolyData, vtkDoubleArray* markupsPointsParameters)
+void vtkSlicerMarkupsToModelLogic::ComputePointParametersRawIndices(vtkPolyData * markupsPointsPolyData, vtkDoubleArray* markupsPointsParameters)
+{
+  vtkPoints* points = markupsPointsPolyData->GetPoints();
+  int numPoints = points->GetNumberOfPoints();
+
+  if (markupsPointsParameters->GetNumberOfTuples())
+  {
+    // this should never happen, but in case it does, output a warning
+    vtkWarningMacro("markupsPointsParameters already has contents. Clearing.");
+    while (markupsPointsParameters->GetNumberOfTuples()) // clear contents just in case
+      markupsPointsParameters->RemoveLastTuple();
+  }
+
+  for (int v = 0; v < numPoints; v++)
+  {
+    markupsPointsParameters->InsertNextTuple1( v / double(numPoints-1) );
+    // division to clamp all values to range 0.0 - 1.0
+  }
+}
+
+//------------------------------------------------------------------------------
+void vtkSlicerMarkupsToModelLogic::ComputePointParametersMinimumSpanningTree(vtkPolyData * markupsPointsPolyData, vtkDoubleArray* markupsPointsParameters)
 {
   vtkPoints* points = markupsPointsPolyData->GetPoints();
   int numPoints = points->GetNumberOfPoints();
@@ -551,13 +572,20 @@ void vtkSlicerMarkupsToModelLogic::DetermineCurveFitWeights(vtkPolyData * markup
   // vtk boost algorithms cannot be used because they are not built with 3D Slicer
   // so this is a custom implementation of:
   // 1. constructing an undirected graph as a 2D array
-  // 2. running prim's algorithm on the graph
-  // 3. extract the "trunk" path from the last vertex to the first
-  // 4. based on the distance along that path, assign each vertex a weight
+  // 2. Finding the two vertices that are the farthest apart
+  // 3. running prim's algorithm on the graph
+  // 4. extract the "trunk" path from the last vertex to the first
+  // 5. based on the distance along that path, assign each vertex a polynomial parameter value
 
-  // construct an undirected graph
+  // in the following code, two tasks are done:
+  // 1. construct an undirected graph
   std::vector<double> distances(numPoints*numPoints);
   distances.assign(numPoints*numPoints, 0.0);
+  // 2. find the two farthest-seperated vertices in the distances array
+  int treeStartIndex = 0;
+  int treeEndIndex = 0;
+  double maximumDistance = 0;
+  // iterate through all points
   for (int v = 0; v < numPoints; v++)
   {
     for (int u = 0; u < numPoints; u++)
@@ -568,7 +596,14 @@ void vtkSlicerMarkupsToModelLogic::DetermineCurveFitWeights(vtkPolyData * markup
       double distX = (pointU[0] - pointV[0]); double distXsq = distX * distX;
       double distY = (pointU[1] - pointV[1]); double distYsq = distY * distY;
       double distZ = (pointU[2] - pointV[2]); double distZsq = distZ * distZ;
-      distances[v * numPoints + u] = sqrt(distXsq+distYsq+distZsq);
+      double dist3D = sqrt(distXsq+distYsq+distZsq);
+      distances[v * numPoints + u] = dist3D;
+      if (dist3D > maximumDistance)
+      {
+        maximumDistance = dist3D;
+        treeStartIndex = v;
+        treeEndIndex = u;
+      }
     }
   }
   // use the 1D vector as a 2D vector
@@ -576,7 +611,8 @@ void vtkSlicerMarkupsToModelLogic::DetermineCurveFitWeights(vtkPolyData * markup
   for (int v = 0; v < numPoints; v++)
     graph[v] = &(distances[v * numPoints]);
 
-  // implementation of Prim's algorithm based on http://www.geeksforgeeks.org/greedy-algorithms-set-5-prims-minimum-spanning-tree-mst-2/
+  // implementation of Prim's algorithm heavily based on:
+  // http://www.geeksforgeeks.org/greedy-algorithms-set-5-prims-minimum-spanning-tree-mst-2/
   std::vector<int> parent(numPoints); // Array to store constructed MST
   std::vector<double> key(numPoints);   // Key values used to pick minimum weight edge in cut
   std::vector<bool> mstSet(numPoints);  // To represent set of vertices not yet included in MST
@@ -589,13 +625,13 @@ void vtkSlicerMarkupsToModelLogic::DetermineCurveFitWeights(vtkPolyData * markup
   }
  
   // Always include first 1st vertex in MST.
-  key[0] = 0.0;     // Make key 0 so that this vertex is picked as first vertex
-  parent[0] = -1; // First node is always root of MST 
+  key[treeStartIndex] = 0.0;     // Make key 0 so that this vertex is picked as first vertex
+  parent[treeStartIndex] = -1; // First node is always root of MST 
  
   // The MST will have numPoints vertices
   for (int count = 0; count < numPoints-1; count++)
   {
-    // Pick thd minimum key vertex from the set of vertices
+    // Pick the minimum key vertex from the set of vertices
     // not yet included in MST
     int nextPointIndex = -1;
     double minDistance = VTK_DOUBLE_MAX, min_index;
@@ -631,7 +667,7 @@ void vtkSlicerMarkupsToModelLogic::DetermineCurveFitWeights(vtkPolyData * markup
  
   // determine the "trunk" path of the tree, from first index to last index
   std::vector<int> pathIndices;
-  int currentPathIndex = numPoints-1;
+  int currentPathIndex = treeEndIndex;
   while (currentPathIndex != -1)
   {
     pathIndices.push_back(currentPathIndex);
@@ -644,19 +680,30 @@ void vtkSlicerMarkupsToModelLogic::DetermineCurveFitWeights(vtkPolyData * markup
     sumOfDistances += graph[i][i+1];
 
   if (sumOfDistances == 0)
-    sumOfDistances += 1; // TODO: Output a meaningful error message here
+  {
+    vtkErrorMacro("Minimum spanning tree path has distance zero. Check inputs!");
+    sumOfDistances += 1; // prevent a division by zero
+  }
 
-  // find the weights along the trunk path of the tree
-  std::vector<double> pathWeights;
+  // find the parameters along the trunk path of the tree
+  std::vector<double> pathParameters;
   double currentDistance = 0.0;
   for (int i = 0; i < pathIndices.size() - 1; i++)
   {
-    pathWeights.push_back(currentDistance/sumOfDistances);
+    pathParameters.push_back(currentDistance/sumOfDistances);
     currentDistance += graph[i][i+1];
   }
-  pathWeights.push_back(currentDistance/sumOfDistances); // this should be 1.0
+  pathParameters.push_back(currentDistance/sumOfDistances); // this should be 1.0
 
-  // finally assign weights to each point, and store in the output array
+  // finally assign polynomial parameters to each point, and store in the output array
+  if (markupsPointsParameters->GetNumberOfTuples())
+  {
+    // this should never happen, but in case it does, output a warning
+    vtkWarningMacro("markupsPointsParameters already has contents. Clearing.");
+    while (markupsPointsParameters->GetNumberOfTuples()) // clear contents just in case
+      markupsPointsParameters->RemoveLastTuple();
+  }
+
   for (int i = 0; i < numPoints; i++)
   {
     int currentIndex = i;
@@ -684,7 +731,7 @@ void vtkSlicerMarkupsToModelLogic::DetermineCurveFitWeights(vtkPolyData * markup
         }
       }
     }
-    markupsPointsParameters->InsertNextTuple1(pathWeights[indexAlongPath]);
+    markupsPointsParameters->InsertNextTuple1(pathParameters[indexAlongPath]);
   }
 }
 
@@ -848,9 +895,27 @@ void vtkSlicerMarkupsToModelLogic::UpdateOutputCurveModel(vtkMRMLMarkupsToModelN
     }
     case vtkMRMLMarkupsToModelNode::Polynomial:
     {
-      vtkSmartPointer<vtkDoubleArray> sourcePointDistanceWeights = vtkSmartPointer<vtkDoubleArray>::New();
-      DetermineCurveFitWeights(finalMarkupsPointsPolyData,sourcePointDistanceWeights);
-      UpdateOutputPolynomialFitModel(markupsToModelModuleNode,finalMarkupsPointsPolyData,sourcePointDistanceWeights,outputPolyData);
+      vtkSmartPointer<vtkDoubleArray> pointParameters = vtkSmartPointer<vtkDoubleArray>::New();
+      switch ( markupsToModelModuleNode->GetPointParameterType() )
+      {
+        case vtkMRMLMarkupsToModelNode::RawIndices:
+        {
+          ComputePointParametersRawIndices(finalMarkupsPointsPolyData,pointParameters);
+          break;
+        }
+        case vtkMRMLMarkupsToModelNode::MinimumSpanningTree:
+        {
+          ComputePointParametersMinimumSpanningTree(finalMarkupsPointsPolyData,pointParameters);
+          break;
+        }
+        default:
+        {
+          vtkWarningMacro("Invalid PointParameterType: " << markupsToModelModuleNode->GetPointParameterType() << ". Using raw indices.");
+          ComputePointParametersRawIndices(finalMarkupsPointsPolyData,pointParameters);
+          break;
+        }
+      }
+      UpdateOutputPolynomialFitModel(markupsToModelModuleNode,finalMarkupsPointsPolyData,pointParameters,outputPolyData);
       break;
     }
   }
@@ -904,7 +969,6 @@ void vtkSlicerMarkupsToModelLogic::UpdateOutputModel(vtkMRMLMarkupsToModelNode* 
 //------------------------------------------------------------------------------
 void vtkSlicerMarkupsToModelLogic::ProcessMRMLNodesEvents( vtkObject* caller, unsigned long event, void* callData )
 {
-  //vtkWarningMacro("PUTAS");
   vtkMRMLNode* callerNode = vtkMRMLNode::SafeDownCast( caller );
   if (callerNode == NULL)
   {
