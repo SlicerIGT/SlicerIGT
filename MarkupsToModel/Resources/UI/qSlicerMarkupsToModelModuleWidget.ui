@@ -152,221 +152,8 @@
      <property name="collapsed">
       <bool>true</bool>
      </property>
-     <layout class="QGridLayout" name="gridLayout_4">
-      <item row="10" column="0">
-       <widget class="QLabel" name="KochanekBiasLabel">
-        <property name="text">
-         <string>Kochanek Bias:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="0">
-       <widget class="QLabel" name="ButterflySubdivisionLabel">
-        <property name="text">
-         <string>Butterfly Subdivision:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="8" column="1">
-       <widget class="QDoubleSpinBox" name="DelaunayAlphaDoubleSpinBox">
-        <property name="toolTip">
-         <string extracomment="Compute only tetrahedra whose vertices lie on a sphere with radius &gt;= alpha. Default is 0, which creates a convex hull.">Compute only tetrahedra whose vertices lie on a sphere with radius &gt;= alpha. Default is 0, which creates a convex hull.</string>
-        </property>
-        <property name="value">
-         <double>0.000000000000000</double>
-        </property>
-       </widget>
-      </item>
-      <item row="8" column="0">
-       <widget class="QLabel" name="DelaunayAlphaLabel">
-        <property name="text">
-         <string>Delaunay Alpha:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="0">
-       <widget class="QLabel" name="TubeRadiusLabel">
-        <property name="text">
-         <string>Radius (mm)</string>
-        </property>
-       </widget>
-      </item>
-      <item row="12" column="0">
-       <widget class="QLabel" name="KochanekTensionLabel">
-        <property name="text">
-         <string>Kochanek Tension:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="1">
-       <widget class="qMRMLSpinBox" name="TubeSidesSpinBox">
-        <property name="toolTip">
-         <string extracomment="Set the curve model's resolution (number of faces that make up the tube).">Set the curve model's resolution (number of faces that make up the tube).</string>
-        </property>
-        <property name="decimals">
-         <number>0</number>
-        </property>
-        <property name="minimum">
-         <double>3.000000000000000</double>
-        </property>
-       </widget>
-      </item>
-      <item row="7" column="1">
-       <layout class="QHBoxLayout" name="SplineInterpolationLayout">
-        <item>
-         <widget class="QRadioButton" name="KochanekInterpolationRadioButton">
-          <property name="toolTip">
-           <string extracomment="Kochanek Interpolation. The curve model will transition smoothly from markup to markup, and can be tweaked using several parameters.">Kochanek Interpolation. The curve model will transition smoothly from markup to markup, and can be tweaked using several parameters.</string>
-          </property>
-          <property name="text">
-           <string>Kochanek</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QRadioButton" name="CardinalInterpolationRadioButton">
-          <property name="toolTip">
-           <string extracomment="Cardinal Interpolation. The curve model will transition smoothly from markup to markup.">Cardinal Interpolation. The curve model will transition smoothly from markup to markup.</string>
-          </property>
-          <property name="text">
-           <string>Cardinal</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QRadioButton" name="LinearInterpolationButton">
-          <property name="toolTip">
-           <string extracomment="Linear Interpolation. The curve model will consist of straight 'tubes' from one markup to the next.">Linear Interpolation. The curve model will consist of straight 'tubes' from one markup to the next.</string>
-          </property>
-          <property name="text">
-           <string>Linear</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </item>
-      <item row="10" column="1">
-       <widget class="QDoubleSpinBox" name="KochanekBiasDoubleSpinBox">
-        <property name="toolTip">
-         <string extracomment="Bias the curvature toward the previous or next point. Default 0. Range -1 to 1.">Bias the curvature toward the previous or next point. Default 0. Range -1 to 1.</string>
-        </property>
-        <property name="minimum">
-         <double>-1.000000000000000</double>
-        </property>
-        <property name="maximum">
-         <double>1.000000000000000</double>
-        </property>
-        <property name="singleStep">
-         <double>0.100000000000000</double>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="0">
-       <widget class="QLabel" name="TubeSegmentsLabel">
-        <property name="text">
-         <string>Segments Per Point:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="7" column="0">
-       <widget class="QLabel" name="SplineInterpolationLabel">
-        <property name="text">
-         <string>Spline Interpolation:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="12" column="1">
-       <widget class="QDoubleSpinBox" name="KochanekTensionDoubleSpinBox">
-        <property name="toolTip">
-         <string extracomment="Higher values shorten the curve model's total length. Default 0. Range -1 to 1.">Higher values shorten the curve model's total length. Default 0. Range -1 to 1.</string>
-        </property>
-        <property name="minimum">
-         <double>-1.000000000000000</double>
-        </property>
-        <property name="maximum">
-         <double>1.000000000000000</double>
-        </property>
-        <property name="singleStep">
-         <double>0.100000000000000</double>
-        </property>
-       </widget>
-      </item>
-      <item row="11" column="0">
-       <widget class="QLabel" name="KochanekContinuityLabel">
-        <property name="text">
-         <string>Kochanek Continuity</string>
-        </property>
-       </widget>
-      </item>
-      <item row="11" column="1">
-       <widget class="QDoubleSpinBox" name="KochanekContinuityDoubleSpinBox">
-        <property name="toolTip">
-         <string extracomment="Higher values make the curve model smoother. Default 0. Range -1 to 1.">Higher values make the curve model smoother. Default 0. Range -1 to 1.</string>
-        </property>
-        <property name="minimum">
-         <double>-1.000000000000000</double>
-        </property>
-        <property name="maximum">
-         <double>1.000000000000000</double>
-        </property>
-        <property name="singleStep">
-         <double>0.100000000000000</double>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="1">
-       <widget class="QDoubleSpinBox" name="TubeRadiusDoubleSpinBox">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="toolTip">
-         <string extracomment="Set the curve model's radius">Set the curve model's radius</string>
-        </property>
-        <property name="value">
-         <double>1.000000000000000</double>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="1">
-       <widget class="qMRMLSpinBox" name="TubeSegmentsSpinBox">
-        <property name="toolTip">
-         <string extracomment="Set the curve model's resolution (number of segments between individual markups)">Set the curve model's resolution (number of segments between individual markups)</string>
-        </property>
-        <property name="decimals">
-         <number>0</number>
-        </property>
-        <property name="minimum">
-         <double>1.000000000000000</double>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="0">
-       <widget class="QLabel" name="TubeSidesLabel">
-        <property name="text">
-         <string>Number of Sides:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="6" column="1">
-       <widget class="QCheckBox" name="ConvexHullCheckBox">
-        <property name="toolTip">
-         <string extracomment="Perform a convex hull computation on the resulting mesh (close it completely, there will be no concave regions or self intersections).">Perform a convex hull computation on the resulting mesh (close it completely, there will be no concave regions or self intersections).</string>
-        </property>
-        <property name="text">
-         <string/>
-        </property>
-        <property name="checked">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="1">
+     <layout class="QGridLayout" name="AdvancedLayout">
+      <item row="4" column="2">
        <widget class="QCheckBox" name="ButterflySubdivisionCheckBox">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
@@ -385,10 +172,206 @@
         </property>
        </widget>
       </item>
+      <item row="13" column="2">
+       <widget class="QDoubleSpinBox" name="KochanekContinuityDoubleSpinBox">
+        <property name="toolTip">
+         <string extracomment="Higher values make the curve model smoother. Default 0. Range -1 to 1.">Higher values make the curve model smoother. Default 0. Range -1 to 1.</string>
+        </property>
+        <property name="minimum">
+         <double>-1.000000000000000</double>
+        </property>
+        <property name="maximum">
+         <double>1.000000000000000</double>
+        </property>
+        <property name="singleStep">
+         <double>0.100000000000000</double>
+        </property>
+       </widget>
+      </item>
+      <item row="13" column="0">
+       <widget class="QLabel" name="KochanekContinuityLabel">
+        <property name="text">
+         <string>Kochanek Continuity</string>
+        </property>
+       </widget>
+      </item>
+      <item row="12" column="2">
+       <widget class="QDoubleSpinBox" name="KochanekBiasDoubleSpinBox">
+        <property name="toolTip">
+         <string extracomment="Bias the curvature toward the previous or next point. Default 0. Range -1 to 1.">Bias the curvature toward the previous or next point. Default 0. Range -1 to 1.</string>
+        </property>
+        <property name="minimum">
+         <double>-1.000000000000000</double>
+        </property>
+        <property name="maximum">
+         <double>1.000000000000000</double>
+        </property>
+        <property name="singleStep">
+         <double>0.100000000000000</double>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0">
+       <widget class="QLabel" name="TubeRadiusLabel">
+        <property name="text">
+         <string>Radius (mm)</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="2">
+       <widget class="QCheckBox" name="CleanMarkupsCheckBox">
+        <property name="toolTip">
+         <string extracomment="Merge duplicate points. Duplicate points are the ones closer than the tolerance distance. The tolerance distance is 1% of the diagonal size bounding box of all input markups.">Merge duplicate points. Duplicate points are the ones closer than the tolerance distance. The tolerance distance is 1% of the diagonal size bounding box of all input markups.</string>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="2">
+       <widget class="qMRMLSpinBox" name="TubeSidesSpinBox">
+        <property name="toolTip">
+         <string extracomment="Set the curve model's resolution (number of faces that make up the tube).">Set the curve model's resolution (number of faces that make up the tube).</string>
+        </property>
+        <property name="decimals">
+         <number>0</number>
+        </property>
+        <property name="minimum">
+         <double>3.000000000000000</double>
+        </property>
+       </widget>
+      </item>
+      <item row="14" column="2">
+       <widget class="QDoubleSpinBox" name="KochanekTensionDoubleSpinBox">
+        <property name="toolTip">
+         <string extracomment="Higher values shorten the curve model's total length. Default 0. Range -1 to 1.">Higher values shorten the curve model's total length. Default 0. Range -1 to 1.</string>
+        </property>
+        <property name="minimum">
+         <double>-1.000000000000000</double>
+        </property>
+        <property name="maximum">
+         <double>1.000000000000000</double>
+        </property>
+        <property name="singleStep">
+         <double>0.100000000000000</double>
+        </property>
+       </widget>
+      </item>
+      <item row="10" column="0">
+       <widget class="QLabel" name="DelaunayAlphaLabel">
+        <property name="text">
+         <string>Delaunay Alpha:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="10" column="2">
+       <widget class="QDoubleSpinBox" name="DelaunayAlphaDoubleSpinBox">
+        <property name="toolTip">
+         <string extracomment="Compute only tetrahedra whose vertices lie on a sphere with radius &gt;= alpha. Default is 0, which creates a convex hull.">Compute only tetrahedra whose vertices lie on a sphere with radius &gt;= alpha. Default is 0, which creates a convex hull.</string>
+        </property>
+        <property name="value">
+         <double>0.000000000000000</double>
+        </property>
+       </widget>
+      </item>
+      <item row="12" column="0">
+       <widget class="QLabel" name="KochanekBiasLabel">
+        <property name="text">
+         <string>Kochanek Bias:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="2">
+       <widget class="QDoubleSpinBox" name="TubeRadiusDoubleSpinBox">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="toolTip">
+         <string extracomment="Set the curve model's radius">Set the curve model's radius</string>
+        </property>
+        <property name="value">
+         <double>1.000000000000000</double>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="TubeSegmentsLabel">
+        <property name="text">
+         <string>Segments Per Point:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="9" column="0">
+       <widget class="QLabel" name="InterpolationLabel">
+        <property name="text">
+         <string>Spline Interpolation:</string>
+        </property>
+       </widget>
+      </item>
       <item row="6" column="0">
        <widget class="QLabel" name="ConvexHullLabel">
         <property name="text">
          <string>Convex Hull on Result</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="0">
+       <widget class="QLabel" name="ButterflySubdivisionLabel">
+        <property name="text">
+         <string>Butterfly Subdivision:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="TubeSidesLabel">
+        <property name="text">
+         <string>Number of Sides:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="2">
+       <widget class="qMRMLSpinBox" name="TubeSegmentsSpinBox">
+        <property name="toolTip">
+         <string extracomment="Set the curve model's resolution (number of segments between individual markups)">Set the curve model's resolution (number of segments between individual markups)</string>
+        </property>
+        <property name="decimals">
+         <number>0</number>
+        </property>
+        <property name="minimum">
+         <double>1.000000000000000</double>
+        </property>
+       </widget>
+      </item>
+      <item row="14" column="0">
+       <widget class="QLabel" name="KochanekTensionLabel">
+        <property name="text">
+         <string>Kochanek Tension:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="6" column="2">
+       <widget class="QCheckBox" name="ConvexHullCheckBox">
+        <property name="toolTip">
+         <string extracomment="Perform a convex hull computation on the resulting mesh (close it completely, there will be no concave regions or self intersections).">Perform a convex hull computation on the resulting mesh (close it completely, there will be no concave regions or self intersections).</string>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="17" column="0">
+       <widget class="QLabel" name="PolynomialOrderLabel">
+        <property name="text">
+         <string>Polynomial Order:</string>
         </property>
        </widget>
       </item>
@@ -399,16 +382,128 @@
         </property>
        </widget>
       </item>
-      <item row="3" column="1">
-       <widget class="QCheckBox" name="CleanMarkupsCheckBox">
+      <item row="17" column="2">
+       <widget class="qMRMLSpinBox" name="PolynomialOrderSpinBox">
         <property name="toolTip">
-         <string extracomment="Merge duplicate points. Duplicate points are the ones closer than the tolerance distance. The tolerance distance is 1% of the diagonal size bounding box of all input markups.">Merge duplicate points. Duplicate points are the ones closer than the tolerance distance. The tolerance distance is 1% of the diagonal size bounding box of all input markups.</string>
+         <string>The order (degree) of the polynomial. 1 is linear, 2 is quadratic, 3 is cubic, and so on. Higher values tend to fit the points better, but the fit is slower. Default = 3 (cubic)</string>
         </property>
-        <property name="text">
+        <property name="decimals">
+         <number>0</number>
+        </property>
+        <property name="minimum">
+         <double>1.000000000000000</double>
+        </property>
+       </widget>
+      </item>
+      <item row="9" column="2">
+       <widget class="QGroupBox" name="InterpolationGroupBox">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="title">
          <string/>
         </property>
-        <property name="checked">
-         <bool>true</bool>
+        <property name="flat">
+         <bool>false</bool>
+        </property>
+        <layout class="QGridLayout" name="InterpolationLayout">
+         <property name="margin">
+          <number>0</number>
+         </property>
+         <property name="spacing">
+          <number>0</number>
+         </property>
+         <item row="0" column="0">
+          <widget class="QRadioButton" name="LinearInterpolationRadioButton">
+           <property name="toolTip">
+            <string extracomment="Linear Interpolation. The curve model will consist of straight 'tubes' from one markup to the next.">Linear Interpolation. The curve model will consist of straight 'tubes' from one markup to the next.</string>
+           </property>
+           <property name="text">
+            <string>Linear</string>
+           </property>
+           <property name="checked">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="QRadioButton" name="CardinalInterpolationRadioButton">
+           <property name="toolTip">
+            <string extracomment="Cardinal Interpolation. The curve model will transition smoothly from markup to markup.">Cardinal Interpolation. The curve model will transition smoothly from markup to markup.</string>
+           </property>
+           <property name="text">
+            <string>Cardinal</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QRadioButton" name="PolynomialInterpolationRadioButton">
+           <property name="toolTip">
+            <string>Polynomial Interpolation. The curve model will fit smoothly between markups.</string>
+           </property>
+           <property name="text">
+            <string>Polynomial</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QRadioButton" name="KochanekInterpolationRadioButton">
+           <property name="toolTip">
+            <string extracomment="Kochanek Interpolation. The curve model will transition smoothly from markup to markup, and can be tweaked using several parameters.">Kochanek Interpolation. The curve model will transition smoothly from markup to markup, and can be tweaked using several parameters.</string>
+           </property>
+           <property name="text">
+            <string>Kochanek</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item row="15" column="2">
+       <widget class="QGroupBox" name="PointParameterGroupBox">
+        <property name="title">
+         <string/>
+        </property>
+        <layout class="QGridLayout" name="PointParameterLayout">
+         <property name="margin">
+          <number>0</number>
+         </property>
+         <property name="spacing">
+          <number>0</number>
+         </property>
+         <item row="0" column="0">
+          <widget class="QRadioButton" name="PointParameterRawIndicesRadioButton">
+           <property name="toolTip">
+            <string>Use the raw indices as the parameter value. This is best used when the points are ordered.</string>
+           </property>
+           <property name="text">
+            <string>Raw Indices</string>
+           </property>
+           <property name="checked">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="QRadioButton" name="PointParameterMinimumSpanningTreeRadioButton">
+           <property name="toolTip">
+            <string>Use the relative position in the minimum spanning tree as the parameter value. The minimum spanning tree is computed between the farthest two points in the Euclidean sense. This is best used when the points are unordered.</string>
+           </property>
+           <property name="text">
+            <string>Minimum Spanning Tree</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item row="15" column="0">
+       <widget class="QLabel" name="PointParameterLabel">
+        <property name="text">
+         <string>Point Parameters:</string>
         </property>
        </widget>
       </item>
@@ -426,7 +521,7 @@
      <property name="collapsed">
       <bool>true</bool>
      </property>
-     <layout class="QGridLayout" name="gridLayout_2">
+     <layout class="QGridLayout" name="DisplayLayout">
       <item row="0" column="0">
        <widget class="QLabel" name="ModelVisibilityLabel">
         <property name="text">

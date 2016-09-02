@@ -29,6 +29,9 @@ limitations under the License.
 #include "vtkSlicerModuleLogic.h"
 #include "vtkSlicerMarkupsLogic.h"
 
+// vtk includes
+#include "vtkDoubleArray.h"
+
 // MRML includes
 
 // STD includes
@@ -74,6 +77,12 @@ public:
   // Generates cardinal or Kochanek Spline curve model. If the Kochanek Spline the bias, continuity and tension parameters from de module node
   // are used.
   void UpdateOutputHermiteSplineModel(vtkMRMLMarkupsToModelNode* markupsToModelModuleNode, vtkPolyData * markupsPointsPolyData, vtkPolyData* outputPolyData);
+  // Generates a polynomial curve model. Parameters are determined from the parameter node.
+  void UpdateOutputPolynomialFitModel(vtkMRMLMarkupsToModelNode* markupsToModelModuleNode, vtkPolyData * markupsPointsPolyData, vtkDoubleArray* markupsPointsParameters, vtkPolyData* outputPolyData);
+  // Assign parameter values to points based on their position in the markups list (good for ordered point sets)
+  void ComputePointParametersRawIndices(vtkPolyData * markupsPointsPolyData, vtkDoubleArray* markupsPointsParameters);
+  // Assign parameter values to points based on their position in a minimum spanning tree between the two farthest points (good for unordered point sets)
+  void ComputePointParametersMinimumSpanningTree(vtkPolyData * markupsPointsPolyData, vtkDoubleArray* markupsPointsParameters);
 
   void ProcessMRMLNodesEvents( vtkObject* caller, unsigned long event, void* callData );
 

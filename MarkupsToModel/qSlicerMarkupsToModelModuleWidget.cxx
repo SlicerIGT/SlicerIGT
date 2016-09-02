@@ -99,6 +99,9 @@ qSlicerMarkupsToModelModuleWidget::~qSlicerMarkupsToModelModuleWidget()
   disconnect( d->KochanekBiasDoubleSpinBox, SIGNAL( valueChanged( double ) ), this, SLOT( updateParametersToMRMLNode() ) );
   disconnect( d->KochanekContinuityDoubleSpinBox, SIGNAL( valueChanged( double ) ), this, SLOT( updateParametersToMRMLNode() ) );
   disconnect( d->KochanekTensionDoubleSpinBox, SIGNAL( valueChanged( double ) ), this, SLOT( updateParametersToMRMLNode() ) );
+  disconnect( d->PointParameterRawIndicesRadioButton, SIGNAL( clicked() ), this, SLOT( updateParametersToMRMLNode() ) );
+  disconnect( d->PointParameterMinimumSpanningTreeRadioButton, SIGNAL( clicked() ), this, SLOT( updateParametersToMRMLNode() ) );
+  disconnect( d->PolynomialOrderSpinBox, SIGNAL( valueChanged( double ) ), this, SLOT( updateParametersToMRMLNode() ) );
 
   disconnect( d->ModelOpacitySlider, SIGNAL( valueChanged( double ) ), this, SLOT( updateToRenderedNodes() ) );
   disconnect( d->ModelColorSelector, SIGNAL( clicked() ), this, SLOT( updateToRenderedNodes() ) );
@@ -106,9 +109,10 @@ qSlicerMarkupsToModelModuleWidget::~qSlicerMarkupsToModelModuleWidget()
   disconnect( d->ModelSliceIntersectionCheckbox, SIGNAL( clicked() ), this, SLOT( updateToRenderedNodes() ) );
   disconnect( d->MarkupsTextScaleSlider, SIGNAL( valueChanged( double ) ), this, SLOT( updateToRenderedNodes() ) );
 
-  disconnect( d->LinearInterpolationButton, SIGNAL( clicked() ), this, SLOT( updateParametersToMRMLNode() ) );
+  disconnect( d->LinearInterpolationRadioButton, SIGNAL( clicked() ), this, SLOT( updateParametersToMRMLNode() ) );
   disconnect( d->CardinalInterpolationRadioButton, SIGNAL( clicked() ), this, SLOT( updateParametersToMRMLNode() ) );
   disconnect( d->KochanekInterpolationRadioButton, SIGNAL( clicked() ), this, SLOT( updateParametersToMRMLNode() ) );
+  disconnect( d->PolynomialInterpolationRadioButton, SIGNAL( clicked() ), this, SLOT( updateParametersToMRMLNode() ) );
 }
 
 //-----------------------------------------------------------------------------
@@ -164,6 +168,9 @@ void qSlicerMarkupsToModelModuleWidget::setup()
   connect( d->KochanekBiasDoubleSpinBox, SIGNAL( valueChanged( double ) ), this, SLOT( updateParametersToMRMLNode() ) );
   connect( d->KochanekContinuityDoubleSpinBox, SIGNAL( valueChanged( double ) ), this, SLOT( updateParametersToMRMLNode() ) );
   connect( d->KochanekTensionDoubleSpinBox, SIGNAL( valueChanged( double ) ), this, SLOT( updateParametersToMRMLNode() ) );
+  connect( d->PointParameterRawIndicesRadioButton, SIGNAL( clicked() ), this, SLOT( updateParametersToMRMLNode() ) );
+  connect( d->PointParameterMinimumSpanningTreeRadioButton, SIGNAL( clicked() ), this, SLOT( updateParametersToMRMLNode() ) );
+  connect( d->PolynomialOrderSpinBox, SIGNAL( valueChanged( double ) ), this, SLOT( updateParametersToMRMLNode() ) );
 
   connect( d->ModelOpacitySlider, SIGNAL( valueChanged( double ) ), this, SLOT( updateToRenderedNodes() ) );
   connect( d->ModelColorSelector, SIGNAL( clicked() ), this, SLOT( updateToRenderedNodes() ) );
@@ -171,9 +178,10 @@ void qSlicerMarkupsToModelModuleWidget::setup()
   connect( d->ModelSliceIntersectionCheckbox, SIGNAL( toggled( bool ) ), this, SLOT( updateToRenderedNodes() ) );
   connect( d->MarkupsTextScaleSlider, SIGNAL( valueChanged( double ) ), this, SLOT( updateToRenderedNodes() ) );
 
-  connect( d->LinearInterpolationButton, SIGNAL( clicked() ), this, SLOT( updateParametersToMRMLNode() ) );
+  connect( d->LinearInterpolationRadioButton, SIGNAL( clicked() ), this, SLOT( updateParametersToMRMLNode() ) );
   connect( d->CardinalInterpolationRadioButton, SIGNAL( clicked() ), this, SLOT( updateParametersToMRMLNode() ) );
   connect( d->KochanekInterpolationRadioButton, SIGNAL( clicked() ), this, SLOT( updateParametersToMRMLNode() ) );
+  connect( d->PolynomialInterpolationRadioButton, SIGNAL( clicked() ), this, SLOT( updateParametersToMRMLNode() ) );
 }
 
 //-----------------------------------------------------------------------------
@@ -361,7 +369,7 @@ void qSlicerMarkupsToModelModuleWidget::updateParametersToMRMLNode()
   markupsToModelModuleNode->SetTubeRadius( d->TubeRadiusDoubleSpinBox->value() );
   markupsToModelModuleNode->SetTubeSamplingFrequency( d->TubeSegmentsSpinBox->value() );
   markupsToModelModuleNode->SetTubeNumberOfSides( d->TubeSidesSpinBox->value() );
-  if ( d->LinearInterpolationButton->isChecked() )
+  if ( d->LinearInterpolationRadioButton->isChecked() )
   {
     markupsToModelModuleNode->SetInterpolationType( vtkMRMLMarkupsToModelNode::Linear );
   }
@@ -373,9 +381,22 @@ void qSlicerMarkupsToModelModuleWidget::updateParametersToMRMLNode()
   {
     markupsToModelModuleNode->SetInterpolationType( vtkMRMLMarkupsToModelNode::KochanekSpline );
   }
+  else if ( d->PolynomialInterpolationRadioButton->isChecked() )
+  {
+    markupsToModelModuleNode->SetInterpolationType( vtkMRMLMarkupsToModelNode::Polynomial );
+  }
   markupsToModelModuleNode->SetKochanekBias( d->KochanekBiasDoubleSpinBox->value() );
   markupsToModelModuleNode->SetKochanekContinuity( d->KochanekContinuityDoubleSpinBox->value() );
   markupsToModelModuleNode->SetKochanekTension( d->KochanekTensionDoubleSpinBox->value() );
+  if ( d->PointParameterRawIndicesRadioButton->isChecked() )
+  {
+    markupsToModelModuleNode->SetPointParameterType( vtkMRMLMarkupsToModelNode::RawIndices );
+  }
+  else if ( d->PointParameterMinimumSpanningTreeRadioButton->isChecked() )
+  {
+    markupsToModelModuleNode->SetPointParameterType( vtkMRMLMarkupsToModelNode::MinimumSpanningTree );
+  }
+  markupsToModelModuleNode->SetPolynomialOrder( d->PolynomialOrderSpinBox->value() );
   
   this->updateFromMRMLNode();
 }
@@ -455,13 +476,20 @@ void qSlicerMarkupsToModelModuleWidget::updateFromMRMLNode()
     d->TubeSegmentsSpinBox->setValue( MarkupsToModelNode->GetTubeSamplingFrequency() );
     switch( MarkupsToModelNode->GetInterpolationType() )
     {
-    case vtkMRMLMarkupsToModelNode::Linear: d->LinearInterpolationButton->setChecked( 1 ); break;
+    case vtkMRMLMarkupsToModelNode::Linear: d->LinearInterpolationRadioButton->setChecked( 1 ); break;
     case vtkMRMLMarkupsToModelNode::CardinalSpline: d->CardinalInterpolationRadioButton->setChecked( 1 ); break;
     case vtkMRMLMarkupsToModelNode::KochanekSpline: d->KochanekInterpolationRadioButton->setChecked( 1 ); break;
+    case vtkMRMLMarkupsToModelNode::Polynomial: d->PolynomialInterpolationRadioButton->setChecked( 1 ); break;
     }
     d->KochanekBiasDoubleSpinBox->setValue(MarkupsToModelNode->GetKochanekBias());
     d->KochanekContinuityDoubleSpinBox->setValue(MarkupsToModelNode->GetKochanekContinuity());
     d->KochanekTensionDoubleSpinBox->setValue(MarkupsToModelNode->GetKochanekTension());
+    switch( MarkupsToModelNode->GetPointParameterType() )
+    {
+    case vtkMRMLMarkupsToModelNode::RawIndices: d->PointParameterRawIndicesRadioButton->setChecked( 1 ); break;
+    case vtkMRMLMarkupsToModelNode::MinimumSpanningTree: d->PointParameterMinimumSpanningTreeRadioButton->setChecked( 1 ); break;
+    }
+    d->PolynomialOrderSpinBox->setValue(MarkupsToModelNode->GetPolynomialOrder());
 
     updateFromRenderedNodes();
   }
@@ -482,11 +510,12 @@ void qSlicerMarkupsToModelModuleWidget::updateFromMRMLNode()
     d->ConvexHullLabel->setVisible( true );
     d->ConvexHullCheckBox->setVisible( true );
 
-    d->SplineInterpolationLayout->setEnabled(false);
-    d->SplineInterpolationLabel->setVisible(false);
-    d->LinearInterpolationButton->setVisible(false);
-    d->KochanekInterpolationRadioButton->setVisible(false);
+    d->InterpolationGroupBox->setVisible(false);
+    d->InterpolationLabel->setVisible(false);
+    d->LinearInterpolationRadioButton->setVisible(false);
     d->CardinalInterpolationRadioButton->setVisible(false);
+    d->KochanekInterpolationRadioButton->setVisible(false);
+    d->PolynomialInterpolationRadioButton->setVisible(false);
     d->TubeRadiusLabel->setVisible( false );
     d->TubeRadiusDoubleSpinBox->setVisible( false );
     d->TubeSidesLabel->setVisible( false );
@@ -499,6 +528,12 @@ void qSlicerMarkupsToModelModuleWidget::updateFromMRMLNode()
     d->KochanekTensionDoubleSpinBox->setVisible( false );
     d->KochanekContinuityLabel->setVisible( false );
     d->KochanekContinuityDoubleSpinBox->setVisible( false );
+    d->PointParameterLabel->setVisible( false );
+    d->PointParameterGroupBox->setVisible( false );
+    d->PointParameterRawIndicesRadioButton->setVisible( false );
+    d->PointParameterMinimumSpanningTreeRadioButton->setVisible( false );
+    d->PolynomialOrderLabel->setVisible( false );
+    d->PolynomialOrderSpinBox->setVisible( false );
   }
   else
   {
@@ -509,11 +544,12 @@ void qSlicerMarkupsToModelModuleWidget::updateFromMRMLNode()
     d->ConvexHullLabel->setVisible( false );
     d->ConvexHullCheckBox->setVisible( false );
 
-    d->SplineInterpolationLayout->setEnabled(true);
-    d->SplineInterpolationLabel->setVisible(true);
-    d->LinearInterpolationButton->setVisible(true);
-    d->KochanekInterpolationRadioButton->setVisible(true);
+    d->InterpolationGroupBox->setVisible(true);
+    d->InterpolationLabel->setVisible(true);
+    d->LinearInterpolationRadioButton->setVisible(true);
     d->CardinalInterpolationRadioButton->setVisible(true);
+    d->KochanekInterpolationRadioButton->setVisible(true);
+    d->PolynomialInterpolationRadioButton->setVisible(true);
     d->TubeRadiusLabel->setVisible( true );
     d->TubeRadiusDoubleSpinBox->setVisible( true );
     d->TubeSidesLabel->setVisible( true );
@@ -538,6 +574,25 @@ void qSlicerMarkupsToModelModuleWidget::updateFromMRMLNode()
       d->KochanekTensionDoubleSpinBox->setVisible( false );
       d->KochanekContinuityLabel->setVisible( false );
       d->KochanekContinuityDoubleSpinBox->setVisible( false );
+    }
+    
+    if(d->PolynomialInterpolationRadioButton->isChecked())
+    {
+      d->PointParameterLabel->setVisible( true );
+      d->PointParameterGroupBox->setVisible( true );
+      d->PointParameterRawIndicesRadioButton->setVisible( true );
+      d->PointParameterMinimumSpanningTreeRadioButton->setVisible( true );
+      d->PolynomialOrderLabel->setVisible( true );
+      d->PolynomialOrderSpinBox->setVisible( true );
+    }
+    else
+    {
+      d->PointParameterLabel->setVisible( false );
+      d->PointParameterGroupBox->setVisible( false );
+      d->PointParameterRawIndicesRadioButton->setVisible( false );
+      d->PointParameterMinimumSpanningTreeRadioButton->setVisible( false );
+      d->PolynomialOrderLabel->setVisible( false );
+      d->PolynomialOrderSpinBox->setVisible( false );
     }
   }
 
@@ -628,12 +683,16 @@ void qSlicerMarkupsToModelModuleWidget::blockAllSignals()
   d->TubeSidesSpinBox->blockSignals( true );
   d->TubeRadiusDoubleSpinBox->blockSignals( true );
   d->TubeSegmentsSpinBox->blockSignals( true );
-  d->LinearInterpolationButton->blockSignals( true );
+  d->LinearInterpolationRadioButton->blockSignals( true );
   d->CardinalInterpolationRadioButton->blockSignals( true );
   d->KochanekInterpolationRadioButton->blockSignals( true );
+  d->PolynomialInterpolationRadioButton->blockSignals( true );
   d->KochanekBiasDoubleSpinBox->blockSignals( true );
   d->KochanekContinuityDoubleSpinBox->blockSignals( true );
   d->KochanekTensionDoubleSpinBox->blockSignals( true );
+  d->PointParameterRawIndicesRadioButton->blockSignals( true );
+  d->PointParameterMinimumSpanningTreeRadioButton->blockSignals( true );
+  d->PolynomialOrderSpinBox->blockSignals( true );
 
   // display options
   d->ModelVisiblityButton->blockSignals( true );
@@ -667,12 +726,16 @@ void qSlicerMarkupsToModelModuleWidget::unblockAllSignals()
   d->TubeSidesSpinBox->blockSignals( false );
   d->TubeRadiusDoubleSpinBox->blockSignals( false );
   d->TubeSegmentsSpinBox->blockSignals( false );
-  d->LinearInterpolationButton->blockSignals( false );
+  d->LinearInterpolationRadioButton->blockSignals( false );
   d->CardinalInterpolationRadioButton->blockSignals( false );
   d->KochanekInterpolationRadioButton->blockSignals( false );
+  d->PolynomialInterpolationRadioButton->blockSignals( false );
   d->KochanekBiasDoubleSpinBox->blockSignals( false );
   d->KochanekContinuityDoubleSpinBox->blockSignals( false );
   d->KochanekTensionDoubleSpinBox->blockSignals( false );
+  d->PointParameterRawIndicesRadioButton->blockSignals( false );
+  d->PointParameterMinimumSpanningTreeRadioButton->blockSignals( false );
+  d->PolynomialOrderSpinBox->blockSignals( false );
 
   // display options
   d->ModelVisiblityButton->blockSignals( false );

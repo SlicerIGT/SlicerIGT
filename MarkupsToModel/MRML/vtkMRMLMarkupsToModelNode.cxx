@@ -52,10 +52,13 @@ vtkMRMLMarkupsToModelNode::vtkMRMLMarkupsToModelNode()
   this->TubeNumberOfSides = 8;
   this->ModelType = 0;
   this->InterpolationType = 0;
+  this->PointParameterType = 0;
 
   this->KochanekTension = 0;
   this->KochanekBias = 0;
   this->KochanekContinuity = 0;
+
+  this->PolynomialOrder = 3;
 }
 
 vtkMRMLMarkupsToModelNode::~vtkMRMLMarkupsToModelNode()
@@ -86,12 +89,14 @@ void vtkMRMLMarkupsToModelNode::WriteXML( ostream& of, int nIndent )
   of << indent << " ButterflySubdivision =\"" << this->ButterflySubdivision << "\"";
   of << indent << " DelaunayAlpha =\"" << this->DelaunayAlpha << "\"";
   of << indent << " InterpolationType=\"" << this->InterpolationType << "\"";
+  of << indent << " InterpolationType=\"" << this->PointParameterType << "\"";
   of << indent << " TubeRadius=\"" << this->TubeRadius << "\"";
   of << indent << " TubeResolutionAround=\"" << this->TubeNumberOfSides << "\"";
   of << indent << " TubeResolutionLength=\"" << this->TubeSamplingFrequency << "\"";
   of << indent << " KochanekBias=\"" << this->KochanekBias << "\"";
   of << indent << " KochanekContinuity=\"" << this->KochanekContinuity << "\"";
   of << indent << " KochanekTension=\"" << this->KochanekTension << "\"";
+  of << indent << " PolynomialOrder=\"" << this->PolynomialOrder << "\"";
 
 }
 
@@ -159,6 +164,19 @@ void vtkMRMLMarkupsToModelNode::ReadXMLAttributes( const char** atts )
       }
       SetInterpolationType(interpolationType);
     }
+    else if ( ! strcmp( attName, "PointParameterType" ) )
+    {
+      int pointParameterType = 0;
+      std::stringstream nameString;
+      nameString << attValue;
+      nameString >> pointParameterType;
+      if (pointParameterType < 0 || pointParameterType >= PointParameterType_Last)
+      {
+        vtkWarningMacro("Point parameter type " << pointParameterType << " is invalid. Using 0 (" << GetPointParameterTypeAsString(pointParameterType) << ")");
+        pointParameterType = 0;
+      }
+      SetPointParameterType(pointParameterType);
+    }
     else if ( ! strcmp( attName, "TubeRadius" ) )
     {
       double tubeRadius = 0.0;
@@ -196,7 +214,7 @@ void vtkMRMLMarkupsToModelNode::ReadXMLAttributes( const char** atts )
       }
       else if (kochanekBias > 1.0)
       {
-        vtkWarningMacro("Kochanek Bias " << kochanekBias << " is too small. Setting to 1.0.)");
+        vtkWarningMacro("Kochanek Bias " << kochanekBias << " is too large. Setting to 1.0.)");
         kochanekBias = 1.0;
       }
       SetKochanekBias(kochanekBias);
@@ -214,7 +232,7 @@ void vtkMRMLMarkupsToModelNode::ReadXMLAttributes( const char** atts )
       }
       else if (kochanekContinuity > 1.0)
       {
-        vtkWarningMacro("Kochanek Continuity " << kochanekContinuity << " is too small. Setting to 1.0.)");
+        vtkWarningMacro("Kochanek Continuity " << kochanekContinuity << " is too large. Setting to 1.0.)");
         kochanekContinuity = 1.0;
       }
       SetKochanekContinuity(kochanekContinuity);
@@ -232,10 +250,23 @@ void vtkMRMLMarkupsToModelNode::ReadXMLAttributes( const char** atts )
       }
       else if (kochanekTension > 1.0)
       {
-        vtkWarningMacro("Kochanek Tension " << kochanekTension << " is too small. Setting to 1.0.)");
+        vtkWarningMacro("Kochanek Tension " << kochanekTension << " is too large. Setting to 1.0.)");
         kochanekTension = 1.0;
       }
       SetKochanekTension(kochanekTension);
+    }
+    else if ( ! strcmp( attName, "PolynomialOrder" ) )
+    {
+      double polynomialOrder = 0.0;
+      std::stringstream nameString;
+      nameString << attValue;
+      nameString >> polynomialOrder;
+      if (polynomialOrder < 1.0)
+      {
+        vtkWarningMacro("Polynomial Order " << polynomialOrder << " is too small. Setting to 1.)");
+        polynomialOrder = 1.0;
+      }
+      SetPolynomialOrder(polynomialOrder);
     }
   }
 
@@ -329,8 +360,20 @@ const char* vtkMRMLMarkupsToModelNode::GetInterpolationTypeAsString( int id )
   {
   case Linear: return "linear";
   case CardinalSpline: return "cardinalSpline";
-  case HermiteSpline: return "hermiteSpline";
   case KochanekSpline: return "kochanekSpline";
+  case Polynomial: return "polynomial";
+  default:
+    // invalid id
+    return "";
+  }
+}
+
+const char* vtkMRMLMarkupsToModelNode::GetPointParameterTypeAsString( int id )
+{
+  switch ( id )
+  {
+  case RawIndices: return "rawIndices";
+  case MinimumSpanningTree: return "minimumSpanningTree";
   default:
     // invalid id
     return "";
@@ -374,3 +417,23 @@ int vtkMRMLMarkupsToModelNode::GetInterpolationTypeFromString( const char* name 
   // unknown name
   return -1;
 }
+
+int vtkMRMLMarkupsToModelNode::GetPointParameterTypeFromString( const char* name )
+{
+  if ( name == NULL )
+  {
+    // invalid name
+    return -1;
+  }
+  for ( int i = 0; i < PointParameterType_Last; i++ )
+  {
+    if ( strcmp( name, GetPointParameterTypeAsString( i ) ) == 0 )
+    {
+      // found a matching name
+      return i;
+    }
+  }
+  // unknown name
+  return -1;
+}
+
