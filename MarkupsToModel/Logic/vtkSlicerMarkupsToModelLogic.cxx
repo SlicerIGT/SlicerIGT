@@ -35,16 +35,13 @@
 #include <vtkCollection.h>
 #include <vtkCollectionIterator.h>
 #include <vtkCubeSource.h>
-#include <vtkDoubleArray.h> // TODO: Evaluate whether needed
+#include <vtkDoubleArray.h>
 #include <vtkDataSetSurfaceFilter.h>
 #include <vtkDelaunay3D.h>
 #include <vtkGlyph3D.h>
-#include <vtkImageData.h> // TODO: Evaluate whether needed
-#include <vtkInformation.h> // TODO: Evaluate whether needed
 #include <vtkIntArray.h>
 #include <vtkKochanekSpline.h>
 #include <vtkMath.h>
-#include <vtkMutableUndirectedGraph.h> // TODO: Evaluate whether needed
 #include <vtkNew.h>
 #include <vtkOBBTree.h>
 #include <vtkObjectFactory.h>
@@ -58,7 +55,10 @@
 // STD includes
 #include <cassert>
 #include <cmath>
-#include <vector> // TODO: Evaluate whether needed
+#include <vector>
+#include <set>
+
+#define LINE_MIN_NUMBER_POINTS 2
 
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSlicerMarkupsToModelLogic);
@@ -458,14 +458,25 @@ void vtkSlicerMarkupsToModelLogic::UpdateOutputLinearModel(vtkMRMLMarkupsToModel
 {
   vtkSmartPointer< vtkAppendPolyData> append = vtkSmartPointer< vtkAppendPolyData>::New();
 
-  vtkPoints * points;
+  vtkPoints* points = markupsPointsPolyData->GetPoints();
+  if (points == NULL)
+  {
+    vtkErrorMacro("Markups contains a vtkPoints object that is null. No model generated.");
+    return;
+  }
 
-  points = markupsPointsPolyData->GetPoints();
+  int numPoints = points->GetNumberOfPoints();
+  // redundant error checking, to be safe
+  if (numPoints < LINE_MIN_NUMBER_POINTS)
+  {
+    vtkErrorMacro("Not enough points to create an output linear model. Need at least 2, " << numPoints << " are provided. No output created.");
+    return;
+  }
 
   double point0 [3] = {0, 0, 0};
   double point1 [3]= {0, 0, 0};
 
-  for( int i =0; i<points->GetNumberOfPoints()-1; i++)
+  for( int i =0; i<numPoints-1; i++)
   {
     points->GetPoint(i, point0);
     points->GetPoint(i+1, point1);
@@ -510,6 +521,29 @@ void vtkSlicerMarkupsToModelLogic::UpdateOutputLinearModel(vtkMRMLMarkupsToModel
 //------------------------------------------------------------------------------
 void vtkSlicerMarkupsToModelLogic::UpdateOutputHermiteSplineModel(vtkMRMLMarkupsToModelNode* markupsToModelModuleNode, vtkPolyData * markupsPointsPolyData, vtkPolyData* outputPolyData)
 {
+  vtkPoints* points = markupsPointsPolyData->GetPoints();
+  if (points == NULL)
+  {
+    vtkErrorMacro("Markups contains a vtkPoints object that is null. No model generated.");
+    return;
+  }
+
+  int numPoints = points->GetNumberOfPoints();
+  // redundant error checking, to be safe
+  if (numPoints < LINE_MIN_NUMBER_POINTS)
+  {
+    vtkErrorMacro("Not enough points to create an output spline model. Need at least " << LINE_MIN_NUMBER_POINTS << " points but " << numPoints << " are provided. No output created.");
+    return;
+  }
+  
+  // special case, fit a line. Spline fitting will not work with fewer than 3 points
+  if (numPoints == LINE_MIN_NUMBER_POINTS)
+  {
+    vtkWarningMacro("Only " << LINE_MIN_NUMBER_POINTS << " provided. Fitting line.");
+    UpdateOutputLinearModel(markupsToModelModuleNode, markupsPointsPolyData, outputPolyData);
+    return;
+  }
+
   int totalNumberOfPoints = markupsToModelModuleNode->GetTubeSamplingFrequency()*markupsPointsPolyData->GetNumberOfPoints();
   vtkSmartPointer< vtkSplineFilter > splineFilter = vtkSmartPointer< vtkSplineFilter >::New();
 #if (VTK_MAJOR_VERSION <= 5)
@@ -546,7 +580,19 @@ void vtkSlicerMarkupsToModelLogic::UpdateOutputHermiteSplineModel(vtkMRMLMarkups
 void vtkSlicerMarkupsToModelLogic::ComputePointParametersRawIndices(vtkPolyData * markupsPointsPolyData, vtkDoubleArray* markupsPointsParameters)
 {
   vtkPoints* points = markupsPointsPolyData->GetPoints();
+  if (points == NULL)
+  {
+    vtkErrorMacro("Markups contains a vtkPoints object that is null.");
+    return;
+  }
+
   int numPoints = points->GetNumberOfPoints();
+  // redundant error checking, to be safe
+  if (numPoints < LINE_MIN_NUMBER_POINTS)
+  {
+    vtkErrorMacro("Not enough points to compute polynomial parameters. Need at least " << LINE_MIN_NUMBER_POINTS << " points but " << numPoints << " are provided.");
+    return;
+  }
 
   if (markupsPointsParameters->GetNumberOfTuples())
   {
@@ -567,7 +613,19 @@ void vtkSlicerMarkupsToModelLogic::ComputePointParametersRawIndices(vtkPolyData 
 void vtkSlicerMarkupsToModelLogic::ComputePointParametersMinimumSpanningTree(vtkPolyData * markupsPointsPolyData, vtkDoubleArray* markupsPointsParameters)
 {
   vtkPoints* points = markupsPointsPolyData->GetPoints();
+  if (points == NULL)
+  {
+    vtkErrorMacro("Markups contains a vtkPoints object that is null.");
+    return;
+  }
+
   int numPoints = points->GetNumberOfPoints();
+  // redundant error checking, to be safe
+  if (numPoints < LINE_MIN_NUMBER_POINTS)
+  {
+    vtkErrorMacro("Not enough points to compute polynomial parameters. Need at least " << LINE_MIN_NUMBER_POINTS << " points but " << numPoints << " are provided.");
+    return;
+  }
 
   // vtk boost algorithms cannot be used because they are not built with 3D Slicer
   // so this is a custom implementation of:
@@ -679,10 +737,11 @@ void vtkSlicerMarkupsToModelLogic::ComputePointParametersMinimumSpanningTree(vtk
   for (int i = 0; i < pathIndices.size() - 1; i++)
     sumOfDistances += graph[i][i+1];
 
+  // check this to prevent a division by zero (in case all points are duplicates)
   if (sumOfDistances == 0)
   {
-    vtkErrorMacro("Minimum spanning tree path has distance zero. Check inputs!");
-    sumOfDistances += 1; // prevent a division by zero
+    vtkErrorMacro("Minimum spanning tree path has distance zero. No parameters will be assigned. Check inputs!");
+    return;
   }
 
   // find the parameters along the trunk path of the tree
@@ -739,10 +798,48 @@ void vtkSlicerMarkupsToModelLogic::ComputePointParametersMinimumSpanningTree(vtk
 void vtkSlicerMarkupsToModelLogic::UpdateOutputPolynomialFitModel(vtkMRMLMarkupsToModelNode* markupsToModelModuleNode, vtkPolyData * markupsPointsPolyData, vtkDoubleArray* markupsPointsParameters, vtkPolyData* outputPolyData)
 {
   vtkPoints* points = markupsPointsPolyData->GetPoints();
-  int numPoints = points->GetNumberOfPoints();
+  if (points == NULL)
+  {
+    vtkErrorMacro("Markups contains a vtkPoints object that is null. No model generated.");
+    return;
+  }
 
-  const int numDimensions = 3; // this should never be changed from 3
+  int numPoints = points->GetNumberOfPoints();
+  // redundant error checking, to be safe
+  if (numPoints < LINE_MIN_NUMBER_POINTS)
+  {
+    vtkErrorMacro("Not enough points to compute a polynomial fit. Need at least " << LINE_MIN_NUMBER_POINTS << " points but " << numPoints << " are provided. No output created.");
+    return;
+  }
+
+  // special case, fit a line. The polynomial solver does not work with only 2 points.
+  if (numPoints == LINE_MIN_NUMBER_POINTS)
+  {
+    vtkWarningMacro("Only " << LINE_MIN_NUMBER_POINTS << " provided. Fitting line.");
+    UpdateOutputLinearModel(markupsToModelModuleNode, markupsPointsPolyData, outputPolyData);
+    return;
+  }
+
+  // check size of point parameters array for consistency
+  if ( markupsPointsParameters->GetNumberOfTuples() != numPoints )
+  {
+    vtkErrorMacro("Incorrect number of point parameters provided. Should have " << numPoints << " parameters (one for each point), but " << markupsPointsParameters->GetNumberOfTuples() << " are provided. No output created.");
+    return;
+  }
+  
   int numPolynomialCoefficients = markupsToModelModuleNode->GetPolynomialOrder() + 1;
+  // special case, if polynomial is underdetermined, change the order of the polynomial
+  std::set<double> uniquePointParameters;
+  for (int i = 0; i < numPoints; i++)
+    uniquePointParameters.insert(markupsPointsParameters->GetValue(i));
+  int numUniquePointParameters = uniquePointParameters.size();
+  if (numUniquePointParameters < numPolynomialCoefficients)
+  {
+    vtkWarningMacro("Not enough points to compute a polynomial fit. " << "For an order " << markupsToModelModuleNode->GetPolynomialOrder() << " polynomial, at least " << numPolynomialCoefficients << " points with unique parameters are needed. "
+                    << numUniquePointParameters << " points with unique parameters were found. "
+                    << "An order " << (numUniquePointParameters - 1) << " polynomial will be created instead.");
+    numPolynomialCoefficients = numUniquePointParameters;
+  }
 
   // independent values (parameter along the curve)
   int numIndependentValues = numPoints * numPolynomialCoefficients;
@@ -765,6 +862,7 @@ void vtkSlicerMarkupsToModelLogic::UpdateOutputPolynomialFitModel(vtkMRMLMarkups
   double** independentMatrixPtr = &(independentMatrix[0]);
 
   // dependent values
+  const int numDimensions = 3; // this should never be changed from 3
   int numDependentValues = numPoints * numDimensions;
   std::vector<double> dependentValues(numDependentValues); // dependent values
   dependentValues.assign(numDependentValues, 0.0);
@@ -851,6 +949,12 @@ void vtkSlicerMarkupsToModelLogic::UpdateOutputCurveModel(vtkMRMLMarkupsToModelN
 
   vtkMRMLMarkupsFiducialNode* markupsNode = markupsToModelModuleNode->GetMarkupsNode( );
   if( markupsNode == NULL )
+  {
+    return;
+  }
+
+  int numberOfMarkups = markupsNode->GetNumberOfFiducials();
+  if (numberOfMarkups < LINE_MIN_NUMBER_POINTS) // check this here, but also perform redundant checks elsewhere
   {
     return;
   }
