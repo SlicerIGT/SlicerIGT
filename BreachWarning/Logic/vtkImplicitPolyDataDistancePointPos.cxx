@@ -77,10 +77,10 @@ void vtkImplicitPolyDataDistancePointPos::SetInput(vtkPolyData* input)
 }
 
 //-----------------------------------------------------------------------------
-unsigned long vtkImplicitPolyDataDistancePointPos::GetMTime()
+vtkMTimeType  vtkImplicitPolyDataDistancePointPos::GetMTime()
 {
-  unsigned long mTime=this->vtkImplicitFunction::GetMTime();
-  unsigned long InputMTime;
+  vtkMTimeType  mTime = this->vtkImplicitFunction::GetMTime();
+  vtkMTimeType  InputMTime;
 
   if ( this->Input != NULL )
     {
