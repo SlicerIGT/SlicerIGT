@@ -310,7 +310,9 @@ void vtkSlicerMarkupsToModelLogic::UpdateOutputCloseSurfaceModel(vtkMRMLMarkupsT
     modelCellArray->InsertCellPoint(i);
   }
   if (numberOfMarkups > 0)
+  {
     vtkMath::MultiplyScalar(meanPoint, 1.0 / numberOfMarkups);
+  }
 
   double corner[3] = {0.0, 0.0, 0.0};
   double normal[3] = {0.0, 0.0, 0.0};
@@ -667,7 +669,9 @@ void vtkSlicerMarkupsToModelLogic::ComputePointParametersMinimumSpanningTree(vtk
   // use the 1D vector as a 2D vector
   std::vector<double*> graph(numPoints);
   for (int v = 0; v < numPoints; v++)
+  {
     graph[v] = &(distances[v * numPoints]);
+  }
 
   // implementation of Prim's algorithm heavily based on:
   // http://www.geeksforgeeks.org/greedy-algorithms-set-5-prims-minimum-spanning-tree-mst-2/
@@ -710,6 +714,7 @@ void vtkSlicerMarkupsToModelLogic::ComputePointParametersMinimumSpanningTree(vtk
     // the picked vertex. Consider only those vertices which are not yet
     // included in MST
     for (int v = 0; v < numPoints; v++)
+    {
  
         // graph[u][v] is non zero only for adjacent vertices of m
         // mstSet[v] is false for vertices not yet included in MST
@@ -721,6 +726,7 @@ void vtkSlicerMarkupsToModelLogic::ComputePointParametersMinimumSpanningTree(vtk
         parent[v] = nextPointIndex;
         key[v] = graph[nextPointIndex][v];
       }
+    }
   }
  
   // determine the "trunk" path of the tree, from first index to last index
@@ -735,7 +741,9 @@ void vtkSlicerMarkupsToModelLogic::ComputePointParametersMinimumSpanningTree(vtk
   // find the sum of distances along the trunk path of the tree
   double sumOfDistances = 0.0;
   for (int i = 0; i < pathIndices.size() - 1; i++)
+  {
     sumOfDistances += graph[i][i+1];
+  }
 
   // check this to prevent a division by zero (in case all points are duplicates)
   if (sumOfDistances == 0)
@@ -755,7 +763,7 @@ void vtkSlicerMarkupsToModelLogic::ComputePointParametersMinimumSpanningTree(vtk
   pathParameters.push_back(currentDistance/sumOfDistances); // this should be 1.0
 
   // finally assign polynomial parameters to each point, and store in the output array
-  if (markupsPointsParameters->GetNumberOfTuples())
+  if (markupsPointsParameters->GetNumberOfTuples() > 0)
   {
     // this should never happen, but in case it does, output a warning
     vtkWarningMacro("markupsPointsParameters already has contents. Clearing.");
@@ -1094,7 +1102,9 @@ std::string vtkSlicerMarkupsToModelLogic::GetMarkupsNodeName(vtkMRMLMarkupsToMod
 {
   vtkMRMLMarkupsNode* markupsNode = mrmlNode->GetMarkupsNode();
   if ( markupsNode == NULL )
+  {
     return std::string( mrmlNode->GetID() ).append( "Markups" );
+  }
 
   return std::string( markupsNode->GetName() );
 }
@@ -1104,7 +1114,9 @@ std::string vtkSlicerMarkupsToModelLogic::GetModelNodeName(vtkMRMLMarkupsToModel
 {
   vtkMRMLModelNode* modelNode = mrmlNode->GetModelNode();
   if ( modelNode == NULL )
+  {
     return std::string( mrmlNode->GetID() ).append( "Model" );
+  }
 
   return std::string( modelNode->GetName() );
 }
@@ -1114,11 +1126,15 @@ std::string vtkSlicerMarkupsToModelLogic::GetMarkupsDisplayNodeName(vtkMRMLMarku
 {
   vtkMRMLMarkupsNode* markupsNode = mrmlNode->GetMarkupsNode();
   if ( markupsNode == NULL )
+  {
     return std::string( mrmlNode->GetID() ).append( "MarkupsDisplay" );
+  }
 
   vtkMRMLModelDisplayNode* markupsDisplayNode = vtkMRMLModelDisplayNode::SafeDownCast( markupsNode->GetDisplayNode() );
   if ( markupsDisplayNode == NULL )
+  {
     return std::string( mrmlNode->GetID() ).append( "MarkupsDisplay" );
+  }
 
   return std::string( markupsDisplayNode->GetName() );
 }
@@ -1128,11 +1144,15 @@ std::string vtkSlicerMarkupsToModelLogic::GetModelDisplayNodeName(vtkMRMLMarkups
 {
   vtkMRMLModelNode* modelNode = mrmlNode->GetModelNode();
   if ( modelNode == NULL )
+  {
     return std::string( mrmlNode->GetID() ).append( "ModelDisplay" );
+  }
 
   vtkMRMLModelDisplayNode* modelDisplayNode = vtkMRMLModelDisplayNode::SafeDownCast( modelNode->GetDisplayNode() );
   if ( modelDisplayNode == NULL )
+  {
     return std::string( mrmlNode->GetID() ).append( "ModelDisplay" );
+  }
 
   return std::string( modelDisplayNode->GetName() );
 }
