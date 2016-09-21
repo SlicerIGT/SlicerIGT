@@ -9,8 +9,18 @@ class Guidelet(object):
 
   @staticmethod
   def showToolbars(show):
+
+    # Show/hide all existing toolbars
     for toolbar in slicer.util.mainWindow().findChildren('QToolBar'):
       toolbar.setVisible(show)
+
+    # Prevent sequence browser toolbar showing up automatically
+    # when a sequence is loaded.
+    # (put in try block because Sequence Browser module is not always installed)
+    try:
+      slicer.modules.sequencebrowser.autoShowToolBar = show
+    except:
+      pass
 
   def showModulePanel(self, show):
     modulePanelDockWidget = slicer.util.mainWindow().findChildren('QDockWidget','PanelDockWidget')[0]
