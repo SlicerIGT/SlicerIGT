@@ -37,6 +37,10 @@ class Guidelet(object):
         self.sliceletDockWidget.setFeatures(0)
 
   @staticmethod
+  def showPythonConsole(show):
+    slicer.util.mainWindow().pythonConsole().parent().setVisible(show)
+        
+  @staticmethod
   def showMenuBar(show):
     for menubar in slicer.util.mainWindow().findChildren('QMenuBar'):
       menubar.setVisible(show)
@@ -364,6 +368,7 @@ class Guidelet(object):
     self.showToolbars(False)
     self.showModulePanel(False)
     self.showMenuBar(False)
+    self.showPythonConsole(False)
 
     self.sliceletDockWidget.show()
 
