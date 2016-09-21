@@ -89,7 +89,7 @@ void vtkMRMLMarkupsToModelNode::WriteXML( ostream& of, int nIndent )
   of << indent << " ButterflySubdivision =\"" << this->ButterflySubdivision << "\"";
   of << indent << " DelaunayAlpha =\"" << this->DelaunayAlpha << "\"";
   of << indent << " InterpolationType=\"" << this->InterpolationType << "\"";
-  of << indent << " InterpolationType=\"" << this->PointParameterType << "\"";
+  of << indent << " PointParameterType=\"" << this->PointParameterType << "\"";
   of << indent << " TubeRadius=\"" << this->TubeRadius << "\"";
   of << indent << " TubeResolutionAround=\"" << this->TubeNumberOfSides << "\"";
   of << indent << " TubeResolutionLength=\"" << this->TubeSamplingFrequency << "\"";
