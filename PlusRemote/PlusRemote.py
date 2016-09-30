@@ -935,7 +935,7 @@ class PlusRemoteWidget(ScriptedLoadableModuleWidget):
     self.logic.stopRecording(self.linkInputSelector.currentNode().GetID(), self.captureIDSelector.currentText, self.onScoutVolumeRecorded)
 
   def onStartReconstruction(self):
-    self.logic.startVolumeReconstuction(self.linkInputSelector.currentNode().GetID(), self.volumeReconstructorIDSelector.currentText, self.outputSpacingValue, self.outputOriginValue, self.outputExtentValue, self.printCommandResponse, self.getLiveReconstructionOutputFilename(), self.liveOutputVolumeDeviceBox.text)
+    self.logic.startVolumeReconstruction(self.linkInputSelector.currentNode().GetID(), self.volumeReconstructorIDSelector.currentText, self.outputSpacingValue, self.outputOriginValue, self.outputExtentValue, self.printCommandResponse, self.getLiveReconstructionOutputFilename(), self.liveOutputVolumeDeviceBox.text)
     # Set up timer for requesting snapshot
     snapshotIntervalSec = (self.snapshotIntervalSecSpinBox.value)
     if snapshotIntervalSec > 0:
@@ -1239,26 +1239,35 @@ class PlusRemoteWidget(ScriptedLoadableModuleWidget):
     reconstructedNode = slicer.mrmlScene.GetNodesByName(self.scoutVolumeNodeName)
     reconstructedVolumeNode = slicer.vtkMRMLScalarVolumeNode.SafeDownCast(reconstructedNode.GetItemAsObject(0))
 
-    roiCenterInit = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-    roiRadiusInit = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-    bounds = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-
     #ROI is initialized to fit scout scan reconstructed volume
     if reconstructedVolumeNode:
-      reconstructedVolumeNode.GetRASBounds(bounds)
-      for i in range(0,5,2):
-        roiCenterInit[i] = (bounds[i+1] + bounds[i])/2
-        roiRadiusInit[i] = (bounds[i+1] - bounds[i])/2
-      if self.roiNode:
-        self.roiNode.SetXYZ(roiCenterInit[0], roiCenterInit[2], roiCenterInit[4])
-        self.roiNode.SetRadiusXYZ(roiRadiusInit[0], roiRadiusInit[2], roiRadiusInit[4])
-      else:
+      # Get volume bounds
+      volumeExtent = reconstructedVolumeNode.GetImageData().GetExtent()
+      ijkToRas = vtk.vtkMatrix4x4()
+      reconstructedVolumeNode.GetIJKToRASMatrix(ijkToRas)
+      ras = ijkToRas.MultiplyPoint([volumeExtent[0],volumeExtent[2],volumeExtent[4],1])
+      volumeBounds = [ras[0], ras[0], ras[1], ras[1], ras[2], ras[2]]
+      for iCoord in [volumeExtent[0], volumeExtent[1]]:
+        for jCoord in [volumeExtent[2], volumeExtent[3]]:
+          for kCoord in [volumeExtent[4], volumeExtent[5]]:
+            ras = ijkToRas.MultiplyPoint([iCoord, jCoord, kCoord, 1])
+            for i in range(0,3):
+              volumeBounds[i*2] = min(volumeBounds[i*2], ras[i])
+              volumeBounds[i*2+1] = max(volumeBounds[i*2+1], ras[i])
+      # Set ROI position and size
+      roiCenter = [0.0, 0.0, 0.0]
+      roiRadius = [0.0, 0.0, 0.0]
+      for i in range(0,3):
+        roiCenter[i] = (volumeBounds[i*2+1] + volumeBounds[i*2])/2
+        roiRadius[i] = (volumeBounds[i*2+1] - volumeBounds[i*2])/2
+      if not self.roiNode:
         self.roiNode = slicer.vtkMRMLAnnotationROINode()
-        self.roiNode.SetXYZ(roiCenterInit[0], roiCenterInit[2], roiCenterInit[4])
-        self.roiNode.SetRadiusXYZ(roiRadiusInit[0], roiRadiusInit[2], roiRadiusInit[4])
         self.roiNode.Initialize(slicer.mrmlScene)
         self.roiNode.SetDisplayVisibility(0)
         self.roiNode.SetInteractiveMode(1)
+      self.roiNode.SetXYZ(roiCenter[0], roiCenter[1], roiCenter[2])
+      self.roiNode.SetRadiusXYZ(roiRadius[0], roiRadius[1], roiRadius[2])
+      self.roiNode.SetAndObserveTransformNodeID(reconstructedVolumeNode.GetTransformNodeID())
     self.updateVolumeExtentFromROI()
 
   def updateVolumeExtentFromROI(self):
@@ -1277,9 +1286,9 @@ class PlusRemoteWidget(ScriptedLoadableModuleWidget):
     self.outputExtentValue = [0, int((2*roiRadius[0])/self.outputSpacingLiveReconstructionBox.value), 0, int((2*roiRadius[1])/self.outputSpacingLiveReconstructionBox.value), 0, int((2*roiRadius[2])/self.outputSpacingLiveReconstructionBox.value)]
     self.outputSpacingValue = [self.outputSpacingLiveReconstructionBox.value, self.outputSpacingLiveReconstructionBox.value, self.outputSpacingLiveReconstructionBox.value]
 
-    self.outputExtentROIBoxDirection1.value = self.outputExtentValue[1]
-    self.outputExtentROIBoxDirection2.value = self.outputExtentValue[3]
-    self.outputExtentROIBoxDirection3.value = self.outputExtentValue[5]
+    self.outputExtentROIBoxDirection1.value = self.outputExtentValue[1]-self.outputExtentValue[0]+1
+    self.outputExtentROIBoxDirection2.value = self.outputExtentValue[3]-self.outputExtentValue[2]+1
+    self.outputExtentROIBoxDirection3.value = self.outputExtentValue[5]-self.outputExtentValue[4]+1
 
 #   def drawLiveSurfaceModel(self):
 #     if self.drawModelBox.isChecked():
@@ -1421,7 +1430,7 @@ class PlusRemoteLogic(ScriptedLoadableModuleLogic):
   def getVolumeReconstructorDeviceIds(self, connectorNodeId, responseCallbackMethod):
     self.executeCommand(self.cmdGetReconstructorDeviceIds, connectorNodeId, responseCallbackMethod)
 
-  def startVolumeReconstuction(self, connectorNodeId, volumeReconstructorDeviceId, outputSpacing, outputOrigin, outputExtent, responseCallbackMethod, liveOutputVolumeFilename, liveOutputVolumeDevice):
+  def startVolumeReconstruction(self, connectorNodeId, volumeReconstructorDeviceId, outputSpacing, outputOrigin, outputExtent, responseCallbackMethod, liveOutputVolumeFilename, liveOutputVolumeDevice):
     self.cmdStartVolumeReconstruction.SetCommandAttribute('VolumeReconstructorDeviceId', volumeReconstructorDeviceId)
     self.cmdStartVolumeReconstruction.SetCommandAttribute('OutputSpacing', '%f %f %f' % tuple(outputSpacing))
     self.cmdStartVolumeReconstruction.SetCommandAttribute('OutputOrigin', '%f %f %f' % tuple(outputOrigin))
