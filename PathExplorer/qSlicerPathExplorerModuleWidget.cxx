@@ -133,14 +133,6 @@ void qSlicerPathExplorerModuleWidget::onMRMLSceneChanged(vtkMRMLScene* newScene)
     return;
     }
 
-  if (d->EntryListSelector && d->TargetListSelector &&
-      d->TrajectoryListSelector)
-    {
-    d->EntryListSelector->addNode();
-    d->TargetListSelector->addNode();
-    d->TrajectoryListSelector->addNode();
-    }
-
   if (d->VisualizationFrame && d->ReslicingLayout)
     {
     // Clear reslicing widget layout
