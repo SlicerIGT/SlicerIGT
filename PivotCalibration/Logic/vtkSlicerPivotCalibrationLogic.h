@@ -42,7 +42,8 @@
 /// \ingroup Slicer_QtModules_ExtensionTemplate
 /// Module for calibrating a tracked pointer/stylus device.
 /// Includes pivot calibration for determining tip position and spin calibration for determining orientation.
-/// Shaft direction is determined from both spin calibration and pivot calibration.
+/// Shaft direction (i.e. flipping) is automatically determined from both spin calibration and pivot calibration (otherwise the flipping is arbitrary).
+/// Shaft direction (i.e. flipping) assumes that the tool marker/sensor is on the same side as the tool base.
 /// Pivot and spin calibrations may be performed in arbitrary order.
 class VTK_SLICER_PIVOTCALIBRATION_MODULE_LOGIC_EXPORT vtkSlicerPivotCalibrationLogic :
   public vtkSlicerModuleLogic
@@ -66,12 +67,15 @@ public:
   void AddToolToReferenceMatrix( vtkMatrix4x4* );
 
   // Computes calibration results.
+  // By default, automatically flips the shaft direction to be consistent with the needle orientation protocol.
   // Returns with false on failure
-  bool ComputePivotCalibration();
+  bool ComputePivotCalibration( bool autoOrient = true );
 
   // Computes calibration results.
+  // By default, automatically flips the shaft direction to be consistent with the needle orientation protocol.
+  // Optionally, snaps the rotation to be a 90 degree rotation about one of the coordinate axes.
   // Returns with false on failure
-  bool ComputeSpinCalibration( bool snapRotation = false ); // Note: The neede orientation protocol assumes that the shaft of the tool lies along the negative z-axis
+  bool ComputeSpinCalibration( bool snapRotation = false, bool autoOrient = true ); // Note: The neede orientation protocol assumes that the shaft of the tool lies along the negative z-axis
 
   // Flip the direction of the shaft axis
   void FlipShaftDirection();
