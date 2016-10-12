@@ -312,7 +312,10 @@ bool vtkSlicerPivotCalibrationLogic::ComputeSpinCalibration( bool snapRotation /
   }
 
   //set the RMSE
-  this->SpinRMSE = ( A * shaftAxis_ToolTip ).rms();
+  this->SpinRMSE = sqrt( eigenvalues( 0 ) / this->ToolToReferenceMatrices.size() );
+  // Note: This error is the RMS distance from the ideal axis of rotation to the axis of rotation for each instantaneous rotation
+  // This RMS distance can be computed to an angle in the following way: angle = arccos( 1 - SpinRMSE^2 / 2 )
+  // Here we elect to return the RMS distance because this is the quantity that was actually minimized in the calculation
 
 
   // If the secondary axis 1 is parallel to the shaft axis in the tooltip frame, then use secondary axis 2
