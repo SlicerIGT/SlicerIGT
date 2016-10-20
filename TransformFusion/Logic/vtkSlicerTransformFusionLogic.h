@@ -43,6 +43,11 @@ class vtkMRMLLinearTransformNode;
 // STD includes
 #include <cstdlib>
 
+// vtk includes
+#include "vtkGeneralTransform.h"
+#include "vtkTransform.h"
+#include "vtkSmartPointer.h"
+
 #include "vtkSlicerTransformFusionModuleLogicExport.h"
 
 
@@ -53,34 +58,32 @@ class VTK_SLICER_TRANSFORMFUSION_MODULE_LOGIC_EXPORT vtkSlicerTransformFusionLog
 public:
   
   static vtkSlicerTransformFusionLogic *New();
-  vtkTypeMacro(vtkSlicerTransformFusionLogic,vtkSlicerModuleLogic);
-  void PrintSelf(ostream& os, vtkIndent indent);
-
-  enum techniqueTypes
-  {
-    MODE_QUATERNION_AVERAGE = 0,
-  };
+  vtkTypeMacro( vtkSlicerTransformFusionLogic, vtkSlicerModuleLogic );
+  void PrintSelf( ostream& os, vtkIndent indent );
   
 public:
-  void fuseInputTransforms(int techniqueType);
-  void QuaternionAverageFusion();
-
-  void SetAndObserveTransformFusionNode(vtkMRMLTransformFusionNode *node);
-  vtkGetObjectMacro(TransformFusionNode, vtkMRMLTransformFusionNode);
+  void Fuse( vtkMRMLTransformFusionNode* );
+  void FuseQuaternionAverage( vtkMRMLTransformFusionNode* );
+  void FuseConstrainShaftRotation( vtkMRMLTransformFusionNode* );
+  bool ConditionsForFusion( vtkMRMLTransformFusionNode*, bool verbose = false );
   
 protected:
   vtkSlicerTransformFusionLogic();
   ~vtkSlicerTransformFusionLogic();
 
   virtual void RegisterNodes();
+  virtual void OnMRMLSceneNodeAdded( vtkMRMLNode* node );
+  virtual void OnMRMLSceneNodeRemoved( vtkMRMLNode* node );
+  void ProcessMRMLNodesEvents( vtkObject* caller, unsigned long event, void* callData );;
   
 private:
-  vtkSlicerTransformFusionLogic(const vtkSlicerTransformFusionLogic&);// Not implemented
-  void operator=(const vtkSlicerTransformFusionLogic&);// Not implemented
-
-protected:
-  /// Parameter set MRML node
-  vtkMRMLTransformFusionNode* TransformFusionNode;
+  vtkSlicerTransformFusionLogic( const vtkSlicerTransformFusionLogic& );// Not implemented
+  void operator=( const vtkSlicerTransformFusionLogic& );// Not implemented
+  
+  // these helper functions should only be used by fusion modes themselves, and are therefore private
+  void TransformVectorInputToResting ( vtkMRMLTransformFusionNode* pNode, const double input[ 3 ], double resting[ 3 ]);
+  vtkSmartPointer< vtkTransform > GetRestingToReferenceRotationTransform( vtkMRMLTransformFusionNode* pNode );
+  void GetInputToReferenceTranslation( vtkMRMLTransformFusionNode* pNode, double translation[ 3 ] );
 
 };
 

@@ -39,47 +39,59 @@ class Q_SLICER_QTMODULES_TRANSFORMFUSION_EXPORT qSlicerTransformFusionModuleWidg
 public:
 
   typedef qSlicerAbstractModuleWidget Superclass;
-  qSlicerTransformFusionModuleWidget(QWidget *parent=0);
+  qSlicerTransformFusionModuleWidget( QWidget *parent = 0 );
   virtual ~qSlicerTransformFusionModuleWidget();
 
   virtual void enter();
 
 public slots:
-  virtual void setMRMLScene(vtkMRMLScene*);
+  virtual void setMRMLScene( vtkMRMLScene* );
   void onSceneImportedEvent();
   void onLogicModified();
-  void setTransformFusionParametersNode(vtkMRMLNode*);
+  void setTransformFusionParametersNode( vtkMRMLNode* );
   void updateWidget();
   void updateButtons();
+  void updateInputFieldVisibility();
   void updateInputList();
+  void updateRateSpinBoxVisibility();
+
+  void blockAllSignals();
+  void unblockAllSignals();
 
 protected slots:
 
-  void onAddTransform();
-  void onRemoveTransform();
+  void onAddInputTransform();
+  void onRemoveInputTransform();
+  void onSingleInputTransformNodeSelected( vtkMRMLNode* node );
+  void onReferenceTransformNodeSelected( vtkMRMLNode* node );
+  void onRestingTransformNodeSelected( vtkMRMLNode* node );
+  void onOutputTransformNodeSelected( vtkMRMLNode* node );
 
-  void onOutputTransformNodeSelected(vtkMRMLNode* node);
+  void onFusionModeChanged( int );
+
+  void onActionUpdateManual();
+  void onActionUpdateAuto();
+  void onActionUpdateTimed();
+  void onUpdateButtonPressed();
+  void stopExistingUpdates();
+  void singleUpdate();
+  void handleEventAutoUpdate();
+  void handleEventTimedUpdate();
+
+  void setUpdatesPerSecond( double );
   
-  void onSingleUpdate();
-  void onStartAutoUpdate();
-  void onStopAutoUpdate();
-
-  void setUpdatesPerSecond(double);
-  
-
 protected:
-  QScopedPointer<qSlicerTransformFusionModuleWidgetPrivate> d_ptr;
+  QScopedPointer< qSlicerTransformFusionModuleWidgetPrivate > d_ptr;
   
+  virtual bool eventFilter(QObject * obj, QEvent *event);
   virtual void setup();
   void onEnter();
-
-  bool currentlyUpdating;
 
   QTimer* updateTimer;
 
 private:
-  Q_DECLARE_PRIVATE(qSlicerTransformFusionModuleWidget);
-  Q_DISABLE_COPY(qSlicerTransformFusionModuleWidget);
+  Q_DECLARE_PRIVATE( qSlicerTransformFusionModuleWidget );
+  Q_DISABLE_COPY( qSlicerTransformFusionModuleWidget );
 };
 
 #endif

@@ -81,7 +81,7 @@ QString qSlicerTransformFusionModule::acknowledgementText()const
 QStringList qSlicerTransformFusionModule::contributors()const
 {
   QStringList moduleContributors;
-  moduleContributors << QString("Franklin King (Queen's University), Tamas Ungi (Queen's University)");
+  moduleContributors << QString("Franklin King (Queen's University), Tamas Ungi (Queen's University), Thomas Vaughan (Queen's University)");
   // moduleContributors << QString("Richard Roe (Organization2)");
   // ...
   return moduleContributors;
