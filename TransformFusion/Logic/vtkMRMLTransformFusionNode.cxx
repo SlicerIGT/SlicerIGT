@@ -209,6 +209,12 @@ vtkMRMLLinearTransformNode* vtkMRMLTransformFusionNode::GetRestingTransformNode(
 //----------------------------------------------------------------------------
 void vtkMRMLTransformFusionNode::SetAndObserveRestingTransformNode(vtkMRMLLinearTransformNode* node)
 {
+  if ( node == GetRestingTransformNode() )
+  {
+    // if the node is the same, then no need to do anything
+    return;
+  }
+
   const char* nodeID = NULL;
   if ( node )
   {
@@ -227,6 +233,12 @@ vtkMRMLLinearTransformNode* vtkMRMLTransformFusionNode::GetReferenceTransformNod
 //----------------------------------------------------------------------------
 void vtkMRMLTransformFusionNode::SetAndObserveReferenceTransformNode( vtkMRMLLinearTransformNode* node )
 {
+  if ( node == GetReferenceTransformNode() )
+  {
+    // if the node is the same, then no need to do anything
+    return;
+  }
+
   const char* nodeID = NULL;
   if ( node )
   {
@@ -245,6 +257,12 @@ vtkMRMLLinearTransformNode* vtkMRMLTransformFusionNode::GetOutputTransformNode()
 //----------------------------------------------------------------------------
 void vtkMRMLTransformFusionNode::SetAndObserveOutputTransformNode( vtkMRMLLinearTransformNode* node )
 {
+  if ( node == GetOutputTransformNode() )
+  {
+    // if the node is the same, then no need to do anything
+    return;
+  }
+
   const char* nodeID = NULL;
   if ( node )
   {
@@ -263,6 +281,12 @@ vtkMRMLLinearTransformNode* vtkMRMLTransformFusionNode::GetSingleInputTransformN
 //----------------------------------------------------------------------------
 void vtkMRMLTransformFusionNode::SetAndObserveSingleInputTransformNode( vtkMRMLLinearTransformNode* node )
 {
+  if ( node == GetSingleInputTransformNode() )
+  {
+    // if the node is the same, then no need to do anything
+    return;
+  }
+
   // We want only one transform as input when this function is called.
   // Remove all existing input transforms before setting
   this->RemoveNodeReferenceIDs( ROLE_INPUT_TRANSFORM );
@@ -285,11 +309,22 @@ vtkMRMLLinearTransformNode* vtkMRMLTransformFusionNode::GetNthInputTransformNode
 //----------------------------------------------------------------------------
 void vtkMRMLTransformFusionNode::AddAndObserveInputTransformNode( vtkMRMLLinearTransformNode* node )
 {
-  const char* nodeID = NULL;
-  if ( node )
+  // adding null does nothing, so just return in this case
+  if ( node == NULL )
   {
-    nodeID = node->GetID();
+    return;
   }
+
+  // need to iterate over existing inputs, make sure we are not adding a duplicate
+  for ( int n = 0; n < GetNumberOfInputTransformNodes(); n++ )
+  {
+    if ( node == GetNthInputTransformNode( n ) )
+    {
+      return;
+    }
+  }
+
+  const char* nodeID = node->GetID();
   this->AddAndObserveNodeReferenceID( ROLE_INPUT_TRANSFORM, nodeID );
   this->InvokeCustomModifiedEvent( vtkMRMLTransformFusionNode::InputDataModifiedEvent );
 }
