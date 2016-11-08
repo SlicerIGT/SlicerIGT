@@ -546,7 +546,7 @@ void vtkSlicerMarkupsToModelLogic::UpdateOutputHermiteSplineModel(vtkMRMLMarkups
     return;
   }
 
-  int totalNumberOfPoints = markupsToModelModuleNode->GetTubeSamplingFrequency()*markupsPointsPolyData->GetNumberOfPoints();
+  int totalNumberOfPoints = markupsToModelModuleNode->GetTubeSamplePointsBetweenControlPoints()*markupsPointsPolyData->GetNumberOfPoints();
   vtkSmartPointer< vtkSplineFilter > splineFilter = vtkSmartPointer< vtkSplineFilter >::New();
 #if (VTK_MAJOR_VERSION <= 5)
   splineFilter->SetInput(markupsPointsPolyData);
@@ -932,7 +932,7 @@ void vtkSlicerMarkupsToModelLogic::UpdateOutputPolynomialFitModel(vtkMRMLMarkups
   // Use the values to generate points along the polynomial curve
   vtkSmartPointer<vtkPoints> smoothedPoints = vtkSmartPointer<vtkPoints>::New(); // points
   vtkSmartPointer< vtkCellArray > smoothedLines = vtkSmartPointer<  vtkCellArray >::New(); // lines
-  int numControlPointsOnTube = numPoints * markupsToModelModuleNode->GetTubeSamplingFrequency();
+  int numControlPointsOnTube = numPoints * markupsToModelModuleNode->GetTubeSamplePointsBetweenControlPoints();
   smoothedLines->InsertNextCell(numControlPointsOnTube); // one long continuous line
   for (int p = 0; p < numControlPointsOnTube; p++) // p = point index
   {
