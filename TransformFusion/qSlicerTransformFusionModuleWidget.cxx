@@ -23,6 +23,7 @@
 // Qt includes
 #include <QTimer>
 #include <QListWidgetItem>
+#include <QMenu>
 
 // SlicerQt includes
 #include "qSlicerTransformFusionModuleWidget.h"
@@ -70,31 +71,120 @@ qSlicerTransformFusionModuleWidget::qSlicerTransformFusionModuleWidget( QWidget*
   : Superclass( _parent )
   , d_ptr( new qSlicerTransformFusionModuleWidgetPrivate( *this ) )
 {
-  currentlyUpdating = false;
-
   this->updateTimer = new QTimer();
-  updateTimer->setSingleShot(false);
-  updateTimer->setInterval(17);
+  updateTimer->setSingleShot( false );
+  updateTimer->setInterval( 17 ); // default is once every sixtieth of a second, = 17 milliseconds
 }
 
 //-----------------------------------------------------------------------------
 qSlicerTransformFusionModuleWidget::~qSlicerTransformFusionModuleWidget()
 {
+  Q_D( qSlicerTransformFusionModuleWidget );
+  disconnect( d->parameterNodeComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( setTransformFusionParametersNode( vtkMRMLNode* ) ) );
+  
+  disconnect( d->inputTransformComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onSingleInputTransformNodeSelected( vtkMRMLNode* ) ) );
+  disconnect( d->outputTransformComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onOutputTransformNodeSelected( vtkMRMLNode* ) ) );
+  disconnect( d->restingTransformComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onRestingTransformNodeSelected( vtkMRMLNode* ) ) );
+  disconnect( d->referenceTransformComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onReferenceTransformNodeSelected( vtkMRMLNode* ) ) );
+  disconnect( d->addInputTransformButton, SIGNAL( clicked() ), this, SLOT( onAddInputTransform() ) );
+  disconnect( d->removeInputTransformButton, SIGNAL( clicked() ), this, SLOT( onRemoveInputTransform() ) );
+  
+  disconnect( d->fusionModeComboBox, SIGNAL( currentIndexChanged( int ) ), this, SLOT( onFusionModeChanged( int ) ) );
+
+  disconnect( d->updateButton, SIGNAL( clicked() ), this, SLOT( onUpdateButtonPressed() ) );
+  disconnect( d->updateRateSpinBox, SIGNAL( valueChanged( double ) ), this, SLOT( setUpdatesPerSecond( double ) ) );
+  disconnect( updateTimer, SIGNAL( timeout() ), this, SLOT( handleEventTimedUpdate() ) );
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerTransformFusionModuleWidget::setMRMLScene(vtkMRMLScene* scene)
+void qSlicerTransformFusionModuleWidget::setup()
 {
-  Q_D(qSlicerTransformFusionModuleWidget);
-  this->Superclass::setMRMLScene(scene);
-  qvtkReconnect( d->logic(), scene, vtkMRMLScene::EndImportEvent, this, SLOT(onSceneImportedEvent()) );
-  if (scene &&  d->logic()->GetTransformFusionNode() == 0)
+  Q_D( qSlicerTransformFusionModuleWidget );
+  d->setupUi( this );
+  this->Superclass::setup();
+
+  // Setup Update button menu
+  // Install event filter to override menu position to show it on the right side of the button.
+  // This is necessary because the update button is very wide and the
+  // menu arrow is on the right side. With the default QMenu the menu would appear
+  // on the left side, which would be very inconvenient because the mouse would need
+  // to be moved a lot to click the manual/auto option.
+  QMenu* updateMenu = new QMenu( tr( "Update options" ), this );
+  updateMenu->installEventFilter( this );
+  updateMenu->setObjectName( "UpdateOptions" );
+  QActionGroup* updateActions = new QActionGroup( d->updateButton );
+  updateActions->setExclusive( true );
+  updateMenu->addAction( d->actionUpdateManual );
+  updateActions->addAction( d->actionUpdateManual );
+  QObject::connect( d->actionUpdateManual, SIGNAL( triggered() ), this, SLOT( onActionUpdateManual() ) );
+  updateMenu->addAction( d->actionUpdateAuto );
+  updateActions->addAction( d->actionUpdateAuto );
+  QObject::connect( d->actionUpdateAuto, SIGNAL( triggered() ), this, SLOT( onActionUpdateAuto() ) );
+  updateMenu->addAction( d->actionUpdateTimed );
+  updateActions->addAction( d->actionUpdateTimed );
+  QObject::connect( d->actionUpdateTimed, SIGNAL( triggered() ), this, SLOT( onActionUpdateTimed() ) );
+  d->updateButton->setMenu(updateMenu);
+
+  // fusion modes
+  d->fusionModeComboBox->addItem( vtkMRMLTransformFusionNode::GetFusionModeAsString( vtkMRMLTransformFusionNode::FUSION_MODE_QUATERNION_AVERAGE ).c_str() );
+  d->fusionModeComboBox->setItemData( 0, "Compute the quaternion average of all Input transforms provided.", Qt::ToolTipRole );
+  d->fusionModeComboBox->addItem( vtkMRMLTransformFusionNode::GetFusionModeAsString( vtkMRMLTransformFusionNode::FUSION_MODE_CONSTRAIN_SHAFT_ROTATION ).c_str() );
+  d->fusionModeComboBox->setItemData( 1, "Compute a constrained version of an Input transform, the shaft direction is preserved but the other axes resemble the Resting coordinate system.", Qt::ToolTipRole );
+
+  // set up connections
+  connect( d->parameterNodeComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( setTransformFusionParametersNode( vtkMRMLNode* ) ) );
+  
+  connect( d->inputTransformComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onSingleInputTransformNodeSelected( vtkMRMLNode* ) ) );
+  connect( d->outputTransformComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onOutputTransformNodeSelected( vtkMRMLNode* ) ) );
+  connect( d->restingTransformComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onRestingTransformNodeSelected( vtkMRMLNode* ) ) );
+  connect( d->referenceTransformComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onReferenceTransformNodeSelected( vtkMRMLNode* ) ) );
+  connect( d->addInputTransformButton, SIGNAL( clicked() ), this, SLOT( onAddInputTransform() ) );
+  connect( d->removeInputTransformButton, SIGNAL( clicked() ), this, SLOT( onRemoveInputTransform() ) );
+  
+  connect( d->fusionModeComboBox, SIGNAL( currentIndexChanged( int ) ), this, SLOT( onFusionModeChanged( int ) ) );
+
+  connect( d->updateButton, SIGNAL( clicked() ), this, SLOT( onUpdateButtonPressed() ) );
+  connect( d->updateRateSpinBox, SIGNAL( valueChanged( double ) ), this, SLOT( setUpdatesPerSecond( double ) ) );
+  connect( updateTimer, SIGNAL( timeout() ), this, SLOT( handleEventTimedUpdate() ) );
+
+  qvtkConnect( d->logic(), vtkCommand::ModifiedEvent, this, SLOT( onLogicModified() ) );
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerTransformFusionModuleWidget::enter()
+{
+  Q_D( qSlicerTransformFusionModuleWidget );
+  bool wasBlocked = getSignalsBlocked();
+  this->setSignalsBlocked( true );
+  this->onEnter();
+  vtkMRMLTransformFusionNode* pNode = vtkMRMLTransformFusionNode::SafeDownCast( d->parameterNodeComboBox->currentNode() );
+  if ( pNode == NULL )
   {
-    vtkMRMLNode* node = scene->GetNthNodeByClass(0, "vtkMRMLTransformFusionNode");
-    if (node){
-      this->setTransformFusionParametersNode(vtkMRMLTransformFusionNode::SafeDownCast(node));
+    qCritical( "Selected parameter node not a valid parameter node" );
+    return;
+  }
+  this->qvtkConnect( pNode, vtkMRMLTransformFusionNode::InputDataModifiedEvent, this, SLOT( handleEventAutoUpdate() ) );
+  this->setSignalsBlocked( wasBlocked );
+  this->Superclass::enter();
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerTransformFusionModuleWidget::setMRMLScene( vtkMRMLScene* scene )
+{
+  Q_D( qSlicerTransformFusionModuleWidget );
+  bool wasBlocked = getSignalsBlocked();
+  this->setSignalsBlocked( true );
+  this->Superclass::setMRMLScene( scene );
+  qvtkReconnect( d->logic(), scene, vtkMRMLScene::EndImportEvent, this, SLOT( onSceneImportedEvent() ) );
+  if ( scene && vtkMRMLTransformFusionNode::SafeDownCast( d->parameterNodeComboBox->currentNode() ) == NULL )
+  {
+    vtkMRMLNode* node = scene->GetNthNodeByClass( 0, "vtkMRMLTransformFusionNode" );
+    if ( node )
+    {
+      this->setTransformFusionParametersNode( vtkMRMLTransformFusionNode::SafeDownCast( node ) );
     }
   }
+  this->setSignalsBlocked( wasBlocked );
 }
 
 //-----------------------------------------------------------------------------
@@ -111,270 +201,621 @@ void qSlicerTransformFusionModuleWidget::onLogicModified()
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerTransformFusionModuleWidget::enter()
-{
-  this->onEnter();
-  this->Superclass::enter();
-}
-
-//-----------------------------------------------------------------------------
 void qSlicerTransformFusionModuleWidget::onEnter()
 {
-  Q_D(qSlicerTransformFusionModuleWidget);
+  Q_D( qSlicerTransformFusionModuleWidget );
   
-  if (!this->mrmlScene() || d->logic() == NULL)
+  if ( this->mrmlScene() == NULL || d->logic() == NULL )
   {
-    std::cerr << "Error: Unable to initialize module" << std::endl;
+    qCritical( "Error: Unable to initialize module, no parameter node/scene found." );
     return;
   }
 
   //Check for existing parameter node
-  vtkMRMLTransformFusionNode* pNode = d->logic()->GetTransformFusionNode();
-  if (pNode == NULL)
+  vtkMRMLTransformFusionNode* pNode = vtkMRMLTransformFusionNode::SafeDownCast( d->parameterNodeComboBox->currentNode() );
+  if ( pNode == NULL )
   {
-    vtkMRMLNode* node = this->mrmlScene()->GetNthNodeByClass(0, "vtkMRMLTransformFusionNode");
-    if (node)
+    vtkMRMLNode* node = this->mrmlScene()->GetNthNodeByClass( 0, "vtkMRMLTransformFusionNode" );
+    if ( node == NULL )
     {
-      pNode = vtkMRMLTransformFusionNode::SafeDownCast(node);
-      d->logic()->SetAndObserveTransformFusionNode(pNode);
-    }
-    else
-    {
-      vtkSmartPointer<vtkMRMLTransformFusionNode> newNode = vtkSmartPointer<vtkMRMLTransformFusionNode>::New();
-      this->mrmlScene()->AddNode(newNode);
-      d->logic()->SetAndObserveTransformFusionNode(newNode);
+      vtkSmartPointer< vtkMRMLTransformFusionNode > newNode = vtkSmartPointer< vtkMRMLTransformFusionNode >::New();
+      this->mrmlScene()->AddNode( newNode );
+      d->parameterNodeComboBox->setCurrentNode( newNode );
     }
   }
   
   this->updateWidget();
-  this->updateInputList();
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerTransformFusionModuleWidget::setTransformFusionParametersNode(vtkMRMLNode *node)
+void qSlicerTransformFusionModuleWidget::setSignalsBlocked( bool newBlock )
 {
-  Q_D(qSlicerTransformFusionModuleWidget);
+  Q_D( qSlicerTransformFusionModuleWidget );
+  d->parameterNodeComboBox->blockSignals( newBlock );
+  d->inputTransformComboBox->blockSignals( newBlock );
+  d->restingTransformComboBox->blockSignals( newBlock );
+  d->referenceTransformComboBox->blockSignals( newBlock );
+  d->outputTransformComboBox->blockSignals( newBlock );
+  d->fusionModeComboBox->blockSignals( newBlock );
+  d->updateRateSpinBox->blockSignals( newBlock );
+}
+
+//-----------------------------------------------------------------------------
+bool qSlicerTransformFusionModuleWidget::getSignalsBlocked()
+{
+  Q_D( qSlicerTransformFusionModuleWidget );
+
+  bool parameterNodeBlocked = d->parameterNodeComboBox->signalsBlocked();
+
+  // all signal blocks should be the same as parameterNodeBlocked. If not, then output a warning message.
+  if ( parameterNodeBlocked == d->inputTransformComboBox->signalsBlocked() &&
+       parameterNodeBlocked == d->restingTransformComboBox->signalsBlocked() &&
+       parameterNodeBlocked == d->referenceTransformComboBox->signalsBlocked() &&
+       parameterNodeBlocked == d->outputTransformComboBox->signalsBlocked() &&
+       parameterNodeBlocked == d->fusionModeComboBox->signalsBlocked() &&
+       parameterNodeBlocked == d->updateRateSpinBox->signalsBlocked() )
+  {
+    return parameterNodeBlocked;
+  }
+  else
+  {
+    qWarning( "getAllSignalsBlocked: Inconsistent blocking detected. This is indicative of a coding error. Assuming that signals are NOT blocked." );
+    return false;
+  }
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerTransformFusionModuleWidget::setTransformFusionParametersNode( vtkMRMLNode *node )
+{
+  Q_D( qSlicerTransformFusionModuleWidget );
   
-  vtkMRMLTransformFusionNode* pNode = vtkMRMLTransformFusionNode::SafeDownCast(node);
-  qvtkReconnect( d->logic()->GetTransformFusionNode(), pNode, vtkCommand::ModifiedEvent, this, SLOT(update()));
-  d->logic()->SetAndObserveTransformFusionNode(pNode);
+  vtkMRMLTransformFusionNode* pNode = vtkMRMLTransformFusionNode::SafeDownCast( node );
+  qvtkReconnect( pNode, vtkCommand::ModifiedEvent, this, SLOT( update() ) );
+  d->parameterNodeComboBox->setCurrentNode( pNode );
 
   this->updateWidget();
-  this->updateInputList();
 }
 
 //-----------------------------------------------------------------------------
 void qSlicerTransformFusionModuleWidget::updateWidget()
 {
-  Q_D(qSlicerTransformFusionModuleWidget);
-
-  vtkMRMLTransformFusionNode* pNode = d->logic()->GetTransformFusionNode();
-  if (pNode == NULL || this->mrmlScene() == NULL)
+  Q_D( qSlicerTransformFusionModuleWidget );
+  
+  vtkMRMLTransformFusionNode* pNode = vtkMRMLTransformFusionNode::SafeDownCast( d->parameterNodeComboBox->currentNode() );
+  if ( pNode == NULL || this->mrmlScene() == NULL )
   {
-    std::cerr << "Error: Unable to update widget" << std::endl;
+    qCritical("Error: Failed to update widget, no parameter node/scene found.");
     return;
   }
 
-  // Update widget from MRML
-  d->ParameterComboBox->setCurrentNode(pNode);
-  // Populate list
-  d->outputTransformComboBox->setCurrentNode(pNode->GetOutputTransformNode());
+  // Populate node selections
+  d->inputTransformComboBox->setCurrentNode( pNode->GetSingleInputTransformNode() );
+  d->referenceTransformComboBox->setCurrentNode( pNode->GetReferenceTransformNode() );
+  d->restingTransformComboBox->setCurrentNode( pNode->GetRestingTransformNode() );
+  d->outputTransformComboBox->setCurrentNode( pNode->GetOutputTransformNode() );
 
   // Parameters
-  d->updateRateBox->setValue(pNode->GetUpdatesPerSecond());
+  int currentTechniqueIndex = d->fusionModeComboBox->findText( QString( vtkMRMLTransformFusionNode::GetFusionModeAsString( pNode->GetFusionMode() ).c_str() ) );
+  if ( currentTechniqueIndex < 0 )
+  {
+    currentTechniqueIndex = 0;
+  }
+  d->fusionModeComboBox->setCurrentIndex( currentTechniqueIndex );
 
+  d->updateRateSpinBox->setValue( pNode->GetUpdatesPerSecond() );
+
+  this->updateInputList();
+  this->updateInputFieldVisibility();
   this->updateButtons();
+  this->updateRateSpinBoxVisibility();
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerTransformFusionModuleWidget::updateInputFieldVisibility()
+{
+  Q_D( qSlicerTransformFusionModuleWidget );
+  
+  vtkMRMLTransformFusionNode* pNode = vtkMRMLTransformFusionNode::SafeDownCast( d->parameterNodeComboBox->currentNode() );
+  if ( pNode == NULL || this->mrmlScene() == NULL )
+  {
+    qCritical( "Error: Unable to update input field visibility, no parameter node/scene found." );
+    return;
+  }
+
+  if ( pNode->GetFusionMode() == vtkMRMLTransformFusionNode::FUSION_MODE_QUATERNION_AVERAGE )
+  {
+    d->inputTransformListGroupBox->setVisible( true );
+    d->inputTransformLabel->setVisible( false );
+    d->inputTransformComboBox->setVisible( false );
+    d->restingTransformLabel->setVisible( false );
+    d->restingTransformComboBox->setVisible( false );
+    d->referenceTransformLabel->setVisible( false );
+    d->referenceTransformComboBox->setVisible( false );
+    d->outputTransformLabel->setVisible( true );
+    d->outputTransformComboBox->setVisible( true );
+  }
+  else if ( pNode->GetFusionMode() == vtkMRMLTransformFusionNode::FUSION_MODE_CONSTRAIN_SHAFT_ROTATION )
+  {
+    d->inputTransformListGroupBox->setVisible( false );
+    d->inputTransformLabel->setVisible( true );
+    d->inputTransformComboBox->setVisible( true );
+    d->restingTransformLabel->setVisible( true );
+    d->restingTransformComboBox->setVisible( true );
+    d->referenceTransformLabel->setVisible( true );
+    d->referenceTransformComboBox->setVisible( true );
+    d->outputTransformLabel->setVisible( true );
+    d->outputTransformComboBox->setVisible( true );
+  }
+  else
+  {
+    d->inputTransformListGroupBox->setVisible( false );
+    d->inputTransformLabel->setVisible( false );
+    d->inputTransformComboBox->setVisible( false );
+    d->restingTransformLabel->setVisible( false );
+    d->restingTransformComboBox->setVisible( false );
+    d->referenceTransformLabel->setVisible( false );
+    d->referenceTransformComboBox->setVisible( false );
+    d->outputTransformLabel->setVisible( false );
+    d->outputTransformComboBox->setVisible( false );
+    qWarning( "Warning: Unrecognized fusion mode, setting all fields invisible." );
+    return;
+  }
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerTransformFusionModuleWidget::updateRateSpinBoxVisibility()
+{
+  Q_D( qSlicerTransformFusionModuleWidget );
+
+  vtkMRMLTransformFusionNode* pNode = vtkMRMLTransformFusionNode::SafeDownCast( d->parameterNodeComboBox->currentNode() );
+  if ( pNode == NULL || this->mrmlScene() == NULL )
+  {
+    qCritical( "Error: Failed to update timer spinbox, no parameter node/scene found." );
+    return;
+  }
+
+  if ( pNode->GetUpdateMode() == vtkMRMLTransformFusionNode::UPDATE_MODE_TIMED )
+  {
+    d->updateRateSpinBox->setVisible( true );
+    d->updateRateLabel->setVisible( true );
+  }
+  else
+  {
+    d->updateRateSpinBox->setVisible( false );
+    d->updateRateLabel->setVisible( false );
+  }
 }
 
 //-----------------------------------------------------------------------------
 void qSlicerTransformFusionModuleWidget::updateButtons()
 {
-  Q_D(qSlicerTransformFusionModuleWidget);
-  vtkMRMLTransformFusionNode* pNode = d->logic()->GetTransformFusionNode();
-  if (!pNode || !this->mrmlScene())
+  Q_D( qSlicerTransformFusionModuleWidget );
+  vtkMRMLTransformFusionNode* pNode = vtkMRMLTransformFusionNode::SafeDownCast( d->parameterNodeComboBox->currentNode() );
+  if ( pNode == NULL || this->mrmlScene() == NULL )
   {
-    std::cerr << "Could not find Transform Fusion node" << std::endl;
+    qCritical( "Error: Failed to update buttons, no parameter node/scene found." );
     return;
   }
 
-  if (pNode->GetNumberOfInputTransformNodes() >= 2 && pNode->GetOutputTransformNode() != NULL)
+  bool conditionsForCurrentFusionMode = d->logic()->IsTransformFusionPossible( pNode );
+  if ( conditionsForCurrentFusionMode )
   {
-    d->updateButton->setEnabled(true);
-    if (!currentlyUpdating)
-    {
-      d->startUpdateButton->setEnabled(true);
-    }
+    d->updateButton->setEnabled( true );
   }
   else
   {
-    d->updateButton->setEnabled(false);
-    d->startUpdateButton->setEnabled(false);
+    d->updateButton->setEnabled( false );
+  }
+  
+  if ( pNode->GetUpdateMode() == vtkMRMLTransformFusionNode::UPDATE_MODE_MANUAL )
+  {
+    d->updateButton->setCheckable( false );
+    d->updateButton->setChecked( false );
+    d->updateButton->setText( vtkMRMLTransformFusionNode::GetUpdateModeAsString( vtkMRMLTransformFusionNode::UPDATE_MODE_MANUAL ).c_str() );
+    d->actionUpdateManual->setChecked( Qt::Checked );
+    d->actionUpdateAuto->setChecked( Qt::Unchecked );
+    d->actionUpdateTimed->setChecked( Qt::Unchecked );
+  }
+  else if ( pNode->GetUpdateMode() == vtkMRMLTransformFusionNode::UPDATE_MODE_AUTO )
+  {
+    d->updateButton->setCheckable( true );
+    d->updateButton->setChecked( true );
+    d->updateButton->setText( vtkMRMLTransformFusionNode::GetUpdateModeAsString( vtkMRMLTransformFusionNode::UPDATE_MODE_AUTO ).c_str() );
+    d->actionUpdateManual->setChecked( Qt::Unchecked );
+    d->actionUpdateAuto->setChecked( Qt::Checked );
+    d->actionUpdateTimed->setChecked( Qt::Unchecked );
+  }
+  else if ( pNode->GetUpdateMode() == vtkMRMLTransformFusionNode::UPDATE_MODE_TIMED )
+  {
+    d->updateButton->setCheckable( true );
+    d->updateButton->setChecked( true );
+    d->updateButton->setText( vtkMRMLTransformFusionNode::GetUpdateModeAsString( vtkMRMLTransformFusionNode::UPDATE_MODE_TIMED ).c_str() );
+    d->actionUpdateManual->setChecked( Qt::Unchecked );
+    d->actionUpdateAuto->setChecked( Qt::Unchecked );
+    d->actionUpdateTimed->setChecked( Qt::Checked );
   }
 }
 
 //-----------------------------------------------------------------------------
 void qSlicerTransformFusionModuleWidget::updateInputList()
 {
-  Q_D(qSlicerTransformFusionModuleWidget);
-  vtkMRMLTransformFusionNode* pNode = d->logic()->GetTransformFusionNode();
-  if (!pNode || !this->mrmlScene())
+  Q_D( qSlicerTransformFusionModuleWidget );
+  vtkMRMLTransformFusionNode* pNode = vtkMRMLTransformFusionNode::SafeDownCast( d->parameterNodeComboBox->currentNode() );
+  if ( pNode == NULL || this->mrmlScene() == NULL )
   {
-    std::cerr << "Could not find Transform Fusion node" << std::endl;
+    qCritical( "Error: Failed to update Input List on GUI, no parameter node/scene found." );
     return;
   }
 
   d->inputTransformList->clear();
 
-  for (int i = 0; i < pNode->GetNumberOfInputTransformNodes(); i++)
+  for ( int i = 0; i < pNode->GetNumberOfInputTransformNodes(); i++ )
   {
-      new QListWidgetItem(tr(pNode->GetInputTransformNode(i)->GetName()), d->inputTransformList);
+      new QListWidgetItem( tr( pNode->GetNthInputTransformNode( i )->GetName() ), d->inputTransformList );
   }
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerTransformFusionModuleWidget::onSingleUpdate()
+void qSlicerTransformFusionModuleWidget::onActionUpdateManual()
 {
-  Q_D(qSlicerTransformFusionModuleWidget);
-  vtkMRMLTransformFusionNode* pNode = d->logic()->GetTransformFusionNode();
-  if (!pNode || !this->mrmlScene() || pNode->GetOutputTransformNode() == NULL || pNode->GetNumberOfInputTransformNodes() < 2)
+  stopExistingUpdates();
+  singleUpdate();
+  updateButtons();
+  updateRateSpinBoxVisibility();
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerTransformFusionModuleWidget::onActionUpdateAuto()
+{
+  Q_D( qSlicerTransformFusionModuleWidget );
+  stopExistingUpdates();
+
+  vtkMRMLTransformFusionNode* pNode = vtkMRMLTransformFusionNode::SafeDownCast( d->parameterNodeComboBox->currentNode() );
+  if ( pNode == NULL || this->mrmlScene() == NULL )
   {
-    std::cerr << "Error: Failed to update transform" << std::endl;
+    qCritical( "Error: Failed to start auto update, no parameter node/scene found." );
+    return;
+  }
+  
+  bool verboseConditionChecking = true;
+  bool conditionsMetForFusion = d->logic()->IsTransformFusionPossible( pNode, verboseConditionChecking );
+  if ( conditionsMetForFusion == true )
+  {
+    pNode->SetUpdateMode( vtkMRMLTransformFusionNode::UPDATE_MODE_AUTO );
+  }
+  updateButtons();
+  updateRateSpinBoxVisibility();
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerTransformFusionModuleWidget::onActionUpdateTimed()
+{
+  Q_D( qSlicerTransformFusionModuleWidget );
+  stopExistingUpdates();
+
+  vtkMRMLTransformFusionNode* pNode = vtkMRMLTransformFusionNode::SafeDownCast( d->parameterNodeComboBox->currentNode() );
+  if ( pNode == NULL || this->mrmlScene() == NULL )
+  {
+    qCritical( "Error: Failed to start timed update, no parameter node/scene found." );
+    return;
+  }
+  
+  // if the timer is for some reason already going, stop it before restarting
+  if ( updateTimer->isActive() )
+  {
+    updateTimer->stop();
+  }
+
+  // don't start timed updates unless the conditions for updating are met
+  bool verboseConditionChecking = true;
+  bool conditionsMetForFusion = d->logic()->IsTransformFusionPossible( pNode, verboseConditionChecking );
+  if ( conditionsMetForFusion == true )
+  {
+    updateTimer->start();
+    pNode->SetUpdateMode( vtkMRMLTransformFusionNode::UPDATE_MODE_TIMED );
+  }
+  updateButtons();
+  updateRateSpinBoxVisibility();
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerTransformFusionModuleWidget::stopExistingUpdates()
+{
+  Q_D( qSlicerTransformFusionModuleWidget );
+  vtkMRMLTransformFusionNode* pNode = vtkMRMLTransformFusionNode::SafeDownCast( d->parameterNodeComboBox->currentNode() );
+  if ( pNode == NULL || this->mrmlScene() == NULL )
+  {
+    qCritical( "Error: Failed to stop updates, no parameter node/scene found." );
     return;
   }
 
-  /*
-    MODE_QUATERNION_AVERAGE = 0
-  */
-  d->logic()->fuseInputTransforms(d->techniqueBox->currentIndex());
+  // set to manual updating by default, avoids automatic updates
+  pNode->SetUpdateMode( vtkMRMLTransformFusionNode::UPDATE_MODE_MANUAL );
+
+  if ( updateTimer->isActive() )
+  {
+    updateTimer->stop();
+  }
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerTransformFusionModuleWidget::setUpdatesPerSecond(double updatesPerSecond)
+void qSlicerTransformFusionModuleWidget::onUpdateButtonPressed()
 {
-  Q_D(qSlicerTransformFusionModuleWidget);
-  vtkMRMLTransformFusionNode* pNode = d->logic()->GetTransformFusionNode();
-  if (!pNode || !this->mrmlScene())
+  singleUpdate();
+  updateButtons();
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerTransformFusionModuleWidget::singleUpdate()
+{
+  Q_D( qSlicerTransformFusionModuleWidget );
+  vtkMRMLTransformFusionNode* pNode = vtkMRMLTransformFusionNode::SafeDownCast( d->parameterNodeComboBox->currentNode() );
+  if ( pNode == NULL || this->mrmlScene() == NULL )
   {
+    qCritical( "Error: Failed to update, no parameter node/scene found." );
     return;
   }
 
-  pNode->SetUpdatesPerSecond(updatesPerSecond);
-  updateTimer->setInterval((1/updatesPerSecond)*1000);
+  bool verboseConditionChecking = true;
+  bool conditionsMetForFusion = d->logic()->IsTransformFusionPossible( pNode, verboseConditionChecking );
+  if (conditionsMetForFusion == true)
+  {
+    d->logic()->UpdateOutputTransform( pNode );
+  }
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerTransformFusionModuleWidget::onStartAutoUpdate()
+void qSlicerTransformFusionModuleWidget::handleEventAutoUpdate()
 {
-  Q_D(qSlicerTransformFusionModuleWidget);
-  vtkMRMLTransformFusionNode* pNode = d->logic()->GetTransformFusionNode();
-  if (!pNode || !this->mrmlScene() || pNode->GetOutputTransformNode() == NULL || pNode->GetNumberOfInputTransformNodes() < 2)
+  Q_D( qSlicerTransformFusionModuleWidget );
+  vtkMRMLTransformFusionNode* pNode = vtkMRMLTransformFusionNode::SafeDownCast( d->parameterNodeComboBox->currentNode() );
+  if ( pNode == NULL || this->mrmlScene() == NULL )
   {
-    std::cerr << "Error: Failed to start auto-update" << std::endl;
+    qCritical( "Error: Failed to auto-update, no parameter node/scene found." );
     return;
   }
 
-  updateTimer->start();
-  currentlyUpdating = true;
-  d->startUpdateButton->setEnabled(false);
+  if ( pNode->GetUpdateMode() == vtkMRMLTransformFusionNode::UPDATE_MODE_AUTO )
+  {
+    bool verboseConditionChecking = true;
+    if (d->logic()->IsTransformFusionPossible(pNode,verboseConditionChecking) == true)
+    {
+      singleUpdate();
+    }
+    else
+    {
+      // if conditions are not met, then auto updating should be disabled
+      pNode->SetUpdateMode( vtkMRMLTransformFusionNode::UPDATE_MODE_MANUAL );
+      updateButtons();
+    }
+  }
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerTransformFusionModuleWidget::onStopAutoUpdate()
+void qSlicerTransformFusionModuleWidget::handleEventTimedUpdate()
 {
-  updateTimer->stop();
-  currentlyUpdating = false;
+  Q_D(qSlicerTransformFusionModuleWidget);
+  vtkMRMLTransformFusionNode* pNode = vtkMRMLTransformFusionNode::SafeDownCast( d->parameterNodeComboBox->currentNode() );
+  if ( pNode == NULL || this->mrmlScene() == NULL )
+  {
+    qCritical( "Error: Failed to timed update, no parameter node/scene found." );
+    return;
+  }
+  
+  bool verboseWarnings = false;
+  bool conditionsMetForFusion = d->logic()->IsTransformFusionPossible( pNode, verboseWarnings );
+  if ( pNode->GetUpdateMode() == vtkMRMLTransformFusionNode::UPDATE_MODE_TIMED &&
+       conditionsMetForFusion == true )
+  {
+    singleUpdate();
+  }
+  else
+  {
+    // if the update mode is not timed, or
+    // if conditions are not met, then timed updating should be disabled
+    pNode->SetUpdateMode( vtkMRMLTransformFusionNode::UPDATE_MODE_MANUAL );
+    updateButtons();
+  }
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerTransformFusionModuleWidget::setUpdatesPerSecond( double updatesPerSecond )
+{
+  Q_D( qSlicerTransformFusionModuleWidget );
+  vtkMRMLTransformFusionNode* pNode = vtkMRMLTransformFusionNode::SafeDownCast( d->parameterNodeComboBox->currentNode() );
+  if ( pNode == NULL || this->mrmlScene() == NULL )
+  {
+    qCritical( "Error: Failed to update timer for timed update, no parameter node/scene found." );
+    return;
+  }
+
+  pNode->SetUpdatesPerSecond( updatesPerSecond );
+  updateTimer->setInterval( ( 1.0 / updatesPerSecond ) * 1000 );
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerTransformFusionModuleWidget::onOutputTransformNodeSelected( vtkMRMLNode* node )
+{
+  Q_D( qSlicerTransformFusionModuleWidget );
+  vtkMRMLTransformFusionNode* pNode = vtkMRMLTransformFusionNode::SafeDownCast( d->parameterNodeComboBox->currentNode() );
+  if ( pNode == NULL || this->mrmlScene() == NULL )
+  {
+    qCritical( "Error: Failed to set output transform node, no parameter node/scene found." );
+    return;
+  }
+
+  vtkMRMLLinearTransformNode* outputTransform = NULL;
+  if ( node )
+  {
+    outputTransform = vtkMRMLLinearTransformNode::SafeDownCast( node );
+    if ( outputTransform == NULL )
+    {
+      qCritical( "Error: Failed to set output transform node, output transform node is not a linear transform node" );
+      return;    
+    }
+  }
+
+  pNode->SetAndObserveOutputTransformNode( outputTransform );
   this->updateButtons();
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerTransformFusionModuleWidget::onOutputTransformNodeSelected(vtkMRMLNode* node)
+void qSlicerTransformFusionModuleWidget::onSingleInputTransformNodeSelected( vtkMRMLNode* node )
 {
-  Q_D(qSlicerTransformFusionModuleWidget);
-  vtkMRMLTransformFusionNode* pNode = d->logic()->GetTransformFusionNode();
-  if (!pNode || !this->mrmlScene() || !node)
+  Q_D( qSlicerTransformFusionModuleWidget );
+  vtkMRMLTransformFusionNode* pNode = vtkMRMLTransformFusionNode::SafeDownCast( d->parameterNodeComboBox->currentNode() );
+  if ( pNode == NULL || this->mrmlScene() == NULL )
   {
-    std::cerr << "Error: Unable to set output transform node" << std::endl;
+    qCritical( "Error: Failed to set single input transform node, no parameter node/scene found." );
     return;
   }
 
-  vtkMRMLLinearTransformNode* outputTransform = vtkMRMLLinearTransformNode::SafeDownCast(node);
-  if (outputTransform == NULL)
+  vtkMRMLLinearTransformNode* inputTransform = NULL;
+  if ( node )
   {
-    std::cerr << "Error: Output is not a linear transform node" << std::endl;
-    return;    
+    inputTransform = vtkMRMLLinearTransformNode::SafeDownCast( node );
+    if ( inputTransform == NULL )
+    {
+      qCritical( "Error: Failed to set single input transform node, input transform node is not a linear transform node." );
+      return;    
+    }
   }
 
-  pNode->SetAndObserveOutputTransformNode(outputTransform);
+  pNode->SetAndObserveSingleInputTransformNode( inputTransform );
   this->updateButtons();
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerTransformFusionModuleWidget::onAddTransform()
+void qSlicerTransformFusionModuleWidget::onReferenceTransformNodeSelected( vtkMRMLNode* node )
 {
-  Q_D(qSlicerTransformFusionModuleWidget);
-
-  vtkMRMLTransformFusionNode* pNode = d->logic()->GetTransformFusionNode();
-  if (!pNode || !this->mrmlScene())
+  Q_D( qSlicerTransformFusionModuleWidget );
+  vtkMRMLTransformFusionNode* pNode = vtkMRMLTransformFusionNode::SafeDownCast( d->parameterNodeComboBox->currentNode() );
+  if ( pNode == NULL || this->mrmlScene() == NULL )
   {
-    std::cerr << "Error: Unable to add transform" << std::endl;
+    qCritical( "Error: Failed to set reference transform node, no parameter node/scene found." );
     return;
   }
 
-  vtkMRMLLinearTransformNode* inputTransform = vtkMRMLLinearTransformNode::SafeDownCast(d->addTransformComboBox->currentNode());
-  if (inputTransform == NULL)
+  vtkMRMLLinearTransformNode* referenceTransform = NULL;
+  if ( node )
   {
-    std::cerr << "Error: Input is not a linear transform node" << std::endl;
-    return;    
+    referenceTransform = vtkMRMLLinearTransformNode::SafeDownCast( node );
+    if ( referenceTransform == NULL )
+    {
+      qCritical( "Error: Failed to set reference transform node, reference transform node is not a linear transform node" );
+      return;
+    }
   }
 
-  pNode->AddAndObserveInputTransformNode(inputTransform);
+  pNode->SetAndObserveReferenceTransformNode( referenceTransform );
+  this->updateButtons();
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerTransformFusionModuleWidget::onRestingTransformNodeSelected( vtkMRMLNode* node )
+{
+  Q_D( qSlicerTransformFusionModuleWidget );
+  vtkMRMLTransformFusionNode* pNode = vtkMRMLTransformFusionNode::SafeDownCast( d->parameterNodeComboBox->currentNode() );
+  if ( pNode == NULL || this->mrmlScene() == NULL )
+  {
+    qCritical( "Error: Failed to set resting transform node, no parameter node/scene found." );
+    return;
+  }
+
+  vtkMRMLLinearTransformNode* restingTransform = NULL;
+  if ( node )
+  {
+    restingTransform = vtkMRMLLinearTransformNode::SafeDownCast( node );
+    if ( restingTransform == NULL )
+    {
+      qCritical( "Error: Failed to set resting transform node, resting transform node is not a linear transform node" );
+      return;
+    }
+  }
+
+  pNode->SetAndObserveRestingTransformNode( restingTransform );
+  this->updateButtons();
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerTransformFusionModuleWidget::onAddInputTransform()
+{
+  Q_D( qSlicerTransformFusionModuleWidget );
+
+  if ( d->addInputTransformComboBox->currentNode() == NULL )
+  {
+    return; // don't do anything if no input node is selected
+  }
+  
+  vtkMRMLTransformFusionNode* pNode = vtkMRMLTransformFusionNode::SafeDownCast( d->parameterNodeComboBox->currentNode() );
+  if ( pNode == NULL || this->mrmlScene() == NULL )
+  {
+    qCritical( "Error: Failed to add transform to input list, no parameter node/scene found." );
+    return;
+  }
+
+  vtkMRMLLinearTransformNode* inputTransform = vtkMRMLLinearTransformNode::SafeDownCast( d->addInputTransformComboBox->currentNode() );
+  if ( inputTransform == NULL )
+  {
+    qCritical( "Error: Failed to add transform to input list, input transform node is not a linear transform node." );
+    return;
+  }
+
+  pNode->AddAndObserveInputTransformNode( inputTransform );
   this->updateInputList();
   this->updateButtons();
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerTransformFusionModuleWidget::onRemoveTransform()
+void qSlicerTransformFusionModuleWidget::onFusionModeChanged( int unused )
 {
-  Q_D(qSlicerTransformFusionModuleWidget);
-
-  vtkMRMLTransformFusionNode* pNode = d->logic()->GetTransformFusionNode();
-  if (!pNode || !this->mrmlScene())
+  Q_D( qSlicerTransformFusionModuleWidget );
+  vtkMRMLTransformFusionNode* pNode = vtkMRMLTransformFusionNode::SafeDownCast( d->parameterNodeComboBox->currentNode() );
+  if ( pNode == NULL || this->mrmlScene() == NULL )
   {
-    std::cerr << "Error: Unable to remove transform" << std::endl;
+    return;
+  }
+
+  std::string fusionModeAsString = d->fusionModeComboBox->currentText().toStdString();
+  int fusionModeAsEnum = vtkMRMLTransformFusionNode::GetFusionModeFromString( fusionModeAsString );
+  pNode->SetFusionMode( fusionModeAsEnum );
+
+  this->updateWidget();
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerTransformFusionModuleWidget::onRemoveInputTransform()
+{
+  Q_D( qSlicerTransformFusionModuleWidget );
+  
+  vtkMRMLTransformFusionNode* pNode = vtkMRMLTransformFusionNode::SafeDownCast( d->parameterNodeComboBox->currentNode() );
+  if ( pNode == NULL || this->mrmlScene() == NULL )
+  {
+    qCritical( "Error: Failed to remove transform from input list, no parameter node/scene found." );
     return;
   }
 
   int selectedInputListIndex = d->inputTransformList->currentRow();
 
-  if (selectedInputListIndex >= 0 && selectedInputListIndex <  pNode->GetNumberOfInputTransformNodes())
+  if ( selectedInputListIndex >= 0 && selectedInputListIndex < pNode->GetNumberOfInputTransformNodes() )
   {
-    pNode->RemoveInputTransformNode(selectedInputListIndex);
+    pNode->RemoveInputTransformNode( selectedInputListIndex );
     this->updateInputList();
     this->updateButtons();
   }
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerTransformFusionModuleWidget::setup()
+bool qSlicerTransformFusionModuleWidget::eventFilter( QObject * obj, QEvent *event )
 {
-  Q_D(qSlicerTransformFusionModuleWidget);
-  d->setupUi(this);
-  this->Superclass::setup();
-  
-  connect(d->ParameterComboBox, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(setTransformFusionParametersNode(vtkMRMLNode*)));
-
-  connect(d->outputTransformComboBox, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(onOutputTransformNodeSelected(vtkMRMLNode*)));
-  
-  connect(d->addTransformButton, SIGNAL(clicked()), this, SLOT(onAddTransform()));
-  connect(d->removeTransformButton, SIGNAL(clicked()), this, SLOT(onRemoveTransform()));
-
-  connect(d->updateButton, SIGNAL(clicked()), this, SLOT(onSingleUpdate()));
-
-  connect(d->updateRateBox, SIGNAL(valueChanged(double)), this, SLOT(setUpdatesPerSecond(double)));
-  connect(d->startUpdateButton, SIGNAL(clicked()), this, SLOT(onStartAutoUpdate()));
-  connect(d->stopUpdateButton, SIGNAL(clicked()), this, SLOT(onStopAutoUpdate()));
-  connect(updateTimer, SIGNAL(timeout()), this, SLOT(onSingleUpdate()));
-
-  qvtkConnect( d->logic(), vtkCommand::ModifiedEvent, this, SLOT( onLogicModified() ) );
+  Q_D( qSlicerTransformFusionModuleWidget );
+  if ( event->type() == QEvent::Show && d->updateButton != NULL && obj == d->updateButton->menu() )
+  {
+    // Show UpdateButton's menu aligned to the right side of the button
+    QMenu* menu = d->updateButton->menu();
+    QPoint menuPos = menu->pos();
+    menu->move( menuPos.x() + d->updateButton->geometry().width() - menu->geometry().width(), menuPos.y() );
+    return true;
+  }
+  return false;
 }
-
