@@ -546,7 +546,7 @@ void vtkSlicerMarkupsToModelLogic::UpdateOutputHermiteSplineModel(vtkMRMLMarkups
     return;
   }
 
-  int totalNumberOfPoints = markupsToModelModuleNode->GetTubeSamplingFrequency()*markupsPointsPolyData->GetNumberOfPoints();
+  int totalNumberOfPoints = markupsToModelModuleNode->GetTubeSamplePointsBetweenControlPoints()*markupsPointsPolyData->GetNumberOfPoints();
   vtkSmartPointer< vtkSplineFilter > splineFilter = vtkSmartPointer< vtkSplineFilter >::New();
 #if (VTK_MAJOR_VERSION <= 5)
   splineFilter->SetInput(markupsPointsPolyData);
@@ -834,8 +834,32 @@ void vtkSlicerMarkupsToModelLogic::UpdateOutputPolynomialFitModel(vtkMRMLMarkups
     vtkErrorMacro("Incorrect number of point parameters provided. Should have " << numPoints << " parameters (one for each point), but " << markupsPointsParameters->GetNumberOfTuples() << " are provided. No output created.");
     return;
   }
+
+  // The system of equations using high-order polynomials is not well-conditioned.
+  // The vtkMath implementation will usually abort with polynomial orders higher than 9.
+  // Since there is also numerical instability, we decide to limit the polynomial order to 6.
+  // If order higher than 6 is needed on a global fit, then another algorithm should be considered anyway.
+  // If at some point we want to add support for higher order polynomials, then here are two options (from Andras):
+  // 1. VNL. While the VNL code is more sophisticated, and I guess also more stable, you would probably need to
+  //    limit the number of samples and normalize data that you pass to the LSQR solver to be able to compute 
+  //    higher-order fits (see for example this page for related discussion:
+  //    http://digital.ni.com/public.nsf/allkb/45C2016C23B3B0298525645F0073B828). 
+  //    See an example how VNL is used in Plus:
+  //    https://app.assembla.com/spaces/plus/subversion/source/HEAD/trunk/PlusLib/src/PlusCommon/PlusMath.cxx#ln111
+  // 2. Mathematica uses different basis functions for polynomial fitting (shifted Chebyshev polynomials) instead 
+  //    of basis functions that are simple powers of a variable to make the fitting more robust (the source code
+  //    is available here: http://library.wolfram.com/infocenter/MathSource/6780/).
+  int polynomialOrder = markupsToModelModuleNode->GetPolynomialOrder();
+  const int maximumPolynomialOrder = 6;
+  if (polynomialOrder > maximumPolynomialOrder)
+  {
+    vtkWarningMacro("Desired polynomial order " << polynomialOrder << " is not supported. "
+                    << "Maximum polynomial order is " << maximumPolynomialOrder << ". "
+                    << "Will attempt to create polynomial order " << maximumPolynomialOrder << " instead.");
+    polynomialOrder = maximumPolynomialOrder;
+  }
   
-  int numPolynomialCoefficients = markupsToModelModuleNode->GetPolynomialOrder() + 1;
+  int numPolynomialCoefficients = polynomialOrder + 1;
   // special case, if polynomial is underdetermined, change the order of the polynomial
   std::set<double> uniquePointParameters;
   for (int i = 0; i < numPoints; i++)
@@ -843,7 +867,7 @@ void vtkSlicerMarkupsToModelLogic::UpdateOutputPolynomialFitModel(vtkMRMLMarkups
   int numUniquePointParameters = uniquePointParameters.size();
   if (numUniquePointParameters < numPolynomialCoefficients)
   {
-    vtkWarningMacro("Not enough points to compute a polynomial fit. " << "For an order " << markupsToModelModuleNode->GetPolynomialOrder() << " polynomial, at least " << numPolynomialCoefficients << " points with unique parameters are needed. "
+    vtkWarningMacro("Not enough points to compute a polynomial fit. " << "For an order " << polynomialOrder << " polynomial, at least " << numPolynomialCoefficients << " points with unique parameters are needed. "
                     << numUniquePointParameters << " points with unique parameters were found. "
                     << "An order " << (numUniquePointParameters - 1) << " polynomial will be created instead.");
     numPolynomialCoefficients = numUniquePointParameters;
@@ -908,7 +932,7 @@ void vtkSlicerMarkupsToModelLogic::UpdateOutputPolynomialFitModel(vtkMRMLMarkups
   // Use the values to generate points along the polynomial curve
   vtkSmartPointer<vtkPoints> smoothedPoints = vtkSmartPointer<vtkPoints>::New(); // points
   vtkSmartPointer< vtkCellArray > smoothedLines = vtkSmartPointer<  vtkCellArray >::New(); // lines
-  int numControlPointsOnTube = numPoints * markupsToModelModuleNode->GetTubeSamplingFrequency();
+  int numControlPointsOnTube = numPoints * markupsToModelModuleNode->GetTubeSamplePointsBetweenControlPoints();
   smoothedLines->InsertNextCell(numControlPointsOnTube); // one long continuous line
   for (int p = 0; p < numControlPointsOnTube; p++) // p = point index
   {
