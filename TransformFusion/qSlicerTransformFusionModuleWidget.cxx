@@ -154,7 +154,8 @@ void qSlicerTransformFusionModuleWidget::setup()
 void qSlicerTransformFusionModuleWidget::enter()
 {
   Q_D( qSlicerTransformFusionModuleWidget );
-  this->blockAllSignals();
+  bool wasBlocked = getSignalsBlocked();
+  this->setSignalsBlocked( true );
   this->onEnter();
   vtkMRMLTransformFusionNode* pNode = vtkMRMLTransformFusionNode::SafeDownCast( d->parameterNodeComboBox->currentNode() );
   if ( pNode == NULL )
@@ -163,7 +164,7 @@ void qSlicerTransformFusionModuleWidget::enter()
     return;
   }
   this->qvtkConnect( pNode, vtkMRMLTransformFusionNode::InputDataModifiedEvent, this, SLOT( handleEventAutoUpdate() ) );
-  this->unblockAllSignals();
+  this->setSignalsBlocked( wasBlocked );
   this->Superclass::enter();
 }
 
@@ -171,7 +172,8 @@ void qSlicerTransformFusionModuleWidget::enter()
 void qSlicerTransformFusionModuleWidget::setMRMLScene( vtkMRMLScene* scene )
 {
   Q_D( qSlicerTransformFusionModuleWidget );
-  this->blockAllSignals();
+  bool wasBlocked = getSignalsBlocked();
+  this->setSignalsBlocked( true );
   this->Superclass::setMRMLScene( scene );
   qvtkReconnect( d->logic(), scene, vtkMRMLScene::EndImportEvent, this, SLOT( onSceneImportedEvent() ) );
   if ( scene && vtkMRMLTransformFusionNode::SafeDownCast( d->parameterNodeComboBox->currentNode() ) == NULL )
@@ -182,7 +184,7 @@ void qSlicerTransformFusionModuleWidget::setMRMLScene( vtkMRMLScene* scene )
       this->setTransformFusionParametersNode( vtkMRMLTransformFusionNode::SafeDownCast( node ) );
     }
   }
-  this->unblockAllSignals();
+  this->setSignalsBlocked( wasBlocked );
 }
 
 //-----------------------------------------------------------------------------
@@ -226,29 +228,40 @@ void qSlicerTransformFusionModuleWidget::onEnter()
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerTransformFusionModuleWidget::blockAllSignals()
+void qSlicerTransformFusionModuleWidget::setSignalsBlocked( bool newBlock )
 {
   Q_D( qSlicerTransformFusionModuleWidget );
-  d->parameterNodeComboBox->blockSignals( true );
-  d->inputTransformComboBox->blockSignals( true );
-  d->restingTransformComboBox->blockSignals( true );
-  d->referenceTransformComboBox->blockSignals( true );
-  d->outputTransformComboBox->blockSignals( true );
-  d->fusionModeComboBox->blockSignals( true );
-  d->updateRateSpinBox->blockSignals( true );
+  d->parameterNodeComboBox->blockSignals( newBlock );
+  d->inputTransformComboBox->blockSignals( newBlock );
+  d->restingTransformComboBox->blockSignals( newBlock );
+  d->referenceTransformComboBox->blockSignals( newBlock );
+  d->outputTransformComboBox->blockSignals( newBlock );
+  d->fusionModeComboBox->blockSignals( newBlock );
+  d->updateRateSpinBox->blockSignals( newBlock );
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerTransformFusionModuleWidget::unblockAllSignals()
+bool qSlicerTransformFusionModuleWidget::getSignalsBlocked()
 {
   Q_D( qSlicerTransformFusionModuleWidget );
-  d->parameterNodeComboBox->blockSignals( false );
-  d->inputTransformComboBox->blockSignals( false );
-  d->restingTransformComboBox->blockSignals( false );
-  d->referenceTransformComboBox->blockSignals( false );
-  d->outputTransformComboBox->blockSignals( false );
-  d->fusionModeComboBox->blockSignals( false );
-  d->updateRateSpinBox->blockSignals( false );
+
+  bool parameterNodeBlocked = d->parameterNodeComboBox->signalsBlocked();
+
+  // all signal blocks should be the same as parameterNodeBlocked. If not, then output a warning message.
+  if ( parameterNodeBlocked == d->inputTransformComboBox->signalsBlocked() &&
+       parameterNodeBlocked == d->restingTransformComboBox->signalsBlocked() &&
+       parameterNodeBlocked == d->referenceTransformComboBox->signalsBlocked() &&
+       parameterNodeBlocked == d->outputTransformComboBox->signalsBlocked() &&
+       parameterNodeBlocked == d->fusionModeComboBox->signalsBlocked() &&
+       parameterNodeBlocked == d->updateRateSpinBox->signalsBlocked() )
+  {
+    return parameterNodeBlocked;
+  }
+  else
+  {
+    qWarning( "getAllSignalsBlocked: Inconsistent blocking detected. This is indicative of a coding error. Assuming that signals are NOT blocked." );
+    return false;
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -384,7 +397,7 @@ void qSlicerTransformFusionModuleWidget::updateButtons()
     return;
   }
 
-  bool conditionsForCurrentFusionMode = d->logic()->ConditionsForFusion( pNode );
+  bool conditionsForCurrentFusionMode = d->logic()->IsTransformFusionPossible( pNode );
   if ( conditionsForCurrentFusionMode )
   {
     d->updateButton->setEnabled( true );
@@ -465,7 +478,7 @@ void qSlicerTransformFusionModuleWidget::onActionUpdateAuto()
   }
   
   bool verboseConditionChecking = true;
-  bool conditionsMetForFusion = d->logic()->ConditionsForFusion( pNode, verboseConditionChecking );
+  bool conditionsMetForFusion = d->logic()->IsTransformFusionPossible( pNode, verboseConditionChecking );
   if ( conditionsMetForFusion == true )
   {
     pNode->SetUpdateMode( vtkMRMLTransformFusionNode::UPDATE_MODE_AUTO );
@@ -495,7 +508,7 @@ void qSlicerTransformFusionModuleWidget::onActionUpdateTimed()
 
   // don't start timed updates unless the conditions for updating are met
   bool verboseConditionChecking = true;
-  bool conditionsMetForFusion = d->logic()->ConditionsForFusion( pNode, verboseConditionChecking );
+  bool conditionsMetForFusion = d->logic()->IsTransformFusionPossible( pNode, verboseConditionChecking );
   if ( conditionsMetForFusion == true )
   {
     updateTimer->start();
@@ -544,10 +557,10 @@ void qSlicerTransformFusionModuleWidget::singleUpdate()
   }
 
   bool verboseConditionChecking = true;
-  bool conditionsMetForFusion = d->logic()->ConditionsForFusion( pNode, verboseConditionChecking );
+  bool conditionsMetForFusion = d->logic()->IsTransformFusionPossible( pNode, verboseConditionChecking );
   if (conditionsMetForFusion == true)
   {
-    d->logic()->Fuse( pNode );
+    d->logic()->UpdateOutputTransform( pNode );
   }
 }
 
@@ -565,7 +578,7 @@ void qSlicerTransformFusionModuleWidget::handleEventAutoUpdate()
   if ( pNode->GetUpdateMode() == vtkMRMLTransformFusionNode::UPDATE_MODE_AUTO )
   {
     bool verboseConditionChecking = true;
-    if (d->logic()->ConditionsForFusion(pNode,verboseConditionChecking) == true)
+    if (d->logic()->IsTransformFusionPossible(pNode,verboseConditionChecking) == true)
     {
       singleUpdate();
     }
@@ -590,7 +603,7 @@ void qSlicerTransformFusionModuleWidget::handleEventTimedUpdate()
   }
   
   bool verboseWarnings = false;
-  bool conditionsMetForFusion = d->logic()->ConditionsForFusion( pNode, verboseWarnings );
+  bool conditionsMetForFusion = d->logic()->IsTransformFusionPossible( pNode, verboseWarnings );
   if ( pNode->GetUpdateMode() == vtkMRMLTransformFusionNode::UPDATE_MODE_TIMED &&
        conditionsMetForFusion == true )
   {

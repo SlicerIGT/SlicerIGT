@@ -62,10 +62,10 @@ public:
   void PrintSelf( ostream& os, vtkIndent indent );
   
 public:
-  void Fuse( vtkMRMLTransformFusionNode* );
-  void FuseQuaternionAverage( vtkMRMLTransformFusionNode* );
-  void FuseConstrainShaftRotation( vtkMRMLTransformFusionNode* );
-  bool ConditionsForFusion( vtkMRMLTransformFusionNode*, bool verbose = false );
+  void UpdateOutputTransform( vtkMRMLTransformFusionNode* );
+  void QuaternionAverage( vtkMRMLTransformFusionNode* );
+  void ConstrainShaftRotation( vtkMRMLTransformFusionNode* );
+  bool IsTransformFusionPossible( vtkMRMLTransformFusionNode*, bool verbose = false );
   
 protected:
   vtkSlicerTransformFusionLogic();
@@ -82,7 +82,7 @@ private:
   
   // these helper functions should only be used by fusion modes themselves, and are therefore private
   void TransformVectorInputToResting ( vtkMRMLTransformFusionNode* pNode, const double input[ 3 ], double resting[ 3 ]);
-  vtkSmartPointer< vtkTransform > GetRestingToReferenceRotationTransform( vtkMRMLTransformFusionNode* pNode );
+  void GetRestingToReferenceRotationTransform( vtkMRMLTransformFusionNode* pNode, vtkTransform* restingToReferenceRotationOnlyTransform );
   void GetInputToReferenceTranslation( vtkMRMLTransformFusionNode* pNode, double translation[ 3 ] );
 
 };

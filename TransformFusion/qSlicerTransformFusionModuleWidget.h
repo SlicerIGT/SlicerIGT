@@ -55,8 +55,8 @@ public slots:
   void updateInputList();
   void updateRateSpinBoxVisibility();
 
-  void blockAllSignals();
-  void unblockAllSignals();
+  void setSignalsBlocked( bool );
+  bool getSignalsBlocked();
 
 protected slots:
 

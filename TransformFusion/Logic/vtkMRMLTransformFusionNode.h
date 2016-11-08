@@ -53,14 +53,14 @@ public:
     UPDATE_MODE_MANUAL = 0,
     UPDATE_MODE_AUTO,
     UPDATE_MODE_TIMED,
-    UPDATE_MODE_LAST // do not set to this one
+    UPDATE_MODE_LAST // do not set to this type, insert valid types above this line
   };
 
   enum
   {
     FUSION_MODE_QUATERNION_AVERAGE = 0,
     FUSION_MODE_CONSTRAIN_SHAFT_ROTATION,
-    FUSION_MODE_LAST // do not set to this one
+    FUSION_MODE_LAST // do not set to this type, insert valid types above this line
   };
 
   static vtkMRMLTransformFusionNode *New();

@@ -35,10 +35,10 @@
 //----------------------------------------------------------------------------
 // constant strings for MRML reference roles
 // these should not be used outside of this class
-std::string ROLE_INPUT_TRANSFORM     = std::string( "Input Transform" );
-std::string ROLE_RESTING_TRANSFORM   = std::string( "Resting Transform" );
-std::string ROLE_REFERENCE_TRANSFORM = std::string( "Reference Transform" );
-std::string ROLE_OUTPUT_TRANSFORM    = std::string( "Output Transform" );
+const char* ROLE_INPUT_TRANSFORM     = "Input Transform";
+const char* ROLE_RESTING_TRANSFORM   = "Resting Transform";
+const char* ROLE_REFERENCE_TRANSFORM = "Reference Transform";
+const char* ROLE_OUTPUT_TRANSFORM    = "Output Transform";
 
 //----------------------------------------------------------------------------
 vtkMRMLNodeNewMacro( vtkMRMLTransformFusionNode );
@@ -49,10 +49,10 @@ vtkMRMLTransformFusionNode::vtkMRMLTransformFusionNode()
   vtkNew<vtkIntArray> events;
   events->InsertNextValue( vtkCommand::ModifiedEvent );
   events->InsertNextValue( vtkMRMLTransformableNode::TransformModifiedEvent );
-  this->AddNodeReferenceRole( ROLE_INPUT_TRANSFORM.c_str(), NULL, events.GetPointer() );
-  this->AddNodeReferenceRole( ROLE_RESTING_TRANSFORM.c_str(), NULL, events.GetPointer() );
-  this->AddNodeReferenceRole( ROLE_REFERENCE_TRANSFORM.c_str(), NULL, events.GetPointer() );
-  this->AddNodeReferenceRole( ROLE_OUTPUT_TRANSFORM.c_str() );
+  this->AddNodeReferenceRole( ROLE_INPUT_TRANSFORM, NULL, events.GetPointer() );
+  this->AddNodeReferenceRole( ROLE_RESTING_TRANSFORM, NULL, events.GetPointer() );
+  this->AddNodeReferenceRole( ROLE_REFERENCE_TRANSFORM, NULL, events.GetPointer() );
+  this->AddNodeReferenceRole( ROLE_OUTPUT_TRANSFORM );
 
   //Parameters
   this->UpdatesPerSecond = 60;
@@ -87,27 +87,27 @@ void vtkMRMLTransformFusionNode::ReadXMLAttributes( const char** atts )
     }
     else if ( strcmp( attName, "UpdateMode" ) == 0 )
     {
-      int modeAsInt = GetUpdateModeFromString( attName );
+      int modeAsInt = GetUpdateModeFromString( attValue );
       if ( modeAsInt >= 0 && modeAsInt < UPDATE_MODE_LAST)
       {
         this->UpdateMode = modeAsInt;
       }
       else
       {
-        // default
+        vtkWarningMacro("Unrecognized update mode read from MRML node: " << attValue << ". Setting to manual update.")
         this->UpdateMode = UPDATE_MODE_MANUAL;
       }
     }
     else if ( strcmp( attName, "FusionMode" ) == 0 )
     {
-      int modeAsInt = GetFusionModeFromString( attName );
+      int modeAsInt = GetFusionModeFromString( attValue );
       if ( modeAsInt >= 0 && modeAsInt < FUSION_MODE_LAST)
       {
         this->FusionMode = modeAsInt;
       }
       else
       {
-        // default
+        vtkWarningMacro("Unrecognized fusion mode read from MRML node: " << attValue << ". Setting to quaternion average.")
         this->FusionMode = FUSION_MODE_QUATERNION_AVERAGE;
       }
     }
@@ -140,33 +140,34 @@ void vtkMRMLTransformFusionNode::Copy( vtkMRMLNode *anode )
 {
   Superclass::Copy( anode );
   vtkMRMLTransformFusionNode *node = vtkMRMLTransformFusionNode::SafeDownCast( anode );
-  this->DisableModifiedEventOn();
+  int wasModifying = node->StartModify();
   
   this->UpdatesPerSecond = node->UpdatesPerSecond;
   this->UpdateMode = node->UpdateMode;
   this->FusionMode = node->FusionMode;
 
-  this->DisableModifiedEventOff();
-  this->InvokePendingModifiedEvent();
+  node->EndModify( wasModifying );
 }
 
 //------------------------------------------------------------------------------
 void vtkMRMLTransformFusionNode::ProcessMRMLEvents( vtkObject* caller, unsigned long event, void* callData )
 {
   vtkMRMLNode* callerNode = vtkMRMLNode::SafeDownCast( caller );
-  if ( callerNode == NULL ) return;
+  if ( callerNode == NULL )
+  {
+    return;
+  }
   this->InvokeCustomModifiedEvent( InputDataModifiedEvent );
 }
 
 //------------------------------------------------------------------------------
 void vtkMRMLTransformFusionNode::SetFusionMode( int newFusionMode )
 {
-  bool validMode = ( newFusionMode == FUSION_MODE_QUATERNION_AVERAGE ||
-                     newFusionMode == FUSION_MODE_CONSTRAIN_SHAFT_ROTATION );
+  bool validMode = ( newFusionMode >= 0 && newFusionMode < FUSION_MODE_LAST );
   if ( validMode == false )
   {
-    vtkWarningMacro( "Input new fusion mode " << newFusionMode << " is not a valid option. Setting to quaternion average." )
-    newFusionMode = FUSION_MODE_QUATERNION_AVERAGE;
+    vtkWarningMacro( "Input new fusion mode " << newFusionMode << " is not a valid option. No change will be done." )
+    return;
   }
 
   if ( this->FusionMode == newFusionMode )
@@ -182,13 +183,11 @@ void vtkMRMLTransformFusionNode::SetFusionMode( int newFusionMode )
 //----------------------------------------------------------------------------
 void vtkMRMLTransformFusionNode::SetUpdateMode( int newUpdateMode )
 {
-  bool validMode = ( newUpdateMode == UPDATE_MODE_MANUAL ||
-                     newUpdateMode == UPDATE_MODE_AUTO ||
-                     newUpdateMode == UPDATE_MODE_TIMED );
+  bool validMode = ( newUpdateMode >= 0 && newUpdateMode < UPDATE_MODE_LAST );
   if ( validMode == false )
   {
-    vtkWarningMacro( "Input new update mode " << newUpdateMode << " is not a valid option. Setting to manual update." )
-    newUpdateMode = UPDATE_MODE_MANUAL;
+    vtkWarningMacro( "Input new update mode " << newUpdateMode << " is not a valid option. No change will be done." )
+    return;
   }
 
   if ( this->UpdateMode == newUpdateMode )
@@ -204,7 +203,7 @@ void vtkMRMLTransformFusionNode::SetUpdateMode( int newUpdateMode )
 //----------------------------------------------------------------------------
 vtkMRMLLinearTransformNode* vtkMRMLTransformFusionNode::GetRestingTransformNode()
 {
-  return vtkMRMLLinearTransformNode::SafeDownCast( this->GetNodeReference( ROLE_RESTING_TRANSFORM.c_str() ) );
+  return vtkMRMLLinearTransformNode::SafeDownCast( this->GetNodeReference( ROLE_RESTING_TRANSFORM ) );
 }
 
 //----------------------------------------------------------------------------
@@ -215,14 +214,14 @@ void vtkMRMLTransformFusionNode::SetAndObserveRestingTransformNode(vtkMRMLLinear
   {
     nodeID = node->GetID();
   }
-  this->SetAndObserveNodeReferenceID( ROLE_RESTING_TRANSFORM.c_str(), nodeID );
+  this->SetAndObserveNodeReferenceID( ROLE_RESTING_TRANSFORM, nodeID );
   this->InvokeCustomModifiedEvent( vtkMRMLTransformFusionNode::InputDataModifiedEvent );
 }
 
 //----------------------------------------------------------------------------
 vtkMRMLLinearTransformNode* vtkMRMLTransformFusionNode::GetReferenceTransformNode()
 {
-  return vtkMRMLLinearTransformNode::SafeDownCast( this->GetNodeReference( ROLE_REFERENCE_TRANSFORM.c_str() ) );
+  return vtkMRMLLinearTransformNode::SafeDownCast( this->GetNodeReference( ROLE_REFERENCE_TRANSFORM ) );
 }
 
 //----------------------------------------------------------------------------
@@ -233,14 +232,14 @@ void vtkMRMLTransformFusionNode::SetAndObserveReferenceTransformNode( vtkMRMLLin
   {
     nodeID = node->GetID();
   }
-  this->SetAndObserveNodeReferenceID( ROLE_REFERENCE_TRANSFORM.c_str(), nodeID );
+  this->SetAndObserveNodeReferenceID( ROLE_REFERENCE_TRANSFORM, nodeID );
   this->InvokeCustomModifiedEvent( vtkMRMLTransformFusionNode::InputDataModifiedEvent );
 }
 
 //----------------------------------------------------------------------------
 vtkMRMLLinearTransformNode* vtkMRMLTransformFusionNode::GetOutputTransformNode()
 {
-  return vtkMRMLLinearTransformNode::SafeDownCast( this->GetNodeReference(ROLE_OUTPUT_TRANSFORM.c_str() ) );
+  return vtkMRMLLinearTransformNode::SafeDownCast( this->GetNodeReference(ROLE_OUTPUT_TRANSFORM ) );
 }
 
 //----------------------------------------------------------------------------
@@ -251,14 +250,14 @@ void vtkMRMLTransformFusionNode::SetAndObserveOutputTransformNode( vtkMRMLLinear
   {
     nodeID = node->GetID();
   }
-  this->SetNodeReferenceID( ROLE_OUTPUT_TRANSFORM.c_str(), nodeID );
+  this->SetNodeReferenceID( ROLE_OUTPUT_TRANSFORM, nodeID );
   this->InvokeCustomModifiedEvent( InputDataModifiedEvent );
 }
 
 //----------------------------------------------------------------------------
 vtkMRMLLinearTransformNode* vtkMRMLTransformFusionNode::GetSingleInputTransformNode()
 {
-  return vtkMRMLLinearTransformNode::SafeDownCast( this->GetNthNodeReference( ROLE_INPUT_TRANSFORM.c_str(), 0) );
+  return vtkMRMLLinearTransformNode::SafeDownCast( this->GetNthNodeReference( ROLE_INPUT_TRANSFORM, 0) );
 }
 
 //----------------------------------------------------------------------------
@@ -266,21 +265,21 @@ void vtkMRMLTransformFusionNode::SetAndObserveSingleInputTransformNode( vtkMRMLL
 {
   // We want only one transform as input when this function is called.
   // Remove all existing input transforms before setting
-  this->RemoveNodeReferenceIDs( ROLE_INPUT_TRANSFORM.c_str() );
+  this->RemoveNodeReferenceIDs( ROLE_INPUT_TRANSFORM );
   
   const char* nodeID = NULL;
   if ( node )
   {
     nodeID = node->GetID();
   }
-  this->SetAndObserveNthNodeReferenceID( ROLE_INPUT_TRANSFORM.c_str(), 0, nodeID );
+  this->SetAndObserveNthNodeReferenceID( ROLE_INPUT_TRANSFORM, 0, nodeID );
   this->InvokeCustomModifiedEvent( vtkMRMLTransformFusionNode::InputDataModifiedEvent );
 }
 
 //----------------------------------------------------------------------------
 vtkMRMLLinearTransformNode* vtkMRMLTransformFusionNode::GetNthInputTransformNode( int n )
 {
-  return vtkMRMLLinearTransformNode::SafeDownCast( this->GetNthNodeReference( ROLE_INPUT_TRANSFORM.c_str(), n));
+  return vtkMRMLLinearTransformNode::SafeDownCast( this->GetNthNodeReference( ROLE_INPUT_TRANSFORM, n));
 }
 
 //----------------------------------------------------------------------------
@@ -291,21 +290,21 @@ void vtkMRMLTransformFusionNode::AddAndObserveInputTransformNode( vtkMRMLLinearT
   {
     nodeID = node->GetID();
   }
-  this->AddAndObserveNodeReferenceID( ROLE_INPUT_TRANSFORM.c_str(), nodeID );
+  this->AddAndObserveNodeReferenceID( ROLE_INPUT_TRANSFORM, nodeID );
   this->InvokeCustomModifiedEvent( vtkMRMLTransformFusionNode::InputDataModifiedEvent );
 }
 
 //----------------------------------------------------------------------------
 void vtkMRMLTransformFusionNode::RemoveInputTransformNode( int n )
 {
-  this->RemoveNthNodeReferenceID( ROLE_INPUT_TRANSFORM.c_str(), n );
+  this->RemoveNthNodeReferenceID( ROLE_INPUT_TRANSFORM, n );
   this->InvokeCustomModifiedEvent( vtkMRMLTransformFusionNode::InputDataModifiedEvent );
 }
 
 //----------------------------------------------------------------------------
 int vtkMRMLTransformFusionNode::GetNumberOfInputTransformNodes()
 {
-  return this->GetNumberOfNodeReferences( ROLE_INPUT_TRANSFORM.c_str() );
+  return this->GetNumberOfNodeReferences( ROLE_INPUT_TRANSFORM );
 }
 
 //----------------------------------------------------------------------------
@@ -318,8 +317,7 @@ std::string vtkMRMLTransformFusionNode::GetFusionModeAsString( int mode )
   case FUSION_MODE_CONSTRAIN_SHAFT_ROTATION:
     return "Constrain Shaft Rotation";
   default:
-    // cannot output warnings in static functions. Just return unknown.
-    //vtkWarningMacro("Unknown fusion mode provided as input to GetFusionModeAsString: " << mode << ". Returning \"Unknown Fusion Mode\"");
+    vtkGenericWarningMacro("Unknown fusion mode provided as input to GetFusionModeAsString: " << mode << ". Returning \"Unknown Fusion Mode\"");
     return "Unknown Fusion Mode";
   }
 }
@@ -351,8 +349,7 @@ std::string vtkMRMLTransformFusionNode::GetUpdateModeAsString( int mode )
   case UPDATE_MODE_TIMED:
     return "Timed Update";
   default:
-    // cannot output warnings in static functions. Just return unknown.
-    //vtkWarningMacro("Unknown update mode provided as input to GetUpdateModeAsString: " << mode << ". Returning \"Unknown Update Mode\"");
+    vtkGenericWarningMacro("Unknown update mode provided as input to GetUpdateModeAsString: " << mode << ". Returning \"Unknown Update Mode\"");
     return "Unknown Update Mode";
   }
 }
