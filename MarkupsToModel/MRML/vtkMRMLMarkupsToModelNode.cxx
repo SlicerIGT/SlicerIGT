@@ -48,7 +48,7 @@ vtkMRMLMarkupsToModelNode::vtkMRMLMarkupsToModelNode()
   this->ButterflySubdivision = true;
   this->DelaunayAlpha = 0.0;
   this->TubeRadius = 1.0;
-  this->TubeSamplingFrequency = 5;
+  this->TubeSamplePointsBetweenControlPoints = 5;
   this->TubeNumberOfSides = 8;
   this->ModelType = 0;
   this->InterpolationType = 0;
@@ -82,22 +82,21 @@ void vtkMRMLMarkupsToModelNode::WriteXML( ostream& of, int nIndent )
   Superclass::WriteXML(of, nIndent); // This will take care of referenced nodes
   vtkIndent indent(nIndent);
 
-  of << indent << " ModelType =\"" << this->ModelType << "\"";
+  of << indent << " ModelType =\"" << this->GetModelTypeAsString(this->ModelType) << "\"";
   of << indent << " AutoUpdateOutput =\"" << this->AutoUpdateOutput << "\"";
   of << indent << " CleanMarkups =\"" << this->CleanMarkups << "\"";
   of << indent << " ConvexHull =\"" << this->ConvexHull << "\"";
   of << indent << " ButterflySubdivision =\"" << this->ButterflySubdivision << "\"";
   of << indent << " DelaunayAlpha =\"" << this->DelaunayAlpha << "\"";
-  of << indent << " InterpolationType=\"" << this->InterpolationType << "\"";
-  of << indent << " PointParameterType=\"" << this->PointParameterType << "\"";
+  of << indent << " InterpolationType=\"" << this->GetInterpolationTypeAsString(this->InterpolationType) << "\"";
+  of << indent << " PointParameterType=\"" << this->GetPointParameterTypeAsString(this->PointParameterType) << "\"";
   of << indent << " TubeRadius=\"" << this->TubeRadius << "\"";
-  of << indent << " TubeResolutionAround=\"" << this->TubeNumberOfSides << "\"";
-  of << indent << " TubeResolutionLength=\"" << this->TubeSamplingFrequency << "\"";
+  of << indent << " TubeNumberOfSides=\"" << this->TubeNumberOfSides << "\"";
+  of << indent << " TubeSamplePointsBetweenControlPoints=\"" << this->TubeSamplePointsBetweenControlPoints << "\"";
   of << indent << " KochanekBias=\"" << this->KochanekBias << "\"";
   of << indent << " KochanekContinuity=\"" << this->KochanekContinuity << "\"";
   of << indent << " KochanekTension=\"" << this->KochanekTension << "\"";
   of << indent << " PolynomialOrder=\"" << this->PolynomialOrder << "\"";
-
 }
 
 void vtkMRMLMarkupsToModelNode::ReadXMLAttributes( const char** atts )
@@ -116,16 +115,16 @@ void vtkMRMLMarkupsToModelNode::ReadXMLAttributes( const char** atts )
     attValue = *(atts++);
     if ( ! strcmp( attName, "ModelType" ) )
     {
-      int modelType = 0;
-      std::stringstream nameString;
-      nameString << attValue;
-      nameString >> modelType;
-      if (modelType < 0 || modelType >= ModelType_Last)
+      int typeAsInt = GetModelTypeFromString( attValue );
+      if ( typeAsInt >= 0 && typeAsInt < ModelType_Last)
       {
-        vtkWarningMacro("Model type " << modelType << " is invalid. Using 0 (" << GetModelTypeAsString(modelType) << ")");
-        modelType = 0;
+        this->ModelType = typeAsInt;
       }
-      SetModelType(modelType);
+      else
+      {
+        vtkWarningMacro("Unrecognized model type read from MRML node: " << attValue << ". Setting to ClosedSurface.");
+        this->ModelType = this->ClosedSurface;
+      }
     }
     else if ( ! strcmp( attName, "AutoUpdateOutput" ) )
     {
@@ -153,29 +152,29 @@ void vtkMRMLMarkupsToModelNode::ReadXMLAttributes( const char** atts )
     }
     else if ( ! strcmp( attName, "InterpolationType" ) )
     {
-      int interpolationType = 0;
-      std::stringstream nameString;
-      nameString << attValue;
-      nameString >> interpolationType;
-      if (interpolationType < 0 || interpolationType >= InterpolationType_Last)
+      int typeAsInt = GetInterpolationTypeFromString( attValue );
+      if ( typeAsInt >= 0 && typeAsInt < InterpolationType_Last)
       {
-        vtkWarningMacro("Interpolation type " << interpolationType << " is invalid. Using 0 (" << GetInterpolationTypeAsString(interpolationType) << ")");
-        interpolationType = 0;
+        this->InterpolationType = typeAsInt;
       }
-      SetInterpolationType(interpolationType);
+      else
+      {
+        vtkWarningMacro("Unrecognized interpolation type read from MRML node: " << attValue << ". Setting to Linear.");
+        this->InterpolationType = this->Linear;
+      }
     }
     else if ( ! strcmp( attName, "PointParameterType" ) )
     {
-      int pointParameterType = 0;
-      std::stringstream nameString;
-      nameString << attValue;
-      nameString >> pointParameterType;
-      if (pointParameterType < 0 || pointParameterType >= PointParameterType_Last)
+      int typeAsInt = GetPointParameterTypeFromString( attValue );
+      if ( typeAsInt >= 0 && typeAsInt < PointParameterType_Last)
       {
-        vtkWarningMacro("Point parameter type " << pointParameterType << " is invalid. Using 0 (" << GetPointParameterTypeAsString(pointParameterType) << ")");
-        pointParameterType = 0;
+        this->PointParameterType = typeAsInt;
       }
-      SetPointParameterType(pointParameterType);
+      else
+      {
+        vtkWarningMacro("Unrecognized point parameter type read from MRML node: " << attValue << ". Setting to RawIndices.");
+        this->PointParameterType = this->RawIndices;
+      }
     }
     else if ( ! strcmp( attName, "TubeRadius" ) )
     {
@@ -193,13 +192,13 @@ void vtkMRMLMarkupsToModelNode::ReadXMLAttributes( const char** atts )
       nameString >> tubeNumberOfSides;
       SetTubeNumberOfSides(tubeNumberOfSides);
     }
-    else if ( ! strcmp( attName, "TubeSamplingFrequency" ) )
+    else if ( ! strcmp( attName, "TubeSamplePointsBetweenControlPoints" ) )
     {
-      double tubeSamplingFrequency = 0.0;
+      double TubeSamplePointsBetweenControlPoints = 0.0;
       std::stringstream nameString;
       nameString << attValue;
-      nameString >> tubeSamplingFrequency;
-      SetTubeSamplingFrequency(tubeSamplingFrequency);
+      nameString >> TubeSamplePointsBetweenControlPoints;
+      SetTubeSamplePointsBetweenControlPoints(TubeSamplePointsBetweenControlPoints);
     }
     else if ( ! strcmp( attName, "KochanekBias" ) )
     {

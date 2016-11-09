@@ -145,6 +145,9 @@
       </item>
       <item>
        <widget class="QPushButton" name="startPivotButton">
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Start collecting data for pivot calibration. The calibration will be computed and orientation will be appropriately flipped on completion.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
         <property name="text">
          <string>Start Pivot Calibration</string>
         </property>
@@ -154,6 +157,9 @@
        <widget class="QPushButton" name="startSpinButton">
         <property name="enabled">
          <bool>true</bool>
+        </property>
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Start collecting data for spin calibration. The calibration will be computed and orientation will be appropriately flipped on completion.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="text">
          <string>Start Spin Calibration</string>

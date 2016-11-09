@@ -393,6 +393,9 @@
         <property name="minimum">
          <double>1.000000000000000</double>
         </property>
+        <property name="maximum">
+         <double>6.000000000000000</double>
+        </property>
        </widget>
       </item>
       <item row="9" column="2">

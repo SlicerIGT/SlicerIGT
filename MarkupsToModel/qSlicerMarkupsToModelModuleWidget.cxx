@@ -367,7 +367,7 @@ void qSlicerMarkupsToModelModuleWidget::updateParametersToMRMLNode()
   markupsToModelModuleNode->SetButterflySubdivision( d->ButterflySubdivisionCheckBox->isChecked() );
   
   markupsToModelModuleNode->SetTubeRadius( d->TubeRadiusDoubleSpinBox->value() );
-  markupsToModelModuleNode->SetTubeSamplingFrequency( d->TubeSegmentsSpinBox->value() );
+  markupsToModelModuleNode->SetTubeSamplePointsBetweenControlPoints( d->TubeSegmentsSpinBox->value() );
   markupsToModelModuleNode->SetTubeNumberOfSides( d->TubeSidesSpinBox->value() );
   if ( d->LinearInterpolationRadioButton->isChecked() )
   {
@@ -473,7 +473,7 @@ void qSlicerMarkupsToModelModuleWidget::updateFromMRMLNode()
     // curve
     d->TubeRadiusDoubleSpinBox->setValue( MarkupsToModelNode->GetTubeRadius() );
     d->TubeSidesSpinBox->setValue( MarkupsToModelNode->GetTubeNumberOfSides() );
-    d->TubeSegmentsSpinBox->setValue( MarkupsToModelNode->GetTubeSamplingFrequency() );
+    d->TubeSegmentsSpinBox->setValue( MarkupsToModelNode->GetTubeSamplePointsBetweenControlPoints() );
     switch( MarkupsToModelNode->GetInterpolationType() )
     {
     case vtkMRMLMarkupsToModelNode::Linear: d->LinearInterpolationRadioButton->setChecked( 1 ); break;

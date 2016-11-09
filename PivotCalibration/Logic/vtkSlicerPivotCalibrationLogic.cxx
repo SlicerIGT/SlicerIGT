@@ -159,7 +159,7 @@ double vtkSlicerPivotCalibrationLogic::GetMaximumToolOrientationDifferenceDeg()
 }
 
 //---------------------------------------------------------------------------
-bool vtkSlicerPivotCalibrationLogic::ComputePivotCalibration()
+bool vtkSlicerPivotCalibrationLogic::ComputePivotCalibration( bool autoOrient /*=true*/)
 {
   if (this->ToolToReferenceMatrices.size() < 10)
   {
@@ -222,14 +222,17 @@ bool vtkSlicerPivotCalibrationLogic::ComputePivotCalibration()
   this->ToolTipToToolMatrix->SetElement( 0, 3, x[ 0 ] );
   this->ToolTipToToolMatrix->SetElement( 1, 3, x[ 1 ] );
   this->ToolTipToToolMatrix->SetElement( 2, 3, x[ 2 ] );
-  this->UpdateShaftDirection(); // Flip it if necessary
+  if (autoOrient)
+  {
+    this->UpdateShaftDirection(); // Flip it if necessary
+  }
 
   this->ErrorText.empty();
   return true;
 }
 
 //---------------------------------------------------------------------------
-bool vtkSlicerPivotCalibrationLogic::ComputeSpinCalibration( bool snapRotation )
+bool vtkSlicerPivotCalibrationLogic::ComputeSpinCalibration( bool snapRotation /*=false*/, bool autoOrient /*=true*/)
 {
   if ( this->ToolToReferenceMatrices.size() < 10 )
   {
@@ -309,7 +312,10 @@ bool vtkSlicerPivotCalibrationLogic::ComputeSpinCalibration( bool snapRotation )
   }
 
   //set the RMSE
-  this->SpinRMSE = ( A * shaftAxis_ToolTip ).rms();
+  this->SpinRMSE = sqrt( eigenvalues( 0 ) / this->ToolToReferenceMatrices.size() );
+  // Note: This error is the RMS distance from the ideal axis of rotation to the axis of rotation for each instantaneous rotation
+  // This RMS distance can be computed to an angle in the following way: angle = arccos( 1 - SpinRMSE^2 / 2 )
+  // Here we elect to return the RMS distance because this is the quantity that was actually minimized in the calculation
 
 
   // If the secondary axis 1 is parallel to the shaft axis in the tooltip frame, then use secondary axis 2
@@ -367,7 +373,10 @@ bool vtkSlicerPivotCalibrationLogic::ComputeSpinCalibration( bool snapRotation )
       this->ToolTipToToolMatrix->SetElement( i, j, Rotation[ i ][ j ] );
     }
   }
-  this->UpdateShaftDirection(); // Flip it if necessary
+  if (autoOrient)
+  {
+    this->UpdateShaftDirection(); // Flip it if necessary
+  }
   
   this->ErrorText.empty();
   return true;
