@@ -1,12 +1,13 @@
 // Watchdog MRML includes
 #include "vtkMRMLWatchdogNode.h"
+#include "vtkMRMLWatchdogDisplayNode.h"
 #include "vtkMRMLDisplayableNode.h"
 
 // Other MRML includes
 #include "vtkMRMLNode.h"
 
 // VTK includes
-#include <vtkCallbackCommand.h> 
+#include <vtkCallbackCommand.h>
 #include <vtkNew.h>
 #include <vtkObjectFactory.h>
 
@@ -16,7 +17,7 @@
 
 static const char WATCHED_NODE_REFERENCE_ROLE_NAME[]="watchedNode";
 
-vtkMRMLNodeNewMacro(vtkMRMLWatchdogNode); 
+vtkMRMLNodeNewMacro(vtkMRMLWatchdogNode);
 
 //----------------------------------------------------------------------------
 class vtkMRMLWatchdogNode::vtkInternal
@@ -47,7 +48,7 @@ public:
 
 vtkMRMLWatchdogNode::vtkInternal::vtkInternal()
 {
-} 
+}
 
 //----------------------------------------------------------------------------
 vtkMRMLWatchdogNode::vtkMRMLWatchdogNode()
@@ -143,7 +144,7 @@ void vtkMRMLWatchdogNode::ReadXMLAttributes( const char** atts )
         std::stringstream ss;
         ss << attribute;
         double updateTimeToleranceSec=1.0;
-        ss >> updateTimeToleranceSec; 
+        ss >> updateTimeToleranceSec;
         this->Internal->WatchedNodes[watchedNodeIndex].updateTimeToleranceSec = updateTimeToleranceSec;
         watchedNodeIndex++;
       }
@@ -154,7 +155,7 @@ void vtkMRMLWatchdogNode::ReadXMLAttributes( const char** atts )
 
 //----------------------------------------------------------------------------
 void vtkMRMLWatchdogNode::Copy( vtkMRMLNode *anode )
-{  
+{
   vtkMRMLWatchdogNode* srcNode = vtkMRMLWatchdogNode::SafeDownCast(anode);
   if (srcNode==NULL)
   {
@@ -265,7 +266,7 @@ int vtkMRMLWatchdogNode::GetWatchedNodeIndex(vtkMRMLNode* watchedNode)
   }
   // not found
   return -1;
-} 
+}
 
 
 //----------------------------------------------------------------------------
@@ -314,7 +315,7 @@ void vtkMRMLWatchdogNode::SetWatchedNodeWarningMessage(int watchedNodeIndex, con
   this->Modified();
 }
 
-//---------------------------------------------------------------------------- 
+//----------------------------------------------------------------------------
 double vtkMRMLWatchdogNode::GetWatchedNodeUpdateTimeToleranceSec(int watchedNodeIndex)
 {
   if(watchedNodeIndex<0 || static_cast<unsigned int>(watchedNodeIndex)>=this->Internal->WatchedNodes.size())
@@ -418,7 +419,7 @@ void vtkMRMLWatchdogNode::ProcessMRMLEvents ( vtkObject *caller, unsigned long e
       this->Internal->WatchedNodes[watchedNodeIndex].lastUpdateTimeSec=vtkTimerLog::GetUniversalTime();
       break;
     }
-  } 
+  }
 }
 
 //---------------------------------------------------------------------------
@@ -471,4 +472,22 @@ void vtkMRMLWatchdogNode::OnNodeReferenceRemoved(vtkMRMLNodeReference *reference
     }
   }
   this->Superclass::OnNodeReferenceRemoved(reference);
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLWatchdogNode::CreateDefaultDisplayNodes()
+{
+  if (vtkMRMLWatchdogDisplayNode::SafeDownCast(this->GetDisplayNode()))
+  {
+    // Display node already exists
+    return;
+  }
+  if (this->GetScene() == NULL)
+  {
+    vtkErrorMacro("vtkMRMLWatchdogNode::CreateDefaultDisplayNodes failed: Scene is invalid");
+    return;
+  }
+  vtkNew<vtkMRMLWatchdogDisplayNode> displayNode;
+  this->GetScene()->AddNode(displayNode.GetPointer());
+  this->SetAndObserveDisplayNodeID(displayNode->GetID());
 }

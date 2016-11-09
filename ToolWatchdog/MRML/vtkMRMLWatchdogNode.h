@@ -54,6 +54,9 @@ public:
   /// Copy the node's attributes to this object
   virtual void Copy(vtkMRMLNode *node);
   
+  /// Create and observe default vtkMRMLWatchdogDisplayNode display node
+  virtual void CreateDefaultDisplayNodes();
+
   //--------------------------------------------------------------------------
   /// Watchdog-specific methods
   //--------------------------------------------------------------------------
