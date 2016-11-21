@@ -1036,11 +1036,10 @@ class ViewpointInstance:
     middleYInTumorMm = ( targetModelBoundingBox[2] + targetModelBoundingBox[3]) / 2
     middleZInTumorMm = ( targetModelBoundingBox[4] + targetModelBoundingBox[5]) / 2
     middlePInTumorMm = 1 # represent as a homogeneous point
-    middlePointInTumorMm4 = [middleXInTumorMm,middleYInTumorMm,middleZInTumorMm,middlePInTumorMm]
-    middlePointInRASMm4 = [0,0,0,1]; # placeholder values
-    targetModelNode.TransformPointToWorld(middlePointInTumorMm4,middlePointInRASMm4)
+    middlePointInTumorMm3 = [middleXInTumorMm,middleYInTumorMm,middleZInTumorMm]
+    middlePointInRASMm3 = [0,0,0]; # placeholder values
+    targetModelNode.TransformPointToWorld(middlePointInTumorMm3,middlePointInRASMm3)
     # reduce dimensionality back to 3
-    middlePointInRASMm3 = [middlePointInRASMm4[0], middlePointInRASMm4[1], middlePointInRASMm4[2]]
     self.bullseyeTargetModelMiddleInRASMm = middlePointInRASMm3
 
   def bullseyeChangeTo3DOFMode(self):
