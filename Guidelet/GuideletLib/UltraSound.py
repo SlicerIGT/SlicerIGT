@@ -209,8 +209,11 @@ class UltraSound(object):
       self.guideletParent.connectorNode.Start()
 
   def setImageMinMaxLevel(self, minLevel, maxLevel):
-    self.liveUltrasoundNode_Reference.GetDisplayNode().SetAutoWindowLevel(0)
-    self.liveUltrasoundNode_Reference.GetDisplayNode().SetWindowLevelMinMax(minLevel,maxLevel)
+    liveUsDisplayNode = self.liveUltrasoundNode_Reference.GetDisplayNode()
+    if liveUsDisplayNode is None:
+      return
+    liveUsDisplayNode.SetAutoWindowLevel(0)
+    liveUsDisplayNode.SetWindowLevelMinMax(minLevel,maxLevel)
 
   def onBrightnessContrastNormalClicked(self):
     logging.debug('onBrightnessContrastNormalClicked')
