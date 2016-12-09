@@ -59,15 +59,15 @@ void vtkSlicerVolumeResliceDriverLogic
 ::PrintSelf( ostream& os, vtkIndent indent )
 {
   this->Superclass::PrintSelf(os, indent);
-  
+
   os << indent << "Number of observed nodes: " << this->ObservedNodes.size() << std::endl;
   os << indent << "Observed nodes:";
-  
+
   for ( unsigned int i = 0; i < this->ObservedNodes.size(); ++ i )
     {
     os << " " << this->ObservedNodes[ i ]->GetID();
     }
-  
+
   os << std::endl;
 }
 
@@ -82,17 +82,17 @@ void vtkSlicerVolumeResliceDriverLogic
     sliceNode->RemoveAttribute( VOLUMERESLICEDRIVER_DRIVER_ATTRIBUTE );
     return;
     }
-  
+
   vtkMRMLTransformableNode* tnode = vtkMRMLTransformableNode::SafeDownCast( node );
   if ( tnode == NULL )
     {
     sliceNode->RemoveAttribute( VOLUMERESLICEDRIVER_DRIVER_ATTRIBUTE );
     return;
     }
-  
+
   sliceNode->SetAttribute( VOLUMERESLICEDRIVER_DRIVER_ATTRIBUTE, nodeID.c_str() );
   this->AddObservedNode( tnode );
-  
+
   this->UpdateSliceIfObserved( sliceNode );
 }
 
@@ -104,11 +104,11 @@ void vtkSlicerVolumeResliceDriverLogic
     {
     return;
     }
-  
+
   std::stringstream modeSS;
   modeSS << mode;
   sliceNode->SetAttribute( VOLUMERESLICEDRIVER_MODE_ATTRIBUTE, modeSS.str().c_str() );
-  
+
   this->UpdateSliceIfObserved( sliceNode );
 }
 
@@ -120,7 +120,7 @@ void vtkSlicerVolumeResliceDriverLogic
     {
     return;
     }
-  
+
   std::stringstream rotationSs;
   rotationSs << rotation;
   sliceNode->SetAttribute( VOLUMERESLICEDRIVER_ROTATION_ATTRIBUTE, rotationSs.str().c_str() );
@@ -136,7 +136,7 @@ void vtkSlicerVolumeResliceDriverLogic
     {
     return;
     }
-  
+
   std::stringstream flipSs;
   flipSs << flip;
   sliceNode->SetAttribute( VOLUMERESLICEDRIVER_FLIP_ATTRIBUTE, flipSs.str().c_str() );
@@ -155,18 +155,18 @@ void vtkSlicerVolumeResliceDriverLogic
       return;
       }
     }
-  
+
   int wasModifying = this->StartModify();
-  
+
   vtkMRMLTransformableNode* newNode = NULL;
-  
+
   vtkSmartPointer< vtkIntArray > events = vtkSmartPointer< vtkIntArray >::New();
   events->InsertNextValue( vtkMRMLTransformableNode::TransformModifiedEvent );
   events->InsertNextValue( vtkCommand::ModifiedEvent );
   events->InsertNextValue( vtkMRMLVolumeNode::ImageDataModifiedEvent );
   vtkSetAndObserveMRMLNodeEventsMacro( newNode, node, events );
   this->ObservedNodes.push_back( newNode );
-  
+
   this->EndModify( wasModifying );
 }
 
@@ -179,7 +179,7 @@ void vtkSlicerVolumeResliceDriverLogic
     {
     vtkSetAndObserveMRMLNodeMacro( this->ObservedNodes[ i ], 0 );
     }
-  
+
   this->ObservedNodes.clear();
 }
 
@@ -212,7 +212,7 @@ void vtkSlicerVolumeResliceDriverLogic
     }
 
   // Check if any of the slice nodes contain driver transforms that need to be observed.
-  
+
   vtkCollection* sliceNodes = this->GetMRMLScene()->GetNodesByClass( "vtkMRMLSliceNode" );
   vtkCollectionIterator* sliceIt = vtkCollectionIterator::New();
   sliceIt->SetCollection( sliceNodes );
@@ -242,7 +242,7 @@ void vtkSlicerVolumeResliceDriverLogic
     }
   sliceIt->Delete();
   sliceNodes->Delete();
-  
+
   this->Modified();
 }
 
@@ -275,25 +275,25 @@ void vtkSlicerVolumeResliceDriverLogic
     {
     return;
     }
-  
+
   if (    event != vtkMRMLTransformableNode::TransformModifiedEvent
        && event != vtkCommand::ModifiedEvent
        && event != vtkMRMLVolumeNode::ImageDataModifiedEvent )
     {
     this->Superclass::ProcessMRMLNodesEvents( caller, event, callData );
     }
-  
+
   vtkMRMLTransformableNode* callerNode = vtkMRMLTransformableNode::SafeDownCast( caller );
   if ( callerNode == NULL )
     {
     return;
     }
-  
+
   std::string callerNodeID( callerNode->GetID() );
-  
+
   //vtkMRMLNode* node = 0;
   std::vector< vtkMRMLSliceNode* > SlicesToDrive;
-  
+
   vtkCollection* sliceNodes = this->GetMRMLScene()->GetNodesByClass( "vtkMRMLSliceNode" );
   vtkCollectionIterator* sliceIt = vtkCollectionIterator::New();
   sliceIt->SetCollection( sliceNodes );
@@ -312,7 +312,7 @@ void vtkSlicerVolumeResliceDriverLogic
     }
   sliceIt->Delete();
   sliceNodes->Delete();
-  
+
   for ( unsigned int i = 0; i < SlicesToDrive.size(); ++ i )
     {
     this->UpdateSliceByTransformableNode( callerNode, SlicesToDrive[ i ] );
@@ -329,7 +329,7 @@ void vtkSlicerVolumeResliceDriverLogic
     {
     this->UpdateSliceByTransformNode( transformNode, sliceNode );
     }
-  
+
   vtkMRMLScalarVolumeNode* imageNode = vtkMRMLScalarVolumeNode::SafeDownCast( tnode );
   if ( imageNode != NULL )
     {
@@ -352,7 +352,7 @@ void vtkSlicerVolumeResliceDriverLogic
     {
     return;
     }
-  
+
   vtkSmartPointer< vtkMatrix4x4 > transform = vtkSmartPointer< vtkMatrix4x4 >::New();
   transform->Identity();
   int getTransf = tnode->GetMatrixTransformToWorld( transform );
@@ -561,7 +561,7 @@ void vtkSlicerVolumeResliceDriverLogic
  * driver object (in-plane, transverse, etc.)
  */
 void vtkSlicerVolumeResliceDriverLogic
-::UpdateSlice( vtkMatrix4x4* driverToRASMatrix, vtkMRMLSliceNode* sliceNode )
+::UpdateSlice(vtkMatrix4x4* driverToRASMatrix, vtkMRMLSliceNode* sliceNode)
 {
   // Default values determining the default SliceToDriver transform.
   int mode = MODE_NONE;
@@ -571,37 +571,78 @@ void vtkSlicerVolumeResliceDriverLogic
 
   // Default values for SliceToDriver can be modified by driver node attributes. Read them.
 
-  const char* modeCC = sliceNode->GetAttribute( VOLUMERESLICEDRIVER_MODE_ATTRIBUTE );
-  if ( modeCC != NULL )
+  const char* modeCC = sliceNode->GetAttribute(VOLUMERESLICEDRIVER_MODE_ATTRIBUTE);
+  if (modeCC != NULL)
   {
-    std::stringstream modeSS( modeCC );
+    std::stringstream modeSS(modeCC);
     modeSS >> mode;
   }
 
-  const char* rotationCC = sliceNode->GetAttribute( VOLUMERESLICEDRIVER_ROTATION_ATTRIBUTE );
-  if ( rotationCC != NULL )
+  const char* rotationCC = sliceNode->GetAttribute(VOLUMERESLICEDRIVER_ROTATION_ATTRIBUTE);
+  if (rotationCC != NULL)
   {
-    std::stringstream rotationSS( rotationCC );
+    std::stringstream rotationSS(rotationCC);
     rotationSS >> rotation;
   }
 
-  const char* flipCC = sliceNode->GetAttribute( VOLUMERESLICEDRIVER_FLIP_ATTRIBUTE );
-  if ( flipCC != NULL )
+  const char* flipCC = sliceNode->GetAttribute(VOLUMERESLICEDRIVER_FLIP_ATTRIBUTE);
+  if (flipCC != NULL)
   {
-    std::stringstream flipSS( flipCC );
+    std::stringstream flipSS(flipCC);
     flipSS >> flip;
   }
 
-  
-  float px = driverToRASMatrix->Element[0][3];
-  float py = driverToRASMatrix->Element[1][3];
-  float pz = driverToRASMatrix->Element[2][3];
-  
+  // SliceToRAS orientation matrix part must be orthonormal
+  vtkNew<vtkMatrix4x4> driverToRASMatrixOrthoNormalized;
+  double sliceX[3] = { driverToRASMatrix->GetElement(0, 0), driverToRASMatrix->GetElement(1, 0), driverToRASMatrix->GetElement(2, 0) };
+  double sliceY[3] = { driverToRASMatrix->GetElement(0, 1), driverToRASMatrix->GetElement(1, 1), driverToRASMatrix->GetElement(2, 1) };
+  double sliceZ[3] = { driverToRASMatrix->GetElement(0, 2), driverToRASMatrix->GetElement(1, 2), driverToRASMatrix->GetElement(2, 2) };
+  const double tolerance = 0.002; // allows 90+/-0.1 deg angle between axes
+  if (fabs(vtkMath::Dot(sliceX, sliceY)) < tolerance
+    && fabs(vtkMath::Dot(sliceX, sliceZ)) < tolerance
+    && fabs(vtkMath::Dot(sliceY, sliceZ)) < tolerance)
+    {
+    // Vectors are orthogonal, we just have to make sure they are normalized as well
+    for (int i = 0; i < 3; i++)
+      {
+      // Normalize i-th column vector
+      double driverColumn[3] = { driverToRASMatrix->GetElement(0, i), driverToRASMatrix->GetElement(1, i), driverToRASMatrix->GetElement(2, i) };
+      vtkMath::Normalize(driverColumn);
+      driverToRASMatrixOrthoNormalized->SetElement(0, i, driverColumn[0]);
+      driverToRASMatrixOrthoNormalized->SetElement(1, i, driverColumn[1]);
+      driverToRASMatrixOrthoNormalized->SetElement(2, i, driverColumn[2]);
+      // Copy i-th position component
+      driverToRASMatrixOrthoNormalized->SetElement(i, 3, driverToRASMatrix->GetElement(i, 3));
+      }
+    }
+  else
+    {
+    vtkWarningMacro("Volume reslice driver matrix is not orthonormal. Matrix will be orthonormalized before set in SliceToRAS.");
+    double in[3][3];
+    double out[3][3];
+    for (int i = 0; i < 3; i++)
+      {
+      in[i][0] = driverToRASMatrix->Element[i][0];
+      in[i][1] = driverToRASMatrix->Element[i][1];
+      in[i][2] = driverToRASMatrix->Element[i][2];
+      }
+    // Despite its name, vtkMath::Orthogonalize3x3 performs orthonormalization,
+    // not just orthogonalization.
+    vtkMath::Orthogonalize3x3(in, out);
+    for (int i = 0; i < 3; i++)
+      {
+      driverToRASMatrixOrthoNormalized->Element[i][0] = out[i][0];
+      driverToRASMatrixOrthoNormalized->Element[i][1] = out[i][1];
+      driverToRASMatrixOrthoNormalized->Element[i][2] = out[i][2];
+      // Copy i-th position component
+      driverToRASMatrixOrthoNormalized->SetElement(i, 3, driverToRASMatrix->GetElement(i, 3));
+      }
+    }
 
   vtkSmartPointer< vtkTransform > driverToRASTransform = vtkSmartPointer< vtkTransform >::New();
-  driverToRASTransform->SetMatrix( driverToRASMatrix );
+  driverToRASTransform->SetMatrix(driverToRASMatrixOrthoNormalized.GetPointer());
   driverToRASTransform->Update();
-  
+
   double driverToRasTranslationVector[ 3 ];
   driverToRASTransform->GetPosition( driverToRasTranslationVector );
   vtkSmartPointer< vtkTransform > driverToRasTranslation = vtkSmartPointer< vtkTransform >::New();
@@ -619,7 +660,7 @@ void vtkSlicerVolumeResliceDriverLogic
 
   vtkSmartPointer< vtkTransform > sliceToDriverTransform = vtkSmartPointer< vtkTransform >::New();
   sliceToDriverTransform->Identity();
-  
+
   vtkSmartPointer< vtkTransform > sliceToRASTransform = vtkSmartPointer< vtkTransform >::New();
   sliceToRASTransform->Identity();
 
@@ -686,15 +727,15 @@ void vtkSlicerVolumeResliceDriverLogic
     {
     return;
     }
-  
+
   const char* driverCC = sliceNode->GetAttribute( VOLUMERESLICEDRIVER_DRIVER_ATTRIBUTE );
   if ( driverCC == NULL )
     {
     return;
     }
-  
+
   vtkMRMLNode* node = this->GetMRMLScene()->GetNodeByID( driverCC );
-  
+
   sliceNode->Modified();
   node->InvokeEvent( vtkMRMLTransformableNode::TransformModifiedEvent );
 }
