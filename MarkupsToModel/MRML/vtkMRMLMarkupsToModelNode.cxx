@@ -50,6 +50,7 @@ vtkMRMLMarkupsToModelNode::vtkMRMLMarkupsToModelNode()
   this->TubeRadius = 1.0;
   this->TubeSegmentsBetweenControlPoints = 5;
   this->TubeNumberOfSides = 8;
+  this->TubeLoop = false;
   this->ModelType = 0;
   this->InterpolationType = 0;
   this->PointParameterType = 0;
@@ -93,6 +94,7 @@ void vtkMRMLMarkupsToModelNode::WriteXML( ostream& of, int nIndent )
   of << indent << " TubeRadius=\"" << this->TubeRadius << "\"";
   of << indent << " TubeNumberOfSides=\"" << this->TubeNumberOfSides << "\"";
   of << indent << " TubeSegmentsBetweenControlPoints=\"" << this->TubeSegmentsBetweenControlPoints << "\"";
+  of << indent << " TubeLoop=\"" << ( this->TubeLoop ? "true" : "false" ) << "\"";
   of << indent << " KochanekBias=\"" << this->KochanekBias << "\"";
   of << indent << " KochanekContinuity=\"" << this->KochanekContinuity << "\"";
   of << indent << " KochanekTension=\"" << this->KochanekTension << "\"";
@@ -199,6 +201,11 @@ void vtkMRMLMarkupsToModelNode::ReadXMLAttributes( const char** atts )
       nameString << attValue;
       nameString >> tubeSegmentsBetweenControlPoints;
       SetTubeSegmentsBetweenControlPoints(tubeSegmentsBetweenControlPoints);
+    }
+    else if ( ! strcmp( attName, "TubeLoop" ) )
+    {
+      bool isTrue = !strcmp( attValue, "true" );
+      SetTubeLoop( isTrue );
     }
     else if ( ! strcmp( attName, "KochanekBias" ) )
     {
