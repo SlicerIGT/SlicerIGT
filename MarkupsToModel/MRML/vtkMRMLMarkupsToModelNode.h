@@ -125,8 +125,8 @@ public:
   vtkSetMacro( PointParameterType, int );
   vtkGetMacro( TubeRadius, double );
   vtkSetMacro( TubeRadius, double );
-  vtkGetMacro( TubeSamplePointsBetweenControlPoints, int );
-  vtkSetMacro( TubeSamplePointsBetweenControlPoints, int );
+  vtkGetMacro( TubeSegmentsBetweenControlPoints, int );
+  vtkSetMacro( TubeSegmentsBetweenControlPoints, int );
   vtkGetMacro( TubeNumberOfSides, int );
   vtkSetMacro( TubeNumberOfSides, int );
   
@@ -181,7 +181,7 @@ private:
   double DelaunayAlpha;
   bool   ConvexHull;
   double TubeRadius;
-  int    TubeSamplePointsBetweenControlPoints;
+  int    TubeSegmentsBetweenControlPoints;
   int    TubeNumberOfSides;
   double KochanekTension;
   double KochanekBias; 

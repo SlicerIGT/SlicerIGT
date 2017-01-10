@@ -48,7 +48,7 @@ vtkMRMLMarkupsToModelNode::vtkMRMLMarkupsToModelNode()
   this->ButterflySubdivision = true;
   this->DelaunayAlpha = 0.0;
   this->TubeRadius = 1.0;
-  this->TubeSamplePointsBetweenControlPoints = 5;
+  this->TubeSegmentsBetweenControlPoints = 5;
   this->TubeNumberOfSides = 8;
   this->ModelType = 0;
   this->InterpolationType = 0;
@@ -92,7 +92,7 @@ void vtkMRMLMarkupsToModelNode::WriteXML( ostream& of, int nIndent )
   of << indent << " PointParameterType=\"" << this->GetPointParameterTypeAsString(this->PointParameterType) << "\"";
   of << indent << " TubeRadius=\"" << this->TubeRadius << "\"";
   of << indent << " TubeNumberOfSides=\"" << this->TubeNumberOfSides << "\"";
-  of << indent << " TubeSamplePointsBetweenControlPoints=\"" << this->TubeSamplePointsBetweenControlPoints << "\"";
+  of << indent << " TubeSegmentsBetweenControlPoints=\"" << this->TubeSegmentsBetweenControlPoints << "\"";
   of << indent << " KochanekBias=\"" << this->KochanekBias << "\"";
   of << indent << " KochanekContinuity=\"" << this->KochanekContinuity << "\"";
   of << indent << " KochanekTension=\"" << this->KochanekTension << "\"";
@@ -192,13 +192,13 @@ void vtkMRMLMarkupsToModelNode::ReadXMLAttributes( const char** atts )
       nameString >> tubeNumberOfSides;
       SetTubeNumberOfSides(tubeNumberOfSides);
     }
-    else if ( ! strcmp( attName, "TubeSamplePointsBetweenControlPoints" ) )
+    else if ( ! strcmp( attName, "TubeSegmentsBetweenControlPoints" ) )
     {
-      double TubeSamplePointsBetweenControlPoints = 0.0;
+      double tubeSegmentsBetweenControlPoints = 0.0;
       std::stringstream nameString;
       nameString << attValue;
-      nameString >> TubeSamplePointsBetweenControlPoints;
-      SetTubeSamplePointsBetweenControlPoints(TubeSamplePointsBetweenControlPoints);
+      nameString >> tubeSegmentsBetweenControlPoints;
+      SetTubeSegmentsBetweenControlPoints(tubeSegmentsBetweenControlPoints);
     }
     else if ( ! strcmp( attName, "KochanekBias" ) )
     {
