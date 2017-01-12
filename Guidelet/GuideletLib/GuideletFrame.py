@@ -132,6 +132,11 @@ class Guidelet(object):
     return UltraSound(self)
 
   def cleanup(self):
+    self.sliceletDockWidget.setWidget(None)
+    self.sliceletPanel = None
+    self.mainWindow.removeDockWidget(self.sliceletDockWidget)
+    self.sliceletDockWidget = None
+
     self.ultrasound.cleanup()
     self.disconnect()
 
@@ -297,9 +302,7 @@ class Guidelet(object):
     self.triple3dCustomLayoutId=506
     layoutLogic.GetLayoutNode().AddLayoutDescription(self.triple3dCustomLayoutId, customLayout)
 
-
   def setupScene(self):
-
     # setup feature scene
     self.ultrasound.setupScene()
 
@@ -359,7 +362,6 @@ class Guidelet(object):
     self.saveDirectoryLineEdit.disconnect('editingFinished()', self.onSaveDirectoryPreferencesChanged)
 
   def showFullScreen(self):
-
     # We hide all toolbars, etc. which is inconvenient as a default startup setting,
     # therefore disable saving of window setup.
     settings = qt.QSettings()
@@ -470,7 +472,6 @@ class Guidelet(object):
       self.connectorNodeObserverTagList = []
 
   def addConnectorObservers(self):
-
     # Force initial update
     if self.connectorNode.GetState() == slicer.vtkMRMLIGTLConnectorNode.STATE_CONNECTED:
       self.onConnectorNodeConnected(None, None, True)
