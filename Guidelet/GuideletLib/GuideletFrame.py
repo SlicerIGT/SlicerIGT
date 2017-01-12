@@ -181,17 +181,22 @@ class Guidelet(object):
     self.advancedLayout.addRow(self.showFullSlicerInterfaceButton)
 
     self.showGuideletFullscreenButton = qt.QPushButton()
-    self.showGuideletFullscreenButton.setText("Show guidelet in full screen")
+    self.showGuideletFullscreenButton.setText("Show Guidelet in full screen")
     self.advancedLayout.addRow(self.showGuideletFullscreenButton)
 
     self.saveSceneButton = qt.QPushButton()
-    self.saveSceneButton.setText("Save slicelet scene")
+    self.saveSceneButton.setText("Save Guidelet scene")
     self.advancedLayout.addRow(self.saveSceneButton)
 
-    self.saveDirectoryLineEdit = qt.QLineEdit()
+    self.saveDirectoryLineEdit = ctk.ctkPathLineEdit()
     node = self.logic.getParameterNode()
     sceneSaveDirectory = node.GetParameter('SavedScenesDirectory')
-    self.saveDirectoryLineEdit.setText(sceneSaveDirectory)
+    self.saveDirectoryLineEdit.currentPath = sceneSaveDirectory
+    self.saveDirectoryLineEdit.filters = ctk.ctkPathLineEdit.Dirs
+    self.saveDirectoryLineEdit.options = ctk.ctkPathLineEdit.DontUseSheet
+    self.saveDirectoryLineEdit.options = ctk.ctkPathLineEdit.ShowDirsOnly
+    self.saveDirectoryLineEdit.showHistoryButton = False
+
     saveLabel = qt.QLabel()
     saveLabel.setText("Save scene directory:")
     hbox = qt.QHBoxLayout()
@@ -304,7 +309,7 @@ class Guidelet(object):
     self.ultrasound.setupScene()
 
   def onSaveDirectoryPreferencesChanged(self):
-    sceneSaveDirectory = self.saveDirectoryLineEdit.text
+    sceneSaveDirectory = str(self.saveDirectoryLineEdit.currentPath)
     self.logic.updateSettings({'SavedScenesDirectory' : sceneSaveDirectory}, self.configurationName)
     node = self.logic.getParameterNode()
     self.logic.updateParameterNodeFromUserPreferences(node, {'SavedScenesDirectory' : sceneSaveDirectory})
@@ -341,7 +346,7 @@ class Guidelet(object):
     self.linkInputSelector.connect("nodeActivated(vtkMRMLNode*)", self.onConnectorNodeActivated)
     self.viewSelectorComboBox.connect('activated(int)', self.onViewSelect)
     self.exitButton.connect('clicked()', self.onExitButtonClicked)
-    self.saveDirectoryLineEdit.connect('editingFinished()', self.onSaveDirectoryPreferencesChanged)
+    self.saveDirectoryLineEdit.connect('currentPathChanged(QString)', self.onSaveDirectoryPreferencesChanged)
 
   def disconnect(self):
     self.removeConnectorObservers()
@@ -356,7 +361,7 @@ class Guidelet(object):
     self.linkInputSelector.disconnect("nodeActivated(vtkMRMLNode*)", self.onConnectorNodeActivated)
     self.viewSelectorComboBox.disconnect('activated(int)', self.onViewSelect)
     self.exitButton.disconnect('clicked()', self.onExitButtonClicked)
-    self.saveDirectoryLineEdit.disconnect('editingFinished()', self.onSaveDirectoryPreferencesChanged)
+    self.saveDirectoryLineEdit.disconnect('currentPathChanged(QString)', self.onSaveDirectoryPreferencesChanged)
 
   def showFullScreen(self):
 
