@@ -59,6 +59,8 @@ vtkMRMLMarkupsToModelNode::vtkMRMLMarkupsToModelNode()
   this->KochanekBias = 0;
   this->KochanekContinuity = 0;
 
+  this->KochanekEndsCopyNearestDerivatives = false;
+
   this->PolynomialOrder = 3;
 }
 
@@ -95,6 +97,7 @@ void vtkMRMLMarkupsToModelNode::WriteXML( ostream& of, int nIndent )
   of << indent << " TubeNumberOfSides=\"" << this->TubeNumberOfSides << "\"";
   of << indent << " TubeSegmentsBetweenControlPoints=\"" << this->TubeSegmentsBetweenControlPoints << "\"";
   of << indent << " TubeLoop=\"" << ( this->TubeLoop ? "true" : "false" ) << "\"";
+  of << indent << " KochanekEndsCopyNearestDerivatives=\"" << ( this->KochanekEndsCopyNearestDerivatives ? "true" : "false" ) << "\"";
   of << indent << " KochanekBias=\"" << this->KochanekBias << "\"";
   of << indent << " KochanekContinuity=\"" << this->KochanekContinuity << "\"";
   of << indent << " KochanekTension=\"" << this->KochanekTension << "\"";
@@ -206,6 +209,11 @@ void vtkMRMLMarkupsToModelNode::ReadXMLAttributes( const char** atts )
     {
       bool isTrue = !strcmp( attValue, "true" );
       SetTubeLoop( isTrue );
+    }
+    else if ( ! strcmp( attName, "KochanekEndsCopyNearestDerivatives" ) )
+    {
+      bool isTrue = !strcmp( attValue, "true" );
+      SetKochanekEndsCopyNearestDerivatives( isTrue );
     }
     else if ( ! strcmp( attName, "KochanekBias" ) )
     {

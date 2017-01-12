@@ -546,6 +546,48 @@ void SetKochanekSplineParameters( vtkMRMLMarkupsToModelNode* pNode, vtkKochanekS
     splineY->AddPoint( i, point[ 1 ] );
     splineZ->AddPoint( i, point[ 2 ] );
   }
+  if ( pNode->GetKochanekEndsCopyNearestDerivatives() )
+  {
+    // manually set the derivative to the nearest value
+    // (difference between the two nearest points). The
+    // constraint mode is set to 1, this tells the spline
+    // class to use our manual definition.
+    // left derivative
+    double point0[ 3 ];
+    markupsNode->GetNthFiducialPosition( 0, point0 );
+    double point1[ 3 ];
+    markupsNode->GetNthFiducialPosition( 1, point1 );
+    splineX->SetLeftConstraint( 1 );
+    splineX->SetLeftValue( point1[ 0 ] - point0[ 0 ] );
+    splineY->SetLeftConstraint( 1 );
+    splineY->SetLeftValue( point1[ 1 ] - point0[ 1 ] );
+    splineZ->SetLeftConstraint( 1 );
+    splineZ->SetLeftValue( point1[ 2 ] - point0[ 2 ] );
+    // right derivative
+    double pointNMinus2[ 3 ];
+    markupsNode->GetNthFiducialPosition( numberMarkups - 2, pointNMinus2 );
+    double pointNMinus1[ 3 ];
+    markupsNode->GetNthFiducialPosition( numberMarkups - 1, pointNMinus1 );
+    splineX->SetRightConstraint( 1 );
+    splineX->SetRightValue( pointNMinus1[ 0 ] - pointNMinus2[ 0 ] );
+    splineY->SetRightConstraint( 1 );
+    splineY->SetRightValue( pointNMinus1[ 1 ] - pointNMinus2[ 1 ] );
+    splineZ->SetRightConstraint( 1 );
+    splineZ->SetRightValue( pointNMinus1[ 2 ] - pointNMinus2[ 2 ] );
+  }
+  else
+  {
+    // This ("0") is the most simple mode for end derivative computation, 
+    // described by documentation as using the "first/last two points".
+    // Use this as the default because others would require setting the 
+    // derivatives manually
+    splineX->SetLeftConstraint( 0 );
+    splineY->SetLeftConstraint( 0 );
+    splineZ->SetLeftConstraint( 0 );
+    splineX->SetRightConstraint( 0 );
+    splineY->SetRightConstraint( 0 );
+    splineZ->SetRightConstraint( 0 );
+  }
 }
 
 //------------------------------------------------------------------------------
