@@ -1,2 +1,2 @@
 from UltraSound import UltraSound
-from GuideletFrame import Guidelet
+from Guidelet import Guidelet

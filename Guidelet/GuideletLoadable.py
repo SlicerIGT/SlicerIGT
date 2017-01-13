@@ -6,7 +6,6 @@ import logging
 #
 # GuideletLoadable
 #
-
 class GuideletLoadable(ScriptedLoadableModule):
   """Uses ScriptedLoadableModule base class, available at:
   https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
@@ -19,11 +18,9 @@ class GuideletLoadable(ScriptedLoadableModule):
     self.parent.dependencies = []
     self.parent.contributors = [""]
 
-
 #
 # GuideletWidget
 #
-
 class GuideletWidget(ScriptedLoadableModuleWidget):
   """Uses ScriptedLoadableModuleWidget base class, available at:
   https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
@@ -135,6 +132,7 @@ class GuideletWidget(ScriptedLoadableModuleWidget):
     if not self.guideletInstance:
       self.guideletInstance = self.createGuideletInstance()
     self.guideletInstance.setupScene()
+    self.guideletInstance.onSceneLoaded()
     self.guideletInstance.showFullScreen()
 
   def onPlusServerPreferencesChanged(self):
@@ -149,7 +147,6 @@ class GuideletWidget(ScriptedLoadableModuleWidget):
 #
 # GuideletLogic
 #
-
 class GuideletLogic(ScriptedLoadableModuleLogic):
   """This class should implement all the actual
   computation done by your module.  The interface
@@ -256,7 +253,6 @@ class GuideletLogic(ScriptedLoadableModuleLogic):
 #
 # GuideletTest
 #
-
 class GuideletTest(ScriptedLoadableModuleTest):
   """
   This is the test case for your scripted module.
@@ -271,7 +267,8 @@ class GuideletTest(ScriptedLoadableModuleTest):
     slicer.mrmlScene.Clear(0)
 
   def runTest(self):
-    """Run as few or as many tests as needed here.
+    """ Run as few or as many tests as needed here.
     """
     self.setUp()
-    # self.test_SliceletBase1() # Here the tests should be added that are common for all full screen applets e.g.  # TODO defines tests
+    # self.test_SliceletBase1() # Here the tests should be added that are common for all full screen applets e.g.
+    #  TODO defines tests
