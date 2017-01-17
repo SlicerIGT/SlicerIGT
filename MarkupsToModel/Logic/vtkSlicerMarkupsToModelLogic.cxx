@@ -362,6 +362,9 @@ void vtkSlicerMarkupsToModelLogic::UpdateOutputCloseSurfaceModel(vtkMRMLMarkupsT
 
   vtkSmartPointer< vtkDelaunay3D > delaunay = vtkSmartPointer< vtkDelaunay3D >::New();
   delaunay->SetAlpha(markupsToModelModuleNode->GetDelaunayAlpha());
+  delaunay->AlphaTrisOff();
+  delaunay->AlphaLinesOff();
+  delaunay->AlphaVertsOff();
 
   if (planarSurface)
   {
