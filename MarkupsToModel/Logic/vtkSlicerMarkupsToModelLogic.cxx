@@ -30,6 +30,7 @@
 // VTK includes
 #include <vtkAppendPolyData.h>
 #include <vtkButterflySubdivisionFilter.h>
+#include <vtkCardinalSpline.h>
 #include <vtkCellArray.h>
 #include <vtkCleanPolyData.h>
 #include <vtkCollection.h>
@@ -361,6 +362,9 @@ void vtkSlicerMarkupsToModelLogic::UpdateOutputCloseSurfaceModel(vtkMRMLMarkupsT
 
   vtkSmartPointer< vtkDelaunay3D > delaunay = vtkSmartPointer< vtkDelaunay3D >::New();
   delaunay->SetAlpha(markupsToModelModuleNode->GetDelaunayAlpha());
+  delaunay->AlphaTrisOff();
+  delaunay->AlphaLinesOff();
+  delaunay->AlphaVertsOff();
 
   if (planarSurface)
   {
@@ -431,176 +435,450 @@ void vtkSlicerMarkupsToModelLogic::UpdateOutputCloseSurfaceModel(vtkMRMLMarkupsT
 }
 
 //------------------------------------------------------------------------------
-void markupsToPath(vtkMRMLMarkupsFiducialNode* markupsNode, vtkPolyData* markupsPointsPolyData)
+void MarkupsToPoints( vtkMRMLMarkupsToModelNode* pNode, vtkPoints* outputPoints )
 {
-  vtkSmartPointer< vtkPoints > modelPoints = vtkSmartPointer< vtkPoints >::New();
-  vtkSmartPointer< vtkCellArray > modelCellArray = vtkSmartPointer< vtkCellArray >::New();
-  int numberOfMarkups = markupsNode->GetNumberOfFiducials();
-  modelPoints->SetNumberOfPoints(numberOfMarkups);
-  double markupPoint [3] = {0.0, 0.0, 0.0};
-
-  for (int i=0; i<numberOfMarkups;i++)
+  vtkMRMLMarkupsFiducialNode* markupsNode = pNode->GetMarkupsNode();
+  int  numberOfMarkups = markupsNode->GetNumberOfFiducials();
+  outputPoints->SetNumberOfPoints( numberOfMarkups );
+  double markupPoint [ 3 ] = { 0.0, 0.0, 0.0 };
+  for ( int i = 0 ; i < numberOfMarkups ; i++ )
   {
-    markupsNode->GetNthFiducialPosition(i,markupPoint);
-    modelPoints->SetPoint(i, markupPoint);
+    markupsNode->GetNthFiducialPosition( i, markupPoint );
+    outputPoints->SetPoint( i, markupPoint );
   }
-
-  modelCellArray->InsertNextCell(numberOfMarkups);
-  for (int i=0; i < numberOfMarkups;i++)
+  
+  if ( pNode->GetCleanMarkups() )
   {
-    modelCellArray->InsertCellPoint(i);
-  }
+    vtkSmartPointer< vtkPolyData > polyData = vtkSmartPointer< vtkPolyData >::New();
+    polyData->Initialize();
+    polyData->SetPoints( outputPoints );
 
-  markupsPointsPolyData->SetPoints(modelPoints);
-  markupsPointsPolyData->SetLines(modelCellArray);
+    vtkSmartPointer< vtkCleanPolyData > cleanPointPolyData = vtkSmartPointer< vtkCleanPolyData >::New();
+    #if ( VTK_MAJOR_VERSION <= 5 )
+      cleanPointPolyData->SetInput( polyData );
+    #else
+      cleanPointPolyData->SetInputData( polyData );
+    #endif
+    cleanPointPolyData->SetTolerance( CLEAN_POLYDATA_TOLERANCE );
+    cleanPointPolyData->Update();
+  }
 }
 
 //------------------------------------------------------------------------------
-void vtkSlicerMarkupsToModelLogic::UpdateOutputLinearModel(vtkMRMLMarkupsToModelNode* markupsToModelModuleNode, vtkPolyData * markupsPointsPolyData, vtkPolyData* outputPolyData)
+void AllocateCurvePoints(vtkMRMLMarkupsToModelNode* pNode, vtkPoints* controlPoints, vtkPoints* outputPoints)
 {
-  vtkSmartPointer< vtkAppendPolyData> append = vtkSmartPointer< vtkAppendPolyData>::New();
-
-  vtkPoints* points = markupsPointsPolyData->GetPoints();
-  if (points == NULL)
+  // Number of points is different depending on whether the curve is a loop
+  int numberControlPoints = controlPoints->GetNumberOfPoints();
+  int numberOutputPointsPerControlPoint = pNode->GetTubeSegmentsBetweenControlPoints();
+  if ( pNode->GetTubeLoop() )
   {
-    vtkErrorMacro("Markups contains a vtkPoints object that is null. No model generated.");
-    return;
+    outputPoints->SetNumberOfPoints( numberControlPoints * numberOutputPointsPerControlPoint + 2 );
+    // two extra points are required to "close off" the loop, and ensure that the tube appears fully continuous
+  }
+  else
+  {
+    outputPoints->SetNumberOfPoints( ( numberControlPoints - 1 ) * numberOutputPointsPerControlPoint + 1 );
+  }
+}
+
+//------------------------------------------------------------------------------
+void CloseLoop( vtkPoints* outputPoints )
+{
+  // If looped, move the first point and add an *extra* point. This is 
+  // needed in order for the curve to be continuous, otherwise the tube ends won't 
+  // align properly
+  double point0[ 3 ];
+  outputPoints->GetPoint( 0, point0 );
+  double point1[ 3 ];
+  outputPoints->GetPoint( 1, point1 );
+  double finalPoint[ 3 ];
+  finalPoint[ 0 ] = point0[ 0 ] * 0.5 + point1[ 0 ] * 0.5;
+  finalPoint[ 1 ] = point0[ 1 ] * 0.5 + point1[ 1 ] * 0.5;
+  finalPoint[ 2 ] = point0[ 2 ] * 0.5 + point1[ 2 ] * 0.5;
+  outputPoints->SetPoint( 0, finalPoint );
+  int finalIndex = outputPoints->GetNumberOfPoints() - 1;
+  outputPoints->SetPoint( finalIndex, finalPoint );
+}
+
+//------------------------------------------------------------------------------
+void SetCardinalSplineParameters( vtkMRMLMarkupsToModelNode* pNode, vtkCardinalSpline* splineX, vtkCardinalSpline* splineY, vtkCardinalSpline* splineZ )
+{
+  if ( pNode->GetTubeLoop() )
+  {
+    splineX->ClosedOn();
+    splineY->ClosedOn();
+    splineZ->ClosedOn();
+  }
+  vtkMRMLMarkupsFiducialNode* markupsNode = pNode->GetMarkupsNode();
+  int numberMarkups = markupsNode->GetNumberOfFiducials();
+  for ( int i = 0; i < numberMarkups; i++ )
+  {
+    double point[ 3 ] = { 0.0, 0.0, 0.0 };
+    markupsNode->GetNthFiducialPosition( i, point );
+    splineX->AddPoint( i, point[ 0 ] );
+    splineY->AddPoint( i, point[ 1 ] );
+    splineZ->AddPoint( i, point[ 2 ] );
+  }
+}
+
+//------------------------------------------------------------------------------
+void SetKochanekSplineParameters( vtkMRMLMarkupsToModelNode* pNode, vtkKochanekSpline* splineX, vtkKochanekSpline* splineY, vtkKochanekSpline* splineZ )
+{
+  if ( pNode->GetTubeLoop() )
+  {
+    splineX->ClosedOn();
+    splineY->ClosedOn();
+    splineZ->ClosedOn();
+  }
+  splineX->SetDefaultBias( pNode->GetKochanekBias() );
+  splineY->SetDefaultBias( pNode->GetKochanekBias() );
+  splineZ->SetDefaultBias( pNode->GetKochanekBias() );
+  splineX->SetDefaultContinuity( pNode->GetKochanekContinuity() );
+  splineY->SetDefaultContinuity( pNode->GetKochanekContinuity() );
+  splineZ->SetDefaultContinuity( pNode->GetKochanekContinuity() );
+  splineX->SetDefaultTension( pNode->GetKochanekTension() );
+  splineY->SetDefaultTension( pNode->GetKochanekTension() );
+  splineZ->SetDefaultTension( pNode->GetKochanekTension() );
+  vtkMRMLMarkupsFiducialNode* markupsNode = pNode->GetMarkupsNode();
+  int numberMarkups = markupsNode->GetNumberOfFiducials();
+  for ( int i = 0; i < numberMarkups; i++ )
+  {
+    double point[ 3 ] = { 0.0, 0.0, 0.0 };
+    markupsNode->GetNthFiducialPosition( i, point );
+    splineX->AddPoint( i, point[ 0 ] );
+    splineY->AddPoint( i, point[ 1 ] );
+    splineZ->AddPoint( i, point[ 2 ] );
+  }
+  if ( pNode->GetKochanekEndsCopyNearestDerivatives() )
+  {
+    // manually set the derivative to the nearest value
+    // (difference between the two nearest points). The
+    // constraint mode is set to 1, this tells the spline
+    // class to use our manual definition.
+    // left derivative
+    double point0[ 3 ];
+    markupsNode->GetNthFiducialPosition( 0, point0 );
+    double point1[ 3 ];
+    markupsNode->GetNthFiducialPosition( 1, point1 );
+    splineX->SetLeftConstraint( 1 );
+    splineX->SetLeftValue( point1[ 0 ] - point0[ 0 ] );
+    splineY->SetLeftConstraint( 1 );
+    splineY->SetLeftValue( point1[ 1 ] - point0[ 1 ] );
+    splineZ->SetLeftConstraint( 1 );
+    splineZ->SetLeftValue( point1[ 2 ] - point0[ 2 ] );
+    // right derivative
+    double pointNMinus2[ 3 ];
+    markupsNode->GetNthFiducialPosition( numberMarkups - 2, pointNMinus2 );
+    double pointNMinus1[ 3 ];
+    markupsNode->GetNthFiducialPosition( numberMarkups - 1, pointNMinus1 );
+    splineX->SetRightConstraint( 1 );
+    splineX->SetRightValue( pointNMinus1[ 0 ] - pointNMinus2[ 0 ] );
+    splineY->SetRightConstraint( 1 );
+    splineY->SetRightValue( pointNMinus1[ 1 ] - pointNMinus2[ 1 ] );
+    splineZ->SetRightConstraint( 1 );
+    splineZ->SetRightValue( pointNMinus1[ 2 ] - pointNMinus2[ 2 ] );
+  }
+  else
+  {
+    // This ("0") is the most simple mode for end derivative computation, 
+    // described by documentation as using the "first/last two points".
+    // Use this as the default because others would require setting the 
+    // derivatives manually
+    splineX->SetLeftConstraint( 0 );
+    splineY->SetLeftConstraint( 0 );
+    splineZ->SetLeftConstraint( 0 );
+    splineX->SetRightConstraint( 0 );
+    splineY->SetRightConstraint( 0 );
+    splineZ->SetRightConstraint( 0 );
+  }
+}
+
+//------------------------------------------------------------------------------
+void GetTubePolyDataFromPoints( vtkMRMLMarkupsToModelNode* pNode, vtkPoints* pointsToConnect, vtkPolyData* outputTube )
+{
+  int numPoints = pointsToConnect->GetNumberOfPoints();
+
+  vtkSmartPointer< vtkCellArray > lineCellArray = vtkSmartPointer< vtkCellArray >::New();
+  lineCellArray->InsertNextCell(numPoints);
+  for ( int i = 0; i < numPoints; i++ )
+  {
+    lineCellArray->InsertCellPoint( i );
   }
 
-  int numPoints = points->GetNumberOfPoints();
-  // redundant error checking, to be safe
-  if (numPoints < LINE_MIN_NUMBER_POINTS)
-  {
-    vtkErrorMacro("Not enough points to create an output linear model. Need at least 2, " << numPoints << " are provided. No output created.");
-    return;
-  }
+  vtkSmartPointer< vtkPolyData > linePolyData = vtkSmartPointer< vtkPolyData >::New();
+  linePolyData->Initialize();
+  linePolyData->SetPoints( pointsToConnect );
+  linePolyData->SetLines( lineCellArray );
 
-  double point0 [3] = {0, 0, 0};
-  double point1 [3]= {0, 0, 0};
-
-  for( int i =0; i<numPoints-1; i++)
-  {
-    points->GetPoint(i, point0);
-    points->GetPoint(i+1, point1);
-    vtkSmartPointer< vtkPoints > pointsSegment = vtkSmartPointer< vtkPoints >::New();
-    pointsSegment->SetNumberOfPoints(2);
-    pointsSegment->SetPoint(0, point0);
-    pointsSegment->SetPoint(1, point1);
-
-    vtkSmartPointer< vtkCellArray > cellArraySegment = vtkSmartPointer<  vtkCellArray >::New();
-    cellArraySegment->InsertNextCell(2);
-    cellArraySegment->InsertCellPoint(0);
-    cellArraySegment->InsertCellPoint(1);
-
-    vtkSmartPointer< vtkPolyData >polydataSegment = vtkSmartPointer< vtkPolyData >::New();
-    polydataSegment->Initialize();
-    polydataSegment->SetPoints(pointsSegment);
-    polydataSegment->SetLines(cellArraySegment);
-
-    vtkSmartPointer< vtkTubeFilter> tubeSegmentFilter = vtkSmartPointer< vtkTubeFilter>::New();
+  vtkSmartPointer< vtkTubeFilter> tubeSegmentFilter = vtkSmartPointer< vtkTubeFilter>::New();
 #if (VTK_MAJOR_VERSION <= 5)
-    tubeSegmentFilter->SetInput(polydataSegment);
+  tubeSegmentFilter->SetInput( linePolyData );
 #else
-    tubeSegmentFilter->SetInputData(polydataSegment);
+  tubeSegmentFilter->SetInputData( linePolyData );
 #endif
 
-    tubeSegmentFilter->SetRadius(markupsToModelModuleNode->GetTubeRadius());
-    tubeSegmentFilter->SetNumberOfSides(20);
-    tubeSegmentFilter->CappingOn();
-    tubeSegmentFilter->Update();
+  tubeSegmentFilter->SetRadius( pNode->GetTubeRadius() );
+  tubeSegmentFilter->SetNumberOfSides( pNode->GetTubeNumberOfSides() );
+  tubeSegmentFilter->CappingOn();
+  tubeSegmentFilter->Update();
 
-    //if vtk.VTK_MAJOR_VERSION <= 5
-    //append.AddInput(tubeFilter.GetOutput());
-    //else:
-    append->AddInputData(tubeSegmentFilter->GetOutput());
-  }
-
-  append->Update();
-
-  outputPolyData->DeepCopy(append->GetOutput());
+  outputTube->DeepCopy( tubeSegmentFilter->GetOutput() );
 }
 
 //------------------------------------------------------------------------------
-void vtkSlicerMarkupsToModelLogic::UpdateOutputHermiteSplineModel(vtkMRMLMarkupsToModelNode* markupsToModelModuleNode, vtkPolyData * markupsPointsPolyData, vtkPolyData* outputPolyData)
+void vtkSlicerMarkupsToModelLogic::UpdateOutputLinearModel( vtkMRMLMarkupsToModelNode* pNode, vtkPoints* controlPoints, vtkPolyData* outputTubePolyData )
 {
-  vtkPoints* points = markupsPointsPolyData->GetPoints();
-  if (points == NULL)
+  if (controlPoints == NULL)
   {
-    vtkErrorMacro("Markups contains a vtkPoints object that is null. No model generated.");
+    vtkErrorMacro("Control points data structure is null. No model generated.");
     return;
   }
-
-  int numPoints = points->GetNumberOfPoints();
+  
+  int numberControlPoints = controlPoints->GetNumberOfPoints();
   // redundant error checking, to be safe
-  if (numPoints < LINE_MIN_NUMBER_POINTS)
+  if ( numberControlPoints < LINE_MIN_NUMBER_POINTS )
   {
-    vtkErrorMacro("Not enough points to create an output spline model. Need at least " << LINE_MIN_NUMBER_POINTS << " points but " << numPoints << " are provided. No output created.");
+    vtkErrorMacro( "Not enough points to create an output spline model. Need at least " << LINE_MIN_NUMBER_POINTS << " points but " << numberControlPoints << " are provided. No output created." );
+    return;
+  }
+  
+  vtkSmartPointer< vtkPoints > curvePoints = vtkSmartPointer< vtkPoints >::New();
+  AllocateCurvePoints( pNode, controlPoints, curvePoints );
+
+  // Iterate over the segments to interpolate, add all the "in-between" points
+  int numberSegmentsToInterpolate;
+  if ( pNode->GetTubeLoop() )
+  {
+    numberSegmentsToInterpolate = numberControlPoints;
+  }
+  else
+  {
+    numberSegmentsToInterpolate = numberControlPoints - 1;
+  }
+  int numberCurvePointsPerControlPoint = pNode->GetTubeSegmentsBetweenControlPoints();
+  int controlPointIndex = 0;
+  int controlPointIndexNext = 1;
+  while ( controlPointIndex < numberSegmentsToInterpolate )
+  {
+    // find the two points to interpolate between
+    double controlPointCurrent[ 3 ];
+    controlPoints->GetPoint( controlPointIndex, controlPointCurrent );
+    if ( controlPointIndexNext >= numberControlPoints )
+    {
+      controlPointIndexNext = 0;
+    }
+    double controlPointNext[ 3 ];
+    controlPoints->GetPoint( controlPointIndexNext, controlPointNext );
+    // iterate to compute interpolating points
+    for ( int i = 0; i < numberCurvePointsPerControlPoint; i++)
+    {
+      double interpolationParam = i / (double) numberCurvePointsPerControlPoint;
+      double curvePoint[ 3 ];
+      curvePoint[ 0 ] = ( 1.0 - interpolationParam ) * controlPointCurrent[ 0 ] + interpolationParam * controlPointNext[ 0 ];
+      curvePoint[ 1 ] = ( 1.0 - interpolationParam ) * controlPointCurrent[ 1 ] + interpolationParam * controlPointNext[ 1 ];
+      curvePoint[ 2 ] = ( 1.0 - interpolationParam ) * controlPointCurrent[ 2 ] + interpolationParam * controlPointNext[ 2 ];
+      int curveIndex = controlPointIndex * numberCurvePointsPerControlPoint + i;
+      curvePoints->SetPoint( curveIndex, curvePoint );
+    }
+    controlPointIndex++;
+    controlPointIndexNext++;
+  }
+  // bring it the rest of the way to the final control point
+  controlPointIndex = controlPointIndex % numberControlPoints; // if the index exceeds the max, bring back to 0
+  double finalPoint[ 3 ] = { 0.0, 0.0, 0.0 };
+  controlPoints->GetPoint( controlPointIndex, finalPoint );
+  int finalIndex = numberCurvePointsPerControlPoint * numberSegmentsToInterpolate;
+  curvePoints->SetPoint( finalIndex, finalPoint );
+
+  // the last part of the curve depends on whether it is a loop or not
+  if ( pNode->GetTubeLoop() )
+  {
+    CloseLoop( curvePoints );
+  }
+
+  GetTubePolyDataFromPoints( pNode, curvePoints, outputTubePolyData );
+}
+
+//------------------------------------------------------------------------------
+void vtkSlicerMarkupsToModelLogic::UpdateOutputCardinalSplineModel( vtkMRMLMarkupsToModelNode* pNode, vtkPoints* controlPoints, vtkPolyData* outputTubePolyData )
+{
+  if (controlPoints == NULL)
+  {
+    vtkErrorMacro("Control points data structure is null. No model generated.");
+    return;
+  }
+  
+  int numberControlPoints = controlPoints->GetNumberOfPoints();
+  // redundant error checking, to be safe
+  if ( numberControlPoints < LINE_MIN_NUMBER_POINTS )
+  {
+    vtkErrorMacro( "Not enough points to create an output spline model. Need at least " << LINE_MIN_NUMBER_POINTS << " points but " << numberControlPoints << " are provided. No output created." );
     return;
   }
   
   // special case, fit a line. Spline fitting will not work with fewer than 3 points
-  if (numPoints == LINE_MIN_NUMBER_POINTS)
+  if ( numberControlPoints == LINE_MIN_NUMBER_POINTS )
   {
-    vtkWarningMacro("Only " << LINE_MIN_NUMBER_POINTS << " provided. Fitting line.");
-    UpdateOutputLinearModel(markupsToModelModuleNode, markupsPointsPolyData, outputPolyData);
+    vtkWarningMacro( "Only " << LINE_MIN_NUMBER_POINTS << " provided. Fitting line." );
+    UpdateOutputLinearModel(pNode, controlPoints, outputTubePolyData);
     return;
   }
 
-  int totalNumberOfPoints = markupsToModelModuleNode->GetTubeSamplePointsBetweenControlPoints()*markupsPointsPolyData->GetNumberOfPoints();
-  vtkSmartPointer< vtkSplineFilter > splineFilter = vtkSmartPointer< vtkSplineFilter >::New();
-#if (VTK_MAJOR_VERSION <= 5)
-  splineFilter->SetInput(markupsPointsPolyData);
-#else
-  splineFilter->SetInputData(markupsPointsPolyData);
-#endif
+  // Create the splines
+  vtkSmartPointer< vtkCardinalSpline > splineX = vtkSmartPointer< vtkCardinalSpline >::New();
+  vtkSmartPointer< vtkCardinalSpline > splineY = vtkSmartPointer< vtkCardinalSpline >::New();
+  vtkSmartPointer< vtkCardinalSpline > splineZ = vtkSmartPointer< vtkCardinalSpline >::New();
+  SetCardinalSplineParameters( pNode, splineX, splineY, splineZ );
 
-  splineFilter->SetNumberOfSubdivisions(totalNumberOfPoints);
+  vtkSmartPointer< vtkPoints > curvePoints = vtkSmartPointer< vtkPoints >::New();
+  AllocateCurvePoints( pNode, controlPoints, curvePoints );
 
-  vtkSmartPointer<vtkKochanekSpline> spline;
-  if (markupsToModelModuleNode->GetInterpolationType()== vtkMRMLMarkupsToModelNode::KochanekSpline)
+  // Iterate over the segments to interpolate, add all the "in-between" points
+  int numberSegmentsToInterpolate;
+  if ( pNode->GetTubeLoop() )
   {
-    spline = vtkSmartPointer<vtkKochanekSpline>::New();
-    spline->SetDefaultBias(markupsToModelModuleNode->GetKochanekBias());
-    spline->SetDefaultContinuity(markupsToModelModuleNode->GetKochanekContinuity());
-    spline->SetDefaultTension(markupsToModelModuleNode->GetKochanekTension());
-    splineFilter->SetSpline(spline);
+    numberSegmentsToInterpolate = numberControlPoints;
   }
-
-  splineFilter->Update();
-
-  vtkSmartPointer< vtkTubeFilter> cardinalSplineTubeFilter = vtkSmartPointer< vtkTubeFilter>::New();
-  cardinalSplineTubeFilter->SetInputConnection(splineFilter->GetOutputPort());
-  cardinalSplineTubeFilter->SetRadius(markupsToModelModuleNode->GetTubeRadius());
-  cardinalSplineTubeFilter->SetNumberOfSides(markupsToModelModuleNode->GetTubeNumberOfSides());
-  cardinalSplineTubeFilter->CappingOn();
-  cardinalSplineTubeFilter->Update();
-
-  outputPolyData->DeepCopy(cardinalSplineTubeFilter->GetOutput());
+  else
+  {
+    numberSegmentsToInterpolate = numberControlPoints - 1;
+  }
+  int numberCurvePointsPerControlPoint = pNode->GetTubeSegmentsBetweenControlPoints();
+  int controlPointIndex = 0;
+  int controlPointIndexNext = 1;
+  while ( controlPointIndex < numberSegmentsToInterpolate )
+  {
+    // iterate to compute interpolating points
+    for ( int i = 0; i < numberCurvePointsPerControlPoint; i++)
+    {
+      double interpolationParam = controlPointIndex + i / (double) numberCurvePointsPerControlPoint;
+      double curvePoint[ 3 ];
+      curvePoint[ 0 ] = splineX->Evaluate( interpolationParam );
+      curvePoint[ 1 ] = splineY->Evaluate( interpolationParam );
+      curvePoint[ 2 ] = splineZ->Evaluate( interpolationParam );
+      int curveIndex = controlPointIndex * numberCurvePointsPerControlPoint + i;
+      curvePoints->SetPoint( curveIndex, curvePoint );
+    }
+    controlPointIndex++;
+    controlPointIndexNext++;
+  }
+  // bring it the rest of the way to the final control point
+  controlPointIndex = controlPointIndex % numberControlPoints; // if the index exceeds the max, bring back to 0
+  double finalPoint[ 3 ] = { 0.0, 0.0, 0.0 };
+  controlPoints->GetPoint( controlPointIndex, finalPoint );
+  int finalIndex = numberCurvePointsPerControlPoint * numberSegmentsToInterpolate;
+  curvePoints->SetPoint( finalIndex, finalPoint );
+  
+  // the last part of the curve depends on whether it is a loop or not
+  if ( pNode->GetTubeLoop() )
+  {
+    CloseLoop( curvePoints );
+  }
+  
+  GetTubePolyDataFromPoints( pNode, curvePoints, outputTubePolyData );
 }
 
 //------------------------------------------------------------------------------
-void vtkSlicerMarkupsToModelLogic::ComputePointParametersRawIndices(vtkPolyData * markupsPointsPolyData, vtkDoubleArray* markupsPointsParameters)
+void vtkSlicerMarkupsToModelLogic::UpdateOutputKochanekSplineModel( vtkMRMLMarkupsToModelNode* pNode, vtkPoints* controlPoints, vtkPolyData* outputTubePolyData )
 {
-  vtkPoints* points = markupsPointsPolyData->GetPoints();
-  if (points == NULL)
+  if (controlPoints == NULL)
   {
-    vtkErrorMacro("Markups contains a vtkPoints object that is null.");
+    vtkErrorMacro("Control points data structure is null. No model generated.");
     return;
   }
-
-  int numPoints = points->GetNumberOfPoints();
+  
+  int numberControlPoints = controlPoints->GetNumberOfPoints();
   // redundant error checking, to be safe
-  if (numPoints < LINE_MIN_NUMBER_POINTS)
+  if ( numberControlPoints < LINE_MIN_NUMBER_POINTS )
   {
-    vtkErrorMacro("Not enough points to compute polynomial parameters. Need at least " << LINE_MIN_NUMBER_POINTS << " points but " << numPoints << " are provided.");
+    vtkErrorMacro( "Not enough points to create an output spline model. Need at least " << LINE_MIN_NUMBER_POINTS << " points but " << numberControlPoints << " are provided. No output created." );
+    return;
+  }
+  
+  // special case, fit a line. Spline fitting will not work with fewer than 3 points
+  if ( numberControlPoints == LINE_MIN_NUMBER_POINTS )
+  {
+    vtkWarningMacro( "Only " << LINE_MIN_NUMBER_POINTS << " provided. Fitting line." );
+    UpdateOutputLinearModel(pNode, controlPoints, outputTubePolyData);
     return;
   }
 
-  if (markupsPointsParameters->GetNumberOfTuples())
+  // Create the splines
+  vtkSmartPointer< vtkKochanekSpline > splineX = vtkSmartPointer< vtkKochanekSpline >::New();
+  vtkSmartPointer< vtkKochanekSpline > splineY = vtkSmartPointer< vtkKochanekSpline >::New();
+  vtkSmartPointer< vtkKochanekSpline > splineZ = vtkSmartPointer< vtkKochanekSpline >::New();
+  SetKochanekSplineParameters( pNode, splineX, splineY, splineZ );
+
+  vtkSmartPointer< vtkPoints > curvePoints = vtkSmartPointer< vtkPoints >::New();
+  AllocateCurvePoints( pNode, controlPoints, curvePoints );
+
+  // Iterate over the segments to interpolate, add all the "in-between" points
+  int numberSegmentsToInterpolate;
+  if ( pNode->GetTubeLoop() )
+  {
+    numberSegmentsToInterpolate = numberControlPoints;
+  }
+  else
+  {
+    numberSegmentsToInterpolate = numberControlPoints - 1;
+  }
+  int numberCurvePointsPerControlPoint = pNode->GetTubeSegmentsBetweenControlPoints();
+  int controlPointIndex = 0;
+  int controlPointIndexNext = 1;
+  while ( controlPointIndex < numberSegmentsToInterpolate )
+  {
+    // iterate to compute interpolating points
+    for ( int i = 0; i < numberCurvePointsPerControlPoint; i++)
+    {
+      double interpolationParam = controlPointIndex + i / (double) numberCurvePointsPerControlPoint;
+      double curvePoint[ 3 ];
+      curvePoint[ 0 ] = splineX->Evaluate( interpolationParam );
+      curvePoint[ 1 ] = splineY->Evaluate( interpolationParam );
+      curvePoint[ 2 ] = splineZ->Evaluate( interpolationParam );
+      int curveIndex = controlPointIndex * numberCurvePointsPerControlPoint + i;
+      curvePoints->SetPoint( curveIndex, curvePoint );
+    }
+    controlPointIndex++;
+    controlPointIndexNext++;
+  }
+  // bring it the rest of the way to the final control point
+  controlPointIndex = controlPointIndex % numberControlPoints; // if the index exceeds the max, bring back to 0
+  double finalPoint[ 3 ] = { 0.0, 0.0, 0.0 };
+  controlPoints->GetPoint( controlPointIndex, finalPoint );
+  int finalIndex = numberCurvePointsPerControlPoint * numberSegmentsToInterpolate;
+  curvePoints->SetPoint( finalIndex, finalPoint );
+  
+  // the last part of the curve depends on whether it is a loop or not
+  if ( pNode->GetTubeLoop() )
+  {
+    CloseLoop( curvePoints );
+  }
+  
+  GetTubePolyDataFromPoints( pNode, curvePoints, outputTubePolyData );
+}
+
+//------------------------------------------------------------------------------
+void vtkSlicerMarkupsToModelLogic::ComputePointParametersRawIndices( vtkPoints* controlPoints, vtkDoubleArray* markupsPointsParameters )
+{
+  if ( controlPoints == NULL )
+  {
+    vtkErrorMacro( "Markups contains a vtkPoints object that is null." );
+    return;
+  }
+
+  int numPoints = controlPoints->GetNumberOfPoints();
+  // redundant error checking, to be safe
+  if ( numPoints < LINE_MIN_NUMBER_POINTS )
+  {
+    vtkErrorMacro( "Not enough points to compute polynomial parameters. Need at least " << LINE_MIN_NUMBER_POINTS << " points but " << numPoints << " are provided." );
+    return;
+  }
+
+  if ( markupsPointsParameters->GetNumberOfTuples() )
   {
     // this should never happen, but in case it does, output a warning
-    vtkWarningMacro("markupsPointsParameters already has contents. Clearing.");
-    while (markupsPointsParameters->GetNumberOfTuples()) // clear contents just in case
+    vtkWarningMacro( "markupsPointsParameters already has contents. Clearing." );
+    while ( markupsPointsParameters->GetNumberOfTuples() ) // clear contents just in case
       markupsPointsParameters->RemoveLastTuple();
   }
 
@@ -612,20 +890,19 @@ void vtkSlicerMarkupsToModelLogic::ComputePointParametersRawIndices(vtkPolyData 
 }
 
 //------------------------------------------------------------------------------
-void vtkSlicerMarkupsToModelLogic::ComputePointParametersMinimumSpanningTree(vtkPolyData * markupsPointsPolyData, vtkDoubleArray* markupsPointsParameters)
+void vtkSlicerMarkupsToModelLogic::ComputePointParametersMinimumSpanningTree(vtkPoints * controlPoints, vtkDoubleArray* markupsPointsParameters)
 {
-  vtkPoints* points = markupsPointsPolyData->GetPoints();
-  if (points == NULL)
+  if ( controlPoints == NULL )
   {
-    vtkErrorMacro("Markups contains a vtkPoints object that is null.");
+    vtkErrorMacro( "Markups contains a vtkPoints object that is null." );
     return;
   }
 
-  int numPoints = points->GetNumberOfPoints();
+  int numPoints = controlPoints->GetNumberOfPoints();
   // redundant error checking, to be safe
-  if (numPoints < LINE_MIN_NUMBER_POINTS)
+  if ( numPoints < LINE_MIN_NUMBER_POINTS )
   {
-    vtkErrorMacro("Not enough points to compute polynomial parameters. Need at least " << LINE_MIN_NUMBER_POINTS << " points but " << numPoints << " are provided.");
+    vtkErrorMacro( "Not enough points to compute polynomial parameters. Need at least " << LINE_MIN_NUMBER_POINTS << " points but " << numPoints << " are provided." );
     return;
   }
 
@@ -639,26 +916,26 @@ void vtkSlicerMarkupsToModelLogic::ComputePointParametersMinimumSpanningTree(vtk
 
   // in the following code, two tasks are done:
   // 1. construct an undirected graph
-  std::vector<double> distances(numPoints*numPoints);
-  distances.assign(numPoints*numPoints, 0.0);
+  std::vector< double > distances( numPoints * numPoints );
+  distances.assign( numPoints * numPoints, 0.0 );
   // 2. find the two farthest-seperated vertices in the distances array
   int treeStartIndex = 0;
   int treeEndIndex = 0;
   double maximumDistance = 0;
   // iterate through all points
-  for (int v = 0; v < numPoints; v++)
+  for ( int v = 0; v < numPoints; v++ )
   {
-    for (int u = 0; u < numPoints; u++)
+    for ( int u = 0; u < numPoints; u++ )
     {
-      double pointU[3], pointV[3];
-      points->GetPoint(u, pointU);
-      points->GetPoint(v, pointV);
-      double distX = (pointU[0] - pointV[0]); double distXsq = distX * distX;
-      double distY = (pointU[1] - pointV[1]); double distYsq = distY * distY;
-      double distZ = (pointU[2] - pointV[2]); double distZsq = distZ * distZ;
-      double dist3D = sqrt(distXsq+distYsq+distZsq);
-      distances[v * numPoints + u] = dist3D;
-      if (dist3D > maximumDistance)
+      double pointU[ 3 ], pointV[ 3 ];
+      controlPoints->GetPoint( u, pointU );
+      controlPoints->GetPoint( v, pointV );
+      double distX = ( pointU[ 0 ] - pointV[ 0 ] ); double distXsq = distX * distX;
+      double distY = ( pointU[ 1 ] - pointV[ 1 ] ); double distYsq = distY * distY;
+      double distZ = ( pointU[ 2 ] - pointV[ 2 ] ); double distZsq = distZ * distZ;
+      double dist3D = sqrt( distXsq + distYsq + distZsq );
+      distances[ v * numPoints + u ] = dist3D;
+      if ( dist3D > maximumDistance )
       {
         maximumDistance = dist3D;
         treeStartIndex = v;
@@ -667,130 +944,128 @@ void vtkSlicerMarkupsToModelLogic::ComputePointParametersMinimumSpanningTree(vtk
     }
   }
   // use the 1D vector as a 2D vector
-  std::vector<double*> graph(numPoints);
-  for (int v = 0; v < numPoints; v++)
+  std::vector< double* > graph( numPoints );
+  for ( int v = 0; v < numPoints; v++ )
   {
-    graph[v] = &(distances[v * numPoints]);
+    graph[ v ] = &( distances[ v * numPoints ] );
   }
 
   // implementation of Prim's algorithm heavily based on:
   // http://www.geeksforgeeks.org/greedy-algorithms-set-5-prims-minimum-spanning-tree-mst-2/
-  std::vector<int> parent(numPoints); // Array to store constructed MST
-  std::vector<double> key(numPoints);   // Key values used to pick minimum weight edge in cut
-  std::vector<bool> mstSet(numPoints);  // To represent set of vertices not yet included in MST
+  std::vector< int > parent( numPoints ); // Array to store constructed MST
+  std::vector< double > key( numPoints );   // Key values used to pick minimum weight edge in cut
+  std::vector< bool > mstSet( numPoints );  // To represent set of vertices not yet included in MST
  
-  // Initialize all keys as INFINITE
-  for (int i = 0; i < numPoints; i++)
+  // Initialize all keys as INFINITE (or at least as close as we can get)
+  for ( int i = 0; i < numPoints; i++ )
   {
-    key[i] = VTK_DOUBLE_MAX;
-    mstSet[i] = false;
+    key[ i ] = VTK_DOUBLE_MAX;
+    mstSet[ i ] = false;
   }
  
   // Always include first 1st vertex in MST.
-  key[treeStartIndex] = 0.0;     // Make key 0 so that this vertex is picked as first vertex
-  parent[treeStartIndex] = -1; // First node is always root of MST 
+  key[ treeStartIndex ] = 0.0;     // Make key 0 so that this vertex is picked as first vertex
+  parent[ treeStartIndex ] = -1; // First node is always root of MST 
  
   // The MST will have numPoints vertices
-  for (int count = 0; count < numPoints-1; count++)
+  for ( int count = 0; count < numPoints - 1; count++ )
   {
     // Pick the minimum key vertex from the set of vertices
     // not yet included in MST
     int nextPointIndex = -1;
     double minDistance = VTK_DOUBLE_MAX, min_index;
-    for (int v = 0; v < numPoints; v++)
+    for ( int v = 0; v < numPoints; v++ )
     {
-      if (mstSet[v] == false &&
-          key[v] < minDistance)
+      if ( mstSet[ v ] == false && key[ v ] < minDistance )
       {
-        minDistance = key[v];
+        minDistance = key[ v ];
         nextPointIndex = v;
       }
     }
  
     // Add the picked vertex to the MST Set
-    mstSet[nextPointIndex] = true;
+    mstSet[ nextPointIndex ] = true;
  
     // Update key value and parent index of the adjacent vertices of
     // the picked vertex. Consider only those vertices which are not yet
     // included in MST
-    for (int v = 0; v < numPoints; v++)
+    for ( int v = 0; v < numPoints; v++ )
     {
- 
-        // graph[u][v] is non zero only for adjacent vertices of m
-        // mstSet[v] is false for vertices not yet included in MST
-        // Update the key only if graph[u][v] is smaller than key[v]
-      if (graph[nextPointIndex][v] >= 0 && 
-          mstSet[v] == false &&
-          graph[nextPointIndex][v] <  key[v])
+      // graph[u][v] is non zero only for adjacent vertices of m
+      // mstSet[v] is false for vertices not yet included in MST
+      // Update the key only if graph[u][v] is smaller than key[v]
+      if ( graph[ nextPointIndex ][ v ] >= 0 && 
+           mstSet[ v ] == false &&
+           graph[ nextPointIndex ][ v ] <  key[ v ])
       {
-        parent[v] = nextPointIndex;
-        key[v] = graph[nextPointIndex][v];
+        parent[ v ] = nextPointIndex;
+        key[ v ] = graph[ nextPointIndex ][ v ];
       }
     }
   }
  
   // determine the "trunk" path of the tree, from first index to last index
-  std::vector<int> pathIndices;
+  std::vector< int > pathIndices;
   int currentPathIndex = treeEndIndex;
-  while (currentPathIndex != -1)
+  while ( currentPathIndex != -1 )
   {
-    pathIndices.push_back(currentPathIndex);
-    currentPathIndex = parent[currentPathIndex]; // go up the tree one layer
+    pathIndices.push_back( currentPathIndex );
+    currentPathIndex = parent[ currentPathIndex ]; // go up the tree one layer
   }
     
   // find the sum of distances along the trunk path of the tree
   double sumOfDistances = 0.0;
-  for (int i = 0; i < pathIndices.size() - 1; i++)
+  for ( int i = 0; i < pathIndices.size() - 1; i++ )
   {
-    sumOfDistances += graph[i][i+1];
+    sumOfDistances += graph[ i ][ i + 1 ];
   }
 
   // check this to prevent a division by zero (in case all points are duplicates)
-  if (sumOfDistances == 0)
+  if ( sumOfDistances == 0 )
   {
-    vtkErrorMacro("Minimum spanning tree path has distance zero. No parameters will be assigned. Check inputs!");
+    vtkErrorMacro( "Minimum spanning tree path has distance zero. No parameters will be assigned. Check inputs!" );
     return;
   }
 
   // find the parameters along the trunk path of the tree
-  std::vector<double> pathParameters;
+  std::vector< double > pathParameters;
   double currentDistance = 0.0;
-  for (int i = 0; i < pathIndices.size() - 1; i++)
+  for ( int i = 0; i < pathIndices.size() - 1; i++ )
   {
-    pathParameters.push_back(currentDistance/sumOfDistances);
-    currentDistance += graph[i][i+1];
+    pathParameters.push_back( currentDistance / sumOfDistances );
+    currentDistance += graph[ i ][ i + 1 ];
   }
-  pathParameters.push_back(currentDistance/sumOfDistances); // this should be 1.0
+  pathParameters.push_back( currentDistance / sumOfDistances ); // this should be 1.0
 
   // finally assign polynomial parameters to each point, and store in the output array
-  if (markupsPointsParameters->GetNumberOfTuples() > 0)
+  if ( markupsPointsParameters->GetNumberOfTuples() > 0 )
   {
     // this should never happen, but in case it does, output a warning
-    vtkWarningMacro("markupsPointsParameters already has contents. Clearing.");
-    while (markupsPointsParameters->GetNumberOfTuples()) // clear contents just in case
+    vtkWarningMacro( "markupsPointsParameters already has contents. Clearing." );
+    while ( markupsPointsParameters->GetNumberOfTuples() ) // clear contents just in case
       markupsPointsParameters->RemoveLastTuple();
   }
 
-  for (int i = 0; i < numPoints; i++)
+  for ( int i = 0; i < numPoints; i++ )
   {
     int currentIndex = i;
     bool alongPath = false;
     int indexAlongPath = -1;
-    for (int j = 0; j < pathIndices.size(); j++)
+    for ( int j = 0; j < pathIndices.size(); j++ )
     {
-      if (pathIndices[j] == currentIndex)
+      if ( pathIndices[ j ] == currentIndex )
       {
         alongPath = true;
         indexAlongPath = j;
         break;
       }
     }
-    while (!alongPath)
+    while ( !alongPath )
     {
-      currentIndex = parent[currentIndex];
-      for (int j = 0; j < pathIndices.size(); j++)
+      currentIndex = parent[ currentIndex ];
+      for ( int j = 0; j < pathIndices.size(); j++ )
       {
-        if (pathIndices[j] == currentIndex)
+        if ( pathIndices[ j ] == currentIndex )
         {
           alongPath = true;
           indexAlongPath = j;
@@ -798,21 +1073,20 @@ void vtkSlicerMarkupsToModelLogic::ComputePointParametersMinimumSpanningTree(vtk
         }
       }
     }
-    markupsPointsParameters->InsertNextTuple1(pathParameters[indexAlongPath]);
+    markupsPointsParameters->InsertNextTuple1( pathParameters[ indexAlongPath ] );
   }
 }
 
 //------------------------------------------------------------------------------
-void vtkSlicerMarkupsToModelLogic::UpdateOutputPolynomialFitModel(vtkMRMLMarkupsToModelNode* markupsToModelModuleNode, vtkPolyData * markupsPointsPolyData, vtkDoubleArray* markupsPointsParameters, vtkPolyData* outputPolyData)
+void vtkSlicerMarkupsToModelLogic::UpdateOutputPolynomialFitModel(vtkMRMLMarkupsToModelNode* markupsToModelModuleNode, vtkPoints* controlPoints, vtkDoubleArray* markupsPointsParameters, vtkPolyData* outputPolyData)
 {
-  vtkPoints* points = markupsPointsPolyData->GetPoints();
-  if (points == NULL)
+  if ( controlPoints == NULL )
   {
     vtkErrorMacro("Markups contains a vtkPoints object that is null. No model generated.");
     return;
   }
 
-  int numPoints = points->GetNumberOfPoints();
+  int numPoints = controlPoints->GetNumberOfPoints();
   // redundant error checking, to be safe
   if (numPoints < LINE_MIN_NUMBER_POINTS)
   {
@@ -824,7 +1098,7 @@ void vtkSlicerMarkupsToModelLogic::UpdateOutputPolynomialFitModel(vtkMRMLMarkups
   if (numPoints == LINE_MIN_NUMBER_POINTS)
   {
     vtkWarningMacro("Only " << LINE_MIN_NUMBER_POINTS << " provided. Fitting line.");
-    UpdateOutputLinearModel(markupsToModelModuleNode, markupsPointsPolyData, outputPolyData);
+    UpdateOutputLinearModel(markupsToModelModuleNode, controlPoints, outputPolyData);
     return;
   }
 
@@ -900,7 +1174,7 @@ void vtkSlicerMarkupsToModelLogic::UpdateOutputPolynomialFitModel(vtkMRMLMarkups
   dependentValues.assign(numDependentValues, 0.0);
   for (int p = 0; p < numPoints; p++) // p = point index
   {
-    double* currentPoint = points->GetPoint(p);
+    double* currentPoint = controlPoints->GetPoint(p);
     for (int d = 0; d < numDimensions; d++) // d = dimension index
     {
       double value = currentPoint[d];
@@ -932,9 +1206,9 @@ void vtkSlicerMarkupsToModelLogic::UpdateOutputPolynomialFitModel(vtkMRMLMarkups
   // Use the values to generate points along the polynomial curve
   vtkSmartPointer<vtkPoints> smoothedPoints = vtkSmartPointer<vtkPoints>::New(); // points
   vtkSmartPointer< vtkCellArray > smoothedLines = vtkSmartPointer<  vtkCellArray >::New(); // lines
-  int numControlPointsOnTube = numPoints * markupsToModelModuleNode->GetTubeSamplePointsBetweenControlPoints();
-  smoothedLines->InsertNextCell(numControlPointsOnTube); // one long continuous line
-  for (int p = 0; p < numControlPointsOnTube; p++) // p = point index
+  int numPointsOnCurve = (numPoints - 1) * markupsToModelModuleNode->GetTubeSegmentsBetweenControlPoints() + 1;
+  smoothedLines->InsertNextCell(numPointsOnCurve); // one long continuous line
+  for (int p = 0; p < numPointsOnCurve; p++) // p = point index
   {
     double pointMm[3];
     for (int d = 0; d < numDimensions; d++)
@@ -943,7 +1217,7 @@ void vtkSlicerMarkupsToModelLogic::UpdateOutputPolynomialFitModel(vtkMRMLMarkups
       for (int c = 0; c < numPolynomialCoefficients; c++)
       {
         double coefficient = coefficientValues[c * numDimensions + d];
-        pointMm[d] += coefficient * std::pow( (double(p)/(numControlPointsOnTube-1)), c );
+        pointMm[d] += coefficient * std::pow( (double(p)/(numPointsOnCurve-1)), c );
       }
     }
     smoothedPoints->InsertPoint(p, pointMm);
@@ -971,10 +1245,10 @@ void vtkSlicerMarkupsToModelLogic::UpdateOutputPolynomialFitModel(vtkMRMLMarkups
 }
 
 //------------------------------------------------------------------------------
-void vtkSlicerMarkupsToModelLogic::UpdateOutputCurveModel(vtkMRMLMarkupsToModelNode* markupsToModelModuleNode, vtkPolyData* outputPolyData)
+void vtkSlicerMarkupsToModelLogic::UpdateOutputCurveModel(vtkMRMLMarkupsToModelNode* pNode, vtkPolyData* outputPolyData)
 {
 
-  vtkMRMLMarkupsFiducialNode* markupsNode = markupsToModelModuleNode->GetMarkupsNode( );
+  vtkMRMLMarkupsFiducialNode* markupsNode = pNode->GetMarkupsNode( );
   if( markupsNode == NULL )
   {
     return;
@@ -985,68 +1259,50 @@ void vtkSlicerMarkupsToModelLogic::UpdateOutputCurveModel(vtkMRMLMarkupsToModelN
   {
     return;
   }
+  
+  vtkSmartPointer< vtkPoints > controlPoints = vtkSmartPointer< vtkPoints >::New();
+  MarkupsToPoints( pNode, controlPoints );
 
-  vtkSmartPointer< vtkPolyData > markupsPointsPolyData = vtkSmartPointer< vtkPolyData >::New( );
-  markupsToPath( markupsNode, markupsPointsPolyData );
-  vtkSmartPointer< vtkPolyData > finalMarkupsPointsPolyData;
-
-  vtkSmartPointer< vtkCleanPolyData > cleanPointPolyData = vtkSmartPointer< vtkCleanPolyData >::New( );
-  if ( markupsToModelModuleNode->GetCleanMarkups( ) )
-  {
-#if (VTK_MAJOR_VERSION <= 5)
-    cleanPointPolyData->SetInput( markupsPointsPolyData );
-#else
-    cleanPointPolyData->SetInputData( markupsPointsPolyData );
-#endif
-    cleanPointPolyData->SetTolerance( CLEAN_POLYDATA_TOLERANCE );
-    cleanPointPolyData->Update( );
-    finalMarkupsPointsPolyData= cleanPointPolyData->GetOutput( );
-  }
-  else
-  {
-    finalMarkupsPointsPolyData = markupsPointsPolyData;
-  }
-
-  switch( markupsToModelModuleNode->GetInterpolationType() )
+  switch( pNode->GetInterpolationType() )
   {
     case vtkMRMLMarkupsToModelNode::Linear:
     {
-      UpdateOutputLinearModel( markupsToModelModuleNode, finalMarkupsPointsPolyData, outputPolyData );
+      UpdateOutputLinearModel( pNode, controlPoints, outputPolyData );
       break;
     }
     case vtkMRMLMarkupsToModelNode::CardinalSpline:
     {
-      UpdateOutputHermiteSplineModel( markupsToModelModuleNode, finalMarkupsPointsPolyData, outputPolyData );
+      UpdateOutputCardinalSplineModel( pNode, controlPoints, outputPolyData );
       break;
     }
     case vtkMRMLMarkupsToModelNode::KochanekSpline:
     {
-      UpdateOutputHermiteSplineModel( markupsToModelModuleNode, finalMarkupsPointsPolyData, outputPolyData );
+      UpdateOutputKochanekSplineModel( pNode, controlPoints, outputPolyData );
       break;
     }
     case vtkMRMLMarkupsToModelNode::Polynomial:
     {
       vtkSmartPointer<vtkDoubleArray> pointParameters = vtkSmartPointer<vtkDoubleArray>::New();
-      switch ( markupsToModelModuleNode->GetPointParameterType() )
+      switch ( pNode->GetPointParameterType() )
       {
         case vtkMRMLMarkupsToModelNode::RawIndices:
         {
-          ComputePointParametersRawIndices(finalMarkupsPointsPolyData,pointParameters);
+          ComputePointParametersRawIndices( controlPoints, pointParameters );
           break;
         }
         case vtkMRMLMarkupsToModelNode::MinimumSpanningTree:
         {
-          ComputePointParametersMinimumSpanningTree(finalMarkupsPointsPolyData,pointParameters);
+          ComputePointParametersMinimumSpanningTree( controlPoints, pointParameters );
           break;
         }
         default:
         {
-          vtkWarningMacro("Invalid PointParameterType: " << markupsToModelModuleNode->GetPointParameterType() << ". Using raw indices.");
-          ComputePointParametersRawIndices(finalMarkupsPointsPolyData,pointParameters);
+          vtkWarningMacro( "Invalid PointParameterType: " << pNode->GetPointParameterType() << ". Using raw indices." );
+          ComputePointParametersRawIndices( controlPoints, pointParameters );
           break;
         }
       }
-      UpdateOutputPolynomialFitModel(markupsToModelModuleNode,finalMarkupsPointsPolyData,pointParameters,outputPolyData);
+      UpdateOutputPolynomialFitModel( pNode, controlPoints, pointParameters,outputPolyData );
       break;
     }
   }
