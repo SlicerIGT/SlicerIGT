@@ -9,7 +9,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>443</width>
+    <width>491</width>
     <height>911</height>
    </rect>
   </property>
@@ -402,7 +402,7 @@
       <item row="10" column="2">
        <widget class="QDoubleSpinBox" name="DelaunayAlphaDoubleSpinBox">
         <property name="toolTip">
-         <string extracomment="Compute only tetrahedra whose vertices lie on a sphere with radius &gt;= alpha. Default is 0, which creates a convex hull.">Compute only tetrahedra whose vertices lie on a sphere with radius &gt;= alpha. Default is 0, which creates a convex hull.</string>
+         <string extracomment="Compute only tetrahedra whose vertices lie on a sphere with radius &gt;= alpha. Default is 0, which creates a convex hull.">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Compute only tetrahedra whose vertices lie on a sphere with radius &amp;gt;= alpha. Default is 0, which actually corresponds to infinity, and therefore creates a convex hull.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="value">
          <double>0.000000000000000</double>
