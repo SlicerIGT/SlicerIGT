@@ -71,18 +71,19 @@ public:
   // Generates the curve model from the markups connecting consecutive segments.
   // Each segment can be linear, cardinal or Kochanek Splines (described and implemented in UpdateOutputCurveModel, UpdateOutputLinearModel
   // and UpdateOutputHermiteSplineModel methods). Uses Tube radius and clean markups option from the module node.
-  void UpdateOutputCurveModel(vtkMRMLMarkupsToModelNode* markupsToModelModuleNode, vtkPolyData* outputPolyData);
+  void UpdateOutputCurveModel( vtkMRMLMarkupsToModelNode* markupsToModelModuleNode, vtkPolyData* outputPolyData );
   // Generates the linear curve model connecting linear tubes from each markup.
-  void UpdateOutputLinearModel(vtkMRMLMarkupsToModelNode* markupsToModelModuleNode, vtkPolyData * markupsPointsPolyData, vtkPolyData* outputPolyData);
-  // Generates cardinal or Kochanek Spline curve model. If the Kochanek Spline the bias, continuity and tension parameters from de module node
-  // are used.
-  void UpdateOutputHermiteSplineModel(vtkMRMLMarkupsToModelNode* markupsToModelModuleNode, vtkPolyData * markupsPointsPolyData, vtkPolyData* outputPolyData);
-  // Generates a polynomial curve model. Parameters are determined from the parameter node.
-  void UpdateOutputPolynomialFitModel(vtkMRMLMarkupsToModelNode* markupsToModelModuleNode, vtkPolyData * markupsPointsPolyData, vtkDoubleArray* markupsPointsParameters, vtkPolyData* outputPolyData);
+  void UpdateOutputLinearModel( vtkMRMLMarkupsToModelNode* markupsToModelModuleNode, vtkPoints* controlPoints, vtkPolyData* outputPolyData );
+  // Generates Cardinal Spline curve model.
+  void UpdateOutputCardinalSplineModel( vtkMRMLMarkupsToModelNode* markupsToModelModuleNode, vtkPoints* controlPoints, vtkPolyData* outputPolyData );
+  // Generates Kochanek Spline curve model.
+  void UpdateOutputKochanekSplineModel( vtkMRMLMarkupsToModelNode* markupsToModelModuleNode, vtkPoints* controlPoints, vtkPolyData* outputPolyData );
+  // Generates a polynomial curve model.
+  void UpdateOutputPolynomialFitModel( vtkMRMLMarkupsToModelNode* markupsToModelModuleNode, vtkPoints* controlPoints, vtkDoubleArray* markupsPointsParameters, vtkPolyData* outputPolyData );
   // Assign parameter values to points based on their position in the markups list (good for ordered point sets)
-  void ComputePointParametersRawIndices(vtkPolyData * markupsPointsPolyData, vtkDoubleArray* markupsPointsParameters);
+  void ComputePointParametersRawIndices( vtkPoints* controlPoints, vtkDoubleArray* markupsPointsParameters );
   // Assign parameter values to points based on their position in a minimum spanning tree between the two farthest points (good for unordered point sets)
-  void ComputePointParametersMinimumSpanningTree(vtkPolyData * markupsPointsPolyData, vtkDoubleArray* markupsPointsParameters);
+  void ComputePointParametersMinimumSpanningTree( vtkPoints* controlPoints, vtkDoubleArray* markupsPointsParameters );
 
   void ProcessMRMLNodesEvents( vtkObject* caller, unsigned long event, void* callData );
 

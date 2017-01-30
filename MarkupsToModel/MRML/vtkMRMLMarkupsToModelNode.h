@@ -125,10 +125,14 @@ public:
   vtkSetMacro( PointParameterType, int );
   vtkGetMacro( TubeRadius, double );
   vtkSetMacro( TubeRadius, double );
-  vtkGetMacro( TubeSamplePointsBetweenControlPoints, int );
-  vtkSetMacro( TubeSamplePointsBetweenControlPoints, int );
+  vtkGetMacro( TubeSegmentsBetweenControlPoints, int );
+  vtkSetMacro( TubeSegmentsBetweenControlPoints, int );
   vtkGetMacro( TubeNumberOfSides, int );
   vtkSetMacro( TubeNumberOfSides, int );
+  vtkGetMacro( TubeLoop, bool );
+  vtkSetMacro( TubeLoop, bool );
+  vtkGetMacro( KochanekEndsCopyNearestDerivatives, bool );
+  vtkSetMacro( KochanekEndsCopyNearestDerivatives, bool );
   
   vtkGetMacro( AutoUpdateOutput, bool );
   vtkSetMacro( AutoUpdateOutput, bool );
@@ -160,16 +164,16 @@ public:
   void SetAndObserveModelNodeID( const char* modelId );
   void ProcessMRMLEvents( vtkObject *caller, unsigned long event, void *callData );
 
-  // Convert between model and interpolation types IDs and names.
-  const char* GetModelTypeAsString( int id );
-  const char* GetInterpolationTypeAsString( int id );
-  const char* GetPointParameterTypeAsString( int id );
-  int GetModelTypeFromString( const char* name );
-  int GetInterpolationTypeFromString( const char* name );
-  int GetPointParameterTypeFromString( const char* name );
-
   vtkMRMLMarkupsFiducialNode * GetMarkupsNode( );
   vtkMRMLModelNode* GetModelNode( );
+
+  // Convert between model and interpolation types IDs and names.
+  static const char* GetModelTypeAsString( int id );
+  static const char* GetInterpolationTypeAsString( int id );
+  static const char* GetPointParameterTypeAsString( int id );
+  static int GetModelTypeFromString( const char* name );
+  static int GetInterpolationTypeFromString( const char* name );
+  static int GetPointParameterTypeFromString( const char* name );
 
 private:
   int    ModelType;
@@ -181,8 +185,10 @@ private:
   double DelaunayAlpha;
   bool   ConvexHull;
   double TubeRadius;
-  int    TubeSamplePointsBetweenControlPoints;
+  int    TubeSegmentsBetweenControlPoints;
   int    TubeNumberOfSides;
+  bool   TubeLoop;
+  bool   KochanekEndsCopyNearestDerivatives;
   double KochanekTension;
   double KochanekBias; 
   double KochanekContinuity;

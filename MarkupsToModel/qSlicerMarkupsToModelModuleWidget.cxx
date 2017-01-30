@@ -95,7 +95,9 @@ qSlicerMarkupsToModelModuleWidget::~qSlicerMarkupsToModelModuleWidget()
   disconnect( d->TubeRadiusDoubleSpinBox, SIGNAL( valueChanged( double ) ), this, SLOT( updateParametersToMRMLNode() ) );
   disconnect( d->TubeSegmentsSpinBox, SIGNAL( valueChanged( double ) ), this, SLOT( updateParametersToMRMLNode() ) );
   disconnect( d->TubeSidesSpinBox, SIGNAL( valueChanged( double ) ), this, SLOT( updateParametersToMRMLNode() ) );
+  disconnect( d->TubeLoopCheckBox, SIGNAL( clicked() ), this, SLOT( updateParametersToMRMLNode() ) );
   
+  disconnect( d->KochanekEndsCopyNearestDerivativesCheckBox, SIGNAL( clicked() ), this, SLOT( updateParametersToMRMLNode() ) );
   disconnect( d->KochanekBiasDoubleSpinBox, SIGNAL( valueChanged( double ) ), this, SLOT( updateParametersToMRMLNode() ) );
   disconnect( d->KochanekContinuityDoubleSpinBox, SIGNAL( valueChanged( double ) ), this, SLOT( updateParametersToMRMLNode() ) );
   disconnect( d->KochanekTensionDoubleSpinBox, SIGNAL( valueChanged( double ) ), this, SLOT( updateParametersToMRMLNode() ) );
@@ -164,7 +166,9 @@ void qSlicerMarkupsToModelModuleWidget::setup()
   connect( d->TubeRadiusDoubleSpinBox, SIGNAL( valueChanged( double ) ), this, SLOT( updateParametersToMRMLNode() ) );
   connect( d->TubeSegmentsSpinBox, SIGNAL( valueChanged( double ) ), this, SLOT( updateParametersToMRMLNode() ) );
   connect( d->TubeSidesSpinBox, SIGNAL( valueChanged( double ) ), this, SLOT( updateParametersToMRMLNode() ) );
+  connect( d->TubeLoopCheckBox, SIGNAL( clicked() ), this, SLOT( updateParametersToMRMLNode() ) );
   
+  connect( d->KochanekEndsCopyNearestDerivativesCheckBox, SIGNAL( clicked() ), this, SLOT( updateParametersToMRMLNode() ) );
   connect( d->KochanekBiasDoubleSpinBox, SIGNAL( valueChanged( double ) ), this, SLOT( updateParametersToMRMLNode() ) );
   connect( d->KochanekContinuityDoubleSpinBox, SIGNAL( valueChanged( double ) ), this, SLOT( updateParametersToMRMLNode() ) );
   connect( d->KochanekTensionDoubleSpinBox, SIGNAL( valueChanged( double ) ), this, SLOT( updateParametersToMRMLNode() ) );
@@ -367,8 +371,9 @@ void qSlicerMarkupsToModelModuleWidget::updateParametersToMRMLNode()
   markupsToModelModuleNode->SetButterflySubdivision( d->ButterflySubdivisionCheckBox->isChecked() );
   
   markupsToModelModuleNode->SetTubeRadius( d->TubeRadiusDoubleSpinBox->value() );
-  markupsToModelModuleNode->SetTubeSamplePointsBetweenControlPoints( d->TubeSegmentsSpinBox->value() );
+  markupsToModelModuleNode->SetTubeSegmentsBetweenControlPoints( d->TubeSegmentsSpinBox->value() );
   markupsToModelModuleNode->SetTubeNumberOfSides( d->TubeSidesSpinBox->value() );
+  markupsToModelModuleNode->SetTubeLoop( d->TubeLoopCheckBox->isChecked() );
   if ( d->LinearInterpolationRadioButton->isChecked() )
   {
     markupsToModelModuleNode->SetInterpolationType( vtkMRMLMarkupsToModelNode::Linear );
@@ -385,6 +390,7 @@ void qSlicerMarkupsToModelModuleWidget::updateParametersToMRMLNode()
   {
     markupsToModelModuleNode->SetInterpolationType( vtkMRMLMarkupsToModelNode::Polynomial );
   }
+  markupsToModelModuleNode->SetKochanekEndsCopyNearestDerivatives( d->KochanekEndsCopyNearestDerivativesCheckBox->isChecked() );
   markupsToModelModuleNode->SetKochanekBias( d->KochanekBiasDoubleSpinBox->value() );
   markupsToModelModuleNode->SetKochanekContinuity( d->KochanekContinuityDoubleSpinBox->value() );
   markupsToModelModuleNode->SetKochanekTension( d->KochanekTensionDoubleSpinBox->value() );
@@ -473,7 +479,8 @@ void qSlicerMarkupsToModelModuleWidget::updateFromMRMLNode()
     // curve
     d->TubeRadiusDoubleSpinBox->setValue( MarkupsToModelNode->GetTubeRadius() );
     d->TubeSidesSpinBox->setValue( MarkupsToModelNode->GetTubeNumberOfSides() );
-    d->TubeSegmentsSpinBox->setValue( MarkupsToModelNode->GetTubeSamplePointsBetweenControlPoints() );
+    d->TubeSegmentsSpinBox->setValue( MarkupsToModelNode->GetTubeSegmentsBetweenControlPoints() );
+    d->TubeLoopCheckBox->setChecked( MarkupsToModelNode->GetTubeLoop() );
     switch( MarkupsToModelNode->GetInterpolationType() )
     {
     case vtkMRMLMarkupsToModelNode::Linear: d->LinearInterpolationRadioButton->setChecked( 1 ); break;
@@ -481,9 +488,10 @@ void qSlicerMarkupsToModelModuleWidget::updateFromMRMLNode()
     case vtkMRMLMarkupsToModelNode::KochanekSpline: d->KochanekInterpolationRadioButton->setChecked( 1 ); break;
     case vtkMRMLMarkupsToModelNode::Polynomial: d->PolynomialInterpolationRadioButton->setChecked( 1 ); break;
     }
-    d->KochanekBiasDoubleSpinBox->setValue(MarkupsToModelNode->GetKochanekBias());
-    d->KochanekContinuityDoubleSpinBox->setValue(MarkupsToModelNode->GetKochanekContinuity());
-    d->KochanekTensionDoubleSpinBox->setValue(MarkupsToModelNode->GetKochanekTension());
+    d->KochanekEndsCopyNearestDerivativesCheckBox->setChecked( MarkupsToModelNode->GetKochanekEndsCopyNearestDerivatives() );
+    d->KochanekBiasDoubleSpinBox->setValue( MarkupsToModelNode->GetKochanekBias() );
+    d->KochanekContinuityDoubleSpinBox->setValue( MarkupsToModelNode->GetKochanekContinuity() );
+    d->KochanekTensionDoubleSpinBox->setValue( MarkupsToModelNode->GetKochanekTension() );
     switch( MarkupsToModelNode->GetPointParameterType() )
     {
     case vtkMRMLMarkupsToModelNode::RawIndices: d->PointParameterRawIndicesRadioButton->setChecked( 1 ); break;
@@ -522,6 +530,10 @@ void qSlicerMarkupsToModelModuleWidget::updateFromMRMLNode()
     d->TubeSidesSpinBox->setVisible( false );
     d->TubeSegmentsLabel->setVisible( false );
     d->TubeSegmentsSpinBox->setVisible( false );
+    d->TubeLoopLabel->setVisible( false );
+    d->TubeLoopCheckBox->setVisible( false );
+    d->KochanekEndsCopyNearestDerivativesLabel->setVisible( false );
+    d->KochanekEndsCopyNearestDerivativesCheckBox->setVisible( false );
     d->KochanekBiasLabel->setVisible( false );
     d->KochanekBiasDoubleSpinBox->setVisible( false );
     d->KochanekTensionLabel->setVisible( false );
@@ -557,8 +569,23 @@ void qSlicerMarkupsToModelModuleWidget::updateFromMRMLNode()
     d->TubeSegmentsLabel->setVisible( true );
     d->TubeSegmentsSpinBox->setVisible( true );
 
+    if ( d->LinearInterpolationRadioButton->isChecked() ||
+         d->CardinalInterpolationRadioButton->isChecked() ||
+         d->KochanekInterpolationRadioButton->isChecked() )
+    {
+      d->TubeLoopLabel->setVisible( true );
+      d->TubeLoopCheckBox->setVisible( true );
+    }
+    else
+    {
+      d->TubeLoopLabel->setVisible( false );
+      d->TubeLoopCheckBox->setVisible( false );
+    }
+
     if(d->KochanekInterpolationRadioButton->isChecked())
     {
+      d->KochanekEndsCopyNearestDerivativesLabel->setVisible( true );
+      d->KochanekEndsCopyNearestDerivativesCheckBox->setVisible( true );
       d->KochanekBiasLabel->setVisible( true );
       d->KochanekBiasDoubleSpinBox->setVisible( true );
       d->KochanekTensionLabel->setVisible( true );
@@ -568,6 +595,8 @@ void qSlicerMarkupsToModelModuleWidget::updateFromMRMLNode()
     }
     else
     {
+      d->KochanekEndsCopyNearestDerivativesLabel->setVisible( false );
+      d->KochanekEndsCopyNearestDerivativesCheckBox->setVisible( false );
       d->KochanekBiasLabel->setVisible( false );
       d->KochanekBiasDoubleSpinBox->setVisible( false );
       d->KochanekTensionLabel->setVisible( false );

@@ -48,8 +48,9 @@ vtkMRMLMarkupsToModelNode::vtkMRMLMarkupsToModelNode()
   this->ButterflySubdivision = true;
   this->DelaunayAlpha = 0.0;
   this->TubeRadius = 1.0;
-  this->TubeSamplePointsBetweenControlPoints = 5;
+  this->TubeSegmentsBetweenControlPoints = 5;
   this->TubeNumberOfSides = 8;
+  this->TubeLoop = false;
   this->ModelType = 0;
   this->InterpolationType = 0;
   this->PointParameterType = 0;
@@ -57,6 +58,8 @@ vtkMRMLMarkupsToModelNode::vtkMRMLMarkupsToModelNode()
   this->KochanekTension = 0;
   this->KochanekBias = 0;
   this->KochanekContinuity = 0;
+
+  this->KochanekEndsCopyNearestDerivatives = false;
 
   this->PolynomialOrder = 3;
 }
@@ -92,7 +95,9 @@ void vtkMRMLMarkupsToModelNode::WriteXML( ostream& of, int nIndent )
   of << indent << " PointParameterType=\"" << this->GetPointParameterTypeAsString(this->PointParameterType) << "\"";
   of << indent << " TubeRadius=\"" << this->TubeRadius << "\"";
   of << indent << " TubeNumberOfSides=\"" << this->TubeNumberOfSides << "\"";
-  of << indent << " TubeSamplePointsBetweenControlPoints=\"" << this->TubeSamplePointsBetweenControlPoints << "\"";
+  of << indent << " TubeSegmentsBetweenControlPoints=\"" << this->TubeSegmentsBetweenControlPoints << "\"";
+  of << indent << " TubeLoop=\"" << ( this->TubeLoop ? "true" : "false" ) << "\"";
+  of << indent << " KochanekEndsCopyNearestDerivatives=\"" << ( this->KochanekEndsCopyNearestDerivatives ? "true" : "false" ) << "\"";
   of << indent << " KochanekBias=\"" << this->KochanekBias << "\"";
   of << indent << " KochanekContinuity=\"" << this->KochanekContinuity << "\"";
   of << indent << " KochanekTension=\"" << this->KochanekTension << "\"";
@@ -192,13 +197,23 @@ void vtkMRMLMarkupsToModelNode::ReadXMLAttributes( const char** atts )
       nameString >> tubeNumberOfSides;
       SetTubeNumberOfSides(tubeNumberOfSides);
     }
-    else if ( ! strcmp( attName, "TubeSamplePointsBetweenControlPoints" ) )
+    else if ( ! strcmp( attName, "TubeSegmentsBetweenControlPoints" ) )
     {
-      double TubeSamplePointsBetweenControlPoints = 0.0;
+      double tubeSegmentsBetweenControlPoints = 0.0;
       std::stringstream nameString;
       nameString << attValue;
-      nameString >> TubeSamplePointsBetweenControlPoints;
-      SetTubeSamplePointsBetweenControlPoints(TubeSamplePointsBetweenControlPoints);
+      nameString >> tubeSegmentsBetweenControlPoints;
+      SetTubeSegmentsBetweenControlPoints(tubeSegmentsBetweenControlPoints);
+    }
+    else if ( ! strcmp( attName, "TubeLoop" ) )
+    {
+      bool isTrue = !strcmp( attValue, "true" );
+      SetTubeLoop( isTrue );
+    }
+    else if ( ! strcmp( attName, "KochanekEndsCopyNearestDerivatives" ) )
+    {
+      bool isTrue = !strcmp( attValue, "true" );
+      SetKochanekEndsCopyNearestDerivatives( isTrue );
     }
     else if ( ! strcmp( attName, "KochanekBias" ) )
     {
