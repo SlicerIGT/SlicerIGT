@@ -57,6 +57,18 @@ class UltraSound(object):
 
     self.usFrozen=False
 
+    self.brightnessSliderLabel = qt.QLabel()
+    self.brightnessSliderLabel.text = 'Brightness '
+
+    self.brightnessSliderWidget = ctk.ctkSliderWidget()
+    self.brightnessSliderWidget.invertedAppearance = True
+    self.brightnessSliderWidget.invertedControls = True
+    self.brightnessSliderWidget.singleStep = 10
+    self.brightnessSliderWidget.minimum = 0
+    self.brightnessSliderWidget.maximum = 200
+    self.brightnessSliderWidget.value = 200
+
+    '''
     self.brigthnessContrastButtonNormal = qt.QPushButton()
     self.brigthnessContrastButtonNormal.text = "Normal"
     self.brigthnessContrastButtonNormal.setEnabled(True)
@@ -68,11 +80,13 @@ class UltraSound(object):
     self.brigthnessContrastButtonBrighter = qt.QPushButton()
     self.brigthnessContrastButtonBrighter.text = "Brighter"
     self.brigthnessContrastButtonBrighter.setEnabled(True)
-
+    '''
     brightnessContrastBox = qt.QHBoxLayout()
-    brightnessContrastBox.addWidget(self.brigthnessContrastButtonNormal)
-    brightnessContrastBox.addWidget(self.brigthnessContrastButtonBright)
-    brightnessContrastBox.addWidget(self.brigthnessContrastButtonBrighter)
+    brightnessContrastBox.addWidget(self.brightnessSliderLabel)
+    brightnessContrastBox.addWidget(self.brightnessSliderWidget)
+    #brightnessContrastBox.addWidget(self.brigthnessContrastButtonNormal)
+    #brightnessContrastBox.addWidget(self.brigthnessContrastButtonBright)
+    #brightnessContrastBox.addWidget(self.brigthnessContrastButtonBrighter)
     ultrasoundLayout.addRow(brightnessContrastBox)
 
     return collapsibleButton, ultrasoundLayout
@@ -135,16 +149,17 @@ class UltraSound(object):
   def setupConnections(self):
     self.startStopRecordingButton.connect('clicked(bool)', self.onStartStopRecordingClicked)
     self.freezeUltrasoundButton.connect('clicked()', self.onFreezeUltrasoundClicked)
-    self.brigthnessContrastButtonNormal.connect('clicked()', self.onBrightnessContrastNormalClicked)
-    self.brigthnessContrastButtonBright.connect('clicked()', self.onBrightnessContrastBrightClicked)
-    self.brigthnessContrastButtonBrighter.connect('clicked()', self.onBrightnessContrastBrighterClicked)
+    self.brightnessSliderWidget.connect('valueChanged()', self.onBrightnessSliderChanged)
+    #self.brigthnessContrastButtonNormal.connect('clicked()', self.onBrightnessContrastNormalClicked)
+    #self.brigthnessContrastButtonBright.connect('clicked()', self.onBrightnessContrastBrightClicked)
+    #self.brigthnessContrastButtonBrighter.connect('clicked()', self.onBrightnessContrastBrighterClicked)
 
   def disconnect(self):
     self.startStopRecordingButton.disconnect('clicked(bool)', self.onStartStopRecordingClicked)
     self.freezeUltrasoundButton.disconnect('clicked()', self.onFreezeUltrasoundClicked)
-    self.brigthnessContrastButtonNormal.disconnect('clicked()', self.onBrightnessContrastNormalClicked)
-    self.brigthnessContrastButtonBright.disconnect('clicked()', self.onBrightnessContrastBrightClicked)
-    self.brigthnessContrastButtonBrighter.disconnect('clicked()', self.onBrightnessContrastBrighterClicked)
+    #self.brigthnessContrastButtonNormal.disconnect('clicked()', self.onBrightnessContrastNormalClicked)
+    #self.brigthnessContrastButtonBright.disconnect('clicked()', self.onBrightnessContrastBrightClicked)
+    #self.brigthnessContrastButtonBrighter.disconnect('clicked()', self.onBrightnessContrastBrighterClicked)
 
   def createPlusConnector(self):
     connectorNode = slicer.util.getNode('PlusConnector')
@@ -214,7 +229,7 @@ class UltraSound(object):
       return
     liveUsDisplayNode.SetAutoWindowLevel(0)
     liveUsDisplayNode.SetWindowLevelMinMax(minLevel,maxLevel)
-
+  '''
   def onBrightnessContrastNormalClicked(self):
     logging.debug('onBrightnessContrastNormalClicked')
     self.setImageMinMaxLevel(0,200)
@@ -226,3 +241,8 @@ class UltraSound(object):
   def onBrightnessContrastBrighterClicked(self):
     logging.debug('onBrightnessContrastBrighterClicked')
     self.setImageMinMaxLevel(0,60)
+  '''
+  def onBrightnessSliderChanged(self):
+    logging.debug('onBrightnessSliderChanged')
+    self.setImageMinMaxLevel(0, self.brightnessSliderWidget.value)
+
