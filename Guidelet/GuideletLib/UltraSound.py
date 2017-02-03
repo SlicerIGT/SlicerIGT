@@ -60,15 +60,14 @@ class UltraSound(object):
     self.brightnessSliderLabel = qt.QLabel()
     self.brightnessSliderLabel.text = 'Brightness '
 
-    self.brightnessSliderWidget = ctk.ctkSliderWidget()
-    self.brightnessSliderWidget.invertedAppearance = True
-    self.brightnessSliderWidget.invertedControls = True
-    self.brightnessSliderWidget.singleStep = 10
+    self.brightnessSliderWidget = ctk.ctkDoubleRangeSlider()
+    self.brightnessSliderWidget.orientation = 'Horizontal'
+    self.brightnessSliderWidget.singleStep = 1
     self.brightnessSliderWidget.minimum = 0
-    self.brightnessSliderWidget.maximum = 200
-    self.brightnessSliderWidget.value = 200
+    self.brightnessSliderWidget.maximum = 255
+    self.brightnessSliderWidget.minimumValue = 0
+    self.brightnessSliderWidget.maximumValue = 200
 
-    '''
     self.brigthnessContrastButtonNormal = qt.QPushButton()
     self.brigthnessContrastButtonNormal.text = "Normal"
     self.brigthnessContrastButtonNormal.setEnabled(True)
@@ -80,14 +79,32 @@ class UltraSound(object):
     self.brigthnessContrastButtonBrighter = qt.QPushButton()
     self.brigthnessContrastButtonBrighter.text = "Brighter"
     self.brigthnessContrastButtonBrighter.setEnabled(True)
-    '''
-    brightnessContrastBox = qt.QHBoxLayout()
-    brightnessContrastBox.addWidget(self.brightnessSliderLabel)
-    brightnessContrastBox.addWidget(self.brightnessSliderWidget)
-    #brightnessContrastBox.addWidget(self.brigthnessContrastButtonNormal)
-    #brightnessContrastBox.addWidget(self.brigthnessContrastButtonBright)
-    #brightnessContrastBox.addWidget(self.brigthnessContrastButtonBrighter)
-    ultrasoundLayout.addRow(brightnessContrastBox)
+
+    ultrasoundButtonsPresent = False
+    ultrasoundSliderPresent = False
+
+    ultrasoundConfiguration = self.guideletParent.parameterNode.GetParameter('UltrasoundBrightnessConfiguration')
+
+    if ultrasoundConfiguration == 'Slider' or ultrasoundConfiguration == 'Dual':
+        logging.info('Slider to be added')
+        ultrasoundSliderPresent = True
+
+    if ultrasoundConfiguration == 'Buttons' or ultrasoundConfiguration == 'Dual':
+        logging.info('Buttons to be added')
+        ultrasoundButtonsPresent = True
+
+    if ultrasoundButtonsPresent == True:
+        brightnessContrastBox = qt.QHBoxLayout()
+        brightnessContrastBox.addWidget(self.brigthnessContrastButtonNormal)
+        brightnessContrastBox.addWidget(self.brigthnessContrastButtonBright)
+        brightnessContrastBox.addWidget(self.brigthnessContrastButtonBrighter)
+        ultrasoundLayout.addRow(brightnessContrastBox)
+
+    if ultrasoundSliderPresent == True:
+      brightnessContrastSliderBox = qt.QHBoxLayout()
+      brightnessContrastSliderBox.addWidget(self.brightnessSliderLabel)
+      brightnessContrastSliderBox.addWidget(self.brightnessSliderWidget)
+      ultrasoundLayout.addRow(brightnessContrastSliderBox)
 
     return collapsibleButton, ultrasoundLayout
 
@@ -244,5 +261,5 @@ class UltraSound(object):
   '''
   def onBrightnessSliderChanged(self):
     logging.debug('onBrightnessSliderChanged')
-    self.setImageMinMaxLevel(0, self.brightnessSliderWidget.value)
+    self.setImageMinMaxLevel(self.brightnessSliderWidget.minimumValue, self.brightnessSliderWidget.maximumValue)
 
