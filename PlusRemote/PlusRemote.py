@@ -1357,7 +1357,7 @@ class PlusRemoteLogic(ScriptedLoadableModuleLogic):
     self.cmdGetCaptureDeviceIds = slicer.vtkSlicerOpenIGTLinkCommand()
     self.cmdGetCaptureDeviceIds.SetCommandTimeoutSec(self.defaultCommandTimeoutSec);
     self.cmdGetCaptureDeviceIds.SetCommandName('RequestDeviceIds')
-    self.cmdGetCaptureDeviceIds.SetCommandAttribute('DeviceType','VirtualDiscCapture')        
+    self.cmdGetCaptureDeviceIds.SetCommandAttribute('DeviceType','VirtualCapture')        
     self.cmdGetReconstructorDeviceIds = slicer.vtkSlicerOpenIGTLinkCommand()
     self.cmdGetReconstructorDeviceIds.SetCommandTimeoutSec(self.defaultCommandTimeoutSec);
     self.cmdGetReconstructorDeviceIds.SetCommandName('RequestDeviceIds')
