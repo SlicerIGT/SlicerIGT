@@ -62,7 +62,6 @@ class Guidelet(object):
 
   VIEW_ULTRASOUND = unicode("Ultrasound")
   VIEW_ULTRASOUND_3D = unicode("Ultrasound + 3D")
-  VIEW_ULTRASOUND_CAM_3D = unicode("Ultrasound + Webcam + 3D")
   VIEW_ULTRASOUND_DUAL_3D = unicode("Ultrasound + Dual 3D")
   VIEW_3D = unicode("3D")
   VIEW_DUAL_3D = unicode("Dual 3D")
@@ -187,24 +186,17 @@ class Guidelet(object):
     self.advancedLayout.addRow(self.showFullSlicerInterfaceButton)
 
     self.showGuideletFullscreenButton = qt.QPushButton()
-    self.showGuideletFullscreenButton.setText("Show Guidelet in full screen")
+    self.showGuideletFullscreenButton.setText("Show guidelet in full screen")
     self.advancedLayout.addRow(self.showGuideletFullscreenButton)
 
     self.saveSceneButton = qt.QPushButton()
-    self.saveSceneButton.setText("Save Guidelet scene")
+    self.saveSceneButton.setText("Save slicelet scene")
     self.advancedLayout.addRow(self.saveSceneButton)
 
-    self.saveDirectoryLineEdit = ctk.ctkPathLineEdit()
+    self.saveDirectoryLineEdit = qt.QLineEdit()
     node = self.logic.getParameterNode()
     sceneSaveDirectory = node.GetParameter('SavedScenesDirectory')
-    self.saveDirectoryLineEdit.currentPath = sceneSaveDirectory
-    self.saveDirectoryLineEdit.filters = ctk.ctkPathLineEdit.Dirs
-    self.saveDirectoryLineEdit.options = ctk.ctkPathLineEdit.DontUseSheet
-    self.saveDirectoryLineEdit.options = ctk.ctkPathLineEdit.ShowDirsOnly
-    self.saveDirectoryLineEdit.showHistoryButton = False
-    self.saveDirectoryLineEdit.setMinimumWidth(100)
-    self.saveDirectoryLineEdit.setMaximumWidth(500)
-
+    self.saveDirectoryLineEdit.setText(sceneSaveDirectory)
     saveLabel = qt.QLabel()
     saveLabel.setText("Save scene directory:")
     hbox = qt.QHBoxLayout()
@@ -219,7 +211,6 @@ class Guidelet(object):
   def setupViewerLayouts(self):
     self.viewSelectorComboBox.addItem(self.VIEW_ULTRASOUND)
     self.viewSelectorComboBox.addItem(self.VIEW_ULTRASOUND_3D)
-    self.viewSelectorComboBox.addItem(self.VIEW_ULTRASOUND_CAM_3D)
     self.viewSelectorComboBox.addItem(self.VIEW_ULTRASOUND_DUAL_3D)
     self.viewSelectorComboBox.addItem(self.VIEW_3D)
     self.viewSelectorComboBox.addItem(self.VIEW_DUAL_3D)
@@ -230,8 +221,7 @@ class Guidelet(object):
 
   def registerCustomLayouts(self):#common
     layoutLogic = self.layoutManager.layoutLogic()
-    customLayout = (
-      "<layout type=\"horizontal\" split=\"false\" >"
+    customLayout = ("<layout type=\"horizontal\" split=\"false\" >"
       " <item>"
       "  <view class=\"vtkMRMLViewNode\" singletontag=\"1\">"
       "    <property name=\"viewlabel\" action=\"default\">1</property>"
@@ -246,8 +236,7 @@ class Guidelet(object):
     self.dual3dCustomLayoutId=503
     layoutLogic.GetLayoutNode().AddLayoutDescription(self.dual3dCustomLayoutId, customLayout)
 
-    customLayout = (
-      "<layout type=\"horizontal\" split=\"false\" >"
+    customLayout = ("<layout type=\"horizontal\" split=\"false\" >"
       " <item>"
       "  <view class=\"vtkMRMLViewNode\" singletontag=\"1\">"
       "    <property name=\"viewlabel\" action=\"default\">1</property>"
@@ -264,8 +253,7 @@ class Guidelet(object):
     self.red3dCustomLayoutId=504
     layoutLogic.GetLayoutNode().AddLayoutDescription(self.red3dCustomLayoutId, customLayout)
 
-    customLayout = (
-      "<layout type=\"horizontal\" split=\"false\" >"
+    customLayout = ("<layout type=\"horizontal\" split=\"false\" >"
       " <item>"
       "  <view class=\"vtkMRMLViewNode\" singletontag=\"1\">"
       "    <property name=\"viewlabel\" action=\"default\">1</property>"
@@ -287,6 +275,7 @@ class Guidelet(object):
     self.redDual3dCustomLayoutId=505
     layoutLogic.GetLayoutNode().AddLayoutDescription(self.redDual3dCustomLayoutId, customLayout)
 
+    layoutLogic = self.layoutManager.layoutLogic()
     customLayout = (
       "<layout type=\"vertical\" split=\"true\" >"
       " <item>"
@@ -308,45 +297,17 @@ class Guidelet(object):
       "    <property name=\"viewlabel\" action=\"default\">3</property>"
       "  </view>"
       " </item>"
-      "</layout>")
+      "</layout>"
+      )
     self.triple3dCustomLayoutId=506
     layoutLogic.GetLayoutNode().AddLayoutDescription(self.triple3dCustomLayoutId, customLayout)
-
-    customLayout = (
-      "<layout type=\"horizontal\" split=\"false\" >"
-      " <item>"
-      "  <view class=\"vtkMRMLViewNode\" singletontag=\"1\">"
-      "   <property name=\"viewlabel\" action=\"default\">1</property>"
-      "  </view>"
-      " </item>"
-      " <item>"
-      "  <layout type=\"vertical\" split=\"false\" >"
-      "   <item>"
-      "    <view class=\"vtkMRMLSliceNode\" singletontag=\"Red\">"
-      "     <property name=\"orientation\" action=\"default\">Axial</property>"
-      "     <property name=\"viewlabel\" action=\"default\">R</property>"
-      "     <property name=\"viewcolor\" action=\"default\">#F34A33</property>"
-      "    </view>"
-      "   </item>"
-      "   <item>"
-      "    <view class=\"vtkMRMLSliceNode\" singletontag=\"Yellow\">"
-      "     <property name=\"orientation\" action=\"default\">Sagittal</property>"
-      "     <property name=\"viewlabel\" action=\"default\">Y</property>"
-      "     <property name=\"viewcolor\" action=\"default\">#F34A33</property>"
-      "    </view>"
-      "   </item>"
-      "  </layout>"
-      " </item>"
-      "</layout>")
-    self.redyellow3dCustomLayoutId=507
-    layoutLogic.GetLayoutNode().AddLayoutDescription(self.redyellow3dCustomLayoutId, customLayout)
 
   def setupScene(self):
     # setup feature scene
     self.ultrasound.setupScene()
 
   def onSaveDirectoryPreferencesChanged(self):
-    sceneSaveDirectory = str(self.saveDirectoryLineEdit.currentPath)
+    sceneSaveDirectory = self.saveDirectoryLineEdit.text
     self.logic.updateSettings({'SavedScenesDirectory' : sceneSaveDirectory}, self.configurationName)
     node = self.logic.getParameterNode()
     self.logic.updateParameterNodeFromUserPreferences(node, {'SavedScenesDirectory' : sceneSaveDirectory})
@@ -383,7 +344,7 @@ class Guidelet(object):
     self.linkInputSelector.connect("nodeActivated(vtkMRMLNode*)", self.onConnectorNodeActivated)
     self.viewSelectorComboBox.connect('activated(int)', self.onViewSelect)
     self.exitButton.connect('clicked()', self.onExitButtonClicked)
-    self.saveDirectoryLineEdit.connect('currentPathChanged(QString)', self.onSaveDirectoryPreferencesChanged)
+    self.saveDirectoryLineEdit.connect('editingFinished()', self.onSaveDirectoryPreferencesChanged)
 
   def disconnect(self):
     self.removeConnectorObservers()
@@ -398,7 +359,7 @@ class Guidelet(object):
     self.linkInputSelector.disconnect("nodeActivated(vtkMRMLNode*)", self.onConnectorNodeActivated)
     self.viewSelectorComboBox.disconnect('activated(int)', self.onViewSelect)
     self.exitButton.disconnect('clicked()', self.onExitButtonClicked)
-    self.saveDirectoryLineEdit.disconnect('currentPathChanged(QString)', self.onSaveDirectoryPreferencesChanged)
+    self.saveDirectoryLineEdit.disconnect('editingFinished()', self.onSaveDirectoryPreferencesChanged)
 
   def showFullScreen(self):
     # We hide all toolbars, etc. which is inconvenient as a default startup setting,
@@ -562,10 +523,6 @@ class Guidelet(object):
     elif text == self.VIEW_TRIPLE_3D:
       self.layoutManager.setLayout(self.triple3dCustomLayoutId)
       self.showUltrasoundIn3dView(False)
-    elif text == self.VIEW_ULTRASOUND_CAM_3D:
-      self.layoutManager.setLayout(self.redyellow3dCustomLayoutId)
-      self.delayedFitUltrasoundImageToView()
-      self.showUltrasoundIn3dView(True)
 
   def onUltrasoundPanelToggled(self, toggled):
     if not toggled:
