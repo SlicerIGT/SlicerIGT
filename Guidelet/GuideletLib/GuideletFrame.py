@@ -96,7 +96,11 @@ class Guidelet(object):
     self.sliceletPanel = qt.QFrame(self.sliceletDockWidget)
     self.sliceletPanelLayout = qt.QVBoxLayout(self.sliceletPanel)
     self.sliceletDockWidget.setWidget(self.sliceletPanel)
-
+    
+    self.topPanelLayout = qt.QGridLayout(self.sliceletPanel)
+    self.sliceletPanelLayout.addLayout(self.topPanelLayout)
+    self.setupTopPanel()
+    
     self.setupFeaturePanelList()
     self.setupAdvancedPanel()
     self.setupAdditionalPanel()
@@ -108,6 +112,12 @@ class Guidelet(object):
 
     self.sliceletDockWidget.setStyleSheet(self.loadStyleSheet())
 
+  def setupTopPanel(self):
+    '''
+    Reimplement this function and put widgets in self.topPanelLayout (QGridLayout)
+    '''
+    pass
+  
   def loadStyleSheet(self):
     moduleDir = os.path.dirname(__file__)
     style = self.parameterNode.GetParameter('StyleSheet')
