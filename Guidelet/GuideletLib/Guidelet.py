@@ -6,7 +6,6 @@ import time
 from UltraSound import UltraSound
 
 class Guidelet(object):
-
   @staticmethod
   def showToolbars(show):
 
@@ -22,24 +21,10 @@ class Guidelet(object):
     except:
       pass
 
-  def showModulePanel(self, show):
-    modulePanelDockWidget = slicer.util.mainWindow().findChildren('QDockWidget','PanelDockWidget')[0]
-    modulePanelDockWidget.setVisible(show)
-
-    if show:
-      mainWindow=slicer.util.mainWindow()
-      if self.sliceletDockWidgetPosition == qt.Qt.LeftDockWidgetArea:
-        mainWindow.tabifyDockWidget(self.sliceletDockWidget, modulePanelDockWidget)
-        self.sliceletDockWidget.setFeatures(qt.QDockWidget.DockWidgetClosable+qt.QDockWidget.DockWidgetMovable+qt.QDockWidget.DockWidgetFloatable)
-    else:
-      if self.sliceletDockWidgetPosition == qt.Qt.LeftDockWidgetArea:
-        # Prevent accidental closing or undocking of the slicelet's left panel
-        self.sliceletDockWidget.setFeatures(0)
-
   @staticmethod
   def showPythonConsole(show):
     slicer.util.mainWindow().pythonConsole().parent().setVisible(show)
-        
+
   @staticmethod
   def showMenuBar(show):
     for menubar in slicer.util.mainWindow().findChildren('QMenuBar'):
@@ -79,24 +64,20 @@ class Guidelet(object):
     self.layoutManager = slicer.app.layoutManager()
 
     self.logic.updateParameterNodeFromSettings(self.parameterNode, self.configurationName)
-
     self.setAndObserveParameterNode(self.parameterNode)
 
     self.ultrasound = self.getUltrasoundClass()
-
     self.fitUltrasoundImageToViewOnConnect = True
-
     self.setupConnectorNode()
 
     self.sliceletDockWidget = qt.QDockWidget(self.parent)
-
     self.mainWindow=slicer.util.mainWindow()
     self.sliceletDockWidget.setParent(self.mainWindow)
     self.mainWindow.addDockWidget(self.sliceletDockWidgetPosition, self.sliceletDockWidget)
     self.sliceletPanel = qt.QFrame(self.sliceletDockWidget)
     self.sliceletPanelLayout = qt.QVBoxLayout(self.sliceletPanel)
     self.sliceletDockWidget.setWidget(self.sliceletPanel)
-    
+
     self.topPanelLayout = qt.QGridLayout(self.sliceletPanel)
     self.sliceletPanelLayout.addLayout(self.topPanelLayout)
     self.setupTopPanel()
@@ -106,18 +87,30 @@ class Guidelet(object):
     self.setupAdditionalPanel()
 
     self.addConnectorObservers()
-
-    # Setting up callback functions for widgets.
     self.setupConnections()
 
     self.sliceletDockWidget.setStyleSheet(self.loadStyleSheet())
 
+  def showModulePanel(self, show):
+    modulePanelDockWidget = slicer.util.mainWindow().findChildren('QDockWidget','PanelDockWidget')[0]
+    modulePanelDockWidget.setVisible(show)
+
+    if show:
+      mainWindow=slicer.util.mainWindow()
+      if self.sliceletDockWidgetPosition == qt.Qt.LeftDockWidgetArea:
+        mainWindow.tabifyDockWidget(self.sliceletDockWidget, modulePanelDockWidget)
+        self.sliceletDockWidget.setFeatures(qt.QDockWidget.DockWidgetClosable+qt.QDockWidget.DockWidgetMovable+qt.QDockWidget.DockWidgetFloatable)
+    else:
+      if self.sliceletDockWidgetPosition == qt.Qt.LeftDockWidgetArea:
+        # Prevent accidental closing or undocking of the slicelet's left panel
+        self.sliceletDockWidget.setFeatures(0)
+
   def setupTopPanel(self):
-    '''
+    """
     Reimplement this function and put widgets in self.topPanelLayout (QGridLayout)
-    '''
+    """
     pass
-  
+
   def loadStyleSheet(self):
     moduleDir = os.path.dirname(__file__)
     style = self.parameterNode.GetParameter('StyleSheet')
@@ -351,8 +344,14 @@ class Guidelet(object):
     self.redyellow3dCustomLayoutId=507
     layoutLogic.GetLayoutNode().AddLayoutDescription(self.redyellow3dCustomLayoutId, customLayout)
 
+  def onSceneLoaded(self):
+    """ Derived classes can override this function
+    """
+    pass
+
   def setupScene(self):
-    # setup feature scene
+    """ setup feature scene
+    """
     self.ultrasound.setupScene()
 
   def onSaveDirectoryPreferencesChanged(self):
@@ -578,13 +577,12 @@ class Guidelet(object):
       self.showUltrasoundIn3dView(True)
 
   def onUltrasoundPanelToggled(self, toggled):
+    logging.debug('onUltrasoundPanelToggled: {0}'.format(toggled))
     if not toggled:
       # deactivate placement mode
       interactionNode = slicer.app.applicationLogic().GetInteractionNode()
       interactionNode.SetCurrentInteractionMode(interactionNode.ViewTransform)
       return
-
-    logging.debug('onTumorContouringPanelToggled: {0}'.format(toggled))
 
     self.showDefaultView()
 
