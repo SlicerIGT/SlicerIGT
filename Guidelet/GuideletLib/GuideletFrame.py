@@ -96,11 +96,7 @@ class Guidelet(object):
     self.sliceletPanel = qt.QFrame(self.sliceletDockWidget)
     self.sliceletPanelLayout = qt.QVBoxLayout(self.sliceletPanel)
     self.sliceletDockWidget.setWidget(self.sliceletPanel)
-    
-    self.topPanelLayout = qt.QGridLayout(self.sliceletPanel)
-    self.sliceletPanelLayout.addLayout(self.topPanelLayout)
-    self.setupTopPanel()
-    
+
     self.setupFeaturePanelList()
     self.setupAdvancedPanel()
     self.setupAdditionalPanel()
@@ -112,12 +108,6 @@ class Guidelet(object):
 
     self.sliceletDockWidget.setStyleSheet(self.loadStyleSheet())
 
-  def setupTopPanel(self):
-    '''
-    Reimplement this function and put widgets in self.topPanelLayout (QGridLayout)
-    '''
-    pass
-  
   def loadStyleSheet(self):
     moduleDir = os.path.dirname(__file__)
     style = self.parameterNode.GetParameter('StyleSheet')
@@ -215,13 +205,6 @@ class Guidelet(object):
     self.saveDirectoryLineEdit.setMinimumWidth(100)
     self.saveDirectoryLineEdit.setMaximumWidth(500)
 
-    saveLabel = qt.QLabel()
-    saveLabel.setText("Save scene directory:")
-    hbox = qt.QHBoxLayout()
-    hbox.addWidget(saveLabel)
-    hbox.addWidget(self.saveDirectoryLineEdit)
-    self.advancedLayout.addRow(hbox)
-
     self.exitButton = qt.QPushButton()
     self.exitButton.setText("Exit")
     self.advancedLayout.addRow(self.exitButton)
@@ -297,6 +280,7 @@ class Guidelet(object):
     self.redDual3dCustomLayoutId=505
     layoutLogic.GetLayoutNode().AddLayoutDescription(self.redDual3dCustomLayoutId, customLayout)
 
+    #layoutLogic = self.layoutManager.layoutLogic()
     customLayout = (
       "<layout type=\"vertical\" split=\"true\" >"
       " <item>"
@@ -348,7 +332,7 @@ class Guidelet(object):
       "  </layout>"
       " </item>"
       "</layout>")
-    self.redyellow3dCustomLayoutId=507
+    self.redyellow3dCustomLayoutId = 507
     layoutLogic.GetLayoutNode().AddLayoutDescription(self.redyellow3dCustomLayoutId, customLayout)
 
   def setupScene(self):
