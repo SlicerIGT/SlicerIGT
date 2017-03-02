@@ -57,6 +57,17 @@ class UltraSound(object):
 
     self.usFrozen=False
 
+    self.brightnessSliderLabel = qt.QLabel()
+    self.brightnessSliderLabel.text = 'Brightness '
+
+    self.brightnessSliderWidget = ctk.ctkDoubleRangeSlider()
+    self.brightnessSliderWidget.orientation = 'Horizontal'
+    self.brightnessSliderWidget.singleStep = 1
+    self.brightnessSliderWidget.minimum = 0
+    self.brightnessSliderWidget.maximum = 255
+    self.brightnessSliderWidget.minimumValue = 0
+    self.brightnessSliderWidget.maximumValue = 200
+
     self.brigthnessContrastButtonNormal = qt.QPushButton()
     self.brigthnessContrastButtonNormal.text = "Normal"
     self.brigthnessContrastButtonNormal.setEnabled(True)
@@ -69,11 +80,31 @@ class UltraSound(object):
     self.brigthnessContrastButtonBrighter.text = "Brighter"
     self.brigthnessContrastButtonBrighter.setEnabled(True)
 
-    brightnessContrastBox = qt.QHBoxLayout()
-    brightnessContrastBox.addWidget(self.brigthnessContrastButtonNormal)
-    brightnessContrastBox.addWidget(self.brigthnessContrastButtonBright)
-    brightnessContrastBox.addWidget(self.brigthnessContrastButtonBrighter)
-    ultrasoundLayout.addRow(brightnessContrastBox)
+    ultrasoundButtonsPresent = False
+    ultrasoundSliderPresent = False
+
+    ultrasoundConfiguration = self.guideletParent.parameterNode.GetParameter('UltrasoundBrightnessConfiguration')
+
+    if ultrasoundConfiguration == 'Slider' or ultrasoundConfiguration == 'Dual':
+        logging.info('Slider to be added')
+        ultrasoundSliderPresent = True
+
+    if ultrasoundConfiguration == 'Buttons' or ultrasoundConfiguration == 'Dual':
+        logging.info('Buttons to be added')
+        ultrasoundButtonsPresent = True
+
+    if ultrasoundButtonsPresent == True:
+        brightnessContrastBox = qt.QHBoxLayout()
+        brightnessContrastBox.addWidget(self.brigthnessContrastButtonNormal)
+        brightnessContrastBox.addWidget(self.brigthnessContrastButtonBright)
+        brightnessContrastBox.addWidget(self.brigthnessContrastButtonBrighter)
+        ultrasoundLayout.addRow(brightnessContrastBox)
+
+    if ultrasoundSliderPresent == True:
+      brightnessContrastSliderBox = qt.QHBoxLayout()
+      brightnessContrastSliderBox.addWidget(self.brightnessSliderLabel)
+      brightnessContrastSliderBox.addWidget(self.brightnessSliderWidget)
+      ultrasoundLayout.addRow(brightnessContrastSliderBox)
 
     return collapsibleButton, ultrasoundLayout
 
@@ -135,16 +166,17 @@ class UltraSound(object):
   def setupConnections(self):
     self.startStopRecordingButton.connect('clicked(bool)', self.onStartStopRecordingClicked)
     self.freezeUltrasoundButton.connect('clicked()', self.onFreezeUltrasoundClicked)
-    self.brigthnessContrastButtonNormal.connect('clicked()', self.onBrightnessContrastNormalClicked)
-    self.brigthnessContrastButtonBright.connect('clicked()', self.onBrightnessContrastBrightClicked)
-    self.brigthnessContrastButtonBrighter.connect('clicked()', self.onBrightnessContrastBrighterClicked)
+    self.brightnessSliderWidget.connect('valueChanged()', self.onBrightnessSliderChanged)
+    #self.brigthnessContrastButtonNormal.connect('clicked()', self.onBrightnessContrastNormalClicked)
+    #self.brigthnessContrastButtonBright.connect('clicked()', self.onBrightnessContrastBrightClicked)
+    #self.brigthnessContrastButtonBrighter.connect('clicked()', self.onBrightnessContrastBrighterClicked)
 
   def disconnect(self):
     self.startStopRecordingButton.disconnect('clicked(bool)', self.onStartStopRecordingClicked)
     self.freezeUltrasoundButton.disconnect('clicked()', self.onFreezeUltrasoundClicked)
-    self.brigthnessContrastButtonNormal.disconnect('clicked()', self.onBrightnessContrastNormalClicked)
-    self.brigthnessContrastButtonBright.disconnect('clicked()', self.onBrightnessContrastBrightClicked)
-    self.brigthnessContrastButtonBrighter.disconnect('clicked()', self.onBrightnessContrastBrighterClicked)
+    #self.brigthnessContrastButtonNormal.disconnect('clicked()', self.onBrightnessContrastNormalClicked)
+    #self.brigthnessContrastButtonBright.disconnect('clicked()', self.onBrightnessContrastBrightClicked)
+    #self.brigthnessContrastButtonBrighter.disconnect('clicked()', self.onBrightnessContrastBrighterClicked)
 
   def createPlusConnector(self):
     connectorNode = slicer.util.getNode('PlusConnector')
@@ -214,7 +246,7 @@ class UltraSound(object):
       return
     liveUsDisplayNode.SetAutoWindowLevel(0)
     liveUsDisplayNode.SetWindowLevelMinMax(minLevel,maxLevel)
-
+  '''
   def onBrightnessContrastNormalClicked(self):
     logging.debug('onBrightnessContrastNormalClicked')
     self.setImageMinMaxLevel(0,200)
@@ -226,3 +258,8 @@ class UltraSound(object):
   def onBrightnessContrastBrighterClicked(self):
     logging.debug('onBrightnessContrastBrighterClicked')
     self.setImageMinMaxLevel(0,60)
+  '''
+  def onBrightnessSliderChanged(self):
+    logging.debug('onBrightnessSliderChanged')
+    self.setImageMinMaxLevel(self.brightnessSliderWidget.minimumValue, self.brightnessSliderWidget.maximumValue)
+
