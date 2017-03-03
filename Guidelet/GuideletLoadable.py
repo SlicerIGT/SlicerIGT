@@ -189,7 +189,8 @@ class GuideletLogic(ScriptedLoadableModuleLogic):
                    'PlusServerHostNamePort' : 'localhost:18944',
                    'RecordingFilenamePrefix' : 'GuideletRecording-',
                    'RecordingFilenameExtension' : '.mhd',
-                   'SavedScenesDirectory' : defaultSavePath
+                   'SavedScenesDirectory' : defaultSavePath,
+                   'UltrasoundBrightnessControl' : 'Buttons'
                    }
     self.updateSettings(settingList, 'Default')
 
