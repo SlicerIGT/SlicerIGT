@@ -191,7 +191,7 @@ class GuideletLogic(ScriptedLoadableModuleLogic):
                    'RecordingFilenameExtension' : '.mhd',
                    'SavedScenesDirectory' : defaultSavePath,
                    'UltrasoundBrightnessControl' : 'Buttons',
-                   'RecordingAlwaysEnabled' : 'False',
+                   'RecordingEnabledWhenConnectorNodeDisconnected' : 'False',
                    }
     self.updateSettings(settingList, 'Default')
 

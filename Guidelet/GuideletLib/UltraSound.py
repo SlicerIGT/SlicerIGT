@@ -29,7 +29,7 @@ class UltraSound(object):
 
   def onConnectorNodeDisconnected(self):
     self.freezeUltrasoundButton.setText('Un-freeze')
-    if self.guideletParent.parameterNode.GetParameter('RecordingAlwaysEnabled') == 'False':
+    if self.guideletParent.parameterNode.GetParameter('RecordingEnabledWhenConnectorNodeDisconnected') == 'False':
       self.startStopRecordingButton.setEnabled(False)
 
   def setupPanel(self, parentWidget):
