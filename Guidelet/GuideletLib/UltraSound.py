@@ -8,7 +8,7 @@ class UltraSound(object):
 
   def __init__(self, guideletParent):
     self.guideletParent = guideletParent
-    self.captureDeviceName='CaptureDevice'
+    self.captureDeviceName=self.guideletParent.parameterNode.GetParameter('PLUSCaptureDeviceName')
     self.referenceToRas = None
 
     from PlusRemote import PlusRemoteLogic
@@ -229,25 +229,26 @@ class UltraSound(object):
       self.startStopRecordingButton.setText("  Stop Recording")
       self.startStopRecordingButton.setIcon(self.stopIcon)
       self.startStopRecordingButton.setToolTip("Recording is being started...")
+      if not self.captureDeviceName  == '':
+        # Important to save as .mhd because that does not require lengthy finalization (merging into a single file)
+        recordPrefix = self.guideletParent.parameterNode.GetParameter('RecordingFilenamePrefix')
+        recordExt = self.guideletParent.parameterNode.GetParameter('RecordingFilenameExtension')
+        self.recordingFileName =  recordPrefix + time.strftime("%Y%m%d-%H%M%S") + recordExt
 
-      # Important to save as .mhd because that does not require lengthy finalization (merging into a single file)
-      recordPrefix = self.guideletParent.parameterNode.GetParameter('RecordingFilenamePrefix')
-      recordExt = self.guideletParent.parameterNode.GetParameter('RecordingFilenameExtension')
-      self.recordingFileName =  recordPrefix + time.strftime("%Y%m%d-%H%M%S") + recordExt
+        logging.info("Starting recording to: {0}".format(self.recordingFileName))
 
-      logging.info("Starting recording to: {0}".format(self.recordingFileName))
-
-      self.plusRemoteLogic.cmdStartRecording.SetCommandAttribute('CaptureDeviceId', self.captureDeviceName)
-      self.plusRemoteLogic.cmdStartRecording.SetCommandAttribute('OutputFilename', self.recordingFileName)
-      self.guideletParent.executeCommand(self.plusRemoteLogic.cmdStartRecording, self.recordingCommandCompleted)
+        self.plusRemoteLogic.cmdStartRecording.SetCommandAttribute('CaptureDeviceId', self.captureDeviceName)
+        self.plusRemoteLogic.cmdStartRecording.SetCommandAttribute('OutputFilename', self.recordingFileName)
+        self.guideletParent.executeCommand(self.plusRemoteLogic.cmdStartRecording, self.recordingCommandCompleted)
 
     else:
-      logging.info("Stopping recording")
       self.startStopRecordingButton.setText("  Start Recording")
       self.startStopRecordingButton.setIcon(self.recordIcon)
       self.startStopRecordingButton.setToolTip( "Recording is being stopped..." )
-      self.plusRemoteLogic.cmdStopRecording.SetCommandAttribute('CaptureDeviceId', self.captureDeviceName)
-      self.guideletParent.executeCommand(self.plusRemoteLogic.cmdStopRecording, self.recordingCommandCompleted)
+      if not self.captureDeviceName  == '':  
+        logging.info("Stopping recording")  
+        self.plusRemoteLogic.cmdStopRecording.SetCommandAttribute('CaptureDeviceId', self.captureDeviceName)
+        self.guideletParent.executeCommand(self.plusRemoteLogic.cmdStopRecording, self.recordingCommandCompleted)
 
   def onFreezeUltrasoundClicked(self):
     logging.debug('onFreezeUltrasoundClicked')
