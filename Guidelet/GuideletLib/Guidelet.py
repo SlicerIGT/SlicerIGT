@@ -364,6 +364,7 @@ class Guidelet(object):
     #
     # save the mrml scene to a temp directory, then zip it
     #
+    qt.QApplication.setOverrideCursor(qt.Qt.WaitCursor)
     node = self.logic.getParameterNode()
     sceneSaveDirectory = node.GetParameter('SavedScenesDirectory')
     sceneSaveDirectory = sceneSaveDirectory + "/" + self.logic.moduleName + "-" + time.strftime("%Y%m%d-%H%M%S")
@@ -376,6 +377,8 @@ class Guidelet(object):
       logging.info("Scene saved to: {0}".format(sceneSaveDirectory))
     else:
       logging.error("Scene saving failed")
+    qt.QApplication.restoreOverrideCursor()
+    slicer.util.showStatusMessage("Saved!", 2000)
 
   def onExitButtonClicked(self):
     mainwindow = slicer.util.mainWindow()

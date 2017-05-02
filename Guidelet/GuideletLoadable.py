@@ -192,6 +192,7 @@ class GuideletLogic(ScriptedLoadableModuleLogic):
                    'SavedScenesDirectory' : defaultSavePath,
                    'UltrasoundBrightnessControl' : 'Buttons',
                    'RecordingEnabledWhenConnectorNodeDisconnected' : 'False',
+                   'PLUSCaptureDeviceName' : 'CaptureDevice', # If '', no PLUS recordings are saved.
                    }
     self.updateSettings(settingList, 'Default')
 
