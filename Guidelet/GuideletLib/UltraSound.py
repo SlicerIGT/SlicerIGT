@@ -8,7 +8,7 @@ class UltraSound(object):
 
   def __init__(self, guideletParent):
     self.guideletParent = guideletParent
-    self.captureDeviceName=self.guideletParent.parameterNode.GetParameter('PLUSCaptureDeviceName')
+    self.captureDeviceName = self.guideletParent.parameterNode.GetParameter('PLUSCaptureDeviceName')
     self.referenceToRas = None
 
     from PlusRemote import PlusRemoteLogic
@@ -229,7 +229,7 @@ class UltraSound(object):
       self.startStopRecordingButton.setText("  Stop Recording")
       self.startStopRecordingButton.setIcon(self.stopIcon)
       self.startStopRecordingButton.setToolTip("Recording is being started...")
-      if not self.captureDeviceName  == '':
+      if self.captureDeviceName  != '':
         # Important to save as .mhd because that does not require lengthy finalization (merging into a single file)
         recordPrefix = self.guideletParent.parameterNode.GetParameter('RecordingFilenamePrefix')
         recordExt = self.guideletParent.parameterNode.GetParameter('RecordingFilenameExtension')
@@ -245,7 +245,7 @@ class UltraSound(object):
       self.startStopRecordingButton.setText("  Start Recording")
       self.startStopRecordingButton.setIcon(self.recordIcon)
       self.startStopRecordingButton.setToolTip( "Recording is being stopped..." )
-      if not self.captureDeviceName  == '':  
+      if self.captureDeviceName  != '':  
         logging.info("Stopping recording")  
         self.plusRemoteLogic.cmdStopRecording.SetCommandAttribute('CaptureDeviceId', self.captureDeviceName)
         self.guideletParent.executeCommand(self.plusRemoteLogic.cmdStopRecording, self.recordingCommandCompleted)
