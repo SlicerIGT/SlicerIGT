@@ -43,10 +43,6 @@ class vtkMRMLMarkupsFiducialNode;
 class vtkMRMLMarkupsToModelNode;
 class vtkPolyData;
 
-static const int MINIMUM_MARKUPS_NUMBER = 3;
-static const double MINIMUM_THICKNESS = 3.0;
-static const double CLEAN_POLYDATA_TOLERANCE=0.01;
-
 /// \ingroup Slicer_QtModules_ExtensionTemplate
 class VTK_SLICER_MARKUPSTOMODEL_MODULE_LOGIC_EXPORT vtkSlicerMarkupsToModelLogic :
   public vtkSlicerModuleLogic
@@ -64,10 +60,10 @@ public:
   // Updates the mouse selection type to create markups or to navigate the scene.
   void UpdateSelectionNode( vtkMRMLMarkupsToModelNode* markupsToModelModuleNode );
   // Updates closed surface or curve output model from markups
-  void UpdateOutputModel(vtkMRMLMarkupsToModelNode* moduleNode);
+  void UpdateOutputModel( vtkMRMLMarkupsToModelNode* moduleNode );
   // Generates the closed surface from the markups using vtkDelaunay3D. Uses Delanauy alpha value, subdivision filter and clean markups
   // options from the module node.
-  void UpdateOutputCloseSurfaceModel(vtkMRMLMarkupsToModelNode* markupsToModelModuleNode, vtkPolyData* outputPolyData);
+  void UpdateOutputCloseSurfaceModel( vtkMRMLMarkupsToModelNode* markupsToModelModuleNode, vtkPolyData* outputPolyData );
   // Generates the curve model from the markups connecting consecutive segments.
   // Each segment can be linear, cardinal or Kochanek Splines (described and implemented in UpdateOutputCurveModel, UpdateOutputLinearModel
   // and UpdateOutputHermiteSplineModel methods). Uses Tube radius and clean markups option from the module node.
@@ -111,6 +107,11 @@ private:
   vtkSlicerMarkupsToModelLogic(const vtkSlicerMarkupsToModelLogic&); // Not implemented
   void operator=(const vtkSlicerMarkupsToModelLogic&); // Not implemented
   int ImportingScene;
+  
+  // Determines whether the input points are coplanar
+  void ComputeMeanPoint( vtkPoints* points, double outputMeanPoint[ 3 ] );
+  void ComputeBestFitPlaneNormal( vtkPoints* points, double outputPlaneNormal[ 3 ] );
+  bool PointsCoplanar( vtkPoints* points, const double planeNormal[ 3 ], const double planePoint[ 3 ] );
 };
 
 #endif
