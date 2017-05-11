@@ -35,6 +35,7 @@
 #include <vtkCleanPolyData.h>
 #include <vtkCollection.h>
 #include <vtkCollectionIterator.h>
+#include <vtkCubeSource.h>
 #include <vtkDoubleArray.h>
 #include <vtkDataSetSurfaceFilter.h>
 #include <vtkDelaunay3D.h>
@@ -48,6 +49,7 @@
 #include <vtkObjectFactory.h>
 #include <vtkPoints.h>
 #include <vtkPolyDataNormals.h>
+#include <vtkRegularPolygonSource.h>
 #include <vtkSphereSource.h>
 #include <vtkSplineFilter.h>
 #include <vtkTubeFilter.h>
@@ -62,7 +64,6 @@
 // local constants
 static const int LINE_MIN_NUMBER_POINTS = 2;
 static const int MINIMUM_MARKUPS_NUMBER = 3;
-static const double MINIMUM_THICKNESS = 3.0;
 static const double CLEAN_POLYDATA_TOLERANCE = 0.01;
 static const double COMPARE_TO_ZERO_TOLERANCE = 0.0001;
 
@@ -295,74 +296,122 @@ void vtkSlicerMarkupsToModelLogic::UpdateOutputCloseSurfaceModel( vtkMRMLMarkups
     return;
   }
 
-  vtkSmartPointer< vtkPoints > modelPoints = vtkSmartPointer< vtkPoints >::New();
-  modelPoints->SetNumberOfPoints( numberOfMarkups );
+  vtkSmartPointer< vtkPoints > inputPoints = vtkSmartPointer< vtkPoints >::New();
+  inputPoints->SetNumberOfPoints( numberOfMarkups );
 
-  vtkSmartPointer< vtkCellArray > modelCellArray = vtkSmartPointer< vtkCellArray >::New();
-  modelCellArray->InsertNextCell( numberOfMarkups );
+  vtkSmartPointer< vtkCellArray > inputCellArray = vtkSmartPointer< vtkCellArray >::New();
+  inputCellArray->InsertNextCell( numberOfMarkups );
   
   double markupPoint[ 3 ] = { 0.0, 0.0, 0.0 };
   for ( int i = 0; i < numberOfMarkups; i++ )
   {
     markups->GetNthFiducialPosition( i, markupPoint );
-    modelCellArray->InsertCellPoint( i );
-    modelPoints->SetPoint( i, markupPoint );
+    inputCellArray->InsertCellPoint( i );
+    inputPoints->SetPoint( i, markupPoint );
   }
 
-  vtkSmartPointer< vtkPolyData > pointPolyData = vtkSmartPointer< vtkPolyData >::New();
-  pointPolyData->SetLines( modelCellArray );
-  pointPolyData->SetPoints( modelPoints );
+  vtkSmartPointer< vtkPolyData > inputPolyData = vtkSmartPointer< vtkPolyData >::New();
+  inputPolyData->SetLines( inputCellArray );
+  inputPolyData->SetPoints( inputPoints );
+  
+  vtkSmartPointer< vtkCleanPolyData > cleanPointPolyData = vtkSmartPointer< vtkCleanPolyData >::New();
+  #if (VTK_MAJOR_VERSION <= 5)
+    cleanPointPolyData->SetInput(inputPolyData);
+  #else
+    cleanPointPolyData->SetInputData(inputPolyData);
+  #endif
+  cleanPointPolyData->SetTolerance(CLEAN_POLYDATA_TOLERANCE);
+  if(markupsToModelModuleNode->GetCleanMarkups())
+  {
+    cleanPointPolyData->SetPointMerging( 1 );
+  }
+  else
+  {
+    cleanPointPolyData->SetPointMerging( 0 );
+  }
+  cleanPointPolyData->Update();
 
+  vtkSmartPointer< vtkPolyData > cleanedPolyData = vtkSmartPointer< vtkPolyData >::New();
+  cleanedPolyData = cleanPointPolyData->GetOutput();
+  vtkSmartPointer< vtkPoints > cleanedPoints = vtkSmartPointer< vtkPoints >::New();
+  cleanedPoints = cleanedPolyData->GetPoints();
+  double planeNormal[ 3 ] = { 0.0, 0.0, 0.0 }; // temporary value, assigned only if points are planar
+  double lineAxis[ 3 ] = { 0.0, 0.0, 0.0 }; // temporary value, assigned only if points are linear
+  vtkSlicerMarkupsToModelLogic::PointArrangementEnum pointArrangement = ComputePointArrangement( cleanedPoints, planeNormal, lineAxis );
+  
   vtkSmartPointer< vtkDelaunay3D > delaunay = vtkSmartPointer< vtkDelaunay3D >::New();
   delaunay->SetAlpha( markupsToModelModuleNode->GetDelaunayAlpha() );
   delaunay->AlphaTrisOff();
   delaunay->AlphaLinesOff();
   delaunay->AlphaVertsOff();
-
-  double bestFitPlanePoint[ 3 ] = { 0.0, 0.0, 0.0 };
-  ComputeMeanPoint( modelPoints, bestFitPlanePoint );
-  double bestFitPlaneNormal[ 3 ] = { 0.0, 0.0, 0.0 };
-  ComputeBestFitPlaneNormal( modelPoints, bestFitPlaneNormal );
-
-  bool planarSurface = PointsCoplanar( modelPoints, bestFitPlaneNormal, bestFitPlanePoint );
-  if (planarSurface)
+  switch ( pointArrangement )
   {
-    // extrude additional points on either side of the plane
-    vtkSmartPointer<vtkLineSource> lineSource = vtkSmartPointer<vtkLineSource>::New();
-    double extrusionMagnitude = 1.0;
-    double point1[ 3 ] = { bestFitPlaneNormal[0], bestFitPlaneNormal[1], bestFitPlaneNormal[2] };
-    vtkMath::MultiplyScalar( point1, extrusionMagnitude );
-    lineSource->SetPoint1( point1 );
-    double point2[ 3 ] = { bestFitPlaneNormal[0], bestFitPlaneNormal[1], bestFitPlaneNormal[2] };
-    vtkMath::MultiplyScalar( point2, -extrusionMagnitude );
-    lineSource->SetPoint2( point2 );
-
-    vtkSmartPointer<vtkGlyph3D> glyph = vtkSmartPointer<vtkGlyph3D>::New();
-    glyph->SetSourceConnection(lineSource->GetOutputPort());
-    glyph->SetInputData(pointPolyData);
-    glyph->Update();
-    delaunay->SetInputConnection(glyph->GetOutputPort());
-  }
-  else
-  {
-    if(markupsToModelModuleNode->GetCleanMarkups())
+    case vtkSlicerMarkupsToModelLogic::POINT_ARRANGEMENT_SINGULAR:
     {
-      vtkSmartPointer< vtkCleanPolyData > cleanPointPolyData = vtkSmartPointer< vtkCleanPolyData >::New();
-#if (VTK_MAJOR_VERSION <= 5)
-      cleanPointPolyData->SetInput(pointPolyData);
-#else
-      cleanPointPolyData->SetInputData(pointPolyData);
-#endif
-      cleanPointPolyData->SetTolerance(CLEAN_POLYDATA_TOLERANCE);
-      delaunay->SetInputConnection(cleanPointPolyData->GetOutputPort());
+      vtkSmartPointer<vtkCubeSource> cubeSource = vtkSmartPointer<vtkCubeSource>::New();
+      double extrusionMagnitude = ComputeSurfaceExtrusionAmount( cleanedPoints ); // need to give some depth
+      cubeSource->SetBounds( -extrusionMagnitude, extrusionMagnitude,
+                             -extrusionMagnitude, extrusionMagnitude,
+                             -extrusionMagnitude, extrusionMagnitude );
+
+      vtkSmartPointer<vtkGlyph3D> glyph = vtkSmartPointer<vtkGlyph3D>::New();
+      glyph->SetSourceConnection( cubeSource->GetOutputPort() );
+      glyph->SetInputConnection( cleanPointPolyData->GetOutputPort() );
+      glyph->Update();
+
+      delaunay->SetInputConnection( glyph->GetOutputPort() );
+
+      break;
     }
-    else
+    case vtkSlicerMarkupsToModelLogic::POINT_ARRANGEMENT_LINEAR:
     {
-#if (VTK_MAJOR_VERSION <= 5)
-      delaunay->SetInput(pointPolyData);
-#else
-      delaunay->SetInputData(pointPolyData);
-#endif
+      // draw a "square" around the line (make it a rectangular prism)
+      vtkSmartPointer<vtkRegularPolygonSource> squareSource = vtkSmartPointer<vtkRegularPolygonSource>::New();
+      double extrusionMagnitude = ComputeSurfaceExtrusionAmount( cleanedPoints ); // need to give some depth
+      squareSource->SetCenter( 0.0, 0.0, 0.0 );
+      squareSource->SetRadius( extrusionMagnitude );
+      squareSource->SetNumberOfSides( 4 );
+      squareSource->SetNormal( lineAxis );
+
+      vtkSmartPointer<vtkGlyph3D> glyph = vtkSmartPointer<vtkGlyph3D>::New();
+      glyph->SetSourceConnection( squareSource->GetOutputPort() );
+      glyph->SetInputConnection( cleanPointPolyData->GetOutputPort() );
+      glyph->Update();
+
+      delaunay->SetInputConnection( glyph->GetOutputPort() );
+
+      break;
+    }
+    case vtkSlicerMarkupsToModelLogic::POINT_ARRANGEMENT_PLANAR:
+    {
+      // extrude additional points on either side of the plane
+      vtkSmartPointer<vtkLineSource> lineSource = vtkSmartPointer<vtkLineSource>::New();
+      double extrusionMagnitude = ComputeSurfaceExtrusionAmount( cleanedPoints ); // need to give some depth
+      double point1[ 3 ] = { planeNormal[0], planeNormal[1], planeNormal[2] };
+      vtkMath::MultiplyScalar( point1, extrusionMagnitude );
+      lineSource->SetPoint1( point1 );
+      double point2[ 3 ] = { planeNormal[0], planeNormal[1], planeNormal[2] };
+      vtkMath::MultiplyScalar( point2, -extrusionMagnitude );
+      lineSource->SetPoint2( point2 );
+
+      vtkSmartPointer<vtkGlyph3D> glyph = vtkSmartPointer<vtkGlyph3D>::New();
+      glyph->SetSourceConnection( lineSource->GetOutputPort() );
+      glyph->SetInputConnection( cleanPointPolyData->GetOutputPort() );
+      glyph->Update();
+
+      delaunay->SetInputConnection( glyph->GetOutputPort() );
+
+      break;
+    }
+    case vtkSlicerMarkupsToModelLogic::POINT_ARRANGEMENT_NONPLANAR:
+    {
+      delaunay->SetInputConnection( cleanPointPolyData->GetOutputPort() );
+      break;
+    }
+    default: // unsupported or invalid
+    {
+      vtkErrorMacro( "Unsupported pointArrangementType detected: " << pointArrangement << ". Aborting closed surface generation." )
+      return;
     }
   }
 
@@ -370,9 +419,10 @@ void vtkSlicerMarkupsToModelLogic::UpdateOutputCloseSurfaceModel( vtkMRMLMarkups
   surfaceFilter->SetInputConnection(delaunay->GetOutputPort());
   surfaceFilter->Update();
   vtkSmartPointer<vtkPolyDataNormals> normals = vtkSmartPointer<vtkPolyDataNormals>::New();
-  normals->SetFeatureAngle(100);
+  normals->SetFeatureAngle(100); // TODO: This needs some justification
 
-  if ( markupsToModelModuleNode->GetButterflySubdivision() && !planarSurface )
+  if ( markupsToModelModuleNode->GetButterflySubdivision() &&
+       pointArrangement == vtkSlicerMarkupsToModelLogic::POINT_ARRANGEMENT_NONPLANAR )
   {
     vtkSmartPointer< vtkButterflySubdivisionFilter > subdivisionFilter = vtkSmartPointer< vtkButterflySubdivisionFilter >::New();
     subdivisionFilter->SetInputConnection(surfaceFilter->GetOutputPort());
@@ -403,79 +453,222 @@ void vtkSlicerMarkupsToModelLogic::UpdateOutputCloseSurfaceModel( vtkMRMLMarkups
 }
 
 //------------------------------------------------------------------------------
-void vtkSlicerMarkupsToModelLogic::ComputeMeanPoint( vtkPoints* points, double meanPoint[ 3 ] )
+// This function is currently implemented using the vtkOBBTree object.
+// There are two limitations with this approach:
+// 1. vtkOBBTree may have a performance impact
+// 2. The axes returned are based on variation of coordinates, not the range
+//    (so the return result is not necessarily intuitive, variation != length).
+// Neither of these limitations will prevent the overall logic from functioning
+// correctly, but it is worth keeping in mind, and worth changing should a need 
+// arise
+void vtkSlicerMarkupsToModelLogic::ComputeBestFitPlaneAxes( vtkPoints* points,
+                                                            double outputPlaneMajorAxis[ 3 ],
+                                                            double outputPlaneMinorAxis[ 3 ],
+                                                            double outputPlaneNormal[ 3 ] )
 {
-  // compute the mean point, which is on the plane of best fit
-  meanPoint[0] = 0.0;
-  meanPoint[1] = 0.0;
-  meanPoint[2] = 0.0;
+  // Compute the plane using the smallest bounding box that can have arbitrary axes
+  // The shortest axis will correspond to the plane normal
+  double cornerOBBOrigin[ 3 ] = { 0.0, 0.0, 0.0 }; // unused
+  double variationMaximumOBBAxis[ 3 ] = { 0.0, 0.0, 0.0 };
+  double variationMediumOBBAxis[ 3 ]  = { 0.0, 0.0, 0.0 };
+  double variationMinimumOBBAxis[ 3 ] = { 0.0, 0.0, 0.0 };
+  double relativeAxisSizes[ 3 ] = { 0.0, 0.0, 0.0 }; // unused, the values represented herein are unclear
+  vtkSmartPointer<vtkOBBTree> obbTree = vtkSmartPointer<vtkOBBTree>::New();
+  obbTree->ComputeOBB( points, cornerOBBOrigin, variationMaximumOBBAxis, variationMediumOBBAxis, variationMinimumOBBAxis, relativeAxisSizes );
+  
+  // now to store the desired results in the appropriate output variables
+  // must check each axis to make sure it was actually computed (non-zero)
+  // do the major axis
+  if ( vtkMath::Norm( variationMaximumOBBAxis ) < COMPARE_TO_ZERO_TOLERANCE )
+  {
+    // there is no variation in the points whatsoever.
+    // i.e. all points are in a single position.
+    // return arbitrary orthonormal axes (the standard axes will do).
+    outputPlaneMajorAxis[ 0 ] = 1.0;
+    outputPlaneMajorAxis[ 1 ] = 0.0;
+    outputPlaneMajorAxis[ 2 ] = 0.0;
+    outputPlaneMinorAxis[ 0 ] = 0.0;
+    outputPlaneMinorAxis[ 1 ] = 1.0;
+    outputPlaneMinorAxis[ 2 ] = 0.0;
+    outputPlaneNormal[ 0 ] = 0.0;
+    outputPlaneNormal[ 1 ] = 0.0;
+    outputPlaneNormal[ 2 ] = 1.0;
+    return;
+  }
+
+  outputPlaneMajorAxis[ 0 ] = variationMaximumOBBAxis[ 0 ];
+  outputPlaneMajorAxis[ 1 ] = variationMaximumOBBAxis[ 1 ];
+  outputPlaneMajorAxis[ 2 ] = variationMaximumOBBAxis[ 2 ];
+  vtkMath::Normalize( outputPlaneMajorAxis );
+
+  // do the minor axis
+  if ( vtkMath::Norm( variationMediumOBBAxis ) < COMPARE_TO_ZERO_TOLERANCE )
+  {
+    // the points are colinear.
+    // there is no distinct normal or minor axis relative to the plane.
+    // any two perpendicular orthonormal vectors will do for the remaining axes.
+    double thetaAngle = 0.0; // this can be arbitrary
+    vtkMath::Perpendiculars( outputPlaneMajorAxis, outputPlaneMinorAxis, outputPlaneNormal, thetaAngle );
+    return;
+  }
+  outputPlaneMinorAxis[ 0 ] = variationMediumOBBAxis[ 0 ];
+  outputPlaneMinorAxis[ 1 ] = variationMediumOBBAxis[ 1 ];
+  outputPlaneMinorAxis[ 2 ] = variationMediumOBBAxis[ 2 ];
+  vtkMath::Normalize( outputPlaneMinorAxis );
+
+  // do the plane normal
+  if ( vtkMath::Norm( variationMinimumOBBAxis ) < COMPARE_TO_ZERO_TOLERANCE )
+  {
+    // all points lie exactly on a plane.
+    // the remaining perpendicular vector found using cross product will be fine.
+    vtkMath::Cross( outputPlaneMajorAxis, outputPlaneMinorAxis, outputPlaneNormal );
+    return;
+  }
+  outputPlaneNormal[ 0 ] = variationMinimumOBBAxis[ 0 ];
+  outputPlaneNormal[ 1 ] = variationMinimumOBBAxis[ 1 ];
+  outputPlaneNormal[ 2 ] = variationMinimumOBBAxis[ 2 ];
+  vtkMath::Normalize( outputPlaneNormal );
+}
+
+//------------------------------------------------------------------------------
+vtkSlicerMarkupsToModelLogic::PointArrangementEnum vtkSlicerMarkupsToModelLogic::ComputePointArrangement( vtkPoints* points, double planeNormal[ 3 ], double lineAxis[ 3 ] )
+{
+  double bestFitPlaneMajorAxis[ 3 ] = { 0.0, 0.0, 0.0 }; // long axis in the plane that contains points
+  double bestFitPlaneMinorAxis[ 3 ] = { 0.0, 0.0, 0.0 }; // short axis
+  double bestFitPlaneNormal[ 3 ] = { 0.0, 0.0, 0.0 };
+  ComputeBestFitPlaneAxes( points, bestFitPlaneMajorAxis, bestFitPlaneMinorAxis, bestFitPlaneNormal );
+  
+  double pointRangeAlongMajorAxis = ComputePointRangeAlongAxis( points, bestFitPlaneMajorAxis );
+  if ( pointRangeAlongMajorAxis < COMPARE_TO_ZERO_TOLERANCE )
+  {
+    return vtkSlicerMarkupsToModelLogic::POINT_ARRANGEMENT_SINGULAR;
+  }
+
+  double pointRangeAlongMinorAxis = ComputePointRangeAlongAxis( points, bestFitPlaneMinorAxis );
+  double pointRangeRatioMinorAxisToMajorAxis = pointRangeAlongMinorAxis / pointRangeAlongMajorAxis;
+  // The Delaunay3D class tends to fail with thin planes/lines, so it is important
+  // to capture these cases, even liberally.
+  const double RATIO_THRESHOLD = 0.1;
+  bool linearSurface = pointRangeRatioMinorAxisToMajorAxis < RATIO_THRESHOLD;
+  if ( linearSurface )
+  {
+    // the normal will also be zero if the minor axis is zero.
+    // proof by contradiction: If the normal was non-zero, then it would have been detected as the minor axis instead.
+    // so no need to check, we know this is linear.
+    lineAxis[ 0 ] = bestFitPlaneMajorAxis[ 0 ];
+    lineAxis[ 1 ] = bestFitPlaneMajorAxis[ 1 ];
+    lineAxis[ 2 ] = bestFitPlaneMajorAxis[ 2 ];
+    return vtkSlicerMarkupsToModelLogic::POINT_ARRANGEMENT_LINEAR;
+  }
+
+  double pointRangeAlongNormal = ComputePointRangeAlongAxis( points, bestFitPlaneNormal );
+  double pointRangeRatioNormalToMajorAxis = pointRangeAlongNormal / pointRangeAlongMajorAxis;
+  bool planarSurface = pointRangeRatioNormalToMajorAxis < RATIO_THRESHOLD;
+  if ( planarSurface )
+  {
+    planeNormal[ 0 ] = bestFitPlaneNormal[ 0 ];
+    planeNormal[ 1 ] = bestFitPlaneNormal[ 1 ];
+    planeNormal[ 2 ] = bestFitPlaneNormal[ 2 ];
+    return vtkSlicerMarkupsToModelLogic::POINT_ARRANGEMENT_PLANAR;
+  }
+
+  return vtkSlicerMarkupsToModelLogic::POINT_ARRANGEMENT_NONPLANAR;
+}
+
+//------------------------------------------------------------------------------
+double vtkSlicerMarkupsToModelLogic::ComputePointRangeAlongAxis( vtkPoints* points, const double axis[3] )
+{
+  double axisLength = vtkMath::Norm( axis );
+  bool axisLengthEqualToOne = abs( axisLength - 1.0 ) < COMPARE_TO_ZERO_TOLERANCE;
+  if ( !axisLengthEqualToOne )
+  {
+    vtkWarningMacro( "Axis " << axis[ 0 ] << ", " << axis[ 1 ] << ", " << axis[ 2 ] << " "
+                  << "provided to ComputePointRangeAlongAxis() does not have unit length. "
+                  << "Unable to determine whether points are coplanar." );
+    return false;
+  }
+  
+  // determine the range of point distances along this axis
+  double pointRangeMin = 0.0; // temporary value
+  double pointRangeMax = 0.0; // temporary value
   int numberOfPoints = points->GetNumberOfPoints();
+  for ( int i = 0; i < numberOfPoints; i++ )
+  {
+    double currentPoint[ 3 ] = { 0.0, 0.0, 0.0 };
+    points->GetPoint( i, currentPoint );
+    double pointDistanceAlongAxis = vtkMath::Dot( currentPoint, axis );
+    if ( i == 0 )
+    {
+      // the first point will establish the initial maximum *and* minimum distance along the axis
+      pointRangeMin = pointDistanceAlongAxis;
+      pointRangeMax = pointDistanceAlongAxis;
+    }
+    else
+    {
+      // determine whether this point extends the range along the axis
+      if ( pointDistanceAlongAxis < pointRangeMin )
+      {
+        pointRangeMin = pointDistanceAlongAxis;
+      }
+      if ( pointDistanceAlongAxis > pointRangeMax )
+      {
+        pointRangeMax = pointDistanceAlongAxis;
+      }
+    }
+  }
+  double rangeAlongAxis = pointRangeMax - pointRangeMin;
+  return rangeAlongAxis;
+}
+
+//------------------------------------------------------------------------------
+double vtkSlicerMarkupsToModelLogic::ComputeSurfaceExtrusionAmount( vtkPoints* points )
+{
+  // DEFAULT_SURFACE_EXTRUSION_AMOUNT is the value returned by default
+  const double DEFAULT_SURFACE_EXTRUSION_AMOUNT = 0.01;
+  int numberOfPoints = points->GetNumberOfPoints();
+  if ( numberOfPoints <= 1 )
+  {
+    vtkWarningMacro( "Point singularity detected. Setting surface extrusion amount to default "
+                     << DEFAULT_SURFACE_EXTRUSION_AMOUNT << "." );
+    return DEFAULT_SURFACE_EXTRUSION_AMOUNT;
+  }
+
+  // the return value is based on the mean distance of all points to the mean point
+  // compute the mean point
+  double meanPoint[ 3 ] = { 0.0, 0.0, 0.0 };
   for ( int i = 0; i < numberOfPoints; i++ )
   {
     double currentPoint[ 3 ] = { 0.0, 0.0, 0.0 };
     points->GetPoint( i, currentPoint );
     vtkMath::Add( meanPoint, currentPoint, meanPoint );
   }
+  vtkMath::MultiplyScalar( meanPoint, 1.0 / ( double ) numberOfPoints );
 
-  if ( numberOfPoints > 0 )
-  {
-    vtkMath::MultiplyScalar( meanPoint, 1.0 / numberOfPoints );
-  }
-}
-
-//------------------------------------------------------------------------------
-void vtkSlicerMarkupsToModelLogic::ComputeBestFitPlaneNormal( vtkPoints* points, double outputPlaneNormal[ 3 ] )
-{
-  // Compute the plane using the smallest bounding box that can have arbitrary axes
-  // The shortest axis will correspond to the plane normal
-  double cornerOBBOrigin[3] = { 0.0, 0.0, 0.0 }; // unused
-  double longestOBBAxis[3]  = { 0.0, 0.0, 0.0 }; // unused
-  double mediumOBBAxis[3]   = { 0.0, 0.0, 0.0 }; // unused
-  double shortestOBBAxis[3] = { 0.0, 0.0, 0.0 };
-  double relativeAxisSizes[3] = { 0.0, 0.0, 0.0 }; // unused
-  vtkSmartPointer<vtkOBBTree> obbTree = vtkSmartPointer<vtkOBBTree>::New();
-  obbTree->ComputeOBB( points, cornerOBBOrigin, longestOBBAxis, mediumOBBAxis, shortestOBBAxis, relativeAxisSizes );
-  
-  // compute the plane normal
-  outputPlaneNormal[ 0 ] = shortestOBBAxis[ 0 ];
-  outputPlaneNormal[ 1 ] = shortestOBBAxis[ 1 ];
-  outputPlaneNormal[ 2 ] = shortestOBBAxis[ 2 ];
-  vtkMath::Normalize( outputPlaneNormal );
-}
-
-//------------------------------------------------------------------------------
-bool vtkSlicerMarkupsToModelLogic::PointsCoplanar( vtkPoints* points, const double planeNormal[ 3 ], const double planePoint[ 3 ] )
-{
-  double normalLength = vtkMath::Norm( planeNormal );
-  bool normalLengthEqualToOne = abs( normalLength - 1.0 ) < COMPARE_TO_ZERO_TOLERANCE;
-  if ( !normalLengthEqualToOne )
-  {
-    vtkWarningMacro( "Normal " << planeNormal[ 0 ] << ", "
-                               << planeNormal[ 1 ] << ", "
-                               << planeNormal[ 2 ] << " provided to pointsCoplanar does not have unit length."
-                               << "Unable to determine whether points are coplanar." );
-    return false;
-  }
-
-  // assume by default that the surface is planar
-  bool planarSurface = true;
-  int numberOfPoints = points->GetNumberOfPoints();
+  // compute the mean distance of all points to the mean point
+  double distanceMean = 0.0;
   for ( int i = 0; i < numberOfPoints; i++ )
   {
-    double currentPoint[ 3 ];
+    double currentPoint[ 3 ] = { 0.0, 0.0, 0.0 }; // placeholder value
     points->GetPoint( i, currentPoint );
-    // translate the current point to the origin
-    double currentPointOrigin[ 3 ];
-    vtkMath::Subtract( currentPoint, planePoint, currentPointOrigin );
-    // compute the distance to the plane going through the origin
-    double distance = abs ( vtkMath::Dot( planeNormal, currentPointOrigin ) );
-    if ( distance >= MINIMUM_THICKNESS )
-    {
-      planarSurface = false;
-    }
+    double offsetVector[ 3 ] = { 0.0, 0.0, 0.0 }; // placeholder value
+    vtkMath::Subtract( meanPoint, currentPoint, offsetVector );
+    double currentDistance = vtkMath::Norm( offsetVector );
+    distanceMean = distanceMean + currentDistance;
   }
+  distanceMean = distanceMean / ( double ) numberOfPoints;
 
-  return planarSurface;
+  // SURFACE_EXTRUSION_MEAN_DISTANCE_MULTIPLIER is chosen arbitrarily, but
+  // it tends to produce reasonable results that work with Delaunay3D.
+  const double SURFACE_EXTRUSION_MEAN_DISTANCE_MULTIPLIER = 0.01;
+  double surfaceExtrusionAmount = distanceMean * SURFACE_EXTRUSION_MEAN_DISTANCE_MULTIPLIER;
+  if ( surfaceExtrusionAmount < COMPARE_TO_ZERO_TOLERANCE )
+  {
+    vtkWarningMacro( "Surface extrusion amount computed to be alarmingly close to zero: " << surfaceExtrusionAmount << ". "
+                     << "Consider checking the points for singularity. Setting surface extrusion amount to default "
+                     << DEFAULT_SURFACE_EXTRUSION_AMOUNT << "." );
+    surfaceExtrusionAmount = DEFAULT_SURFACE_EXTRUSION_AMOUNT;
+  }
+  return surfaceExtrusionAmount;
 }
 
 //------------------------------------------------------------------------------

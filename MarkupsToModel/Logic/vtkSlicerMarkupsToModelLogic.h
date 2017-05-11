@@ -107,11 +107,29 @@ private:
   vtkSlicerMarkupsToModelLogic(const vtkSlicerMarkupsToModelLogic&); // Not implemented
   void operator=(const vtkSlicerMarkupsToModelLogic&); // Not implemented
   int ImportingScene;
+
+  enum PointArrangementEnum
+  {
+    POINT_ARRANGEMENT_SINGULAR = 0,
+    POINT_ARRANGEMENT_LINEAR,
+    POINT_ARRANGEMENT_PLANAR,
+    POINT_ARRANGEMENT_NONPLANAR,
+    POINT_ARRANGEMENT_LAST // do not set to this type, insert valid types above this line
+  };
   
-  // Determines whether the input points are coplanar
-  void ComputeMeanPoint( vtkPoints* points, double outputMeanPoint[ 3 ] );
-  void ComputeBestFitPlaneNormal( vtkPoints* points, double outputPlaneNormal[ 3 ] );
-  bool PointsCoplanar( vtkPoints* points, const double planeNormal[ 3 ], const double planePoint[ 3 ] );
+  // Compute the best fit plane through the points, as well as the major and minor axes which describe variation in points.
+  void ComputeBestFitPlaneAxes( vtkPoints* points, double outputPlaneMajorAxis[ 3 ], double outputPlaneMinorAxis[ 3 ], double outputPlaneNormal[ 3 ] );
+
+  // Compute the range of points along the specified axis (total length along which points appear)
+  double ComputePointRangeAlongAxis( vtkPoints* points, const double axis[ 3 ] );
+
+  // Compute the amount to extrude surfaces when closed surface is linear or planar.
+  double ComputeSurfaceExtrusionAmount( vtkPoints* points );
+
+  // Find out what kind of arrangment the points are in (see PointArrangementEnum above).
+  // If the arrangement is planar, stores the normal of the best fit plane in planeNormal.
+  // If the arrangement is linear, stores the axis of the best fit line in lineAxis.
+  PointArrangementEnum ComputePointArrangement( vtkPoints* points, double planeNormal[ 3 ], double lineAxis[ 3 ] );
 };
 
 #endif
