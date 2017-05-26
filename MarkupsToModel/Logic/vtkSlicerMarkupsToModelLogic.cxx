@@ -288,25 +288,17 @@ void vtkSlicerMarkupsToModelLogic::UpdateOutputCloseSurfaceModel( vtkMRMLMarkups
 {
   if ( markupsToModelModuleNode == NULL )
   {
-    vtkErrorMacro( "No markupsToModelModuleNode provided to UpdateOutputCloseSurfaceModel! No operation performed!" );
+    vtkErrorMacro( "No markupsToModelModuleNode provided to UpdateOutputCloseSurfaceModel. No operation performed." );
     return;
   }
 
-  vtkMRMLMarkupsFiducialNode* markups = markupsToModelModuleNode->GetMarkupsNode();
   if ( output == NULL )
   {
-    vtkErrorMacro( "No output poly data provided to UpdateOutputCloseSurfaceModel! No operation performed!" );
+    vtkErrorMacro( "No output poly data provided to UpdateOutputCloseSurfaceModel. No operation performed." );
     return;
   }
-
-  output->Reset(); // empty the poly data of all existing data
-
-  bool outputContainsData = output->GetNumberOfPoints();
-  if ( outputContainsData )
-  {
-    vtkWarningMacro( "Output poly data provided to UpdateOutputCloseSurfaceModel already contains data. Existing data will be overwritten." );
-  }
-
+  
+  vtkMRMLMarkupsFiducialNode* markups = markupsToModelModuleNode->GetMarkupsNode();
   if ( markups == NULL )
   {
     return; // The output will remain empty
@@ -317,6 +309,14 @@ void vtkSlicerMarkupsToModelLogic::UpdateOutputCloseSurfaceModel( vtkMRMLMarkups
   {
     return; // The output will remain empty
   }
+
+  bool outputContainsData = output->GetNumberOfPoints();
+  if ( outputContainsData )
+  {
+    vtkWarningMacro( "Output poly data provided to UpdateOutputCloseSurfaceModel already contains data. Existing data will be overwritten." );
+  }
+
+  output->Reset(); // empty the poly data of all existing data
 
   vtkSmartPointer< vtkPoints > inputPoints = vtkSmartPointer< vtkPoints >::New();
   inputPoints->SetNumberOfPoints( numberOfMarkups );
@@ -349,8 +349,7 @@ void vtkSlicerMarkupsToModelLogic::UpdateOutputCloseSurfaceModel( vtkMRMLMarkups
   }
   cleanPointPolyData->Update();
 
-  vtkSmartPointer< vtkPolyData > cleanedPolyData = vtkSmartPointer< vtkPolyData >::New();
-  cleanedPolyData = cleanPointPolyData->GetOutput();
+  vtkPolyData* cleanedPolyData = cleanPointPolyData->GetOutput();
   // a lot of operations (vtkOBBTree, computing bounds) seem to fail on vtkPolyData, so we need vtkPoints
   vtkPoints* cleanedPoints = cleanedPolyData->GetPoints();
 
@@ -360,15 +359,14 @@ void vtkSlicerMarkupsToModelLogic::UpdateOutputCloseSurfaceModel( vtkMRMLMarkups
   delaunay->AlphaLinesOff();
   delaunay->AlphaVertsOff();
   
-  vtkSmartPointer< vtkMatrix4x4 > transformFromBoundingAxes = vtkSmartPointer< vtkMatrix4x4 >::New();
-  ComputeTransformFromBoundingAxes( cleanedPoints, transformFromBoundingAxes );
+  vtkSmartPointer< vtkMatrix4x4 > boundingAxesToRasTransformMatrix = vtkSmartPointer< vtkMatrix4x4 >::New();
+  ComputeTransformMatrixFromBoundingAxes( cleanedPoints, boundingAxesToRasTransformMatrix );
 
-  vtkSmartPointer< vtkMatrix4x4 > transformToBoundingAxes = vtkSmartPointer< vtkMatrix4x4 >::New();
-  transformToBoundingAxes->DeepCopy( transformFromBoundingAxes );
-  transformToBoundingAxes->Invert();
+  vtkSmartPointer< vtkMatrix4x4 > rasToBoundingAxesTransformMatrix = vtkSmartPointer< vtkMatrix4x4 >::New();
+  vtkMatrix4x4::Invert( boundingAxesToRasTransformMatrix, rasToBoundingAxesTransformMatrix );
 
   double smallestBoundingExtentRanges[ 3 ] = { 0.0, 0.0, 0.0 }; // temporary values
-  ComputeTransformedExtentRanges( cleanedPoints, transformToBoundingAxes, smallestBoundingExtentRanges );
+  ComputeTransformedExtentRanges( cleanedPoints, rasToBoundingAxesTransformMatrix, smallestBoundingExtentRanges );
 
   PointArrangement pointArrangement = ComputePointArrangement( smallestBoundingExtentRanges );
 
@@ -402,7 +400,7 @@ void vtkSlicerMarkupsToModelLogic::UpdateOutputCloseSurfaceModel( vtkMRMLMarkups
       double lineAxis[ 3 ] = { 0.0, 0.0, 0.0 }; // temporary values
       const int LINE_AXIS_INDEX = 0; // The largest (and only meaningful) axis is in the 0th column
       // the bounding axes are stored in the columns of transformFromBoundingAxes
-      GetNthAxisInMatrix( transformFromBoundingAxes, LINE_AXIS_INDEX, lineAxis ); 
+      GetNthColumnInMatrix( boundingAxesToRasTransformMatrix, LINE_AXIS_INDEX, lineAxis ); 
       squareSource->SetNormal( lineAxis );
 
       vtkSmartPointer<vtkGlyph3D> glyph = vtkSmartPointer<vtkGlyph3D>::New();
@@ -421,7 +419,7 @@ void vtkSlicerMarkupsToModelLogic::UpdateOutputCloseSurfaceModel( vtkMRMLMarkups
       double planeNormal[ 3 ] = { 0.0, 0.0, 0.0 }; // temporary values
       const int PLANE_NORMAL_INDEX = 2; // The plane normal has the smallest variation, and is stored in the last column
       // the bounding axes are stored in the columns of transformFromBoundingAxes
-      GetNthAxisInMatrix( transformFromBoundingAxes, PLANE_NORMAL_INDEX, planeNormal ); 
+      GetNthColumnInMatrix( boundingAxesToRasTransformMatrix, PLANE_NORMAL_INDEX, planeNormal ); 
       double extrusionMagnitude = ComputeSurfaceExtrusionAmount( smallestBoundingExtentRanges ); // need to give some depth
       double point1[ 3 ] = { planeNormal[ 0 ], planeNormal[ 1 ], planeNormal[ 2 ] };
       vtkMath::MultiplyScalar( point1, extrusionMagnitude );
@@ -500,7 +498,7 @@ void vtkSlicerMarkupsToModelLogic::UpdateOutputCloseSurfaceModel( vtkMRMLMarkups
 // Neither of these limitations will prevent the overall logic from functioning
 // correctly, but it is worth keeping in mind, and worth changing should a need 
 // arise
-void vtkSlicerMarkupsToModelLogic::ComputeTransformFromBoundingAxes( vtkPoints* points, vtkMatrix4x4* transformFromBoundingAxes )
+void vtkSlicerMarkupsToModelLogic::ComputeTransformMatrixFromBoundingAxes( vtkPoints* points, vtkMatrix4x4* boundingAxesToRasTransformMatrix )
 {
   if ( points == NULL )
   {
@@ -508,14 +506,14 @@ void vtkSlicerMarkupsToModelLogic::ComputeTransformFromBoundingAxes( vtkPoints* 
     return;
   }
 
-  if ( transformFromBoundingAxes == NULL )
+  if ( boundingAxesToRasTransformMatrix == NULL )
   {
     vtkErrorMacro( "Output matrix object is null. Cannot compute best fit planes." )
     return;
   }
 
   // the output matrix should start as identity, so no translation etc.
-  transformFromBoundingAxes->Identity();
+  boundingAxesToRasTransformMatrix->Identity();
 
   // Compute the plane using the smallest bounding box that can have arbitrary axes
   vtkSmartPointer<vtkOBBTree> obbTree = vtkSmartPointer<vtkOBBTree>::New();
@@ -534,11 +532,11 @@ void vtkSlicerMarkupsToModelLogic::ComputeTransformFromBoundingAxes( vtkPoints* 
     // there is no variation in the points whatsoever.
     // i.e. all points are in a single position.
     // return arbitrary orthonormal axes (the standard axes will do).
-    transformFromBoundingAxes->Identity();
+    boundingAxesToRasTransformMatrix->Identity();
     return;
   }
   vtkMath::Normalize( variationMaximumOBBAxis );
-  SetNthAxisInMatrix( transformFromBoundingAxes, 0, variationMaximumOBBAxis);
+  SetNthColumnInMatrix( boundingAxesToRasTransformMatrix, 0, variationMaximumOBBAxis);
   
   // do the medium variation axis
   if ( vtkMath::Norm( variationMediumOBBAxis ) < COMPARE_TO_ZERO_TOLERANCE )
@@ -549,7 +547,7 @@ void vtkSlicerMarkupsToModelLogic::ComputeTransformFromBoundingAxes( vtkPoints* 
     vtkMath::Perpendiculars( variationMaximumOBBAxis, variationMediumOBBAxis, variationMinimumOBBAxis, thetaAngle );
   }
   vtkMath::Normalize( variationMediumOBBAxis );
-  SetNthAxisInMatrix( transformFromBoundingAxes, 1, variationMediumOBBAxis);
+  SetNthColumnInMatrix( boundingAxesToRasTransformMatrix, 1, variationMediumOBBAxis);
 
   // do the minimum variation axis
   if ( vtkMath::Norm( variationMinimumOBBAxis ) < COMPARE_TO_ZERO_TOLERANCE )
@@ -559,7 +557,7 @@ void vtkSlicerMarkupsToModelLogic::ComputeTransformFromBoundingAxes( vtkPoints* 
     vtkMath::Cross( variationMaximumOBBAxis, variationMediumOBBAxis, variationMinimumOBBAxis );
   }
   vtkMath::Normalize( variationMinimumOBBAxis );
-  SetNthAxisInMatrix( transformFromBoundingAxes, 2, variationMinimumOBBAxis);
+  SetNthColumnInMatrix( boundingAxesToRasTransformMatrix, 2, variationMinimumOBBAxis);
 }
 
 //------------------------------------------------------------------------------
@@ -654,20 +652,13 @@ void vtkSlicerMarkupsToModelLogic::ComputeTransformedExtentRanges( vtkPoints* po
   transformedPoints->ComputeBounds();
   double* extents = transformedPoints->GetBounds(); // { xmin, xmax, ymin, ymax, zmin, zmax }
 
-  double xmin = extents[ 0 ];
-  double xmax = extents[ 1 ];
-  double xrange = xmax - xmin;
-  outputExtentRanges[ 0 ] = xrange;
-
-  double ymin = extents[ 2 ];
-  double ymax = extents[ 3 ];
-  double yrange = ymax - ymin;
-  outputExtentRanges[ 1 ] = yrange;
-
-  double zmin = extents[ 4 ];
-  double zmax = extents[ 5 ];
-  double zrange = zmax - zmin;
-  outputExtentRanges[ 2 ] = zrange;
+  for ( int i = 0; i < 3; i++ )
+  {
+    double axisIMin = extents[ 2 * i ];
+    double axisIMax = extents[ 2 * i + 1 ];
+    double axisIRange = axisIMax - axisIMin;
+    outputExtentRanges[ i ] = axisIRange;
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -696,7 +687,7 @@ double vtkSlicerMarkupsToModelLogic::ComputeSurfaceExtrusionAmount( const double
 }
 
 //------------------------------------------------------------------------------
-void vtkSlicerMarkupsToModelLogic::SetNthAxisInMatrix( vtkMatrix4x4* matrix, int n, const double axis[ 3 ] )
+void vtkSlicerMarkupsToModelLogic::SetNthColumnInMatrix( vtkMatrix4x4* matrix, int n, const double axis[ 3 ] )
 {
   if ( matrix == NULL )
   {
@@ -722,7 +713,7 @@ void vtkSlicerMarkupsToModelLogic::SetNthAxisInMatrix( vtkMatrix4x4* matrix, int
 }
 
 //------------------------------------------------------------------------------
-void vtkSlicerMarkupsToModelLogic::GetNthAxisInMatrix( vtkMatrix4x4* matrix, int n, double outputAxis[ 3 ] )
+void vtkSlicerMarkupsToModelLogic::GetNthColumnInMatrix( vtkMatrix4x4* matrix, int n, double outputAxis[ 3 ] )
 {
   if ( matrix == NULL )
   {
@@ -1328,7 +1319,7 @@ void vtkSlicerMarkupsToModelLogic::ComputePointParametersMinimumSpanningTree(vtk
   // check this to prevent a division by zero (in case all points are duplicates)
   if ( sumOfDistances == 0 )
   {
-    vtkErrorMacro( "Minimum spanning tree path has distance zero. No parameters will be assigned. Check inputs!" );
+    vtkErrorMacro( "Minimum spanning tree path has distance zero. No parameters will be assigned. Check inputs." );
     return;
   }
 

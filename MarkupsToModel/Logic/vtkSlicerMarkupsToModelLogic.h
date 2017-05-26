@@ -121,7 +121,7 @@ private:
   };
   
   // Compute the best fit plane through the points, as well as the major and minor axes which describe variation in points.
-  void ComputeTransformFromBoundingAxes( vtkPoints* points, vtkMatrix4x4* transformFromBoundingAxes );
+  void ComputeTransformMatrixFromBoundingAxes( vtkPoints* points, vtkMatrix4x4* transformFromBoundingAxes );
 
   // Compute the range of points along the specified axes (total lengths along which points appear)
   void ComputeTransformedExtentRanges( vtkPoints* points, vtkMatrix4x4* transformMatrix, double outputExtentRanges[ 3 ] );
@@ -135,8 +135,8 @@ private:
   PointArrangement ComputePointArrangement( const double smallestBoundingExtentRanges[ 3 ] );
 
   // helper utility functions
-  void SetNthAxisInMatrix( vtkMatrix4x4* matrix, int n, const double axis[ 3 ] );
-  void GetNthAxisInMatrix( vtkMatrix4x4* matrix, int n, double outputAxis[ 3 ] );
+  void SetNthColumnInMatrix( vtkMatrix4x4* matrix, int n, const double axis[ 3 ] );
+  void GetNthColumnInMatrix( vtkMatrix4x4* matrix, int n, double outputAxis[ 3 ] );
 };
 
 #endif
