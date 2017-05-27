@@ -30,7 +30,10 @@ limitations under the License.
 #include "vtkSlicerMarkupsLogic.h"
 
 // vtk includes
-#include "vtkDoubleArray.h"
+#include <vtkDoubleArray.h>
+#include <vtkMatrix4x4.h>
+#include <vtkPoints.h>
+#include <vtkPolyData.h>
 
 // MRML includes
 
@@ -108,7 +111,7 @@ private:
   void operator=(const vtkSlicerMarkupsToModelLogic&); // Not implemented
   int ImportingScene;
 
-  enum PointArrangementEnum
+  enum PointArrangement
   {
     POINT_ARRANGEMENT_SINGULAR = 0,
     POINT_ARRANGEMENT_LINEAR,
@@ -118,18 +121,22 @@ private:
   };
   
   // Compute the best fit plane through the points, as well as the major and minor axes which describe variation in points.
-  void ComputeBestFitPlaneAxes( vtkPoints* points, double outputPlaneMajorAxis[ 3 ], double outputPlaneMinorAxis[ 3 ], double outputPlaneNormal[ 3 ] );
+  void ComputeTransformMatrixFromBoundingAxes( vtkPoints* points, vtkMatrix4x4* transformFromBoundingAxes );
 
-  // Compute the range of points along the specified axis (total length along which points appear)
-  double ComputePointRangeAlongAxis( vtkPoints* points, const double axis[ 3 ] );
+  // Compute the range of points along the specified axes (total lengths along which points appear)
+  void ComputeTransformedExtentRanges( vtkPoints* points, vtkMatrix4x4* transformMatrix, double outputExtentRanges[ 3 ] );
 
   // Compute the amount to extrude surfaces when closed surface is linear or planar.
-  double ComputeSurfaceExtrusionAmount( vtkPoints* points );
+  double ComputeSurfaceExtrusionAmount( const double extents[ 3 ] );
 
   // Find out what kind of arrangment the points are in (see PointArrangementEnum above).
   // If the arrangement is planar, stores the normal of the best fit plane in planeNormal.
   // If the arrangement is linear, stores the axis of the best fit line in lineAxis.
-  PointArrangementEnum ComputePointArrangement( vtkPoints* points, double planeNormal[ 3 ], double lineAxis[ 3 ] );
+  PointArrangement ComputePointArrangement( const double smallestBoundingExtentRanges[ 3 ] );
+
+  // helper utility functions
+  void SetNthColumnInMatrix( vtkMatrix4x4* matrix, int n, const double axis[ 3 ] );
+  void GetNthColumnInMatrix( vtkMatrix4x4* matrix, int n, double outputAxis[ 3 ] );
 };
 
 #endif
