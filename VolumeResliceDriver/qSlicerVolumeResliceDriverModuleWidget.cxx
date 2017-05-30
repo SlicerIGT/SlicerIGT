@@ -28,6 +28,8 @@
 
 #include "vtkSmartPointer.h"
 #include "vtkCollection.h"
+#include "vtkCollectionIterator.h"
+#include "vtkNew.h"
 
 #include "vtkMRMLScene.h"
 #include "vtkMRMLNode.h"
@@ -198,10 +200,12 @@ void qSlicerVolumeResliceDriverModuleWidget::setMRMLScene(vtkMRMLScene *newScene
 
   // Search the scene for the available view nodes and create a
   // Controller and connect it up
-  newScene->InitTraversal();
-  for (vtkMRMLNode *sn = NULL; (sn=newScene->GetNextNodeByClass("vtkMRMLSliceNode"));)
+  
+  std::vector<vtkMRMLNode*> nodes;
+  newScene->GetNodesByClass("vtkMRMLSliceNode", nodes);
+  for (std::vector< vtkMRMLNode* >::iterator nodeIt = nodes.begin(); nodeIt != nodes.end(); ++nodeIt)
     {
-    vtkMRMLSliceNode *snode = vtkMRMLSliceNode::SafeDownCast(sn);
+    vtkMRMLSliceNode *snode = vtkMRMLSliceNode::SafeDownCast(*nodeIt);
     if (snode)
       {
       d->createController(snode, layoutManager);
@@ -320,10 +324,11 @@ void qSlicerVolumeResliceDriverModuleWidget::onLayoutChanged(int)
 
   // show Controllers for Nodes not currently being managed
   // by this widget
-  vtkObject *v;
-  for (visibleViews->InitTraversal(); (v = visibleViews->GetNextItemAsObject());)
+  vtkNew<vtkCollectionIterator> vIt;
+  vIt->SetCollection( visibleViews );
+  for (vIt->InitTraversal(); ! vIt->IsDoneWithTraversal(); vIt->GoToNextItem())
     {
-    vtkMRMLNode *vn = vtkMRMLNode::SafeDownCast(v);
+    vtkMRMLNode* vn = vtkMRMLNode::SafeDownCast( vIt->GetCurrentObject() );
     if (vn)
       {
       // find the controller
