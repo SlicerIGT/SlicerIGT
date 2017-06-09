@@ -132,9 +132,9 @@
     </layout>
    </item>
    <item>
-    <widget class="ctkMenuButton" name="UpdateButton">
+    <widget class="ctkCheckablePushButton" name="UpdateButton">
      <property name="toolTip">
-      <string extracomment="Update the output model. There are automatic and manual modes, which can be chosen using the arrow menu.">Update the output model. There are automatic and manual modes, which can be chosen using the arrow menu.</string>
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Compute output transform from fiducials. Click the checkbox for automatic update.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
      <property name="text">
       <string>Update</string>
@@ -687,22 +687,6 @@
     </spacer>
    </item>
   </layout>
-  <action name="ActionUpdateAuto">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Auto-Update</string>
-   </property>
-  </action>
-  <action name="ActionUpdateManual">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Update</string>
-   </property>
-  </action>
  </widget>
  <customwidgets>
   <customwidget>
@@ -728,6 +712,11 @@
    <header>qSlicerSimpleMarkupsWidget.h</header>
   </customwidget>
   <customwidget>
+   <class>ctkCheckablePushButton</class>
+   <extends>ctkPushButton</extends>
+   <header>ctkCheckablePushButton.h</header>
+  </customwidget>
+  <customwidget>
    <class>ctkCollapsibleGroupBox</class>
    <extends>QGroupBox</extends>
    <header>ctkCollapsibleGroupBox.h</header>
@@ -744,9 +733,9 @@
    <header>ctkDoubleSpinBox.h</header>
   </customwidget>
   <customwidget>
-   <class>ctkMenuButton</class>
+   <class>ctkPushButton</class>
    <extends>QPushButton</extends>
-   <header>ctkMenuButton.h</header>
+   <header>ctkPushButton.h</header>
   </customwidget>
   <customwidget>
    <class>ctkSliderWidget</class>

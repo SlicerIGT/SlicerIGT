@@ -43,7 +43,7 @@
 /// \ingroup Slicer_QtModules_ExtensionTemplate
 class qSlicerMarkupsToModelModuleWidgetPrivate: public Ui_qSlicerMarkupsToModelModuleWidget
 {
-  Q_DECLARE_PUBLIC( qSlicerMarkupsToModelModuleWidget ); 
+  Q_DECLARE_PUBLIC( qSlicerMarkupsToModelModuleWidget );
 
 protected:
   qSlicerMarkupsToModelModuleWidget* const q_ptr;
@@ -82,8 +82,8 @@ qSlicerMarkupsToModelModuleWidget::~qSlicerMarkupsToModelModuleWidget()
   disconnect( d->ParameterNodeSelector, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( updateFromMRMLNode() ) );
   disconnect( d->ModelNodeSelector, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( updateModelToMRMLNode() ) );
   disconnect( d->MarkupsSelector, SIGNAL( markupsFiducialNodeChanged() ), this, SLOT( updateMarkupsToMRMLNode() ) );
-  disconnect( d->UpdateButton, SIGNAL( clicked() ), this, SLOT( UpdateOutputModel() ) );
-  disconnect( d->UpdateButton, SIGNAL( toggled( bool ) ), this, SLOT( updateFromMRMLNode() ) );
+  disconnect(d->UpdateButton, SIGNAL(clicked()), this, SLOT(onUpdateButtonClicked()));
+  disconnect(d->UpdateButton, SIGNAL(checkBoxToggled(bool)), this, SLOT(onUpdateButtonCheckboxToggled(bool)));
 
   disconnect( d->ButterflySubdivisionCheckBox, SIGNAL( clicked() ), this, SLOT( updateParametersToMRMLNode() ) );
   disconnect( d->ConvexHullCheckBox, SIGNAL( clicked() ), this, SLOT( updateParametersToMRMLNode() ) );
@@ -96,7 +96,7 @@ qSlicerMarkupsToModelModuleWidget::~qSlicerMarkupsToModelModuleWidget()
   disconnect( d->TubeSegmentsSpinBox, SIGNAL( valueChanged( double ) ), this, SLOT( updateParametersToMRMLNode() ) );
   disconnect( d->TubeSidesSpinBox, SIGNAL( valueChanged( double ) ), this, SLOT( updateParametersToMRMLNode() ) );
   disconnect( d->TubeLoopCheckBox, SIGNAL( clicked() ), this, SLOT( updateParametersToMRMLNode() ) );
-  
+
   disconnect( d->KochanekEndsCopyNearestDerivativesCheckBox, SIGNAL( clicked() ), this, SLOT( updateParametersToMRMLNode() ) );
   disconnect( d->KochanekBiasDoubleSpinBox, SIGNAL( valueChanged( double ) ), this, SLOT( updateParametersToMRMLNode() ) );
   disconnect( d->KochanekContinuityDoubleSpinBox, SIGNAL( valueChanged( double ) ), this, SLOT( updateParametersToMRMLNode() ) );
@@ -124,27 +124,8 @@ void qSlicerMarkupsToModelModuleWidget::setup()
   d->setupUi( this );
   this->Superclass::setup();
 
-  // Setup Update button menu
-  // Install event filter to override menu position to show it on the right side of the button.
-  // This is necessary because the update button is very wide and the
-  // menu arrow is on the right side. With the default QMenu the menu would appear
-  // on the left side, which would be very inconvenient because the mouse would need
-  // to be moved a lot to click the manual/auto option.
-  QMenu* updateMenu = new QMenu( tr( "Update options" ), this );
-  updateMenu->installEventFilter( this );
-  updateMenu->setObjectName( "UpdateOptions" );
-  QActionGroup* updateActions = new QActionGroup( d->UpdateButton );
-  updateActions->setExclusive( true );
-  updateMenu->addAction( d->ActionUpdateAuto );
-  updateActions->addAction( d->ActionUpdateAuto );
-  QObject::connect( d->ActionUpdateAuto, SIGNAL( triggered() ), this, SLOT(onActionUpdateAuto() ) );
-  updateMenu->addAction( d->ActionUpdateManual );
-  updateActions->addAction( d->ActionUpdateManual );
-  QObject::connect( d->ActionUpdateManual, SIGNAL( triggered() ), this, SLOT(onActionUpdateManual() ) );
-  d->UpdateButton->setMenu(updateMenu);
-
   d->MarkupsSelector->tableWidget()->setHidden( true ); // we don't need to see the table of fiducials
-  
+
   d->MarkupsSelector->setNodeBaseName( "ModelMarkup" );
   QColor markupDefaultColor;
   markupDefaultColor.setRgbF(1, 0.5, 0.5);
@@ -153,8 +134,8 @@ void qSlicerMarkupsToModelModuleWidget::setup()
   connect( d->ParameterNodeSelector, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( updateFromMRMLNode() ) );
   connect( d->ModelNodeSelector, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( updateModelToMRMLNode() ) );
   connect( d->MarkupsSelector, SIGNAL( markupsFiducialNodeChanged() ), this, SLOT( updateMarkupsToMRMLNode() ) );
-  connect( d->UpdateButton, SIGNAL( clicked() ), this, SLOT( UpdateOutputModel() ) );
-  connect( d->UpdateButton, SIGNAL( toggled( bool ) ), this, SLOT( updateFromMRMLNode() ) );
+  connect(d->UpdateButton, SIGNAL(clicked()), this, SLOT(onUpdateButtonClicked()));
+  connect(d->UpdateButton, SIGNAL(checkBoxToggled(bool)), this, SLOT(onUpdateButtonCheckboxToggled(bool)));
 
   connect( d->ButterflySubdivisionCheckBox, SIGNAL( toggled( bool ) ), this, SLOT( updateParametersToMRMLNode() ) );
   connect( d->ConvexHullCheckBox, SIGNAL( toggled( bool ) ), this, SLOT( updateParametersToMRMLNode() ) );
@@ -167,7 +148,7 @@ void qSlicerMarkupsToModelModuleWidget::setup()
   connect( d->TubeSegmentsSpinBox, SIGNAL( valueChanged( double ) ), this, SLOT( updateParametersToMRMLNode() ) );
   connect( d->TubeSidesSpinBox, SIGNAL( valueChanged( double ) ), this, SLOT( updateParametersToMRMLNode() ) );
   connect( d->TubeLoopCheckBox, SIGNAL( clicked() ), this, SLOT( updateParametersToMRMLNode() ) );
-  
+
   connect( d->KochanekEndsCopyNearestDerivativesCheckBox, SIGNAL( clicked() ), this, SLOT( updateParametersToMRMLNode() ) );
   connect( d->KochanekBiasDoubleSpinBox, SIGNAL( valueChanged( double ) ), this, SLOT( updateParametersToMRMLNode() ) );
   connect( d->KochanekContinuityDoubleSpinBox, SIGNAL( valueChanged( double ) ), this, SLOT( updateParametersToMRMLNode() ) );
@@ -233,7 +214,7 @@ void qSlicerMarkupsToModelModuleWidget::enter()
     return;
   }
 
-  this->qvtkConnect( markupsToModelModuleNode, vtkMRMLMarkupsToModelNode::InputDataModifiedEvent, this, SLOT( updateFromMRMLNode() ) );
+  this->qvtkConnect( markupsToModelModuleNode, vtkCommand::ModifiedEvent, this, SLOT( updateFromMRMLNode() ) );
 
   vtkMRMLMarkupsFiducialNode* markupsNode = vtkMRMLMarkupsFiducialNode::SafeDownCast( d->MarkupsSelector->currentNode() );
   d->logic()->SetMarkupsNode( markupsNode, markupsToModelModuleNode );
@@ -286,7 +267,7 @@ void qSlicerMarkupsToModelModuleWidget::updateModelToMRMLNode()
     qCritical( "Selected node not a valid module node" );
     return;
   }
-  
+
   vtkMRMLNode* currentMRMLNode = d->ModelNodeSelector->currentNode();
   if ( currentMRMLNode == NULL )
   {
@@ -303,7 +284,7 @@ void qSlicerMarkupsToModelModuleWidget::updateModelToMRMLNode()
 
   std::string modelNodeID = modelNode->GetID();
   markupsToModelModuleNode->SetAndObserveModelNodeID( modelNodeID.c_str() );
-  
+
   this->updateFromMRMLNode();
 }
 
@@ -318,7 +299,7 @@ void qSlicerMarkupsToModelModuleWidget::updateMarkupsToMRMLNode()
     qCritical( "Selected node not a valid module node" );
     return;
   }
-  
+
   vtkMRMLNode* currentMRMLNode = d->MarkupsSelector->currentNode();
   if ( currentMRMLNode == NULL )
   {
@@ -335,7 +316,7 @@ void qSlicerMarkupsToModelModuleWidget::updateMarkupsToMRMLNode()
 
   std::string markupsNodeID = markupsNode->GetID();
   markupsToModelModuleNode->SetAndObserveMarkupsNodeID( markupsNodeID.c_str() );
-  
+
   this->updateFromMRMLNode();
 }
 
@@ -369,7 +350,7 @@ void qSlicerMarkupsToModelModuleWidget::updateParametersToMRMLNode()
   markupsToModelModuleNode->SetDelaunayAlpha( d->DelaunayAlphaDoubleSpinBox->value() );
   markupsToModelModuleNode->SetConvexHull( d->ConvexHullCheckBox->isChecked() );
   markupsToModelModuleNode->SetButterflySubdivision( d->ButterflySubdivisionCheckBox->isChecked() );
-  
+
   markupsToModelModuleNode->SetTubeRadius( d->TubeRadiusDoubleSpinBox->value() );
   markupsToModelModuleNode->SetTubeSegmentsBetweenControlPoints( d->TubeSegmentsSpinBox->value() );
   markupsToModelModuleNode->SetTubeNumberOfSides( d->TubeSidesSpinBox->value() );
@@ -403,7 +384,7 @@ void qSlicerMarkupsToModelModuleWidget::updateParametersToMRMLNode()
     markupsToModelModuleNode->SetPointParameterType( vtkMRMLMarkupsToModelNode::MinimumSpanningTree );
   }
   markupsToModelModuleNode->SetPolynomialOrder( d->PolynomialOrderSpinBox->value() );
-  
+
   this->updateFromMRMLNode();
 }
 
@@ -451,23 +432,22 @@ void qSlicerMarkupsToModelModuleWidget::updateFromMRMLNode()
     d->UpdateButton->setEnabled( true );
     d->AdvancedGroupBox->setEnabled( true );
     d->DisplayGroupBox->setEnabled( true );
-    
+
     // match the low-level widgets to the MRML node
     if ( MarkupsToModelNode->GetAutoUpdateOutput() )
     {
-      d->UpdateButton->setCheckable( true );
-      d->UpdateButton->setChecked( true );
-      d->UpdateButton->setText( "Automatic Update" );
-      d->ActionUpdateAuto->setChecked( Qt::Checked );
-      d->ActionUpdateManual->setChecked( Qt::Unchecked );
+      bool wasBlocked = d->UpdateButton->blockSignals(true);
+      d->UpdateButton->setText(tr("Auto-update"));
+      d->UpdateButton->setCheckable(true);
+      d->UpdateButton->setChecked(true);
+      d->UpdateButton->blockSignals(wasBlocked);
     }
     else
     {
-      d->UpdateButton->setChecked( false );
-      d->UpdateButton->setCheckable( false );
-      d->UpdateButton->setText( "Update" );
-      d->ActionUpdateAuto->setChecked( Qt::Unchecked );
-      d->ActionUpdateManual->setChecked( Qt::Checked );
+      bool wasBlocked = d->UpdateButton->blockSignals(true);
+      d->UpdateButton->setText(tr("Update"));
+      d->UpdateButton->setCheckable(false);
+      d->UpdateButton->blockSignals(wasBlocked);
     }
 
     // advanced options
@@ -506,7 +486,7 @@ void qSlicerMarkupsToModelModuleWidget::updateFromMRMLNode()
     d->UpdateButton->setEnabled( false );
     d->AdvancedGroupBox->setEnabled( false );
     d->DisplayGroupBox->setEnabled( false );
-  }  
+  }
 
   // determine visibility of widgets
   if( d->ModeClosedSurfaceRadioButton->isChecked() )
@@ -604,7 +584,7 @@ void qSlicerMarkupsToModelModuleWidget::updateFromMRMLNode()
       d->KochanekContinuityLabel->setVisible( false );
       d->KochanekContinuityDoubleSpinBox->setVisible( false );
     }
-    
+
     if(d->PolynomialInterpolationRadioButton->isChecked())
     {
       d->PointParameterLabel->setVisible( true );
@@ -626,7 +606,7 @@ void qSlicerMarkupsToModelModuleWidget::updateFromMRMLNode()
   }
 
   this->unblockAllSignals();
-  
+
   // the parameters have possibly changed, so also update the model (if automatic update is on)
   if( MarkupsToModelNode->GetAutoUpdateOutput() )
   {
@@ -663,32 +643,6 @@ void qSlicerMarkupsToModelModuleWidget::updateToRenderedNodes()
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerMarkupsToModelModuleWidget::onActionUpdateAuto()
-{
-  Q_D( qSlicerMarkupsToModelModuleWidget );
-  vtkMRMLMarkupsToModelNode* markupsToModelNode = vtkMRMLMarkupsToModelNode::SafeDownCast( d->ParameterNodeSelector->currentNode() );
-  if ( markupsToModelNode == NULL )
-  {
-    return;
-  }
-  markupsToModelNode->SetAutoUpdateOutput( true );
-  this->updateFromMRMLNode();
-}
-
-//-----------------------------------------------------------------------------
-void qSlicerMarkupsToModelModuleWidget::onActionUpdateManual()
-{
-  Q_D( qSlicerMarkupsToModelModuleWidget );
-  vtkMRMLMarkupsToModelNode* markupsToModelNode = vtkMRMLMarkupsToModelNode::SafeDownCast( d->ParameterNodeSelector->currentNode() );
-  if ( markupsToModelNode == NULL )
-  {
-    return;
-  }
-  markupsToModelNode->SetAutoUpdateOutput( false );
-  this->updateFromMRMLNode();
-}
-
-//-----------------------------------------------------------------------------
 void qSlicerMarkupsToModelModuleWidget::blockAllSignals()
 {
   Q_D( qSlicerMarkupsToModelModuleWidget );
@@ -696,11 +650,9 @@ void qSlicerMarkupsToModelModuleWidget::blockAllSignals()
   d->ParameterNodeSelector->blockSignals( true );
   d->ModeClosedSurfaceRadioButton->blockSignals( true );
   d->ModeCurveRadioButton->blockSignals( true );
-  d->MarkupsSelector->blockSignals( true );  
+  d->MarkupsSelector->blockSignals( true );
   d->ModelNodeSelector->blockSignals( true );
   d->UpdateButton->blockSignals( true );
-  d->ActionUpdateAuto->blockSignals( true );
-  d->ActionUpdateManual->blockSignals( true );
 
   // advanced options
   d->CleanMarkupsCheckBox->blockSignals( true );
@@ -739,11 +691,9 @@ void qSlicerMarkupsToModelModuleWidget::unblockAllSignals()
   d->ParameterNodeSelector->blockSignals( false );
   d->ModeClosedSurfaceRadioButton->blockSignals( false );
   d->ModeCurveRadioButton->blockSignals( false );
-  d->MarkupsSelector->blockSignals( false );  
+  d->MarkupsSelector->blockSignals( false );
   d->ModelNodeSelector->blockSignals( false );
   d->UpdateButton->blockSignals( false );
-  d->ActionUpdateAuto->blockSignals( false );
-  d->ActionUpdateManual->blockSignals( false );
 
   // advanced options
   d->CleanMarkupsCheckBox->blockSignals( false );
@@ -812,21 +762,6 @@ void qSlicerMarkupsToModelModuleWidget::UpdateOutputModel()
     return;
   }
   d->logic()->UpdateOutputModel( markupsToModelModuleNode );
-}
-
-//-----------------------------------------------------------------------------
-bool qSlicerMarkupsToModelModuleWidget::eventFilter(QObject * obj, QEvent *event)
-{
-  Q_D( qSlicerMarkupsToModelModuleWidget );
-  if (event->type() == QEvent::Show && d->UpdateButton != NULL && obj == d->UpdateButton->menu())
-  {
-    // Show UpdateButton's menu aligned to the right side of the button
-    QMenu* menu = d->UpdateButton->menu();
-    QPoint menuPos = menu->pos();
-    menu->move(menuPos.x()+d->UpdateButton->geometry().width()-menu->geometry().width(), menuPos.y());
-    return true;
-  }
-  return false;
 }
 
 //-----------------------------------------------------------------------------
@@ -966,7 +901,7 @@ bool qSlicerMarkupsToModelModuleWidget::GetOutputVisibility()
   vtkMRMLModelDisplayNode* displayNode = GetModelDisplayNode();
   if (displayNode == NULL)
     return false;
-  return displayNode->GetVisibility();  
+  return displayNode->GetVisibility();
 }
 
 bool qSlicerMarkupsToModelModuleWidget::GetOutputIntersectionVisibility()
@@ -993,4 +928,31 @@ double qSlicerMarkupsToModelModuleWidget::GetMarkupsTextScale()
   return displayNode->GetTextScale();
 }
 
+//------------------------------------------------------------------------------
+void qSlicerMarkupsToModelModuleWidget::onUpdateButtonClicked()
+{
+  Q_D(qSlicerMarkupsToModelModuleWidget);
+  if (d->UpdateButton->checkState() == Qt::Checked)
+  {
+    // If update button is untoggled then make it unchecked, too
+    d->UpdateButton->setCheckState(Qt::Unchecked);
+  }
+  this->UpdateOutputModel();
+}
 
+//------------------------------------------------------------------------------
+void qSlicerMarkupsToModelModuleWidget::onUpdateButtonCheckboxToggled(bool checked)
+{
+  Q_D(qSlicerMarkupsToModelModuleWidget);
+  vtkMRMLMarkupsToModelNode* markupsToModelModuleNode = vtkMRMLMarkupsToModelNode::SafeDownCast(d->ParameterNodeSelector->currentNode());
+  if (markupsToModelModuleNode == NULL)
+  {
+    qCritical("Model node changed with no module node selection");
+    return;
+  }
+  if (markupsToModelModuleNode == NULL)
+  {
+    return;
+  }
+  markupsToModelModuleNode->SetAutoUpdateOutput(checked);
+}
