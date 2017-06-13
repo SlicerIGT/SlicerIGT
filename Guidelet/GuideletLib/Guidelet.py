@@ -47,7 +47,7 @@ class Guidelet(object):
 
   VIEW_ULTRASOUND = unicode("Ultrasound")
   VIEW_ULTRASOUND_3D = unicode("Ultrasound + 3D")
-  VIEW_ULTRASOUND_3D_FLIPPED = unicode("Ultrasound + 3D (Flipped)")
+  VIEW_3D_ULTRASOUND = unicode("3D + Ultrasound")
   VIEW_ULTRASOUND_CAM_3D = unicode("Ultrasound + Webcam + 3D")
   VIEW_ULTRASOUND_DUAL_3D = unicode("Ultrasound + Dual 3D")
   VIEW_3D = unicode("3D")
@@ -223,7 +223,7 @@ class Guidelet(object):
   def setupViewerLayouts(self):
     self.viewSelectorComboBox.addItem(self.VIEW_ULTRASOUND)
     self.viewSelectorComboBox.addItem(self.VIEW_ULTRASOUND_3D)
-    self.viewSelectorComboBox.addItem(self.VIEW_ULTRASOUND_3D_FLIPPED)
+    self.viewSelectorComboBox.addItem(self.VIEW_3D_ULTRASOUND)
     self.viewSelectorComboBox.addItem(self.VIEW_ULTRASOUND_CAM_3D)
     self.viewSelectorComboBox.addItem(self.VIEW_ULTRASOUND_DUAL_3D)
     self.viewSelectorComboBox.addItem(self.VIEW_3D)
@@ -361,8 +361,8 @@ class Guidelet(object):
       "  </view>"
       " </item>"
       "</layout>")
-    self.red3dflipCustomLayoutId=508
-    layoutLogic.GetLayoutNode().AddLayoutDescription(self.red3dflipCustomLayoutId, customLayout)
+    self.threedultrasoundCustomLayoutId=508
+    layoutLogic.GetLayoutNode().AddLayoutDescription(self.threedultrasoundCustomLayoutId, customLayout)
 
   def onSceneLoaded(self):
     """ Derived classes can override this function
@@ -598,8 +598,8 @@ class Guidelet(object):
       self.layoutManager.setLayout(self.redyellow3dCustomLayoutId)
       self.delayedFitUltrasoundImageToView()
       self.showUltrasoundIn3dView(True)
-    elif text == self.VIEW_ULTRASOUND_3D_FLIPPED:
-      self.layoutManager.setLayout(self.red3dflipCustomLayoutId)
+    elif text == self.VIEW_3D_ULTRASOUND:
+      self.layoutManager.setLayout(self.threedultrasoundCustomLayoutId)
       self.delayedFitUltrasoundImageToView()
       self.showUltrasoundIn3dView(True)
 
