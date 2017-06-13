@@ -10,8 +10,6 @@ set(${KIT}_INCLUDE_DIRECTORIES
 set(${KIT}_SRCS
   vtkSlicerFiducialRegistrationWizardLogic.cxx
   vtkSlicerFiducialRegistrationWizardLogic.h
-  vtkFiducialDetector.cxx
-  vtkFiducialDetector.h
   )
 
 set(${KIT}_TARGET_LIBRARIES  
