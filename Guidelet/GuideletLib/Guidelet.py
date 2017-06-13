@@ -47,6 +47,7 @@ class Guidelet(object):
 
   VIEW_ULTRASOUND = unicode("Ultrasound")
   VIEW_ULTRASOUND_3D = unicode("Ultrasound + 3D")
+  VIEW_3D_ULTRASOUND = unicode("3D + Ultrasound")
   VIEW_ULTRASOUND_CAM_3D = unicode("Ultrasound + Webcam + 3D")
   VIEW_ULTRASOUND_DUAL_3D = unicode("Ultrasound + Dual 3D")
   VIEW_3D = unicode("3D")
@@ -222,6 +223,7 @@ class Guidelet(object):
   def setupViewerLayouts(self):
     self.viewSelectorComboBox.addItem(self.VIEW_ULTRASOUND)
     self.viewSelectorComboBox.addItem(self.VIEW_ULTRASOUND_3D)
+    self.viewSelectorComboBox.addItem(self.VIEW_3D_ULTRASOUND)
     self.viewSelectorComboBox.addItem(self.VIEW_ULTRASOUND_CAM_3D)
     self.viewSelectorComboBox.addItem(self.VIEW_ULTRASOUND_DUAL_3D)
     self.viewSelectorComboBox.addItem(self.VIEW_3D)
@@ -343,6 +345,24 @@ class Guidelet(object):
       "</layout>")
     self.redyellow3dCustomLayoutId=507
     layoutLogic.GetLayoutNode().AddLayoutDescription(self.redyellow3dCustomLayoutId, customLayout)
+
+    customLayout = (
+      "<layout type=\"horizontal\" split=\"false\" >"
+      " <item>"
+      "  <view class=\"vtkMRMLSliceNode\" singletontag=\"Red\">"
+      "   <property name=\"orientation\" action=\"default\">Axial</property>"
+      "   <property name=\"viewlabel\" action=\"default\">R</property>"
+      "   <property name=\"viewcolor\" action=\"default\">#F34A33</property>"
+      "  </view>"
+      " </item>"
+      " <item>"
+      "  <view class=\"vtkMRMLViewNode\" singletontag=\"1\">"
+      "    <property name=\"viewlabel\" action=\"default\">1</property>"
+      "  </view>"
+      " </item>"
+      "</layout>")
+    self.threedultrasoundCustomLayoutId=508
+    layoutLogic.GetLayoutNode().AddLayoutDescription(self.threedultrasoundCustomLayoutId, customLayout)
 
   def onSceneLoaded(self):
     """ Derived classes can override this function
@@ -576,6 +596,10 @@ class Guidelet(object):
       self.showUltrasoundIn3dView(False)
     elif text == self.VIEW_ULTRASOUND_CAM_3D:
       self.layoutManager.setLayout(self.redyellow3dCustomLayoutId)
+      self.delayedFitUltrasoundImageToView()
+      self.showUltrasoundIn3dView(True)
+    elif text == self.VIEW_3D_ULTRASOUND:
+      self.layoutManager.setLayout(self.threedultrasoundCustomLayoutId)
       self.delayedFitUltrasoundImageToView()
       self.showUltrasoundIn3dView(True)
 
