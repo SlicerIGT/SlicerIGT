@@ -58,17 +58,14 @@ protected slots:
   void onRecordFromButtonClicked();
   void onRecordToButtonClicked();
   void onUpdateButtonClicked();
-  void onUpdateButtonToggled(bool);
+  void onUpdateButtonCheckboxToggled(bool);
   void onFiducialRegistrationWizardNodeSelectionChanged();
-  void onAutoUpdateSelected();
-  void onManualUpdateSelected();
 
 protected:
   QScopedPointer<qSlicerFiducialRegistrationWizardModuleWidgetPrivate> d_ptr;
 
   virtual void setup();
   virtual void enter();
-  virtual bool eventFilter(QObject * obj, QEvent *event);
 
 private:
   Q_DECLARE_PRIVATE(qSlicerFiducialRegistrationWizardModuleWidget);

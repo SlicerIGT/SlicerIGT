@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>560</width>
-    <height>914</height>
+    <width>359</width>
+    <height>559</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -254,18 +254,14 @@
           </layout>
          </item>
          <item>
-          <layout class="QHBoxLayout" name="horizontalLayout_3">
-           <property name="topMargin">
-            <number>10</number>
+          <widget class="ctkCheckablePushButton" name="UpdateButton">
+           <property name="toolTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Compute output transform from fiducials. Click the checkbox for automatic update.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
-           <item>
-            <widget class="ctkMenuButton" name="UpdateButton">
-             <property name="text">
-              <string>Update</string>
-             </property>
-            </widget>
-           </item>
-          </layout>
+           <property name="text">
+            <string>Update</string>
+           </property>
+          </widget>
          </item>
          <item>
           <widget class="QLabel" name="StatusLabel">
@@ -317,28 +313,6 @@
     </spacer>
    </item>
   </layout>
-  <action name="ActionAutoUpdate">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Auto-update</string>
-   </property>
-   <property name="toolTip">
-    <string>Update output transform automatically</string>
-   </property>
-  </action>
-  <action name="ActionManualUpdate">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Manual Update</string>
-   </property>
-   <property name="toolTip">
-    <string>Update output transform when Update button is clicked</string>
-   </property>
-  </action>
  </widget>
  <customwidgets>
   <customwidget>
@@ -359,6 +333,11 @@
    <header>qSlicerSimpleMarkupsWidget.h</header>
   </customwidget>
   <customwidget>
+   <class>ctkCheckablePushButton</class>
+   <extends>ctkPushButton</extends>
+   <header>ctkCheckablePushButton.h</header>
+  </customwidget>
+  <customwidget>
    <class>ctkCollapsibleButton</class>
    <extends>QWidget</extends>
    <header>ctkCollapsibleButton.h</header>
@@ -371,9 +350,9 @@
    <container>1</container>
   </customwidget>
   <customwidget>
-   <class>ctkMenuButton</class>
+   <class>ctkPushButton</class>
    <extends>QPushButton</extends>
-   <header>ctkMenuButton.h</header>
+   <header>ctkPushButton.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

@@ -63,8 +63,9 @@ public slots:
   
   void UpdateOutputModel();
 
-  void onActionUpdateAuto();
-  void onActionUpdateManual();
+protected slots:
+  void onUpdateButtonClicked();
+  void onUpdateButtonCheckboxToggled(bool);
 
 protected:
   QScopedPointer<qSlicerMarkupsToModelModuleWidgetPrivate> d_ptr;
@@ -72,7 +73,6 @@ protected:
   virtual void setup();
   virtual void enter();
   virtual void exit();
-  virtual bool eventFilter(QObject * obj, QEvent *event);
 
   // functions for manipulating other MRML nodes
   vtkMRMLModelNode* GetModelNode( );

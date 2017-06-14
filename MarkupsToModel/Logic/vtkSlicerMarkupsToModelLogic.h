@@ -30,7 +30,10 @@ limitations under the License.
 #include "vtkSlicerMarkupsLogic.h"
 
 // vtk includes
-#include "vtkDoubleArray.h"
+#include <vtkDoubleArray.h>
+#include <vtkMatrix4x4.h>
+#include <vtkPoints.h>
+#include <vtkPolyData.h>
 
 // MRML includes
 
@@ -42,10 +45,6 @@ limitations under the License.
 class vtkMRMLMarkupsFiducialNode;
 class vtkMRMLMarkupsToModelNode;
 class vtkPolyData;
-
-static const int MINIMUM_MARKUPS_NUMBER = 3;
-static const double MINIMUM_THICKNESS = 3.0;
-static const double CLEAN_POLYDATA_TOLERANCE=0.01;
 
 /// \ingroup Slicer_QtModules_ExtensionTemplate
 class VTK_SLICER_MARKUPSTOMODEL_MODULE_LOGIC_EXPORT vtkSlicerMarkupsToModelLogic :
@@ -64,10 +63,10 @@ public:
   // Updates the mouse selection type to create markups or to navigate the scene.
   void UpdateSelectionNode( vtkMRMLMarkupsToModelNode* markupsToModelModuleNode );
   // Updates closed surface or curve output model from markups
-  void UpdateOutputModel(vtkMRMLMarkupsToModelNode* moduleNode);
+  void UpdateOutputModel( vtkMRMLMarkupsToModelNode* moduleNode );
   // Generates the closed surface from the markups using vtkDelaunay3D. Uses Delanauy alpha value, subdivision filter and clean markups
   // options from the module node.
-  void UpdateOutputCloseSurfaceModel(vtkMRMLMarkupsToModelNode* markupsToModelModuleNode, vtkPolyData* outputPolyData);
+  void UpdateOutputCloseSurfaceModel( vtkMRMLMarkupsToModelNode* markupsToModelModuleNode, vtkPolyData* outputPolyData );
   // Generates the curve model from the markups connecting consecutive segments.
   // Each segment can be linear, cardinal or Kochanek Splines (described and implemented in UpdateOutputCurveModel, UpdateOutputLinearModel
   // and UpdateOutputHermiteSplineModel methods). Uses Tube radius and clean markups option from the module node.
@@ -111,6 +110,33 @@ private:
   vtkSlicerMarkupsToModelLogic(const vtkSlicerMarkupsToModelLogic&); // Not implemented
   void operator=(const vtkSlicerMarkupsToModelLogic&); // Not implemented
   int ImportingScene;
+
+  enum PointArrangement
+  {
+    POINT_ARRANGEMENT_SINGULAR = 0,
+    POINT_ARRANGEMENT_LINEAR,
+    POINT_ARRANGEMENT_PLANAR,
+    POINT_ARRANGEMENT_NONPLANAR,
+    POINT_ARRANGEMENT_LAST // do not set to this type, insert valid types above this line
+  };
+  
+  // Compute the best fit plane through the points, as well as the major and minor axes which describe variation in points.
+  void ComputeTransformMatrixFromBoundingAxes( vtkPoints* points, vtkMatrix4x4* transformFromBoundingAxes );
+
+  // Compute the range of points along the specified axes (total lengths along which points appear)
+  void ComputeTransformedExtentRanges( vtkPoints* points, vtkMatrix4x4* transformMatrix, double outputExtentRanges[ 3 ] );
+
+  // Compute the amount to extrude surfaces when closed surface is linear or planar.
+  double ComputeSurfaceExtrusionAmount( const double extents[ 3 ] );
+
+  // Find out what kind of arrangment the points are in (see PointArrangementEnum above).
+  // If the arrangement is planar, stores the normal of the best fit plane in planeNormal.
+  // If the arrangement is linear, stores the axis of the best fit line in lineAxis.
+  PointArrangement ComputePointArrangement( const double smallestBoundingExtentRanges[ 3 ] );
+
+  // helper utility functions
+  void SetNthColumnInMatrix( vtkMatrix4x4* matrix, int n, const double axis[ 3 ] );
+  void GetNthColumnInMatrix( vtkMatrix4x4* matrix, int n, double outputAxis[ 3 ] );
 };
 
 #endif

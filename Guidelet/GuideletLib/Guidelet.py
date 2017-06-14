@@ -6,7 +6,6 @@ import time
 from UltraSound import UltraSound
 
 class Guidelet(object):
-
   @staticmethod
   def showToolbars(show):
 
@@ -22,24 +21,10 @@ class Guidelet(object):
     except:
       pass
 
-  def showModulePanel(self, show):
-    modulePanelDockWidget = slicer.util.mainWindow().findChildren('QDockWidget','PanelDockWidget')[0]
-    modulePanelDockWidget.setVisible(show)
-
-    if show:
-      mainWindow=slicer.util.mainWindow()
-      if self.sliceletDockWidgetPosition == qt.Qt.LeftDockWidgetArea:
-        mainWindow.tabifyDockWidget(self.sliceletDockWidget, modulePanelDockWidget)
-        self.sliceletDockWidget.setFeatures(qt.QDockWidget.DockWidgetClosable+qt.QDockWidget.DockWidgetMovable+qt.QDockWidget.DockWidgetFloatable)
-    else:
-      if self.sliceletDockWidgetPosition == qt.Qt.LeftDockWidgetArea:
-        # Prevent accidental closing or undocking of the slicelet's left panel
-        self.sliceletDockWidget.setFeatures(0)
-
   @staticmethod
   def showPythonConsole(show):
     slicer.util.mainWindow().pythonConsole().parent().setVisible(show)
-        
+
   @staticmethod
   def showMenuBar(show):
     for menubar in slicer.util.mainWindow().findChildren('QMenuBar'):
@@ -62,6 +47,7 @@ class Guidelet(object):
 
   VIEW_ULTRASOUND = unicode("Ultrasound")
   VIEW_ULTRASOUND_3D = unicode("Ultrasound + 3D")
+  VIEW_3D_ULTRASOUND = unicode("3D + Ultrasound")
   VIEW_ULTRASOUND_CAM_3D = unicode("Ultrasound + Webcam + 3D")
   VIEW_ULTRASOUND_DUAL_3D = unicode("Ultrasound + Dual 3D")
   VIEW_3D = unicode("3D")
@@ -79,24 +65,20 @@ class Guidelet(object):
     self.layoutManager = slicer.app.layoutManager()
 
     self.logic.updateParameterNodeFromSettings(self.parameterNode, self.configurationName)
-
     self.setAndObserveParameterNode(self.parameterNode)
 
     self.ultrasound = self.getUltrasoundClass()
-
     self.fitUltrasoundImageToViewOnConnect = True
-
     self.setupConnectorNode()
 
     self.sliceletDockWidget = qt.QDockWidget(self.parent)
-
     self.mainWindow=slicer.util.mainWindow()
     self.sliceletDockWidget.setParent(self.mainWindow)
     self.mainWindow.addDockWidget(self.sliceletDockWidgetPosition, self.sliceletDockWidget)
     self.sliceletPanel = qt.QFrame(self.sliceletDockWidget)
     self.sliceletPanelLayout = qt.QVBoxLayout(self.sliceletPanel)
     self.sliceletDockWidget.setWidget(self.sliceletPanel)
-    
+
     self.topPanelLayout = qt.QGridLayout(self.sliceletPanel)
     self.sliceletPanelLayout.addLayout(self.topPanelLayout)
     self.setupTopPanel()
@@ -106,18 +88,30 @@ class Guidelet(object):
     self.setupAdditionalPanel()
 
     self.addConnectorObservers()
-
-    # Setting up callback functions for widgets.
     self.setupConnections()
 
     self.sliceletDockWidget.setStyleSheet(self.loadStyleSheet())
 
+  def showModulePanel(self, show):
+    modulePanelDockWidget = slicer.util.mainWindow().findChildren('QDockWidget','PanelDockWidget')[0]
+    modulePanelDockWidget.setVisible(show)
+
+    if show:
+      mainWindow=slicer.util.mainWindow()
+      if self.sliceletDockWidgetPosition == qt.Qt.LeftDockWidgetArea:
+        mainWindow.tabifyDockWidget(self.sliceletDockWidget, modulePanelDockWidget)
+        self.sliceletDockWidget.setFeatures(qt.QDockWidget.DockWidgetClosable+qt.QDockWidget.DockWidgetMovable+qt.QDockWidget.DockWidgetFloatable)
+    else:
+      if self.sliceletDockWidgetPosition == qt.Qt.LeftDockWidgetArea:
+        # Prevent accidental closing or undocking of the slicelet's left panel
+        self.sliceletDockWidget.setFeatures(0)
+
   def setupTopPanel(self):
-    '''
+    """
     Reimplement this function and put widgets in self.topPanelLayout (QGridLayout)
-    '''
+    """
     pass
-  
+
   def loadStyleSheet(self):
     moduleDir = os.path.dirname(__file__)
     style = self.parameterNode.GetParameter('StyleSheet')
@@ -229,6 +223,7 @@ class Guidelet(object):
   def setupViewerLayouts(self):
     self.viewSelectorComboBox.addItem(self.VIEW_ULTRASOUND)
     self.viewSelectorComboBox.addItem(self.VIEW_ULTRASOUND_3D)
+    self.viewSelectorComboBox.addItem(self.VIEW_3D_ULTRASOUND)
     self.viewSelectorComboBox.addItem(self.VIEW_ULTRASOUND_CAM_3D)
     self.viewSelectorComboBox.addItem(self.VIEW_ULTRASOUND_DUAL_3D)
     self.viewSelectorComboBox.addItem(self.VIEW_3D)
@@ -351,8 +346,32 @@ class Guidelet(object):
     self.redyellow3dCustomLayoutId=507
     layoutLogic.GetLayoutNode().AddLayoutDescription(self.redyellow3dCustomLayoutId, customLayout)
 
+    customLayout = (
+      "<layout type=\"horizontal\" split=\"false\" >"
+      " <item>"
+      "  <view class=\"vtkMRMLSliceNode\" singletontag=\"Red\">"
+      "   <property name=\"orientation\" action=\"default\">Axial</property>"
+      "   <property name=\"viewlabel\" action=\"default\">R</property>"
+      "   <property name=\"viewcolor\" action=\"default\">#F34A33</property>"
+      "  </view>"
+      " </item>"
+      " <item>"
+      "  <view class=\"vtkMRMLViewNode\" singletontag=\"1\">"
+      "    <property name=\"viewlabel\" action=\"default\">1</property>"
+      "  </view>"
+      " </item>"
+      "</layout>")
+    self.threedultrasoundCustomLayoutId=508
+    layoutLogic.GetLayoutNode().AddLayoutDescription(self.threedultrasoundCustomLayoutId, customLayout)
+
+  def onSceneLoaded(self):
+    """ Derived classes can override this function
+    """
+    pass
+
   def setupScene(self):
-    # setup feature scene
+    """ setup feature scene
+    """
     self.ultrasound.setupScene()
 
   def onSaveDirectoryPreferencesChanged(self):
@@ -365,6 +384,7 @@ class Guidelet(object):
     #
     # save the mrml scene to a temp directory, then zip it
     #
+    qt.QApplication.setOverrideCursor(qt.Qt.WaitCursor)
     node = self.logic.getParameterNode()
     sceneSaveDirectory = node.GetParameter('SavedScenesDirectory')
     sceneSaveDirectory = sceneSaveDirectory + "/" + self.logic.moduleName + "-" + time.strftime("%Y%m%d-%H%M%S")
@@ -377,6 +397,8 @@ class Guidelet(object):
       logging.info("Scene saved to: {0}".format(sceneSaveDirectory))
     else:
       logging.error("Scene saving failed")
+    qt.QApplication.restoreOverrideCursor()
+    slicer.util.showStatusMessage("Saved!", 2000)
 
   def onExitButtonClicked(self):
     mainwindow = slicer.util.mainWindow()
@@ -576,15 +598,18 @@ class Guidelet(object):
       self.layoutManager.setLayout(self.redyellow3dCustomLayoutId)
       self.delayedFitUltrasoundImageToView()
       self.showUltrasoundIn3dView(True)
+    elif text == self.VIEW_3D_ULTRASOUND:
+      self.layoutManager.setLayout(self.threedultrasoundCustomLayoutId)
+      self.delayedFitUltrasoundImageToView()
+      self.showUltrasoundIn3dView(True)
 
   def onUltrasoundPanelToggled(self, toggled):
+    logging.debug('onUltrasoundPanelToggled: {0}'.format(toggled))
     if not toggled:
       # deactivate placement mode
       interactionNode = slicer.app.applicationLogic().GetInteractionNode()
       interactionNode.SetCurrentInteractionMode(interactionNode.ViewTransform)
       return
-
-    logging.debug('onTumorContouringPanelToggled: {0}'.format(toggled))
 
     self.showDefaultView()
 

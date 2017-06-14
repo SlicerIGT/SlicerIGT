@@ -4,12 +4,12 @@ import logging
 import time
 
 class UltraSound(object):
-
   DEFAULT_IMAGE_SIZE = [800, 600, 1]
 
   def __init__(self, guideletParent):
     self.guideletParent = guideletParent
-    self.captureDeviceName='CaptureDevice'
+    self.captureDeviceName = self.guideletParent.parameterNode.GetParameter('PLUSCaptureDeviceName')
+    self.referenceToRas = None
 
     from PlusRemote import PlusRemoteLogic
     self.plusRemoteLogic = PlusRemoteLogic()
@@ -29,7 +29,8 @@ class UltraSound(object):
 
   def onConnectorNodeDisconnected(self):
     self.freezeUltrasoundButton.setText('Un-freeze')
-    self.startStopRecordingButton.setEnabled(False)
+    if self.guideletParent.parameterNode.GetParameter('RecordingEnabledWhenConnectorNodeDisconnected') == 'False':
+      self.startStopRecordingButton.setEnabled(False)
 
   def setupPanel(self, parentWidget):
     logging.debug('UltraSound.setupPanel')
@@ -43,7 +44,7 @@ class UltraSound(object):
     #ultrasoundLayout.setContentsMargins(12,4,4,4)
     ultrasoundLayout.setSpacing(4)
 
-    self.startStopRecordingButton = qt.QPushButton("  Start Recording")
+    self.startStopRecordingButton = qt.QPushButton("Start Recording")
     self.startStopRecordingButton.setCheckable(True)
     self.startStopRecordingButton.setIcon(self.recordIcon)
     self.startStopRecordingButton.setToolTip("If clicked, start recording")
@@ -109,6 +110,26 @@ class UltraSound(object):
   def setupScene(self):
     logging.info("UltraSound.setupScene")
 
+    '''
+      ReferenceToRas transform is used in almost all IGT applications. Reference is the coordinate system
+      of a tool fixed to the patient. Tools are tracked relative to Reference, to compensate for patient
+      motion. ReferenceToRas makes sure that everything is displayed in an anatomical coordinate system, i.e.
+      R, A, and S (Right, Anterior, and Superior) directions in Slicer are correct relative to any
+      images or tracked tools displayed.
+      ReferenceToRas is needed for initialization, so we need to set it up before calling Guidelet.setupScene().
+    '''
+
+    if self.referenceToRas is None or (self.referenceToRas and slicer.mrmlScene.GetNodeByID(self.referenceToRas.GetID()) is None):
+      self.referenceToRas = slicer.util.getNode('ReferenceToRas')
+      if self.referenceToRas is None:
+        self.referenceToRas = slicer.vtkMRMLLinearTransformNode()
+        self.referenceToRas.SetName("ReferenceToRas")
+        m = self.guideletParent.logic.readTransformFromSettings('ReferenceToRas', self.guideletParent.configurationName)
+        if m is None:
+          m = self.guideletParent.logic.createMatrixFromString('1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1')
+        self.referenceToRas.SetMatrixTransformToParent(m)
+        slicer.mrmlScene.AddNode(self.referenceToRas)
+
     # live ultrasound
     liveUltrasoundNodeName = self.guideletParent.parameterNode.GetParameter('LiveUltrasoundNodeName')
     self.liveUltrasoundNode_Reference = slicer.util.getNode(liveUltrasoundNodeName)
@@ -134,7 +155,6 @@ class UltraSound(object):
       colorNode = slicer.util.getNode('Grey')
       displayNode.SetAndObserveColorNodeID(colorNode.GetID())
       self.liveUltrasoundNode_Reference.SetAndObserveDisplayNodeID(displayNode.GetID())
-      #self.liveUltrasoundNode_Reference.CreateDefaultStorageNode()
 
     self.setupResliceDriver()
 
@@ -159,7 +179,7 @@ class UltraSound(object):
     else:
       logging.warning('Logic not found for Volume Reslice Driver')
 
-    self.liveUltrasoundNode_Reference.SetAndObserveTransformNodeID(self.guideletParent.referenceToRas.GetID())
+    self.liveUltrasoundNode_Reference.SetAndObserveTransformNodeID(self.referenceToRas.GetID())
 
   def setupConnections(self):
     self.startStopRecordingButton.connect('clicked(bool)', self.onStartStopRecordingClicked)
@@ -205,30 +225,30 @@ class UltraSound(object):
     self.disconnect()
 
   def onStartStopRecordingClicked(self):
-
     if self.startStopRecordingButton.isChecked():
       self.startStopRecordingButton.setText("  Stop Recording")
       self.startStopRecordingButton.setIcon(self.stopIcon)
       self.startStopRecordingButton.setToolTip("Recording is being started...")
+      if self.captureDeviceName  != '':
+        # Important to save as .mhd because that does not require lengthy finalization (merging into a single file)
+        recordPrefix = self.guideletParent.parameterNode.GetParameter('RecordingFilenamePrefix')
+        recordExt = self.guideletParent.parameterNode.GetParameter('RecordingFilenameExtension')
+        self.recordingFileName =  recordPrefix + time.strftime("%Y%m%d-%H%M%S") + recordExt
 
-      # Important to save as .mhd because that does not require lengthy finalization (merging into a single file)
-      recordPrefix = self.guideletParent.parameterNode.GetParameter('RecordingFilenamePrefix')
-      recordExt = self.guideletParent.parameterNode.GetParameter('RecordingFilenameExtension')
-      self.recordingFileName =  recordPrefix + time.strftime("%Y%m%d-%H%M%S") + recordExt
+        logging.info("Starting recording to: {0}".format(self.recordingFileName))
 
-      logging.info("Starting recording to: {0}".format(self.recordingFileName))
-
-      self.plusRemoteLogic.cmdStartRecording.SetCommandAttribute('CaptureDeviceId', self.captureDeviceName)
-      self.plusRemoteLogic.cmdStartRecording.SetCommandAttribute('OutputFilename', self.recordingFileName)
-      self.guideletParent.executeCommand(self.plusRemoteLogic.cmdStartRecording, self.recordingCommandCompleted)
+        self.plusRemoteLogic.cmdStartRecording.SetCommandAttribute('CaptureDeviceId', self.captureDeviceName)
+        self.plusRemoteLogic.cmdStartRecording.SetCommandAttribute('OutputFilename', self.recordingFileName)
+        self.guideletParent.executeCommand(self.plusRemoteLogic.cmdStartRecording, self.recordingCommandCompleted)
 
     else:
-      logging.info("Stopping recording")
       self.startStopRecordingButton.setText("  Start Recording")
       self.startStopRecordingButton.setIcon(self.recordIcon)
       self.startStopRecordingButton.setToolTip( "Recording is being stopped..." )
-      self.plusRemoteLogic.cmdStopRecording.SetCommandAttribute('CaptureDeviceId', self.captureDeviceName)
-      self.guideletParent.executeCommand(self.plusRemoteLogic.cmdStopRecording, self.recordingCommandCompleted)
+      if self.captureDeviceName  != '':  
+        logging.info("Stopping recording")  
+        self.plusRemoteLogic.cmdStopRecording.SetCommandAttribute('CaptureDeviceId', self.captureDeviceName)
+        self.guideletParent.executeCommand(self.plusRemoteLogic.cmdStopRecording, self.recordingCommandCompleted)
 
   def onFreezeUltrasoundClicked(self):
     logging.debug('onFreezeUltrasoundClicked')

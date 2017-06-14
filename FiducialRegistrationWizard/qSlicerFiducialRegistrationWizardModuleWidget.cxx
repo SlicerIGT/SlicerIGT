@@ -37,8 +37,8 @@
 /// \ingroup Slicer_QtModules_FiducialRegistrationWizard
 class qSlicerFiducialRegistrationWizardModuleWidgetPrivate: public Ui_qSlicerFiducialRegistrationWizardModule
 {
-  Q_DECLARE_PUBLIC( qSlicerFiducialRegistrationWizardModuleWidget ); 
-  
+  Q_DECLARE_PUBLIC( qSlicerFiducialRegistrationWizardModuleWidget );
+
 protected:
   qSlicerFiducialRegistrationWizardModuleWidget* const q_ptr;
 public:
@@ -95,7 +95,7 @@ void qSlicerFiducialRegistrationWizardModuleWidget::onRecordFromButtonClicked()
 //------------------------------------------------------------------------------
 void qSlicerFiducialRegistrationWizardModuleWidget::onRecordToButtonClicked()
 {
-  Q_D( qSlicerFiducialRegistrationWizardModuleWidget );  
+  Q_D( qSlicerFiducialRegistrationWizardModuleWidget );
   vtkMRMLLinearTransformNode* probeToTransformNode = vtkMRMLLinearTransformNode::SafeDownCast( d->ProbeTransformToComboBox->currentNode() );
   vtkMRMLMarkupsFiducialNode* toMarkupsNode = vtkMRMLMarkupsFiducialNode::SafeDownCast( d->ToMarkupsWidget->currentNode() );
   d->logic()->AddFiducial( probeToTransformNode, toMarkupsNode);
@@ -105,15 +105,32 @@ void qSlicerFiducialRegistrationWizardModuleWidget::onRecordToButtonClicked()
 void qSlicerFiducialRegistrationWizardModuleWidget::onUpdateButtonClicked()
 {
   Q_D( qSlicerFiducialRegistrationWizardModuleWidget );
+  if (d->UpdateButton->checkState() == Qt::Checked)
+  {
+    // If update button is untoggled then make it unchecked, too
+    d->UpdateButton->setCheckState(Qt::Unchecked);
+  }
   vtkMRMLFiducialRegistrationWizardNode* fiducialRegistrationWizardNode = vtkMRMLFiducialRegistrationWizardNode::SafeDownCast( d->ModuleNodeComboBox->currentNode() );
   d->logic()->UpdateCalibration( fiducialRegistrationWizardNode );
 }
 
 //------------------------------------------------------------------------------
-void qSlicerFiducialRegistrationWizardModuleWidget::onUpdateButtonToggled(bool checked)
+void qSlicerFiducialRegistrationWizardModuleWidget::onUpdateButtonCheckboxToggled(bool checked)
 {
-  Q_D( qSlicerFiducialRegistrationWizardModuleWidget );
-  UpdateFromMRMLNode(); // this makes sure the button is kept depressed while in auto-update mode
+  Q_D(qSlicerFiducialRegistrationWizardModuleWidget);
+  vtkMRMLFiducialRegistrationWizardNode* fiducialRegistrationWizardNode = vtkMRMLFiducialRegistrationWizardNode::SafeDownCast(d->ModuleNodeComboBox->currentNode());
+  if (fiducialRegistrationWizardNode == NULL)
+  {
+    return;
+  }
+  if (checked)
+  {
+    fiducialRegistrationWizardNode->SetUpdateMode("Automatic");
+  }
+  else
+  {
+    fiducialRegistrationWizardNode->SetUpdateMode("Manual");
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -197,16 +214,6 @@ void qSlicerFiducialRegistrationWizardModuleWidget::setup()
   // to be moved a lot to click the manual/auto option.
   updateMenu->installEventFilter(this);
   updateMenu->setObjectName("UpdateOptions");
-  QActionGroup* updateActions = new QActionGroup(d->UpdateButton);
-  updateActions->setExclusive(true);
-  updateMenu->addAction(d->ActionAutoUpdate);
-  updateActions->addAction(d->ActionAutoUpdate);
-  QObject::connect(d->ActionAutoUpdate, SIGNAL(triggered()), this, SLOT(onAutoUpdateSelected()));
-  updateMenu->addAction(d->ActionManualUpdate);
-  updateActions->addAction(d->ActionManualUpdate);
-  QObject::connect(d->ActionManualUpdate, SIGNAL(triggered()), this, SLOT(onManualUpdateSelected()));
-  d->UpdateButton->setMenu(updateMenu);
-
   connect( d->ModuleNodeComboBox, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(onFiducialRegistrationWizardNodeSelectionChanged()) );
 
   connect( this, SIGNAL(mrmlSceneChanged(vtkMRMLScene*)), d->FromMarkupsWidget, SLOT(setMRMLScene(vtkMRMLScene*)) );
@@ -232,7 +239,7 @@ void qSlicerFiducialRegistrationWizardModuleWidget::setup()
   connect( d->RecordFromButton, SIGNAL(clicked()), this, SLOT(onRecordFromButtonClicked()) );
   connect( d->RecordToButton, SIGNAL(clicked()), this, SLOT(onRecordToButtonClicked()) );
   connect( d->UpdateButton, SIGNAL(clicked()), this, SLOT(onUpdateButtonClicked()) );
-  connect( d->UpdateButton, SIGNAL(toggled(bool)), this, SLOT(onUpdateButtonToggled(bool)) );
+  connect( d->UpdateButton, SIGNAL(checkBoxToggled(bool)), this, SLOT(onUpdateButtonCheckboxToggled(bool)));
 
   this->UpdateFromMRMLNode();
 }
@@ -245,7 +252,7 @@ void qSlicerFiducialRegistrationWizardModuleWidget::enter()
   {
     qCritical() << "Invalid scene!";
     return;
-  }  
+  }
 
   // Create a module MRML node if there is none in the scene.
   vtkMRMLNode* node = this->mrmlScene()->GetNthNodeByClass(0, "vtkMRMLFiducialRegistrationWizardNode");
@@ -349,8 +356,6 @@ void qSlicerFiducialRegistrationWizardModuleWidget::UpdateFromMRMLNode()
   bool wasRigidRadioButtonBlocked = d->RigidRadioButton->blockSignals(true);
   bool wasSimilarityRadioButtonBlocked = d->SimilarityRadioButton->blockSignals(true);
   bool wasWarpingRadioButtonBlocked = d->WarpingRadioButton->blockSignals(true);
-  bool wasActionAutoUpdateBlocked = d->ActionAutoUpdate->blockSignals(true);
-  bool wasActionManualUpdateBlocked = d->ActionManualUpdate->blockSignals(true);
   bool wasFromMarkupsWidgetBlocked = d->FromMarkupsWidget->blockSignals(true);
   bool wasToMarkupsWidgetBlocked = d->ToMarkupsWidget->blockSignals(true);
 
@@ -377,18 +382,18 @@ void qSlicerFiducialRegistrationWizardModuleWidget::UpdateFromMRMLNode()
 
   if ( fiducialRegistrationWizardNode->GetUpdateMode().compare( "Automatic" ) == 0 )
   {
+    bool wasBlocked = d->UpdateButton->blockSignals(true);
     d->UpdateButton->setText(tr("Auto-update"));
     d->UpdateButton->setCheckable(true);
     d->UpdateButton->setChecked(true);
-    d->ActionAutoUpdate->setChecked( Qt::Checked );
-    d->ActionManualUpdate->setChecked( Qt::Unchecked );
+    d->UpdateButton->blockSignals(wasBlocked);
   }
   else
   {
+    bool wasBlocked = d->UpdateButton->blockSignals(true);
     d->UpdateButton->setText(tr("Update"));
     d->UpdateButton->setCheckable(false);
-    d->ActionAutoUpdate->setChecked( Qt::Unchecked );
-    d->ActionManualUpdate->setChecked( Qt::Checked );
+    d->UpdateButton->blockSignals(wasBlocked);
   }
 
   // Restore signals
@@ -398,8 +403,6 @@ void qSlicerFiducialRegistrationWizardModuleWidget::UpdateFromMRMLNode()
   d->RigidRadioButton->blockSignals(wasRigidRadioButtonBlocked);
   d->SimilarityRadioButton->blockSignals(wasSimilarityRadioButtonBlocked);
   d->WarpingRadioButton->blockSignals(wasWarpingRadioButtonBlocked);
-  d->ActionAutoUpdate->blockSignals(wasActionAutoUpdateBlocked);
-  d->ActionManualUpdate->blockSignals(wasActionManualUpdateBlocked);
   d->FromMarkupsWidget->blockSignals(wasFromMarkupsWidgetBlocked);
   d->ToMarkupsWidget->blockSignals(wasToMarkupsWidgetBlocked);
 
@@ -460,43 +463,4 @@ void qSlicerFiducialRegistrationWizardModuleWidget::onFiducialRegistrationWizard
   qvtkReconnect(d->FiducialRegistrationWizardNode, selectedFiducialRegistrationWizardNode, vtkCommand::ModifiedEvent, this, SLOT(UpdateFromMRMLNode()));
   d->FiducialRegistrationWizardNode = selectedFiducialRegistrationWizardNode;
   this->UpdateFromMRMLNode();
-}
-
-//-----------------------------------------------------------------------------
-void qSlicerFiducialRegistrationWizardModuleWidget::onAutoUpdateSelected()
-{
-  Q_D( qSlicerFiducialRegistrationWizardModuleWidget );
-  vtkMRMLFiducialRegistrationWizardNode* fiducialRegistrationWizardNode = vtkMRMLFiducialRegistrationWizardNode::SafeDownCast( d->ModuleNodeComboBox->currentNode() );
-  if ( fiducialRegistrationWizardNode == NULL )
-  {
-    return;
-  }
-  fiducialRegistrationWizardNode->SetUpdateMode("Automatic");
-}
-
-//-----------------------------------------------------------------------------
-void qSlicerFiducialRegistrationWizardModuleWidget::onManualUpdateSelected()
-{
-  Q_D( qSlicerFiducialRegistrationWizardModuleWidget );
-  vtkMRMLFiducialRegistrationWizardNode* fiducialRegistrationWizardNode = vtkMRMLFiducialRegistrationWizardNode::SafeDownCast( d->ModuleNodeComboBox->currentNode() );
-  if ( fiducialRegistrationWizardNode == NULL )
-  {
-    return;
-  }
-  fiducialRegistrationWizardNode->SetUpdateMode("Manual");
-}
-
-//-----------------------------------------------------------------------------
-bool qSlicerFiducialRegistrationWizardModuleWidget::eventFilter(QObject * obj, QEvent *event)
-{
-  Q_D( qSlicerFiducialRegistrationWizardModuleWidget );
-  if (event->type() == QEvent::Show && d->UpdateButton != NULL && obj == d->UpdateButton->menu())
-  {
-    // Show UpdateButton's menu aligned to the right side of the button
-    QMenu* menu = d->UpdateButton->menu();
-    QPoint menuPos = menu->pos();
-    menu->move(menuPos.x()+d->UpdateButton->geometry().width()-menu->geometry().width(), menuPos.y());
-    return true;
-  }
-  return false;
 }

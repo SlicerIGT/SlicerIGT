@@ -7,7 +7,7 @@ set(MODULE_PYTHON_SCRIPTS
   __init__.py
   ${MODULE_NAME}Lib/__init__.py
   ${MODULE_NAME}Lib/UltraSound.py
-  ${MODULE_NAME}Lib/GuideletFrame.py
+  ${MODULE_NAME}Lib/Guidelet.py
   )
 
 set(MODULE_PYTHON_RESOURCES

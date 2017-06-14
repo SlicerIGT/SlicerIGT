@@ -42,14 +42,19 @@
 #include <vtkGlyph3D.h>
 #include <vtkIntArray.h>
 #include <vtkKochanekSpline.h>
+#include <vtkLineSource.h>
 #include <vtkMath.h>
+#include <vtkMatrix4x4.h>
 #include <vtkNew.h>
 #include <vtkOBBTree.h>
 #include <vtkObjectFactory.h>
 #include <vtkPoints.h>
 #include <vtkPolyDataNormals.h>
+#include <vtkRegularPolygonSource.h>
 #include <vtkSphereSource.h>
 #include <vtkSplineFilter.h>
+#include <vtkTransform.h>
+#include <vtkTransformFilter.h>
 #include <vtkTubeFilter.h>
 #include <vtkUnstructuredGrid.h>
 
@@ -59,7 +64,10 @@
 #include <vector>
 #include <set>
 
-#define LINE_MIN_NUMBER_POINTS 2
+// local constants
+static const int NUMBER_OF_LINE_POINTS_MIN = 2;
+static const double CLEAN_POLYDATA_TOLERANCE_MM = 0.01;
+static const double COMPARE_TO_ZERO_TOLERANCE = 0.0001;
 
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSlicerMarkupsToModelLogic);
@@ -276,162 +284,458 @@ void vtkSlicerMarkupsToModelLogic::UpdateSelectionNode( vtkMRMLMarkupsToModelNod
 }
 
 //------------------------------------------------------------------------------
-void vtkSlicerMarkupsToModelLogic::UpdateOutputCloseSurfaceModel(vtkMRMLMarkupsToModelNode* markupsToModelModuleNode, vtkPolyData* output)
+void vtkSlicerMarkupsToModelLogic::UpdateOutputCloseSurfaceModel( vtkMRMLMarkupsToModelNode* markupsToModelModuleNode, vtkPolyData* output )
 {
-  vtkMRMLMarkupsFiducialNode* markups = markupsToModelModuleNode->GetMarkupsNode();
-  if(markups == NULL)
+  if ( markupsToModelModuleNode == NULL )
   {
+    vtkErrorMacro( "No markupsToModelModuleNode provided to UpdateOutputCloseSurfaceModel. No operation performed." );
     return;
+  }
+
+  if ( output == NULL )
+  {
+    vtkErrorMacro( "No output poly data provided to UpdateOutputCloseSurfaceModel. No operation performed." );
+    return;
+  }
+  
+  vtkMRMLMarkupsFiducialNode* markups = markupsToModelModuleNode->GetMarkupsNode();
+  if ( markups == NULL )
+  {
+    return; // The output will remain empty
   }
   int numberOfMarkups = markups->GetNumberOfFiducials();
 
-  if (numberOfMarkups == 0)
+  if ( numberOfMarkups == 0 )
   {
-    return;
+    return; // The output will remain empty
   }
 
-  vtkSmartPointer< vtkPoints > modelPoints = vtkSmartPointer< vtkPoints >::New();
-  vtkSmartPointer< vtkCellArray > modelCellArray = vtkSmartPointer< vtkCellArray >::New();
-
-  modelPoints->SetNumberOfPoints(numberOfMarkups);
-  modelCellArray->InsertNextCell(numberOfMarkups);
-
-  double markupPoint[3] = {0.0, 0.0, 0.0};
-  double* coords = new double[numberOfMarkups*3];
-  double meanPoint[3] = {0.0, 0.0, 0.0};
-
-  for (int i = 0; i < numberOfMarkups; i++)
+  bool outputContainsData = output->GetNumberOfPoints();
+  if ( outputContainsData )
   {
-    markups->GetNthFiducialPosition(i, markupPoint);
-    modelPoints->SetPoint(i, markupPoint);
-    vtkMath::Add(meanPoint, markupPoint, meanPoint);
-    coords[i * 3 + 0] = markupPoint[0];
-    coords[i * 3 + 1] = markupPoint[1];
-    coords[i * 3 + 2] = markupPoint[2];
-    modelCellArray->InsertCellPoint(i);
-  }
-  if (numberOfMarkups > 0)
-  {
-    vtkMath::MultiplyScalar(meanPoint, 1.0 / numberOfMarkups);
+    vtkWarningMacro( "Output poly data provided to UpdateOutputCloseSurfaceModel already contains data. Existing data will be overwritten." );
   }
 
-  double corner[3] = {0.0, 0.0, 0.0};
-  double normal[3] = {0.0, 0.0, 0.0};
-  double temp[3] = {0.0, 0.0, 0.0};
-  vtkSmartPointer<vtkOBBTree> obbTree = vtkSmartPointer<vtkOBBTree>::New();
-  obbTree->ComputeOBB(modelPoints, corner, temp, temp, normal, temp);
+  output->Reset(); // empty the poly data of all existing data
 
-  double relative[3] = {0.0, 0.0, 0.0};
-  vtkMath::Subtract(meanPoint, corner, relative);
-  vtkMath::Normalize(normal);
-  double proj[3];
-  std::copy(normal, normal+3, proj);
-  double dotProd = vtkMath::Dot(relative, normal);
-  vtkMath::MultiplyScalar(proj, dotProd);
+  vtkSmartPointer< vtkPoints > inputPoints = vtkSmartPointer< vtkPoints >::New();
+  inputPoints->SetNumberOfPoints( numberOfMarkups );
 
-  double origin[3];
-  vtkMath::Add(corner, proj, origin);
-
-  double A = normal[0];
-  double B = normal[1];
-  double C = normal[2];
-  double x0 = origin[0];
-  double y0 = origin[1];
-  double z0 = origin[2];
-  double D = (-1)*A*x0 - B*y0 - C*z0;
+  vtkSmartPointer< vtkCellArray > inputCellArray = vtkSmartPointer< vtkCellArray >::New();
+  inputCellArray->InsertNextCell( numberOfMarkups );
   
-  // assume by default that the surface is planar
-  bool planarSurface = true;
-  for (int i = 0; i < numberOfMarkups; i++)
+  double markupPoint[ 3 ] = { 0.0, 0.0, 0.0 };
+  for ( int i = 0; i < numberOfMarkups; i++ )
   {
-    double x1 = coords[3 * i + 0];
-    double y1 = coords[3 * i + 1];
-    double z1 = coords[3 * i + 2];
-    double distance = std::abs(A*x1 + B*y1 + C*z1 + D) / std::sqrt(A*A + B*B + C*C);
-    if (distance >= MINIMUM_THICKNESS)
-    {
-      planarSurface = false;
-    }
+    markups->GetNthFiducialPosition( i, markupPoint );
+    inputCellArray->InsertCellPoint( i );
+    inputPoints->SetPoint( i, markupPoint );
   }
 
-  delete[] coords;
-
-  vtkSmartPointer< vtkPolyData > pointPolyData = vtkSmartPointer< vtkPolyData >::New();
-  pointPolyData->SetLines(modelCellArray);
-  pointPolyData->SetPoints(modelPoints);
-
-  vtkSmartPointer< vtkDelaunay3D > delaunay = vtkSmartPointer< vtkDelaunay3D >::New();
-  delaunay->SetAlpha(markupsToModelModuleNode->GetDelaunayAlpha());
-  delaunay->AlphaTrisOff();
-  delaunay->AlphaLinesOff();
-  delaunay->AlphaVertsOff();
-
-  if (planarSurface)
+  vtkSmartPointer< vtkPolyData > inputPolyData = vtkSmartPointer< vtkPolyData >::New();
+  inputPolyData->SetLines( inputCellArray );
+  inputPolyData->SetPoints( inputPoints );
+  
+  vtkSmartPointer< vtkCleanPolyData > cleanPointPolyData = vtkSmartPointer< vtkCleanPolyData >::New();
+  cleanPointPolyData->SetInputData( inputPolyData );
+  cleanPointPolyData->SetTolerance( CLEAN_POLYDATA_TOLERANCE_MM );
+  if ( markupsToModelModuleNode->GetCleanMarkups() )
   {
-    vtkSmartPointer<vtkCubeSource> cube = vtkSmartPointer<vtkCubeSource>::New();
-    vtkSmartPointer<vtkGlyph3D> glyph = vtkSmartPointer<vtkGlyph3D>::New();
-    glyph->SetSourceConnection(cube->GetOutputPort());
-    glyph->SetInputData(pointPolyData);
-    glyph->Update();
-    delaunay->SetInputConnection(glyph->GetOutputPort());
+    cleanPointPolyData->SetPointMerging( 1 );
   }
   else
   {
-    if(markupsToModelModuleNode->GetCleanMarkups())
+    cleanPointPolyData->SetPointMerging( 0 );
+  }
+  cleanPointPolyData->Update();
+
+  vtkPolyData* cleanedPolyData = cleanPointPolyData->GetOutput();
+  // a lot of operations (vtkOBBTree, computing bounds) seem to fail on vtkPolyData, so we need vtkPoints
+  vtkPoints* cleanedPoints = cleanedPolyData->GetPoints();
+
+  vtkSmartPointer< vtkDelaunay3D > delaunay = vtkSmartPointer< vtkDelaunay3D >::New();
+  delaunay->SetAlpha( markupsToModelModuleNode->GetDelaunayAlpha() );
+  delaunay->AlphaTrisOff();
+  delaunay->AlphaLinesOff();
+  delaunay->AlphaVertsOff();
+  
+  vtkSmartPointer< vtkMatrix4x4 > boundingAxesToRasTransformMatrix = vtkSmartPointer< vtkMatrix4x4 >::New();
+  ComputeTransformMatrixFromBoundingAxes( cleanedPoints, boundingAxesToRasTransformMatrix );
+
+  vtkSmartPointer< vtkMatrix4x4 > rasToBoundingAxesTransformMatrix = vtkSmartPointer< vtkMatrix4x4 >::New();
+  vtkMatrix4x4::Invert( boundingAxesToRasTransformMatrix, rasToBoundingAxesTransformMatrix );
+
+  double smallestBoundingExtentRanges[ 3 ] = { 0.0, 0.0, 0.0 }; // temporary values
+  ComputeTransformedExtentRanges( cleanedPoints, rasToBoundingAxesTransformMatrix, smallestBoundingExtentRanges );
+
+  PointArrangement pointArrangement = ComputePointArrangement( smallestBoundingExtentRanges );
+
+  switch ( pointArrangement )
+  {
+    case vtkSlicerMarkupsToModelLogic::POINT_ARRANGEMENT_SINGULAR:
     {
-      vtkSmartPointer< vtkCleanPolyData > cleanPointPolyData = vtkSmartPointer< vtkCleanPolyData >::New();
-#if (VTK_MAJOR_VERSION <= 5)
-      cleanPointPolyData->SetInput(pointPolyData);
-#else
-      cleanPointPolyData->SetInputData(pointPolyData);
-#endif
-      cleanPointPolyData->SetTolerance(CLEAN_POLYDATA_TOLERANCE);
-      delaunay->SetInputConnection(cleanPointPolyData->GetOutputPort());
+      vtkSmartPointer<vtkCubeSource> cubeSource = vtkSmartPointer<vtkCubeSource>::New();
+      double extrusionMagnitude = ComputeSurfaceExtrusionAmount( smallestBoundingExtentRanges ); // need to give some depth
+      cubeSource->SetBounds( -extrusionMagnitude, extrusionMagnitude,
+                             -extrusionMagnitude, extrusionMagnitude,
+                             -extrusionMagnitude, extrusionMagnitude );
+
+      vtkSmartPointer<vtkGlyph3D> glyph = vtkSmartPointer<vtkGlyph3D>::New();
+      glyph->SetSourceConnection( cubeSource->GetOutputPort() );
+      glyph->SetInputConnection( cleanPointPolyData->GetOutputPort() );
+      glyph->Update();
+
+      delaunay->SetInputConnection( glyph->GetOutputPort() );
+
+      break;
     }
-    else
+    case vtkSlicerMarkupsToModelLogic::POINT_ARRANGEMENT_LINEAR:
     {
-#if (VTK_MAJOR_VERSION <= 5)
-      delaunay->SetInput(pointPolyData);
-#else
-      delaunay->SetInputData(pointPolyData);
-#endif
+      // draw a "square" around the line (make it a rectangular prism)
+      vtkSmartPointer<vtkRegularPolygonSource> squareSource = vtkSmartPointer<vtkRegularPolygonSource>::New();
+      squareSource->SetCenter( 0.0, 0.0, 0.0 );
+      double extrusionMagnitude = ComputeSurfaceExtrusionAmount( smallestBoundingExtentRanges ); // need to give some depth
+      squareSource->SetRadius( extrusionMagnitude );
+      squareSource->SetNumberOfSides( 4 );
+      double lineAxis[ 3 ] = { 0.0, 0.0, 0.0 }; // temporary values
+      const int LINE_AXIS_INDEX = 0; // The largest (and only meaningful) axis is in the 0th column
+      // the bounding axes are stored in the columns of transformFromBoundingAxes
+      GetNthColumnInMatrix( boundingAxesToRasTransformMatrix, LINE_AXIS_INDEX, lineAxis ); 
+      squareSource->SetNormal( lineAxis );
+
+      vtkSmartPointer<vtkGlyph3D> glyph = vtkSmartPointer<vtkGlyph3D>::New();
+      glyph->SetSourceConnection( squareSource->GetOutputPort() );
+      glyph->SetInputConnection( cleanPointPolyData->GetOutputPort() );
+      glyph->Update();
+
+      delaunay->SetInputConnection( glyph->GetOutputPort() );
+
+      break;
+    }
+    case vtkSlicerMarkupsToModelLogic::POINT_ARRANGEMENT_PLANAR:
+    {
+      // extrude additional points on either side of the plane
+      vtkSmartPointer<vtkLineSource> lineSource = vtkSmartPointer<vtkLineSource>::New();
+      double planeNormal[ 3 ] = { 0.0, 0.0, 0.0 }; // temporary values
+      const int PLANE_NORMAL_INDEX = 2; // The plane normal has the smallest variation, and is stored in the last column
+      // the bounding axes are stored in the columns of transformFromBoundingAxes
+      GetNthColumnInMatrix( boundingAxesToRasTransformMatrix, PLANE_NORMAL_INDEX, planeNormal ); 
+      double extrusionMagnitude = ComputeSurfaceExtrusionAmount( smallestBoundingExtentRanges ); // need to give some depth
+      double point1[ 3 ] = { planeNormal[ 0 ], planeNormal[ 1 ], planeNormal[ 2 ] };
+      vtkMath::MultiplyScalar( point1, extrusionMagnitude );
+      lineSource->SetPoint1( point1 );
+      double point2[ 3 ] = { planeNormal[ 0 ], planeNormal[ 1 ], planeNormal[ 2 ] };
+      vtkMath::MultiplyScalar( point2, -extrusionMagnitude );
+      lineSource->SetPoint2( point2 );
+
+      vtkSmartPointer<vtkGlyph3D> glyph = vtkSmartPointer<vtkGlyph3D>::New();
+      glyph->SetSourceConnection( lineSource->GetOutputPort() );
+      glyph->SetInputConnection( cleanPointPolyData->GetOutputPort() );
+      glyph->Update();
+
+      delaunay->SetInputConnection( glyph->GetOutputPort() );
+
+      break;
+    }
+    case vtkSlicerMarkupsToModelLogic::POINT_ARRANGEMENT_NONPLANAR:
+    {
+      delaunay->SetInputConnection( cleanPointPolyData->GetOutputPort() );
+      break;
+    }
+    default: // unsupported or invalid
+    {
+      vtkErrorMacro( "Unsupported pointArrangementType detected: " << pointArrangement << ". Aborting closed surface generation." )
+      return;
     }
   }
 
   vtkSmartPointer< vtkDataSetSurfaceFilter > surfaceFilter = vtkSmartPointer< vtkDataSetSurfaceFilter >::New();
-  surfaceFilter->SetInputConnection(delaunay->GetOutputPort());
+  surfaceFilter->SetInputConnection( delaunay->GetOutputPort() );
   surfaceFilter->Update();
-  vtkSmartPointer<vtkPolyDataNormals> normals = vtkSmartPointer<vtkPolyDataNormals>::New();
-  normals->SetFeatureAngle(100);
 
-  if ( markupsToModelModuleNode->GetButterflySubdivision() && !planarSurface )
+  vtkSmartPointer<vtkPolyDataNormals> normals = vtkSmartPointer<vtkPolyDataNormals>::New();
+  normals->SetFeatureAngle( 100 ); // TODO: This needs some justification
+
+  if ( markupsToModelModuleNode->GetButterflySubdivision() &&
+       pointArrangement == vtkSlicerMarkupsToModelLogic::POINT_ARRANGEMENT_NONPLANAR )
   {
     vtkSmartPointer< vtkButterflySubdivisionFilter > subdivisionFilter = vtkSmartPointer< vtkButterflySubdivisionFilter >::New();
-    subdivisionFilter->SetInputConnection(surfaceFilter->GetOutputPort());
-    subdivisionFilter->SetNumberOfSubdivisions(3);
+    subdivisionFilter->SetInputConnection( surfaceFilter->GetOutputPort() );
+    subdivisionFilter->SetNumberOfSubdivisions( 3 );
     subdivisionFilter->Update();
-    if(markupsToModelModuleNode->GetConvexHull())
+    if ( markupsToModelModuleNode->GetConvexHull() )
     {
-      vtkSmartPointer<vtkDelaunay3D> convexHull = vtkSmartPointer<vtkDelaunay3D>::New();
-      convexHull->SetAlpha(markupsToModelModuleNode->GetDelaunayAlpha());
-      convexHull->SetInputConnection(subdivisionFilter->GetOutputPort());
+      vtkSmartPointer< vtkDelaunay3D > convexHull = vtkSmartPointer< vtkDelaunay3D >::New();
+      convexHull->SetAlpha( markupsToModelModuleNode->GetDelaunayAlpha() );
+      convexHull->SetInputConnection( subdivisionFilter->GetOutputPort() );
       convexHull->Update();
-      vtkSmartPointer<vtkDataSetSurfaceFilter> surfaceFilter = vtkSmartPointer<vtkDataSetSurfaceFilter>::New();
-      surfaceFilter->SetInputData(convexHull->GetOutput());
+      vtkSmartPointer< vtkDataSetSurfaceFilter > surfaceFilter = vtkSmartPointer< vtkDataSetSurfaceFilter >::New();
+      surfaceFilter->SetInputData( convexHull->GetOutput() );
       surfaceFilter->Update();
-      normals->SetInputConnection(surfaceFilter->GetOutputPort());
+      normals->SetInputConnection( surfaceFilter->GetOutputPort() );
     }
     else
     {
-      normals->SetInputConnection(subdivisionFilter->GetOutputPort());
+      normals->SetInputConnection( subdivisionFilter->GetOutputPort() );
     }
   }
   else
   {
-    normals->SetInputConnection(surfaceFilter->GetOutputPort());
+    normals->SetInputConnection( surfaceFilter->GetOutputPort() );
   }
   normals->Update();
-  output->DeepCopy(normals->GetOutput());
+  output->DeepCopy( normals->GetOutput() );
+}
+
+//------------------------------------------------------------------------------
+// Compute the principal axes of the point cloud. The x axis represents the axis
+// with maximum variation, and the z axis has minimum variation.
+// This function is currently implemented using the vtkOBBTree object.
+// There are two limitations with this approach:
+// 1. vtkOBBTree may have a performance impact
+// 2. The axes returned are based on variation of coordinates, not the range
+//    (so the return result is not necessarily intuitive, variation != length).
+// Neither of these limitations will prevent the overall logic from functioning
+// correctly, but it is worth keeping in mind, and worth changing should a need 
+// arise
+void vtkSlicerMarkupsToModelLogic::ComputeTransformMatrixFromBoundingAxes( vtkPoints* points, vtkMatrix4x4* boundingAxesToRasTransformMatrix )
+{
+  if ( points == NULL )
+  {
+    vtkErrorMacro( "Points object is null. Cannot compute best fit planes." )
+    return;
+  }
+
+  if ( boundingAxesToRasTransformMatrix == NULL )
+  {
+    vtkErrorMacro( "Output matrix object is null. Cannot compute best fit planes." )
+    return;
+  }
+
+  // the output matrix should start as identity, so no translation etc.
+  boundingAxesToRasTransformMatrix->Identity();
+
+  // Compute the plane using the smallest bounding box that can have arbitrary axes
+  vtkSmartPointer<vtkOBBTree> obbTree = vtkSmartPointer<vtkOBBTree>::New();
+  double cornerOBBOrigin[ 3 ] = { 0.0, 0.0, 0.0 }; // unused
+  double variationMaximumOBBAxis[ 3 ] = { 0.0, 0.0, 0.0 };
+  double variationMediumOBBAxis[ 3 ]  = { 0.0, 0.0, 0.0 };
+  double variationMinimumOBBAxis[ 3 ] = { 0.0, 0.0, 0.0 };
+  double relativeAxisSizes[ 3 ] = { 0.0, 0.0, 0.0 }; // unused, the values represented herein are unclear
+  obbTree->ComputeOBB( points, cornerOBBOrigin, variationMaximumOBBAxis, variationMediumOBBAxis, variationMinimumOBBAxis, relativeAxisSizes );
+  
+  // now to store the desired results in the appropriate axis of the output matrix.
+  // must check each axis to make sure it was actually computed (non-zero)
+  // do the maxmimum variation axis
+  if ( vtkMath::Norm( variationMaximumOBBAxis ) < COMPARE_TO_ZERO_TOLERANCE )
+  {
+    // there is no variation in the points whatsoever.
+    // i.e. all points are in a single position.
+    // return arbitrary orthonormal axes (the standard axes will do).
+    boundingAxesToRasTransformMatrix->Identity();
+    return;
+  }
+  vtkMath::Normalize( variationMaximumOBBAxis );
+  SetNthColumnInMatrix( boundingAxesToRasTransformMatrix, 0, variationMaximumOBBAxis);
+  
+  // do the medium variation axis
+  if ( vtkMath::Norm( variationMediumOBBAxis ) < COMPARE_TO_ZERO_TOLERANCE )
+  {
+    // the points are colinear along only the maximum axis
+    // any two perpendicular orthonormal vectors will do for the remaining axes.
+    double thetaAngle = 0.0; // this can be arbitrary
+    vtkMath::Perpendiculars( variationMaximumOBBAxis, variationMediumOBBAxis, variationMinimumOBBAxis, thetaAngle );
+  }
+  vtkMath::Normalize( variationMediumOBBAxis );
+  SetNthColumnInMatrix( boundingAxesToRasTransformMatrix, 1, variationMediumOBBAxis);
+
+  // do the minimum variation axis
+  if ( vtkMath::Norm( variationMinimumOBBAxis ) < COMPARE_TO_ZERO_TOLERANCE )
+  {
+    // all points lie exactly on a plane.
+    // the remaining perpendicular vector found using cross product.
+    vtkMath::Cross( variationMaximumOBBAxis, variationMediumOBBAxis, variationMinimumOBBAxis );
+  }
+  vtkMath::Normalize( variationMinimumOBBAxis );
+  SetNthColumnInMatrix( boundingAxesToRasTransformMatrix, 2, variationMinimumOBBAxis);
+}
+
+//------------------------------------------------------------------------------
+// It is assumed that sortedExtentRanges is pre-sorted in descending order (largest to smallest)
+vtkSlicerMarkupsToModelLogic::PointArrangement vtkSlicerMarkupsToModelLogic::ComputePointArrangement( const double sortedExtentRanges[ 3 ] )
+{
+  if ( sortedExtentRanges == NULL )
+  {
+    vtkErrorMacro( "Input sortedExtentRanges is null. Returning singularity result." );
+    return vtkSlicerMarkupsToModelLogic::POINT_ARRANGEMENT_SINGULAR;
+  }
+
+  double longestExtentRange = sortedExtentRanges[ 0 ];
+  double mediumExtentRange = sortedExtentRanges[ 1 ];
+  double shortestExtentRange = sortedExtentRanges[ 2 ];
+
+  // sanity checking
+  bool longestExtentSmallerThanMedium = longestExtentRange >= COMPARE_TO_ZERO_TOLERANCE && longestExtentRange < mediumExtentRange;
+  bool longestExtentSmallerThanShortest = longestExtentRange >= COMPARE_TO_ZERO_TOLERANCE && longestExtentRange < shortestExtentRange;
+  bool mediumExtentSmallerThanShortest = mediumExtentRange >= COMPARE_TO_ZERO_TOLERANCE && mediumExtentRange < shortestExtentRange;
+  if ( longestExtentSmallerThanMedium || longestExtentSmallerThanShortest || mediumExtentSmallerThanShortest )
+  {
+    // Don't correct the problem here. Code external to this function should pass
+    // extent ranges already sorted, so it indicates a problem elsewhere.
+    vtkWarningMacro( "Extent ranges not provided in order largest to smallest. Unexpected results may occur." );
+  }
+  
+  if ( longestExtentRange < COMPARE_TO_ZERO_TOLERANCE )
+  {
+    return vtkSlicerMarkupsToModelLogic::POINT_ARRANGEMENT_SINGULAR;
+  }
+
+  // We need to compare relative lengths of the short and medium axes against
+  // the longest axis.
+  double mediumToLongestRatio = mediumExtentRange / longestExtentRange;
+
+  // The Delaunay3D class tends to fail with thin planes/lines, so it is important
+  // to capture these cases, even liberally. It was experimentally determined that
+  // extents less than 1/10th of the maximum extent tend to produce errors.
+  const double RATIO_THRESHOLD = 0.1;
+
+  if ( mediumToLongestRatio < RATIO_THRESHOLD )
+  {
+    return vtkSlicerMarkupsToModelLogic::POINT_ARRANGEMENT_LINEAR;
+  }
+  
+  double shortestToLongestRatio = shortestExtentRange / longestExtentRange;
+  if ( shortestToLongestRatio < RATIO_THRESHOLD )
+  {
+    return vtkSlicerMarkupsToModelLogic::POINT_ARRANGEMENT_PLANAR;
+  }
+
+  return vtkSlicerMarkupsToModelLogic::POINT_ARRANGEMENT_NONPLANAR;
+}
+
+//------------------------------------------------------------------------------
+void vtkSlicerMarkupsToModelLogic::ComputeTransformedExtentRanges( vtkPoints* points, vtkMatrix4x4* transformMatrix, double outputExtentRanges[ 3 ] )
+{
+  if ( points == NULL )
+  {
+    vtkErrorMacro( "points is null. Aborting output extent computation." );
+    return;
+  }
+  
+  if ( transformMatrix == NULL )
+  {
+    vtkErrorMacro( "transformMatrix is null. Aborting output extent computation." );
+    return;
+  }
+  
+  if ( outputExtentRanges == NULL )
+  {
+    vtkErrorMacro( "outputExtentRanges is null. Aborting output extent computation." );
+    return;
+  }
+
+  vtkSmartPointer< vtkTransform > transform = vtkSmartPointer< vtkTransform >::New();
+  transform->SetMatrix( transformMatrix );
+  transform->Update();
+
+  // can't transform points directly, so need to store in a container
+  vtkSmartPointer< vtkPolyData > polyDataWithPoints = vtkSmartPointer< vtkPolyData >::New();
+  polyDataWithPoints->SetPoints( points );
+
+  vtkSmartPointer< vtkTransformFilter > transformFilter = vtkSmartPointer< vtkTransformFilter >:: New();
+  transformFilter->SetTransform( transform );
+  transformFilter->SetInputData( polyDataWithPoints );
+  transformFilter->Update();
+
+  // the extent can be extracted from the output points object (poly data bounds does not work)
+  vtkPoints* transformedPoints = transformFilter->GetPolyDataOutput()->GetPoints();
+  transformedPoints->ComputeBounds();
+  double* extents = transformedPoints->GetBounds(); // { xmin, xmax, ymin, ymax, zmin, zmax }
+
+  for ( int i = 0; i < 3; i++ )
+  {
+    double axisIMin = extents[ 2 * i ];
+    double axisIMax = extents[ 2 * i + 1 ];
+    double axisIRange = axisIMax - axisIMin;
+    outputExtentRanges[ i ] = axisIRange;
+  }
+}
+
+//------------------------------------------------------------------------------
+double vtkSlicerMarkupsToModelLogic::ComputeSurfaceExtrusionAmount( const double extents[ 3 ] )
+{
+  // MINIMUM_SURFACE_EXTRUSION_AMOUNT is the value returned by default, and the final result cannot be less than this.
+  const double MINIMUM_SURFACE_EXTRUSION_AMOUNT = 0.01;
+  if ( extents == NULL )
+  {
+    vtkErrorMacro( "extents is null. Returning MINIMUM_SURFACE_EXTRUSION_AMOUNT: " << MINIMUM_SURFACE_EXTRUSION_AMOUNT << "." );
+    return MINIMUM_SURFACE_EXTRUSION_AMOUNT;
+  }
+
+  double normOfExtents = vtkMath::Norm( extents );
+  const double SURFACE_EXTRUSION_NORM_MULTIPLIER = 0.01; // this value is observed to produce generally acceptable results
+  double surfaceExtrusionAmount = normOfExtents * SURFACE_EXTRUSION_NORM_MULTIPLIER;
+  
+  if ( surfaceExtrusionAmount < MINIMUM_SURFACE_EXTRUSION_AMOUNT )
+  {
+    vtkWarningMacro( "Surface extrusion amount smaller than " << MINIMUM_SURFACE_EXTRUSION_AMOUNT << " : " << surfaceExtrusionAmount << ". "
+                     << "Consider checking the points for singularity. Setting surface extrusion amount to default "
+                     << MINIMUM_SURFACE_EXTRUSION_AMOUNT << "." );
+    surfaceExtrusionAmount = MINIMUM_SURFACE_EXTRUSION_AMOUNT;
+  }
+  return surfaceExtrusionAmount;
+}
+
+//------------------------------------------------------------------------------
+void vtkSlicerMarkupsToModelLogic::SetNthColumnInMatrix( vtkMatrix4x4* matrix, int n, const double axis[ 3 ] )
+{
+  if ( matrix == NULL )
+  {
+    vtkErrorMacro( "No matrix provided as input. No operation performed." );
+    return;
+  }
+
+  if ( n < 0 || n >= 3 )
+  {
+    vtkErrorMacro( "Axis n " << n << " is out of bounds. Valid values are 0, 1, and 2. No operation performed." );
+    return;
+  }
+
+  if ( axis == NULL )
+  {
+    vtkErrorMacro( "Axis is null. No operation performed." );
+    return;
+  }
+
+  matrix->SetElement( 0, n, axis[ 0 ] );
+  matrix->SetElement( 1, n, axis[ 1 ] );
+  matrix->SetElement( 2, n, axis[ 2 ] );
+}
+
+//------------------------------------------------------------------------------
+void vtkSlicerMarkupsToModelLogic::GetNthColumnInMatrix( vtkMatrix4x4* matrix, int n, double outputAxis[ 3 ] )
+{
+  if ( matrix == NULL )
+  {
+    vtkErrorMacro( "No matrix provided as input. No operation performed." );
+    return;
+  }
+
+  if ( n < 0 || n >= 3 )
+  {
+    vtkErrorMacro( "Axis n " << n << " is out of bounds. Valid values are 0, 1, and 2. No operation performed." );
+    return;
+  }
+
+  if ( outputAxis == NULL )
+  {
+    vtkErrorMacro( "Axis is null. No operation performed." );
+    return;
+  }
+
+  outputAxis[ 0 ] = matrix->GetElement( 0, n );
+  outputAxis[ 1 ] = matrix->GetElement( 1, n );
+  outputAxis[ 2 ] = matrix->GetElement( 2, n );
 }
 
 //------------------------------------------------------------------------------
@@ -454,12 +758,8 @@ void MarkupsToPoints( vtkMRMLMarkupsToModelNode* pNode, vtkPoints* outputPoints 
     polyData->SetPoints( outputPoints );
 
     vtkSmartPointer< vtkCleanPolyData > cleanPointPolyData = vtkSmartPointer< vtkCleanPolyData >::New();
-    #if ( VTK_MAJOR_VERSION <= 5 )
-      cleanPointPolyData->SetInput( polyData );
-    #else
-      cleanPointPolyData->SetInputData( polyData );
-    #endif
-    cleanPointPolyData->SetTolerance( CLEAN_POLYDATA_TOLERANCE );
+    cleanPointPolyData->SetInputData( polyData );
+    cleanPointPolyData->SetTolerance( CLEAN_POLYDATA_TOLERANCE_MM );
     cleanPointPolyData->Update();
   }
 }
@@ -611,11 +911,7 @@ void GetTubePolyDataFromPoints( vtkMRMLMarkupsToModelNode* pNode, vtkPoints* poi
   linePolyData->SetLines( lineCellArray );
 
   vtkSmartPointer< vtkTubeFilter> tubeSegmentFilter = vtkSmartPointer< vtkTubeFilter>::New();
-#if (VTK_MAJOR_VERSION <= 5)
-  tubeSegmentFilter->SetInput( linePolyData );
-#else
   tubeSegmentFilter->SetInputData( linePolyData );
-#endif
 
   tubeSegmentFilter->SetRadius( pNode->GetTubeRadius() );
   tubeSegmentFilter->SetNumberOfSides( pNode->GetTubeNumberOfSides() );
@@ -636,9 +932,9 @@ void vtkSlicerMarkupsToModelLogic::UpdateOutputLinearModel( vtkMRMLMarkupsToMode
   
   int numberControlPoints = controlPoints->GetNumberOfPoints();
   // redundant error checking, to be safe
-  if ( numberControlPoints < LINE_MIN_NUMBER_POINTS )
+  if ( numberControlPoints < NUMBER_OF_LINE_POINTS_MIN )
   {
-    vtkErrorMacro( "Not enough points to create an output spline model. Need at least " << LINE_MIN_NUMBER_POINTS << " points but " << numberControlPoints << " are provided. No output created." );
+    vtkErrorMacro( "Not enough points to create an output spline model. Need at least " << NUMBER_OF_LINE_POINTS_MIN << " points but " << numberControlPoints << " are provided. No output created." );
     return;
   }
   
@@ -710,16 +1006,16 @@ void vtkSlicerMarkupsToModelLogic::UpdateOutputCardinalSplineModel( vtkMRMLMarku
   
   int numberControlPoints = controlPoints->GetNumberOfPoints();
   // redundant error checking, to be safe
-  if ( numberControlPoints < LINE_MIN_NUMBER_POINTS )
+  if ( numberControlPoints < NUMBER_OF_LINE_POINTS_MIN )
   {
-    vtkErrorMacro( "Not enough points to create an output spline model. Need at least " << LINE_MIN_NUMBER_POINTS << " points but " << numberControlPoints << " are provided. No output created." );
+    vtkErrorMacro( "Not enough points to create an output spline model. Need at least " << NUMBER_OF_LINE_POINTS_MIN << " points but " << numberControlPoints << " are provided. No output created." );
     return;
   }
   
   // special case, fit a line. Spline fitting will not work with fewer than 3 points
-  if ( numberControlPoints == LINE_MIN_NUMBER_POINTS )
+  if ( numberControlPoints == NUMBER_OF_LINE_POINTS_MIN )
   {
-    vtkWarningMacro( "Only " << LINE_MIN_NUMBER_POINTS << " provided. Fitting line." );
+    vtkWarningMacro( "Only " << NUMBER_OF_LINE_POINTS_MIN << " provided. Fitting line." );
     UpdateOutputLinearModel(pNode, controlPoints, outputTubePolyData);
     return;
   }
@@ -789,16 +1085,16 @@ void vtkSlicerMarkupsToModelLogic::UpdateOutputKochanekSplineModel( vtkMRMLMarku
   
   int numberControlPoints = controlPoints->GetNumberOfPoints();
   // redundant error checking, to be safe
-  if ( numberControlPoints < LINE_MIN_NUMBER_POINTS )
+  if ( numberControlPoints < NUMBER_OF_LINE_POINTS_MIN )
   {
-    vtkErrorMacro( "Not enough points to create an output spline model. Need at least " << LINE_MIN_NUMBER_POINTS << " points but " << numberControlPoints << " are provided. No output created." );
+    vtkErrorMacro( "Not enough points to create an output spline model. Need at least " << NUMBER_OF_LINE_POINTS_MIN << " points but " << numberControlPoints << " are provided. No output created." );
     return;
   }
   
   // special case, fit a line. Spline fitting will not work with fewer than 3 points
-  if ( numberControlPoints == LINE_MIN_NUMBER_POINTS )
+  if ( numberControlPoints == NUMBER_OF_LINE_POINTS_MIN )
   {
-    vtkWarningMacro( "Only " << LINE_MIN_NUMBER_POINTS << " provided. Fitting line." );
+    vtkWarningMacro( "Only " << NUMBER_OF_LINE_POINTS_MIN << " provided. Fitting line." );
     UpdateOutputLinearModel(pNode, controlPoints, outputTubePolyData);
     return;
   }
@@ -868,9 +1164,9 @@ void vtkSlicerMarkupsToModelLogic::ComputePointParametersRawIndices( vtkPoints* 
 
   int numPoints = controlPoints->GetNumberOfPoints();
   // redundant error checking, to be safe
-  if ( numPoints < LINE_MIN_NUMBER_POINTS )
+  if ( numPoints < NUMBER_OF_LINE_POINTS_MIN )
   {
-    vtkErrorMacro( "Not enough points to compute polynomial parameters. Need at least " << LINE_MIN_NUMBER_POINTS << " points but " << numPoints << " are provided." );
+    vtkErrorMacro( "Not enough points to compute polynomial parameters. Need at least " << NUMBER_OF_LINE_POINTS_MIN << " points but " << numPoints << " are provided." );
     return;
   }
 
@@ -900,9 +1196,9 @@ void vtkSlicerMarkupsToModelLogic::ComputePointParametersMinimumSpanningTree(vtk
 
   int numPoints = controlPoints->GetNumberOfPoints();
   // redundant error checking, to be safe
-  if ( numPoints < LINE_MIN_NUMBER_POINTS )
+  if ( numPoints < NUMBER_OF_LINE_POINTS_MIN )
   {
-    vtkErrorMacro( "Not enough points to compute polynomial parameters. Need at least " << LINE_MIN_NUMBER_POINTS << " points but " << numPoints << " are provided." );
+    vtkErrorMacro( "Not enough points to compute polynomial parameters. Need at least " << NUMBER_OF_LINE_POINTS_MIN << " points but " << numPoints << " are provided." );
     return;
   }
 
@@ -1023,7 +1319,7 @@ void vtkSlicerMarkupsToModelLogic::ComputePointParametersMinimumSpanningTree(vtk
   // check this to prevent a division by zero (in case all points are duplicates)
   if ( sumOfDistances == 0 )
   {
-    vtkErrorMacro( "Minimum spanning tree path has distance zero. No parameters will be assigned. Check inputs!" );
+    vtkErrorMacro( "Minimum spanning tree path has distance zero. No parameters will be assigned. Check inputs." );
     return;
   }
 
@@ -1088,16 +1384,16 @@ void vtkSlicerMarkupsToModelLogic::UpdateOutputPolynomialFitModel(vtkMRMLMarkups
 
   int numPoints = controlPoints->GetNumberOfPoints();
   // redundant error checking, to be safe
-  if (numPoints < LINE_MIN_NUMBER_POINTS)
+  if (numPoints < NUMBER_OF_LINE_POINTS_MIN)
   {
-    vtkErrorMacro("Not enough points to compute a polynomial fit. Need at least " << LINE_MIN_NUMBER_POINTS << " points but " << numPoints << " are provided. No output created.");
+    vtkErrorMacro("Not enough points to compute a polynomial fit. Need at least " << NUMBER_OF_LINE_POINTS_MIN << " points but " << numPoints << " are provided. No output created.");
     return;
   }
 
   // special case, fit a line. The polynomial solver does not work with only 2 points.
-  if (numPoints == LINE_MIN_NUMBER_POINTS)
+  if (numPoints == NUMBER_OF_LINE_POINTS_MIN)
   {
-    vtkWarningMacro("Only " << LINE_MIN_NUMBER_POINTS << " provided. Fitting line.");
+    vtkWarningMacro("Only " << NUMBER_OF_LINE_POINTS_MIN << " provided. Fitting line.");
     UpdateOutputLinearModel(markupsToModelModuleNode, controlPoints, outputPolyData);
     return;
   }
@@ -1231,11 +1527,7 @@ void vtkSlicerMarkupsToModelLogic::UpdateOutputPolynomialFitModel(vtkMRMLMarkups
   smoothedSegments->SetLines(smoothedLines);
   
   vtkSmartPointer< vtkTubeFilter> tubeFilter = vtkSmartPointer< vtkTubeFilter>::New();
-#if (VTK_MAJOR_VERSION <= 5)
-  tubeFilter->SetInput(smoothedSegments);
-#else
   tubeFilter->SetInputData(smoothedSegments);
-#endif
   tubeFilter->SetRadius(markupsToModelModuleNode->GetTubeRadius());
   tubeFilter->SetNumberOfSides(markupsToModelModuleNode->GetTubeNumberOfSides());
   tubeFilter->CappingOn();
@@ -1255,7 +1547,7 @@ void vtkSlicerMarkupsToModelLogic::UpdateOutputCurveModel(vtkMRMLMarkupsToModelN
   }
 
   int numberOfMarkups = markupsNode->GetNumberOfFiducials();
-  if (numberOfMarkups < LINE_MIN_NUMBER_POINTS) // check this here, but also perform redundant checks elsewhere
+  if (numberOfMarkups < NUMBER_OF_LINE_POINTS_MIN ) // check this here, but also perform redundant checks elsewhere
   {
     return;
   }
