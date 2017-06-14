@@ -40,8 +40,12 @@ class UltraSound(object):
     collapsibleButton.text = "Ultrasound"
     parentWidget.addWidget(collapsibleButton)
 
-    ultrasoundLayout = qt.QFormLayout(collapsibleButton)
-    #ultrasoundLayout.setContentsMargins(12,4,4,4)
+    procedureLayout = qt.QVBoxLayout(collapsibleButton)
+    procedureLayout.setContentsMargins(12, 4, 4, 12)
+    procedureLayout.setSpacing(4)
+
+    ultrasoundLayout = qt.QFormLayout()
+    ultrasoundLayout.setContentsMargins(12,4,4,4)
     ultrasoundLayout.setSpacing(4)
 
     self.startStopRecordingButton = qt.QPushButton("Start Recording")
@@ -105,7 +109,9 @@ class UltraSound(object):
       brightnessContrastSliderBox.addWidget(self.brightnessSliderWidget)
       ultrasoundLayout.addRow(brightnessContrastSliderBox)
 
-    return collapsibleButton, ultrasoundLayout
+    procedureLayout.addLayout(ultrasoundLayout)
+
+    return collapsibleButton, ultrasoundLayout, procedureLayout
 
   def setupScene(self):
     logging.info("UltraSound.setupScene")
