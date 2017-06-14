@@ -146,7 +146,7 @@ class Guidelet(object):
     self.disconnect()
 
   def createFeaturePanels(self):
-    self.ultrasoundCollapsibleButton, self.ultrasoundLayout = self.ultrasound.setupPanel(self.sliceletPanelLayout)
+    self.ultrasoundCollapsibleButton, self.ultrasoundLayout, self.procedureLayout = self.ultrasound.setupPanel(self.sliceletPanelLayout)
     self.advancedCollapsibleButton = ctk.ctkCollapsibleButton()
 
     featurePanelList = [self.ultrasoundCollapsibleButton, self.advancedCollapsibleButton]
