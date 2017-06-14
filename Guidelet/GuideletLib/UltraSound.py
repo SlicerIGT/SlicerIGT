@@ -41,7 +41,7 @@ class UltraSound(object):
     parentWidget.addWidget(collapsibleButton)
 
     ultrasoundLayout = qt.QFormLayout(collapsibleButton)
-    ultrasoundLayout.setContentsMargins(12,4,4,4)
+    #ultrasoundLayout.setContentsMargins(12,4,4,4)
     ultrasoundLayout.setSpacing(4)
 
     self.startStopRecordingButton = qt.QPushButton("Start Recording")
