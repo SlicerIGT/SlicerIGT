@@ -127,7 +127,7 @@ void vtkSlicerFiducialRegistrationWizardLogic::OnMRMLSceneNodeAdded( vtkMRMLNode
     events->InsertNextValue( vtkMRMLFiducialRegistrationWizardNode::InputDataModifiedEvent );
     vtkObserveMRMLNodeEventsMacro( frwNode, events.GetPointer() );
     
-    if ( strcmp( frwNode->GetUpdateMode().c_str(), "Automatic" ) == 0 )
+    if ( frwNode->GetUpdateMode() == vtkMRMLFiducialRegistrationWizardNode::UPDATE_MODE_AUTO )
     {
       this->UpdateCalibration( frwNode ); // Will create modified event to update widget
     }
@@ -215,7 +215,7 @@ bool vtkSlicerFiducialRegistrationWizardLogic::UpdateCalibration( vtkMRMLNode* n
   vtkMRMLMarkupsFiducialNode* fromMarkupsFiducialNode = fiducialRegistrationWizardNode->GetFromFiducialListNode();
   vtkMRMLMarkupsFiducialNode* toMarkupsFiducialNode = fiducialRegistrationWizardNode->GetToFiducialListNode();
   vtkMRMLTransformNode* outputTransformNode = fiducialRegistrationWizardNode->GetOutputTransformNode();
-  std::string transformType = fiducialRegistrationWizardNode->GetRegistrationMode();
+  int registrationMode = fiducialRegistrationWizardNode->GetRegistrationMode();
 
   if ( fromMarkupsFiducialNode == NULL )
   {
@@ -272,14 +272,15 @@ bool vtkSlicerFiducialRegistrationWizardLogic::UpdateCalibration( vtkMRMLNode* n
     return false;
   }
 
-  if ( transformType.compare( "Rigid" ) == 0 || transformType.compare( "Similarity" ) == 0 )
+  if ( registrationMode == vtkMRMLFiducialRegistrationWizardNode::REGISTRATION_MODE_RIGID || 
+       registrationMode == vtkMRMLFiducialRegistrationWizardNode::REGISTRATION_MODE_SIMILARITY )
   {
     // Compute transformation matrix. We don't set the landmark transform in the node directly because
     // vtkLandmarkTransform is not fully supported (e.g., it cannot be stored in file).
     vtkNew<vtkLandmarkTransform> landmarkTransform;
     landmarkTransform->SetSourceLandmarks( fromPoints.GetPointer() );
     landmarkTransform->SetTargetLandmarks( toPoints.GetPointer() );
-    if ( transformType.compare( "Rigid" ) == 0 )
+    if ( registrationMode == vtkMRMLFiducialRegistrationWizardNode::REGISTRATION_MODE_RIGID )
     {
       landmarkTransform->SetModeToRigidBody();
     }
@@ -306,7 +307,7 @@ bool vtkSlicerFiducialRegistrationWizardLogic::UpdateCalibration( vtkMRMLNode* n
     }
     
   }
-  else if ( transformType.compare( "Warping" ) == 0 )
+  else if ( registrationMode == vtkMRMLFiducialRegistrationWizardNode::REGISTRATION_MODE_WARPING )
   {
     if (strcmp(outputTransformNode->GetClassName(), "vtkMRMLTransformNode") != 0)
     {
@@ -337,8 +338,9 @@ bool vtkSlicerFiducialRegistrationWizardLogic::UpdateCalibration( vtkMRMLNode* n
   }
   else
   {
-    vtkErrorMacro("vtkSlicerFiducialRegistrationWizardLogic::UpdateCalibration failed to set transform type: invalid transform type: "<<transformType);
-    fiducialRegistrationWizardNode->SetCalibrationStatusMessage("Invalid transform type." );
+    vtkErrorMacro( "vtkSlicerFiducialRegistrationWizardLogic::UpdateCalibration failed to set transform type: " <<
+                   "invalid registration mode: " << vtkMRMLFiducialRegistrationWizardNode::RegistrationModeAsString( registrationMode ) );
+    fiducialRegistrationWizardNode->SetCalibrationStatusMessage( "Invalid transform type." );
     return false;
   }
 
@@ -452,7 +454,7 @@ void vtkSlicerFiducialRegistrationWizardLogic::ProcessMRMLNodesEvents( vtkObject
   {
     // only recompute output if the input is changed
     // (for example we do not recompute the calibration output if the computed calibration transform or status message is changed)
-    if ( strcmp( frwNode->GetUpdateMode().c_str(), "Automatic" ) == 0 )
+    if ( frwNode->GetUpdateMode() == vtkMRMLFiducialRegistrationWizardNode::UPDATE_MODE_AUTO )
     {
       this->UpdateCalibration( frwNode ); // Will create modified event to update widget
     }

@@ -55,6 +55,21 @@ public:
     InputDataModifiedEvent = vtkCommand::UserEvent + 555
   };
 
+  enum
+  {
+    REGISTRATION_MODE_RIGID = 0,
+    REGISTRATION_MODE_SIMILARITY,
+    REGISTRATION_MODE_WARPING,
+    REGISTRATION_MODE_LAST // do not set to this type, insert valid types above this line
+  };
+
+  enum
+  {
+    UPDATE_MODE_MANUAL = 0,
+    UPDATE_MODE_AUTO,
+    UPDATE_MODE_LAST // do not set to this type, insert valid types above this line
+  };
+
   vtkTypeMacro( vtkMRMLFiducialRegistrationWizardNode, vtkMRMLNode );
   
   // Standard MRML node methods  
@@ -89,23 +104,29 @@ public:
   vtkMRMLTransformNode* GetProbeTransformToNode();
   void SetProbeTransformToNodeId( const char* nodeId );
 
-  std::string GetRegistrationMode();
-  void SetRegistrationMode( std::string newRegistrationMode);
-  void SetRegistrationModeToRigid() { this->SetRegistrationMode("Rigid"); };
-  void SetRegistrationModeToSimilarity() { this->SetRegistrationMode("Similarity"); };
-  void SetRegistrationModeToWarping() { this->SetRegistrationMode("Warping"); };
+  vtkGetMacro( RegistrationMode, int );
+  void SetRegistrationMode( int );
+  void SetRegistrationModeToRigid() { this->SetRegistrationMode( REGISTRATION_MODE_RIGID ); }
+  void SetRegistrationModeToSimilarity() { this->SetRegistrationMode( REGISTRATION_MODE_SIMILARITY ); }
+  void SetRegistrationModeToWarping() { this->SetRegistrationMode( REGISTRATION_MODE_WARPING ); }
+  static std::string RegistrationModeAsString( int );
+  static int RegistrationModeFromString( std::string );
 
-  std::string GetUpdateMode();
-  void SetUpdateMode( std::string newUpdateMode);
+  vtkGetMacro( UpdateMode, int );
+  void SetUpdateMode( int newUpdateMode);
+  void SetUpdateModeToManual() { this->SetUpdateMode( UPDATE_MODE_MANUAL ); }
+  void SetUpdateModeToAuto() { this->SetUpdateMode( UPDATE_MODE_AUTO ); }
+  static std::string UpdateModeAsString( int );
+  static int UpdateModeFromString( std::string );
 
-  vtkSetMacro(CalibrationStatusMessage, std::string);
-  vtkGetMacro(CalibrationStatusMessage, std::string);
+  vtkSetMacro( CalibrationStatusMessage, std::string );
+  vtkGetMacro( CalibrationStatusMessage, std::string );
 
   void ProcessMRMLEvents( vtkObject *caller, unsigned long event, void *callData );
 
 private:
-  std::string RegistrationMode; // TODO: add enum for this
-  std::string UpdateMode; // TODO: make it a bool flag
+  int RegistrationMode;
+  int UpdateMode;
   std::string CalibrationStatusMessage; // TODO: add this to the ouput transform as a custom node attribute
 
 };  

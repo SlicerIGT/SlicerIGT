@@ -117,19 +117,20 @@ void qSlicerFiducialRegistrationWizardModuleWidget::onUpdateButtonClicked()
 //------------------------------------------------------------------------------
 void qSlicerFiducialRegistrationWizardModuleWidget::onUpdateButtonCheckboxToggled(bool checked)
 {
-  Q_D(qSlicerFiducialRegistrationWizardModuleWidget);
+  Q_D( qSlicerFiducialRegistrationWizardModuleWidget );
   vtkMRMLFiducialRegistrationWizardNode* fiducialRegistrationWizardNode = vtkMRMLFiducialRegistrationWizardNode::SafeDownCast(d->ModuleNodeComboBox->currentNode());
-  if (fiducialRegistrationWizardNode == NULL)
+  if ( fiducialRegistrationWizardNode == NULL )
   {
     return;
   }
-  if (checked)
+
+  if ( checked )
   {
-    fiducialRegistrationWizardNode->SetUpdateMode("Automatic");
+    fiducialRegistrationWizardNode->SetUpdateModeToAuto();
   }
   else
   {
-    fiducialRegistrationWizardNode->SetUpdateMode("Manual");
+    fiducialRegistrationWizardNode->SetUpdateModeToManual();
   }
 }
 
@@ -367,20 +368,20 @@ void qSlicerFiducialRegistrationWizardModuleWidget::UpdateFromMRMLNode()
   d->FromMarkupsWidget->setCurrentNode( fiducialRegistrationWizardNode->GetFromFiducialListNode() );
   d->ToMarkupsWidget->setCurrentNode( fiducialRegistrationWizardNode->GetToFiducialListNode() );
 
-  if ( fiducialRegistrationWizardNode->GetRegistrationMode().compare( "Rigid" ) == 0 )
+  if ( fiducialRegistrationWizardNode->GetRegistrationMode() == vtkMRMLFiducialRegistrationWizardNode::REGISTRATION_MODE_RIGID )
   {
     d->RigidRadioButton->setChecked( Qt::Checked );
   }
-  else if ( fiducialRegistrationWizardNode->GetRegistrationMode().compare( "Similarity" ) == 0 )
+  else if ( fiducialRegistrationWizardNode->GetRegistrationMode() == vtkMRMLFiducialRegistrationWizardNode::REGISTRATION_MODE_SIMILARITY )
   {
     d->SimilarityRadioButton->setChecked( Qt::Checked );
   }
-  else if ( fiducialRegistrationWizardNode->GetRegistrationMode().compare( "Warping" ) == 0 )
+  else if ( fiducialRegistrationWizardNode->GetRegistrationMode() == vtkMRMLFiducialRegistrationWizardNode::REGISTRATION_MODE_WARPING )
   {
     d->WarpingRadioButton->setChecked( Qt::Checked );
   }
 
-  if ( fiducialRegistrationWizardNode->GetUpdateMode().compare( "Automatic" ) == 0 )
+  if ( fiducialRegistrationWizardNode->GetUpdateMode() == vtkMRMLFiducialRegistrationWizardNode::UPDATE_MODE_AUTO )
   {
     bool wasBlocked = d->UpdateButton->blockSignals(true);
     d->UpdateButton->setText(tr("Auto-update"));
