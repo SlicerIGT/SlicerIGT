@@ -64,8 +64,8 @@ void vtkMRMLFiducialRegistrationWizardNode::WriteXML( ostream& of, int nIndent )
   Superclass::WriteXML(of, nIndent); // This will take care of referenced nodes
 
   vtkIndent indent(nIndent); 
-  of << indent << " RegistrationMode=\"" << this->RegistrationMode << "\"";
-  of << indent << " UpdateMode=\"" << this->UpdateMode << "\"";
+  of << indent << " RegistrationMode=\"" << RegistrationModeAsString( this->RegistrationMode ) << "\"";
+  of << indent << " UpdateMode=\"" << UpdateModeAsString( this->UpdateMode ) << "\"";
 }
 
 //------------------------------------------------------------------------------
@@ -111,8 +111,8 @@ void vtkMRMLFiducialRegistrationWizardNode::Copy( vtkMRMLNode *anode )
 void vtkMRMLFiducialRegistrationWizardNode::PrintSelf( ostream& os, vtkIndent indent )
 {
   vtkMRMLNode::PrintSelf(os,indent); // This will take care of referenced nodes
-  os << indent << "RegistrationMode: " << this->RegistrationMode << "\n";
-  os << indent << "UpdateMode: " << this->UpdateMode << "\n";
+  os << indent << "RegistrationMode: " << RegistrationModeAsString( this->RegistrationMode ) << "\n";
+  os << indent << "UpdateMode: " << UpdateModeAsString( this->UpdateMode ) << "\n";
 }
 
 //------------------------------------------------------------------------------
