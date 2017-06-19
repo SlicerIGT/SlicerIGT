@@ -149,34 +149,25 @@ void qSlicerWatchdogModuleWidget::setup()
 void qSlicerWatchdogModuleWidget::enter()
 {
   Q_D(qSlicerWatchdogModuleWidget);
+  this->Superclass::enter();
+
   if ( this->mrmlScene() == NULL )
   {
     qCritical() << "Invalid scene!";
     return;
   }
 
-  // Create a module MRML node if there is none in the scene.
-  vtkMRMLNode* node = this->mrmlScene()->GetNthNodeByClass(0, "vtkMRMLWatchdogNode");
-  if ( node == NULL )
-  {
-    vtkSmartPointer< vtkMRMLWatchdogNode > newNode = vtkSmartPointer< vtkMRMLWatchdogNode >::New();
-    this->mrmlScene()->AddNode( newNode );
-  }
-
-  node = this->mrmlScene()->GetNthNodeByClass( 0, "vtkMRMLWatchdogNode" );
-  if ( node == NULL )
-  {
-    qCritical( "Failed to create module node" );
-    return;
-  }
-
-  // For convenience, select a default module.
+  // For convenience, select a default module node.
   if ( d->ModuleNodeComboBox->currentNode() == NULL )
   {
-    d->ModuleNodeComboBox->setCurrentNodeID( node->GetID() );
+    // Create a module node if there is none in the scene.
+    vtkMRMLNode* node = this->mrmlScene()->GetNthNodeByClass(0, "vtkMRMLWatchdogNode");
+    if ( node == NULL )
+    {
+      node = this->mrmlScene()->AddNewNodeByClass("vtkMRMLWatchdogNode");
+    }
+    d->ModuleNodeComboBox->setCurrentNode(node);
   }
-
-  this->Superclass::enter();
 }
 
 //-----------------------------------------------------------------------------
