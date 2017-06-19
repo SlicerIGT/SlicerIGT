@@ -418,15 +418,16 @@ vtkMRMLModelNode* vtkSlicerCreateModelsLogic::CreateCoordinate( double axisLengt
   vtkNew< vtkAppendPolyData > appendPolyData;
   
   // X axis
+  double xTipLength = axisLength / 4.0;
   
   vtkNew< vtkCylinderSource > xCylinderSource;
   xCylinderSource->SetRadius( axisDiameter / 2.0 );
-  xCylinderSource->SetHeight( axisLength );
+  xCylinderSource->SetHeight( axisLength-xTipLength );
   xCylinderSource->Update();
 
   vtkNew< vtkTransform > xCylinderTransform;
   xCylinderTransform->RotateZ( -90.0 );
-  xCylinderTransform->Translate( 0.0, axisLength / 2.0, 0.0 );
+  xCylinderTransform->Translate(0.0, (axisLength - xTipLength) / 2.0, 0.0);
   xCylinderTransform->Update();
   
   vtkNew< vtkTransformPolyDataFilter > xCylinderTransformFilter;
@@ -452,11 +453,11 @@ vtkMRMLModelNode* vtkSlicerCreateModelsLogic::CreateCoordinate( double axisLengt
 
   vtkNew< vtkConeSource > XTipSource;
   XTipSource->SetRadius( axisDiameter * 1.5 );
-  XTipSource->SetHeight( axisLength / 4.0 );
+  XTipSource->SetHeight(xTipLength);
   XTipSource->Update();
   
   vtkNew< vtkTransform > XTipTransform;
-  XTipTransform->Translate( axisLength + axisLength * 0.1, 0.0, 0.0 );
+  XTipTransform->Translate(axisLength - xTipLength/2.0, 0.0, 0.0);
   XTipTransform->Update();
   
   vtkNew< vtkTransformPolyDataFilter > XTipTransformFilter;
