@@ -46,6 +46,9 @@ vtkMRMLMarkupsToModelNode::vtkMRMLMarkupsToModelNode()
   this->CleanMarkups = true;
   this->ConvexHull = true;
   this->ButterflySubdivision = true;
+  // DelaunayAlpha = 50 would work well most of the cases but in case if not then the user would not
+  // know why no model is drawn around the points. It is better to use a safe and simple setting
+  // by default (alpha = 0 => use convex hull).
   this->DelaunayAlpha = 0.0;
   this->TubeRadius = 1.0;
   this->TubeSegmentsBetweenControlPoints = 5;
@@ -86,10 +89,10 @@ void vtkMRMLMarkupsToModelNode::WriteXML( ostream& of, int nIndent )
   vtkIndent indent(nIndent);
 
   of << indent << " ModelType =\"" << this->GetModelTypeAsString(this->ModelType) << "\"";
-  of << indent << " AutoUpdateOutput =\"" << this->AutoUpdateOutput << "\"";
-  of << indent << " CleanMarkups =\"" << this->CleanMarkups << "\"";
-  of << indent << " ConvexHull =\"" << this->ConvexHull << "\"";
-  of << indent << " ButterflySubdivision =\"" << this->ButterflySubdivision << "\"";
+  of << indent << " AutoUpdateOutput =\"" << (this->AutoUpdateOutput ? "true" : "false") << "\"";
+  of << indent << " CleanMarkups =\"" << (this->CleanMarkups ? "true" : "false") << "\"";
+  of << indent << " ConvexHull =\"" << (this->ConvexHull ? "true" : "false") << "\"";
+  of << indent << " ButterflySubdivision =\"" << (this->ButterflySubdivision ? "true" : "false") << "\"";
   of << indent << " DelaunayAlpha =\"" << this->DelaunayAlpha << "\"";
   of << indent << " InterpolationType=\"" << this->GetInterpolationTypeAsString(this->InterpolationType) << "\"";
   of << indent << " PointParameterType=\"" << this->GetPointParameterTypeAsString(this->PointParameterType) << "\"";
@@ -327,7 +330,6 @@ void vtkMRMLMarkupsToModelNode::SetAndObserveMarkupsNodeID( const char* markupsI
   events->InsertNextValue( vtkCommand::ModifiedEvent );
   events->InsertNextValue( vtkMRMLMarkupsNode::PointModifiedEvent ); // PointEndInteractionEvent 
   this->SetAndObserveNodeReferenceID( INPUT_MARKUPS_ROLE, markupsId, events.GetPointer() );
-  this->InvokeCustomModifiedEvent(InputDataModifiedEvent);
 }
 
 void vtkMRMLMarkupsToModelNode::SetAndObserveModelNodeID( const char* modelId )
@@ -351,7 +353,7 @@ void vtkMRMLMarkupsToModelNode::ProcessMRMLEvents( vtkObject *caller, unsigned l
 
   if ( this->GetMarkupsNode() && this->GetMarkupsNode()==caller )
   {
-    this->InvokeCustomModifiedEvent(InputDataModifiedEvent);
+    this->InvokeCustomModifiedEvent(MarkupsPositionModifiedEvent);
   }
 }
 

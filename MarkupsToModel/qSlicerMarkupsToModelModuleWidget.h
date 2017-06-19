@@ -47,25 +47,27 @@ public:
 
 public slots:
   void setMRMLScene( vtkMRMLScene* scene );
-  void onSceneImportedEvent();
-
-  void updateFromMRMLNode();
-  void updateParametersToMRMLNode();
-  void updateModelToMRMLNode();
-  void updateMarkupsToMRMLNode();
-  void updateFromRenderedNodes();
-  void updateToRenderedNodes();
-
-  void blockAllSignals();
-  void unblockAllSignals();
-  void enableAllWidgets();
-  void disableAllWidgets();
-  
-  void UpdateOutputModel();
 
 protected slots:
   void onUpdateButtonClicked();
   void onUpdateButtonCheckboxToggled(bool);
+  void onMarkupsToModelNodeSelectionChanged();
+  void onModelNodeSelectionChanged();
+  void onModelNodeAdded(vtkMRMLNode*);
+  void onMarkupsNodeSelectionChanged();
+  void onMarkupsNodeAdded(vtkMRMLNode*);
+
+  void onSceneImportedEvent();
+
+  void updateMRMLFromGUI();
+
+  void updateGUIFromMRML();
+  void updateFromRenderedNodes();
+
+  void blockAllSignals(bool block);
+  void enableAllWidgets(bool enable);
+
+  void UpdateOutputModel();
 
 protected:
   QScopedPointer<qSlicerMarkupsToModelModuleWidgetPrivate> d_ptr;
@@ -76,15 +78,7 @@ protected:
 
   // functions for manipulating other MRML nodes
   vtkMRMLModelNode* GetModelNode( );
-  vtkMRMLModelDisplayNode* GetModelDisplayNode( );
   vtkMRMLMarkupsFiducialNode* GetMarkupsNode( );
-  vtkMRMLMarkupsDisplayNode* GetMarkupsDisplayNode( );
-
-  void SetOutputIntersectionVisibility( bool outputIntersectionVisibility );
-  void SetOutputVisibility( bool outputVisibility );
-  void SetOutputOpacity( double outputOpacity );
-  virtual void SetOutputColor( double redComponent, double greenComponent, double blueComponent );
-  void SetMarkupsTextScale( double scale );
 
   bool GetOutputIntersectionVisibility( );
   bool GetOutputVisibility( );
@@ -96,8 +90,6 @@ protected:
 private:
   Q_DECLARE_PRIVATE(qSlicerMarkupsToModelModuleWidget);
   Q_DISABLE_COPY(qSlicerMarkupsToModelModuleWidget);
-
-  int previouslyPersistent;
 };
 
 #endif

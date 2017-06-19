@@ -64,11 +64,10 @@ public:
 
   enum Events
   {
-    /// The node stores both inputs (e.g., markups, etc.) and computed parameters.
-    /// InputDataModifiedEvent is only invoked when input parameters are changed.
-    /// In contrast, ModifiedEvent event is called if either an input or output parameter is changed.
+    /// MarkupsPositionModifiedEvent is called when markup point positions are modified.
+    /// This make it easier for logic or other classes to observe any changes in input data.
     // vtkCommand::UserEvent + 777 is just a random value that is very unlikely to be used for anything else in this class
-    InputDataModifiedEvent = vtkCommand::UserEvent + 777
+    MarkupsPositionModifiedEvent = vtkCommand::UserEvent + 777
   };
 
   enum ModelType
