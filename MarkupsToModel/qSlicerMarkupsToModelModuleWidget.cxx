@@ -51,6 +51,8 @@ public:
   qSlicerMarkupsToModelModuleWidgetPrivate(qSlicerMarkupsToModelModuleWidget& object);
   vtkSlicerMarkupsToModelLogic* logic() const;
 
+  QButtonGroup modeButtonGroup;
+
   // Observed nodes (to keep GUI up-to-date)
   vtkWeakPointer<vtkMRMLMarkupsToModelNode> MarkupsToModelNode;
   vtkWeakPointer<vtkMRMLMarkupsDisplayNode> MarkupsDisplayNode;
@@ -91,6 +93,9 @@ void qSlicerMarkupsToModelModuleWidget::setup()
   Q_D(qSlicerMarkupsToModelModuleWidget);
   d->setupUi(this);
   this->Superclass::setup();
+
+  d->modeButtonGroup.addButton( d->ModeClosedSurfaceRadioButton );
+  d->modeButtonGroup.addButton( d->ModeCurveRadioButton );
 
   d->MarkupsSelector->tableWidget()->setHidden(true); // we don't need to see the table of fiducials
   d->MarkupsSelector->markupsPlaceWidget()->setPlaceMultipleMarkups(qSlicerMarkupsPlaceWidget::ForcePlaceMultipleMarkups);
