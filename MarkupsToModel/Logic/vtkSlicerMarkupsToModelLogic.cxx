@@ -122,7 +122,7 @@ void vtkSlicerMarkupsToModelLogic::OnMRMLSceneEndImport()
       vtkWarningMacro("OnMRMLSceneEndImport: Module node added. Set the model pointer ");
 
       if (GetModelNodeName(markupsToModelNode).compare("") != 0 &&
-        markupsToModelNode->GetModelNode() == NULL)
+          markupsToModelNode->GetModelNode() != NULL)
       {
         vtkMRMLNode* modelNodeFromScene = this->GetMRMLScene()->GetNodeByID(markupsToModelNode->GetModelNode()->GetID());
         if (modelNodeFromScene != NULL)
@@ -131,7 +131,7 @@ void vtkSlicerMarkupsToModelLogic::OnMRMLSceneEndImport()
         }
         else
         {
-          vtkWarningMacro("NOT founded the saved Model");
+          vtkWarningMacro("Did not find the saved Model node.");
         }
       }
     }
