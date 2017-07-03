@@ -166,12 +166,10 @@ std::string vtkSlicerWatchdogLogic::AddNewDisplayNodeForWatchdogNode(vtkMRMLNode
 //---------------------------------------------------------------------------
 std::string vtkSlicerWatchdogLogic::AddNewWatchdogNode(const char *name, vtkMRMLScene *scene)
 {
-  std::string id;
-
   if (!scene && !this->GetMRMLScene())
     {
     vtkErrorMacro("AddNewWatchdogNode: no scene to add a watchdog node to");
-    return id;
+    return "";
     }
 
   vtkMRMLScene *addToThisScene;
@@ -185,23 +183,15 @@ std::string vtkSlicerWatchdogLogic::AddNewWatchdogNode(const char *name, vtkMRML
     }
 
   // create and add the node
-  vtkMRMLWatchdogNode *mnode = vtkMRMLWatchdogNode::New();
-  addToThisScene->AddNode(mnode);
+  vtkMRMLWatchdogNode mnode = addToThisScene->AddNewNodeByClass("vtkMRMLWatchdogNode");
+  if (name != NULL)
+    {
+    mnode->SetName(name);
+    }
 
   // add a display node
-  std::string displayID = this->AddNewDisplayNodeForWatchdogNode(mnode);
+  this->AddNewDisplayNodeForWatchdogNode(mnode);
 
-  if (displayID.compare("") != 0)
-    {
-    // get the node id to return
-    id = std::string(mnode->GetID());
-    if (name != NULL)
-      {
-      mnode->SetName(name);
-      }
-    }
-  // clean up
-  mnode->Delete();
-
+  std::string id = (mnode->GetID() ? mnode->GetID() : "");
   return id;
 }
