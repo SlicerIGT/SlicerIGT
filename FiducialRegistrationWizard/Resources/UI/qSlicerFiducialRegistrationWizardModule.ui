@@ -48,6 +48,20 @@
        </widget>
       </item>
       <item>
+       <layout class="QGridLayout" name="InputFormatLayout">
+        <item row="1" column="1">
+         <widget class="QComboBox" name="InputFormatComboBox"/>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLabel" name="InputFormatLabel">
+          <property name="text">
+           <string>Input Format</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
        <widget class="ctkCollapsibleGroupBox" name="FromGroupBox">
         <property name="title">
          <string>From fiducials</string>
@@ -193,9 +207,6 @@
          </item>
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout_2">
-           <property name="topMargin">
-            <number>0</number>
-           </property>
            <item>
             <widget class="QLabel" name="TransformModeLabel">
              <property name="sizePolicy">

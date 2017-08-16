@@ -51,6 +51,7 @@ vtkMRMLFiducialRegistrationWizardNode::vtkMRMLFiducialRegistrationWizardNode()
   this->AddNodeReferenceRole( OUTPUT_TRANSFORM_REFERENCE_ROLE );
   this->RegistrationMode = REGISTRATION_MODE_RIGID;
   this->UpdateMode = UPDATE_MODE_MANUAL;
+  this->InputFormat = INPUT_FORMAT_ORDERED_PAIRS;
 }
 
 //------------------------------------------------------------------------------
@@ -316,6 +317,56 @@ int vtkMRMLFiducialRegistrationWizardNode::UpdateModeFromString( std::string upd
   // if there are no matches, then there is likely an error
   vtkGenericWarningMacro( "Unrecognized string for UpdateMode " << updateModeAsString << ". Returning value for \"Manual\"" );
   return UPDATE_MODE_MANUAL;
+}
+
+//------------------------------------------------------------------------------
+void vtkMRMLFiducialRegistrationWizardNode::SetInputFormat( int newInputFormat )
+{
+  if ( this->GetInputFormat() == newInputFormat )
+  {
+    // no change
+    return;
+  }
+  this->InputFormat = newInputFormat;
+  this->Modified();
+  this->InvokeCustomModifiedEvent(InputDataModifiedEvent);
+}
+
+//------------------------------------------------------------------------------
+std::string vtkMRMLFiducialRegistrationWizardNode::InputFormatAsString( int inputFormat )
+{
+  switch ( inputFormat )
+  {
+    case INPUT_FORMAT_ORDERED_PAIRS:
+    {
+      return "Ordered Pairs";
+    }
+    case INPUT_FORMAT_UNORDERED_PAIRS:
+    {
+      return "Unordered Pairs";
+    }
+    default:
+    {
+      vtkGenericWarningMacro( "Unrecognized value for InputFormat " << inputFormat << ". Returning \"Unknown\"" );
+      return "Unknown";
+    }
+  }
+}
+
+//------------------------------------------------------------------------------
+int vtkMRMLFiducialRegistrationWizardNode::InputFormatFromString( std::string inputFormatAsString )
+{
+  for ( int inputFormat = 0; inputFormat < INPUT_FORMAT_LAST; inputFormat++ )
+  {
+    bool matchingText = inputFormatAsString.compare( InputFormatAsString( inputFormat ) ) == 0;
+    if ( matchingText )
+    {
+      return inputFormat;
+    }
+  }
+  // if there are no matches, then there is likely an error
+  vtkGenericWarningMacro( "Unrecognized string for InputFormat " << inputFormatAsString << ". Returning value for \"Ordered Pairs\"" );
+  return INPUT_FORMAT_ORDERED_PAIRS;
 }
 
 //------------------------------------------------------------------------------

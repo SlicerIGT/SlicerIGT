@@ -45,10 +45,10 @@ class vtkMRMLLinearTransformNode;
 // STD includes
 #include <cstdlib>
 
+// helper classes
+#include "vtkPointDistanceMatrix.h"
+
 #include "vtkSlicerFiducialRegistrationWizardModuleLogicExport.h"
-
-
-
 
 /// \ingroup Slicer_QtModules_FiducialRegistrationWizard
 class VTK_SLICER_FIDUCIALREGISTRATIONWIZARD_MODULE_LOGIC_EXPORT vtkSlicerFiducialRegistrationWizardLogic :
@@ -84,8 +84,15 @@ protected:
   virtual void OnMRMLSceneNodeRemoved(vtkMRMLNode* node);
 
 private:
+
   vtkSlicerFiducialRegistrationWizardLogic(const vtkSlicerFiducialRegistrationWizardLogic&); // Not implemented
   void operator=(const vtkSlicerFiducialRegistrationWizardLogic&);               // Not implemented
+
+  static double SumOfSquaredElementsInArray( vtkDoubleArray* array );
+  static double ComputeSuitabilityOfDistancesMetric( vtkPointDistanceMatrix* referenceDistanceMatrix, vtkPointDistanceMatrix* testDistanceMatrix );
+  static void   ComputePairedPointMapping( vtkPoints* referencePoints, vtkPoints* comparePoints, vtkPoints* comparePointsMatched );
+  static void   GenerateIndexPermutationsHelper( vtkIntArray* array, int numberOfElementsProcessed, int& tupleIndex, vtkIntArray* outputPermutationsArray );
+  static void   GenerateIndexPermutations( int numberOfValuesToPermute, vtkIntArray* outputPermutationsArray );
 
   double CalculateRegistrationError( vtkPoints* fromPoints, vtkPoints* toPoints, vtkAbstractTransform* transform );
   bool CheckCollinear( vtkPoints* points );

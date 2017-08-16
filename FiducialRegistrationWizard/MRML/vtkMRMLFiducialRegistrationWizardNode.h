@@ -70,6 +70,13 @@ public:
     UPDATE_MODE_LAST // do not set to this type, insert valid types above this line
   };
 
+  enum
+  {
+    INPUT_FORMAT_ORDERED_PAIRS = 0,
+    INPUT_FORMAT_UNORDERED_PAIRS,
+    INPUT_FORMAT_LAST // do not set to this type, insert valid types above this line
+  };
+
   vtkTypeMacro( vtkMRMLFiducialRegistrationWizardNode, vtkMRMLNode );
   
   // Standard MRML node methods  
@@ -101,6 +108,7 @@ public:
 
   vtkMRMLTransformNode* GetProbeTransformFromNode();
   void SetProbeTransformFromNodeId( const char* nodeId );
+
   vtkMRMLTransformNode* GetProbeTransformToNode();
   void SetProbeTransformToNodeId( const char* nodeId );
 
@@ -119,6 +127,13 @@ public:
   static std::string UpdateModeAsString( int );
   static int UpdateModeFromString( std::string );
 
+  vtkGetMacro( InputFormat, int );
+  void SetInputFormat( int newInputFormat );
+  void SetInputFormatToOrderedPairs() { this->SetInputFormat( INPUT_FORMAT_ORDERED_PAIRS ); }
+  void SetInputFormatToUnorderedPairs() { this->SetInputFormat( INPUT_FORMAT_UNORDERED_PAIRS ); }
+  static std::string InputFormatAsString( int );
+  static int InputFormatFromString( std::string );
+
   vtkSetMacro( CalibrationStatusMessage, std::string );
   vtkGetMacro( CalibrationStatusMessage, std::string );
 
@@ -127,6 +142,7 @@ public:
 private:
   int RegistrationMode;
   int UpdateMode;
+  int InputFormat;
   std::string CalibrationStatusMessage; // TODO: add this to the ouput transform as a custom node attribute
 
 };  

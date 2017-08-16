@@ -206,6 +206,12 @@ void qSlicerFiducialRegistrationWizardModuleWidget::setup()
   d->TransformPreviewWidget = new qSlicerTransformPreviewWidget;
   d->PreviewGroupBox->layout()->addWidget( d->TransformPreviewWidget );
 
+  // Setup InputFormat ComboBox options
+  d->InputFormatComboBox->addItem( vtkMRMLFiducialRegistrationWizardNode::InputFormatAsString( vtkMRMLFiducialRegistrationWizardNode::INPUT_FORMAT_ORDERED_PAIRS ).c_str() );
+  d->InputFormatComboBox->setItemData( 0, "Point indices in the \"From\" list match those in the \"To\" list.", Qt::ToolTipRole );
+  d->InputFormatComboBox->addItem( vtkMRMLFiducialRegistrationWizardNode::InputFormatAsString( vtkMRMLFiducialRegistrationWizardNode::INPUT_FORMAT_UNORDERED_PAIRS ).c_str() );
+  d->InputFormatComboBox->setItemData( 1, "Point pairing between the two lists will be computed automatically. This feature is currently experimental, and is intended only for rigid and similarity transforms.", Qt::ToolTipRole );
+
   // Setup Update button menu
   QMenu* updateMenu = new QMenu(tr("Update options"), this);
   // Install event filter to override menu position to show it on the right side of the button.
@@ -224,6 +230,7 @@ void qSlicerFiducialRegistrationWizardModuleWidget::setup()
   this->setMRMLScene( d->logic()->GetMRMLScene() );
 
   // Make connections to update the mrml from the widget
+  connect( d->InputFormatComboBox, SIGNAL( currentIndexChanged(int)), this, SLOT(UpdateToMRMLNode()) );
   connect( d->ProbeTransformFromComboBox, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(UpdateToMRMLNode()) );
   connect( d->ProbeTransformToComboBox, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(UpdateToMRMLNode()) );
   connect( d->OutputTransformComboBox, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(UpdateToMRMLNode()) );
@@ -296,6 +303,10 @@ void qSlicerFiducialRegistrationWizardModuleWidget::UpdateToMRMLNode()
 
   bool allWasBlocked = this->qvtkBlockAll( true );
 
+  std::string inputFormatAsString = d->InputFormatComboBox->currentText().toStdString();
+  int inputFormatAsEnum = vtkMRMLFiducialRegistrationWizardNode::InputFormatFromString( inputFormatAsString );
+  fiducialRegistrationWizardNode->SetInputFormat( inputFormatAsEnum );
+
   fiducialRegistrationWizardNode->SetProbeTransformFromNodeId(d->ProbeTransformFromComboBox->currentNode()?d->ProbeTransformFromComboBox->currentNode()->GetID():NULL);
   fiducialRegistrationWizardNode->SetProbeTransformToNodeId(d->ProbeTransformToComboBox->currentNode()?d->ProbeTransformToComboBox->currentNode()->GetID():NULL);
   fiducialRegistrationWizardNode->SetOutputTransformNodeId(d->OutputTransformComboBox->currentNode()?d->OutputTransformComboBox->currentNode()->GetID():NULL);
@@ -335,6 +346,7 @@ void qSlicerFiducialRegistrationWizardModuleWidget::UpdateFromMRMLNode()
 
   if ( fiducialRegistrationWizardNode == NULL )
   {
+    d->InputFormatComboBox->setEnabled(false);
     d->ProbeTransformFromComboBox->setEnabled(false);
     d->ProbeTransformToComboBox->setEnabled(false);
     d->RecordFromButton->setEnabled(false);
@@ -351,6 +363,7 @@ void qSlicerFiducialRegistrationWizardModuleWidget::UpdateFromMRMLNode()
   }
 
   // Disconnect to prevent signals form triggering events
+  bool wasInputFormatComboBoxBlocked = d->InputFormatComboBox->blockSignals(true);
   bool wasProbeTransformFromComboBoxBlocked = d->ProbeTransformFromComboBox->blockSignals(true);
   bool wasProbeTransformToComboBoxBlocked = d->ProbeTransformToComboBox->blockSignals(true);
   bool wasOutputTransformComboBoxBlocked = d->OutputTransformComboBox->blockSignals(true);
@@ -359,6 +372,13 @@ void qSlicerFiducialRegistrationWizardModuleWidget::UpdateFromMRMLNode()
   bool wasWarpingRadioButtonBlocked = d->WarpingRadioButton->blockSignals(true);
   bool wasFromMarkupsWidgetBlocked = d->FromMarkupsWidget->blockSignals(true);
   bool wasToMarkupsWidgetBlocked = d->ToMarkupsWidget->blockSignals(true);
+
+  int inputFormatIndex = d->InputFormatComboBox->findText( QString( vtkMRMLFiducialRegistrationWizardNode::InputFormatAsString( fiducialRegistrationWizardNode->GetInputFormat() ).c_str() ) );
+  if ( inputFormatIndex < 0 )
+  {
+    inputFormatIndex = 0;
+  }
+  d->InputFormatComboBox->setCurrentIndex( inputFormatIndex );
 
   d->ProbeTransformFromComboBox->setCurrentNode( fiducialRegistrationWizardNode->GetProbeTransformFromNode() );
   d->ProbeTransformToComboBox->setCurrentNode( fiducialRegistrationWizardNode->GetProbeTransformToNode() );
@@ -398,6 +418,7 @@ void qSlicerFiducialRegistrationWizardModuleWidget::UpdateFromMRMLNode()
   }
 
   // Restore signals
+  d->InputFormatComboBox->blockSignals(wasInputFormatComboBoxBlocked);
   d->ProbeTransformFromComboBox->blockSignals(wasProbeTransformFromComboBoxBlocked);
   d->ProbeTransformToComboBox->blockSignals(wasProbeTransformToComboBoxBlocked);
   d->OutputTransformComboBox->blockSignals(wasOutputTransformComboBoxBlocked);
@@ -420,6 +441,7 @@ void qSlicerFiducialRegistrationWizardModuleWidget::UpdateFromMRMLNode()
   d->RecordToButton->setEnabled(d->ProbeTransformToComboBox->currentNode()!=NULL);
 
   // Results section
+  d->InputFormatComboBox->setEnabled(true);
   d->OutputTransformComboBox->setEnabled(true);
   d->RigidRadioButton->setEnabled(true);
   d->SimilarityRadioButton->setEnabled(true);

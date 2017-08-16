@@ -21,6 +21,7 @@
 
 // FiducialRegistrationWizard includes
 #include "vtkSlicerFiducialRegistrationWizardLogic.h"
+#include "vtkPointDistanceMatrix.h"
 
 // MRML includes
 #include "vtkMRMLLinearTransformNode.h"
@@ -215,7 +216,6 @@ bool vtkSlicerFiducialRegistrationWizardLogic::UpdateCalibration( vtkMRMLNode* n
   vtkMRMLMarkupsFiducialNode* fromMarkupsFiducialNode = fiducialRegistrationWizardNode->GetFromFiducialListNode();
   vtkMRMLMarkupsFiducialNode* toMarkupsFiducialNode = fiducialRegistrationWizardNode->GetToFiducialListNode();
   vtkMRMLTransformNode* outputTransformNode = fiducialRegistrationWizardNode->GetOutputTransformNode();
-  int registrationMode = fiducialRegistrationWizardNode->GetRegistrationMode();
 
   if ( fromMarkupsFiducialNode == NULL )
   {
@@ -254,32 +254,48 @@ bool vtkSlicerFiducialRegistrationWizardLogic::UpdateCalibration( vtkMRMLNode* n
     return false;
   }
 
-  // Convert the markupsfiducial nodes into vector of itk points
-  vtkNew<vtkPoints> fromPoints;
-  vtkNew<vtkPoints> toPoints;
-  MarkupsFiducialNodeToVTKPoints( fromMarkupsFiducialNode, fromPoints.GetPointer() );
-  MarkupsFiducialNodeToVTKPoints( toMarkupsFiducialNode, toPoints.GetPointer() );
+  // Convert the markupsfiducial nodes into vtk points
+  vtkSmartPointer< vtkPoints > fromPoints = vtkSmartPointer< vtkPoints >::New();
+  MarkupsFiducialNodeToVTKPoints( fromMarkupsFiducialNode, fromPoints );
+  vtkSmartPointer< vtkPoints > toPointsUnordered = vtkSmartPointer< vtkPoints >::New();
+  MarkupsFiducialNodeToVTKPoints( toMarkupsFiducialNode, toPointsUnordered );
 
-  if ( this->CheckCollinear( fromPoints.GetPointer() ) )
+  // Determine the order of points and store an "ordered" version of the "To" list
+  vtkSmartPointer< vtkPoints > toPointsOrdered = NULL; // temporary value
+  int inputFormat = fiducialRegistrationWizardNode->GetInputFormat();
+  if ( inputFormat == vtkMRMLFiducialRegistrationWizardNode::INPUT_FORMAT_ORDERED_PAIRS )
+  {
+    toPointsOrdered = toPointsUnordered;
+  }
+  else if ( inputFormat == vtkMRMLFiducialRegistrationWizardNode::INPUT_FORMAT_UNORDERED_PAIRS )
+  {
+    toPointsOrdered = vtkSmartPointer< vtkPoints >::New();
+    ComputePairedPointMapping( fromPoints, toPointsUnordered, toPointsOrdered );
+  }
+
+  // error checking
+  if ( this->CheckCollinear( fromPoints ) )
   {
     fiducialRegistrationWizardNode->SetCalibrationStatusMessage("'From' fiducial list has strictly collinear points.");
     return false;
   }
 
-  if ( this->CheckCollinear( toPoints.GetPointer() ) )
+  if ( this->CheckCollinear( toPointsOrdered ) )
   {
     fiducialRegistrationWizardNode->SetCalibrationStatusMessage("'To' fiducial list has strictly collinear points.");
     return false;
   }
 
+  // compute registration
+  int registrationMode = fiducialRegistrationWizardNode->GetRegistrationMode();
   if ( registrationMode == vtkMRMLFiducialRegistrationWizardNode::REGISTRATION_MODE_RIGID || 
        registrationMode == vtkMRMLFiducialRegistrationWizardNode::REGISTRATION_MODE_SIMILARITY )
   {
     // Compute transformation matrix. We don't set the landmark transform in the node directly because
     // vtkLandmarkTransform is not fully supported (e.g., it cannot be stored in file).
     vtkNew<vtkLandmarkTransform> landmarkTransform;
-    landmarkTransform->SetSourceLandmarks( fromPoints.GetPointer() );
-    landmarkTransform->SetTargetLandmarks( toPoints.GetPointer() );
+    landmarkTransform->SetSourceLandmarks( fromPoints );
+    landmarkTransform->SetTargetLandmarks( toPointsOrdered );
     if ( registrationMode == vtkMRMLFiducialRegistrationWizardNode::REGISTRATION_MODE_RIGID )
     {
       landmarkTransform->SetModeToRigidBody();
@@ -332,8 +348,8 @@ bool vtkSlicerFiducialRegistrationWizardLogic::UpdateCalibration( vtkMRMLNode* n
     }
 
     // Set inputs
-    tpsTransform->SetSourceLandmarks( toPoints.GetPointer() );
-    tpsTransform->SetTargetLandmarks( fromPoints.GetPointer() );
+    tpsTransform->SetSourceLandmarks( toPointsOrdered );
+    tpsTransform->SetTargetLandmarks( fromPoints );
     tpsTransform->Update();
   }
   else
@@ -353,7 +369,7 @@ bool vtkSlicerFiducialRegistrationWizardLogic::UpdateCalibration( vtkMRMLNode* n
   }
 
   std::stringstream successMessage;
-  double rmsError = this->CalculateRegistrationError(fromPoints.GetPointer(), toPoints.GetPointer(), outputTransform);
+  double rmsError = this->CalculateRegistrationError( fromPoints, toPointsOrdered, outputTransform);
   successMessage << "Success! RMS Error: " << rmsError;
   fiducialRegistrationWizardNode->SetCalibrationStatusMessage(successMessage.str());
   return true;
@@ -439,6 +455,203 @@ bool vtkSlicerFiducialRegistrationWizardLogic::CheckCollinear( vtkPoints* points
   */
   return false;
   
+}
+
+//------------------------------------------------------------------------------
+double vtkSlicerFiducialRegistrationWizardLogic::SumOfSquaredElementsInArray( vtkDoubleArray* array )
+{
+  if ( array == NULL )
+  {
+    vtkGenericWarningMacro( "Input array is null. Returning 0." );
+    return 0;
+  }
+
+  double sumOfSquaredElements = 0;
+  int numberOfTuples = array->GetNumberOfTuples();
+  int numberOfComponents = array->GetNumberOfComponents();
+  for ( int tupleIndex = 0; tupleIndex < numberOfTuples; tupleIndex++ )
+  {
+    for ( int componentIndex = 0; componentIndex < numberOfComponents; componentIndex++ )
+    {
+      double currentElement = array->GetComponent( tupleIndex, componentIndex );
+      sumOfSquaredElements += ( currentElement * currentElement );
+    }
+  }
+  return sumOfSquaredElements;
+}
+
+//------------------------------------------------------------------------------
+double vtkSlicerFiducialRegistrationWizardLogic::ComputeSuitabilityOfDistancesMetric( vtkPointDistanceMatrix* referenceDistanceMatrix, vtkPointDistanceMatrix* compareDistanceMatrix )
+{
+  if ( referenceDistanceMatrix == NULL )
+  {
+    vtkGenericWarningMacro( "Input reference distances is null. Cannot compute similarity. Returning 0." );
+    return 0;
+  }
+
+  if ( compareDistanceMatrix == NULL )
+  {
+    vtkGenericWarningMacro( "Input compare distances is null. Cannot compute similarity. Returning 0." );
+    return 0;
+  }
+
+  vtkSmartPointer< vtkDoubleArray > compareMinusReferenceDistanceArray = vtkSmartPointer< vtkDoubleArray >::New();
+  vtkPointDistanceMatrix::ComputeElementWiseDifference( compareDistanceMatrix, referenceDistanceMatrix, compareMinusReferenceDistanceArray );
+  double suitabilityMetric = SumOfSquaredElementsInArray( compareMinusReferenceDistanceArray );
+  return suitabilityMetric;
+}
+
+//------------------------------------------------------------------------------
+void vtkSlicerFiducialRegistrationWizardLogic::ComputePairedPointMapping( vtkPoints* referenceList, vtkPoints* compareList, vtkPoints* comparePointsMatched )
+{
+  if ( compareList->GetNumberOfPoints() != referenceList->GetNumberOfPoints() )
+  {
+    vtkGenericWarningMacro( "Cannot compute paired point mapping when the input point sets are of different sizes." );
+    return;
+  }
+
+  // point pair mapping will be based on the distances to the other points.
+  // ideally the distances between points will match the distances within the referenceList
+  vtkSmartPointer< vtkPointDistanceMatrix > referenceDistanceMatrix = vtkSmartPointer< vtkPointDistanceMatrix >::New();
+  referenceDistanceMatrix->SetPointList1( referenceList );
+  referenceDistanceMatrix->SetPointList2( referenceList ); // distances to itself
+  referenceDistanceMatrix->Update();
+
+  int numberOfPoints = referenceList->GetNumberOfPoints(); // compareList also has this many points
+
+  // compute the permutations, store them in a vtkIntArray.
+  vtkSmartPointer< vtkIntArray > indexPermutations = vtkSmartPointer< vtkIntArray >::New();
+  GenerateIndexPermutations( numberOfPoints, indexPermutations );
+
+  // iterate over all permutations - look for the most 'suitable'
+  // point matching that gives distances most similar to the reference
+
+  // allocate the permuted compare list once outside
+  // the loop to avoid allocation/deallocation time costs.
+  vtkSmartPointer< vtkPoints > permutedCompareList = vtkSmartPointer< vtkPoints >::New();
+  permutedCompareList->DeepCopy( compareList ); // fill it with placeholder data, same size as compareList
+  vtkSmartPointer< vtkPointDistanceMatrix > permutedCompareDistanceMatrix = vtkSmartPointer< vtkPointDistanceMatrix >::New();
+  double minimumSuitability = VTK_DOUBLE_MAX;
+  int numberOfPermutations = indexPermutations->GetNumberOfTuples();
+  for ( int permutationIndex = 0; permutationIndex < numberOfPermutations; permutationIndex++ )
+  {
+    // fill permutedCompareList with points from compareList,
+    // in the order indicate by the permuted indices
+    for ( int pointIndex = 0; pointIndex < numberOfPoints; pointIndex++ )
+    {
+      int permutedPointIndex = indexPermutations->GetComponent( permutationIndex, pointIndex );
+      double* permutedPoint = compareList->GetPoint( permutedPointIndex );
+      permutedCompareList->SetPoint( pointIndex, permutedPoint );
+    }
+    permutedCompareDistanceMatrix->SetPointList1( permutedCompareList );
+    permutedCompareDistanceMatrix->SetPointList2( permutedCompareList );
+    permutedCompareDistanceMatrix->Update();
+    double suitabilityOfPermutation = ComputeSuitabilityOfDistancesMetric( referenceDistanceMatrix, permutedCompareDistanceMatrix );
+
+    // TODO
+    // if suitability within some threshold of the best
+    //   flag ambiguous
+
+    if ( suitabilityOfPermutation < minimumSuitability )
+    {
+      minimumSuitability = suitabilityOfPermutation;
+      comparePointsMatched->DeepCopy( permutedCompareList );
+    }
+    
+    // TODO
+    // if new best is outside threshold of the current best
+    //   flag NOT ambiguous
+  }
+
+  // TODO
+  // if ambiguous
+  //   output warning
+}
+
+//------------------------------------------------------------------------------
+// The input should contain a single tuple with each permutable integer in its own component.
+// The output will be formatted similarly.
+void vtkSlicerFiducialRegistrationWizardLogic::GenerateIndexPermutations(int numberOfIndicesToPermute, vtkIntArray* outputPermutationsArray )
+{
+  if ( outputPermutationsArray->GetNumberOfTuples() > 0 )
+  {
+    vtkGenericWarningMacro( "Output is not empty. Clearing contents." );
+    outputPermutationsArray->Reset();
+  }
+
+  // N! permutations, and therefore also output tuples
+  int numberOfPossiblePermutations = 1;
+  for ( int factor = 2; factor <= numberOfIndicesToPermute; factor++ )
+  {
+    numberOfPossiblePermutations *= factor;
+  }
+  outputPermutationsArray->SetNumberOfComponents( numberOfIndicesToPermute );
+  outputPermutationsArray->SetNumberOfTuples( numberOfPossiblePermutations );
+
+  // The functions will work in place on a vtkIntArray in order to speed up operations,
+  // avoid allocation and deallocation.
+  vtkSmartPointer< vtkIntArray > array = vtkSmartPointer< vtkIntArray >::New();
+  array->SetNumberOfComponents( numberOfIndicesToPermute );
+  array->SetNumberOfTuples( 1 );
+  for ( int index = 0; index < numberOfIndicesToPermute; index++ )
+  {
+    array->SetComponent( 0, index, index ); // the the index'th value to index
+  }
+
+  int numberOfComputedPermutations = 0; // variable is modified in place by the function below.
+  int numberOfElementsProcessed = 0; // nothing has been processed yet
+  GenerateIndexPermutationsHelper( array, numberOfElementsProcessed, numberOfComputedPermutations, outputPermutationsArray );
+
+  // final error check
+  if ( numberOfComputedPermutations != numberOfPossiblePermutations )
+  {
+    vtkGenericWarningMacro( "Number of computed permutations " << numberOfComputedPermutations << " does not match the " <<
+                            "number of possible permutations " << numberOfPossiblePermutations << ". " <<
+                            "This is a bug and results are likely to contain errors. Please report this issue." );
+  }
+}
+
+//------------------------------------------------------------------------------
+// A recursive function to generate all possible permutations of the input array.
+// The numElementsProcessed should start at 0, and numElementsRemaining should be
+// the total length of the input array. permutationCount should be 0 to begin, passed
+// by reference it will be incremented by this function.
+void vtkSlicerFiducialRegistrationWizardLogic::GenerateIndexPermutationsHelper(
+                                 vtkIntArray* array, int numberOfElementsProcessed,
+                                 int& permutationCount, vtkIntArray* outputPermutationsArray )
+{
+  int numberOfElementsInArray = array->GetNumberOfComponents();
+  // base case, 0 elements remain, just copy the processed array into the permutations array
+  if ( numberOfElementsInArray == numberOfElementsProcessed )
+  {
+    for ( int arrayIndex = 0; arrayIndex < numberOfElementsInArray; arrayIndex++ )
+    {
+      outputPermutationsArray->SetComponent( permutationCount, arrayIndex, array->GetComponent( 0, arrayIndex ) );
+    }
+    permutationCount++;
+    return;
+  }
+
+  // recursive case, generate permutations by swapping the front value with each of the following values
+  for ( int currentSwapIndex = numberOfElementsProcessed; currentSwapIndex < numberOfElementsInArray; currentSwapIndex++ )
+  {
+    // get the relevant indices and values _before_ swapping
+    int frontIndex = numberOfElementsProcessed;
+    int frontElementBeforeSwap = array->GetComponent( 0, numberOfElementsProcessed );
+    int nthIndex = currentSwapIndex;
+    int nthElementBeforeSwap = array->GetComponent( 0, nthIndex );
+
+    // swap the values
+    array->SetComponent( 0, frontIndex, nthElementBeforeSwap );
+    array->SetComponent( 0, nthIndex, frontElementBeforeSwap );
+
+    // recursive step
+    GenerateIndexPermutationsHelper( array, numberOfElementsProcessed + 1, permutationCount, outputPermutationsArray );
+
+    // because the array operations are in place, it is necessary to reverse the swap.
+    array->SetComponent( 0, frontIndex, frontElementBeforeSwap );
+    array->SetComponent( 0, nthIndex, nthElementBeforeSwap );
+  }
 }
 
 //------------------------------------------------------------------------------

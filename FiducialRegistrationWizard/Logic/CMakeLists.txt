@@ -8,6 +8,8 @@ set(${KIT}_INCLUDE_DIRECTORIES
   )
 
 set(${KIT}_SRCS
+  vtkPointDistanceMatrix.cxx
+  vtkPointDistanceMatrix.h
   vtkSlicerFiducialRegistrationWizardLogic.cxx
   vtkSlicerFiducialRegistrationWizardLogic.h
   )
