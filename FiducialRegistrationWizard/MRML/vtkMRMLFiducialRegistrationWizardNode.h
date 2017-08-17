@@ -72,9 +72,9 @@ public:
 
   enum
   {
-    INPUT_FORMAT_ORDERED_PAIRS = 0,
-    INPUT_FORMAT_UNORDERED_PAIRS,
-    INPUT_FORMAT_LAST // do not set to this type, insert valid types above this line
+    POINT_MATCHING_METHOD_INPUT_ORDER = 0,
+    POINT_MATCHING_METHOD_COMPUTED,
+    POINT_MATCHING_METHOD_LAST // do not set to this type, insert valid types above this line
   };
 
   vtkTypeMacro( vtkMRMLFiducialRegistrationWizardNode, vtkMRMLNode );
@@ -127,12 +127,12 @@ public:
   static std::string UpdateModeAsString( int );
   static int UpdateModeFromString( std::string );
 
-  vtkGetMacro( InputFormat, int );
-  void SetInputFormat( int newInputFormat );
-  void SetInputFormatToOrderedPairs() { this->SetInputFormat( INPUT_FORMAT_ORDERED_PAIRS ); }
-  void SetInputFormatToUnorderedPairs() { this->SetInputFormat( INPUT_FORMAT_UNORDERED_PAIRS ); }
-  static std::string InputFormatAsString( int );
-  static int InputFormatFromString( std::string );
+  vtkGetMacro( PointMatchingMethod, int );
+  void SetPointMatchingMethod( int );
+  void SetPointMatchingMethodToInputOrder() { this->SetPointMatchingMethod( POINT_MATCHING_METHOD_INPUT_ORDER ); }
+  void SetPointMatchingMethodToComputed() { this->SetPointMatchingMethod( POINT_MATCHING_METHOD_COMPUTED ); }
+  static std::string PointMatchingMethodAsString( int );
+  static int PointMatchingMethodFromString( std::string );
 
   vtkSetMacro( CalibrationStatusMessage, std::string );
   vtkGetMacro( CalibrationStatusMessage, std::string );
@@ -142,7 +142,7 @@ public:
 private:
   int RegistrationMode;
   int UpdateMode;
-  int InputFormat;
+  int PointMatchingMethod;
   std::string CalibrationStatusMessage; // TODO: add this to the ouput transform as a custom node attribute
 
 };  

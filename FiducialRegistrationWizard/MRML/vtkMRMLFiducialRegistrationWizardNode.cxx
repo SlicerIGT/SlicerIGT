@@ -51,7 +51,7 @@ vtkMRMLFiducialRegistrationWizardNode::vtkMRMLFiducialRegistrationWizardNode()
   this->AddNodeReferenceRole( OUTPUT_TRANSFORM_REFERENCE_ROLE );
   this->RegistrationMode = REGISTRATION_MODE_RIGID;
   this->UpdateMode = UPDATE_MODE_MANUAL;
-  this->InputFormat = INPUT_FORMAT_ORDERED_PAIRS;
+  this->PointMatchingMethod = POINT_MATCHING_METHOD_INPUT_ORDER;
 }
 
 //------------------------------------------------------------------------------
@@ -320,53 +320,53 @@ int vtkMRMLFiducialRegistrationWizardNode::UpdateModeFromString( std::string upd
 }
 
 //------------------------------------------------------------------------------
-void vtkMRMLFiducialRegistrationWizardNode::SetInputFormat( int newInputFormat )
+void vtkMRMLFiducialRegistrationWizardNode::SetPointMatchingMethod( int newMethod )
 {
-  if ( this->GetInputFormat() == newInputFormat )
+  if ( this->GetPointMatchingMethod() == newMethod )
   {
     // no change
     return;
   }
-  this->InputFormat = newInputFormat;
+  this->PointMatchingMethod = newMethod;
   this->Modified();
   this->InvokeCustomModifiedEvent(InputDataModifiedEvent);
 }
 
 //------------------------------------------------------------------------------
-std::string vtkMRMLFiducialRegistrationWizardNode::InputFormatAsString( int inputFormat )
+std::string vtkMRMLFiducialRegistrationWizardNode::PointMatchingMethodAsString( int method )
 {
-  switch ( inputFormat )
+  switch ( method )
   {
-    case INPUT_FORMAT_ORDERED_PAIRS:
+    case POINT_MATCHING_METHOD_INPUT_ORDER:
     {
-      return "Ordered Pairs";
+      return "Input Order";
     }
-    case INPUT_FORMAT_UNORDERED_PAIRS:
+    case POINT_MATCHING_METHOD_COMPUTED:
     {
-      return "Unordered Pairs";
+      return "Computed";
     }
     default:
     {
-      vtkGenericWarningMacro( "Unrecognized value for InputFormat " << inputFormat << ". Returning \"Unknown\"" );
+      vtkGenericWarningMacro( "Unrecognized value for PointMatchingMethod " << method << ". Returning \"Unknown\"" );
       return "Unknown";
     }
   }
 }
 
 //------------------------------------------------------------------------------
-int vtkMRMLFiducialRegistrationWizardNode::InputFormatFromString( std::string inputFormatAsString )
+int vtkMRMLFiducialRegistrationWizardNode::PointMatchingMethodFromString( std::string methodAsString )
 {
-  for ( int inputFormat = 0; inputFormat < INPUT_FORMAT_LAST; inputFormat++ )
+  for ( int method = 0; method < POINT_MATCHING_METHOD_LAST; method++ )
   {
-    bool matchingText = inputFormatAsString.compare( InputFormatAsString( inputFormat ) ) == 0;
+    bool matchingText = methodAsString.compare( PointMatchingMethodAsString( method ) ) == 0;
     if ( matchingText )
     {
-      return inputFormat;
+      return method;
     }
   }
   // if there are no matches, then there is likely an error
-  vtkGenericWarningMacro( "Unrecognized string for InputFormat " << inputFormatAsString << ". Returning value for \"Ordered Pairs\"" );
-  return INPUT_FORMAT_ORDERED_PAIRS;
+  vtkGenericWarningMacro( "Unrecognized string for PointMatchingMethod " << methodAsString << ". Returning value for " << PointMatchingMethodAsString( POINT_MATCHING_METHOD_INPUT_ORDER ) );
+  return POINT_MATCHING_METHOD_INPUT_ORDER;
 }
 
 //------------------------------------------------------------------------------

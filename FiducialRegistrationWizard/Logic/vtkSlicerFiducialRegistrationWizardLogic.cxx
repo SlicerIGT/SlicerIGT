@@ -214,21 +214,20 @@ bool vtkSlicerFiducialRegistrationWizardLogic::UpdateCalibration( vtkMRMLNode* n
   }
 
   vtkMRMLMarkupsFiducialNode* fromMarkupsFiducialNode = fiducialRegistrationWizardNode->GetFromFiducialListNode();
-  vtkMRMLMarkupsFiducialNode* toMarkupsFiducialNode = fiducialRegistrationWizardNode->GetToFiducialListNode();
-  vtkMRMLTransformNode* outputTransformNode = fiducialRegistrationWizardNode->GetOutputTransformNode();
-
   if ( fromMarkupsFiducialNode == NULL )
   {
     fiducialRegistrationWizardNode->SetCalibrationStatusMessage("'From' fiducial list is not defined." );
     return false;
   }
 
+  vtkMRMLMarkupsFiducialNode* toMarkupsFiducialNode = fiducialRegistrationWizardNode->GetToFiducialListNode();
   if ( toMarkupsFiducialNode == NULL )
   {
     fiducialRegistrationWizardNode->SetCalibrationStatusMessage("'To' fiducial list is not defined." );
     return false;
   }
 
+  vtkMRMLTransformNode* outputTransformNode = fiducialRegistrationWizardNode->GetOutputTransformNode();
   if ( outputTransformNode == NULL )
   {
     fiducialRegistrationWizardNode->SetCalibrationStatusMessage("Output transform is not defined." );
@@ -262,15 +261,31 @@ bool vtkSlicerFiducialRegistrationWizardLogic::UpdateCalibration( vtkMRMLNode* n
 
   // Determine the order of points and store an "ordered" version of the "To" list
   vtkSmartPointer< vtkPoints > toPointsOrdered = NULL; // temporary value
-  int inputFormat = fiducialRegistrationWizardNode->GetInputFormat();
-  if ( inputFormat == vtkMRMLFiducialRegistrationWizardNode::INPUT_FORMAT_ORDERED_PAIRS )
+  int pointMatchingMethod = fiducialRegistrationWizardNode->GetPointMatchingMethod();
+  if ( pointMatchingMethod == vtkMRMLFiducialRegistrationWizardNode::POINT_MATCHING_METHOD_INPUT_ORDER )
   {
     toPointsOrdered = toPointsUnordered;
   }
-  else if ( inputFormat == vtkMRMLFiducialRegistrationWizardNode::INPUT_FORMAT_UNORDERED_PAIRS )
+  else if ( pointMatchingMethod == vtkMRMLFiducialRegistrationWizardNode::POINT_MATCHING_METHOD_COMPUTED )
   {
+    const int MAX_NUM_POINTS_FOR_UNORDERED_PAIRS = 8;
+    if ( fromPoints->GetNumberOfPoints() > MAX_NUM_POINTS_FOR_UNORDERED_PAIRS )
+    {
+      std::stringstream msg;
+      msg << "Fiducial lists have unequal number of fiducials ('From' has " << fromMarkupsFiducialNode->GetNumberOfFiducials()
+        <<", 'To' has " << toMarkupsFiducialNode->GetNumberOfFiducials() << "). Aborting registration.";
+      fiducialRegistrationWizardNode->SetCalibrationStatusMessage( msg.str() );
+      return false;
+    }
     toPointsOrdered = vtkSmartPointer< vtkPoints >::New();
     ComputePairedPointMapping( fromPoints, toPointsUnordered, toPointsOrdered );
+  }
+  else
+  {
+    std::stringstream msg;
+    msg << "Unrecognized point matching method: " + vtkMRMLFiducialRegistrationWizardNode::PointMatchingMethodAsString( pointMatchingMethod ) + ". Aborting registration.";
+    fiducialRegistrationWizardNode->SetCalibrationStatusMessage( msg.str() );
+    return false;
   }
 
   // error checking
@@ -467,8 +482,8 @@ double vtkSlicerFiducialRegistrationWizardLogic::SumOfSquaredElementsInArray( vt
   }
 
   double sumOfSquaredElements = 0;
-  int numberOfTuples = array->GetNumberOfTuples();
-  int numberOfComponents = array->GetNumberOfComponents();
+  int numberOfTuples = array->GetNumberOfTuples(); // i.e. columns
+  int numberOfComponents = array->GetNumberOfComponents(); // i.e. rows
   for ( int tupleIndex = 0; tupleIndex < numberOfTuples; tupleIndex++ )
   {
     for ( int componentIndex = 0; componentIndex < numberOfComponents; componentIndex++ )
@@ -496,7 +511,7 @@ double vtkSlicerFiducialRegistrationWizardLogic::ComputeSuitabilityOfDistancesMe
   }
 
   vtkSmartPointer< vtkDoubleArray > compareMinusReferenceDistanceArray = vtkSmartPointer< vtkDoubleArray >::New();
-  vtkPointDistanceMatrix::ComputeElementWiseDifference( compareDistanceMatrix, referenceDistanceMatrix, compareMinusReferenceDistanceArray );
+  vtkPointDistanceMatrix::ComputePairWiseDifferences( compareDistanceMatrix, referenceDistanceMatrix, compareMinusReferenceDistanceArray );
   double suitabilityMetric = SumOfSquaredElementsInArray( compareMinusReferenceDistanceArray );
   return suitabilityMetric;
 }
@@ -510,8 +525,11 @@ void vtkSlicerFiducialRegistrationWizardLogic::ComputePairedPointMapping( vtkPoi
     return;
   }
 
-  // point pair mapping will be based on the distances to the other points.
-  // ideally the distances between points will match the distances within the referenceList
+  // point pair mapping will be based on the distances between each pair of ordered points.
+  // we have an input reference point list and a compare point list.
+  // we want to reorder the compare list such that the point-to-point distances are as close as possible
+  // to those in the reference list.
+  
   vtkSmartPointer< vtkPointDistanceMatrix > referenceDistanceMatrix = vtkSmartPointer< vtkPointDistanceMatrix >::New();
   referenceDistanceMatrix->SetPointList1( referenceList );
   referenceDistanceMatrix->SetPointList2( referenceList ); // distances to itself
@@ -613,9 +631,8 @@ void vtkSlicerFiducialRegistrationWizardLogic::GenerateIndexPermutations(int num
 
 //------------------------------------------------------------------------------
 // A recursive function to generate all possible permutations of the input array.
-// The numElementsProcessed should start at 0, and numElementsRemaining should be
-// the total length of the input array. permutationCount should be 0 to begin, passed
-// by reference it will be incremented by this function.
+// The numElementsProcessed should start at 0. permutationCount should be 0 to begin, 
+// it is passed by reference so it will be incremented by this function.
 void vtkSlicerFiducialRegistrationWizardLogic::GenerateIndexPermutationsHelper(
                                  vtkIntArray* array, int numberOfElementsProcessed,
                                  int& permutationCount, vtkIntArray* outputPermutationsArray )

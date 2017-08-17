@@ -84,15 +84,26 @@ protected:
   virtual void OnMRMLSceneNodeRemoved(vtkMRMLNode* node);
 
 private:
-
   vtkSlicerFiducialRegistrationWizardLogic(const vtkSlicerFiducialRegistrationWizardLogic&); // Not implemented
   void operator=(const vtkSlicerFiducialRegistrationWizardLogic&);               // Not implemented
 
-  static double SumOfSquaredElementsInArray( vtkDoubleArray* array );
-  static double ComputeSuitabilityOfDistancesMetric( vtkPointDistanceMatrix* referenceDistanceMatrix, vtkPointDistanceMatrix* testDistanceMatrix );
+  // this function reorders the comparePoints such that they are matched geometrically to the referencePoints.
+  // the output is stored in comparePointsMatched.
   static void   ComputePairedPointMapping( vtkPoints* referencePoints, vtkPoints* comparePoints, vtkPoints* comparePointsMatched );
-  static void   GenerateIndexPermutationsHelper( vtkIntArray* array, int numberOfElementsProcessed, int& tupleIndex, vtkIntArray* outputPermutationsArray );
+
+  // helper function to compute a sum of squares
+  static double SumOfSquaredElementsInArray( vtkDoubleArray* array );
+
+  // The ComputePairedPointMapping will iterate over all permutations on the order of comparePoints.
+  // The goal is to minimize a suitability metric.
+  // The metric is based on the distances between ordered pairs of points within the list.
+  // These distances act as a kind of fingerprint.
+  // In a 'good' mapping, there will be little difference seen in the reference and test distances
+  static double ComputeSuitabilityOfDistancesMetric( vtkPointDistanceMatrix* referenceDistanceMatrix, vtkPointDistanceMatrix* testDistanceMatrix );
+
+  // These functions are used to draw up the different permutations on the order of points in the compare list.
   static void   GenerateIndexPermutations( int numberOfValuesToPermute, vtkIntArray* outputPermutationsArray );
+  static void   GenerateIndexPermutationsHelper( vtkIntArray* array, int numberOfElementsProcessed, int& tupleIndex, vtkIntArray* outputPermutationsArray );
 
   double CalculateRegistrationError( vtkPoints* fromPoints, vtkPoints* toPoints, vtkAbstractTransform* transform );
   bool CheckCollinear( vtkPoints* points );
