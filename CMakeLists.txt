@@ -1,8 +1,6 @@
-cmake_minimum_required(VERSION 2.8.9)
+cmake_minimum_required(VERSION 3.5)
 
 project(SlicerIGT)
-
-cmake_policy(SET CMP0020 NEW)
 
 # Experimental modules are not included in the official SlicerIGT extension package.
 # They are kept in the repository to allow testing but not stable enough to be made available to users.
@@ -48,4 +46,5 @@ if(SLICERIGT_ENABLE_EXPERIMENTAL_MODULES)
 endif(SLICERIGT_ENABLE_EXPERIMENTAL_MODULES)
 
 #-----------------------------------------------------------------------------
+include(${Slicer_EXTENSION_GENERATE_CONFIG})
 include(${Slicer_EXTENSION_CPACK})
