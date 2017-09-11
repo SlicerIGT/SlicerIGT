@@ -183,7 +183,7 @@ std::string vtkSlicerWatchdogLogic::AddNewWatchdogNode(const char *name, vtkMRML
     }
 
   // create and add the node
-  vtkMRMLWatchdogNode mnode = addToThisScene->AddNewNodeByClass("vtkMRMLWatchdogNode");
+  vtkMRMLWatchdogNode* mnode = vtkMRMLWatchdogNode::SafeDownCast(addToThisScene->AddNewNodeByClass("vtkMRMLWatchdogNode"));
   if (name != NULL)
     {
     mnode->SetName(name);
