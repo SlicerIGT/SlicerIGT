@@ -18,7 +18,7 @@ class PreProcessLandmarks(ScriptedLoadableModule):
 
   def __init__(self, parent):
     ScriptedLoadableModule.__init__(self, parent)
-    self.parent.title = "PreProcessLandmarks" # TODO make this more human readable by adding spaces
+    self.parent.title = "Pre-process Landmarks"
     self.parent.categories = ["Scoliosis"]
     self.parent.dependencies = []
     self.parent.contributors = ["Ben Church (PerkLab - Queen's University)"]

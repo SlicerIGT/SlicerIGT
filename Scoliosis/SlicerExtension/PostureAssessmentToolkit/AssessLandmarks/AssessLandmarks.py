@@ -16,7 +16,7 @@ class AssessLandmarks(ScriptedLoadableModule):
 
   def __init__(self, parent):
     ScriptedLoadableModule.__init__(self, parent)
-    self.parent.title = "AssessLandmarks" # TODO make this more human readable by adding spaces
+    self.parent.title = "Assess Landmarks"
     self.parent.categories = ["Scoliosis"]
     self.parent.dependencies = ["PreProcessLandmarks"]
     self.parent.contributors = ["Ben Church (PerkLab - Queen's University)"]

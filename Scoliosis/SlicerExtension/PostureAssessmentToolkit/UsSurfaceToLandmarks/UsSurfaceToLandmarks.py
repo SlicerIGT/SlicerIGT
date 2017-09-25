@@ -16,7 +16,7 @@ class UsSurfaceToLandmarks(ScriptedLoadableModule):
 
   def __init__(self, parent):
     ScriptedLoadableModule.__init__(self, parent)
-    self.parent.title = "UsSurfaceToLandmarks" # TODO make this more human readable by adding spaces
+    self.parent.title = "US Surface To Landmarks"
     self.parent.categories = ["Scoliosis"]
     self.parent.dependencies = []
     self.parent.contributors = ["Ben Church (PerkLab - Queen's University)"]
@@ -385,6 +385,7 @@ class UsSurfaceToLandmarksWidget(ScriptedLoadableModuleWidget):
     SmoothedModelNode = slicer.vtkMRMLModelNode()
     SmoothedModelNode.SetName(WorkingNodeName)
     SmoothedModelNode.SetAndObservePolyData(SmoothedPolyData)
+    #SmoothedModelNode
     
     ConvSeg = slicer.vtkMRMLSegmentationNode()
     ConvSeg.SetScene(slicer.mrmlScene)
@@ -395,18 +396,18 @@ class UsSurfaceToLandmarksWidget(ScriptedLoadableModuleWidget):
     
     # Clear mrmlScene of old labelmap node before exporting the new one
     OldLabelMapNode = self.WorkingLabelMapStorage.currentNode()
+    SmoothedLabelMapNode = slicer.vtkMRMLLabelMapVolumeNode()
+    #SmoothedLabelMapNode.SetName(WorkingNodeName)
     if OldLabelMapNode != None:
+      SmoothedLabelMapNode.SetName(OldLabelMapNode.GetName())
+      SmoothedLabelMapNode.SetOrigin(OldLabelMapNode.GetOrigin())
       slicer.mrmlScene.RemoveNode(OldLabelMapNode)
     
     # Export segmentation label map representation to mrml node for storage in interface
     LabelMapName = vtk.vtkStringArray()
     LabelMapName.InsertNextValue(WorkingNodeName)
-    SmoothedLabelMapNode = slicer.vtkMRMLLabelMapVolumeNode()
-    SmoothedLabelMapNode.SetName(WorkingNodeName)
     slicer.mrmlScene.AddNode(SmoothedLabelMapNode)    
-    #SmoothedLabelMapNode
     SegLogic.ExportSegmentsToLabelmapNode(ConvSeg, LabelMapName, SmoothedLabelMapNode)
-    
     # Update working polydata in UI
     # Add new smoothed label map node to mrmlScene
     self.WorkingLabelMapStorage.setCurrentNode(SmoothedLabelMapNode)
@@ -660,7 +661,6 @@ class UsSurfaceToLandmarksLogic(ScriptedLoadableModuleLogic):
     vtkSmoother.SetInputData(PolyData)
     vtkSmoother.Update()
     SmoothedPolyData = vtkSmoother.GetOutput()
-    
     return SmoothedPolyData
     
   def DecimatePolyData(self, PolyData):
@@ -829,7 +829,7 @@ class UsSurfaceToLandmarksLogic(ScriptedLoadableModuleLogic):
     print "DEBUG - vtkKMeansStatistics initialized"
     
     # Iteratively try increasing cluster numbers up to 34, requiring a minimum of 6 landmarks
-    MinErr = 999999999         # LargeNumber
+    MinErr = 9999999999         # LargeNumber
     BestK = 6
     for k in range(6,35):
       km.SetDefaultNumberOfClusters(k)
@@ -843,7 +843,8 @@ class UsSurfaceToLandmarksLogic(ScriptedLoadableModuleLogic):
       
       ErCol = OutMetaTable.GetColumn(3)
       #ErAr = Rd.GetArray(3)
-      Er = abs(ErCol.GetValue(0))
+      #Er = abs(ErCol.GetValue(0))
+      Er = k*abs(ErCol.GetValue(0))     
       print "Landmark generation error with k = " + str(k) + " means: " + str(Er) 
       
       if Er < MinErr:
