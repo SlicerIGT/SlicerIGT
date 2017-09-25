@@ -344,13 +344,13 @@ class UsSurfaceToLandmarksWidget(ScriptedLoadableModuleWidget):
       
       # Convert the mha-derived volume into a label map for supsequent editing
       LabelMapNode = logic.VolumeThresholdToLabelMap(InputVolumeNode, self.VolumeThresholdSlider.value)
+      #LabelMapNode.SetOrigin(InputVolumeNode.GetOrigin())
       LabelMapNode.SetName(LabelMapNodeName)
       
       # Import thresholded labelmap into segmentation as "original" scan data i.e. starting point for processing
       #if self.SegmentationNode.GetNumberOfStorageNodes() > 0 and Segmentation.GetNthSegmentID(0) == LabelMapNodeName:
       if self.SegmentationNode.GetBinaryLabelmapRepresentation(LabelMapNodeName) != None:      
         self.SegmentationNode.RemoveSegment(LabelMapNodeName)
-      
       
       # Clear mrmlScene of old labelmap node before thresholding new one
       OldLabelMapNode = self.WorkingLabelMapStorage.currentNode()
@@ -396,18 +396,18 @@ class UsSurfaceToLandmarksWidget(ScriptedLoadableModuleWidget):
     
     # Clear mrmlScene of old labelmap node before exporting the new one
     OldLabelMapNode = self.WorkingLabelMapStorage.currentNode()
-    SmoothedLabelMapNode = slicer.vtkMRMLLabelMapVolumeNode()
-    #SmoothedLabelMapNode.SetName(WorkingNodeName)
     if OldLabelMapNode != None:
-      SmoothedLabelMapNode.SetName(OldLabelMapNode.GetName())
-      SmoothedLabelMapNode.SetOrigin(OldLabelMapNode.GetOrigin())
       slicer.mrmlScene.RemoveNode(OldLabelMapNode)
     
     # Export segmentation label map representation to mrml node for storage in interface
+    SmoothedLabelMapNode = slicer.vtkMRMLLabelMapVolumeNode()
+    SmoothedLabelMapNode.SetName(WorkingNodeName)
+    
     LabelMapName = vtk.vtkStringArray()
     LabelMapName.InsertNextValue(WorkingNodeName)
     slicer.mrmlScene.AddNode(SmoothedLabelMapNode)    
     SegLogic.ExportSegmentsToLabelmapNode(ConvSeg, LabelMapName, SmoothedLabelMapNode)
+    SmoothedLabelMapNode.SetOrigin(self.InputVolumeSelector.currentNode().GetOrigin())
     # Update working polydata in UI
     # Add new smoothed label map node to mrmlScene
     self.WorkingLabelMapStorage.setCurrentNode(SmoothedLabelMapNode)
@@ -618,7 +618,6 @@ class UsSurfaceToLandmarksLogic(ScriptedLoadableModuleLogic):
     
     LabelMapNode = slicer.vtkMRMLLabelMapVolumeNode()
     LabelMapNode.SetSpacing(VolumeNode.GetSpacing())
-    LabelMapNode.SetOrigin(VolumeNode.GetOrigin())
     
     # Apply threshold
     Thresholder = vtk.vtkImageThreshold()
@@ -629,7 +628,10 @@ class UsSurfaceToLandmarksLogic(ScriptedLoadableModuleLogic):
     Thresholder.Update()
     
     LabelMapNode.SetAndObserveImageData(Thresholder.GetOutput())
-    
+    LabelMapNode.SetOrigin(VolumeNode.GetOrigin())
+    mat = vtk.vtkMatrix4x4()
+    VolumeNode.GetIJKToRASDirectionMatrix(mat)
+    LabelMapNode.SetIJKToRASDirectionMatrix(mat)
     return LabelMapNode
 
   def ErodeLabelMap(self, LabelMapNode, ErosionKernelSize):
