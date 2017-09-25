@@ -494,13 +494,31 @@ class UsSurfaceToLandmarksWidget(ScriptedLoadableModuleWidget):
     return True
     
   def OnGenerateLandmarksButtonClicked(self):
+    logic = UsSurfaceToLandmarksLogic()
+    
+    LabelMapNode = self.WorkingLabelMapStorage.currentNode()
+    if LabelMapNode == None:
+      print "ERROR - Cannot generate landmarks without labelmap; at least threshold volume first"
+      return False
+      
+    else:
+      MarkupsNode = logic.LabelMapToMarkupsNode(LabelMapNode, self.UndersampleFractionSlider.value)
+      
+      MarkupsNodeName = LabelMapNode.GetName() + "_Mu"
+      
+      OldMarkupsNode = slicer.util.getNode(MarkupsNodeName)
+      if OldMarkupsNode != None:
+        slicer.mrmlScene.RemoveNode(OldMarkupsNode)
+      
+      slicer.mrmlScene.AddNode(MarkupsNode)
+      return True
+    
+    """
     InputVolumeNode = self.InputVolumeSelector.currentNode()
     if InputVolumeNode == None:
       print "ERROR - No input volume selected; not generating landmarks"
       return False
     else:
-      
-      logic = UsSurfaceToLandmarksLogic()
       
       # Convert the mha-derived volume into a label map for supsequent editing
       LabelMapNode = logic.VolumeThresholdToLabelMap(InputVolumeNode, self.VolumeThresholdSlider.value)
@@ -517,14 +535,14 @@ class UsSurfaceToLandmarksWidget(ScriptedLoadableModuleWidget):
       LabelMapNode.SetName(LabelMapNodeName)
       
       ImData = LabelMapNode.GetImageData()
-      """
+
       for x in range(ImData.GetExtent()[1]):
         for y in range(ImData.GetExtent()[3]):
           for z in range(ImData.GetExtent()[5]):
             if ImData.GetScalarComponentAsDouble(x,y,z, 0):
               print ImData.GetScalarComponentAsDouble(x,y,z, 0)
       Debugging check, takes long time to complete
-      """
+
       # Apply label map editing operations to isolate the surfaces corresponding to TrPs
       ErosionKernelSize = [self.RlErodeKsSpinBox.value, self.ApErodeKsSpinBox.value, self.SiErodeKsSpinBox.value]
       ErodedLabelMapNode = logic.ErodeLabelMap(LabelMapNode, ErosionKernelSize)
@@ -557,6 +575,7 @@ class UsSurfaceToLandmarksWidget(ScriptedLoadableModuleWidget):
       #self.OutputMarkupsStorage.setCurrentNode(OutputMarkupsNode)
     
       return True
+    """
     
   def OnReloadButtonClicked(self):
     slicer.util.reloadScriptedModule(slicer.moduleNames.UsSurfaceToLandmarks)
@@ -736,8 +755,11 @@ class UsSurfaceToLandmarksLogic(ScriptedLoadableModuleLogic):
     """
     
     sSamples = vtk.vtkDoubleArray()
+    sSamples.SetName('s')
     rSamples = vtk.vtkDoubleArray()
+    rSamples.SetName('r')
     aSamples = vtk.vtkDoubleArray()
+    aSamples.SetName('a')
     
     for SmplNum in range(NumSamples):
       SampleIndex = int(np.random.uniform() * (s.GetNumberOfValues()))
@@ -758,15 +780,14 @@ class UsSurfaceToLandmarksLogic(ScriptedLoadableModuleLogic):
   def LabelMapToMarkupsNode(self, LabelMapNode, UndersampleFraction):
     
     id = LabelMapNode.GetImageData()
-    dt = vtk.vtkTable()
     
     idExtent = id.GetExtent()
     rCoords = vtk.vtkDoubleArray()
-    rCoords.SetName('R-L')
+    rCoords.SetName('r')
     sCoords = vtk.vtkDoubleArray()
-    sCoords.SetName('S-I')
+    sCoords.SetName('s')
     aCoords = vtk.vtkDoubleArray()
-    aCoords.SetName('A-P')
+    aCoords.SetName('a')
     
     for S in range(idExtent[5]):    # For each row of the labelmap
       for R in range(idExtent[1]):      # For each column of the label-map
@@ -782,6 +803,7 @@ class UsSurfaceToLandmarksLogic(ScriptedLoadableModuleLogic):
     # Undersample coords
     (UndSplR, UndSplA, UndSplS) = self.UndersampleCoordsArrays(rCoords, aCoords, sCoords, UndersampleFraction)
     
+    dt = vtk.vtkTable()
     dt.AddColumn(UndSplS)
     dt.AddColumn(UndSplR)
     dt.AddColumn(UndSplA)
@@ -789,15 +811,22 @@ class UsSurfaceToLandmarksLogic(ScriptedLoadableModuleLogic):
     # Initialize vtk kMeans class
     km = vtk.vtkKMeansStatistics()
     km.SetInputData(vtk.vtkStatisticsAlgorithm.INPUT_DATA, dt)
-    km.SetColumnStatus("S-I", 1)
-    km.SetColumnStatus("R-L", 1)
-    km.SetColumnStatus("A-P", 1)
+    #km.SetInput(dt)
+    km.SetColumnStatus("s", 1)
+    km.SetColumnStatus("r", 1)
+    km.SetColumnStatus("a", 1)
     km.RequestSelectedColumns()
+    
+    #df = vtk.vtkKMeansDistanceFunctorCalculator()
+    #km.SetDistanceFunctor(df)
+    #df.SetDistanceExpression('sqrt( (r0-0)*(x0-y0) + (x1-y1)*(x1-y1) )')
     
     km.SetLearnOption(True)
     km.SetDeriveOption(True)
-    km.SetTestOption(False)
-    km.SetAssessOption(True)
+    km.SetTestOption(True)
+    km.SetAssessOption(False)
+    
+    print "DEBUG - vtkKMeansStatistics initialized"
     
     # Iteratively try increasing cluster numbers up to 34, requiring a minimum of 6 landmarks
     MinErr = 999999999         # LargeNumber
@@ -806,12 +835,17 @@ class UsSurfaceToLandmarksLogic(ScriptedLoadableModuleLogic):
       km.SetDefaultNumberOfClusters(k)
       km.Update()
       # Get cluster centers
+      
       OutMetaDS = vtk.vtkMultiBlockDataSet.SafeDownCast(km.GetOutputDataObject(vtk.vtkStatisticsAlgorithm.OUTPUT_MODEL))
-      OutMetaTable = vtk.vtkTable.SafeDownCast(OutMetaDS.GetBlock(0))
-      Rd = OutMetaTable.GetRowData()
-      ErAr = Rd.GetArray(3)
-      Er = ErAr.GetComponent(0,0)
+      print OutMetaDS
+      OutMetaTable = vtk.vtkTable.SafeDownCast(OutMetaDS.GetBlock(1))
+      print OutMetaTable
+      
+      ErCol = OutMetaTable.GetColumn(3)
+      #ErAr = Rd.GetArray(3)
+      Er = abs(ErCol.GetValue(0))
       print "Landmark generation error with k = " + str(k) + " means: " + str(Er) 
+      
       if Er < MinErr:
         MinErr = Er
         BestK = k
@@ -823,13 +857,10 @@ class UsSurfaceToLandmarksLogic(ScriptedLoadableModuleLogic):
     km.Update()
     OutMetaDS = vtk.vtkMultiBlockDataSet.SafeDownCast(km.GetOutputDataObject(vtk.vtkStatisticsAlgorithm.OUTPUT_MODEL))
     OutMetaTable = vtk.vtkTable.SafeDownCast(OutMetaDS.GetBlock(0))
-    
-    #df = vtk.vtkKMeansDistanceFunctorCalculator()
-    #km.SetDistanceFunctor(df)
 
-    Coords0 = vtk.vtkDoubleArray.SafeDownCast(OutMetaTable.GetColumnByName("R-L"))
-    Coords1 = vtk.vtkDoubleArray.SafeDownCast(OutMetaTable.GetColumnByName("A-P"))
-    Coords2 = vtk.vtkDoubleArray.SafeDownCast(OutMetaTable.GetColumnByName("S-I"))
+    Coords0 = vtk.vtkDoubleArray.SafeDownCast(OutMetaTable.GetColumnByName("r"))
+    Coords1 = vtk.vtkDoubleArray.SafeDownCast(OutMetaTable.GetColumnByName("a"))
+    Coords2 = vtk.vtkDoubleArray.SafeDownCast(OutMetaTable.GetColumnByName("s"))
     
     # Instantiate and populate MarkupsNode
     LandmarksMarkupsNode = slicer.vtkMRMLMarkupsFiducialNode()
