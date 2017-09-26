@@ -37,6 +37,13 @@ class UsSurfaceToLandmarksWidget(ScriptedLoadableModuleWidget):
   def setup(self):
     ScriptedLoadableModuleWidget.setup(self)
 
+    #
+    # Node operation tags
+    #
+    self.ThresholdTag = "_Th"
+    self.SmoothTag = "_Sm"
+    self.MarkupsTag = "_Mu"
+    
     # Instantiate and connect widgets ...
 
     #
@@ -327,6 +334,7 @@ class UsSurfaceToLandmarksWidget(ScriptedLoadableModuleWidget):
     
   def OnThresholdVolumeButtonClicked(self):
     InputVolumeNode = self.InputVolumeSelector.currentNode()
+    
     if InputVolumeNode == None:
       print "ERROR - No input volume selected; not generating landmarks"
       return False
@@ -334,29 +342,28 @@ class UsSurfaceToLandmarksWidget(ScriptedLoadableModuleWidget):
     else:  
       logic = UsSurfaceToLandmarksLogic()
       
-      """
-      OldLabelMapNode = slicer.util.getNode(LabelMapNodeName)
-      if OldLabelMapNode != None:
-        slicer.mrmlScene.RemoveNode(OldLabelMapNode)
-      """  
-      
-      LabelMapNodeName = InputVolumeNode.GetName() + "_Th"
+      # Clear mrmlScene of old labelmap node before thresholding new one
+      ThresholdLabelmapName = InputVolumeNode.GetName() + self.ThresholdTag
+      OldLabelmapNode = slicer.util.getNode(ThresholdLabelmapName)
+      if OldLabelmapNode != None:
+        slicer.mrmlScene.RemoveNode(OldLabelmapNode)
       
       # Convert the mha-derived volume into a label map for supsequent editing
       LabelMapNode = logic.VolumeThresholdToLabelMap(InputVolumeNode, self.VolumeThresholdSlider.value)
       #LabelMapNode.SetOrigin(InputVolumeNode.GetOrigin())
-      LabelMapNode.SetName(LabelMapNodeName)
+      LabelMapNode.SetName(ThresholdLabelmapName)
       
       # Import thresholded labelmap into segmentation as "original" scan data i.e. starting point for processing
-      #if self.SegmentationNode.GetNumberOfStorageNodes() > 0 and Segmentation.GetNthSegmentID(0) == LabelMapNodeName:
-      if self.SegmentationNode.GetBinaryLabelmapRepresentation(LabelMapNodeName) != None:      
-        self.SegmentationNode.RemoveSegment(LabelMapNodeName)
+      #if self.SegmentationNode.GetNumberOfStorageNodes() > 0 and Segmentation.GetNthSegmentID(0) == ThresholdLabelmapName:
+      if self.SegmentationNode.GetBinaryLabelmapRepresentation(ThresholdLabelmapName) != None:      
+        self.SegmentationNode.RemoveSegment(ThresholdLabelmapName)
       
-      # Clear mrmlScene of old labelmap node before thresholding new one
-      OldLabelMapNode = self.WorkingLabelMapStorage.currentNode()
-      if OldLabelMapNode != None:
-        slicer.mrmlScene.RemoveNode(OldLabelMapNode)
-
+      """
+      OldLabelmapNode = self.WorkingLabelMapStorage.currentNode()
+      if OldLabelmapNode != None:
+        slicer.mrmlScene.RemoveNode(OldLabelmapNode)
+      """
+        
       # Update mrmlScene and interface with newest working node
       slicer.mrmlScene.AddNode(LabelMapNode)
       self.WorkingLabelMapStorage.setCurrentNode(LabelMapNode)
@@ -395,19 +402,20 @@ class UsSurfaceToLandmarksWidget(ScriptedLoadableModuleWidget):
     ConvSeg.SetMasterRepresentationToBinaryLabelmap()
     
     # Clear mrmlScene of old labelmap node before exporting the new one
-    OldLabelMapNode = self.WorkingLabelMapStorage.currentNode()
+    #OldLabelMapNode = self.WorkingLabelMapStorage.currentNode()
+    OldLabelMapNode = slicer.util.getNode(WorkingNodeName)
     if OldLabelMapNode != None:
       slicer.mrmlScene.RemoveNode(OldLabelMapNode)
     
     # Export segmentation label map representation to mrml node for storage in interface
     SmoothedLabelMapNode = slicer.vtkMRMLLabelMapVolumeNode()
-    SmoothedLabelMapNode.SetName(WorkingNodeName)
+    SmoothedLabelMapNode.SetName(WorkingNodeName + self.SmoothTag)
     
     LabelMapName = vtk.vtkStringArray()
     LabelMapName.InsertNextValue(WorkingNodeName)
     slicer.mrmlScene.AddNode(SmoothedLabelMapNode)    
     SegLogic.ExportSegmentsToLabelmapNode(ConvSeg, LabelMapName, SmoothedLabelMapNode)
-    SmoothedLabelMapNode.SetOrigin(self.InputVolumeSelector.currentNode().GetOrigin())
+    #SmoothedLabelMapNode.SetOrigin(self.InputVolumeSelector.currentNode().GetOrigin())
     # Update working polydata in UI
     # Add new smoothed label map node to mrmlScene
     self.WorkingLabelMapStorage.setCurrentNode(SmoothedLabelMapNode)
@@ -484,8 +492,6 @@ class UsSurfaceToLandmarksWidget(ScriptedLoadableModuleWidget):
     DeislandedLabelMapNode.SetName(WorkingLabelMap.GetName())
     slicer.mrmlScene.AddNode(DeislandedLabelMapNode) 
     SegLogic.ExportSegmentsToLabelmapNode(ConvSeg, LabelMapName, DeislandedLabelMapNode)
-    
-    
   
     # Update mrmlScene and UI
     #slicer.mrmlScene.AddNode(LabelMapIslandsRemoved)
@@ -503,80 +509,17 @@ class UsSurfaceToLandmarksWidget(ScriptedLoadableModuleWidget):
       return False
       
     else:
-      MarkupsNode = logic.LabelMapToMarkupsNode(LabelMapNode, self.UndersampleFractionSlider.value)
-      
-      MarkupsNodeName = LabelMapNode.GetName() + "_Mu"
-      
-      OldMarkupsNode = slicer.util.getNode(MarkupsNodeName)
-      if OldMarkupsNode != None:
-        slicer.mrmlScene.RemoveNode(OldMarkupsNode)
-      
-      slicer.mrmlScene.AddNode(MarkupsNode)
-      return True
-    
-    """
-    InputVolumeNode = self.InputVolumeSelector.currentNode()
-    if InputVolumeNode == None:
-      print "ERROR - No input volume selected; not generating landmarks"
-      return False
-    else:
-      
-      # Convert the mha-derived volume into a label map for supsequent editing
-      LabelMapNode = logic.VolumeThresholdToLabelMap(InputVolumeNode, self.VolumeThresholdSlider.value)
-      
-      # Add LabelMapNode to scene for devel
-      LabelMapNodeName = InputVolumeNode.GetName() + "_LM"
-      
-      OldLabelMapNode = slicer.util.getNode(LabelMapNodeName)
-      if OldLabelMapNode != None:
-        slicer.mrmlScene.RemoveNode(OldLabelMapNode)
-      
-      slicer.mrmlScene.AddNode(LabelMapNode)
-      LabelMapNode.CreateDefaultDisplayNodes()
-      LabelMapNode.SetName(LabelMapNodeName)
-      
-      ImData = LabelMapNode.GetImageData()
-
-      for x in range(ImData.GetExtent()[1]):
-        for y in range(ImData.GetExtent()[3]):
-          for z in range(ImData.GetExtent()[5]):
-            if ImData.GetScalarComponentAsDouble(x,y,z, 0):
-              print ImData.GetScalarComponentAsDouble(x,y,z, 0)
-      Debugging check, takes long time to complete
-
-      # Apply label map editing operations to isolate the surfaces corresponding to TrPs
-      ErosionKernelSize = [self.RlErodeKsSpinBox.value, self.ApErodeKsSpinBox.value, self.SiErodeKsSpinBox.value]
-      ErodedLabelMapNode = logic.ErodeLabelMap(LabelMapNode, ErosionKernelSize)
-      
-      # Add ErodedLabelMapNode to scene for devel
-      ErodedLabelMapNodeName = InputVolumeNode.GetName() + "_LM_E"
-      
-      OldLabelMapNode = slicer.util.getNode(ErodedLabelMapNodeName)
-      if OldLabelMapNode != None:
-        slicer.mrmlScene.RemoveNode(OldLabelMapNode)
-      
-      slicer.mrmlScene.AddNode(ErodedLabelMapNode)
-      ErodedLabelMapNode.CreateDefaultDisplayNodes()
-      ErodedLabelMapNode.SetName(ErodedLabelMapNodeName)
-      
-      # Get a markups node by labelling each island from the isolated-landmark label map
-      #OutputMarkupsNode = logic.LabelMapToMarkupsNode(LabelMapNode)
-      MarkupsNode = logic.LabelMapToMarkupsNode(ErodedLabelMapNode, self.UndersampleFractionSlider.value)
-      
-      MarkupsNodeName = ErodedLabelMapNode.GetName() + "_Mu"
+      MarkupsNode = logic.LabelmapToMarkupsNode(LabelMapNode, self.UndersampleFractionSlider.value)
+      MarkupsNodeName = LabelMapNode.GetName() + self.MarkupsTag
+      MarkupsNode.SetName(MarkupsNodeName)
       
       OldMarkupsNode = slicer.util.getNode(MarkupsNodeName)
       if OldMarkupsNode != None:
         slicer.mrmlScene.RemoveNode(OldMarkupsNode)
       
       slicer.mrmlScene.AddNode(MarkupsNode)
-      
-      # Update slicer scene
-      #slicer.mrmlScene.AddNode(OutputMarkupsNode)
-      #self.OutputMarkupsStorage.setCurrentNode(OutputMarkupsNode)
-    
+      self.OutputMarkupsStorage.setCurrentNode(MarkupsNode)
       return True
-    """
     
   def OnReloadButtonClicked(self):
     slicer.util.reloadScriptedModule(slicer.moduleNames.UsSurfaceToLandmarks)
@@ -742,19 +685,7 @@ class UsSurfaceToLandmarksLogic(ScriptedLoadableModuleLogic):
       print " Returning input arrays"
       return (r, a, s)
     
-      
     NumSamples = int(SampleFraction * s.GetNumberOfValues())
-    #NumSamplesRemaining = NumSamples
-    
-    # Randomly select voxels without replacement
-    """
-    sCopy = vtk.vtkDoubleArray()
-    sCopy.DeepCopy(s)
-    rCopy = vtk.vtkDoubleArray()
-    rCopy.DeepCopy(r)
-    aCopy = vtk.vtkDoubleArray()
-    aCopy.DeepCopy(a)
-    """
     
     sSamples = vtk.vtkDoubleArray()
     sSamples.SetName('s')
@@ -763,6 +694,7 @@ class UsSurfaceToLandmarksLogic(ScriptedLoadableModuleLogic):
     aSamples = vtk.vtkDoubleArray()
     aSamples.SetName('a')
     
+    # Randomly select voxels without replacement    
     for SmplNum in range(NumSamples):
       SampleIndex = int(np.random.uniform() * (s.GetNumberOfValues()))
       sSamples.InsertNextValue(s.GetValue(SampleIndex))
@@ -775,15 +707,15 @@ class UsSurfaceToLandmarksLogic(ScriptedLoadableModuleLogic):
       r.RemoveTuple(SampleIndex)
       a.RemoveTuple(SampleIndex)
     
-    
-    print "Under-sampling success"
+    #print "DEBUG - Under-sampling success"
     return (rSamples, aSamples, sSamples)
     
-  def LabelMapToMarkupsNode(self, LabelMapNode, UndersampleFraction):
+  def LabelmapToMarkupsNode(self, LabelmapNode, UndersampleFraction):
     
-    id = LabelMapNode.GetImageData()
-    
+    id = LabelmapNode.GetImageData()
+    orig = LabelmapNode.GetOrigin()
     idExtent = id.GetExtent()
+    #idBounds = id.GetBounds()
     rCoords = vtk.vtkDoubleArray()
     rCoords.SetName('r')
     sCoords = vtk.vtkDoubleArray()
@@ -791,15 +723,15 @@ class UsSurfaceToLandmarksLogic(ScriptedLoadableModuleLogic):
     aCoords = vtk.vtkDoubleArray()
     aCoords.SetName('a')
     
-    for S in range(idExtent[5]):    # For each row of the labelmap
-      for R in range(idExtent[1]):      # For each column of the label-map
-        for A in range(idExtent[3], idExtent[2]-1, -1):  # Take projetion alond A-P line, posterior to anterior direction
+    for R in range(int(idExtent[0]), int(idExtent[1])):      # For each column of the label-map
+      for A in range(int(idExtent[3]), int(idExtent[2])-1, -1):  # Take projetion alond A-P line, posterior to anterior direction
+        for S in range(int(idExtent[4]), int(idExtent[5])):    # For each row of the labelmap
           CurrentValue = id.GetScalarComponentAsDouble(R,A,S, 0)
           if CurrentValue > 0:
             #print CurrentValue
-            rCoords.InsertNextValue(R)
-            aCoords.InsertNextValue(A)
-            sCoords.InsertNextValue(S)
+            rCoords.InsertNextValue(R+orig[0])
+            aCoords.InsertNextValue(A+orig[1])
+            sCoords.InsertNextValue(S+orig[2])
             break
 
     # Undersample coords
@@ -813,7 +745,6 @@ class UsSurfaceToLandmarksLogic(ScriptedLoadableModuleLogic):
     # Initialize vtk kMeans class
     km = vtk.vtkKMeansStatistics()
     km.SetInputData(vtk.vtkStatisticsAlgorithm.INPUT_DATA, dt)
-    #km.SetInput(dt)
     km.SetColumnStatus("s", 1)
     km.SetColumnStatus("r", 1)
     km.SetColumnStatus("a", 1)
@@ -867,7 +798,7 @@ class UsSurfaceToLandmarksLogic(ScriptedLoadableModuleLogic):
     
     # Instantiate and populate MarkupsNode
     LandmarksMarkupsNode = slicer.vtkMRMLMarkupsFiducialNode()
-    LandmarksMarkupsNode.SetName(LabelMapNode.GetName() + "_MU")
+    #LandmarksMarkupsNode.SetName(LabelmapNode.GetName() + "_Mu")
     for i in range(np.size(Coords0)):
       CurrentClusterCoords = [Coords0.GetTuple(i)[0], Coords1.GetTuple(i)[0], Coords2.GetTuple(i)[0]]
       LandmarksMarkupsNode.AddFiducialFromArray(CurrentClusterCoords)
