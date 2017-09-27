@@ -22,6 +22,7 @@
 // FiducialRegistrationWizard includes
 #include "vtkSlicerFiducialRegistrationWizardLogic.h"
 #include "vtkPointDistanceMatrix.h"
+#include "vtkCombinatoricGenerator.h"
 
 // MRML includes
 #include "vtkMRMLLinearTransformNode.h"
@@ -254,31 +255,37 @@ bool vtkSlicerFiducialRegistrationWizardLogic::UpdateCalibration( vtkMRMLNode* n
   }
 
   // Convert the markupsfiducial nodes into vtk points
-  vtkSmartPointer< vtkPoints > fromPoints = vtkSmartPointer< vtkPoints >::New();
-  MarkupsFiducialNodeToVTKPoints( fromMarkupsFiducialNode, fromPoints );
+  vtkSmartPointer< vtkPoints > fromPointsUnordered = vtkSmartPointer< vtkPoints >::New();
+  MarkupsFiducialNodeToVTKPoints( fromMarkupsFiducialNode, fromPointsUnordered );
   vtkSmartPointer< vtkPoints > toPointsUnordered = vtkSmartPointer< vtkPoints >::New();
   MarkupsFiducialNodeToVTKPoints( toMarkupsFiducialNode, toPointsUnordered );
 
   // Determine the order of points and store an "ordered" version of the "To" list
+  vtkSmartPointer< vtkPoints > fromPointsOrdered = NULL; // temporary value
   vtkSmartPointer< vtkPoints > toPointsOrdered = NULL; // temporary value
   int pointMatchingMethod = fiducialRegistrationWizardNode->GetPointMatchingMethod();
   if ( pointMatchingMethod == vtkMRMLFiducialRegistrationWizardNode::POINT_MATCHING_METHOD_INPUT_ORDER )
   {
+    fromPointsOrdered = fromPointsUnordered;
     toPointsOrdered = toPointsUnordered;
   }
   else if ( pointMatchingMethod == vtkMRMLFiducialRegistrationWizardNode::POINT_MATCHING_METHOD_COMPUTED )
   {
-    const int MAX_NUM_POINTS_FOR_UNORDERED_PAIRS = 8;
-    if ( fromPoints->GetNumberOfPoints() > MAX_NUM_POINTS_FOR_UNORDERED_PAIRS )
+    const int MAX_NUMBER_OF_POINTS_FOR_POINT_MATCHING_METHOD_COMPUTED = 8; // more than this and it tends to take a long time. Algorithm is N!
+    int fromNumberOfPoints = fromPointsUnordered->GetNumberOfPoints();
+    int toNumberOfPoints = toPointsUnordered->GetNumberOfPoints();
+    int numberOfPointsToMatch = std::max( fromNumberOfPoints, toNumberOfPoints );
+    if ( numberOfPointsToMatch > MAX_NUMBER_OF_POINTS_FOR_POINT_MATCHING_METHOD_COMPUTED )
     {
       std::stringstream msg;
-      msg << "Fiducial lists have unequal number of fiducials ('From' has " << fromMarkupsFiducialNode->GetNumberOfFiducials()
-        <<", 'To' has " << toMarkupsFiducialNode->GetNumberOfFiducials() << "). Aborting registration.";
+      msg << "Too many points to compute point pairing " << numberOfPointsToMatch << ". "
+          << "Should be at most " << MAX_NUMBER_OF_POINTS_FOR_POINT_MATCHING_METHOD_COMPUTED << "). Aborting registration.";
       fiducialRegistrationWizardNode->SetCalibrationStatusMessage( msg.str() );
       return false;
     }
+    fromPointsOrdered = fromPointsUnordered; // from list remains as-is
     toPointsOrdered = vtkSmartPointer< vtkPoints >::New();
-    ComputePairedPointMapping( fromPoints, toPointsUnordered, toPointsOrdered );
+    ComputePairedPointMapping( fromPointsOrdered, toPointsUnordered, toPointsOrdered );
   }
   else
   {
@@ -289,7 +296,7 @@ bool vtkSlicerFiducialRegistrationWizardLogic::UpdateCalibration( vtkMRMLNode* n
   }
 
   // error checking
-  if ( this->CheckCollinear( fromPoints ) )
+  if ( this->CheckCollinear( fromPointsOrdered ) )
   {
     fiducialRegistrationWizardNode->SetCalibrationStatusMessage("'From' fiducial list has strictly collinear points.");
     return false;
@@ -309,7 +316,7 @@ bool vtkSlicerFiducialRegistrationWizardLogic::UpdateCalibration( vtkMRMLNode* n
     // Compute transformation matrix. We don't set the landmark transform in the node directly because
     // vtkLandmarkTransform is not fully supported (e.g., it cannot be stored in file).
     vtkNew<vtkLandmarkTransform> landmarkTransform;
-    landmarkTransform->SetSourceLandmarks( fromPoints );
+    landmarkTransform->SetSourceLandmarks( fromPointsOrdered );
     landmarkTransform->SetTargetLandmarks( toPointsOrdered );
     if ( registrationMode == vtkMRMLFiducialRegistrationWizardNode::REGISTRATION_MODE_RIGID )
     {
@@ -364,7 +371,7 @@ bool vtkSlicerFiducialRegistrationWizardLogic::UpdateCalibration( vtkMRMLNode* n
 
     // Set inputs
     tpsTransform->SetSourceLandmarks( toPointsOrdered );
-    tpsTransform->SetTargetLandmarks( fromPoints );
+    tpsTransform->SetTargetLandmarks( fromPointsOrdered );
     tpsTransform->Update();
   }
   else
@@ -384,7 +391,7 @@ bool vtkSlicerFiducialRegistrationWizardLogic::UpdateCalibration( vtkMRMLNode* n
   }
 
   std::stringstream successMessage;
-  double rmsError = this->CalculateRegistrationError( fromPoints, toPointsOrdered, outputTransform);
+  double rmsError = this->CalculateRegistrationError( fromPointsOrdered, toPointsOrdered, outputTransform);
   successMessage << "Success! RMS Error: " << rmsError;
   fiducialRegistrationWizardNode->SetCalibrationStatusMessage(successMessage.str());
   return true;
@@ -538,8 +545,16 @@ void vtkSlicerFiducialRegistrationWizardLogic::ComputePairedPointMapping( vtkPoi
   int numberOfPoints = referenceList->GetNumberOfPoints(); // compareList also has this many points
 
   // compute the permutations, store them in a vtkIntArray.
-  vtkSmartPointer< vtkIntArray > indexPermutations = vtkSmartPointer< vtkIntArray >::New();
-  GenerateIndexPermutations( numberOfPoints, indexPermutations );
+  vtkSmartPointer< vtkCombinatoricGenerator > combinatoricGenerator = vtkSmartPointer< vtkCombinatoricGenerator >::New();
+  combinatoricGenerator->SetCombinatoricToPermutation();
+  combinatoricGenerator->SetSubsetSize( numberOfPoints );
+  combinatoricGenerator->SetNumberOfInputSets( 1 );
+  for ( int pointIndex = 0; pointIndex < numberOfPoints; pointIndex++ )
+  {
+    combinatoricGenerator->AddInputElement( 0, pointIndex );
+  }
+  combinatoricGenerator->Update();
+  std::vector< std::vector< int > > indexPermutations = combinatoricGenerator->GetOutputSets();
 
   // iterate over all permutations - look for the most 'suitable'
   // point matching that gives distances most similar to the reference
@@ -550,14 +565,14 @@ void vtkSlicerFiducialRegistrationWizardLogic::ComputePairedPointMapping( vtkPoi
   permutedCompareList->DeepCopy( compareList ); // fill it with placeholder data, same size as compareList
   vtkSmartPointer< vtkPointDistanceMatrix > permutedCompareDistanceMatrix = vtkSmartPointer< vtkPointDistanceMatrix >::New();
   double minimumSuitability = VTK_DOUBLE_MAX;
-  int numberOfPermutations = indexPermutations->GetNumberOfTuples();
+  int numberOfPermutations = indexPermutations.size();
   for ( int permutationIndex = 0; permutationIndex < numberOfPermutations; permutationIndex++ )
   {
     // fill permutedCompareList with points from compareList,
     // in the order indicate by the permuted indices
     for ( int pointIndex = 0; pointIndex < numberOfPoints; pointIndex++ )
     {
-      int permutedPointIndex = indexPermutations->GetComponent( permutationIndex, pointIndex );
+      int permutedPointIndex = indexPermutations[ permutationIndex][ pointIndex ];
       double* permutedPoint = compareList->GetPoint( permutedPointIndex );
       permutedCompareList->SetPoint( pointIndex, permutedPoint );
     }
@@ -587,92 +602,7 @@ void vtkSlicerFiducialRegistrationWizardLogic::ComputePairedPointMapping( vtkPoi
 }
 
 //------------------------------------------------------------------------------
-// The input should contain a single tuple with each permutable integer in its own component.
-// The output will be formatted similarly.
-void vtkSlicerFiducialRegistrationWizardLogic::GenerateIndexPermutations(int numberOfIndicesToPermute, vtkIntArray* outputPermutationsArray )
-{
-  if ( outputPermutationsArray->GetNumberOfTuples() > 0 )
-  {
-    vtkGenericWarningMacro( "Output is not empty. Clearing contents." );
-    outputPermutationsArray->Reset();
-  }
-
-  // N! permutations, and therefore also output tuples
-  int numberOfPossiblePermutations = 1;
-  for ( int factor = 2; factor <= numberOfIndicesToPermute; factor++ )
-  {
-    numberOfPossiblePermutations *= factor;
-  }
-  outputPermutationsArray->SetNumberOfComponents( numberOfIndicesToPermute );
-  outputPermutationsArray->SetNumberOfTuples( numberOfPossiblePermutations );
-
-  // The functions will work in place on a vtkIntArray in order to speed up operations,
-  // avoid allocation and deallocation.
-  vtkSmartPointer< vtkIntArray > array = vtkSmartPointer< vtkIntArray >::New();
-  array->SetNumberOfComponents( numberOfIndicesToPermute );
-  array->SetNumberOfTuples( 1 );
-  for ( int index = 0; index < numberOfIndicesToPermute; index++ )
-  {
-    array->SetComponent( 0, index, index ); // the the index'th value to index
-  }
-
-  int numberOfComputedPermutations = 0; // variable is modified in place by the function below.
-  int numberOfElementsProcessed = 0; // nothing has been processed yet
-  GenerateIndexPermutationsHelper( array, numberOfElementsProcessed, numberOfComputedPermutations, outputPermutationsArray );
-
-  // final error check
-  if ( numberOfComputedPermutations != numberOfPossiblePermutations )
-  {
-    vtkGenericWarningMacro( "Number of computed permutations " << numberOfComputedPermutations << " does not match the " <<
-                            "number of possible permutations " << numberOfPossiblePermutations << ". " <<
-                            "This is a bug and results are likely to contain errors. Please report this issue." );
-  }
-}
-
-//------------------------------------------------------------------------------
-// A recursive function to generate all possible permutations of the input array.
-// The numElementsProcessed should start at 0. permutationCount should be 0 to begin, 
-// it is passed by reference so it will be incremented by this function.
-void vtkSlicerFiducialRegistrationWizardLogic::GenerateIndexPermutationsHelper(
-                                 vtkIntArray* array, int numberOfElementsProcessed,
-                                 int& permutationCount, vtkIntArray* outputPermutationsArray )
-{
-  int numberOfElementsInArray = array->GetNumberOfComponents();
-  // base case, 0 elements remain, just copy the processed array into the permutations array
-  if ( numberOfElementsInArray == numberOfElementsProcessed )
-  {
-    for ( int arrayIndex = 0; arrayIndex < numberOfElementsInArray; arrayIndex++ )
-    {
-      outputPermutationsArray->SetComponent( permutationCount, arrayIndex, array->GetComponent( 0, arrayIndex ) );
-    }
-    permutationCount++;
-    return;
-  }
-
-  // recursive case, generate permutations by swapping the front value with each of the following values
-  for ( int currentSwapIndex = numberOfElementsProcessed; currentSwapIndex < numberOfElementsInArray; currentSwapIndex++ )
-  {
-    // get the relevant indices and values _before_ swapping
-    int frontIndex = numberOfElementsProcessed;
-    int frontElementBeforeSwap = array->GetComponent( 0, numberOfElementsProcessed );
-    int nthIndex = currentSwapIndex;
-    int nthElementBeforeSwap = array->GetComponent( 0, nthIndex );
-
-    // swap the values
-    array->SetComponent( 0, frontIndex, nthElementBeforeSwap );
-    array->SetComponent( 0, nthIndex, frontElementBeforeSwap );
-
-    // recursive step
-    GenerateIndexPermutationsHelper( array, numberOfElementsProcessed + 1, permutationCount, outputPermutationsArray );
-
-    // because the array operations are in place, it is necessary to reverse the swap.
-    array->SetComponent( 0, frontIndex, frontElementBeforeSwap );
-    array->SetComponent( 0, nthIndex, nthElementBeforeSwap );
-  }
-}
-
-//------------------------------------------------------------------------------
-void vtkSlicerFiducialRegistrationWizardLogic::ProcessMRMLNodesEvents( vtkObject* caller, unsigned long event, void* callData )
+void vtkSlicerFiducialRegistrationWizardLogic::ProcessMRMLNodesEvents( vtkObject* caller, unsigned long event, void* /*callData*/ )
 {
   vtkMRMLFiducialRegistrationWizardNode* frwNode = vtkMRMLFiducialRegistrationWizardNode::SafeDownCast(caller);
   if ( frwNode == NULL)

@@ -23,12 +23,24 @@ vtkPointDistanceMatrix::~vtkPointDistanceMatrix()
 //------------------------------------------------------------------------------
 int vtkPointDistanceMatrix::GetPointList1Length()
 {
+  if ( this->PointList1 == NULL )
+  {
+    vtkWarningMacro( "Input point list 1 is null. Returning 0." )
+    return 0;
+  }
+
   return this->PointList1->GetNumberOfPoints();
 }
 
 //------------------------------------------------------------------------------
 int vtkPointDistanceMatrix::GetPointList2Length()
 {
+  if ( this->PointList2 == NULL )
+  {
+    vtkWarningMacro( "Input point list 2 is null. Returning 0." )
+    return 0;
+  }
+
   return this->PointList2->GetNumberOfPoints();
 }
 

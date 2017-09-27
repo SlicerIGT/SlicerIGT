@@ -8,6 +8,8 @@ set(${KIT}_INCLUDE_DIRECTORIES
   )
 
 set(${KIT}_SRCS
+  vtkCombinatoricGenerator.cxx
+  vtkCombinatoricGenerator.h
   vtkPointDistanceMatrix.cxx
   vtkPointDistanceMatrix.h
   vtkSlicerFiducialRegistrationWizardLogic.cxx

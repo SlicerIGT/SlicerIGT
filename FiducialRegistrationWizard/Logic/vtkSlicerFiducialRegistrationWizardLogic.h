@@ -101,10 +101,6 @@ private:
   // In a 'good' mapping, there will be little difference seen in the reference and test distances
   static double ComputeSuitabilityOfDistancesMetric( vtkPointDistanceMatrix* referenceDistanceMatrix, vtkPointDistanceMatrix* testDistanceMatrix );
 
-  // These functions are used to draw up the different permutations on the order of points in the compare list.
-  static void   GenerateIndexPermutations( int numberOfValuesToPermute, vtkIntArray* outputPermutationsArray );
-  static void   GenerateIndexPermutationsHelper( vtkIntArray* array, int numberOfElementsProcessed, int& tupleIndex, vtkIntArray* outputPermutationsArray );
-
   double CalculateRegistrationError( vtkPoints* fromPoints, vtkPoints* toPoints, vtkAbstractTransform* transform );
   bool CheckCollinear( vtkPoints* points );
 
