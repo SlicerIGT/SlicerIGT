@@ -548,7 +548,16 @@ class UsSurfaceToLandmarksWidget(ScriptedLoadableModuleWidget):
       
     else:
       logic = UsSurfaceToLandmarksLogic()
-      logic.ConsolidateDuplicateLandmarks(MarkupsNode, self.DuplicateMisdirectionThresholdSlider.value)
+      ConsolidatedMarkupsNode = logic.ConsolidateDuplicateLandmarks(MarkupsNode, self.DuplicateMisdirectionThresholdSlider.value)
+      OldNodeName = MarkupsNode.GetName()
+      
+      #if self.OutputMarkupsStorage.currentNode() != None:
+      #  slicer.mrmlScene.RemoveNode(self.OutputMarkupsStorage.currentNode())
+      ConsolidatedMarkupsNode.SetName(OldNodeName)
+      slicer.mrmlScene.AddNode(ConsolidatedMarkupsNode)
+      self.OutputMarkupsStorage.setCurrentNode(ConsolidatedMarkupsNode)
+    
+      return True
     
   def OnReloadButtonClicked(self):
     slicer.util.reloadScriptedModule(slicer.moduleNames.UsSurfaceToLandmarks)
@@ -873,14 +882,14 @@ class UsSurfaceToLandmarksLogic(ScriptedLoadableModuleLogic):
     SpatiallyMergedLeftNode = self.GetMergeMarkupsUnselectedPointGroups(DirectionallyMergedLeftNode)
     SpatiallyMergedRightNode = self.GetMergeMarkupsUnselectedPointGroups(DirectionallyMergedRightNode)
     
-    slicer.mrmlScene.AddNode(SpatiallyMergedLeftNode)
-    slicer.mrmlScene.AddNode(SpatiallyMergedRightNode)
+    ConsolidatedMarkupsNode = self.RecombineLeftRightMarkups(SpatiallyMergedLeftNode, SpatiallyMergedRightNode)
+    pplWidget.SingleNodeSelector.setCurrentNode(None)
+    slicer.mrmlScene.RemoveNode(MarkupsNode)
+    #slicer.mrmlScene.AddNode(SpatiallyMergedLeftNode)
+    #slicer.mrmlScene.AddNode(SpatiallyMergedRightNode)
     
-    return True
-    
-    
-    # Combine new left and right sides with duplicated merged into output MarkupsNode
-    
+    return ConsolidatedMarkupsNode
+ 
   def IsPointDuplicateFromDirection(self, MarkupsNode, Index, DuplicateMisdirectionThreshold):
     CurrentCoords = MarkupsNode.GetMarkupPointVector(Index-1,0 )
     CandidateDuplicateCoords = MarkupsNode.GetMarkupPointVector(Index, 0)
@@ -1001,6 +1010,24 @@ class UsSurfaceToLandmarksLogic(ScriptedLoadableModuleLogic):
         # THEN the next point (pi+1) should be un-selected as well      
       
     return NewMarkupsNode
+    
+  def RecombineLeftRightMarkups(self, LeftNode, RightNode):
+    # Simply adds left then right points to new node
+    LeftCoords = [LeftNode.GetMarkupPointVector(i,0) for i in range(LeftNode.GetNumberOfFiducials())]
+    LeftNames = [LeftNode.GetNthFiducialLabel(i) for i in range(LeftNode.GetNumberOfFiducials())]
+    RightCoords = [RightNode.GetMarkupPointVector(i,0) for i in range(RightNode.GetNumberOfFiducials())]
+    RightNames = [RightNode.GetNthFiducialLabel(i) for i in range(RightNode.GetNumberOfFiducials())]
+    
+    RecombinedMarkupsNode = slicer.vtkMRMLMarkupsFiducialNode()
+    for i, lc in enumerate(LeftCoords):
+      RecombinedMarkupsNode.AddFiducialFromArray(lc)
+      RecombinedMarkupsNode.SetNthFiducialLabel(i, LeftNames[i])
+    
+    for i, rc in enumerate(RightCoords):
+      RecombinedMarkupsNode.AddFiducialFromArray(rc)
+      RecombinedMarkupsNode.SetNthFiducialLabel(i, RightNames[i])
+    
+    return RecombinedMarkupsNode
     
 class UsSurfaceToLandmarksTest(ScriptedLoadableModuleTest):
   """
