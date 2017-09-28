@@ -136,6 +136,8 @@ public:
 
   vtkSetMacro( CalibrationStatusMessage, std::string );
   vtkGetMacro( CalibrationStatusMessage, std::string );
+  void AddToCalibrationStatusMessage( std::string text );
+  void ClearCalibrationStatusMessage();
 
   void ProcessMRMLEvents( vtkObject *caller, unsigned long event, void *callData );
 

@@ -21,8 +21,7 @@
 
 // FiducialRegistrationWizard includes
 #include "vtkSlicerFiducialRegistrationWizardLogic.h"
-#include "vtkPointDistanceMatrix.h"
-#include "vtkCombinatoricGenerator.h"
+#include "vtkPointMatcher.h"
 
 // MRML includes
 #include "vtkMRMLLinearTransformNode.h"
@@ -210,49 +209,44 @@ bool vtkSlicerFiducialRegistrationWizardLogic::UpdateCalibration( vtkMRMLNode* n
   vtkMRMLFiducialRegistrationWizardNode* fiducialRegistrationWizardNode = vtkMRMLFiducialRegistrationWizardNode::SafeDownCast( node );
   if ( fiducialRegistrationWizardNode == NULL )
   {
-    vtkWarningMacro("vtkSlicerFiducialRegistrationWizardLogic::UpdateCalibration failed: input node is invalid");
+    vtkWarningMacro( "vtkSlicerFiducialRegistrationWizardLogic::UpdateCalibration failed: input node is invalid" );
     return false;
   }
 
   vtkMRMLMarkupsFiducialNode* fromMarkupsFiducialNode = fiducialRegistrationWizardNode->GetFromFiducialListNode();
   if ( fromMarkupsFiducialNode == NULL )
   {
-    fiducialRegistrationWizardNode->SetCalibrationStatusMessage("'From' fiducial list is not defined." );
+    fiducialRegistrationWizardNode->SetCalibrationStatusMessage( "'From' fiducial list is not defined." );
     return false;
   }
 
   vtkMRMLMarkupsFiducialNode* toMarkupsFiducialNode = fiducialRegistrationWizardNode->GetToFiducialListNode();
   if ( toMarkupsFiducialNode == NULL )
   {
-    fiducialRegistrationWizardNode->SetCalibrationStatusMessage("'To' fiducial list is not defined." );
+    fiducialRegistrationWizardNode->SetCalibrationStatusMessage( "'To' fiducial list is not defined." );
     return false;
   }
 
   vtkMRMLTransformNode* outputTransformNode = fiducialRegistrationWizardNode->GetOutputTransformNode();
   if ( outputTransformNode == NULL )
   {
-    fiducialRegistrationWizardNode->SetCalibrationStatusMessage("Output transform is not defined." );
+    fiducialRegistrationWizardNode->SetCalibrationStatusMessage( "Output transform is not defined." );
     return false;
   }
 
   if ( fromMarkupsFiducialNode->GetNumberOfFiducials() < 3 )
   {
-    fiducialRegistrationWizardNode->SetCalibrationStatusMessage("'From' fiducial list has too few fiducials (minimum 3 required)." );
+    fiducialRegistrationWizardNode->SetCalibrationStatusMessage( "'From' fiducial list has too few fiducials (minimum 3 required)." );
     return false;
   }
   if ( toMarkupsFiducialNode->GetNumberOfFiducials() < 3 )
   {
-    fiducialRegistrationWizardNode->SetCalibrationStatusMessage("'To' fiducial list has too few fiducials (minimum 3 required)." );
+    fiducialRegistrationWizardNode->SetCalibrationStatusMessage( "'To' fiducial list has too few fiducials (minimum 3 required)." );
     return false;
   }
-  if ( fromMarkupsFiducialNode->GetNumberOfFiducials() != toMarkupsFiducialNode->GetNumberOfFiducials() )
-  {
-    std::stringstream msg;
-    msg << "Fiducial lists have unequal number of fiducials ('From' has "<<fromMarkupsFiducialNode->GetNumberOfFiducials()
-      <<", 'To' has " << toMarkupsFiducialNode->GetNumberOfFiducials() << ").";
-    fiducialRegistrationWizardNode->SetCalibrationStatusMessage(msg.str());
-    return false;
-  }
+
+  // if we get up to here without errors, clear the status message to prepare it for future contents:
+  fiducialRegistrationWizardNode->ClearCalibrationStatusMessage();
 
   // Convert the markupsfiducial nodes into vtk points
   vtkSmartPointer< vtkPoints > fromPointsUnordered = vtkSmartPointer< vtkPoints >::New();
@@ -266,12 +260,23 @@ bool vtkSlicerFiducialRegistrationWizardLogic::UpdateCalibration( vtkMRMLNode* n
   int pointMatchingMethod = fiducialRegistrationWizardNode->GetPointMatchingMethod();
   if ( pointMatchingMethod == vtkMRMLFiducialRegistrationWizardNode::POINT_MATCHING_METHOD_INPUT_ORDER )
   {
+    if ( fromMarkupsFiducialNode->GetNumberOfFiducials() != toMarkupsFiducialNode->GetNumberOfFiducials() )
+    {
+      std::stringstream msg;
+      msg << "Fiducial lists have unequal number of fiducials ("
+          << "'From' has "<<fromMarkupsFiducialNode->GetNumberOfFiducials() << ", "
+          << "'To' has " << toMarkupsFiducialNode->GetNumberOfFiducials() << "). "
+          << "Either adjust the lists, or use automatic point matching. "
+          << "Aborting registration.";
+      fiducialRegistrationWizardNode->SetCalibrationStatusMessage( msg.str() );
+      return false;
+    }
     fromPointsOrdered = fromPointsUnordered;
     toPointsOrdered = toPointsUnordered;
   }
   else if ( pointMatchingMethod == vtkMRMLFiducialRegistrationWizardNode::POINT_MATCHING_METHOD_COMPUTED )
   {
-    const int MAX_NUMBER_OF_POINTS_FOR_POINT_MATCHING_METHOD_COMPUTED = 8; // more than this and it tends to take a long time. Algorithm is N!
+    const int MAX_NUMBER_OF_POINTS_FOR_POINT_MATCHING_METHOD_COMPUTED = 8; // more than this and it tends to take a long time. Algorithm is at least N!
     int fromNumberOfPoints = fromPointsUnordered->GetNumberOfPoints();
     int toNumberOfPoints = toPointsUnordered->GetNumberOfPoints();
     int numberOfPointsToMatch = std::max( fromNumberOfPoints, toNumberOfPoints );
@@ -279,18 +284,33 @@ bool vtkSlicerFiducialRegistrationWizardLogic::UpdateCalibration( vtkMRMLNode* n
     {
       std::stringstream msg;
       msg << "Too many points to compute point pairing " << numberOfPointsToMatch << ". "
-          << "Should be at most " << MAX_NUMBER_OF_POINTS_FOR_POINT_MATCHING_METHOD_COMPUTED << "). Aborting registration.";
+          << "To avoid long computation time, there should be at most "<< MAX_NUMBER_OF_POINTS_FOR_POINT_MATCHING_METHOD_COMPUTED << " points. "
+          << "Aborting registration.";
       fiducialRegistrationWizardNode->SetCalibrationStatusMessage( msg.str() );
       return false;
     }
-    fromPointsOrdered = fromPointsUnordered; // from list remains as-is
-    toPointsOrdered = vtkSmartPointer< vtkPoints >::New();
-    ComputePairedPointMapping( fromPointsOrdered, toPointsUnordered, toPointsOrdered );
+    vtkSmartPointer< vtkPointMatcher > pointMatcher = vtkSmartPointer< vtkPointMatcher >::New();
+    pointMatcher->SetInputPointList1( fromPointsUnordered );
+    pointMatcher->SetInputPointList2( toPointsUnordered );
+    pointMatcher->SetMaximumDifferenceInNumberOfPoints( 2 );
+    pointMatcher->SetTolerableRootMeanSquareDistanceErrorMm( 50.0 );
+    pointMatcher->Update();
+    if ( !pointMatcher->IsMatchingWithinTolerance() )
+    {
+      std::stringstream msg;
+      msg << "Could not find a good matching. "
+          << "Mean squared distance error was " << pointMatcher->GetComputedRootMeanSquareDistanceErrorMm() << ", "
+          << "but tolerance is " << pointMatcher->GetTolerableRootMeanSquareDistanceErrorMm() << ". "
+          << "Results are not expected to be accurate.";
+      fiducialRegistrationWizardNode->AddToCalibrationStatusMessage( msg.str() );
+    }
+    fromPointsOrdered = pointMatcher->GetOutputPointList1();
+    toPointsOrdered = pointMatcher->GetOutputPointList2();
   }
   else
   {
     std::stringstream msg;
-    msg << "Unrecognized point matching method: " + vtkMRMLFiducialRegistrationWizardNode::PointMatchingMethodAsString( pointMatchingMethod ) + ". Aborting registration.";
+    msg << "Unrecognized point matching method: " << vtkMRMLFiducialRegistrationWizardNode::PointMatchingMethodAsString( pointMatchingMethod ) << ". Aborting registration.";
     fiducialRegistrationWizardNode->SetCalibrationStatusMessage( msg.str() );
     return false;
   }
@@ -298,13 +318,13 @@ bool vtkSlicerFiducialRegistrationWizardLogic::UpdateCalibration( vtkMRMLNode* n
   // error checking
   if ( this->CheckCollinear( fromPointsOrdered ) )
   {
-    fiducialRegistrationWizardNode->SetCalibrationStatusMessage("'From' fiducial list has strictly collinear points.");
+    fiducialRegistrationWizardNode->SetCalibrationStatusMessage( "'From' fiducial list has strictly collinear points." );
     return false;
   }
 
   if ( this->CheckCollinear( toPointsOrdered ) )
   {
-    fiducialRegistrationWizardNode->SetCalibrationStatusMessage("'To' fiducial list has strictly collinear points.");
+    fiducialRegistrationWizardNode->SetCalibrationStatusMessage( "'To' fiducial list has strictly collinear points." );
     return false;
   }
 
@@ -327,46 +347,45 @@ bool vtkSlicerFiducialRegistrationWizardLogic::UpdateCalibration( vtkMRMLNode* n
       landmarkTransform->SetModeToSimilarity();
     }
     landmarkTransform->Update();
-    vtkNew<vtkMatrix4x4> calculatedTransform;
-    landmarkTransform->GetMatrix(calculatedTransform.GetPointer());
+    vtkNew< vtkMatrix4x4 > calculatedTransform;
+    landmarkTransform->GetMatrix( calculatedTransform.GetPointer() );
 
     // Copy the resulting transform into the outputTransformNode
-    if (!outputTransformNode->IsLinear())
+    if ( !outputTransformNode->IsLinear() )
     {
       // SetMatrix... only works on linear transforms, if we have a non-linear transform
       // in the node then we have to manually place a linear transform into it
-      vtkNew<vtkTransform> newLinearTransform;
-      newLinearTransform->SetMatrix(calculatedTransform.GetPointer());
-      outputTransformNode->SetAndObserveTransformToParent(newLinearTransform.GetPointer());
+      vtkNew< vtkTransform > newLinearTransform;
+      newLinearTransform->SetMatrix( calculatedTransform.GetPointer() );
+      outputTransformNode->SetAndObserveTransformToParent( newLinearTransform.GetPointer() );
     }
     else
     {
-      outputTransformNode->SetMatrixTransformToParent(calculatedTransform.GetPointer());
+      outputTransformNode->SetMatrixTransformToParent( calculatedTransform.GetPointer() );
     }
-    
   }
   else if ( registrationMode == vtkMRMLFiducialRegistrationWizardNode::REGISTRATION_MODE_WARPING )
   {
-    if (strcmp(outputTransformNode->GetClassName(), "vtkMRMLTransformNode") != 0)
+    if ( strcmp( outputTransformNode->GetClassName(), "vtkMRMLTransformNode" ) != 0 )
     {
-      vtkErrorMacro("vtkSlicerFiducialRegistrationWizardLogic::UpdateCalibration failed to save vtkThinPlateSplineTransform into transform node type "<<outputTransformNode->GetClassName());
-      fiducialRegistrationWizardNode->SetCalibrationStatusMessage("Warping transform cannot be stored\nin linear transform node" );
+      vtkErrorMacro( "vtkSlicerFiducialRegistrationWizardLogic::UpdateCalibration failed to save vtkThinPlateSplineTransform into transform node type " << outputTransformNode->GetClassName() );
+      fiducialRegistrationWizardNode->SetCalibrationStatusMessage( "Warping transform cannot be stored\nin linear transform node" );
       return false;
     }
 
     // Setup the transform
     // Warping transforms are usually defined using FromParent direction to make transformation of images faster and more accurate.
+    bool logErrorIfFails = false; // parameters from http://apidocs.slicer.org/master/classvtkMRMLTransformNode.html#a79e612958c341ea681ac84282df42261
+    bool modifiableOnly = true;
     vtkThinPlateSplineTransform* tpsTransform = vtkThinPlateSplineTransform::SafeDownCast(
-      outputTransformNode->GetTransformFromParentAs("vtkThinPlateSplineTransform",
-      false /* don't report conversion error */,
-      true /* we need a modifiable transform */));
-    if (tpsTransform == NULL)
+      outputTransformNode->GetTransformFromParentAs( "vtkThinPlateSplineTransform", logErrorIfFails, modifiableOnly ) );
+    if ( tpsTransform == NULL )
     {
       // we cannot reuse the existing transform, create a new one
-      vtkNew<vtkThinPlateSplineTransform> newTpsTransform;
+      vtkNew< vtkThinPlateSplineTransform > newTpsTransform;
       newTpsTransform->SetBasisToR();
       tpsTransform = newTpsTransform.GetPointer();
-      outputTransformNode->SetAndObserveTransformFromParent(tpsTransform);
+      outputTransformNode->SetAndObserveTransformFromParent( tpsTransform );
     }
 
     // Set inputs
@@ -385,15 +404,15 @@ bool vtkSlicerFiducialRegistrationWizardLogic::UpdateCalibration( vtkMRMLNode* n
   vtkAbstractTransform* outputTransform = outputTransformNode->GetTransformToParent();
   if (outputTransform == NULL)
   {
-    vtkErrorMacro("Failed to retreive transform from node. RMS Error could not be evaluated");
-    fiducialRegistrationWizardNode->SetCalibrationStatusMessage("Failed to retreive transform from node. RMS Error could not be evaluated.");
+    vtkErrorMacro( "Failed to retreive transform from node. RMS Error could not be evaluated" );
+    fiducialRegistrationWizardNode->SetCalibrationStatusMessage( "Failed to retreive transform from node. RMS Error could not be evaluated." );
     return false;
   }
 
   std::stringstream successMessage;
   double rmsError = this->CalculateRegistrationError( fromPointsOrdered, toPointsOrdered, outputTransform);
-  successMessage << "Success! RMS Error: " << rmsError;
-  fiducialRegistrationWizardNode->SetCalibrationStatusMessage(successMessage.str());
+  successMessage << "Registration Complete. RMS Error: " << rmsError;
+  fiducialRegistrationWizardNode->AddToCalibrationStatusMessage( successMessage.str() );
   return true;
 }
 
@@ -477,128 +496,6 @@ bool vtkSlicerFiducialRegistrationWizardLogic::CheckCollinear( vtkPoints* points
   */
   return false;
   
-}
-
-//------------------------------------------------------------------------------
-double vtkSlicerFiducialRegistrationWizardLogic::SumOfSquaredElementsInArray( vtkDoubleArray* array )
-{
-  if ( array == NULL )
-  {
-    vtkGenericWarningMacro( "Input array is null. Returning 0." );
-    return 0;
-  }
-
-  double sumOfSquaredElements = 0;
-  int numberOfTuples = array->GetNumberOfTuples(); // i.e. columns
-  int numberOfComponents = array->GetNumberOfComponents(); // i.e. rows
-  for ( int tupleIndex = 0; tupleIndex < numberOfTuples; tupleIndex++ )
-  {
-    for ( int componentIndex = 0; componentIndex < numberOfComponents; componentIndex++ )
-    {
-      double currentElement = array->GetComponent( tupleIndex, componentIndex );
-      sumOfSquaredElements += ( currentElement * currentElement );
-    }
-  }
-  return sumOfSquaredElements;
-}
-
-//------------------------------------------------------------------------------
-double vtkSlicerFiducialRegistrationWizardLogic::ComputeSuitabilityOfDistancesMetric( vtkPointDistanceMatrix* referenceDistanceMatrix, vtkPointDistanceMatrix* compareDistanceMatrix )
-{
-  if ( referenceDistanceMatrix == NULL )
-  {
-    vtkGenericWarningMacro( "Input reference distances is null. Cannot compute similarity. Returning 0." );
-    return 0;
-  }
-
-  if ( compareDistanceMatrix == NULL )
-  {
-    vtkGenericWarningMacro( "Input compare distances is null. Cannot compute similarity. Returning 0." );
-    return 0;
-  }
-
-  vtkSmartPointer< vtkDoubleArray > compareMinusReferenceDistanceArray = vtkSmartPointer< vtkDoubleArray >::New();
-  vtkPointDistanceMatrix::ComputePairWiseDifferences( compareDistanceMatrix, referenceDistanceMatrix, compareMinusReferenceDistanceArray );
-  double suitabilityMetric = SumOfSquaredElementsInArray( compareMinusReferenceDistanceArray );
-  return suitabilityMetric;
-}
-
-//------------------------------------------------------------------------------
-void vtkSlicerFiducialRegistrationWizardLogic::ComputePairedPointMapping( vtkPoints* referenceList, vtkPoints* compareList, vtkPoints* comparePointsMatched )
-{
-  if ( compareList->GetNumberOfPoints() != referenceList->GetNumberOfPoints() )
-  {
-    vtkGenericWarningMacro( "Cannot compute paired point mapping when the input point sets are of different sizes." );
-    return;
-  }
-
-  // point pair mapping will be based on the distances between each pair of ordered points.
-  // we have an input reference point list and a compare point list.
-  // we want to reorder the compare list such that the point-to-point distances are as close as possible
-  // to those in the reference list.
-  
-  vtkSmartPointer< vtkPointDistanceMatrix > referenceDistanceMatrix = vtkSmartPointer< vtkPointDistanceMatrix >::New();
-  referenceDistanceMatrix->SetPointList1( referenceList );
-  referenceDistanceMatrix->SetPointList2( referenceList ); // distances to itself
-  referenceDistanceMatrix->Update();
-
-  int numberOfPoints = referenceList->GetNumberOfPoints(); // compareList also has this many points
-
-  // compute the permutations, store them in a vtkIntArray.
-  vtkSmartPointer< vtkCombinatoricGenerator > combinatoricGenerator = vtkSmartPointer< vtkCombinatoricGenerator >::New();
-  combinatoricGenerator->SetCombinatoricToPermutation();
-  combinatoricGenerator->SetSubsetSize( numberOfPoints );
-  combinatoricGenerator->SetNumberOfInputSets( 1 );
-  for ( int pointIndex = 0; pointIndex < numberOfPoints; pointIndex++ )
-  {
-    combinatoricGenerator->AddInputElement( 0, pointIndex );
-  }
-  combinatoricGenerator->Update();
-  std::vector< std::vector< int > > indexPermutations = combinatoricGenerator->GetOutputSets();
-
-  // iterate over all permutations - look for the most 'suitable'
-  // point matching that gives distances most similar to the reference
-
-  // allocate the permuted compare list once outside
-  // the loop to avoid allocation/deallocation time costs.
-  vtkSmartPointer< vtkPoints > permutedCompareList = vtkSmartPointer< vtkPoints >::New();
-  permutedCompareList->DeepCopy( compareList ); // fill it with placeholder data, same size as compareList
-  vtkSmartPointer< vtkPointDistanceMatrix > permutedCompareDistanceMatrix = vtkSmartPointer< vtkPointDistanceMatrix >::New();
-  double minimumSuitability = VTK_DOUBLE_MAX;
-  int numberOfPermutations = indexPermutations.size();
-  for ( int permutationIndex = 0; permutationIndex < numberOfPermutations; permutationIndex++ )
-  {
-    // fill permutedCompareList with points from compareList,
-    // in the order indicate by the permuted indices
-    for ( int pointIndex = 0; pointIndex < numberOfPoints; pointIndex++ )
-    {
-      int permutedPointIndex = indexPermutations[ permutationIndex][ pointIndex ];
-      double* permutedPoint = compareList->GetPoint( permutedPointIndex );
-      permutedCompareList->SetPoint( pointIndex, permutedPoint );
-    }
-    permutedCompareDistanceMatrix->SetPointList1( permutedCompareList );
-    permutedCompareDistanceMatrix->SetPointList2( permutedCompareList );
-    permutedCompareDistanceMatrix->Update();
-    double suitabilityOfPermutation = ComputeSuitabilityOfDistancesMetric( referenceDistanceMatrix, permutedCompareDistanceMatrix );
-
-    // TODO
-    // if suitability within some threshold of the best
-    //   flag ambiguous
-
-    if ( suitabilityOfPermutation < minimumSuitability )
-    {
-      minimumSuitability = suitabilityOfPermutation;
-      comparePointsMatched->DeepCopy( permutedCompareList );
-    }
-    
-    // TODO
-    // if new best is outside threshold of the current best
-    //   flag NOT ambiguous
-  }
-
-  // TODO
-  // if ambiguous
-  //   output warning
 }
 
 //------------------------------------------------------------------------------

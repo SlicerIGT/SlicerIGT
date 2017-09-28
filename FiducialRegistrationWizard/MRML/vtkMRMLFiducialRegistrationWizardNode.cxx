@@ -21,9 +21,15 @@
 // FiducialRegistrationWizard MRML includes
 #include "vtkMRMLFiducialRegistrationWizardNode.h"
 
+// slicer includes
 #include "vtkMRMLMarkupsFiducialNode.h"
 #include "vtkMRMLTransformNode.h"
-#include "vtkNew.h"
+
+// vtk includes
+#include <vtkNew.h>
+
+// std includes
+#include <sstream>
 
 // Constants ------------------------------------------------------------------
 static const char* PROBE_TRANSFORM_FROM_REFERENCE_ROLE = "ProbeTransformFrom";
@@ -367,6 +373,20 @@ int vtkMRMLFiducialRegistrationWizardNode::PointMatchingMethodFromString( std::s
   // if there are no matches, then there is likely an error
   vtkGenericWarningMacro( "Unrecognized string for PointMatchingMethod " << methodAsString << ". Returning value for " << PointMatchingMethodAsString( POINT_MATCHING_METHOD_INPUT_ORDER ) );
   return POINT_MATCHING_METHOD_INPUT_ORDER;
+}
+
+//------------------------------------------------------------------------------
+void vtkMRMLFiducialRegistrationWizardNode::AddToCalibrationStatusMessage( std::string text )
+{
+  std::stringstream stream;
+  stream << this->CalibrationStatusMessage << text << std::endl; // add std::endl to end to separate messages
+  this->CalibrationStatusMessage.assign( stream.str() );
+}
+
+//------------------------------------------------------------------------------
+void vtkMRMLFiducialRegistrationWizardNode::ClearCalibrationStatusMessage()
+{
+  this->CalibrationStatusMessage.assign( "" );
 }
 
 //------------------------------------------------------------------------------

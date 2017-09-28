@@ -363,8 +363,7 @@ void vtkCombinatoricGenerator::Update()
 //------------------------------------------------------------------------------
 bool vtkCombinatoricGenerator::UpdateNeeded()
 {
-  bool returnValue = ( this->InputChangedTime > this->OutputChangedTime );
-  return returnValue;
+  return ( this->InputChangedTime > this->OutputChangedTime );
 }
 
 //------------------------------------------------------------------------------

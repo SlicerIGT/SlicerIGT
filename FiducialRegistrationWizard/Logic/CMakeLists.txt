@@ -12,6 +12,8 @@ set(${KIT}_SRCS
   vtkCombinatoricGenerator.h
   vtkPointDistanceMatrix.cxx
   vtkPointDistanceMatrix.h
+  vtkPointMatcher.cxx
+  vtkPointMatcher.h
   vtkSlicerFiducialRegistrationWizardLogic.cxx
   vtkSlicerFiducialRegistrationWizardLogic.h
   )
