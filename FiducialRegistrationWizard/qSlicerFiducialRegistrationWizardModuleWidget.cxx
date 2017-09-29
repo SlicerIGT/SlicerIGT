@@ -112,7 +112,6 @@ void qSlicerFiducialRegistrationWizardModuleWidget::onUpdateButtonClicked()
   }
   vtkMRMLFiducialRegistrationWizardNode* fiducialRegistrationWizardNode = vtkMRMLFiducialRegistrationWizardNode::SafeDownCast( d->ModuleNodeComboBox->currentNode() );
   d->logic()->UpdateCalibration( fiducialRegistrationWizardNode );
-  this->UpdateFromMRMLNode();
 }
 
 //------------------------------------------------------------------------------

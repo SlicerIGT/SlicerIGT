@@ -56,7 +56,7 @@ vtkMRMLFiducialRegistrationWizardNode::vtkMRMLFiducialRegistrationWizardNode()
   this->AddNodeReferenceRole( TO_FIDUCIAL_LIST_REFERENCE_ROLE, NULL, fiducialListEvents.GetPointer() );
   this->AddNodeReferenceRole( OUTPUT_TRANSFORM_REFERENCE_ROLE );
   this->RegistrationMode = REGISTRATION_MODE_RIGID;
-  this->UpdateMode = UPDATE_MODE_MANUAL;
+  this->UpdateMode = UPDATE_MODE_AUTO;
   this->PointMatchingMethod = POINT_MATCHING_METHOD_INPUT_ORDER;
 }
 
@@ -381,12 +381,14 @@ void vtkMRMLFiducialRegistrationWizardNode::AddToCalibrationStatusMessage( std::
   std::stringstream stream;
   stream << this->CalibrationStatusMessage << text << std::endl; // add std::endl to end to separate messages
   this->CalibrationStatusMessage.assign( stream.str() );
+  this->Modified();
 }
 
 //------------------------------------------------------------------------------
 void vtkMRMLFiducialRegistrationWizardNode::ClearCalibrationStatusMessage()
 {
   this->CalibrationStatusMessage.assign( "" );
+  this->Modified();
 }
 
 //------------------------------------------------------------------------------
