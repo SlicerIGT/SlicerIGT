@@ -557,6 +557,8 @@ class UsSurfaceToLandmarksWidget(ScriptedLoadableModuleWidget):
       slicer.mrmlScene.AddNode(ConsolidatedMarkupsNode)
       self.OutputMarkupsStorage.setCurrentNode(ConsolidatedMarkupsNode)
     
+      slicer.util.reloadScriptedModule(preprocesslandmarks)
+    
       return True
     
   def OnReloadButtonClicked(self):
@@ -863,10 +865,7 @@ class UsSurfaceToLandmarksLogic(ScriptedLoadableModuleLogic):
       if self.IsPointDuplicateFromDirection(RightMarkups, Point+1, DuplicateMisdirectionThreshold):
         RightMarkups.SetNthFiducialSelected(Point,False)
         RightMarkups.SetNthFiducialSelected(Point+1,False)
-      
-    #slicer.mrmlScene.RemoveNode(LeftMarkups)
-    #slicer.mrmlScene.RemoveNode(RightMarkups)
-    
+
     # Retrieve nodes with directionally identified duplicates merged
     DirectionallyMergedLeftNode = self.GetMergeMarkupsUnselectedPointGroups(LeftMarkups)
     DirectionallyMergedRightNode = self.GetMergeMarkupsUnselectedPointGroups(RightMarkups)

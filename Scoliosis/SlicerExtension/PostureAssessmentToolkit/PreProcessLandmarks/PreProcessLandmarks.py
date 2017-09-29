@@ -417,10 +417,15 @@ class PreProcessLandmarksWidget(ScriptedLoadableModuleWidget):
    
     self.RepairInterfaceLayout.addWidget(qt.QLabel(""), 13, 1, 1, 1)
     
-    self.RepairNodeButton = qt.QPushButton("Repair landmarks node")
+    self.RepairNodeButton = qt.QPushButton("Repair Landmarks Node")
     self.RepairNodeButton.toolTip = "Combine left and right Unrepaired side nodes into RepairedNode"
     self.RepairNodeButton.enabled = True
     self.RepairInterfaceLayout.addWidget(self.RepairNodeButton, 14, 0, 1, 4)
+    
+    self.TrimToCorrespondenceButton = qt.QPushButton("Trim Sides")
+    self.TrimToCorrespondenceButton.toolTip = "Trim un-united sides to match vertebra-wise"
+    self.TrimToCorrespondenceButton.enabled = True
+    self.RepairInterfaceLayout.addWidget(self.TrimToCorrespondenceButton, 15, 0, 1, 2)
     
     # Dropdown list to store output repaired MarkupsNode
     self.RepairedNodeStorage = slicer.qMRMLNodeComboBox()
@@ -432,8 +437,8 @@ class PreProcessLandmarksWidget(ScriptedLoadableModuleWidget):
     self.RepairedNodeStorage.removeEnabled = True
     self.RepairedNodeStorage.renameEnabled = False
     self.RepairedNodeStorage.toolTip = "Stores combined repaired left and right sides - repaired version of input repair node"
-    self.RepairInterfaceLayout.addWidget(self.RepairedNodeStorage, 15, 0, 1, 3)
-    self.RepairInterfaceLayout.addWidget(qt.QLabel(" <-- Repaired node"), 15, 3, 1, 1)
+    self.RepairInterfaceLayout.addWidget(self.RepairedNodeStorage, 16, 0, 1, 3)
+    self.RepairInterfaceLayout.addWidget(qt.QLabel(" <-- Repaired node"), 16, 3, 1, 1)
     self.RepairedNodeStorage.setMRMLScene(slicer.mrmlScene)
     
     #self.layout.addRow(self.reloadButton, 16, 0, 1, 4)
@@ -453,6 +458,8 @@ class PreProcessLandmarksWidget(ScriptedLoadableModuleWidget):
     
     self.IdentifyOutliersButton.connect('clicked(bool)', self.OnIdentifyOutliersButton)
     self.RemoveOutliersButton.connect('clicked(bool)', self.OnRemoveOutliersButton)
+    
+    self.TrimToCorrespondenceButton.connect('clicked(bool)', self.OnTrimToCorrespondenceButton)
     
     self.RepairNodeButton.connect('clicked(bool)', self.OnRepairButtonClicked)
     
@@ -976,6 +983,28 @@ class PreProcessLandmarksWidget(ScriptedLoadableModuleWidget):
 
     return
     
+  def OnTrimToCorrespondenceButton(self):
+    # Get node
+    TrimmedMarkupsNode = self.logic.PatientModel.TrimSidesToCorrespondence()
+    
+    #if self.RepairSideSelector.currentNode() != None: 
+    #  slicer.mrmlScene.RemoveNode(self.RepairSideSelector.currentNode())
+    
+    # Update scene
+    slicer.mrmlScene.AddNode(TrimmedMarkupsNode)
+    TrimmedMarkupsNode.CreateDefaultDisplayNodes()
+    
+    if TrimmedMarkupsNode.GetName().__contains__("Left"):
+      OldNode = self.LeftSideSelector.currentNode()
+      self.LeftSideSelector.setCurrentNode(TrimmedMarkupsNode)
+    else:
+      OldNode = self.RightSideSelector.currentNode()
+      self.RightSideSelector.setCurrentNode(TrimmedMarkupsNode)
+    if OldNode != None:
+      slicer.mrmlScene.RemoveNode(OldNode)
+      
+    return True
+    
   def OnRepairButtonClicked(self):  # Combines self.LeftSideSelector and self.RightSideSelector nodes into a node stored in self.RepairedNodeStorage
   
     # Get left and right combined into repaired node
@@ -1461,6 +1490,105 @@ class RepairLandmarksLogic(ScriptedLoadableModuleLogic):
         #print Centroids
       return (DataSetLabels, Centroids)
 
+    def TrimSidesToCorrespondence(self):
+      # Tests for the best arrangment of points present in terms of minimizing inter-vertebral angle sums to determine which end-points to trim
+      
+      """ Relative Left-Right side hight important if short side protrudes above or below long side
+      # To determine testing pattern, find side side with highest and lowest points
+      if self.LeftSide.GetMarkupPointVector(0,0)[2] > self.RightSide.GetMarkupPointVector(0,0)[2]:
+        LeftSideIsHigh = True
+      else:
+        LeftSideIsHigh = False
+        
+      if self.LeftSide.GetMarkupPointVector(self.LeftSide.GetNumberOfFiducials()-1,0)[2] < self.RightSide.GetMarkupPointVector(self.RightSide.GetNumberOfFiducials()-1,0)[2]:
+        LeftSideIsLow = True
+      else:
+        LeftSideIsLow = False
+      """
+      
+      # Also need point-count mismatch between sides
+      if self.LeftSide.MarkupsNode.GetNumberOfFiducials() > self.RightSide.MarkupsNode.GetNumberOfFiducials():
+        # LeftSide has more points
+        LeftSideIsLong = True
+        CountMismatch = self.LeftSide.MarkupsNode.GetNumberOfFiducials() - self.RightSide.MarkupsNode.GetNumberOfFiducials()
+        
+      else:
+        LeftSideIsLong = False
+        CountMismatch = self.RightSide.MarkupsNode.GetNumberOfFiducials() - self.LeftSide.MarkupsNode.GetNumberOfFiducials()
+        
+        
+      MinCumulAngle = 100000 # Large number
+      BestTrimmingIndex = 0
+      if LeftSideIsLong:
+        # Create tentatively trimmed nodes for assessment
+        for TrimmedNodeIndex in range(CountMismatch):
+          TrimmedLeftSide = slicer.vtkMRMLMarkupsFiducialNode()
+          
+          # Popluate tentatively trimmed node
+          for rp in range(self.RightSide.MarkupsNode.GetNumberOfFiducials()):
+            coords = self.LeftSide.MarkupsNode.GetMarkupPointVector(rp+TrimmedNodeIndex, 0)
+            TrimmedLeftSide.AddFiducialFromArray(coords)
+            
+          # GetCumulativeIntervertabralAngleBetweenSides as measure of liklihood of left-right landmark correspondence
+          MismatchMetric = self.GetCumulativeIntervertabralAngleBetweenSides(TrimmedLeftSide, self.RightSide.MarkupsNode)
+          if MismatchMetric < MinCumulAngle:
+            MinCumulAngle = MismatchMetric
+            BestTrimmingIndex = TrimmedNodeIndex
+         
+        # We have found the best trimming for the LeftSide
+        BestTrimmedLeftSide = slicer.vtkMRMLMarkupsFiducialNode()
+        BestTrimmedLeftSide.SetName(self.LeftSide.MarkupsNode.GetName())
+        for rp in range(self.RightSide.MarkupsNode.GetNumberOfFiducials()):
+          coords = self.LeftSide.MarkupsNode.GetMarkupPointVector(rp+BestTrimmingIndex, 0)
+          name = self.LeftSide.MarkupsNode.GetNthFiducialLabel(rp+BestTrimmingIndex)
+          BestTrimmedLeftSide.AddFiducialFromArray(coords)
+          BestTrimmedLeftSide.SetNthFiducialLabel(rp, name)
+        
+        # Update self model
+        self.LeftSide = self.ParentLogic.SpineSide(self, BestTrimmedLeftSide, self.PolyFitDegree, self.BoundaryMultiplicity, self.OmissionDetectionSpecificity, self.ImputationSpecificity)
+        return BestTrimmedLeftSide
+        
+      else:
+        
+        for TrimmedNodeIndex in range(CountMismatch):
+          TrimmedRightSide = slicer.vtkMRMLMarkupsFiducialNode()
+          
+          for lp in range(self.LeftSide.MarkupsNode.GetNumberOfFiducials()):
+            coords = self.RightSide.MarkupsNode.GetMarkupPointVector(lp+TrimmedNodeIndex)
+            TrimmedRightSide.AddFiducialFromArray(coords)
+          
+          MismatchMetric = self.GetCumulativeIntervertabralAngleBetweenSides(self.LeftSide.MarkupsNode, TrimmedRightSide)
+          if MismatchMetric < MinCumulAngle:
+            MinCumulAngle = MismatchMetric
+            BestTrimmingIndex = TrimmedNodeIndex
+       
+       # We have found the best trimming for the RightSide
+        BestTrimmedRightSide = slicer.vtkMRMLMarkupsFiducialNode()
+        BestTrimmedRightSide.SetName(self.RightSide.MarkupsNode.GetName())
+        for lp in range(self.LeftSide.GetNumberOfFiducials()):
+          coords = self.LeftSide.MarkupsNode.GetMarkupPointVector(lp+BestTrimmingIndex)
+          name = self.LeftSide.MarkupsNode.GetNthFiducialLabel(lp+BestTrimmingIndex)
+          BestTrimmedRightSide.AddFiducialFromArray(coords)
+          BestTrimmedRightSide.SetNthFiducialLabel(lp, name)
+      
+        # Update self model
+        self.RightSide = self.ParentLogic.SpineSide(self, BestTrimmedRightSide, self.PolyFitDegree, self.BoundaryMultiplicity, self.OmissionDetectionSpecificity, self.ImputationSpecificity)
+        return BestTrimmedRightSide
+      
+        
+    def GetCumulativeIntervertabralAngleBetweenSides(self, LeftMarkups, RightMarkups):
+      # Assumes that LeftMarkups.GetNumberOfFiducials() == RightMarkups.GetNumberOfFiducials()
+      LeftCoords = [LeftMarkups.GetMarkupPointVector(i,0) for i in range(LeftMarkups.GetNumberOfFiducials())]
+      RightCoords = [RightMarkups.GetMarkupPointVector(i,0) for i in range(RightMarkups.GetNumberOfFiducials())]
+      
+      LeftRightVectors = [[RightCoords[i][dim] - LeftCoords[i][dim] for dim in range(3)] for i in range(len(LeftCoords))]
+      CumulativeIntervertebralAngle = 0.0
+      for VertIndex in range(1,len(LeftRightVectors)):
+        CurrentAngle = np.math.acos(np.dot(LeftRightVectors[VertIndex], LeftRightVectors[VertIndex-1]) / (np.linalg.norm(LeftRightVectors[VertIndex]) * np.linalg.norm(LeftRightVectors[VertIndex-1])))
+        CumulativeIntervertebralAngle += CurrentAngle
+        
+      return CumulativeIntervertebralAngle
+      
     def CombineRepairedSides(self):
       
       # Retrieve and sort LabelCoords of Left and Right sides
