@@ -33,26 +33,30 @@ class Q_SLICER_QTMODULES_COLLECTFIDUCIALS_EXPORT qSlicerCollectFiducialsModuleWi
   Q_OBJECT
 
 public:
-
   typedef qSlicerAbstractModuleWidget Superclass;
   qSlicerCollectFiducialsModuleWidget(QWidget *parent=0);
   virtual ~qSlicerCollectFiducialsModuleWidget();
 
 public slots:
-
+  void setMRMLScene( vtkMRMLScene* scene );
 
 protected slots:
-
+  void blockAllSignals( bool block );
+  void enableAllWidgets( bool enable );
+  void onSceneImportedEvent();
+  void onParameterNodeSelected();
   void onProbeTransformNodeSelected();
-  void onMarkupsFiducialNodeSelected();
-  
+  void onOutputNodeSelected();
+  void onLabelBaseChanged();
+  void onLabelCounterChanged();
   void onRecordClicked();
+  void updateGUIFromMRML();
   
-
 protected:
   QScopedPointer<qSlicerCollectFiducialsModuleWidgetPrivate> d_ptr;
-  
   virtual void setup();
+  virtual void enter();
+  virtual void exit();
 
 private:
   Q_DECLARE_PRIVATE(qSlicerCollectFiducialsModuleWidget);

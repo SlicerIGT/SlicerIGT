@@ -24,9 +24,6 @@
 #ifndef __vtkSlicerCollectFiducialsLogic_h
 #define __vtkSlicerCollectFiducialsLogic_h
 
-
-#include <string>
-
 // Slicer includes
 #include "vtkSlicerModuleLogic.h"
 
@@ -34,19 +31,16 @@
 #include "vtkMRML.h"
 #include "vtkMRMLNode.h"
 #include "vtkMRMLScene.h"
+#include "vtkMRMLLinearTransformNode.h"
 #include "vtkMRMLMarkupsFiducialNode.h"
 
-class vtkMRMLMarkupsFiducialNode;
-class vtkMRMLLinearTransformNode;
-
-
 // STD includes
+#include <string>
 #include <cstdlib>
 
+// includes related to CollectFiducials
+#include "vtkMRMLCollectFiducialsNode.h"
 #include "vtkSlicerCollectFiducialsModuleLogicExport.h"
-
-
-
 
 /// \ingroup Slicer_QtModules_CollectFiducials
 class VTK_SLICER_COLLECTFIDUCIALS_MODULE_LOGIC_EXPORT vtkSlicerCollectFiducialsLogic :
@@ -58,35 +52,15 @@ public:
   vtkTypeMacro(vtkSlicerCollectFiducialsLogic,vtkSlicerModuleLogic);
   void PrintSelf(ostream& os, vtkIndent indent);
   
-  void AddFiducial( std::string NameBase = "" );
-  
+  void AddPoint( vtkMRMLCollectFiducialsNode* pNode );
 
-  // Reference to the probe transform.
-public:
-  vtkGetObjectMacro( ProbeTransformNode, vtkMRMLLinearTransformNode );
-  void SetProbeTransformNode( vtkMRMLLinearTransformNode *node );
-private:
-  vtkMRMLLinearTransformNode *ProbeTransformNode;
-  
-
-  // Reference to the markups fiducial node.
-public:
-  vtkGetObjectMacro( MarkupsFiducialNode, vtkMRMLMarkupsFiducialNode );
-  void SetMarkupsFiducialNode( vtkMRMLMarkupsFiducialNode *node );
-private:
-  vtkMRMLMarkupsFiducialNode *MarkupsFiducialNode;
-  
-  
 protected:
   vtkSlicerCollectFiducialsLogic();
   virtual ~vtkSlicerCollectFiducialsLogic();
 
-  virtual void SetMRMLSceneInternal(vtkMRMLScene * newScene);
   /// Register MRML Node classes to Scene. Gets called automatically when the MRMLScene is attached to this logic class.
   virtual void RegisterNodes();
   virtual void UpdateFromMRMLScene();
-  virtual void OnMRMLSceneNodeAdded(vtkMRMLNode* node);
-  virtual void OnMRMLSceneNodeRemoved(vtkMRMLNode* node);
 private:
   vtkSlicerCollectFiducialsLogic(const vtkSlicerCollectFiducialsLogic&); // Not implemented
   void operator=(const vtkSlicerCollectFiducialsLogic&);               // Not implemented

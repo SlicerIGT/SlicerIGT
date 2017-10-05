@@ -35,128 +35,76 @@
 
 vtkStandardNewMacro(vtkSlicerCollectFiducialsLogic);
 
-
-
+//------------------------------------------------------------------------------
 vtkSlicerCollectFiducialsLogic::vtkSlicerCollectFiducialsLogic()
 {
-  this->ProbeTransformNode = NULL;
-  this->MarkupsFiducialNode = NULL;
-  
-  this->Counter = 0;
 }
 
-
-
+//------------------------------------------------------------------------------
 vtkSlicerCollectFiducialsLogic::~vtkSlicerCollectFiducialsLogic()
 {
-  if ( this->ProbeTransformNode != NULL )
-  {
-    this->ProbeTransformNode->Delete();
-    this->ProbeTransformNode = NULL;
-  }
-  
-  if ( this->MarkupsFiducialNode != NULL )
-  {
-    this->MarkupsFiducialNode->Delete();
-    this->MarkupsFiducialNode = NULL;
-  }
 }
 
-
-
-void vtkSlicerCollectFiducialsLogic::PrintSelf(ostream& os, vtkIndent indent)
+//------------------------------------------------------------------------------
+void vtkSlicerCollectFiducialsLogic::PrintSelf( ostream& os, vtkIndent indent )
 {
-  this->Superclass::PrintSelf(os, indent);
-  
-  os << indent << "ProbeTransformNode: "
-     << ( this->ProbeTransformNode ? this->ProbeTransformNode->GetNodeTagName() : "(none)" ) << std::endl;
+  this->Superclass::PrintSelf( os, indent );
 }
 
-
-
-void vtkSlicerCollectFiducialsLogic
-::AddFiducial( std::string NameBase )
+//------------------------------------------------------------------------------
+void vtkSlicerCollectFiducialsLogic::AddPoint( vtkMRMLCollectFiducialsNode* collectFiducialsNode )
 {
-  if ( this->ProbeTransformNode == NULL || this->MarkupsFiducialNode == NULL )
+  if ( collectFiducialsNode == NULL )
   {
+    vtkErrorMacro( "No parameter node set. Aborting." );
     return;
   }
-  
-  vtkMatrix4x4* transformToWorld = vtkMatrix4x4::New();
-  this->ProbeTransformNode->GetMatrixTransformToWorld( transformToWorld );
-  
-  double coord[ 3 ] = { transformToWorld->GetElement( 0, 3 ), transformToWorld->GetElement( 1, 3 ), transformToWorld->GetElement( 2, 3 ) };
-  
-  this->Counter++;
-  int n = this->MarkupsFiducialNode->AddFiducialFromArray( coord );
-  
-  if ( NameBase.size() > 0 )
+
+  // find the point coordinates
+  vtkSmartPointer< vtkMRMLLinearTransformNode > probeNode = vtkMRMLLinearTransformNode::SafeDownCast( collectFiducialsNode->GetProbeTransformNode() );
+  if ( probeNode == NULL )
   {
-    std::stringstream ss;
-    ss << NameBase << "_" << this->Counter;
-    this->MarkupsFiducialNode->SetNthFiducialLabel( n, ss.str().c_str() );
-  }  
-  
+    vtkErrorMacro( "No probe transform node set. Aborting." );
+    return;
+  }
+  vtkSmartPointer< vtkMatrix4x4 > probeToWorld = vtkSmartPointer< vtkMatrix4x4 >::New();
+  probeNode->GetMatrixTransformToWorld( probeToWorld );
+  double pointCoordinates[ 3 ] = { probeToWorld->GetElement( 0, 3 ), probeToWorld->GetElement( 1, 3 ), probeToWorld->GetElement( 2, 3 ) };
+
+  // add the point to the markups node
+  vtkMRMLMarkupsFiducialNode* outputMarkupsNode = vtkMRMLMarkupsFiducialNode::SafeDownCast( collectFiducialsNode->GetOutputNode() );
+  if ( outputMarkupsNode == NULL )
+  {
+    vtkErrorMacro( "No output markups node set. Aborting." );
+    return;
+  }
+  int pointIndexInMarkups = outputMarkupsNode->AddFiducialFromArray( pointCoordinates );
+
+  // add the label to the point
+  std::stringstream ss;
+  ss << collectFiducialsNode->GetLabelBase() << collectFiducialsNode->GetLabelCounter();
+  outputMarkupsNode->SetNthFiducialLabel( pointIndexInMarkups, ss.str().c_str() );
+
+  // always increase the label counter automatically
+  collectFiducialsNode->SetLabelCounter( collectFiducialsNode->GetLabelCounter() + 1 );
+
   //TODO: Add ability to change glyph scale when feature is added to Markups module
   //this->MarkupsFiducialNode-> ->SetGlyphScale( glyphScale );
-
-  transformToWorld->Delete();
 }
 
-
-
-void vtkSlicerCollectFiducialsLogic
-::SetProbeTransformNode( vtkMRMLLinearTransformNode *node )
-{
-  vtkSetMRMLNodeMacro( this->ProbeTransformNode, node );
-  this->Modified();
-}
-
-
-
-void vtkSlicerCollectFiducialsLogic
-::SetMarkupsFiducialNode( vtkMRMLMarkupsFiducialNode *node )
-{
-  vtkSetMRMLNodeMacro( this->MarkupsFiducialNode, node );
-  this->Modified();
-}
-
-
-
-void vtkSlicerCollectFiducialsLogic::SetMRMLSceneInternal(vtkMRMLScene * newScene)
-{
-  vtkNew<vtkIntArray> events;
-  events->InsertNextValue(vtkMRMLScene::NodeAddedEvent);
-  events->InsertNextValue(vtkMRMLScene::NodeRemovedEvent);
-  events->InsertNextValue(vtkMRMLScene::EndBatchProcessEvent);
-  this->SetAndObserveMRMLSceneEventsInternal(newScene, events.GetPointer());
-}
-
-
-
+//------------------------------------------------------------------------------
 void vtkSlicerCollectFiducialsLogic::RegisterNodes()
 {
-  assert(this->GetMRMLScene() != 0);
+  if( !this->GetMRMLScene() )
+  {
+    vtkWarningMacro("MRML scene not yet created");
+    return;
+  }
+  this->GetMRMLScene()->RegisterNodeClass( vtkSmartPointer< vtkMRMLCollectFiducialsNode >::New() );
 }
 
-
-
+//------------------------------------------------------------------------------
 void vtkSlicerCollectFiducialsLogic::UpdateFromMRMLScene()
 {
   assert(this->GetMRMLScene() != 0);
 }
-
-
-
-void vtkSlicerCollectFiducialsLogic
-::OnMRMLSceneNodeAdded(vtkMRMLNode* vtkNotUsed(node))
-{
-}
-
-
-
-void vtkSlicerCollectFiducialsLogic
-::OnMRMLSceneNodeRemoved(vtkMRMLNode* vtkNotUsed(node))
-{
-}
-
