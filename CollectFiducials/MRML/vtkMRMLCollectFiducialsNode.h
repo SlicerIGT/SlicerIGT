@@ -46,6 +46,13 @@ public:
     InputDataModifiedEvent = vtkCommand::UserEvent + 565
   };
 
+  enum
+  {
+    Manual = 0,
+    Automatic,
+    CollectMode_Last // valid types go above this line
+  };
+
   vtkTypeMacro( vtkMRMLCollectFiducialsNode, vtkMRMLNode );
   
   // Standard MRML node methods
@@ -81,7 +88,18 @@ public:
   vtkGetMacro(LabelCounter, int);
   vtkSetMacro(LabelCounter, int);
 
+  vtkGetMacro( CollectMode, int );
+  vtkSetMacro( CollectMode, int );
+  void SetCollectModeToManual() { this->SetCollectMode( Manual ); }
+  void SetCollectModeToAutomatic() { this->SetCollectMode( Automatic ); }
+
+  vtkGetMacro( MinimumDistanceMm, double );
+  vtkSetMacro( MinimumDistanceMm, double );
+
   void ProcessMRMLEvents( vtkObject *caller, unsigned long event, void *callData );
+
+  static int GetCollectModeFromString( const char* name );
+  static const char* GetCollectModeAsString( int id );
   
 private:
   // the next collected point will have label "[LabelBase]-[LabelCounter]"
@@ -89,6 +107,16 @@ private:
   // These are "advanced" options
   std::string LabelBase;
   int LabelCounter;
+
+  // For automatic CollectMode only:
+  // Only collect a new point if the probe transform has moved by
+  // at least this much from the previous point
+  double MinimumDistanceMm;
+
+  // Determine when new points are collected:
+  // Manual - when the user clicks on "Collect"
+  // Automatic - anytime the input probe transform or any of the parameters are changed
+  int CollectMode;
 };
 
 #endif

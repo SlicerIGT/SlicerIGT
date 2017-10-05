@@ -40,10 +40,16 @@ vtkMRMLCollectFiducialsNode::vtkMRMLCollectFiducialsNode()
   this->HideFromEditorsOff();
   this->SetSaveWithScene( true );
 
-  this->AddNodeReferenceRole( PROBE_TRANSFORM_REFERENCE_ROLE );
+  vtkNew<vtkIntArray> transformListEvents;
+  transformListEvents->InsertNextValue( vtkCommand::ModifiedEvent );
+  transformListEvents->InsertNextValue( vtkMRMLTransformNode::TransformModifiedEvent );
+
+  this->AddNodeReferenceRole( PROBE_TRANSFORM_REFERENCE_ROLE, NULL, transformListEvents.GetPointer() );
   this->AddNodeReferenceRole( OUTPUT_REFERENCE_ROLE );
   this->LabelBase = "P";
   this->LabelCounter = 0;
+  this->MinimumDistanceMm = 10.0;
+  this->CollectMode = Manual;
 }
 
 //------------------------------------------------------------------------------
@@ -59,6 +65,8 @@ void vtkMRMLCollectFiducialsNode::WriteXML( ostream& of, int nIndent )
   vtkIndent indent( nIndent ); 
   of << indent << " LabelBase=\"" << this->LabelBase << "\"";
   of << indent << " LabelCounter=\"" << this->LabelCounter << "\"";
+  of << indent << " MinimumDistanceMm=\"" << this->MinimumDistanceMm << "\"";
+  of << indent << " CollectMode=\"" << this->CollectMode << "\"";
 }
 
 // ----------------------------------------------------------------------------
@@ -67,6 +75,8 @@ void vtkMRMLCollectFiducialsNode::PrintSelf( ostream& os, vtkIndent indent )
   Superclass::PrintSelf( os, indent );
   os << indent << " LabelBase=\"" << this->LabelBase << "\"";
   os << indent << " LabelCounter=\"" << this->LabelCounter << "\"";
+  os << indent << " MinimumDistanceMm=\"" << this->MinimumDistanceMm << "\"";
+  os << indent << " CollectMode=\"" << this->CollectMode << "\"";
 }
 
 //------------------------------------------------------------------------------
@@ -93,6 +103,26 @@ void vtkMRMLCollectFiducialsNode::ReadXMLAttributes( const char** atts )
       ss << attValue;
       ss >> this->LabelCounter;
       continue;
+    }
+    else if ( ! strcmp( attName, "MinimumDistanceMm" ) )
+    {
+      std::stringstream ss;
+      ss << attValue;
+      ss >> this->MinimumDistanceMm;
+      continue;
+    }
+    else if ( ! strcmp( attName, "CollectMode" ) )
+    {
+      int modeAsInt = GetCollectModeFromString( attValue );
+      if (modeAsInt >= 0 && modeAsInt < CollectMode_Last)
+      {
+        this->CollectMode = modeAsInt;
+      }
+      else
+      {
+        vtkWarningMacro("Unrecognized collect mode read from MRML node: " << attValue << ". Setting to manual.")
+        this->CollectMode = Manual;
+      }
     }
   }
 
@@ -143,7 +173,6 @@ void vtkMRMLCollectFiducialsNode::SetOutputNodeId( const char* nodeId )
     return;
   }
   this->SetAndObserveNodeReferenceID( OUTPUT_REFERENCE_ROLE, nodeId );
-  this->InvokeCustomModifiedEvent( InputDataModifiedEvent );
 }
 
 //------------------------------------------------------------------------------
@@ -155,8 +184,41 @@ void vtkMRMLCollectFiducialsNode::ProcessMRMLEvents( vtkObject *caller, unsigned
     return;
   }
 
-  if ( callerNode == this->GetProbeTransformNode() )
+  if ( this->GetProbeTransformNode() && callerNode == this->GetProbeTransformNode() )
   {
     this->InvokeCustomModifiedEvent( InputDataModifiedEvent );
+  }
+}
+
+//------------------------------------------------------------------------------
+int vtkMRMLCollectFiducialsNode::GetCollectModeFromString( const char* name )
+{
+  if ( name == NULL )
+  {
+    // invalid name
+    return -1;
+  }
+  for ( int i = 0; i < CollectMode_Last; i++ )
+  {
+    if ( strcmp( name, GetCollectModeAsString( i ) ) == 0 )
+    {
+      // found a matching name
+      return i;
+    }
+  }
+  // unknown name
+  return -1;
+}
+
+//------------------------------------------------------------------------------
+const char* vtkMRMLCollectFiducialsNode::GetCollectModeAsString( int id )
+{
+  switch ( id )
+  {
+  case Manual: return "manual";
+  case Automatic: return "automatic";
+  default:
+    // invalid id
+    return "";
   }
 }

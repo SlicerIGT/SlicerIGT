@@ -73,9 +73,9 @@
     </layout>
    </item>
    <item>
-    <widget class="QPushButton" name="RecordButton">
+    <widget class="ctkCheckablePushButton" name="CollectButton">
      <property name="text">
-      <string>Record</string>
+      <string>Collect</string>
      </property>
     </widget>
    </item>
@@ -90,6 +90,13 @@
      <layout class="QGridLayout" name="gridLayout_3">
       <item row="1" column="1">
        <widget class="QSpinBox" name="LabelCounterSpinBox"/>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="MinimumDistanceLabel">
+        <property name="text">
+         <string>Minimum Distance:</string>
+        </property>
+       </widget>
       </item>
       <item row="1" column="0">
        <widget class="QLabel" name="LabelCounterLabel">
@@ -109,6 +116,13 @@
        <widget class="QLabel" name="LabelBaseLabel">
         <property name="text">
          <string>Label Base:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="ctkSliderWidget" name="MinimumDistanceSlider">
+        <property name="value">
+         <double>10.000000000000000</double>
         </property>
        </widget>
       </item>
@@ -144,10 +158,25 @@
    <container>1</container>
   </customwidget>
   <customwidget>
+   <class>ctkCheckablePushButton</class>
+   <extends>ctkPushButton</extends>
+   <header>ctkCheckablePushButton.h</header>
+  </customwidget>
+  <customwidget>
    <class>ctkCollapsibleGroupBox</class>
    <extends>QGroupBox</extends>
    <header>ctkCollapsibleGroupBox.h</header>
    <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>ctkPushButton</class>
+   <extends>QPushButton</extends>
+   <header>ctkPushButton.h</header>
+  </customwidget>
+  <customwidget>
+   <class>ctkSliderWidget</class>
+   <extends>QWidget</extends>
+   <header>ctkSliderWidget.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

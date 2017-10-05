@@ -71,13 +71,28 @@ void vtkSlicerCollectFiducialsLogic::AddPoint( vtkMRMLCollectFiducialsNode* coll
   probeNode->GetMatrixTransformToWorld( probeToWorld );
   double pointCoordinates[ 3 ] = { probeToWorld->GetElement( 0, 3 ), probeToWorld->GetElement( 1, 3 ), probeToWorld->GetElement( 2, 3 ) };
 
-  // add the point to the markups node
+  // see if output exists
   vtkMRMLMarkupsFiducialNode* outputMarkupsNode = vtkMRMLMarkupsFiducialNode::SafeDownCast( collectFiducialsNode->GetOutputNode() );
   if ( outputMarkupsNode == NULL )
   {
     vtkErrorMacro( "No output markups node set. Aborting." );
     return;
   }
+
+  // if in automatic collection mode, make sure sufficient there is sufficient distance from previous point
+  int numberOfPoints = outputMarkupsNode->GetNumberOfFiducials();
+  if ( collectFiducialsNode->GetCollectMode() == vtkMRMLCollectFiducialsNode::Automatic && numberOfPoints > 0 )
+  {
+    double previousCoordinates[ 3 ];
+    outputMarkupsNode->GetNthFiducialPosition( numberOfPoints - 1, previousCoordinates );
+    double distanceMm = sqrt( vtkMath::Distance2BetweenPoints( pointCoordinates, previousCoordinates ) );
+    if ( distanceMm < collectFiducialsNode->GetMinimumDistanceMm() )
+    {
+      return;
+    }
+  }
+
+  // Add point to the markups node
   int pointIndexInMarkups = outputMarkupsNode->AddFiducialFromArray( pointCoordinates );
 
   // add the label to the point
@@ -90,6 +105,15 @@ void vtkSlicerCollectFiducialsLogic::AddPoint( vtkMRMLCollectFiducialsNode* coll
 
   //TODO: Add ability to change glyph scale when feature is added to Markups module
   //this->MarkupsFiducialNode-> ->SetGlyphScale( glyphScale );
+}
+
+//------------------------------------------------------------------------------
+void vtkSlicerCollectFiducialsLogic::SetMRMLSceneInternal( vtkMRMLScene * newScene )
+{
+  vtkNew<vtkIntArray> events;
+  events->InsertNextValue( vtkMRMLScene::NodeAddedEvent );
+  events->InsertNextValue( vtkMRMLScene::NodeRemovedEvent );
+  this->SetAndObserveMRMLSceneEventsInternal( newScene, events.GetPointer() );
 }
 
 //------------------------------------------------------------------------------
@@ -107,4 +131,60 @@ void vtkSlicerCollectFiducialsLogic::RegisterNodes()
 void vtkSlicerCollectFiducialsLogic::UpdateFromMRMLScene()
 {
   assert(this->GetMRMLScene() != 0);
+}
+
+//------------------------------------------------------------------------------
+void vtkSlicerCollectFiducialsLogic::OnMRMLSceneNodeAdded( vtkMRMLNode* node )
+{
+  if ( node == NULL || this->GetMRMLScene() == NULL )
+  {
+    vtkWarningMacro( "OnMRMLSceneNodeAdded: Invalid MRML scene or node" );
+    return;
+  }
+
+  vtkMRMLCollectFiducialsNode* collectFiducialsNode = vtkMRMLCollectFiducialsNode::SafeDownCast( node );
+  if ( collectFiducialsNode )
+  {
+    vtkDebugMacro( "OnMRMLSceneNodeAdded: Module node added." );
+    vtkUnObserveMRMLNodeMacro( collectFiducialsNode ); // Remove previous observers.
+    vtkNew<vtkIntArray> events;
+    events->InsertNextValue( vtkCommand::ModifiedEvent );
+    events->InsertNextValue( vtkMRMLCollectFiducialsNode::InputDataModifiedEvent );
+    vtkObserveMRMLNodeEventsMacro( collectFiducialsNode, events.GetPointer() );
+  }
+}
+
+//------------------------------------------------------------------------------
+void vtkSlicerCollectFiducialsLogic::OnMRMLSceneNodeRemoved( vtkMRMLNode* node )
+{
+  if ( node == NULL || this->GetMRMLScene() == NULL )
+  {
+    vtkWarningMacro("OnMRMLSceneNodeRemoved: Invalid MRML scene or node");
+    return;
+  }
+  
+  if ( node->IsA( "vtkMRMLCollectFiducialsNode" ) )
+  {
+    vtkDebugMacro( "OnMRMLSceneNodeRemoved" );
+    vtkUnObserveMRMLNodeMacro( node );
+  }
+}
+
+//------------------------------------------------------------------------------
+void vtkSlicerCollectFiducialsLogic::ProcessMRMLNodesEvents( vtkObject* caller, unsigned long event, void* vtkNotUsed(callData) )
+{
+  vtkMRMLCollectFiducialsNode* collectFiducialsNode = vtkMRMLCollectFiducialsNode::SafeDownCast( caller );
+  if ( collectFiducialsNode == NULL )
+  {
+    vtkErrorMacro( "No parameter node set. Aborting." );
+    return;
+  }
+  
+  if ( event == vtkMRMLCollectFiducialsNode::InputDataModifiedEvent )
+  {
+    if ( collectFiducialsNode->GetCollectMode() == vtkMRMLCollectFiducialsNode::Automatic )
+    {
+      this->AddPoint( collectFiducialsNode ); // Will create modified event to update widget
+    }
+  }
 }

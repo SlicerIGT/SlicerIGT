@@ -46,10 +46,12 @@ protected slots:
   void onSceneImportedEvent();
   void onParameterNodeSelected();
   void onProbeTransformNodeSelected();
-  void onOutputNodeSelected();
   void onLabelBaseChanged();
   void onLabelCounterChanged();
-  void onRecordClicked();
+  void onMinimumDistanceChanged();
+  void onOutputNodeSelected();
+  void onCollectClicked();
+  void onCollectCheckboxToggled();
   void updateGUIFromMRML();
   
 protected:

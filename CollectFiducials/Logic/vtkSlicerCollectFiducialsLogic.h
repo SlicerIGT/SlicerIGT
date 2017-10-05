@@ -53,14 +53,19 @@ public:
   void PrintSelf(ostream& os, vtkIndent indent);
   
   void AddPoint( vtkMRMLCollectFiducialsNode* pNode );
+  
+  void ProcessMRMLNodesEvents( vtkObject* caller, unsigned long event, void* callData );
 
 protected:
   vtkSlicerCollectFiducialsLogic();
   virtual ~vtkSlicerCollectFiducialsLogic();
 
+  virtual void SetMRMLSceneInternal(vtkMRMLScene * newScene);
   /// Register MRML Node classes to Scene. Gets called automatically when the MRMLScene is attached to this logic class.
   virtual void RegisterNodes();
   virtual void UpdateFromMRMLScene();
+  virtual void OnMRMLSceneNodeAdded(vtkMRMLNode* node);
+  virtual void OnMRMLSceneNodeRemoved(vtkMRMLNode* node);
 private:
   vtkSlicerCollectFiducialsLogic(const vtkSlicerCollectFiducialsLogic&); // Not implemented
   void operator=(const vtkSlicerCollectFiducialsLogic&);               // Not implemented

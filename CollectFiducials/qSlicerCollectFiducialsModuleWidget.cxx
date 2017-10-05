@@ -86,7 +86,9 @@ void qSlicerCollectFiducialsModuleWidget::setup()
   connect( d->OutputNodeComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onOutputNodeSelected() ) );
   connect( d->LabelBaseLineEdit, SIGNAL( editingFinished() ), this, SLOT( onLabelBaseChanged() ) );
   connect( d->LabelCounterSpinBox, SIGNAL( valueChanged( int ) ), this, SLOT( onLabelCounterChanged() ) );
-  connect( d->RecordButton, SIGNAL( clicked() ), this, SLOT( onRecordClicked() ) );
+  connect( d->MinimumDistanceSlider, SIGNAL( valueChanged( double ) ), this, SLOT( onMinimumDistanceChanged() ) );
+  connect( d->CollectButton, SIGNAL( clicked() ), this, SLOT( onCollectClicked() ) );
+  connect( d->CollectButton, SIGNAL( checkBoxToggled( bool ) ), this, SLOT( onCollectCheckboxToggled() ) );
 }
 
 //-----------------------------------------------------------------------------
@@ -136,7 +138,8 @@ void qSlicerCollectFiducialsModuleWidget::blockAllSignals( bool block )
   d->OutputNodeComboBox->blockSignals( block );
   d->LabelBaseLineEdit->blockSignals( block );
   d->LabelCounterSpinBox->blockSignals( block );
-  d->RecordButton->blockSignals( block );
+  d->MinimumDistanceSlider->blockSignals( block );
+  d->CollectButton->blockSignals( block );
 }
 
 //-----------------------------------------------------------------------------
@@ -148,7 +151,8 @@ void qSlicerCollectFiducialsModuleWidget::enableAllWidgets( bool enable )
   d->OutputNodeComboBox->setEnabled( enable );
   d->LabelBaseLineEdit->setEnabled( enable );
   d->LabelCounterSpinBox->setEnabled( enable );
-  d->RecordButton->setEnabled( enable );
+  d->MinimumDistanceSlider->setEnabled( enable );
+  d->CollectButton->setEnabled( enable );
 }
 
 //-----------------------------------------------------------------------------
@@ -257,7 +261,24 @@ void qSlicerCollectFiducialsModuleWidget::onLabelCounterChanged()
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerCollectFiducialsModuleWidget::onRecordClicked()
+void qSlicerCollectFiducialsModuleWidget::onMinimumDistanceChanged()
+{
+  Q_D( qSlicerCollectFiducialsModuleWidget );
+
+  vtkMRMLCollectFiducialsNode* parameterNode = vtkMRMLCollectFiducialsNode::SafeDownCast( d->ParameterNodeComboBox->currentNode() );
+  if ( parameterNode == NULL )
+  {
+    qCritical() << Q_FUNC_INFO << ": invalid parameter node";
+    return;
+  }
+
+  parameterNode->SetMinimumDistanceMm( d->MinimumDistanceSlider->value() );
+  
+  this->updateGUIFromMRML();
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerCollectFiducialsModuleWidget::onCollectClicked()
 {
   Q_D( qSlicerCollectFiducialsModuleWidget );
   
@@ -268,7 +289,38 @@ void qSlicerCollectFiducialsModuleWidget::onRecordClicked()
     return;
   }
   
+  if ( d->CollectButton->checkState() == Qt::Checked )
+  {
+    // If Collect button is untoggled then make it unchecked, too
+    d->CollectButton->setCheckState( Qt::Unchecked );
+  }
+
   d->logic()->AddPoint( parameterNode );
+
+  this->updateGUIFromMRML();
+}
+
+//------------------------------------------------------------------------------
+void qSlicerCollectFiducialsModuleWidget::onCollectCheckboxToggled()
+{
+  Q_D( qSlicerCollectFiducialsModuleWidget );
+
+  vtkMRMLCollectFiducialsNode* parameterNode = vtkMRMLCollectFiducialsNode::SafeDownCast( d->ParameterNodeComboBox->currentNode() );
+  if ( parameterNode == NULL )
+  {
+    // should not be able to change parameters in a non-existant node...
+    this->enableAllWidgets( false );
+    return;
+  }
+
+  if ( d->CollectButton->checkState() == Qt::Checked )
+  {
+    parameterNode->SetCollectModeToAutomatic();
+  }
+  else
+  {
+    parameterNode->SetCollectModeToManual();
+  }
 
   this->updateGUIFromMRML();
 }
@@ -296,6 +348,21 @@ void qSlicerCollectFiducialsModuleWidget::updateGUIFromMRML()
   d->OutputNodeComboBox->setCurrentNode( parameterNode->GetOutputNode() );
   d->LabelCounterSpinBox->setValue( parameterNode->GetLabelCounter() );
   d->LabelBaseLineEdit->setText( parameterNode->GetLabelBase().c_str() );
+  d->MinimumDistanceSlider->setValue( parameterNode->GetMinimumDistanceMm() );
+
+  bool readyToCollect = parameterNode->GetProbeTransformNode() != NULL && parameterNode->GetOutputNode() != NULL;
+  d->CollectButton->setEnabled( readyToCollect );
+  if ( parameterNode->GetCollectMode() == vtkMRMLCollectFiducialsNode::Automatic )
+  {
+    d->CollectButton->setText( tr( "Auto-Collect" ) );
+    d->CollectButton->setCheckable( true );
+    d->CollectButton->setChecked( true );
+  }
+  else
+  {
+    d->CollectButton->setText( tr( "Collect" ) );
+    d->CollectButton->setCheckable( false );
+  }
 
   this->blockAllSignals( false );
 }
