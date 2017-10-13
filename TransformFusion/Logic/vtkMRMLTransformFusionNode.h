@@ -59,8 +59,33 @@ public:
   enum
   {
     FUSION_MODE_QUATERNION_AVERAGE = 0,
-    FUSION_MODE_CONSTRAIN_SHAFT_ROTATION,
+    FUSION_MODE_COMPUTE_SHAFT_PIVOT,
+    FUSION_MODE_COMPUTE_ROTATION,
+    FUSION_MODE_COMPUTE_TRANSLATION,
+    FUSION_MODE_COMPUTE_FULL_TRANSFORM,
     FUSION_MODE_LAST // do not set to this type, insert valid types above this line
+  };
+
+  enum
+  {
+    ROTATION_MODE_COPY_ALL_AXES = 0,
+    ROTATION_MODE_COPY_SINGLE_AXIS,
+    ROTATION_MODE_LAST // do not set to this type, insert valid types above this line
+  };
+
+  enum
+  {
+    DEPENDENT_AXES_MODE_FROM_PIVOT = 0,
+    DEPENDENT_AXES_MODE_FROM_SECONDARY_AXIS,
+    DEPENDENT_AXES_MODE_LAST // do not set to this type, insert valid types above this line
+  };
+
+  enum
+  {
+    AXIS_LABEL_X = 0,
+    AXIS_LABEL_Y,
+    AXIS_LABEL_Z,
+    AXIS_LABEL_LAST // do not set to this type, insert valid types above this line
   };
 
   static vtkMRMLTransformFusionNode *New();
@@ -73,30 +98,34 @@ public:
   virtual void Copy( vtkMRMLNode *node );
   virtual const char* GetNodeTagName() { return "TransformFusionParameters"; };
 
-public:
+  // begin accessors and mutators
+  vtkMRMLLinearTransformNode* GetNthInputCombineTransformNode( int n );
+  void AddAndObserveInputCombineTransformNode( vtkMRMLLinearTransformNode* node );
+  void RemoveNthInputCombineTransformNode( int n );
+  int GetNumberOfInputCombineTransformNodes();
+
+  vtkMRMLLinearTransformNode* GetInputFromTransformNode();
+  void SetAndObserveInputFromTransformNode( vtkMRMLLinearTransformNode* node );
+
+  vtkMRMLLinearTransformNode* GetInputToTransformNode();
+  void SetAndObserveInputToTransformNode( vtkMRMLLinearTransformNode* node );
+
+  vtkMRMLLinearTransformNode* GetInputInitialTransformNode();
+  void SetAndObserveInputInitialTransformNode( vtkMRMLLinearTransformNode* node );
+
+  vtkMRMLLinearTransformNode* GetInputChangedTransformNode();
+  void SetAndObserveInputChangedTransformNode( vtkMRMLLinearTransformNode* node );
+
+  vtkMRMLLinearTransformNode* GetInputAnchorTransformNode();
+  void SetAndObserveInputAnchorTransformNode( vtkMRMLLinearTransformNode* node );
+
   vtkMRMLLinearTransformNode* GetOutputTransformNode();
   void SetAndObserveOutputTransformNode( vtkMRMLLinearTransformNode* node );
-
-  vtkMRMLLinearTransformNode* GetRestingTransformNode();
-  void SetAndObserveRestingTransformNode( vtkMRMLLinearTransformNode* node );
-
-  vtkMRMLLinearTransformNode* GetReferenceTransformNode();
-  void SetAndObserveReferenceTransformNode( vtkMRMLLinearTransformNode* node );
-
-  // these input functions should be used when there is only one "input" transform
-  vtkMRMLLinearTransformNode* GetSingleInputTransformNode();
-  void SetAndObserveSingleInputTransformNode( vtkMRMLLinearTransformNode* node );
-
-  // these input functions should only be used when there are multiple "inputs"
-  vtkMRMLLinearTransformNode* GetNthInputTransformNode( int n );
-  void AddAndObserveInputTransformNode( vtkMRMLLinearTransformNode* node );
-  void RemoveInputTransformNode( int n );
-  int GetNumberOfInputTransformNodes();
   
   void ProcessMRMLEvents( vtkObject* caller, unsigned long event, void* callData );
 
-  vtkSetMacro( UpdatesPerSecond, int );
   vtkGetMacro( UpdatesPerSecond, int ); 
+  vtkSetMacro( UpdatesPerSecond, int );
 
   vtkGetMacro( FusionMode, int );
   void SetFusionMode( int );
@@ -104,11 +133,56 @@ public:
   vtkGetMacro( UpdateMode, int );
   void SetUpdateMode( int );
 
+  const bool* GetCopyTranslationComponents();
+  
+  bool GetCopyTranslationX();
+  void SetCopyTranslationX( bool );
+  
+  bool GetCopyTranslationY();
+  void SetCopyTranslationY( bool );
+  
+  bool GetCopyTranslationZ();
+  void SetCopyTranslationZ( bool );
+
+  vtkGetMacro( RotationMode, int );
+  void SetRotationMode( int );
+  
+  vtkGetMacro( DependentAxesMode, int );
+  void SetDependentAxesMode( int );
+  
+  vtkGetMacro( PrimaryAxisLabel, int );
+  void SetPrimaryAxisLabel( int );
+  
+  vtkGetMacro( SecondaryAxisLabel, int );
+  void SetSecondaryAxisLabel( int );
+
+  void CheckAndCorrectForDuplicateAxes();
+
   static std::string GetFusionModeAsString( int );
   static int GetFusionModeFromString( std::string );
 
   static std::string GetUpdateModeAsString( int );
   static int GetUpdateModeFromString( std::string );
+
+  static std::string GetRotationModeAsString( int );
+  static int GetRotationModeFromString( std::string );
+  
+  static std::string GetDependentAxesModeAsString( int );
+  static int GetDependentAxesModeFromString( std::string );
+
+  static std::string GetAxisLabelAsString( int );
+  static int GetAxisLabelFromString( std::string );
+
+private:
+  // common functions internal to the class.
+  // convenience functions GetInputXXXTransformNode(), etc... call these
+  vtkMRMLLinearTransformNode* GetNthTransformNodeInRole( const char* role, int n );
+  void AddAndObserveTransformNodeInRole( const char* role, vtkMRMLLinearTransformNode* node );
+  void RemoveNthTransformNodeInRole( const char* role, int n );
+  int GetNumberOfTransformNodesInRole( const char* role );
+
+  vtkMRMLLinearTransformNode* GetTransformNodeInRole( const char* role );
+  void SetAndObserveTransformNodeInRole( const char* role, vtkMRMLLinearTransformNode* node );
 
 protected:
   vtkMRMLTransformFusionNode();
@@ -119,9 +193,14 @@ protected:
 
 //Parameters
 protected:
-  int UpdatesPerSecond;
-  int FusionMode;
-  int UpdateMode;
+  int  UpdatesPerSecond;
+  int  FusionMode;
+  int  UpdateMode;
+  bool CopyTranslationComponents[ 3 ];
+  int  RotationMode;
+  int  DependentAxesMode;
+  int  PrimaryAxisLabel;
+  int  SecondaryAxisLabel;
 };
 
 #endif

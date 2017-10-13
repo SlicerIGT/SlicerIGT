@@ -38,6 +38,8 @@
 #include <cassert>
 #include <sstream>
 
+const float EPSILON = 0.00001;
+
 vtkStandardNewMacro( vtkSlicerTransformFusionLogic );
 
 //-----------------------------------------------------------------------------
@@ -67,6 +69,15 @@ void vtkSlicerTransformFusionLogic::RegisterNodes()
   }
   
   scene->RegisterNodeClass( vtkSmartPointer<vtkMRMLTransformFusionNode>::New() );
+}
+
+//---------------------------------------------------------------------------
+void vtkSlicerTransformFusionLogic::SetMRMLSceneInternal( vtkMRMLScene * newScene )
+{
+  vtkNew<vtkIntArray> events;
+  events->InsertNextValue( vtkMRMLScene::NodeAddedEvent );
+  events->InsertNextValue( vtkMRMLScene::NodeRemovedEvent );
+  this->SetAndObserveMRMLSceneEventsInternal( newScene, events.GetPointer() );
 }
 
 //---------------------------------------------------------------------------
@@ -107,7 +118,7 @@ void vtkSlicerTransformFusionLogic::OnMRMLSceneNodeRemoved( vtkMRMLNode* node )
 }
 
 //-----------------------------------------------------------------------------
-void vtkSlicerTransformFusionLogic::ProcessMRMLNodesEvents( vtkObject* caller, unsigned long event, void* callData )
+void vtkSlicerTransformFusionLogic::ProcessMRMLNodesEvents( vtkObject* caller, unsigned long event, void* )
 {
   vtkMRMLTransformFusionNode* paramNode = vtkMRMLTransformFusionNode::SafeDownCast( caller );
   if ( paramNode == NULL )
@@ -115,25 +126,42 @@ void vtkSlicerTransformFusionLogic::ProcessMRMLNodesEvents( vtkObject* caller, u
     return;
   }
 
-  if ( event==vtkMRMLTransformFusionNode::InputDataModifiedEvent )
+  // these are the only two events that should be handled
+  if ( event != vtkMRMLTransformFusionNode::InputDataModifiedEvent &&
+       event != vtkCommand::ModifiedEvent )
   {
-    if ( paramNode->GetUpdateMode() == vtkMRMLTransformFusionNode::UPDATE_MODE_AUTO )
-    {
-      this->UpdateOutputTransform( paramNode );
-    }
+    return;
+  }
+
+  if ( paramNode->GetUpdateMode() == vtkMRMLTransformFusionNode::UPDATE_MODE_AUTO )
+  {
+    this->UpdateOutputTransform( paramNode );
   }
 }
 
 //-----------------------------------------------------------------------------
 void vtkSlicerTransformFusionLogic::UpdateOutputTransform( vtkMRMLTransformFusionNode* paramNode )
 {
-  if ( paramNode->GetFusionMode() == vtkMRMLTransformFusionNode::FUSION_MODE_QUATERNION_AVERAGE )
+  int mode = paramNode->GetFusionMode();
+  if ( mode == vtkMRMLTransformFusionNode::FUSION_MODE_QUATERNION_AVERAGE )
   {
     this->QuaternionAverage( paramNode );
   }
-  else if ( paramNode->GetFusionMode() == vtkMRMLTransformFusionNode::FUSION_MODE_CONSTRAIN_SHAFT_ROTATION )
+  else if ( mode == vtkMRMLTransformFusionNode::FUSION_MODE_COMPUTE_SHAFT_PIVOT )
   {
-    this->ConstrainShaftRotation( paramNode );
+    this->ComputeShaftPivotTransform( paramNode );
+  }
+  else if ( mode == vtkMRMLTransformFusionNode::FUSION_MODE_COMPUTE_ROTATION )
+  {
+    this->ComputeRotation( paramNode );
+  }
+  else if ( mode == vtkMRMLTransformFusionNode::FUSION_MODE_COMPUTE_TRANSLATION )
+  {
+    this->ComputeTranslation( paramNode );
+  }
+  else if ( mode == vtkMRMLTransformFusionNode::FUSION_MODE_COMPUTE_FULL_TRANSFORM )
+  {
+    this->ComputeFullTransform( paramNode );
   }
 }
 
@@ -162,8 +190,8 @@ void vtkSlicerTransformFusionLogic::QuaternionAverage( vtkMRMLTransformFusionNod
   }
 
   // Average quaternion
-  vtkSmartPointer< vtkMatrix4x4 > outputMatrix = vtkSmartPointer< vtkMatrix4x4 >::New();
-  int numberOfInputs = paramNode->GetNumberOfInputTransformNodes();
+  vtkSmartPointer< vtkMatrix4x4 > resultMatrix = vtkSmartPointer< vtkMatrix4x4 >::New();
+  int numberOfInputs = paramNode->GetNumberOfInputCombineTransformNodes();
   // numberOfInputs is greater than 1, as checked by IsTransformFusionPossible
   vtkSmartPointer< vtkMatrix4x4 > matrix4x4Pointer = vtkSmartPointer< vtkMatrix4x4 >::New();
 
@@ -175,7 +203,7 @@ void vtkSlicerTransformFusionLogic::QuaternionAverage( vtkMRMLTransformFusionNod
   for ( int i = 0; i < numberOfInputs; i++ )
   {
 
-    paramNode->GetNthInputTransformNode( i )->GetMatrixTransformToParent( matrix4x4Pointer );
+    paramNode->GetNthInputCombineTransformNode( i )->GetMatrixTransformToParent( matrix4x4Pointer );
 
     for ( int row = 0; row < 3; row++ )
     {
@@ -213,7 +241,7 @@ void vtkSlicerTransformFusionLogic::QuaternionAverage( vtkMRMLTransformFusionNod
   {
     for ( int column = 0; column < 3; column++ )
     { 
-      outputMatrix->SetElement( row, column, averageRotationMatrix[ row ][ column ] );
+      resultMatrix->SetElement( row, column, averageRotationMatrix[ row ][ column ] );
     }
   }
 
@@ -223,21 +251,21 @@ void vtkSlicerTransformFusionLogic::QuaternionAverage( vtkMRMLTransformFusionNod
   {
     for ( int i = 0; i < numberOfInputs; i++ )
     {
-      paramNode->GetNthInputTransformNode( i )->GetMatrixTransformToParent( matrix4x4Pointer );
+      paramNode->GetNthInputCombineTransformNode( i )->GetMatrixTransformToParent( matrix4x4Pointer );
       value += matrix4x4Pointer->GetElement( row, 3 );
     }
     value = value / numberOfInputs;
-    outputMatrix->SetElement( row, 3 , value );
+    resultMatrix->SetElement( row, 3 , value );
     value = 0;
   }
 
-  outputNode->SetMatrixTransformToParent( outputMatrix );
+  outputNode->SetMatrixTransformToParent( resultMatrix );
 }
 
 //-----------------------------------------------------------------------------
-// Re-express the Input transform so that the shaft direction from the Input is 
-// preserved, but the other axes resemble the Resting coordinate system
-void vtkSlicerTransformFusionLogic::ConstrainShaftRotation( vtkMRMLTransformFusionNode* paramNode )
+// Re-express the Input transform so that the shaft direction and translation from the primary source are 
+// preserved, but the other axes resemble the secondary source coordinate system
+void vtkSlicerTransformFusionLogic::ComputeShaftPivotTransform( vtkMRMLTransformFusionNode* paramNode )
 {
   bool verboseWarnings = true;
   bool conditionsMetForFusion = IsTransformFusionPossible( paramNode, verboseWarnings );
@@ -246,188 +274,548 @@ void vtkSlicerTransformFusionLogic::ConstrainShaftRotation( vtkMRMLTransformFusi
     return;
   }
 
-  // first determine the shaft directions
-  double shaftDirectionInInput[ 3 ] = { 0.0, 0.0, -1.0 };
-  double shaftDirectionInResting[ 3 ];
-  TransformVectorInputToResting( paramNode, shaftDirectionInInput, shaftDirectionInResting );
+  // The output will be the adjustedToInputAnchorTransform transform.
+  // We will compute AdjustedToInputAnchorRotation = InputInitialToInputAnchorRotation * AdjustedToInputInitialRotation
+  // Translation must be handled separately as:
+  // AdjustedToInputAnchorTranslation = InputChangedToInputInitialTranslation
 
-  // Key point: We REFER to the Resting transform, then
-  // rotate between it and the Input. We use an axis-angle rotation,
-  // but make sure that the rotation axis is perpendicular to the shaft.
-  // This eliminates any rotation about the shaft itself, so the other
-  // two axes are aligned as closely as possible.
+  // first determine rotation components
+  vtkMRMLLinearTransformNode* inputChangedNode = paramNode->GetInputChangedTransformNode();
+  vtkMRMLLinearTransformNode* inputInitialNode = paramNode->GetInputInitialTransformNode();
+  vtkSmartPointer< vtkGeneralTransform > inputChangedToInputInitialTransform = vtkSmartPointer< vtkGeneralTransform >::New();
+  inputChangedNode->GetTransformToNode( inputInitialNode, inputChangedToInputInitialTransform );
+  double shaftDirection[ 3 ] = { 0.0, 0.0, -1.0 }; // conventional shaft direction in SlicerIGT
+  vtkSmartPointer< vtkTransform > adjustedToInputInitialRotationOnlyTransform = vtkSmartPointer< vtkTransform >::New();
+  GetRotationSingleAxisWithPivotFromTransform( inputChangedToInputInitialTransform, shaftDirection, adjustedToInputInitialRotationOnlyTransform );
 
-  // compute axis and angle between shaft directions (input vs resting)
-  double rotationAxisInInputToResting[ 3 ];
-  // cross product will be perpendicular to the inputs
-  vtkMath::Cross( shaftDirectionInInput, shaftDirectionInResting, rotationAxisInInputToResting );
-  double rotationDegreesInputToResting = asin( vtkMath::Norm( rotationAxisInInputToResting) ) * 180.0 / vtkMath::Pi();
-  vtkMath::Normalize( rotationAxisInInputToResting );
-  float epsilon = 0.00001;
-  if ( vtkMath::Norm( rotationAxisInInputToResting ) <= epsilon )
-  {
-    // if the axis is zero, then there is no rotation and any arbitrary axis is fine.
-    rotationAxisInInputToResting[ 0 ] = 1.0;
-    rotationAxisInInputToResting[ 1 ] = 0.0;
-    rotationAxisInInputToResting[ 2 ] = 0.0;
-    rotationDegreesInputToResting = 0.0;
-  }
-
-  // The output will be the AdjustedToReference transform.
-  // We will compute AdjustedToReferenceRotation = RestingToReferenceRotation * AdjustedToRestingRotation
-  // Translation must be handled separately because constrained orientation will change position values in the transform chain
-
-  // First we will take care of the rotation components.
-  vtkSmartPointer< vtkTransform > adjustedToRestingRotationTransform = vtkSmartPointer< vtkTransform >::New();
-  adjustedToRestingRotationTransform->Identity();
-  adjustedToRestingRotationTransform->RotateWXYZ( rotationDegreesInputToResting, rotationAxisInInputToResting );
-
-  vtkSmartPointer< vtkTransform > restingToReferenceRotationTransform = vtkSmartPointer< vtkTransform >::New();
-  GetRestingToReferenceRotationTransform( paramNode, restingToReferenceRotationTransform );
+  vtkMRMLLinearTransformNode* inputAnchorNode = paramNode->GetInputAnchorTransformNode();
+  vtkSmartPointer< vtkGeneralTransform > inputInitialToInputAnchorTransform = vtkSmartPointer< vtkGeneralTransform >::New();
+  inputInitialNode->GetTransformToNode( inputAnchorNode, inputInitialToInputAnchorTransform );
+  vtkSmartPointer< vtkTransform > inputInitialToInputAnchorRotationOnlyTransform = vtkSmartPointer< vtkTransform >::New();
+  GetRotationAllAxesFromTransform( inputInitialToInputAnchorTransform, inputInitialToInputAnchorRotationOnlyTransform );
   
   // Translation is same as input translation, since they share the same origin
-  double adjustedToReferenceTranslation[ 3 ];
-  GetInputToReferenceTranslation( paramNode, adjustedToReferenceTranslation );
+  vtkSmartPointer< vtkGeneralTransform > inputChangedToInputAnchorTransform = vtkSmartPointer< vtkGeneralTransform >::New();
+  inputChangedNode->GetTransformToNode( inputAnchorNode, inputChangedToInputAnchorTransform );
+  vtkSmartPointer< vtkTransform > inputChangedToInputAnchorTranslationTransform = vtkSmartPointer< vtkTransform >::New();
+  bool copyComponents[ 3 ] = { 1, 1, 1 }; // copy x, y, and z
+  GetTranslationOnlyFromTransform( inputChangedToInputAnchorTransform, copyComponents, inputChangedToInputAnchorTranslationTransform );
 
   // put it all together
-  vtkSmartPointer< vtkTransform > adjustedToReference = vtkSmartPointer< vtkTransform >::New();
-  adjustedToReference->PreMultiply();
-  adjustedToReference->Identity();
-  adjustedToReference->Translate( adjustedToReferenceTranslation );
-  adjustedToReference->Concatenate( restingToReferenceRotationTransform ); // part of rotation
-  adjustedToReference->Concatenate( adjustedToRestingRotationTransform ); // part of rotation
-  adjustedToReference->Update();
+  vtkSmartPointer< vtkTransform > adjustedToInputAnchorTransform = vtkSmartPointer< vtkTransform >::New();
+  adjustedToInputAnchorTransform->PreMultiply();
+  adjustedToInputAnchorTransform->Identity();
+  adjustedToInputAnchorTransform->Concatenate( inputChangedToInputAnchorTranslationTransform );
+  adjustedToInputAnchorTransform->Concatenate( inputInitialToInputAnchorRotationOnlyTransform );
+  adjustedToInputAnchorTransform->Concatenate( adjustedToInputInitialRotationOnlyTransform );
+  adjustedToInputAnchorTransform->Update();
 
   vtkMRMLLinearTransformNode* outputNode = paramNode->GetOutputTransformNode();
   // the existence of outputNode is already checked in IsTransformFusionPossible, no error check necessary
-  outputNode->SetMatrixTransformToParent( adjustedToReference->GetMatrix() );
+  outputNode->SetMatrixTransformToParent( adjustedToInputAnchorTransform->GetMatrix() );
 }
 
 //----------------------------------------------------------------------------
-void vtkSlicerTransformFusionLogic::TransformVectorInputToResting( vtkMRMLTransformFusionNode* paramNode, const double input[3], double resting[3] )
+void vtkSlicerTransformFusionLogic::ComputeRotation( vtkMRMLTransformFusionNode* paramNode )
 {
-  vtkSmartPointer< vtkGeneralTransform > inputToRestingTransform = vtkSmartPointer< vtkGeneralTransform >::New();
-  paramNode->GetSingleInputTransformNode()->GetTransformToNode( paramNode->GetRestingTransformNode(), inputToRestingTransform );
-  double zeroVector3[ 3 ] = { 0.0, 0.0, 0.0 };
-  inputToRestingTransform->TransformVectorAtPoint( zeroVector3, input, resting );
-}
-
-//----------------------------------------------------------------------------
-void vtkSlicerTransformFusionLogic::GetRestingToReferenceRotationTransform( vtkMRMLTransformFusionNode* paramNode, vtkTransform* restingToReferenceRotationOnlyTransform )
-{
-  if ( restingToReferenceRotationOnlyTransform == NULL )
+  bool verboseWarnings = true;
+  bool conditionsMetForFusion = IsTransformFusionPossible( paramNode, verboseWarnings );
+  if ( conditionsMetForFusion == false )
   {
-    vtkErrorMacro( "GetRestingToReferenceRotationTransform: restingToReferenceRotationOnlyTransform is null. Returning, but transform will remain null." );
     return;
   }
 
-  vtkSmartPointer< vtkGeneralTransform > restingToReferenceTransform = vtkSmartPointer< vtkGeneralTransform >::New();
-  paramNode->GetRestingTransformNode()->GetTransformToNode( paramNode->GetReferenceTransformNode(), restingToReferenceTransform );
+  // first get the parameters from the parameter node
+  int rotationMode = paramNode->GetRotationMode();
+  int dependentAxesMode = paramNode->GetDependentAxesMode();
 
-  // Unfortunately, the vtkGeneralTransform class does not provide an easy way to copy the RestingToReference
-  // and leave the translation component at zero. So we just have to do some manual vtk math here to find the axes
-  double zeroVector3[ 3 ] = { 0.0, 0.0, 0.0 };
-  double xAxisResting[ 3 ] = { 1.0, 0.0, 0.0 };
-  double xAxisReference[ 3 ];
-  restingToReferenceTransform->TransformVectorAtPoint( zeroVector3, xAxisResting, xAxisReference );
-  double yAxisResting[ 3 ] = { 0.0, 1.0, 0.0 };
-  double yAxisReference[ 3 ];
-  restingToReferenceTransform->TransformVectorAtPoint( zeroVector3, yAxisResting, yAxisReference );
-  double zAxisResting[ 3 ] = { 0.0, 0.0, 1.0 };
-  double zAxisReference[ 3 ];
-  restingToReferenceTransform->TransformVectorAtPoint( zeroVector3, zAxisResting, zAxisReference );
-  
-  // set the matrix accordingly
-  vtkSmartPointer< vtkMatrix4x4 > restingToReferenceRotationOnlyMatrix = vtkSmartPointer< vtkMatrix4x4 >::New();
-  restingToReferenceRotationOnlyMatrix->Identity();
-  restingToReferenceRotationOnlyMatrix->SetElement( 0, 0, xAxisReference[ 0 ] );
-  restingToReferenceRotationOnlyMatrix->SetElement( 1, 0, xAxisReference[ 1 ] );
-  restingToReferenceRotationOnlyMatrix->SetElement( 2, 0, xAxisReference[ 2 ] );
-  restingToReferenceRotationOnlyMatrix->SetElement( 0, 1, yAxisReference[ 0 ] );
-  restingToReferenceRotationOnlyMatrix->SetElement( 1, 1, yAxisReference[ 1 ] );
-  restingToReferenceRotationOnlyMatrix->SetElement( 2, 1, yAxisReference[ 2 ] );
-  restingToReferenceRotationOnlyMatrix->SetElement( 0, 2, zAxisReference[ 0 ] );
-  restingToReferenceRotationOnlyMatrix->SetElement( 1, 2, zAxisReference[ 1 ] );
-  restingToReferenceRotationOnlyMatrix->SetElement( 2, 2, zAxisReference[ 2 ] );
-  restingToReferenceRotationOnlyTransform->SetMatrix( restingToReferenceRotationOnlyMatrix );
+  double primaryAxis[ 3 ] = { 0.0, 0.0, 0.0 };
+  int primaryAxisLabel = paramNode->GetPrimaryAxisLabel();
+  switch ( primaryAxisLabel )
+  {
+    case vtkMRMLTransformFusionNode::AXIS_LABEL_X:
+      primaryAxis[ 0 ] = 1.0;
+      break;
+    case vtkMRMLTransformFusionNode::AXIS_LABEL_Y:
+      primaryAxis[ 1 ] = 1.0;
+      break;
+    case vtkMRMLTransformFusionNode::AXIS_LABEL_Z:
+      primaryAxis[ 2 ] = 1.0;
+      break;
+    default:
+      vtkWarningMacro( "CopyRotation: Unrecognized primary axis " << primaryAxisLabel << ". Returning, no operation performed." );
+      return;
+  }
+
+  double secondaryAxis[ 3 ] = { 0.0, 0.0, 0.0 };
+  int secondaryAxisLabel = paramNode->GetSecondaryAxisLabel();
+  switch ( secondaryAxisLabel )
+  {
+    case vtkMRMLTransformFusionNode::AXIS_LABEL_X:
+      secondaryAxis[ 0 ] = 1.0;
+      break;
+    case vtkMRMLTransformFusionNode::AXIS_LABEL_Y:
+      secondaryAxis[ 1 ] = 1.0;
+      break;
+    case vtkMRMLTransformFusionNode::AXIS_LABEL_Z:
+      secondaryAxis[ 2 ] = 1.0;
+      break;
+    default:
+      vtkWarningMacro( "CopyRotation: Unrecognized primary axis " << secondaryAxisLabel << ". Returning, no operation performed." );
+      return;
+  }
+
+  vtkSmartPointer< vtkGeneralTransform > fromToToTransform = vtkSmartPointer< vtkGeneralTransform >::New();
+  vtkMRMLLinearTransformNode* fromTransformNode = paramNode->GetInputFromTransformNode();
+  vtkMRMLLinearTransformNode* toTransformNode = paramNode->GetInputToTransformNode();
+  toTransformNode->GetTransformFromNode( fromTransformNode, fromToToTransform );
+
+  // if there are other modes that need to check and corrrect for duplicate axes, these should be added below:
+  if ( paramNode->GetDependentAxesMode() == vtkMRMLTransformFusionNode::DEPENDENT_AXES_MODE_FROM_SECONDARY_AXIS )
+  {
+    paramNode->CheckAndCorrectForDuplicateAxes();
+  }
+
+  // computation
+  vtkSmartPointer< vtkTransform > fromToToRotationOnlyTransform = vtkSmartPointer< vtkTransform >::New();
+  GetRotationOnlyFromTransform( fromToToTransform, rotationMode, dependentAxesMode, primaryAxis, secondaryAxis, fromToToRotationOnlyTransform );
+  vtkMRMLLinearTransformNode* outputNode = paramNode->GetOutputTransformNode();
+  // the existence of outputNode is already checked in IsTransformFusionPossible, no error check necessary
+  outputNode->SetMatrixTransformToParent( fromToToRotationOnlyTransform->GetMatrix() );
 }
 
 //----------------------------------------------------------------------------
-void vtkSlicerTransformFusionLogic::GetInputToReferenceTranslation( vtkMRMLTransformFusionNode* paramNode, double translation[3] )
+void vtkSlicerTransformFusionLogic::ComputeTranslation( vtkMRMLTransformFusionNode* paramNode )
 {
-  vtkSmartPointer< vtkGeneralTransform > inputToReferenceTransform = vtkSmartPointer< vtkGeneralTransform >::New();
-  paramNode->GetSingleInputTransformNode()->GetTransformToNode( paramNode->GetReferenceTransformNode(), inputToReferenceTransform );
-  double zeroVector3[ 3 ] = { 0.0, 0.0, 0.0 };
-  inputToReferenceTransform->TransformPoint( zeroVector3, translation );
+  bool verboseWarnings = true;
+  bool conditionsMetForFusion = IsTransformFusionPossible( paramNode, verboseWarnings );
+  if ( conditionsMetForFusion == false )
+  {
+    return;
+  }
+
+  // get parameters from parameter node
+  const bool* copyComponents = paramNode->GetCopyTranslationComponents();
+  vtkSmartPointer< vtkGeneralTransform > fromToToGeneralTransform = vtkSmartPointer< vtkGeneralTransform >::New();
+  vtkMRMLLinearTransformNode* fromTransformNode = paramNode->GetInputFromTransformNode();
+  vtkMRMLLinearTransformNode* toTransformNode = paramNode->GetInputToTransformNode();
+  toTransformNode->GetTransformFromNode( fromTransformNode, fromToToGeneralTransform );
+  vtkSmartPointer< vtkTransform > fromToToTranslationOnlyTransform = vtkSmartPointer< vtkTransform >::New();
+  GetTranslationOnlyFromTransform( fromToToGeneralTransform, copyComponents, fromToToTranslationOnlyTransform );
+  vtkMRMLLinearTransformNode* outputNode = paramNode->GetOutputTransformNode();
+  // the existence of outputNode is already checked in IsTransformFusionPossible, no error check necessary
+  outputNode->SetMatrixTransformToParent( fromToToTranslationOnlyTransform->GetMatrix() );
+}
+
+//----------------------------------------------------------------------------
+void vtkSlicerTransformFusionLogic::ComputeFullTransform( vtkMRMLTransformFusionNode* paramNode )
+{
+  bool verboseWarnings = true;
+  bool conditionsMetForFusion = IsTransformFusionPossible( paramNode, verboseWarnings );
+  if ( conditionsMetForFusion == false )
+  {
+    return;
+  }
+
+  vtkSmartPointer< vtkGeneralTransform > fromToToGeneralTransform = vtkSmartPointer< vtkGeneralTransform >::New();
+  vtkMRMLLinearTransformNode* fromTransformNode = paramNode->GetInputFromTransformNode();
+  vtkMRMLLinearTransformNode* toTransformNode = paramNode->GetInputToTransformNode();
+  toTransformNode->GetTransformFromNode( fromTransformNode, fromToToGeneralTransform );
+
+  // need to convert the general transform to a matrix. Decompose then concatenate the rotation and translation
+  vtkSmartPointer< vtkTransform > fromToToRotationOnlyTransform = vtkSmartPointer< vtkTransform >::New();
+  GetRotationAllAxesFromTransform( fromToToGeneralTransform, fromToToRotationOnlyTransform );
+  bool copyComponents[ 3 ] = { 1, 1, 1 }; // copy x, y, and z
+  vtkSmartPointer< vtkTransform > fromToToTranslationOnlyTransform = vtkSmartPointer< vtkTransform >::New();
+  GetTranslationOnlyFromTransform( fromToToGeneralTransform, copyComponents, fromToToTranslationOnlyTransform );
   
+  vtkSmartPointer< vtkTransform > fromToToLinearTransformNode = vtkSmartPointer< vtkTransform >::New();
+  fromToToLinearTransformNode->PreMultiply();
+  fromToToLinearTransformNode->Identity();
+  fromToToLinearTransformNode->Concatenate( fromToToTranslationOnlyTransform );
+  fromToToLinearTransformNode->Concatenate( fromToToRotationOnlyTransform );
+  fromToToLinearTransformNode->Update();
+
+  vtkMRMLLinearTransformNode* outputTransformNode = paramNode->GetOutputTransformNode();
+  // the existence of outputTransformNode is already checked in IsTransformFusionPossible, no error check necessary
+  outputTransformNode->SetAndObserveTransformToParent( fromToToLinearTransformNode );
+}
+
+//----------------------------------------------------------------------------
+void vtkSlicerTransformFusionLogic::GetRotationOnlyFromTransform( vtkGeneralTransform* sourceToTargetTransform, int rotationMode, int dependentAxesMode, const double* primaryAxis, const double* secondaryAxis, vtkTransform* rotationOnlyTransform )
+{
+  if ( rotationOnlyTransform == NULL )
+  {
+    vtkErrorMacro( "GetRotationOnlyFromTransform: rotationOnlyTransform is null. Returning, but transform will remain null." );
+    return;
+  }
+
+  if ( sourceToTargetTransform == NULL )
+  {
+    vtkErrorMacro( "GetRotationOnlyFromTransform: inputFullTransform is null. Returning, but no operation performed." );
+    return;
+  }
+
+  switch ( rotationMode )
+  {
+    case vtkMRMLTransformFusionNode::ROTATION_MODE_COPY_ALL_AXES:
+      GetRotationAllAxesFromTransform( sourceToTargetTransform, rotationOnlyTransform );
+      break;
+    case vtkMRMLTransformFusionNode::ROTATION_MODE_COPY_SINGLE_AXIS:
+      GetRotationSingleAxisFromTransform( sourceToTargetTransform, dependentAxesMode, primaryAxis, secondaryAxis, rotationOnlyTransform );
+      break;
+    default:
+      vtkErrorMacro( "GetRotationOnlyFromTransform: rotationMode " << rotationMode << " is unrecognized. Returning, but no operation performed." );
+      break;
+  }
+}
+
+//----------------------------------------------------------------------------
+// Get the orientation transform from one transform to the other.
+// In other words, return the 3x3 matrix that is used to
+// rotate from one basis to another. Translation is not used here.
+void vtkSlicerTransformFusionLogic::GetRotationAllAxesFromTransform ( vtkGeneralTransform* sourceToTargetTransform, vtkTransform* rotationOnlyTransform )
+{
+  if ( rotationOnlyTransform == NULL )
+  {
+    vtkErrorMacro( "GetRotationAllAxesFromTransform: rotationOnlyTransform is null. Returning, but transform will remain null." );
+    return;
+  }
+
+  if ( sourceToTargetTransform == NULL )
+  {
+    vtkErrorMacro( "GetRotationAllAxesFromTransform: sourceToTargetTransform is null. Returning, but no operation performed." );
+    return;
+  }
+
+  // Unfortunately, the vtkGeneralTransform class does not provide an easy way to copy the full transform
+  // and leave the translation component at zero. So we just have to do some manual vtk math here to find the axes
+  double zeroVector3[ 3 ] = { 0.0, 0.0, 0.0 };
+  double xAxisVector[ 3 ] = { 1.0, 0.0, 0.0 };
+  double xAxisInput[ 3 ];
+  sourceToTargetTransform->TransformVectorAtPoint( zeroVector3, xAxisVector, xAxisInput );
+  double yAxisVector[ 3 ] = { 0.0, 1.0, 0.0 };
+  double yAxisInput[ 3 ];
+  sourceToTargetTransform->TransformVectorAtPoint( zeroVector3, yAxisVector, yAxisInput );
+  double zAxisVector[ 3 ] = { 0.0, 0.0, 1.0 };
+  double zAxisInput[ 3 ];
+  sourceToTargetTransform->TransformVectorAtPoint( zeroVector3, zAxisVector, zAxisInput );
+  
+  // set the matrix accordingly
+  vtkSmartPointer< vtkMatrix4x4 > rotationOnlyMatrix = vtkSmartPointer< vtkMatrix4x4 >::New();
+  GetRotationMatrixFromAxes( xAxisInput, yAxisInput, zAxisInput, rotationOnlyMatrix );
+  rotationOnlyTransform->SetMatrix( rotationOnlyMatrix );
+}
+
+//----------------------------------------------------------------------------
+void vtkSlicerTransformFusionLogic::GetRotationSingleAxisFromTransform( vtkGeneralTransform* sourceToTargetTransform, int dependentAxesMode, const double* primaryAxis, const double* secondaryAxis, vtkTransform* rotationOnlyTransform )
+{
+  if ( rotationOnlyTransform == NULL )
+  {
+    vtkErrorMacro( "GetRotationSingleAxisFromTransform: rotationOnlyTransform is null. Returning, but transform will remain null." );
+    return;
+  }
+
+  if ( sourceToTargetTransform == NULL )
+  {
+    vtkErrorMacro( "GetRotationSingleAxisFromTransform: inputFullTransform is null. Returning, but no operation performed." );
+    return;
+  }
+
+  switch ( dependentAxesMode )
+  {
+    case vtkMRMLTransformFusionNode::DEPENDENT_AXES_MODE_FROM_PIVOT:
+      GetRotationSingleAxisWithPivotFromTransform( sourceToTargetTransform, primaryAxis, rotationOnlyTransform );
+      break;
+    case vtkMRMLTransformFusionNode::DEPENDENT_AXES_MODE_FROM_SECONDARY_AXIS:
+      GetRotationSingleAxisWithSecondaryFromTransform( sourceToTargetTransform, primaryAxis, secondaryAxis, rotationOnlyTransform );
+      break;
+    default:
+      vtkErrorMacro( "GetRotationSingleAxisFromTransform: dependentAxesMode " << dependentAxesMode << " is unrecognized. Returning, but no operation performed." );
+      break;
+  }
+}
+
+//----------------------------------------------------------------------------
+// Get the orientation transform *such that* the primary axis
+// the other axes are described using the smallest pivot rotation
+// from the source
+void vtkSlicerTransformFusionLogic::GetRotationSingleAxisWithPivotFromTransform( vtkGeneralTransform* sourceToTargetTransform, const double* primaryAxis, vtkTransform* rotationOnlyTransform )
+{
+  // Key point: We REFER to the Target transform, then
+  // rotate between it and the Source. We use an axis-angle rotation,
+  // but make sure that the rotation axis is perpendicular to primary axis.
+  // This eliminates any rotation about the axis itself, so the other
+  // two axes are aligned as closely as possible.
+
+  // first determine the rotated primary axis
+  double zeroVector3[ 3 ] = { 0.0, 0.0, 0.0 };
+  double primaryAxisRotated[ 3 ];
+  sourceToTargetTransform->TransformVectorAtPoint( zeroVector3, primaryAxis, primaryAxisRotated );
+
+  // compute ROTATION axis and angle between primary axes (source vs target)
+  double rotationAxisSourceToTarget[ 3 ];
+  // cross product will be perpendicular to the inputs
+  vtkMath::Cross( primaryAxis, primaryAxisRotated, rotationAxisSourceToTarget );
+  double rotationDegreesSourceToTarget = asin( vtkMath::Norm( rotationAxisSourceToTarget) ) * 180.0 / vtkMath::Pi();
+  // the angle could be much higher in magnitude than indicated by the cross product -
+  // a dot product should be done on the axes. If negative, then the angle is higher
+  // in magnitude than 90 degrees (the max value reportable by asin) and therefore
+  // shoud be corrected
+  bool rotationMagnitudeGreaterThan90 = ( vtkMath::Dot( primaryAxis, primaryAxisRotated ) < 0.0 );
+  if ( rotationMagnitudeGreaterThan90 )
+  {
+    if ( rotationDegreesSourceToTarget < 0 )
+    {
+      rotationDegreesSourceToTarget = -180.0 - rotationDegreesSourceToTarget;
+    }
+    else
+    {
+      rotationDegreesSourceToTarget = 180.0 - rotationDegreesSourceToTarget;
+    }
+  }
+
+  vtkMath::Normalize( rotationAxisSourceToTarget );
+  if ( vtkMath::Norm( rotationAxisSourceToTarget ) <= EPSILON )
+  {
+    // if the axis is zero, then there is no rotation and any arbitrary axis is fine.
+    rotationAxisSourceToTarget[ 0 ] = 1.0;
+    rotationAxisSourceToTarget[ 1 ] = 0.0;
+    rotationAxisSourceToTarget[ 2 ] = 0.0;
+    rotationDegreesSourceToTarget = 0.0;
+  }
+
+  rotationOnlyTransform->Identity();
+  rotationOnlyTransform->RotateWXYZ( rotationDegreesSourceToTarget, rotationAxisSourceToTarget );
+}
+
+//----------------------------------------------------------------------------
+void vtkSlicerTransformFusionLogic::GetRotationSingleAxisWithSecondaryFromTransform( vtkGeneralTransform* sourceToTargetTransform, const double* primaryAxis, const double* secondaryAxis, vtkTransform* rotationOnlyTransform )
+{
+  // Rotate from the sourceToTargetTransform, such that the primary axis 
+  // remains the same, but the secondary axis is as close as possible to the target.
+
+  // first determine the rotated axes
+  double zeroVector3[ 3 ] = { 0.0, 0.0, 0.0 };
+
+  const double* primarySourceAxisInSource = primaryAxis;
+  
+  double primarySourceAxisInTarget[ 3 ];
+  sourceToTargetTransform->TransformVectorAtPoint( zeroVector3, primaryAxis, primarySourceAxisInTarget );
+
+  const double* secondaryTargetAxisInTarget = secondaryAxis;
+
+  // cross product will be perpendicular to the inputs
+  double tertiaryResultAxisInTarget[ 3 ];
+  vtkMath::Cross( primarySourceAxisInTarget, secondaryTargetAxisInTarget, tertiaryResultAxisInTarget );
+  double tertiaryAxisLength = vtkMath::Norm( tertiaryResultAxisInTarget );
+  if ( tertiaryAxisLength < EPSILON )
+  {
+    // In this case, any arbitrary vector will have to do.
+    vtkMath::Perpendiculars( primarySourceAxisInTarget, tertiaryResultAxisInTarget, NULL, 0.0 );
+  }
+  vtkMath::Normalize( tertiaryResultAxisInTarget );
+
+  double secondaryResultAxisInTarget[ 3 ];
+  vtkMath::Cross( tertiaryResultAxisInTarget, primarySourceAxisInTarget, secondaryResultAxisInTarget );
+  vtkMath::Normalize( secondaryResultAxisInTarget );
+
+  vtkSmartPointer< vtkGeneralTransform > targetToSourceTransform = vtkSmartPointer< vtkGeneralTransform >::New();
+  targetToSourceTransform->DeepCopy( sourceToTargetTransform );
+  targetToSourceTransform->Inverse();
+  double secondaryResultAxisInSource[ 3 ];
+  targetToSourceTransform->TransformVectorAtPoint( zeroVector3, secondaryResultAxisInTarget, secondaryResultAxisInSource );
+  
+  const double* secondarySourceAxisInSource = secondaryAxis;
+
+  // compute the angle and axis
+  double rotationAxisTargetToResult[ 3 ];
+  vtkMath::Cross( secondarySourceAxisInSource, secondaryResultAxisInSource, rotationAxisTargetToResult );
+  double rotationDegreesTargetToResult = asin( vtkMath::Norm( rotationAxisTargetToResult ) ) * 180.0 / vtkMath::Pi();
+  vtkMath::Normalize( rotationAxisTargetToResult );
+  // If the secondary axes are almost parallel, we have some numerical instability.
+  // The rotation should be around the primary axis for sure, the only question
+  // is which direction (forward or back). Do a dot product to choose the direction,
+  // and copy into rotationAxis. This will correct the numerical instability.
+  double dotProductRotationAxis = vtkMath::Dot( rotationAxisTargetToResult, primarySourceAxisInSource );
+  if ( dotProductRotationAxis > 0 )
+  {
+    rotationAxisTargetToResult[ 0 ] = primarySourceAxisInSource[ 0 ];
+    rotationAxisTargetToResult[ 1 ] = primarySourceAxisInSource[ 1 ];
+    rotationAxisTargetToResult[ 2 ] = primarySourceAxisInSource[ 2 ];
+  }
+  else
+  {
+    // opposite direction
+    rotationAxisTargetToResult[ 0 ] = - primarySourceAxisInSource[ 0 ];
+    rotationAxisTargetToResult[ 1 ] = - primarySourceAxisInSource[ 1 ];
+    rotationAxisTargetToResult[ 2 ] = - primarySourceAxisInSource[ 2 ];
+  }
+
+  // when the rotation is greater than 90 degrees, the value reported by asin
+  // goes down instead of up (ie, 91 becomes 89, 92 becomes 88).
+  // To correct this, check the dot product between the axes and correct if negative
+  double dotProductSecondAxes = vtkMath::Dot( secondaryResultAxisInSource, secondarySourceAxisInSource );
+  bool isRotationDegreesGreaterThan90 = ( dotProductSecondAxes < 0 );
+  if ( isRotationDegreesGreaterThan90 )
+  {
+    rotationDegreesTargetToResult = 180 - rotationDegreesTargetToResult;
+  }
+
+  vtkSmartPointer< vtkTransform > sourceToTargetRotationOnlyTransform = vtkSmartPointer< vtkTransform >::New();
+  this->GetRotationAllAxesFromTransform( sourceToTargetTransform, sourceToTargetRotationOnlyTransform );
+  
+  rotationOnlyTransform->Identity();
+  rotationOnlyTransform->PreMultiply();
+  rotationOnlyTransform->Concatenate( sourceToTargetRotationOnlyTransform );
+  rotationOnlyTransform->RotateWXYZ( rotationDegreesTargetToResult, rotationAxisTargetToResult );
+}
+
+//----------------------------------------------------------------------------
+void vtkSlicerTransformFusionLogic::GetTranslationOnlyFromTransform( vtkGeneralTransform* sourceToTargetTransform, const bool* copyComponents, vtkTransform* translationOnlyTransform )
+{
+  if ( translationOnlyTransform == NULL )
+  {
+    vtkErrorMacro( "GetTranslationOnlyFromTransform: translationOnlyTransform is null. Returning, but transform will remain null." );
+    return;
+  }
+
+  if ( sourceToTargetTransform == NULL )
+  {
+    vtkErrorMacro( "GetTranslationOnlyFromTransform: inputFullTransform is null. Returning, but no operation performed." );
+    return;
+  }
+
+  double sourceToTargetTranslation[ 3 ] = { 0.0, 0.0, 0.0 };
+  double zeroVector3[ 3 ] = { 0.0, 0.0, 0.0 };
+  sourceToTargetTransform->TransformPoint( zeroVector3, sourceToTargetTranslation );
+  
+  for ( int dimension = 0; dimension < 3; dimension++ )
+  {
+    if ( copyComponents[ dimension ] == false )
+    {
+      sourceToTargetTranslation[ dimension ] = 0.0;
+    }
+  }
+  
+  // copy to the output
+  translationOnlyTransform->Identity();
+  translationOnlyTransform->Translate( sourceToTargetTranslation );
+}
+
+//----------------------------------------------------------------------------
+void vtkSlicerTransformFusionLogic::GetRotationMatrixFromAxes( const double* xAxis, const double* yAxis, const double* zAxis, vtkMatrix4x4* rotationMatrix )
+{
+  rotationMatrix->Identity();
+  rotationMatrix->SetElement( 0, 0, xAxis[ 0 ] );
+  rotationMatrix->SetElement( 1, 0, xAxis[ 1 ] );
+  rotationMatrix->SetElement( 2, 0, xAxis[ 2 ] );
+  rotationMatrix->SetElement( 0, 1, yAxis[ 0 ] );
+  rotationMatrix->SetElement( 1, 1, yAxis[ 1 ] );
+  rotationMatrix->SetElement( 2, 1, yAxis[ 2 ] );
+  rotationMatrix->SetElement( 0, 2, zAxis[ 0 ] );
+  rotationMatrix->SetElement( 1, 2, zAxis[ 1 ] );
+  rotationMatrix->SetElement( 2, 2, zAxis[ 2 ] );
 }
 
 //----------------------------------------------------------------------------
 bool vtkSlicerTransformFusionLogic::IsTransformFusionPossible( vtkMRMLTransformFusionNode *node, bool verbose )
 {
+  if ( node == NULL )
+  {
+    vtkErrorMacro( "IsTransformFusionPossible: Input parameter node is null. Returning false." );
+    return false;
+  }
+
   // if verbose, output why the conditions fail
   bool result = true; // assume the conditions are met until otherwise shown
-  if ( node->GetFusionMode() == vtkMRMLTransformFusionNode::FUSION_MODE_QUATERNION_AVERAGE )
-  {
-    if ( node->GetNumberOfInputTransformNodes() < 2 )
-    {
-      if ( verbose )
-      {
-        vtkWarningMacro( "IsTransformFusionPossible: Not enough input transforms as input for fusion mode " << vtkMRMLTransformFusionNode::GetFusionModeAsString( node->GetFusionMode() ) );
-      }
-      result = false;
-    }
-    if ( node->GetOutputTransformNode() == NULL )
-    {
-      if ( verbose )
-      {
-        vtkWarningMacro( "IsTransformFusionPossible: No output transform provided for fusion mode " << vtkMRMLTransformFusionNode::GetFusionModeAsString( node->GetFusionMode() ) );
-      }
-      result = false;
-    }
-    return result;
-  }
-  else if ( node->GetFusionMode() == vtkMRMLTransformFusionNode::FUSION_MODE_CONSTRAIN_SHAFT_ROTATION )
-  {
-    if ( node->GetSingleInputTransformNode() == NULL )
-    {
-      if ( verbose )
-      {
-        vtkWarningMacro( "IsTransformFusionPossible: No input transform provided for fusion mode " << vtkMRMLTransformFusionNode::GetFusionModeAsString( node->GetFusionMode() ) );
-      }
-      result = false;
-    }
-    if ( node->GetRestingTransformNode() == NULL )
-    {
-      if ( verbose )
-      {
-        vtkWarningMacro( "IsTransformFusionPossible: No resting transform provided for fusion mode " << vtkMRMLTransformFusionNode::GetFusionModeAsString( node->GetFusionMode() ) );
-      }
-      result = false;
-    }
-    if ( node->GetReferenceTransformNode() == NULL )
-    {
-      if ( verbose )
-      {
-        vtkWarningMacro( "IsTransformFusionPossible: No reference transform provided for fusion mode " << vtkMRMLTransformFusionNode::GetFusionModeAsString( node->GetFusionMode() ) );
-      }
-      result = false;
-    }
-    if ( node->GetOutputTransformNode() == NULL )
-    {
-      if ( verbose )
-      {
-        vtkWarningMacro( "IsTransformFusionPossible: No output transform provided for fusion mode " << vtkMRMLTransformFusionNode::GetFusionModeAsString( node->GetFusionMode() ) );
-      }
-      result = false;
-    }
-    return result;
-  }
-  else
+  
+  // first check for valid mode
+  int mode = node->GetFusionMode();
+  if ( mode < 0 || mode >= vtkMRMLTransformFusionNode::FUSION_MODE_LAST )
   {
     // output regardless of verbose, since this is an error that should not happen at all.
     // output the fusion mode number, since the "Unknown" string is not going to be useful
-    vtkErrorMacro( "IsTransformFusionPossible: Unrecognized fusion mode provided as input: " << node->GetFusionMode() << ". Returning false." );
+    vtkErrorMacro( "IsTransformFusionPossible: Unrecognized fusion mode provided as input: " << mode << ". Returning false." );
     return false;
   }
+
+  // check every possible condition,
+  // then check whether the current mode applies
+  // If many more modes are added, then this scheme should be re-evaluated
+  
+  if ( mode == vtkMRMLTransformFusionNode::FUSION_MODE_COMPUTE_ROTATION ||
+       mode == vtkMRMLTransformFusionNode::FUSION_MODE_COMPUTE_TRANSLATION ||
+       mode == vtkMRMLTransformFusionNode::FUSION_MODE_COMPUTE_FULL_TRANSFORM )
+  {
+    if ( node->GetInputFromTransformNode() == NULL )
+    {
+      if ( verbose )
+      {
+        vtkWarningMacro( "IsTransformFusionPossible: No \"From\" node provided for fusion mode " << vtkMRMLTransformFusionNode::GetFusionModeAsString( mode ) );
+      }
+      result = false;
+    }
+    if ( node->GetInputToTransformNode() == NULL )
+    {
+      if ( verbose )
+      {
+        vtkWarningMacro( "IsTransformFusionPossible: No \"To\" node provided for fusion mode " << vtkMRMLTransformFusionNode::GetFusionModeAsString( mode ) );
+      }
+      result = false;
+    }
+  }
+
+  if ( mode == vtkMRMLTransformFusionNode::FUSION_MODE_COMPUTE_SHAFT_PIVOT )
+  {
+    if ( node->GetInputInitialTransformNode() == NULL )
+    {
+      if ( verbose )
+      {
+        vtkWarningMacro( "IsTransformFusionPossible: No \"Initial\" node provided for fusion mode " << vtkMRMLTransformFusionNode::GetFusionModeAsString( mode ) );
+      }
+      result = false;
+    }
+    if ( node->GetInputChangedTransformNode() == NULL )
+    {
+      if ( verbose )
+      {
+        vtkWarningMacro( "IsTransformFusionPossible: No \"Changed\" node provided for fusion mode " << vtkMRMLTransformFusionNode::GetFusionModeAsString( mode ) );
+      }
+      result = false;
+    }
+    if ( node->GetInputAnchorTransformNode() == NULL )
+    {
+      if ( verbose )
+      {
+        vtkWarningMacro( "IsTransformFusionPossible: No \"Anchor\" node provided for fusion mode " << vtkMRMLTransformFusionNode::GetFusionModeAsString( mode ) );
+      }
+      result = false;
+    }
+  }
+
+  if ( mode == vtkMRMLTransformFusionNode::FUSION_MODE_QUATERNION_AVERAGE )
+  {
+    if ( node->GetNumberOfInputCombineTransformNodes() < 2 )
+    {
+      if ( verbose )
+      {
+        vtkWarningMacro( "IsTransformFusionPossible: Not enough source nodes as input for fusion mode " << vtkMRMLTransformFusionNode::GetFusionModeAsString( mode ) );
+      }
+      result = false;
+    }
+  }
+  
+  // All modes so far need an output transform node
+  if ( node->GetOutputTransformNode() == NULL )
+  {
+    // this is an error for *any* mode, no need to check mode
+    if ( verbose )
+    {
+      vtkWarningMacro( "IsTransformFusionPossible: No \"Output\" node provided for fusion mode " << vtkMRMLTransformFusionNode::GetFusionModeAsString( mode ) );
+    }
+    result = false;
+  }
+
+  return result;
 }
