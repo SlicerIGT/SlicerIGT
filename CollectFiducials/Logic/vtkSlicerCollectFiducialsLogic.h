@@ -33,6 +33,7 @@
 #include "vtkMRMLScene.h"
 #include "vtkMRMLLinearTransformNode.h"
 #include "vtkMRMLMarkupsFiducialNode.h"
+#include "vtkMRMLModelNode.h"
 
 // STD includes
 #include <string>
@@ -52,7 +53,7 @@ public:
   vtkTypeMacro(vtkSlicerCollectFiducialsLogic,vtkSlicerModuleLogic);
   void PrintSelf(ostream& os, vtkIndent indent);
   
-  void AddPoint( vtkMRMLCollectFiducialsNode* pNode );
+  void AddPoint( vtkMRMLCollectFiducialsNode* collectFiducialsNode );
   
   void ProcessMRMLNodesEvents( vtkObject* caller, unsigned long event, void* callData );
 
@@ -67,6 +68,8 @@ protected:
   virtual void OnMRMLSceneNodeAdded(vtkMRMLNode* node);
   virtual void OnMRMLSceneNodeRemoved(vtkMRMLNode* node);
 private:
+  void AddPointToModel( vtkMRMLCollectFiducialsNode* collectFiducialsNode, vtkMRMLModelNode* outputModelNode, double pointCoordinates[ 3 ] );
+  void AddPointToMarkups( vtkMRMLCollectFiducialsNode* collectFiducialsNode, vtkMRMLMarkupsFiducialNode* outputMarkupsNode, double pointCoordinates[ 3 ] );
   vtkSlicerCollectFiducialsLogic(const vtkSlicerCollectFiducialsLogic&); // Not implemented
   void operator=(const vtkSlicerCollectFiducialsLogic&);               // Not implemented
   

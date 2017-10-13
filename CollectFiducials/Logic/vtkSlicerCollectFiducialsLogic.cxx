@@ -27,6 +27,8 @@
 #include <vtkMatrix4x4.h>
 #include <vtkNew.h>
 #include <vtkObjectFactory.h>
+#include <vtkPolyData.h>
+#include <vtkPoints.h>
 
 // STD includes
 #include <cassert>
@@ -71,40 +73,31 @@ void vtkSlicerCollectFiducialsLogic::AddPoint( vtkMRMLCollectFiducialsNode* coll
   probeNode->GetMatrixTransformToWorld( probeToWorld );
   double pointCoordinates[ 3 ] = { probeToWorld->GetElement( 0, 3 ), probeToWorld->GetElement( 1, 3 ), probeToWorld->GetElement( 2, 3 ) };
 
-  // see if output exists
-  vtkMRMLMarkupsFiducialNode* outputMarkupsNode = vtkMRMLMarkupsFiducialNode::SafeDownCast( collectFiducialsNode->GetOutputNode() );
-  if ( outputMarkupsNode == NULL )
+  vtkMRMLNode* outputNode = collectFiducialsNode->GetOutputNode();
+  if ( outputNode == NULL )
   {
-    vtkErrorMacro( "No output markups node set. Aborting." );
+    vtkErrorMacro( "No output node set. Aborting." );
     return;
   }
 
-  // if in automatic collection mode, make sure sufficient there is sufficient distance from previous point
-  int numberOfPoints = outputMarkupsNode->GetNumberOfFiducials();
-  if ( collectFiducialsNode->GetCollectMode() == vtkMRMLCollectFiducialsNode::Automatic && numberOfPoints > 0 )
+  // try downcasting the output node to different types.
+  // If successfully downcasts, then call the relevant function to add the point.
+  // If it does not downcast, output an error.
+  if ( vtkMRMLMarkupsFiducialNode::SafeDownCast( outputNode ) )
   {
-    double previousCoordinates[ 3 ];
-    outputMarkupsNode->GetNthFiducialPosition( numberOfPoints - 1, previousCoordinates );
-    double distanceMm = sqrt( vtkMath::Distance2BetweenPoints( pointCoordinates, previousCoordinates ) );
-    if ( distanceMm < collectFiducialsNode->GetMinimumDistanceMm() )
-    {
-      return;
-    }
+    vtkMRMLMarkupsFiducialNode* outputMarkupsNode = vtkMRMLMarkupsFiducialNode::SafeDownCast( outputNode );
+    this->AddPointToMarkups( collectFiducialsNode, outputMarkupsNode, pointCoordinates );
   }
-
-  // Add point to the markups node
-  int pointIndexInMarkups = outputMarkupsNode->AddFiducialFromArray( pointCoordinates );
-
-  // add the label to the point
-  std::stringstream ss;
-  ss << collectFiducialsNode->GetLabelBase() << collectFiducialsNode->GetLabelCounter();
-  outputMarkupsNode->SetNthFiducialLabel( pointIndexInMarkups, ss.str().c_str() );
-
-  // always increase the label counter automatically
-  collectFiducialsNode->SetLabelCounter( collectFiducialsNode->GetLabelCounter() + 1 );
-
-  //TODO: Add ability to change glyph scale when feature is added to Markups module
-  //this->MarkupsFiducialNode-> ->SetGlyphScale( glyphScale );
+  else if ( vtkMRMLModelNode::SafeDownCast( outputNode ) )
+  {
+    vtkMRMLModelNode* outputModelNode = vtkMRMLModelNode::SafeDownCast( outputNode );
+    this->AddPointToModel( collectFiducialsNode, outputModelNode, pointCoordinates );
+  }
+  else
+  {
+    vtkErrorMacro( "Could not recognize the type of output node. Aborting." );
+    return;
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -187,4 +180,68 @@ void vtkSlicerCollectFiducialsLogic::ProcessMRMLNodesEvents( vtkObject* caller, 
       this->AddPoint( collectFiducialsNode ); // Will create modified event to update widget
     }
   }
+}
+
+//------------------------------------------------------------------------------
+// note: point coordinates MUST contain 3 values, neither input MRML node can be null
+void vtkSlicerCollectFiducialsLogic::AddPointToModel( vtkMRMLCollectFiducialsNode* collectFiducialsNode, vtkMRMLModelNode* outputModelNode, double* pointCoordinates )
+{
+  vtkSmartPointer< vtkPolyData > outputPolyData = outputModelNode->GetPolyData();
+  if ( outputPolyData == NULL )
+  {
+    outputPolyData = vtkSmartPointer< vtkPolyData >::New();
+    outputModelNode->SetAndObservePolyData( outputPolyData );
+  }
+
+  vtkSmartPointer< vtkPoints > outputPoints = outputPolyData->GetPoints();
+  if ( outputPoints == NULL )
+  {
+    outputPoints = vtkSmartPointer< vtkPoints >::New();
+    outputPolyData->SetPoints( outputPoints );
+  }
+
+  int numberOfPoints = ( int )outputPoints->GetNumberOfPoints();
+  if ( collectFiducialsNode->GetCollectMode() == vtkMRMLCollectFiducialsNode::Automatic && numberOfPoints > 0 )
+  {
+    double previousCoordinates[ 3 ];
+    outputPoints->GetPoint( numberOfPoints - 1, previousCoordinates );
+    double distanceMm = sqrt( vtkMath::Distance2BetweenPoints( pointCoordinates, previousCoordinates ) );
+    if ( distanceMm < collectFiducialsNode->GetMinimumDistanceMm() )
+    {
+      return;
+    }
+  }
+
+  outputPoints->InsertNextPoint( pointCoordinates );
+  outputPolyData->Modified();
+  outputModelNode->Modified();
+}
+
+//------------------------------------------------------------------------------
+// note: point coordinates MUST contain 3 values, neither input MRML node can be null
+void vtkSlicerCollectFiducialsLogic::AddPointToMarkups( vtkMRMLCollectFiducialsNode* collectFiducialsNode, vtkMRMLMarkupsFiducialNode* outputMarkupsNode, double* pointCoordinates )
+{
+  // if in automatic collection mode, make sure sufficient there is sufficient distance from previous point
+  int numberOfPoints = outputMarkupsNode->GetNumberOfFiducials();
+  if ( collectFiducialsNode->GetCollectMode() == vtkMRMLCollectFiducialsNode::Automatic && numberOfPoints > 0 )
+  {
+    double previousCoordinates[ 3 ];
+    outputMarkupsNode->GetNthFiducialPosition( numberOfPoints - 1, previousCoordinates );
+    double distanceMm = sqrt( vtkMath::Distance2BetweenPoints( pointCoordinates, previousCoordinates ) );
+    if ( distanceMm < collectFiducialsNode->GetMinimumDistanceMm() )
+    {
+      return;
+    }
+  }
+
+  // Add point to the markups node
+  int pointIndexInMarkups = outputMarkupsNode->AddFiducialFromArray( pointCoordinates );
+
+  // add the label to the point
+  std::stringstream ss;
+  ss << collectFiducialsNode->GetLabelBase() << collectFiducialsNode->GetLabelCounter();
+  outputMarkupsNode->SetNthFiducialLabel( pointIndexInMarkups, ss.str().c_str() );
+
+  // always increase the label counter automatically
+  collectFiducialsNode->SetLabelCounter( collectFiducialsNode->GetLabelCounter() + 1 );
 }

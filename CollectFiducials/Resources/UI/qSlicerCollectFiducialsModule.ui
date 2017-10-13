@@ -21,6 +21,7 @@
        <property name="nodeTypes">
         <stringlist>
          <string>vtkMRMLMarkupsFiducialNode</string>
+         <string>vtkMRMLModelNode</string>
         </stringlist>
        </property>
        <property name="noneEnabled">

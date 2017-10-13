@@ -212,7 +212,7 @@ void qSlicerCollectFiducialsModuleWidget::onOutputNodeSelected()
     return;
   }
   
-  vtkMRMLMarkupsFiducialNode* outputNode = vtkMRMLMarkupsFiducialNode::SafeDownCast( d->OutputNodeComboBox->currentNode() );
+  vtkMRMLNode* outputNode = d->OutputNodeComboBox->currentNode();
   
   if( outputNode != NULL )
   {

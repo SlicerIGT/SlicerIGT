@@ -157,9 +157,9 @@ void vtkMRMLCollectFiducialsNode::SetAndObserveProbeTransformNodeId( const char*
 }
 
 //------------------------------------------------------------------------------
-vtkMRMLMarkupsFiducialNode* vtkMRMLCollectFiducialsNode::GetOutputNode()
+vtkMRMLNode* vtkMRMLCollectFiducialsNode::GetOutputNode()
 {
-  vtkMRMLMarkupsFiducialNode* node = vtkMRMLMarkupsFiducialNode::SafeDownCast( this->GetNodeReference( OUTPUT_REFERENCE_ROLE ) );
+  vtkMRMLNode* node = vtkMRMLNode::SafeDownCast( this->GetNodeReference( OUTPUT_REFERENCE_ROLE ) );
   return node;
 }
 

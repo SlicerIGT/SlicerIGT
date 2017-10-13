@@ -80,7 +80,7 @@ public:
   
   // TODO: the output node can either be of type vtkMRMLMarkupsNode, or vtkMRMLModelNode
   // need to determine type at run-time
-  vtkMRMLMarkupsFiducialNode* GetOutputNode();
+  vtkMRMLNode* GetOutputNode();
   void SetOutputNodeId( const char* nodeId );
 
   vtkGetMacro(LabelBase, std::string);
