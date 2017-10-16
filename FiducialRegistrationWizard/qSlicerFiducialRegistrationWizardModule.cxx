@@ -116,7 +116,7 @@ void qSlicerFiducialRegistrationWizardModule::setup()
   if (markupsModule)
     {
     vtkSlicerMarkupsLogic* markupsLogic = vtkSlicerMarkupsLogic::SafeDownCast(markupsModule->logic());
-    fiducialRegistrationWizardLogic->SetMarkupsLogic(vtkSlicerMarkupsLogic::SafeDownCast( markupsModule->logic() ));
+    fiducialRegistrationWizardLogic->SetMarkupsLogic(markupsLogic);
     }
   else
     {
