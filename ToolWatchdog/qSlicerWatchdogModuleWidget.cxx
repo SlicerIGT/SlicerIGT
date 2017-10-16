@@ -119,8 +119,13 @@ void qSlicerWatchdogModuleWidget::setup()
   MarkupsTableHeaders << "Name" << "Message" << "Sound" << "Status";
   d->ToolsTableWidget->setColumnCount( TOOL_COLUMNS );
   d->ToolsTableWidget->setHorizontalHeaderLabels( MarkupsTableHeaders );
+#if (QT_VERSION < QT_VERSION_CHECK(5, 0, 0))
   d->ToolsTableWidget->horizontalHeader()->setResizeMode( QHeaderView::ResizeToContents );
   d->ToolsTableWidget->horizontalHeader()->setResizeMode(TOOL_MESSAGE_COLUMN, QHeaderView::Stretch);
+#else
+  d->ToolsTableWidget->horizontalHeader()->setSectionResizeMode( QHeaderView::ResizeToContents );
+  d->ToolsTableWidget->horizontalHeader()->setSectionResizeMode(TOOL_MESSAGE_COLUMN, QHeaderView::Stretch);
+#endif
 
   connect( d->ToolComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( updateWidget() ) );
   connect( d->AddToolButton, SIGNAL( clicked() ), this, SLOT( onAddToolNode() ) );
