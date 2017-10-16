@@ -21,12 +21,21 @@
 #ifndef __qSlicerVolumeResliceDriverModuleWidgetsAbstractPlugin_h
 #define __qSlicerVolumeResliceDriverModuleWidgetsAbstractPlugin_h
 
+#include <QtGlobal>
+#if (QT_VERSION < QT_VERSION_CHECK(5, 0, 0))
 #include <QDesignerCustomWidgetInterface>
+#else
+#include <QtUiPlugin/QDesignerCustomWidgetInterface>
+#endif
+
 #include "qSlicerVolumeResliceDriverModuleWidgetsPluginsExport.h"
 
 class Q_SLICER_MODULE_VOLUMERESLICEDRIVER_WIDGETS_PLUGINS_EXPORT qSlicerVolumeResliceDriverModuleWidgetsAbstractPlugin
     : public QDesignerCustomWidgetInterface
 {
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 0, 0))
+  Q_PLUGIN_METADATA(IID "org.qt-project.Qt.QDesignerCustomWidgetInterface")
+#endif
   Q_INTERFACES(QDesignerCustomWidgetInterface);
 public:
 
