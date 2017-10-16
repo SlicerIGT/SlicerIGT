@@ -21,6 +21,7 @@
 // Qt includes
 #include <QtGui>
 #include <QColor>
+#include <QMenu>
 
 // SlicerQt includes
 #include "qSlicerFiducialRegistrationWizardModuleWidget.h"
