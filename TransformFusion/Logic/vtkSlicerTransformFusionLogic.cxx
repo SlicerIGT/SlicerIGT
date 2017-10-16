@@ -107,7 +107,7 @@ void vtkSlicerTransformFusionLogic::OnMRMLSceneNodeRemoved( vtkMRMLNode* node )
 }
 
 //-----------------------------------------------------------------------------
-void vtkSlicerTransformFusionLogic::ProcessMRMLNodesEvents( vtkObject* caller, unsigned long event, void* callData )
+void vtkSlicerTransformFusionLogic::ProcessMRMLNodesEvents( vtkObject* caller, unsigned long event, void* vtkNotUsed(callData) )
 {
   vtkMRMLTransformFusionNode* paramNode = vtkMRMLTransformFusionNode::SafeDownCast( caller );
   if ( paramNode == NULL )

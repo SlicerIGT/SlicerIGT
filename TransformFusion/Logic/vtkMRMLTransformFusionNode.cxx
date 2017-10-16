@@ -150,7 +150,7 @@ void vtkMRMLTransformFusionNode::Copy( vtkMRMLNode *anode )
 }
 
 //------------------------------------------------------------------------------
-void vtkMRMLTransformFusionNode::ProcessMRMLEvents( vtkObject* caller, unsigned long event, void* callData )
+void vtkMRMLTransformFusionNode::ProcessMRMLEvents( vtkObject* caller, unsigned long vtkNotUsed(event), void* vtkNotUsed(callData) )
 {
   vtkMRMLNode* callerNode = vtkMRMLNode::SafeDownCast( caller );
   if ( callerNode == NULL )

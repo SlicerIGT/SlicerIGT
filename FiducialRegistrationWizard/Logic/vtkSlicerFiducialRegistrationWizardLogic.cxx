@@ -440,7 +440,7 @@ bool vtkSlicerFiducialRegistrationWizardLogic::CheckCollinear( vtkPoints* points
 }
 
 //------------------------------------------------------------------------------
-void vtkSlicerFiducialRegistrationWizardLogic::ProcessMRMLNodesEvents( vtkObject* caller, unsigned long event, void* callData )
+void vtkSlicerFiducialRegistrationWizardLogic::ProcessMRMLNodesEvents( vtkObject* caller, unsigned long event, void* vtkNotUsed(callData) )
 {
   vtkMRMLFiducialRegistrationWizardNode* frwNode = vtkMRMLFiducialRegistrationWizardNode::SafeDownCast(caller);
   if ( frwNode == NULL)
