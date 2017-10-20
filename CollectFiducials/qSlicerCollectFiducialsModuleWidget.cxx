@@ -30,6 +30,7 @@
 // slicer includes
 #include "vtkMRMLLinearTransformNode.h"
 #include "vtkMRMLMarkupsFiducialNode.h"
+#include "vtkMRMLModelDisplayNode.h"
 
 //-----------------------------------------------------------------------------
 /// \ingroup Slicer_QtModules_CollectFiducials
@@ -42,6 +43,7 @@ protected:
 public:
   qSlicerCollectFiducialsModuleWidgetPrivate( qSlicerCollectFiducialsModuleWidget& object );
   vtkSlicerCollectFiducialsLogic* logic() const;
+  QMenu* OutputDeleteMenu;
 };
 
 //-----------------------------------------------------------------------------
@@ -83,7 +85,17 @@ void qSlicerCollectFiducialsModuleWidget::setup()
 
   connect( d->ParameterNodeComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onParameterNodeSelected() ) );
   connect( d->ProbeTransformNodeComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onProbeTransformNodeSelected() ) );
-  connect( d->OutputNodeComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onOutputNodeSelected() ) );
+  connect( d->OutputNodeComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onOutputNodeSelected( vtkMRMLNode* ) ) );
+  connect( d->OutputNodeComboBox, SIGNAL( nodeAddedByUser( vtkMRMLNode* ) ), this, SLOT( onOutputNodeAdded( vtkMRMLNode* ) ) );
+  connect( d->OutputColorButton, SIGNAL( colorChanged( QColor ) ), this, SLOT( onColorButtonChanged( QColor ) ) );
+  connect( d->OutputDeleteButton, SIGNAL( clicked() ), this, SLOT( onDeleteButtonClicked() ) );
+  d->OutputDeleteMenu = new QMenu(tr( "Delete options" ), d->OutputDeleteButton );
+  d->OutputDeleteMenu->setObjectName( "DeleteMenu" );
+  d->OutputDeleteMenu->addAction( d->ActionDeleteAll );
+  QObject::connect( d->ActionDeleteAll, SIGNAL( triggered() ), this, SLOT( onDeleteAllClicked() ) );
+  d->OutputDeleteButton->setMenu( d->OutputDeleteMenu );
+  connect( d->OutputVisibilityButton, SIGNAL( clicked() ), this, SLOT( onVisibilityButtonClicked() ) );
+
   connect( d->LabelBaseLineEdit, SIGNAL( editingFinished() ), this, SLOT( onLabelBaseChanged() ) );
   connect( d->LabelCounterSpinBox, SIGNAL( valueChanged( int ) ), this, SLOT( onLabelCounterChanged() ) );
   connect( d->MinimumDistanceSlider, SIGNAL( valueChanged( double ) ), this, SLOT( onMinimumDistanceChanged() ) );
@@ -136,6 +148,9 @@ void qSlicerCollectFiducialsModuleWidget::blockAllSignals( bool block )
   d->ParameterNodeComboBox->blockSignals( block );
   d->ProbeTransformNodeComboBox->blockSignals( block );
   d->OutputNodeComboBox->blockSignals( block );
+  d->OutputDeleteButton->blockSignals( block );
+  d->OutputColorButton->blockSignals( block );
+  d->OutputVisibilityButton->blockSignals( block );
   d->LabelBaseLineEdit->blockSignals( block );
   d->LabelCounterSpinBox->blockSignals( block );
   d->MinimumDistanceSlider->blockSignals( block );
@@ -149,6 +164,9 @@ void qSlicerCollectFiducialsModuleWidget::enableAllWidgets( bool enable )
   // don't ever disable parameter node, need to be able to select between them
   d->ProbeTransformNodeComboBox->setEnabled( enable );
   d->OutputNodeComboBox->setEnabled( enable );
+  d->OutputDeleteButton->setEnabled( enable );
+  d->OutputColorButton->setEnabled( enable );
+  d->OutputVisibilityButton->setEnabled( enable );
   d->LabelBaseLineEdit->setEnabled( enable );
   d->LabelCounterSpinBox->setEnabled( enable );
   d->MinimumDistanceSlider->setEnabled( enable );
@@ -180,8 +198,8 @@ void qSlicerCollectFiducialsModuleWidget::onProbeTransformNodeSelected()
 {
   Q_D( qSlicerCollectFiducialsModuleWidget );
 
-  vtkMRMLCollectFiducialsNode* parameterNode = vtkMRMLCollectFiducialsNode::SafeDownCast( d->ParameterNodeComboBox->currentNode() );
-  if ( parameterNode == NULL )
+  vtkMRMLCollectFiducialsNode* collectFiducialsNode = vtkMRMLCollectFiducialsNode::SafeDownCast( d->ParameterNodeComboBox->currentNode() );
+  if ( collectFiducialsNode == NULL )
   {
     qCritical() << Q_FUNC_INFO << ": invalid parameter node";
     return;
@@ -190,39 +208,167 @@ void qSlicerCollectFiducialsModuleWidget::onProbeTransformNodeSelected()
   vtkMRMLLinearTransformNode* probeTransformNode = vtkMRMLLinearTransformNode::SafeDownCast( d->ProbeTransformNodeComboBox->currentNode() );
   if( probeTransformNode != NULL )
   {
-    parameterNode->SetAndObserveProbeTransformNodeId( probeTransformNode->GetID() );
+    collectFiducialsNode->SetAndObserveProbeTransformNodeId( probeTransformNode->GetID() );
   }
   else
   {
-    parameterNode->SetAndObserveProbeTransformNodeId( NULL );
+    collectFiducialsNode->SetAndObserveProbeTransformNodeId( NULL );
+  }
+
+  this->updateGUIFromMRML();
+}
+
+
+//-----------------------------------------------------------------------------
+void qSlicerCollectFiducialsModuleWidget::onOutputNodeAdded( vtkMRMLNode* newNode )
+{
+  Q_D( qSlicerCollectFiducialsModuleWidget );
+
+  vtkMRMLMarkupsNode* outputMarkupsNode = vtkMRMLMarkupsNode::SafeDownCast( newNode );
+  if ( outputMarkupsNode != NULL )
+  {
+    outputMarkupsNode->CreateDefaultDisplayNodes();
+  }
+
+  vtkMRMLModelNode* outputModelNode = vtkMRMLModelNode::SafeDownCast( newNode );
+  if ( outputModelNode != NULL )
+  {
+    // display node should be set to show points only
+    outputModelNode->CreateDefaultDisplayNodes();
+    vtkMRMLModelDisplayNode* outputModelDisplayNode = outputModelNode->GetModelDisplayNode();
+    outputModelDisplayNode->SetRepresentation( vtkMRMLDisplayNode::PointsRepresentation );
+    const int DEFAULT_POINT_SIZE = 5; // This could be made an advanced display setting in the GUI
+    outputModelDisplayNode->SetPointSize( DEFAULT_POINT_SIZE );
   }
 
   this->updateGUIFromMRML();
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerCollectFiducialsModuleWidget::onOutputNodeSelected()
+void qSlicerCollectFiducialsModuleWidget::onOutputNodeSelected( vtkMRMLNode* newNode )
 {
   Q_D( qSlicerCollectFiducialsModuleWidget );
 
-  vtkMRMLCollectFiducialsNode* parameterNode = vtkMRMLCollectFiducialsNode::SafeDownCast( d->ParameterNodeComboBox->currentNode() );
-  if ( parameterNode == NULL )
+  vtkMRMLCollectFiducialsNode* collectFiducialsNode = vtkMRMLCollectFiducialsNode::SafeDownCast( d->ParameterNodeComboBox->currentNode() );
+  if ( collectFiducialsNode == NULL )
+  {
+    qCritical() << Q_FUNC_INFO << ": invalid parameter node";
+    return;
+  }
+
+  if ( newNode == NULL )
+  {
+    collectFiducialsNode->SetOutputNodeId( NULL );
+  }
+  else
+  {
+    collectFiducialsNode->SetOutputNodeId( newNode->GetID() );
+  }
+
+  this->updateGUIFromMRML();
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerCollectFiducialsModuleWidget::onColorButtonChanged( QColor qcolor )
+{
+  Q_D( qSlicerCollectFiducialsModuleWidget );
+  
+  vtkMRMLCollectFiducialsNode* collectFiducialsNode = vtkMRMLCollectFiducialsNode::SafeDownCast( d->ParameterNodeComboBox->currentNode() );
+  if ( collectFiducialsNode == NULL )
+  {
+    qCritical() << Q_FUNC_INFO << ": invalid parameter node";
+    return;
+  }
+
+  vtkMRMLMarkupsFiducialNode* outputMarkupsNode = vtkMRMLMarkupsFiducialNode::SafeDownCast( collectFiducialsNode->GetOutputNode() );
+  vtkMRMLModelNode* outputModelNode = vtkMRMLModelNode::SafeDownCast( collectFiducialsNode->GetOutputNode() );
+  if ( outputMarkupsNode != NULL )
+  {
+    vtkMRMLMarkupsDisplayNode* outputDisplayNode = vtkMRMLMarkupsDisplayNode::SafeDownCast( outputMarkupsNode->GetMarkupsDisplayNode() );
+    if ( outputDisplayNode != NULL )
+    {
+      double r = ( double )qcolor.redF();
+      double g = ( double )qcolor.greenF();
+      double b = ( double )qcolor.blueF();
+      outputDisplayNode->SetSelectedColor( r, g, b );
+    }
+  }
+  else if ( outputModelNode != NULL )
+  {
+    vtkMRMLModelDisplayNode* outputDisplayNode = vtkMRMLModelDisplayNode::SafeDownCast( outputModelNode->GetModelDisplayNode() );
+    if ( outputDisplayNode != NULL )
+    {
+      double r = ( double )qcolor.redF();
+      double g = ( double )qcolor.greenF();
+      double b = ( double )qcolor.blueF();
+      outputDisplayNode->SetColor( r, g, b );
+    }
+  }
+
+  this->updateGUIFromMRML();
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerCollectFiducialsModuleWidget::onDeleteButtonClicked()
+{
+  Q_D( qSlicerCollectFiducialsModuleWidget );
+  
+  vtkMRMLCollectFiducialsNode* collectFiducialsNode = vtkMRMLCollectFiducialsNode::SafeDownCast( d->ParameterNodeComboBox->currentNode() );
+  if ( collectFiducialsNode == NULL )
+  {
+    qCritical() << Q_FUNC_INFO << ": invalid parameter node";
+    return;
+  }
+
+  d->logic()->RemoveLastPoint( collectFiducialsNode );
+
+  this->updateGUIFromMRML();
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerCollectFiducialsModuleWidget::onDeleteAllClicked()
+{
+  Q_D( qSlicerCollectFiducialsModuleWidget );
+  
+  vtkMRMLCollectFiducialsNode* collectFiducialsNode = vtkMRMLCollectFiducialsNode::SafeDownCast( d->ParameterNodeComboBox->currentNode() );
+  if ( collectFiducialsNode == NULL )
+  {
+    qCritical() << Q_FUNC_INFO << ": invalid parameter node";
+    return;
+  }
+
+  d->logic()->RemoveAllPoints( collectFiducialsNode );
+
+  this->updateGUIFromMRML();
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerCollectFiducialsModuleWidget::onVisibilityButtonClicked()
+{
+  Q_D( qSlicerCollectFiducialsModuleWidget );
+  
+  vtkMRMLCollectFiducialsNode* collectFiducialsNode = vtkMRMLCollectFiducialsNode::SafeDownCast( d->ParameterNodeComboBox->currentNode() );
+  if ( collectFiducialsNode == NULL )
   {
     qCritical() << Q_FUNC_INFO << ": invalid parameter node";
     return;
   }
   
-  vtkMRMLNode* outputNode = d->OutputNodeComboBox->currentNode();
-  
-  if( outputNode != NULL )
+  vtkMRMLDisplayableNode* outputDisplayableNode = vtkMRMLDisplayableNode::SafeDownCast( collectFiducialsNode->GetOutputNode() );
+  if ( outputDisplayableNode == NULL )
   {
-    parameterNode->SetOutputNodeId( outputNode->GetID() );
+    return;
   }
-  else
+
+  vtkMRMLDisplayNode* outputDisplayNode = vtkMRMLDisplayNode::SafeDownCast( outputDisplayableNode->GetDisplayNode() );
+  if ( outputDisplayNode == NULL )
   {
-    parameterNode->SetAndObserveProbeTransformNodeId( NULL );
+    return;
   }
-  
+
+  int newVisibility = ! outputDisplayNode->GetVisibility();
+  outputDisplayNode->SetVisibility( newVisibility );
+
   this->updateGUIFromMRML();
 }
 
@@ -231,14 +377,14 @@ void qSlicerCollectFiducialsModuleWidget::onLabelBaseChanged()
 {
   Q_D( qSlicerCollectFiducialsModuleWidget );
 
-  vtkMRMLCollectFiducialsNode* parameterNode = vtkMRMLCollectFiducialsNode::SafeDownCast( d->ParameterNodeComboBox->currentNode() );
-  if ( parameterNode == NULL )
+  vtkMRMLCollectFiducialsNode* collectFiducialsNode = vtkMRMLCollectFiducialsNode::SafeDownCast( d->ParameterNodeComboBox->currentNode() );
+  if ( collectFiducialsNode == NULL )
   {
     qCritical() << Q_FUNC_INFO << ": invalid parameter node";
     return;
   }
 
-  parameterNode->SetLabelBase( d->LabelBaseLineEdit->text().toStdString() );
+  collectFiducialsNode->SetLabelBase( d->LabelBaseLineEdit->text().toStdString() );
   
   this->updateGUIFromMRML();
 }
@@ -248,14 +394,14 @@ void qSlicerCollectFiducialsModuleWidget::onLabelCounterChanged()
 {
   Q_D( qSlicerCollectFiducialsModuleWidget );
 
-  vtkMRMLCollectFiducialsNode* parameterNode = vtkMRMLCollectFiducialsNode::SafeDownCast( d->ParameterNodeComboBox->currentNode() );
-  if ( parameterNode == NULL )
+  vtkMRMLCollectFiducialsNode* collectFiducialsNode = vtkMRMLCollectFiducialsNode::SafeDownCast( d->ParameterNodeComboBox->currentNode() );
+  if ( collectFiducialsNode == NULL )
   {
     qCritical() << Q_FUNC_INFO << ": invalid parameter node";
     return;
   }
 
-  parameterNode->SetLabelCounter( d->LabelCounterSpinBox->value() );
+  collectFiducialsNode->SetLabelCounter( d->LabelCounterSpinBox->value() );
   
   this->updateGUIFromMRML();
 }
@@ -265,14 +411,14 @@ void qSlicerCollectFiducialsModuleWidget::onMinimumDistanceChanged()
 {
   Q_D( qSlicerCollectFiducialsModuleWidget );
 
-  vtkMRMLCollectFiducialsNode* parameterNode = vtkMRMLCollectFiducialsNode::SafeDownCast( d->ParameterNodeComboBox->currentNode() );
-  if ( parameterNode == NULL )
+  vtkMRMLCollectFiducialsNode* collectFiducialsNode = vtkMRMLCollectFiducialsNode::SafeDownCast( d->ParameterNodeComboBox->currentNode() );
+  if ( collectFiducialsNode == NULL )
   {
     qCritical() << Q_FUNC_INFO << ": invalid parameter node";
     return;
   }
 
-  parameterNode->SetMinimumDistanceMm( d->MinimumDistanceSlider->value() );
+  collectFiducialsNode->SetMinimumDistanceMm( d->MinimumDistanceSlider->value() );
   
   this->updateGUIFromMRML();
 }
@@ -282,8 +428,8 @@ void qSlicerCollectFiducialsModuleWidget::onCollectClicked()
 {
   Q_D( qSlicerCollectFiducialsModuleWidget );
   
-  vtkMRMLCollectFiducialsNode* parameterNode = vtkMRMLCollectFiducialsNode::SafeDownCast( d->ParameterNodeComboBox->currentNode() );
-  if ( parameterNode == NULL )
+  vtkMRMLCollectFiducialsNode* collectFiducialsNode = vtkMRMLCollectFiducialsNode::SafeDownCast( d->ParameterNodeComboBox->currentNode() );
+  if ( collectFiducialsNode == NULL )
   {
     qCritical() << Q_FUNC_INFO << ": invalid parameter node";
     return;
@@ -295,7 +441,7 @@ void qSlicerCollectFiducialsModuleWidget::onCollectClicked()
     d->CollectButton->setCheckState( Qt::Unchecked );
   }
 
-  d->logic()->AddPoint( parameterNode );
+  d->logic()->AddPoint( collectFiducialsNode );
 
   this->updateGUIFromMRML();
 }
@@ -305,8 +451,8 @@ void qSlicerCollectFiducialsModuleWidget::onCollectCheckboxToggled()
 {
   Q_D( qSlicerCollectFiducialsModuleWidget );
 
-  vtkMRMLCollectFiducialsNode* parameterNode = vtkMRMLCollectFiducialsNode::SafeDownCast( d->ParameterNodeComboBox->currentNode() );
-  if ( parameterNode == NULL )
+  vtkMRMLCollectFiducialsNode* collectFiducialsNode = vtkMRMLCollectFiducialsNode::SafeDownCast( d->ParameterNodeComboBox->currentNode() );
+  if ( collectFiducialsNode == NULL )
   {
     // should not be able to change parameters in a non-existant node...
     this->enableAllWidgets( false );
@@ -315,11 +461,11 @@ void qSlicerCollectFiducialsModuleWidget::onCollectCheckboxToggled()
 
   if ( d->CollectButton->checkState() == Qt::Checked )
   {
-    parameterNode->SetCollectModeToAutomatic();
+    collectFiducialsNode->SetCollectModeToAutomatic();
   }
   else
   {
-    parameterNode->SetCollectModeToManual();
+    collectFiducialsNode->SetCollectModeToManual();
   }
 
   this->updateGUIFromMRML();
@@ -330,8 +476,8 @@ void qSlicerCollectFiducialsModuleWidget::updateGUIFromMRML()
 {
   Q_D( qSlicerCollectFiducialsModuleWidget );
 
-  vtkMRMLCollectFiducialsNode* parameterNode = vtkMRMLCollectFiducialsNode::SafeDownCast( d->ParameterNodeComboBox->currentNode() );
-  if ( parameterNode == NULL )
+  vtkMRMLCollectFiducialsNode* collectFiducialsNode = vtkMRMLCollectFiducialsNode::SafeDownCast( d->ParameterNodeComboBox->currentNode() );
+  if ( collectFiducialsNode == NULL )
   {
     // should not be able to change parameters in a non-existant node...
     this->enableAllWidgets( false );
@@ -344,15 +490,49 @@ void qSlicerCollectFiducialsModuleWidget::updateGUIFromMRML()
   // temporarily block signals so nothing gets triggered when updating the GUI
   this->blockAllSignals( true );
 
-  d->ProbeTransformNodeComboBox->setCurrentNode( parameterNode->GetProbeTransformNode() );
-  d->OutputNodeComboBox->setCurrentNode( parameterNode->GetOutputNode() );
-  d->LabelCounterSpinBox->setValue( parameterNode->GetLabelCounter() );
-  d->LabelBaseLineEdit->setText( parameterNode->GetLabelBase().c_str() );
-  d->MinimumDistanceSlider->setValue( parameterNode->GetMinimumDistanceMm() );
+  // update all widget contents
+  d->ProbeTransformNodeComboBox->setCurrentNode( collectFiducialsNode->GetProbeTransformNode() );
+  d->OutputNodeComboBox->setCurrentNode( collectFiducialsNode->GetOutputNode() );
+  // output node buttons - disabled unless a valid output node is selected
+  d->OutputColorButton->setEnabled( false );
+  d->OutputColorButton->setColor( QColor() ); // default color
+  d->OutputVisibilityButton->setEnabled( false );
+  d->OutputDeleteButton->setEnabled( false );
+  vtkMRMLDisplayableNode* outputDisplayableNode = vtkMRMLDisplayableNode::SafeDownCast( collectFiducialsNode->GetOutputNode() );
+  if ( outputDisplayableNode != NULL )
+  {
+    vtkMRMLDisplayNode* outputDisplayNode = outputDisplayableNode->GetDisplayNode();
+    if ( outputDisplayNode != NULL )
+    {
+      if ( outputDisplayNode->GetVisibility() )
+      {
+        d->OutputVisibilityButton->setIcon( QIcon( ":/Icons/PointVisible.png" ) );
+      }
+      else
+      {
+        d->OutputVisibilityButton->setIcon( QIcon( ":/Icons/PointInvisible.png" ) );
+      }
+      double colorDouble[ 3 ];
+      outputDisplayNode->GetSelectedColor( colorDouble );
+      QColor colorQColor;
+      colorQColor.setRgbF( colorDouble[ 0 ], colorDouble[ 1 ], colorDouble[ 2 ] );
+      d->OutputColorButton->setColor( colorQColor );
+      d->OutputColorButton->setEnabled( true );
+      d->OutputVisibilityButton->setEnabled( true );
+      if ( collectFiducialsNode->GetNumberOfPointsInOutput() > 0 )
+      {
+        d->OutputDeleteButton->setEnabled( true );
+      }
+    }
+  }
 
-  bool readyToCollect = parameterNode->GetProbeTransformNode() != NULL && parameterNode->GetOutputNode() != NULL;
+  d->LabelCounterSpinBox->setValue( collectFiducialsNode->GetLabelCounter() );
+  d->LabelBaseLineEdit->setText( collectFiducialsNode->GetLabelBase().c_str() );
+  d->MinimumDistanceSlider->setValue( collectFiducialsNode->GetMinimumDistanceMm() );
+
+  bool readyToCollect = collectFiducialsNode->GetProbeTransformNode() != NULL && collectFiducialsNode->GetOutputNode() != NULL;
   d->CollectButton->setEnabled( readyToCollect );
-  if ( parameterNode->GetCollectMode() == vtkMRMLCollectFiducialsNode::Automatic )
+  if ( collectFiducialsNode->GetCollectMode() == vtkMRMLCollectFiducialsNode::Automatic )
   {
     d->CollectButton->setText( tr( "Auto-Collect" ) );
     d->CollectButton->setCheckable( true );
@@ -363,6 +543,14 @@ void qSlicerCollectFiducialsModuleWidget::updateGUIFromMRML()
     d->CollectButton->setText( tr( "Collect" ) );
     d->CollectButton->setCheckable( false );
   }
+
+  // update widget visibility
+  bool isInputMarkupsNode = ( vtkMRMLMarkupsNode::SafeDownCast( collectFiducialsNode->GetOutputNode() ) != NULL );
+
+  d->LabelCounterLabel->setVisible( isInputMarkupsNode );
+  d->LabelCounterSpinBox->setVisible( isInputMarkupsNode );
+  d->LabelBaseLabel->setVisible( isInputMarkupsNode );
+  d->LabelBaseLineEdit->setVisible( isInputMarkupsNode );
 
   this->blockAllSignals( false );
 }

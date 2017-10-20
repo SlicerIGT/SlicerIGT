@@ -1,5 +1,9 @@
 <!DOCTYPE RCC><RCC version="1.0">
   <qresource>
     <file>Icons/CollectFiducials.png</file>
+    <file>Icons/PointDelete.png</file>
+    <file>Icons/PointDeleteAll.png</file>
+    <file>Icons/PointInvisible.png</file>
+    <file>Icons/PointVisible.png</file>
   </qresource>
 </RCC>

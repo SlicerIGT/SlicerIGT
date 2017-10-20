@@ -78,10 +78,10 @@ public:
   vtkMRMLLinearTransformNode* GetProbeTransformNode();
   void SetAndObserveProbeTransformNodeId( const char* nodeId );
   
-  // TODO: the output node can either be of type vtkMRMLMarkupsNode, or vtkMRMLModelNode
   // need to determine type at run-time
   vtkMRMLNode* GetOutputNode();
   void SetOutputNodeId( const char* nodeId );
+  int GetNumberOfPointsInOutput();
 
   vtkGetMacro(LabelBase, std::string);
   vtkSetMacro(LabelBase, std::string);

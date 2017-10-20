@@ -20,10 +20,12 @@
 
 // slicer includes
 #include "vtkMRMLMarkupsFiducialNode.h"
+#include "vtkMRMLModelNode.h"
 #include "vtkMRMLTransformNode.h"
 
 // vtk includes
 #include <vtkNew.h>
+#include <vtkPolyData.h>
 
 // std includes
 #include <sstream>
@@ -161,6 +163,37 @@ vtkMRMLNode* vtkMRMLCollectFiducialsNode::GetOutputNode()
 {
   vtkMRMLNode* node = vtkMRMLNode::SafeDownCast( this->GetNodeReference( OUTPUT_REFERENCE_ROLE ) );
   return node;
+}
+
+//------------------------------------------------------------------------------
+int vtkMRMLCollectFiducialsNode::GetNumberOfPointsInOutput()
+{
+  vtkMRMLNode* outputNode = this->GetOutputNode();
+  if ( outputNode == NULL )
+  {
+    return 0;
+  }
+
+  vtkMRMLMarkupsFiducialNode* outputMarkupsNode = vtkMRMLMarkupsFiducialNode::SafeDownCast( outputNode );
+  vtkMRMLModelNode* outputModelNode = vtkMRMLModelNode::SafeDownCast( outputNode );
+  if ( outputMarkupsNode != NULL )
+  {
+    return outputMarkupsNode->GetNumberOfFiducials();
+  }
+  else if ( outputModelNode != NULL )
+  {
+    vtkPolyData* outputPolyData = outputModelNode->GetPolyData();
+    if ( outputPolyData == NULL )
+    {
+      return 0;
+    }
+    return outputPolyData->GetNumberOfPoints();
+  }
+  else
+  {
+    vtkErrorMacro( "Unsupported node type in output. Returning 0." );
+    return 0;
+  }
 }
 
 //------------------------------------------------------------------------------

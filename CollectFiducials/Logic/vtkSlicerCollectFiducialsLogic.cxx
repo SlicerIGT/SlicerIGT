@@ -58,7 +58,7 @@ void vtkSlicerCollectFiducialsLogic::AddPoint( vtkMRMLCollectFiducialsNode* coll
 {
   if ( collectFiducialsNode == NULL )
   {
-    vtkErrorMacro( "No parameter node set. Aborting." );
+    vtkErrorMacro( "No parameter node set. Will not add any points." );
     return;
   }
 
@@ -66,7 +66,7 @@ void vtkSlicerCollectFiducialsLogic::AddPoint( vtkMRMLCollectFiducialsNode* coll
   vtkSmartPointer< vtkMRMLLinearTransformNode > probeNode = vtkMRMLLinearTransformNode::SafeDownCast( collectFiducialsNode->GetProbeTransformNode() );
   if ( probeNode == NULL )
   {
-    vtkErrorMacro( "No probe transform node set. Aborting." );
+    vtkErrorMacro( "No probe transform node set. Will not add any points." );
     return;
   }
   vtkSmartPointer< vtkMatrix4x4 > probeToWorld = vtkSmartPointer< vtkMatrix4x4 >::New();
@@ -76,26 +76,106 @@ void vtkSlicerCollectFiducialsLogic::AddPoint( vtkMRMLCollectFiducialsNode* coll
   vtkMRMLNode* outputNode = collectFiducialsNode->GetOutputNode();
   if ( outputNode == NULL )
   {
-    vtkErrorMacro( "No output node set. Aborting." );
+    vtkErrorMacro( "No output node set. Will not add any points." );
     return;
+  }
+
+  // determine the minimum distance for adding the point (only applies if in auto-collect mode)
+  double minimumDistanceMm = 0.0; // default value, 0 means there is no minimum
+  if ( collectFiducialsNode->GetCollectMode() == vtkMRMLCollectFiducialsNode::Automatic )
+  {
+    minimumDistanceMm = collectFiducialsNode->GetMinimumDistanceMm();
   }
 
   // try downcasting the output node to different types.
   // If successfully downcasts, then call the relevant function to add the point.
   // If it does not downcast, output an error.
-  if ( vtkMRMLMarkupsFiducialNode::SafeDownCast( outputNode ) )
+  vtkMRMLMarkupsFiducialNode* outputMarkupsNode = vtkMRMLMarkupsFiducialNode::SafeDownCast( outputNode );
+  vtkMRMLModelNode* outputModelNode = vtkMRMLModelNode::SafeDownCast( outputNode );
+  if ( outputMarkupsNode != NULL )
   {
-    vtkMRMLMarkupsFiducialNode* outputMarkupsNode = vtkMRMLMarkupsFiducialNode::SafeDownCast( outputNode );
-    this->AddPointToMarkups( collectFiducialsNode, outputMarkupsNode, pointCoordinates );
+    // add the label to the point
+    std::stringstream ss;
+    ss << collectFiducialsNode->GetLabelBase() << collectFiducialsNode->GetLabelCounter();
+
+    this->AddPointToMarkups( outputMarkupsNode, pointCoordinates, ss.str(), minimumDistanceMm );
+
+    // always increase the label counter
+    collectFiducialsNode->SetLabelCounter( collectFiducialsNode->GetLabelCounter() + 1 );
   }
-  else if ( vtkMRMLModelNode::SafeDownCast( outputNode ) )
+  else if ( outputModelNode != NULL )
   {
-    vtkMRMLModelNode* outputModelNode = vtkMRMLModelNode::SafeDownCast( outputNode );
-    this->AddPointToModel( collectFiducialsNode, outputModelNode, pointCoordinates );
+    this->AddPointToModel( outputModelNode, pointCoordinates, minimumDistanceMm );
   }
   else
   {
-    vtkErrorMacro( "Could not recognize the type of output node. Aborting." );
+    vtkErrorMacro( "Could not recognize the type of output node. Will not add any points." );
+    return;
+  }
+}
+
+//------------------------------------------------------------------------------
+void vtkSlicerCollectFiducialsLogic::RemoveLastPoint( vtkMRMLCollectFiducialsNode* collectFiducialsNode )
+{
+  vtkMRMLNode* outputNode = collectFiducialsNode->GetOutputNode();
+  if ( outputNode == NULL )
+  {
+    vtkErrorMacro( "No output node set. Will not remove any points." );
+    return;
+  }
+
+  // try downcasting the output node to different types.
+  // If successfully downcasts, then call the relevant function to remove the point(s).
+  // If it does not downcast, output an error.
+  vtkMRMLMarkupsFiducialNode* outputMarkupsNode = vtkMRMLMarkupsFiducialNode::SafeDownCast( outputNode );
+  vtkMRMLModelNode* outputModelNode = vtkMRMLModelNode::SafeDownCast( outputNode );
+  if ( outputMarkupsNode != NULL )
+  {
+    int numberOfPoints = outputMarkupsNode->GetNumberOfFiducials();
+    if ( numberOfPoints == 0 )
+    {
+      return; // nothing to do
+    }
+    vtkIdType lastPointId = numberOfPoints - 1;
+    outputMarkupsNode->RemoveMarkup( lastPointId );
+  }
+  else if ( outputModelNode != NULL )
+  {
+    this->RemoveLastPointFromModel( outputModelNode );
+  }
+  else
+  {
+    vtkErrorMacro( "Could not recognize the type of output node. Will not remove any points." );
+    return;
+  }
+}
+
+//------------------------------------------------------------------------------
+void vtkSlicerCollectFiducialsLogic::RemoveAllPoints( vtkMRMLCollectFiducialsNode* collectFiducialsNode )
+{
+  vtkMRMLNode* outputNode = collectFiducialsNode->GetOutputNode();
+  if ( outputNode == NULL )
+  {
+    vtkErrorMacro( "No output node set. Will not remove any points." );
+    return;
+  }
+
+  // try downcasting the output node to different types.
+  // If successfully downcasts, then call the relevant function to remove the point(s).
+  // If it does not downcast, output an error.
+  vtkMRMLMarkupsFiducialNode* outputMarkupsNode = vtkMRMLMarkupsFiducialNode::SafeDownCast( outputNode );
+  vtkMRMLModelNode* outputModelNode = vtkMRMLModelNode::SafeDownCast( outputNode );
+  if ( outputMarkupsNode != NULL )
+  {
+    outputMarkupsNode->RemoveAllMarkups();
+  }
+  else if ( outputModelNode != NULL )
+  {
+    outputModelNode->SetAndObservePolyData( vtkSmartPointer< vtkPolyData >::New() );
+  }
+  else
+  {
+    vtkErrorMacro( "Could not recognize the type of output node. Will not remove any points." );
     return;
   }
 }
@@ -177,71 +257,143 @@ void vtkSlicerCollectFiducialsLogic::ProcessMRMLNodesEvents( vtkObject* caller, 
   {
     if ( collectFiducialsNode->GetCollectMode() == vtkMRMLCollectFiducialsNode::Automatic )
     {
+      if ( collectFiducialsNode->GetOutputNode() == NULL || collectFiducialsNode->GetProbeTransformNode() == NULL )
+      {
+        vtkWarningMacro( "Collect fiducials node is not fully set up. Setting to manual collection." );
+        collectFiducialsNode->SetCollectModeToManual();
+        return;
+      }
       this->AddPoint( collectFiducialsNode ); // Will create modified event to update widget
     }
   }
 }
 
 //------------------------------------------------------------------------------
-// note: point coordinates MUST contain 3 values, neither input MRML node can be null
-void vtkSlicerCollectFiducialsLogic::AddPointToModel( vtkMRMLCollectFiducialsNode* collectFiducialsNode, vtkMRMLModelNode* outputModelNode, double* pointCoordinates )
+// note: point coordinates MUST contain 3 values
+void vtkSlicerCollectFiducialsLogic::AddPointToModel( vtkMRMLModelNode* modelNode, double* pointCoordinates, double minimumDistanceFromPreviousPointMm )
 {
-  vtkSmartPointer< vtkPolyData > outputPolyData = outputModelNode->GetPolyData();
-  if ( outputPolyData == NULL )
+  if ( modelNode == NULL )
   {
-    outputPolyData = vtkSmartPointer< vtkPolyData >::New();
-    outputModelNode->SetAndObservePolyData( outputPolyData );
+    vtkErrorMacro( "Output node is null. No points added." );
+    return;
   }
 
-  vtkSmartPointer< vtkPoints > outputPoints = outputPolyData->GetPoints();
-  if ( outputPoints == NULL )
+  vtkSmartPointer< vtkPolyData > polyData = modelNode->GetPolyData();
+  if ( polyData == NULL )
   {
-    outputPoints = vtkSmartPointer< vtkPoints >::New();
-    outputPolyData->SetPoints( outputPoints );
+    polyData = vtkSmartPointer< vtkPolyData >::New();
+    modelNode->SetAndObservePolyData( polyData );
   }
 
-  int numberOfPoints = ( int )outputPoints->GetNumberOfPoints();
-  if ( collectFiducialsNode->GetCollectMode() == vtkMRMLCollectFiducialsNode::Automatic && numberOfPoints > 0 )
+  vtkSmartPointer< vtkPoints > points = polyData->GetPoints();
+  if ( points == NULL )
+  {
+    points = vtkSmartPointer< vtkPoints >::New();
+    polyData->SetPoints( points );
+  }
+
+  int numberOfPoints = ( int )points->GetNumberOfPoints();
+  if ( minimumDistanceFromPreviousPointMm > 0.0 && numberOfPoints > 0 )
   {
     double previousCoordinates[ 3 ];
-    outputPoints->GetPoint( numberOfPoints - 1, previousCoordinates );
+    points->GetPoint( numberOfPoints - 1, previousCoordinates );
     double distanceMm = sqrt( vtkMath::Distance2BetweenPoints( pointCoordinates, previousCoordinates ) );
-    if ( distanceMm < collectFiducialsNode->GetMinimumDistanceMm() )
+    if ( distanceMm < minimumDistanceFromPreviousPointMm )
     {
       return;
     }
   }
+  points->InsertNextPoint( pointCoordinates );
 
-  outputPoints->InsertNextPoint( pointCoordinates );
-  outputPolyData->Modified();
-  outputModelNode->Modified();
+  this->UpdateCellsForPolyData( polyData );
 }
 
 //------------------------------------------------------------------------------
-// note: point coordinates MUST contain 3 values, neither input MRML node can be null
-void vtkSlicerCollectFiducialsLogic::AddPointToMarkups( vtkMRMLCollectFiducialsNode* collectFiducialsNode, vtkMRMLMarkupsFiducialNode* outputMarkupsNode, double* pointCoordinates )
+void vtkSlicerCollectFiducialsLogic::RemoveLastPointFromModel( vtkMRMLModelNode* modelNode )
 {
+  if ( modelNode == NULL )
+  {
+    vtkErrorMacro( "Output node is null. No points removed." );
+    return;
+  }
+  
+  vtkSmartPointer< vtkPolyData > polyData = modelNode->GetPolyData();
+  if ( polyData == NULL )
+  {
+    polyData = vtkSmartPointer< vtkPolyData >::New();
+    modelNode->SetAndObservePolyData( polyData );
+  }
+
+  vtkSmartPointer< vtkPoints > oldPoints = polyData->GetPoints();
+  if ( oldPoints == NULL || oldPoints->GetNumberOfPoints() == 0 )
+  {
+    polyData->SetPoints( vtkSmartPointer< vtkPoints >::New() );
+    return; // nothing to do
+  }
+
+  vtkSmartPointer< vtkPoints > newPoints = vtkSmartPointer< vtkPoints >::New();
+  int numberOfPointsToRetain = ( int )oldPoints->GetNumberOfPoints() - 1;
+  newPoints->SetNumberOfPoints( numberOfPointsToRetain );
+  for ( vtkIdType ptId = 0; ptId < numberOfPointsToRetain; ptId++ )
+  {
+    double* point = oldPoints->GetPoint( ptId );
+    newPoints->SetPoint( ptId, point );
+  }
+  polyData->SetPoints( newPoints );
+
+  this->UpdateCellsForPolyData( polyData );
+}
+
+//------------------------------------------------------------------------------
+void vtkSlicerCollectFiducialsLogic::UpdateCellsForPolyData( vtkPolyData* polyData )
+{
+  if ( polyData == NULL )
+  {
+    vtkErrorMacro( "Poly data is null. Will not update cells." );
+    return;
+  }
+
+  // update vertices
+  // TODO: Allocate more intelligently...? Would be better to simply add/remove vertices as needed, but this causes a crash
+  int numberOfPoints = ( int )polyData->GetNumberOfPoints();
+  vtkSmartPointer< vtkCellArray > verticesCellArray = vtkSmartPointer< vtkCellArray >::New();
+  verticesCellArray->Allocate( verticesCellArray->EstimateSize( numberOfPoints, 1 ) );
+  for ( vtkIdType ptId = 0; ptId < numberOfPoints; ptId++ )
+  {
+    verticesCellArray->InsertNextCell( 1 );
+    verticesCellArray->InsertCellPoint( ptId );
+  }
+  polyData->SetVerts( verticesCellArray );
+
+  // edges and faces are likely to become meaningless as individual points are added or removed
+  polyData->SetLines( NULL );
+  polyData->SetPolys( NULL );
+}
+
+//------------------------------------------------------------------------------
+// note: point coordinates MUST contain 3 values
+void vtkSlicerCollectFiducialsLogic::AddPointToMarkups( vtkMRMLMarkupsFiducialNode* markupsNode, double* pointCoordinates, std::string markupLabel, double minimumDistanceFromPreviousPointMm )
+{
+  if ( markupsNode == NULL )
+  {
+    vtkErrorMacro( "Output node is null. No points added." );
+    return;
+  }
+
   // if in automatic collection mode, make sure sufficient there is sufficient distance from previous point
-  int numberOfPoints = outputMarkupsNode->GetNumberOfFiducials();
-  if ( collectFiducialsNode->GetCollectMode() == vtkMRMLCollectFiducialsNode::Automatic && numberOfPoints > 0 )
+  int numberOfPoints = markupsNode->GetNumberOfFiducials();
+  if ( minimumDistanceFromPreviousPointMm > 0.0 && numberOfPoints > 0 )
   {
     double previousCoordinates[ 3 ];
-    outputMarkupsNode->GetNthFiducialPosition( numberOfPoints - 1, previousCoordinates );
+    markupsNode->GetNthFiducialPosition( numberOfPoints - 1, previousCoordinates );
     double distanceMm = sqrt( vtkMath::Distance2BetweenPoints( pointCoordinates, previousCoordinates ) );
-    if ( distanceMm < collectFiducialsNode->GetMinimumDistanceMm() )
+    if ( distanceMm < minimumDistanceFromPreviousPointMm )
     {
       return;
     }
   }
 
   // Add point to the markups node
-  int pointIndexInMarkups = outputMarkupsNode->AddFiducialFromArray( pointCoordinates );
-
-  // add the label to the point
-  std::stringstream ss;
-  ss << collectFiducialsNode->GetLabelBase() << collectFiducialsNode->GetLabelCounter();
-  outputMarkupsNode->SetNthFiducialLabel( pointIndexInMarkups, ss.str().c_str() );
-
-  // always increase the label counter automatically
-  collectFiducialsNode->SetLabelCounter( collectFiducialsNode->GetLabelCounter() + 1 );
+  int pointIndexInMarkups = markupsNode->AddFiducialFromArray( pointCoordinates );
+  markupsNode->SetNthFiducialLabel( pointIndexInMarkups, markupLabel.c_str() );
 }

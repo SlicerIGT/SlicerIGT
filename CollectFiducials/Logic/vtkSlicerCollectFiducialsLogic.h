@@ -54,6 +54,8 @@ public:
   void PrintSelf(ostream& os, vtkIndent indent);
   
   void AddPoint( vtkMRMLCollectFiducialsNode* collectFiducialsNode );
+  void RemoveLastPoint( vtkMRMLCollectFiducialsNode* collectFiducialsNode );
+  void RemoveAllPoints( vtkMRMLCollectFiducialsNode* collectFiducialsNode );
   
   void ProcessMRMLNodesEvents( vtkObject* caller, unsigned long event, void* callData );
 
@@ -68,8 +70,12 @@ protected:
   virtual void OnMRMLSceneNodeAdded(vtkMRMLNode* node);
   virtual void OnMRMLSceneNodeRemoved(vtkMRMLNode* node);
 private:
-  void AddPointToModel( vtkMRMLCollectFiducialsNode* collectFiducialsNode, vtkMRMLModelNode* outputModelNode, double pointCoordinates[ 3 ] );
-  void AddPointToMarkups( vtkMRMLCollectFiducialsNode* collectFiducialsNode, vtkMRMLMarkupsFiducialNode* outputMarkupsNode, double pointCoordinates[ 3 ] );
+  void AddPointToModel( vtkMRMLModelNode* modelNode, double pointCoordinates[ 3 ],
+                        double minimumDistanceFromPreviousPointMm=0.0 );
+  void RemoveLastPointFromModel( vtkMRMLModelNode* modelNode );
+  void UpdateCellsForPolyData( vtkPolyData* polyData );
+  void AddPointToMarkups( vtkMRMLMarkupsFiducialNode* markupsNode, double pointCoordinates[ 3 ],
+                          std::string label, double minimumDistanceFromPreviousPointMm=0.0 );
   vtkSlicerCollectFiducialsLogic(const vtkSlicerCollectFiducialsLogic&); // Not implemented
   void operator=(const vtkSlicerCollectFiducialsLogic&);               // Not implemented
   

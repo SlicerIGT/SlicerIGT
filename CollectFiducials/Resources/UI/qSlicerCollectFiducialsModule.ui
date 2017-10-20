@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>340</width>
+    <width>389</width>
     <height>478</height>
    </rect>
   </property>
@@ -16,22 +16,6 @@
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
     <layout class="QGridLayout" name="ParameterLayout">
-     <item row="2" column="1">
-      <widget class="qMRMLNodeComboBox" name="OutputNodeComboBox">
-       <property name="nodeTypes">
-        <stringlist>
-         <string>vtkMRMLMarkupsFiducialNode</string>
-         <string>vtkMRMLModelNode</string>
-        </stringlist>
-       </property>
-       <property name="noneEnabled">
-        <bool>true</bool>
-       </property>
-       <property name="renameEnabled">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
      <item row="0" column="0">
       <widget class="QLabel" name="ParameterNodeLabel">
        <property name="text">
@@ -42,7 +26,7 @@
      <item row="1" column="0">
       <widget class="QLabel" name="ProbeTransformNodeLabel">
        <property name="text">
-        <string>Probe Transform Node:</string>
+        <string>Transform Node:</string>
        </property>
       </widget>
      </item>
@@ -70,6 +54,55 @@
         </stringlist>
        </property>
       </widget>
+     </item>
+     <item row="2" column="1">
+      <layout class="QGridLayout" name="OutputLayout">
+       <item row="0" column="0">
+        <widget class="qMRMLNodeComboBox" name="OutputNodeComboBox">
+         <property name="nodeTypes">
+          <stringlist>
+           <string>vtkMRMLMarkupsFiducialNode</string>
+           <string>vtkMRMLModelNode</string>
+          </stringlist>
+         </property>
+         <property name="noneEnabled">
+          <bool>true</bool>
+         </property>
+         <property name="renameEnabled">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="3">
+        <widget class="QToolButton" name="OutputVisibilityButton">
+         <property name="text">
+          <string>...</string>
+         </property>
+         <property name="icon">
+          <iconset resource="../qSlicerCollectFiducialsModule.qrc">
+           <normaloff>:/Icons/PointVisible.png</normaloff>:/Icons/PointVisible.png</iconset>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="ctkColorPickerButton" name="OutputColorButton">
+         <property name="displayColorName">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="2">
+        <widget class="QToolButton" name="OutputDeleteButton">
+         <property name="text">
+          <string>...</string>
+         </property>
+         <property name="icon">
+          <iconset resource="../qSlicerCollectFiducialsModule.qrc">
+           <normaloff>:/Icons/PointDelete.png</normaloff>:/Icons/PointDelete.png</iconset>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </item>
     </layout>
    </item>
@@ -144,6 +177,18 @@
     </spacer>
    </item>
   </layout>
+  <action name="ActionDeleteAll">
+   <property name="icon">
+    <iconset resource="../qSlicerCollectFiducialsModule.qrc">
+     <normaloff>:/Icons/PointDeleteAll.png</normaloff>:/Icons/PointDeleteAll.png</iconset>
+   </property>
+   <property name="text">
+    <string>Delete All Points</string>
+   </property>
+   <property name="toolTip">
+    <string>Delete all points from the node</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>
@@ -170,6 +215,11 @@
    <container>1</container>
   </customwidget>
   <customwidget>
+   <class>ctkColorPickerButton</class>
+   <extends>QPushButton</extends>
+   <header>ctkColorPickerButton.h</header>
+  </customwidget>
+  <customwidget>
    <class>ctkPushButton</class>
    <extends>QPushButton</extends>
    <header>ctkPushButton.h</header>
@@ -180,7 +230,9 @@
    <header>ctkSliderWidget.h</header>
   </customwidget>
  </customwidgets>
- <resources/>
+ <resources>
+  <include location="../qSlicerCollectFiducialsModule.qrc"/>
+ </resources>
  <connections>
   <connection>
    <sender>qSlicerCollectFiducialsModule</sender>

@@ -49,7 +49,12 @@ protected slots:
   void onLabelBaseChanged();
   void onLabelCounterChanged();
   void onMinimumDistanceChanged();
-  void onOutputNodeSelected();
+  void onOutputNodeAdded( vtkMRMLNode* );
+  void onOutputNodeSelected( vtkMRMLNode* );
+  void onColorButtonChanged( QColor );
+  void onDeleteButtonClicked();
+  void onDeleteAllClicked();
+  void onVisibilityButtonClicked();
   void onCollectClicked();
   void onCollectCheckboxToggled();
   void updateGUIFromMRML();
