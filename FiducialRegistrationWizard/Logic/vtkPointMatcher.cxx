@@ -11,17 +11,17 @@ vtkStandardNewMacro( vtkPointMatcher );
 //------------------------------------------------------------------------------
 vtkPointMatcher::vtkPointMatcher()
 {
-  // point lists, even outputs, should never be null
-  this->InputPointList1 = vtkSmartPointer< vtkPoints >::New();
-  this->InputPointList2 = vtkSmartPointer< vtkPoints >::New();
+  this->InputPointList1 = NULL;
+  this->InputPointList2 = NULL;
   this->MaximumDifferenceInNumberOfPoints = 2;
   this->TolerableRootMeanSquareDistanceErrorMm = 50.0;
   this->ComputedRootMeanSquareDistanceErrorMm = RESET_VALUE_COMPUTED_ROOT_MEAN_DISTANCE_ERROR;
+  // outputs are never null
   this->OutputPointList1 = vtkSmartPointer< vtkPoints >::New();
   this->OutputPointList2 = vtkSmartPointer< vtkPoints >::New();
 
   // timestamps for input and output are the same, initially
-  this->InputChangedTime.Modified();
+  this->Modified();
   this->OutputChangedTime.Modified();
 }
 
@@ -49,37 +49,35 @@ void vtkPointMatcher::PrintSelf( std::ostream &os, vtkIndent indent )
 //------------------------------------------------------------------------------
 void vtkPointMatcher::SetInputPointList1( vtkPoints* points )
 {
-  this->InputPointList1->DeepCopy( points );
-  this->OnInputChanged();
+  vtkSetObjectBodyMacro( InputPointList1, vtkPoints, points );
+  // mean distance error has not been computed yet. Set to maximum possible value for now
+  this->ComputedRootMeanSquareDistanceErrorMm = RESET_VALUE_COMPUTED_ROOT_MEAN_DISTANCE_ERROR;
 }
 
 //------------------------------------------------------------------------------
 void vtkPointMatcher::SetInputPointList2( vtkPoints* points )
 {
-  this->InputPointList2->DeepCopy( points );
-  this->OnInputChanged();
+  vtkSetObjectBodyMacro( InputPointList2, vtkPoints, points );
+  // mean distance error has not been computed yet. Set to maximum possible value for now
+  this->ComputedRootMeanSquareDistanceErrorMm = RESET_VALUE_COMPUTED_ROOT_MEAN_DISTANCE_ERROR;
 }
 
 //------------------------------------------------------------------------------
 void vtkPointMatcher::SetMaximumDifferenceInNumberOfPoints( unsigned int numberOfPoints )
 {
   this->MaximumDifferenceInNumberOfPoints = numberOfPoints;
-  this->OnInputChanged();
+  this->Modified();
+  // mean distance error has not been computed yet. Set to maximum possible value for now
+  this->ComputedRootMeanSquareDistanceErrorMm = RESET_VALUE_COMPUTED_ROOT_MEAN_DISTANCE_ERROR;
 }
 
 //------------------------------------------------------------------------------
 void vtkPointMatcher::SetTolerableRootMeanSquareDistanceErrorMm( double errorMm )
 {
   this->TolerableRootMeanSquareDistanceErrorMm = errorMm;
-  this->OnInputChanged();
-}
-
-//------------------------------------------------------------------------------
-void vtkPointMatcher::OnInputChanged()
-{
+  this->Modified();
   // mean distance error has not been computed yet. Set to maximum possible value for now
   this->ComputedRootMeanSquareDistanceErrorMm = RESET_VALUE_COMPUTED_ROOT_MEAN_DISTANCE_ERROR;
-  this->InputChangedTime.Modified();
 }
 
 //------------------------------------------------------------------------------
@@ -94,7 +92,6 @@ vtkPoints* vtkPointMatcher::GetOutputPointList1()
     this->Update();
   }
 
-  // TODO: Deep copy? Const?
   return this->OutputPointList1;
 }
 
@@ -106,7 +103,6 @@ vtkPoints* vtkPointMatcher::GetOutputPointList2()
     this->Update();
   }
 
-  // TODO: Deep copy? Const?
   return this->OutputPointList2;
 }
 
@@ -145,8 +141,20 @@ void vtkPointMatcher::Update()
   }
   
   // check number of points, make sure point lists are already similar/same sizes
+  if ( this->InputPointList1 == NULL )
+  {
+    vtkWarningMacro( "Input point list 1 is null. Cannot update." );
+    return;
+  }
   int pointList1Size = this->InputPointList1->GetNumberOfPoints();
+
+  if ( this->InputPointList2 == NULL )
+  {
+    vtkWarningMacro( "Input point list 2 is null. Cannot update." );
+    return;
+  }
   int pointList2Size = this->InputPointList2->GetNumberOfPoints();
+  
   unsigned int differenceInPointListSizes = abs( pointList1Size - pointList2Size );
   if ( differenceInPointListSizes > this->MaximumDifferenceInNumberOfPoints )
   {
@@ -363,6 +371,6 @@ double vtkPointMatcher::ComputeRootMeanSquareistanceErrors( vtkPointDistanceMatr
 //------------------------------------------------------------------------------
 bool vtkPointMatcher::UpdateNeeded()
 {
-  return ( this->InputChangedTime > this->OutputChangedTime );
+  return ( this->GetMTime() > this->OutputChangedTime );
 }
 

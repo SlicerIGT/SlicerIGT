@@ -56,8 +56,8 @@ vtkMRMLFiducialRegistrationWizardNode::vtkMRMLFiducialRegistrationWizardNode()
   this->AddNodeReferenceRole( TO_FIDUCIAL_LIST_REFERENCE_ROLE, NULL, fiducialListEvents.GetPointer() );
   this->AddNodeReferenceRole( OUTPUT_TRANSFORM_REFERENCE_ROLE );
   this->RegistrationMode = REGISTRATION_MODE_RIGID;
-  this->UpdateMode = UPDATE_MODE_AUTO;
-  this->PointMatchingMethod = POINT_MATCHING_METHOD_INPUT_ORDER;
+  this->UpdateMode = UPDATE_MODE_AUTOMATIC;
+  this->PointMatching = POINT_MATCHING_MANUAL;
 }
 
 //------------------------------------------------------------------------------
@@ -297,9 +297,9 @@ std::string vtkMRMLFiducialRegistrationWizardNode::UpdateModeAsString( int updat
     {
       return "Manual";
     }
-    case UPDATE_MODE_AUTO:
+    case UPDATE_MODE_AUTOMATIC:
     {
-      return "Auto";
+      return "Automatic";
     }
     default:
     {
@@ -326,53 +326,53 @@ int vtkMRMLFiducialRegistrationWizardNode::UpdateModeFromString( std::string upd
 }
 
 //------------------------------------------------------------------------------
-void vtkMRMLFiducialRegistrationWizardNode::SetPointMatchingMethod( int newMethod )
+void vtkMRMLFiducialRegistrationWizardNode::SetPointMatching( int newMethod )
 {
-  if ( this->GetPointMatchingMethod() == newMethod )
+  if ( this->GetPointMatching() == newMethod )
   {
     // no change
     return;
   }
-  this->PointMatchingMethod = newMethod;
+  this->PointMatching = newMethod;
   this->Modified();
   this->InvokeCustomModifiedEvent(InputDataModifiedEvent);
 }
 
 //------------------------------------------------------------------------------
-std::string vtkMRMLFiducialRegistrationWizardNode::PointMatchingMethodAsString( int method )
+std::string vtkMRMLFiducialRegistrationWizardNode::PointMatchingAsString( int method )
 {
   switch ( method )
   {
-    case POINT_MATCHING_METHOD_INPUT_ORDER:
+    case POINT_MATCHING_MANUAL:
     {
-      return "Input Order";
+      return "Manual";
     }
-    case POINT_MATCHING_METHOD_COMPUTED:
+    case POINT_MATCHING_AUTOMATIC:
     {
-      return "Computed";
+      return "Automatic";
     }
     default:
     {
-      vtkGenericWarningMacro( "Unrecognized value for PointMatchingMethod " << method << ". Returning \"Unknown\"" );
+      vtkGenericWarningMacro( "Unrecognized value for PointMatching " << method << ". Returning \"Unknown\"" );
       return "Unknown";
     }
   }
 }
 
 //------------------------------------------------------------------------------
-int vtkMRMLFiducialRegistrationWizardNode::PointMatchingMethodFromString( std::string methodAsString )
+int vtkMRMLFiducialRegistrationWizardNode::PointMatchingFromString( std::string methodAsString )
 {
-  for ( int method = 0; method < POINT_MATCHING_METHOD_LAST; method++ )
+  for ( int method = 0; method < POINT_MATCHING_LAST; method++ )
   {
-    bool matchingText = methodAsString.compare( PointMatchingMethodAsString( method ) ) == 0;
+    bool matchingText = methodAsString.compare( PointMatchingAsString( method ) ) == 0;
     if ( matchingText )
     {
       return method;
     }
   }
   // if there are no matches, then there is likely an error
-  vtkGenericWarningMacro( "Unrecognized string for PointMatchingMethod " << methodAsString << ". Returning value for " << PointMatchingMethodAsString( POINT_MATCHING_METHOD_INPUT_ORDER ) );
-  return POINT_MATCHING_METHOD_INPUT_ORDER;
+  vtkGenericWarningMacro( "Unrecognized string for PointMatching " << methodAsString << ". Returning value for " << PointMatchingAsString( POINT_MATCHING_MANUAL ) );
+  return POINT_MATCHING_MANUAL;
 }
 
 //------------------------------------------------------------------------------

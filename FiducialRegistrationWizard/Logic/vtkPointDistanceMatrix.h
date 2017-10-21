@@ -21,13 +21,13 @@ class vtkPointDistanceMatrix : public vtkObject //vtkAlgorithm?
     
     static vtkPointDistanceMatrix* New();
     
-    void   SetPointList1( vtkPoints* points );
-    void   SetPointList2( vtkPoints* points );
-    int    GetPointList1Length();
-    int    GetPointList2Length();
+    void SetPointList1( vtkPoints* points );
+    void SetPointList2( vtkPoints* points );
+    vtkPoints* GetPointList1();
+    vtkPoints* GetPointList2();
     double GetDistance( int list1Index, int list2Index );
     double GetMinimumDistance();
-    void   Update();
+    void Update();
 
     // compute pair-wise difference between two point distance matrices.
     // Store the result in a structure other than a point distance matrix
@@ -38,8 +38,8 @@ class vtkPointDistanceMatrix : public vtkObject //vtkAlgorithm?
     vtkPointDistanceMatrix();
     ~vtkPointDistanceMatrix();
   private:
-    vtkSmartPointer< vtkPoints > PointList1;
-    vtkSmartPointer< vtkPoints > PointList2;
+    vtkPoints* PointList1;
+    vtkPoints* PointList2;
     vtkSmartPointer< vtkDoubleArray > DistanceMatrix;
 
     vtkTimeStamp MatrixUpdateTime;

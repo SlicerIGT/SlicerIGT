@@ -27,27 +27,79 @@ class vtkCombinatoricGenerator : public vtkObject //vtkAlgorithm
       COMBINATORIC_PERMUTATION,
       COMBINATORIC_LAST // Valid types go above this line
     };
+
+    // Set the Combinatoric to compute. (Default: Combination)
+    // Cartesian product operation takes two or more input sets,
+    // and outputs all possible sets that contain one element
+    // from each. E.g:
+    // Inputs:
+    //  1, 2, 3
+    //  1, 4
+    // Outputs:
+    //  1, 1
+    //  1, 4
+    //  2, 1
+    //  2, 4
+    //  3, 1
+    //  3, 4
+    // The number of input sets can be any integer greater than 0.
     void SetCombinatoricToCartesianProduct();
+
+    // Set the Combinatoric to compute. (Default: Combination)
+    // Combination operation outputs all possible K-subsets of a single
+    // set, where the order of elements *does not* matter. E.g:
+    // Input:
+    //  1, 2, 3
+    //  SubsetSize = 2
+    // Outputs:
+    //  1, 2
+    //  1, 3
+    //  2, 3
+    // Note: There is no distinction between (1, 2) and (2, 1),
+    //       because the order does not matter.
     void SetCombinatoricToCombination();
+
+    // Set the Combinatoric to compute. (Default: Combination)
+    // Permutation operation outputs all possible K-subsets of a single
+    // set, where the elements *can* be in a different order. E.g:
+    // Input:
+    //  1, 2, 3
+    //  SubsetSize = 2
+    // Outputs:
+    //  1, 2
+    //  1, 3
+    //  2, 1
+    //  2, 3
+    //  3, 1
+    //  3, 2
     void SetCombinatoricToPermutation();
+    
+    // Accessor for the combinatoric, return a string result
     std::string GetCombinatoricAsString();
+
+    // SubsetSize determines how many elements from the input set
+    // should be in each output set.
+    // Used for Combination and Permutation modes
+    vtkGetMacro( SubsetSize, int );
     void SetSubsetSize( unsigned int size ); // output set size (for permutation and combination)
 
-    // operations involving number of input sets (mainly for cartesian product)
+    // Determines how many input sets should be allowed.
+    // This should be 1 (default) for Combination and Permutation modes.
+    // This can be any integer larger than 0 for Cartesian Product mode.
     void SetNumberOfInputSets( unsigned int numSets );
     unsigned int GetNumberOfInputSets();
 
-    // operations involving entire input sets
+    // Operations that work on entire input sets
     void AddInputSet( std::vector< int > vector );
     void RemoveInputSet( unsigned int setIndex ); // remove the set entirely
     void ClearInputSet( unsigned int setIndex ); // remove contents of set only
     unsigned int GetInputSetSize( unsigned int setIndex );
 
-    // element-wise operations on input sets (useful for python scripting, which does not natively support std::vector)
+    // Element-wise operations on input sets (useful for python scripting, which does not natively support std::vector)
     void AddInputElement( unsigned int setIndex, int newElement );
     int GetInputElement( unsigned int setIndex, unsigned int elementIndex );
 
-    // output accessors
+    // Output accessors
     unsigned int ComputeNumberOfOutputSets(); // returns the number of sets that *would* be computed on update
     std::vector< std::vector< int > > GetOutputSets(); // returns a deep copy
     unsigned int GetOutputSetSize();

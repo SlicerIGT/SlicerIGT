@@ -66,15 +66,15 @@ public:
   enum
   {
     UPDATE_MODE_MANUAL = 0,
-    UPDATE_MODE_AUTO,
+    UPDATE_MODE_AUTOMATIC,
     UPDATE_MODE_LAST // do not set to this type, insert valid types above this line
   };
 
   enum
   {
-    POINT_MATCHING_METHOD_INPUT_ORDER = 0,
-    POINT_MATCHING_METHOD_COMPUTED,
-    POINT_MATCHING_METHOD_LAST // do not set to this type, insert valid types above this line
+    POINT_MATCHING_MANUAL = 0,
+    POINT_MATCHING_AUTOMATIC,
+    POINT_MATCHING_LAST // do not set to this type, insert valid types above this line
   };
 
   vtkTypeMacro( vtkMRMLFiducialRegistrationWizardNode, vtkMRMLNode );
@@ -123,16 +123,16 @@ public:
   vtkGetMacro( UpdateMode, int );
   void SetUpdateMode( int newUpdateMode);
   void SetUpdateModeToManual() { this->SetUpdateMode( UPDATE_MODE_MANUAL ); }
-  void SetUpdateModeToAuto() { this->SetUpdateMode( UPDATE_MODE_AUTO ); }
+  void SetUpdateModeToAuto() { this->SetUpdateMode( UPDATE_MODE_AUTOMATIC ); }
   static std::string UpdateModeAsString( int );
   static int UpdateModeFromString( std::string );
 
-  vtkGetMacro( PointMatchingMethod, int );
-  void SetPointMatchingMethod( int );
-  void SetPointMatchingMethodToInputOrder() { this->SetPointMatchingMethod( POINT_MATCHING_METHOD_INPUT_ORDER ); }
-  void SetPointMatchingMethodToComputed() { this->SetPointMatchingMethod( POINT_MATCHING_METHOD_COMPUTED ); }
-  static std::string PointMatchingMethodAsString( int );
-  static int PointMatchingMethodFromString( std::string );
+  vtkGetMacro( PointMatching, int );
+  void SetPointMatching( int );
+  void SetPointMatchingToInputOrder() { this->SetPointMatching( POINT_MATCHING_MANUAL ); }
+  void SetPointMatchingToComputed() { this->SetPointMatching( POINT_MATCHING_AUTOMATIC ); }
+  static std::string PointMatchingAsString( int );
+  static int PointMatchingFromString( std::string );
 
   vtkSetMacro( CalibrationStatusMessage, std::string );
   vtkGetMacro( CalibrationStatusMessage, std::string );
@@ -144,7 +144,7 @@ public:
 private:
   int RegistrationMode;
   int UpdateMode;
-  int PointMatchingMethod;
+  int PointMatching;
   std::string CalibrationStatusMessage; // TODO: add this to the ouput transform as a custom node attribute
 
 };  

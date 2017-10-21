@@ -128,7 +128,7 @@ void vtkSlicerFiducialRegistrationWizardLogic::OnMRMLSceneNodeAdded( vtkMRMLNode
     events->InsertNextValue( vtkMRMLFiducialRegistrationWizardNode::InputDataModifiedEvent );
     vtkObserveMRMLNodeEventsMacro( frwNode, events.GetPointer() );
     
-    if ( frwNode->GetUpdateMode() == vtkMRMLFiducialRegistrationWizardNode::UPDATE_MODE_AUTO )
+    if ( frwNode->GetUpdateMode() == vtkMRMLFiducialRegistrationWizardNode::UPDATE_MODE_AUTOMATIC )
     {
       this->UpdateCalibration( frwNode ); // Will create modified event to update widget
     }
@@ -257,8 +257,8 @@ bool vtkSlicerFiducialRegistrationWizardLogic::UpdateCalibration( vtkMRMLNode* n
   // Determine the order of points and store an "ordered" version of the "To" list
   vtkSmartPointer< vtkPoints > fromPointsOrdered = NULL; // temporary value
   vtkSmartPointer< vtkPoints > toPointsOrdered = NULL; // temporary value
-  int pointMatchingMethod = fiducialRegistrationWizardNode->GetPointMatchingMethod();
-  if ( pointMatchingMethod == vtkMRMLFiducialRegistrationWizardNode::POINT_MATCHING_METHOD_INPUT_ORDER )
+  int pointMatching = fiducialRegistrationWizardNode->GetPointMatching();
+  if ( pointMatching == vtkMRMLFiducialRegistrationWizardNode::POINT_MATCHING_MANUAL )
   {
     if ( fromMarkupsFiducialNode->GetNumberOfFiducials() != toMarkupsFiducialNode->GetNumberOfFiducials() )
     {
@@ -274,17 +274,17 @@ bool vtkSlicerFiducialRegistrationWizardLogic::UpdateCalibration( vtkMRMLNode* n
     fromPointsOrdered = fromPointsUnordered;
     toPointsOrdered = toPointsUnordered;
   }
-  else if ( pointMatchingMethod == vtkMRMLFiducialRegistrationWizardNode::POINT_MATCHING_METHOD_COMPUTED )
+  else if ( pointMatching == vtkMRMLFiducialRegistrationWizardNode::POINT_MATCHING_AUTOMATIC )
   {
-    const int MAX_NUMBER_OF_POINTS_FOR_POINT_MATCHING_METHOD_COMPUTED = 8; // more than this and it tends to take a long time. Algorithm is at least N!
+    const int MAX_NUMBER_OF_POINTS_FOR_POINT_MATCHING_AUTOMATIC = 8; // more than this and it tends to take a long time. Algorithm is at least N!
     int fromNumberOfPoints = fromPointsUnordered->GetNumberOfPoints();
     int toNumberOfPoints = toPointsUnordered->GetNumberOfPoints();
     int numberOfPointsToMatch = std::max( fromNumberOfPoints, toNumberOfPoints );
-    if ( numberOfPointsToMatch > MAX_NUMBER_OF_POINTS_FOR_POINT_MATCHING_METHOD_COMPUTED )
+    if ( numberOfPointsToMatch > MAX_NUMBER_OF_POINTS_FOR_POINT_MATCHING_AUTOMATIC )
     {
       std::stringstream msg;
       msg << "Too many points to compute point pairing " << numberOfPointsToMatch << ". "
-          << "To avoid long computation time, there should be at most "<< MAX_NUMBER_OF_POINTS_FOR_POINT_MATCHING_METHOD_COMPUTED << " points. "
+          << "To avoid long computation time, there should be at most "<< MAX_NUMBER_OF_POINTS_FOR_POINT_MATCHING_AUTOMATIC << " points. "
           << "Aborting registration.";
       fiducialRegistrationWizardNode->SetCalibrationStatusMessage( msg.str() );
       return false;
@@ -310,7 +310,7 @@ bool vtkSlicerFiducialRegistrationWizardLogic::UpdateCalibration( vtkMRMLNode* n
   else
   {
     std::stringstream msg;
-    msg << "Unrecognized point matching method: " << vtkMRMLFiducialRegistrationWizardNode::PointMatchingMethodAsString( pointMatchingMethod ) << ". Aborting registration.";
+    msg << "Unrecognized point matching method: " << vtkMRMLFiducialRegistrationWizardNode::PointMatchingAsString( pointMatching ) << ". Aborting registration.";
     fiducialRegistrationWizardNode->SetCalibrationStatusMessage( msg.str() );
     return false;
   }
@@ -499,7 +499,7 @@ bool vtkSlicerFiducialRegistrationWizardLogic::CheckCollinear( vtkPoints* points
 }
 
 //------------------------------------------------------------------------------
-void vtkSlicerFiducialRegistrationWizardLogic::ProcessMRMLNodesEvents( vtkObject* caller, unsigned long event, void* /*callData*/ )
+void vtkSlicerFiducialRegistrationWizardLogic::ProcessMRMLNodesEvents( vtkObject* caller, unsigned long event, void* vtkNotUsed(callData) )
 {
   vtkMRMLFiducialRegistrationWizardNode* frwNode = vtkMRMLFiducialRegistrationWizardNode::SafeDownCast(caller);
   if ( frwNode == NULL)
@@ -511,7 +511,7 @@ void vtkSlicerFiducialRegistrationWizardLogic::ProcessMRMLNodesEvents( vtkObject
   {
     // only recompute output if the input is changed
     // (for example we do not recompute the calibration output if the computed calibration transform or status message is changed)
-    if ( frwNode->GetUpdateMode() == vtkMRMLFiducialRegistrationWizardNode::UPDATE_MODE_AUTO )
+    if ( frwNode->GetUpdateMode() == vtkMRMLFiducialRegistrationWizardNode::UPDATE_MODE_AUTOMATIC )
     {
       this->UpdateCalibration( frwNode ); // Will create modified event to update widget
     }

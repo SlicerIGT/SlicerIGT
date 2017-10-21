@@ -42,8 +42,8 @@ class vtkPointMatcher : public vtkObject //vtkAlgorithm?
   private:
     // these points may not be in order,
     // and may be different lengths
-    vtkSmartPointer< vtkPoints > InputPointList1;
-    vtkSmartPointer< vtkPoints > InputPointList2;
+    vtkPoints* InputPointList1;
+    vtkPoints* InputPointList2;
 
     // A parameter to control how many points different
     // the two input lists can be:
@@ -66,12 +66,8 @@ class vtkPointMatcher : public vtkObject //vtkAlgorithm?
     vtkSmartPointer< vtkPoints > OutputPointList2;
 
     // Determine whether an update is needed
-    vtkTimeStamp InputChangedTime;
     vtkTimeStamp OutputChangedTime;
     bool UpdateNeeded();
-
-    // Mutator helper
-    void OnInputChanged();
 
     // Logic helpers
     void UpdateBestMatchingForAllSubsetsOfPoints( int sizeOfSubset );
