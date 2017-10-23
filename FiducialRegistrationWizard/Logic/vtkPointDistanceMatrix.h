@@ -6,6 +6,9 @@
 #include <vtkPoints.h>
 #include <vtkTimeStamp.h>
 
+// export
+#include "vtkSlicerFiducialRegistrationWizardModuleLogicExport.h"
+
 // At its most basic level, this is a Wrapper class for storing a matrix of
 // point to point distances in a vtkDoubleArray.
 // The purpose is to improve the abstraction of storing distances, instead of
@@ -13,7 +16,7 @@
 // encapsulate that functionality.
 // The contents of the matrix are automatically re-generated when either input
 // point list is changed.
-class vtkPointDistanceMatrix : public vtkObject //vtkAlgorithm?
+class VTK_SLICER_FIDUCIALREGISTRATIONWIZARD_MODULE_LOGIC_EXPORT vtkPointDistanceMatrix : public vtkObject //vtkAlgorithm?
 {
   public:
     vtkTypeMacro( vtkPointDistanceMatrix, vtkObject );

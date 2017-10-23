@@ -6,11 +6,14 @@
 #include <vtkTimeStamp.h>
 #include "vtkPointDistanceMatrix.h"
 
+// export
+#include "vtkSlicerFiducialRegistrationWizardModuleLogicExport.h"
+
 // This class takes two corresponding input point sets as input (InputPointList1 and 
 // InputPointList2), and tries to determine their pairing. The outputs are two lists
 // (OutputPointList1 and OutputPointList2) that contain ordered, corresponding pairs
 // from the two input lists. Extra or missing points are removed from the output.
-class vtkPointMatcher : public vtkObject //vtkAlgorithm?
+class VTK_SLICER_FIDUCIALREGISTRATIONWIZARD_MODULE_LOGIC_EXPORT vtkPointMatcher : public vtkObject //vtkAlgorithm?
 {
   public:
     vtkTypeMacro( vtkPointMatcher, vtkObject );

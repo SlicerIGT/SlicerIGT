@@ -9,8 +9,11 @@
 // std includes
 #include <vector>
 
+// export
+#include "vtkSlicerFiducialRegistrationWizardModuleLogicExport.h"
+
 // A class to generate combinatorics from input arrays of integer values
-class vtkCombinatoricGenerator : public vtkObject //vtkAlgorithm
+class VTK_SLICER_FIDUCIALREGISTRATIONWIZARD_MODULE_LOGIC_EXPORT vtkCombinatoricGenerator : public vtkObject //vtkAlgorithm
 {
   public:
     vtkTypeMacro( vtkCombinatoricGenerator, vtkObject );
