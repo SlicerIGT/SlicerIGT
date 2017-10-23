@@ -21,9 +21,15 @@
 // FiducialRegistrationWizard MRML includes
 #include "vtkMRMLFiducialRegistrationWizardNode.h"
 
+// slicer includes
 #include "vtkMRMLMarkupsFiducialNode.h"
 #include "vtkMRMLTransformNode.h"
-#include "vtkNew.h"
+
+// vtk includes
+#include <vtkNew.h>
+
+// std includes
+#include <sstream>
 
 // Constants ------------------------------------------------------------------
 static const char* PROBE_TRANSFORM_FROM_REFERENCE_ROLE = "ProbeTransformFrom";
@@ -49,8 +55,9 @@ vtkMRMLFiducialRegistrationWizardNode::vtkMRMLFiducialRegistrationWizardNode()
   this->AddNodeReferenceRole( FROM_FIDUCIAL_LIST_REFERENCE_ROLE, NULL, fiducialListEvents.GetPointer() );
   this->AddNodeReferenceRole( TO_FIDUCIAL_LIST_REFERENCE_ROLE, NULL, fiducialListEvents.GetPointer() );
   this->AddNodeReferenceRole( OUTPUT_TRANSFORM_REFERENCE_ROLE );
-  this->RegistrationMode = "Rigid";
-  this->UpdateMode = "Automatic";
+  this->RegistrationMode = REGISTRATION_MODE_RIGID;
+  this->UpdateMode = UPDATE_MODE_AUTOMATIC;
+  this->PointMatching = POINT_MATCHING_MANUAL;
 }
 
 //------------------------------------------------------------------------------
@@ -64,8 +71,8 @@ void vtkMRMLFiducialRegistrationWizardNode::WriteXML( ostream& of, int nIndent )
   Superclass::WriteXML(of, nIndent); // This will take care of referenced nodes
 
   vtkIndent indent(nIndent); 
-  of << indent << " RegistrationMode=\"" << this->RegistrationMode << "\"";
-  of << indent << " UpdateMode=\"" << this->UpdateMode << "\"";
+  of << indent << " RegistrationMode=\"" << RegistrationModeAsString( this->RegistrationMode ) << "\"";
+  of << indent << " UpdateMode=\"" << UpdateModeAsString( this->UpdateMode ) << "\"";
 }
 
 //------------------------------------------------------------------------------
@@ -83,11 +90,11 @@ void vtkMRMLFiducialRegistrationWizardNode::ReadXMLAttributes( const char** atts
     
     if ( ! strcmp( attName, "RegistrationMode" ) )
     {
-      this->RegistrationMode = std::string( attValue );
+      this->RegistrationMode = RegistrationModeFromString( std::string( attValue ) );
     }
     if ( ! strcmp( attName, "UpdateMode" ) )
     {
-      this->UpdateMode = std::string( attValue );
+      this->UpdateMode = UpdateModeFromString( std::string( attValue ) );
     }
   }
 
@@ -111,8 +118,8 @@ void vtkMRMLFiducialRegistrationWizardNode::Copy( vtkMRMLNode *anode )
 void vtkMRMLFiducialRegistrationWizardNode::PrintSelf( ostream& os, vtkIndent indent )
 {
   vtkMRMLNode::PrintSelf(os,indent); // This will take care of referenced nodes
-  os << indent << "RegistrationMode: " << this->RegistrationMode << "\n";
-  os << indent << "UpdateMode: " << this->UpdateMode << "\n";
+  os << indent << "RegistrationMode: " << RegistrationModeAsString( this->RegistrationMode ) << "\n";
+  os << indent << "UpdateMode: " << UpdateModeAsString( this->UpdateMode ) << "\n";
 }
 
 //------------------------------------------------------------------------------
@@ -215,13 +222,7 @@ vtkMRMLTransformNode* vtkMRMLFiducialRegistrationWizardNode::GetOutputTransformN
 }
 
 //------------------------------------------------------------------------------
-std::string vtkMRMLFiducialRegistrationWizardNode::GetRegistrationMode()
-{
-  return this->RegistrationMode;
-}
-
-//------------------------------------------------------------------------------
-void vtkMRMLFiducialRegistrationWizardNode::SetRegistrationMode( std::string newRegistrationMode)
+void vtkMRMLFiducialRegistrationWizardNode::SetRegistrationMode( int newRegistrationMode )
 {
   if ( this->GetRegistrationMode() == newRegistrationMode )
   {
@@ -234,13 +235,48 @@ void vtkMRMLFiducialRegistrationWizardNode::SetRegistrationMode( std::string new
 }
 
 //------------------------------------------------------------------------------
-std::string vtkMRMLFiducialRegistrationWizardNode::GetUpdateMode()
+std::string vtkMRMLFiducialRegistrationWizardNode::RegistrationModeAsString( int registrationMode )
 {
-  return this->UpdateMode;
+  switch ( registrationMode )
+  {
+    case REGISTRATION_MODE_RIGID:
+    {
+      return "Rigid";
+    }
+    case REGISTRATION_MODE_SIMILARITY:
+    {
+      return "Similarity";
+    }
+    case REGISTRATION_MODE_WARPING:
+    {
+      return "Warping";
+    }
+    default:
+    {
+      vtkGenericWarningMacro( "Unrecognized value for RegistrationMode " << registrationMode << ". Returning \"Unknown\"" );
+      return "Unknown";
+    }
+  }
 }
 
 //------------------------------------------------------------------------------
-void vtkMRMLFiducialRegistrationWizardNode::SetUpdateMode( std::string newUpdateMode)
+int vtkMRMLFiducialRegistrationWizardNode::RegistrationModeFromString( std::string registrationModeAsString )
+{
+  for ( int registrationMode = 0; registrationMode < REGISTRATION_MODE_LAST; registrationMode++ )
+  {
+    bool matchingText = registrationModeAsString.compare( RegistrationModeAsString( registrationMode ) ) == 0;
+    if ( matchingText )
+    {
+      return registrationMode;
+    }
+  }
+  // if there are no matches, then there is likely an error
+  vtkGenericWarningMacro( "Unrecognized string for RegistrationMode " << registrationModeAsString << ". Returning value for \"Rigid\"" );
+  return REGISTRATION_MODE_RIGID;
+}
+
+//------------------------------------------------------------------------------
+void vtkMRMLFiducialRegistrationWizardNode::SetUpdateMode( int newUpdateMode )
 {
   if ( this->GetUpdateMode() == newUpdateMode )
   {
@@ -250,6 +286,109 @@ void vtkMRMLFiducialRegistrationWizardNode::SetUpdateMode( std::string newUpdate
   this->UpdateMode = newUpdateMode;
   this->Modified();
   this->InvokeCustomModifiedEvent(InputDataModifiedEvent);
+}
+
+//------------------------------------------------------------------------------
+std::string vtkMRMLFiducialRegistrationWizardNode::UpdateModeAsString( int updateMode )
+{
+  switch ( updateMode )
+  {
+    case UPDATE_MODE_MANUAL:
+    {
+      return "Manual";
+    }
+    case UPDATE_MODE_AUTOMATIC:
+    {
+      return "Automatic";
+    }
+    default:
+    {
+      vtkGenericWarningMacro( "Unrecognized value for UpdateMode " << updateMode << ". Returning \"Manual\"" );
+      return "Manual";
+    }
+  }
+}
+
+//------------------------------------------------------------------------------
+int vtkMRMLFiducialRegistrationWizardNode::UpdateModeFromString( std::string updateModeAsString )
+{
+  for ( int updateMode = 0; updateMode < UPDATE_MODE_LAST; updateMode++ )
+  {
+    bool matchingText = updateModeAsString.compare( UpdateModeAsString( updateMode ) ) == 0;
+    if ( matchingText )
+    {
+      return updateMode;
+    }
+  }
+  // if there are no matches, then there is likely an error
+  vtkGenericWarningMacro( "Unrecognized string for UpdateMode " << updateModeAsString << ". Returning value for \"Manual\"" );
+  return UPDATE_MODE_MANUAL;
+}
+
+//------------------------------------------------------------------------------
+void vtkMRMLFiducialRegistrationWizardNode::SetPointMatching( int newMethod )
+{
+  if ( this->GetPointMatching() == newMethod )
+  {
+    // no change
+    return;
+  }
+  this->PointMatching = newMethod;
+  this->Modified();
+  this->InvokeCustomModifiedEvent(InputDataModifiedEvent);
+}
+
+//------------------------------------------------------------------------------
+std::string vtkMRMLFiducialRegistrationWizardNode::PointMatchingAsString( int method )
+{
+  switch ( method )
+  {
+    case POINT_MATCHING_MANUAL:
+    {
+      return "Manual";
+    }
+    case POINT_MATCHING_AUTOMATIC:
+    {
+      return "Automatic";
+    }
+    default:
+    {
+      vtkGenericWarningMacro( "Unrecognized value for PointMatching " << method << ". Returning \"Unknown\"" );
+      return "Unknown";
+    }
+  }
+}
+
+//------------------------------------------------------------------------------
+int vtkMRMLFiducialRegistrationWizardNode::PointMatchingFromString( std::string methodAsString )
+{
+  for ( int method = 0; method < POINT_MATCHING_LAST; method++ )
+  {
+    bool matchingText = methodAsString.compare( PointMatchingAsString( method ) ) == 0;
+    if ( matchingText )
+    {
+      return method;
+    }
+  }
+  // if there are no matches, then there is likely an error
+  vtkGenericWarningMacro( "Unrecognized string for PointMatching " << methodAsString << ". Returning value for " << PointMatchingAsString( POINT_MATCHING_MANUAL ) );
+  return POINT_MATCHING_MANUAL;
+}
+
+//------------------------------------------------------------------------------
+void vtkMRMLFiducialRegistrationWizardNode::AddToCalibrationStatusMessage( std::string text )
+{
+  std::stringstream stream;
+  stream << this->CalibrationStatusMessage << text << std::endl; // add std::endl to end to separate messages
+  this->CalibrationStatusMessage.assign( stream.str() );
+  this->Modified();
+}
+
+//------------------------------------------------------------------------------
+void vtkMRMLFiducialRegistrationWizardNode::ClearCalibrationStatusMessage()
+{
+  this->CalibrationStatusMessage.assign( "" );
+  this->Modified();
 }
 
 //------------------------------------------------------------------------------

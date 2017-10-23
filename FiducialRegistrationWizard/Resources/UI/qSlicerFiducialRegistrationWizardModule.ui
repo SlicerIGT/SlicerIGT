@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>359</width>
-    <height>559</height>
+    <width>420</width>
+    <height>642</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -46,6 +46,20 @@
          <bool>false</bool>
         </property>
        </widget>
+      </item>
+      <item>
+       <layout class="QGridLayout" name="PointMatchingLayout">
+        <item row="1" column="0">
+         <widget class="QLabel" name="PointMatchingLabel">
+          <property name="text">
+           <string>Point Matching Method:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QComboBox" name="PointMatchingComboBox"/>
+        </item>
+       </layout>
       </item>
       <item>
        <widget class="ctkCollapsibleGroupBox" name="FromGroupBox">
@@ -193,9 +207,6 @@
          </item>
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout_2">
-           <property name="topMargin">
-            <number>0</number>
-           </property>
            <item>
             <widget class="QLabel" name="TransformModeLabel">
              <property name="sizePolicy">
