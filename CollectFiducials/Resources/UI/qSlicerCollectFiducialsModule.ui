@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>340</width>
+    <width>389</width>
     <height>478</height>
    </rect>
   </property>
@@ -15,114 +15,187 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="ctkCollapsibleButton" name="CTKCollapsibleButton">
+    <layout class="QGridLayout" name="ParameterLayout">
+     <item row="0" column="0">
+      <widget class="QLabel" name="ParameterNodeLabel">
+       <property name="text">
+        <string>Parameter Node:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0">
+      <widget class="QLabel" name="ProbeTransformNodeLabel">
+       <property name="text">
+        <string>Transform Node:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="0">
+      <widget class="QLabel" name="OutputNodeLabel">
+       <property name="text">
+        <string>Output Node:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="qMRMLNodeComboBox" name="ProbeTransformNodeComboBox">
+       <property name="nodeTypes">
+        <stringlist>
+         <string>vtkMRMLLinearTransformNode</string>
+        </stringlist>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <widget class="qMRMLNodeComboBox" name="ParameterNodeComboBox">
+       <property name="nodeTypes">
+        <stringlist>
+         <string>vtkMRMLCollectFiducialsNode</string>
+        </stringlist>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="1">
+      <layout class="QGridLayout" name="OutputLayout">
+       <item row="0" column="0">
+        <widget class="qMRMLNodeComboBox" name="OutputNodeComboBox">
+         <property name="nodeTypes">
+          <stringlist>
+           <string>vtkMRMLMarkupsFiducialNode</string>
+           <string>vtkMRMLModelNode</string>
+          </stringlist>
+         </property>
+         <property name="noneEnabled">
+          <bool>true</bool>
+         </property>
+         <property name="renameEnabled">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="3">
+        <widget class="QToolButton" name="OutputVisibilityButton">
+         <property name="text">
+          <string>...</string>
+         </property>
+         <property name="icon">
+          <iconset resource="../qSlicerCollectFiducialsModule.qrc">
+           <normaloff>:/Icons/PointVisible.png</normaloff>:/Icons/PointVisible.png</iconset>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="ctkColorPickerButton" name="OutputColorButton">
+         <property name="displayColorName">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="2">
+        <widget class="QToolButton" name="OutputDeleteButton">
+         <property name="text">
+          <string>...</string>
+         </property>
+         <property name="icon">
+          <iconset resource="../qSlicerCollectFiducialsModule.qrc">
+           <normaloff>:/Icons/PointDelete.png</normaloff>:/Icons/PointDelete.png</iconset>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <widget class="ctkCheckablePushButton" name="CollectButton">
      <property name="text">
-      <string>Display</string>
+      <string>Collect</string>
      </property>
-     <property name="contentsFrameShape">
-      <enum>QFrame::StyledPanel</enum>
+    </widget>
+   </item>
+   <item>
+    <widget class="ctkCollapsibleGroupBox" name="AdvancedGroupBox">
+     <property name="title">
+      <string>Advanced</string>
      </property>
-     <layout class="QVBoxLayout" name="verticalLayout_3">
-      <item>
-       <widget class="QGroupBox" name="groupBox">
-        <property name="title">
-         <string>Input</string>
+     <property name="checked">
+      <bool>false</bool>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_3">
+      <item row="1" column="1">
+       <widget class="QSpinBox" name="LabelCounterSpinBox"/>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="MinimumDistanceLabel">
+        <property name="text">
+         <string>Minimum Distance:</string>
         </property>
-        <layout class="QGridLayout" name="gridLayout">
-         <item row="0" column="0">
-          <widget class="QLabel" name="label">
-           <property name="text">
-            <string>Probe transform: </string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="1">
-          <widget class="qMRMLNodeComboBox" name="ProbeTransformComboBox">
-           <property name="nodeTypes">
-            <stringlist>
-             <string>vtkMRMLLinearTransformNode</string>
-            </stringlist>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="0">
-          <widget class="QLabel" name="label_2">
-           <property name="text">
-            <string>Name base: </string>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="1">
-          <widget class="QLineEdit" name="NameBaseLineEdit">
-           <property name="text">
-            <string>Point</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="0">
-          <widget class="QLabel" name="label_4">
-           <property name="text">
-            <string>Markups:</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="1">
-          <widget class="qMRMLNodeComboBox" name="MarkupsFiducialComboBox">
-           <property name="nodeTypes">
-            <stringlist>
-             <string>vtkMRMLMarkupsFiducialNode</string>
-            </stringlist>
-           </property>
-           <property name="noneEnabled">
-            <bool>true</bool>
-           </property>
-           <property name="renameEnabled">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-        </layout>
        </widget>
       </item>
-      <item>
-       <widget class="QGroupBox" name="groupBox_3">
-        <property name="title">
-         <string>Controls</string>
+      <item row="1" column="0">
+       <widget class="QLabel" name="LabelCounterLabel">
+        <property name="text">
+         <string>Label Counter:</string>
         </property>
-        <layout class="QGridLayout" name="gridLayout_3">
-         <item row="0" column="0">
-          <widget class="QPushButton" name="RecordButton">
-           <property name="text">
-            <string>Record</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
        </widget>
       </item>
-      <item>
-       <spacer name="verticalSpacer">
-        <property name="orientation">
-         <enum>Qt::Vertical</enum>
+      <item row="0" column="1">
+       <widget class="QLineEdit" name="LabelBaseLineEdit">
+        <property name="text">
+         <string>P</string>
         </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>20</width>
-          <height>40</height>
-         </size>
+       </widget>
+      </item>
+      <item row="0" column="0">
+       <widget class="QLabel" name="LabelBaseLabel">
+        <property name="text">
+         <string>Label Base:</string>
         </property>
-       </spacer>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="ctkSliderWidget" name="MinimumDistanceSlider">
+        <property name="value">
+         <double>10.000000000000000</double>
+        </property>
+       </widget>
       </item>
      </layout>
     </widget>
    </item>
+   <item>
+    <spacer name="VerticalSpacer">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>40</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
   </layout>
+  <action name="ActionDeleteAll">
+   <property name="icon">
+    <iconset resource="../qSlicerCollectFiducialsModule.qrc">
+     <normaloff>:/Icons/PointDeleteAll.png</normaloff>:/Icons/PointDeleteAll.png</iconset>
+   </property>
+   <property name="text">
+    <string>Delete All Points</string>
+   </property>
+   <property name="toolTip">
+    <string>Delete all points from the node</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>
    <class>qMRMLNodeComboBox</class>
    <extends>QWidget</extends>
    <header>qMRMLNodeComboBox.h</header>
+   <container>1</container>
   </customwidget>
   <customwidget>
    <class>qSlicerWidget</class>
@@ -131,18 +204,40 @@
    <container>1</container>
   </customwidget>
   <customwidget>
-   <class>ctkCollapsibleButton</class>
-   <extends>QWidget</extends>
-   <header>ctkCollapsibleButton.h</header>
+   <class>ctkCheckablePushButton</class>
+   <extends>ctkPushButton</extends>
+   <header>ctkCheckablePushButton.h</header>
+  </customwidget>
+  <customwidget>
+   <class>ctkCollapsibleGroupBox</class>
+   <extends>QGroupBox</extends>
+   <header>ctkCollapsibleGroupBox.h</header>
    <container>1</container>
   </customwidget>
+  <customwidget>
+   <class>ctkColorPickerButton</class>
+   <extends>QPushButton</extends>
+   <header>ctkColorPickerButton.h</header>
+  </customwidget>
+  <customwidget>
+   <class>ctkPushButton</class>
+   <extends>QPushButton</extends>
+   <header>ctkPushButton.h</header>
+  </customwidget>
+  <customwidget>
+   <class>ctkSliderWidget</class>
+   <extends>QWidget</extends>
+   <header>ctkSliderWidget.h</header>
+  </customwidget>
  </customwidgets>
- <resources/>
+ <resources>
+  <include location="../qSlicerCollectFiducialsModule.qrc"/>
+ </resources>
  <connections>
   <connection>
    <sender>qSlicerCollectFiducialsModule</sender>
    <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
-   <receiver>ProbeTransformComboBox</receiver>
+   <receiver>ProbeTransformNodeComboBox</receiver>
    <slot>setMRMLScene(vtkMRMLScene*)</slot>
    <hints>
     <hint type="sourcelabel">
@@ -158,7 +253,7 @@
   <connection>
    <sender>qSlicerCollectFiducialsModule</sender>
    <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
-   <receiver>MarkupsFiducialComboBox</receiver>
+   <receiver>OutputNodeComboBox</receiver>
    <slot>setMRMLScene(vtkMRMLScene*)</slot>
    <hints>
     <hint type="sourcelabel">
@@ -168,6 +263,22 @@
     <hint type="destinationlabel">
      <x>279</x>
      <y>95</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>qSlicerCollectFiducialsModule</sender>
+   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+   <receiver>ParameterNodeComboBox</receiver>
+   <slot>setMRMLScene(vtkMRMLScene*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>169</x>
+     <y>238</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>241</x>
+     <y>21</y>
     </hint>
    </hints>
   </connection>

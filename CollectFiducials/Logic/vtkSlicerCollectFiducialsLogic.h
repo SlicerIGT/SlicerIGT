@@ -24,9 +24,6 @@
 #ifndef __vtkSlicerCollectFiducialsLogic_h
 #define __vtkSlicerCollectFiducialsLogic_h
 
-
-#include <string>
-
 // Slicer includes
 #include "vtkSlicerModuleLogic.h"
 
@@ -34,19 +31,17 @@
 #include "vtkMRML.h"
 #include "vtkMRMLNode.h"
 #include "vtkMRMLScene.h"
+#include "vtkMRMLLinearTransformNode.h"
 #include "vtkMRMLMarkupsFiducialNode.h"
-
-class vtkMRMLMarkupsFiducialNode;
-class vtkMRMLLinearTransformNode;
-
+#include "vtkMRMLModelNode.h"
 
 // STD includes
+#include <string>
 #include <cstdlib>
 
+// includes related to CollectFiducials
+#include "vtkMRMLCollectFiducialsNode.h"
 #include "vtkSlicerCollectFiducialsModuleLogicExport.h"
-
-
-
 
 /// \ingroup Slicer_QtModules_CollectFiducials
 class VTK_SLICER_COLLECTFIDUCIALS_MODULE_LOGIC_EXPORT vtkSlicerCollectFiducialsLogic :
@@ -58,25 +53,12 @@ public:
   vtkTypeMacro(vtkSlicerCollectFiducialsLogic,vtkSlicerModuleLogic);
   void PrintSelf(ostream& os, vtkIndent indent);
   
-  void AddFiducial( std::string NameBase = "" );
+  void AddPoint( vtkMRMLCollectFiducialsNode* collectFiducialsNode );
+  void RemoveLastPoint( vtkMRMLCollectFiducialsNode* collectFiducialsNode );
+  void RemoveAllPoints( vtkMRMLCollectFiducialsNode* collectFiducialsNode );
   
+  void ProcessMRMLNodesEvents( vtkObject* caller, unsigned long event, void* callData );
 
-  // Reference to the probe transform.
-public:
-  vtkGetObjectMacro( ProbeTransformNode, vtkMRMLLinearTransformNode );
-  void SetProbeTransformNode( vtkMRMLLinearTransformNode *node );
-private:
-  vtkMRMLLinearTransformNode *ProbeTransformNode;
-  
-
-  // Reference to the markups fiducial node.
-public:
-  vtkGetObjectMacro( MarkupsFiducialNode, vtkMRMLMarkupsFiducialNode );
-  void SetMarkupsFiducialNode( vtkMRMLMarkupsFiducialNode *node );
-private:
-  vtkMRMLMarkupsFiducialNode *MarkupsFiducialNode;
-  
-  
 protected:
   vtkSlicerCollectFiducialsLogic();
   virtual ~vtkSlicerCollectFiducialsLogic();
@@ -88,6 +70,12 @@ protected:
   virtual void OnMRMLSceneNodeAdded(vtkMRMLNode* node);
   virtual void OnMRMLSceneNodeRemoved(vtkMRMLNode* node);
 private:
+  void AddPointToModel( vtkMRMLModelNode* modelNode, double pointCoordinates[ 3 ],
+                        double minimumDistanceFromPreviousPointMm=0.0 );
+  void RemoveLastPointFromModel( vtkMRMLModelNode* modelNode );
+  void UpdateCellsForPolyData( vtkPolyData* polyData );
+  void AddPointToMarkups( vtkMRMLMarkupsFiducialNode* markupsNode, double pointCoordinates[ 3 ],
+                          std::string label, double minimumDistanceFromPreviousPointMm=0.0 );
   vtkSlicerCollectFiducialsLogic(const vtkSlicerCollectFiducialsLogic&); // Not implemented
   void operator=(const vtkSlicerCollectFiducialsLogic&);               // Not implemented
   
