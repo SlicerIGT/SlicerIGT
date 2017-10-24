@@ -14,7 +14,8 @@ vtkPointMatcher::vtkPointMatcher()
   this->InputPointList1 = NULL;
   this->InputPointList2 = NULL;
   this->MaximumDifferenceInNumberOfPoints = 2;
-  this->TolerableRootMeanSquareDistanceErrorMm = 50.0;
+  this->TolerableRootMeanSquareDistanceErrorMm = 10.0;
+  this->AmbiguityThresholdDistanceMm = 5.0;
   this->ComputedRootMeanSquareDistanceErrorMm = RESET_VALUE_COMPUTED_ROOT_MEAN_DISTANCE_ERROR;
   // outputs are never null
   this->OutputPointList1 = vtkSmartPointer< vtkPoints >::New();
@@ -39,6 +40,7 @@ void vtkPointMatcher::PrintSelf( std::ostream &os, vtkIndent indent )
   os << indent << "TolerableRootMeanSquareDistanceErrorMm: " << this->TolerableRootMeanSquareDistanceErrorMm << std::endl;
   os << indent << "ComputedRootMeanSquareDistanceErrorMm: " << this->ComputedRootMeanSquareDistanceErrorMm << std::endl;
   os << indent << "IsMatchingWithinTolerance: " << this->IsMatchingWithinTolerance() << std::endl;
+  os << indent << "IsMatchingAmbiguous" << this->IsMatchingAmbiguous() << std::endl;
   os << indent << "UpdateNeeded: " << this->UpdateNeeded() << std::endl;
 }
 
@@ -75,6 +77,15 @@ void vtkPointMatcher::SetMaximumDifferenceInNumberOfPoints( unsigned int numberO
 void vtkPointMatcher::SetTolerableRootMeanSquareDistanceErrorMm( double errorMm )
 {
   this->TolerableRootMeanSquareDistanceErrorMm = errorMm;
+  this->Modified();
+  // mean distance error has not been computed yet. Set to maximum possible value for now
+  this->ComputedRootMeanSquareDistanceErrorMm = RESET_VALUE_COMPUTED_ROOT_MEAN_DISTANCE_ERROR;
+}
+
+//------------------------------------------------------------------------------
+void vtkPointMatcher::SetAmbiguityThresholdDistanceMm( double thresholdMm )
+{
+  this->AmbiguityThresholdDistanceMm = thresholdMm;
   this->Modified();
   // mean distance error has not been computed yet. Set to maximum possible value for now
   this->ComputedRootMeanSquareDistanceErrorMm = RESET_VALUE_COMPUTED_ROOT_MEAN_DISTANCE_ERROR;
@@ -126,6 +137,17 @@ bool vtkPointMatcher::IsMatchingWithinTolerance()
   }
   
   return ( this->ComputedRootMeanSquareDistanceErrorMm <= this->TolerableRootMeanSquareDistanceErrorMm );
+}
+
+//------------------------------------------------------------------------------
+bool vtkPointMatcher::IsMatchingAmbiguous()
+{
+  if ( this->UpdateNeeded() )
+  {
+    this->Update();
+  }
+
+  return this->MatchingAmbiguous;
 }
 
 //------------------------------------------------------------------------------
@@ -299,7 +321,7 @@ void vtkPointMatcher::UpdateBestMatchingForSubsetOfPoints( vtkPoints* pointSubse
   // iterate over all permutations - look for the most 'suitable'
   // point matching that gives distances most similar to the reference
 
-  // allocate the permuted compare list once outside
+  // create + allocate the permuted compare list once outside
   // the loop to avoid allocation/deallocation time costs.
   vtkSmartPointer< vtkPoints > permutedPointSubset2 = vtkSmartPointer< vtkPoints >::New();
   permutedPointSubset2->DeepCopy( pointSubset2 ); // fill it with placeholder data, same size as compareList
@@ -320,20 +342,25 @@ void vtkPointMatcher::UpdateBestMatchingForSubsetOfPoints( vtkPoints* pointSubse
     permutedPointSubset2DistanceMatrix->Update();
     double rootMeanSquareDistanceErrorMm = this->ComputeRootMeanSquareistanceErrors( pointSubset1DistanceMatrix, permutedPointSubset2DistanceMatrix );
 
-    // TODO
-    // if suitability within some threshold of the best
-    //   flag ambiguous
+    // flag ambiguous if suitability within some threshold of the best result so far
+    double differenceComparedToBestMm = this->ComputedRootMeanSquareDistanceErrorMm - rootMeanSquareDistanceErrorMm;
+    if ( fabs( differenceComparedToBestMm ) <= this->AmbiguityThresholdDistanceMm )
+    {
+      this->MatchingAmbiguous = true;
+    }
 
+    // is this the best matching?
     if ( rootMeanSquareDistanceErrorMm < this->ComputedRootMeanSquareDistanceErrorMm )
     {
+      // if this is the new best matching, AND it is outside threshold of the current best, flag as NOT ambiguous
+      if ( fabs( differenceComparedToBestMm ) > this->AmbiguityThresholdDistanceMm )
+      {
+        this->MatchingAmbiguous = false;
+      }
       this->ComputedRootMeanSquareDistanceErrorMm = rootMeanSquareDistanceErrorMm;
       this->OutputPointList1->DeepCopy( pointSubset1 );
       this->OutputPointList2->DeepCopy( permutedPointSubset2 );
     }
-    
-    // TODO
-    // if new best is outside threshold of the current best
-    //   flag NOT ambiguous
   }
 }
 

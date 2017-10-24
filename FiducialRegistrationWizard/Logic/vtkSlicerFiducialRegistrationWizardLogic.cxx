@@ -264,7 +264,7 @@ bool vtkSlicerFiducialRegistrationWizardLogic::UpdateCalibration( vtkMRMLNode* n
     {
       std::stringstream msg;
       msg << "Fiducial lists have unequal number of fiducials (" << std::endl
-          << "'From' has "<<fromMarkupsFiducialNode->GetNumberOfFiducials() << "," << std::endl
+          << "'From' has "<<fromMarkupsFiducialNode->GetNumberOfFiducials() << ", "
           << "'To' has " << toMarkupsFiducialNode->GetNumberOfFiducials() << ")." << std::endl
           << "Either adjust the lists, or use automatic point matching." << std::endl
           << "Aborting registration.";
@@ -293,7 +293,8 @@ bool vtkSlicerFiducialRegistrationWizardLogic::UpdateCalibration( vtkMRMLNode* n
     pointMatcher->SetInputPointList1( fromPointsUnordered );
     pointMatcher->SetInputPointList2( toPointsUnordered );
     pointMatcher->SetMaximumDifferenceInNumberOfPoints( 2 );
-    pointMatcher->SetTolerableRootMeanSquareDistanceErrorMm( 50.0 );
+    pointMatcher->SetTolerableRootMeanSquareDistanceErrorMm( 10.0 );
+    pointMatcher->SetAmbiguityThresholdDistanceMm( 5.0 );
     pointMatcher->Update();
     if ( !pointMatcher->IsMatchingWithinTolerance() )
     {
@@ -302,6 +303,14 @@ bool vtkSlicerFiducialRegistrationWizardLogic::UpdateCalibration( vtkMRMLNode* n
           << "Mean squared distance error was " << pointMatcher->GetComputedRootMeanSquareDistanceErrorMm() 
           << ", but tolerance is " << pointMatcher->GetTolerableRootMeanSquareDistanceErrorMm() << "." << std::endl
           << "Results are not expected to be accurate.";
+      fiducialRegistrationWizardNode->AddToCalibrationStatusMessage( msg.str() );
+    }
+    if ( pointMatcher->IsMatchingAmbiguous() )
+    {
+      std::stringstream msg;
+      msg << "The 'best' point matching is reported as ambiguous and may be incorrect." << std::endl
+          << "This could happen because the point geometry is symmetric." << std::endl
+          << "Results are not necessarily expected to be accurate.";
       fiducialRegistrationWizardNode->AddToCalibrationStatusMessage( msg.str() );
     }
     fromPointsOrdered = pointMatcher->GetOutputPointList1();
