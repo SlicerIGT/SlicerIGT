@@ -263,10 +263,10 @@ bool vtkSlicerFiducialRegistrationWizardLogic::UpdateCalibration( vtkMRMLNode* n
     if ( fromMarkupsFiducialNode->GetNumberOfFiducials() != toMarkupsFiducialNode->GetNumberOfFiducials() )
     {
       std::stringstream msg;
-      msg << "Fiducial lists have unequal number of fiducials ("
-          << "'From' has "<<fromMarkupsFiducialNode->GetNumberOfFiducials() << ", "
-          << "'To' has " << toMarkupsFiducialNode->GetNumberOfFiducials() << "). "
-          << "Either adjust the lists, or use automatic point matching. "
+      msg << "Fiducial lists have unequal number of fiducials (" << std::endl
+          << "'From' has "<<fromMarkupsFiducialNode->GetNumberOfFiducials() << "," << std::endl
+          << "'To' has " << toMarkupsFiducialNode->GetNumberOfFiducials() << ")." << std::endl
+          << "Either adjust the lists, or use automatic point matching." << std::endl
           << "Aborting registration.";
       fiducialRegistrationWizardNode->SetCalibrationStatusMessage( msg.str() );
       return false;
@@ -283,8 +283,8 @@ bool vtkSlicerFiducialRegistrationWizardLogic::UpdateCalibration( vtkMRMLNode* n
     if ( numberOfPointsToMatch > MAX_NUMBER_OF_POINTS_FOR_POINT_MATCHING_AUTOMATIC )
     {
       std::stringstream msg;
-      msg << "Too many points to compute point pairing " << numberOfPointsToMatch << ". "
-          << "To avoid long computation time, there should be at most "<< MAX_NUMBER_OF_POINTS_FOR_POINT_MATCHING_AUTOMATIC << " points. "
+      msg << "Too many points to compute point pairing " << numberOfPointsToMatch << "." << std::endl
+          << "To avoid long computation time, there should be at most "<< MAX_NUMBER_OF_POINTS_FOR_POINT_MATCHING_AUTOMATIC << " points." << std::endl
           << "Aborting registration.";
       fiducialRegistrationWizardNode->SetCalibrationStatusMessage( msg.str() );
       return false;
@@ -298,9 +298,9 @@ bool vtkSlicerFiducialRegistrationWizardLogic::UpdateCalibration( vtkMRMLNode* n
     if ( !pointMatcher->IsMatchingWithinTolerance() )
     {
       std::stringstream msg;
-      msg << "Could not find a good matching. "
-          << "Mean squared distance error was " << pointMatcher->GetComputedRootMeanSquareDistanceErrorMm() << ", "
-          << "but tolerance is " << pointMatcher->GetTolerableRootMeanSquareDistanceErrorMm() << ". "
+      msg << "Could not find a good mapping." << std::endl
+          << "Mean squared distance error was " << pointMatcher->GetComputedRootMeanSquareDistanceErrorMm() 
+          << ", but tolerance is " << pointMatcher->GetTolerableRootMeanSquareDistanceErrorMm() << "." << std::endl
           << "Results are not expected to be accurate.";
       fiducialRegistrationWizardNode->AddToCalibrationStatusMessage( msg.str() );
     }
@@ -310,7 +310,8 @@ bool vtkSlicerFiducialRegistrationWizardLogic::UpdateCalibration( vtkMRMLNode* n
   else
   {
     std::stringstream msg;
-    msg << "Unrecognized point matching method: " << vtkMRMLFiducialRegistrationWizardNode::PointMatchingAsString( pointMatching ) << ". Aborting registration.";
+    msg << "Unrecognized point matching method: " << vtkMRMLFiducialRegistrationWizardNode::PointMatchingAsString( pointMatching ) << "." << std::endl
+        << "Aborting registration.";
     fiducialRegistrationWizardNode->SetCalibrationStatusMessage( msg.str() );
     return false;
   }
@@ -409,10 +410,10 @@ bool vtkSlicerFiducialRegistrationWizardLogic::UpdateCalibration( vtkMRMLNode* n
     return false;
   }
 
-  std::stringstream successMessage;
+  std::stringstream completeMessage;
   double rmsError = this->CalculateRegistrationError( fromPointsOrdered, toPointsOrdered, outputTransform);
-  successMessage << "Registration Complete. RMS Error: " << rmsError;
-  fiducialRegistrationWizardNode->AddToCalibrationStatusMessage( successMessage.str() );
+  completeMessage << "Registration Complete. RMS Error: " << rmsError;
+  fiducialRegistrationWizardNode->AddToCalibrationStatusMessage( completeMessage.str() );
   return true;
 }
 
