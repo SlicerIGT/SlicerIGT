@@ -53,7 +53,6 @@ public slots:
   void updateButtons();
   void updateInputFieldVisibility();
   void updateInputCombineList();
-  void updateRateSpinBoxVisibility();
 
   void setSignalsBlocked( bool );
   bool getSignalsBlocked();
@@ -76,16 +75,10 @@ protected slots:
   void onSecondaryAxisChanged( int );
   void onCopyTranslationChanged();
 
-  void onActionUpdateManual();
-  void onActionUpdateAuto();
-  void onActionUpdateTimed();
   void onUpdateButtonPressed();
-  void stopExistingUpdates();
+  void onUpdateButtonCheckboxToggled( bool );
   void singleUpdate();
   void handleEventAutoUpdate();
-  void handleEventTimedUpdate();
-
-  void setUpdatesPerSecond( double );
   
 protected:
   QScopedPointer< qSlicerTransformFusionModuleWidgetPrivate > d_ptr;
