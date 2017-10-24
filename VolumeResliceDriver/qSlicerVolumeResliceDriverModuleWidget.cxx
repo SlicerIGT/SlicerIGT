@@ -98,6 +98,7 @@ vtkSlicerVolumeResliceDriverLogic* qSlicerVolumeResliceDriverModuleWidgetPrivate
 void qSlicerVolumeResliceDriverModuleWidgetPrivate
 ::createController( vtkMRMLNode *n, qSlicerLayoutManager *layoutManager )
 {
+  Q_UNUSED(layoutManager);
   if (this->WidgetMap.find(n) != this->WidgetMap.end())
     {
     qDebug() << "qSlicerVolumeResliceDriverModuleWidgetPrivate::createController - Node already added to module";

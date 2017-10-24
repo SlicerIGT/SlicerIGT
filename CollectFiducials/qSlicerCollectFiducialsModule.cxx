@@ -26,7 +26,10 @@
 #include "qSlicerCollectFiducialsModuleWidget.h"
 
 //-----------------------------------------------------------------------------
+#if (QT_VERSION < QT_VERSION_CHECK(5, 0, 0))
+#include <QtPlugin>
 Q_EXPORT_PLUGIN2(qSlicerCollectFiducialsModule, qSlicerCollectFiducialsModule);
+#endif
 
 //-----------------------------------------------------------------------------
 /// \ingroup Slicer_QtModules_CollectFiducials
@@ -81,7 +84,9 @@ QString qSlicerCollectFiducialsModule::acknowledgementText()const
 QStringList qSlicerCollectFiducialsModule::contributors()const
 {
   QStringList moduleContributors;
-  moduleContributors << QString("Tamas Ungi (Queen's University), Franklin King (Queen's University)");
+  moduleContributors << QString("Thomas Vaughan (Queen's University)");
+  moduleContributors << QString("Tamas Ungi (Queen's University)");
+  moduleContributors << QString("Franklin King (Queen's University)");
   // moduleContributors << QString("Richard Roe (Organization2)");
   // ...
   return moduleContributors;

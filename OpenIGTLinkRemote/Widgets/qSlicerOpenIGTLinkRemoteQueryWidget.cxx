@@ -349,7 +349,7 @@ void qSlicerOpenIGTLinkRemoteQueryWidget::querySelectedItem()
   {
     int topRowIndex = selectRange.at(selectionIndex).topRow();
     // Get the item identifier from the table
-    std::string dataId( d->remoteDataListTable->item(topRowIndex, 0)->text().toAscii() );
+    std::string dataId( d->remoteDataListTable->item(topRowIndex, 0)->text().toLatin1() );
     switch (d->typeButtonGroup.checkedId()) 
     {
     case qSlicerOpenIGTLinkRemoteQueryWidgetPrivate::TYPE_IMAGE:

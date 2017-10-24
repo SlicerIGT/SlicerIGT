@@ -313,7 +313,7 @@ void vtkSlicerBreachWarningLogic::SetWatchedModelNode( vtkMRMLModelNode* newMode
 }
 
 //------------------------------------------------------------------------------
-void vtkSlicerBreachWarningLogic::ProcessMRMLNodesEvents( vtkObject* caller, unsigned long event, void* callData )
+void vtkSlicerBreachWarningLogic::ProcessMRMLNodesEvents( vtkObject* caller, unsigned long event, void* vtkNotUsed(callData) )
 {
   vtkMRMLNode* callerNode = vtkMRMLNode::SafeDownCast( caller );
   if (callerNode == NULL)

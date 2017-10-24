@@ -192,10 +192,10 @@ vtkSlicerUltrasoundSnapshotsLogic
   
     // Four corners of the image in Image coordinate system.
   
-  double point1Image[ 4 ] = { 0.0,       0.0,       0.0, 1.0 };
-  double point2Image[ 4 ] = { dims[ 0 ], 0.0,       0.0, 1.0 };
-  double point3Image[ 4 ] = { 0.0,       dims[ 1 ], 0.0, 1.0 };
-  double point4Image[ 4 ] = { dims[ 0 ], dims[ 1 ], 0.0, 1.0 };
+  double point1Image[ 4 ] = { 0.0,                            0.0,                            0.0, 1.0 };
+  double point2Image[ 4 ] = { static_cast<double>(dims[ 0 ]), 0.0,                            0.0, 1.0 };
+  double point3Image[ 4 ] = { 0.0,                            static_cast<double>(dims[ 1 ]), 0.0, 1.0 };
+  double point4Image[ 4 ] = { static_cast<double>(dims[ 0 ]), static_cast<double>(dims[ 1 ]), 0.0, 1.0 };
   
     // Four corners of the image in RAS coordinate system.
   

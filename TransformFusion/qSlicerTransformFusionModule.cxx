@@ -26,7 +26,10 @@
 #include "qSlicerTransformFusionModuleWidget.h"
 
 //-----------------------------------------------------------------------------
+#if (QT_VERSION < QT_VERSION_CHECK(5, 0, 0))
+#include <QtPlugin>
 Q_EXPORT_PLUGIN2(qSlicerTransformFusionModule, qSlicerTransformFusionModule);
+#endif
 
 //-----------------------------------------------------------------------------
 /// \ingroup Slicer_QtModules_TransformFusion
