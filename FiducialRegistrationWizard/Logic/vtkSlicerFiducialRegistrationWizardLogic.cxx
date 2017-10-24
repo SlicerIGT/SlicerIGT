@@ -328,13 +328,13 @@ bool vtkSlicerFiducialRegistrationWizardLogic::UpdateCalibration( vtkMRMLNode* n
   // error checking
   if ( this->CheckCollinear( fromPointsOrdered ) )
   {
-    fiducialRegistrationWizardNode->SetCalibrationStatusMessage( "'From' fiducial list has strictly collinear points." );
+    fiducialRegistrationWizardNode->SetCalibrationStatusMessage( "'From' fiducial list has strictly collinear or singular points." );
     return false;
   }
 
   if ( this->CheckCollinear( toPointsOrdered ) )
   {
-    fiducialRegistrationWizardNode->SetCalibrationStatusMessage( "'To' fiducial list has strictly collinear points." );
+    fiducialRegistrationWizardNode->SetCalibrationStatusMessage( "'To' fiducial list has strictly collinear or singular points." );
     return false;
   }
 
@@ -475,7 +475,6 @@ bool vtkSlicerFiducialRegistrationWizardLogic::CheckCollinear( vtkPoints* points
   arrayTable->AddColumn( yArray );
   arrayTable->AddColumn( zArray );
   
-  /*
   // Setup the principal component analysis
   vtkSmartPointer< vtkPCAStatistics > pcaStatistics = vtkSmartPointer< vtkPCAStatistics >::New();
   pcaStatistics->SetInputData( vtkStatisticsAlgorithm::INPUT_DATA, arrayTable );
@@ -503,7 +502,7 @@ bool vtkSlicerFiducialRegistrationWizardLogic::CheckCollinear( vtkPoints* points
   {
     return true;
   }
-  */
+  
   return false;
   
 }
