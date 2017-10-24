@@ -52,7 +52,6 @@ public:
   {
     UPDATE_MODE_MANUAL = 0,
     UPDATE_MODE_AUTO,
-    UPDATE_MODE_TIMED,
     UPDATE_MODE_LAST // do not set to this type, insert valid types above this line
   };
 
@@ -132,6 +131,8 @@ public:
 
   vtkGetMacro( UpdateMode, int );
   void SetUpdateMode( int );
+  void SetUpdateModeToAuto() { this->SetUpdateMode( UPDATE_MODE_AUTO ); }
+  void SetUpdateModeToManual() { this->SetUpdateMode( UPDATE_MODE_MANUAL ); }
 
   const bool* GetCopyTranslationComponents();
   

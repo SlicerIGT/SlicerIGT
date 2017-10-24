@@ -14,6 +14,16 @@
    <string>Module Template</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
+   <item row="14" column="0" colspan="2">
+    <widget class="ctkCheckablePushButton" name="updateButton">
+     <property name="toolTip">
+      <string>Click to manually update, click the checkbox to enable automatic updates</string>
+     </property>
+     <property name="text">
+      <string>Update</string>
+     </property>
+    </widget>
+   </item>
    <item row="11" column="0" colspan="2">
     <widget class="ctkCollapsibleGroupBox" name="advancedTranslationGroupBox">
      <property name="title">
@@ -218,7 +228,7 @@
      </property>
     </widget>
    </item>
-   <item row="17" column="1">
+   <item row="16" column="1">
     <spacer name="verticalSpacer">
      <property name="orientation">
       <enum>Qt::Vertical</enum>
@@ -230,16 +240,6 @@
       </size>
      </property>
     </spacer>
-   </item>
-   <item row="14" column="0" colspan="2">
-    <widget class="ctkMenuButton" name="updateButton">
-     <property name="toolTip">
-      <string>Click to manually update, the drop down menu has many automatic options available.</string>
-     </property>
-     <property name="text">
-      <string>Update</string>
-     </property>
-    </widget>
    </item>
    <item row="8" column="0">
     <widget class="QLabel" name="inputAnchorTransformLabel">
@@ -286,43 +286,6 @@
      </property>
     </widget>
    </item>
-   <item row="16" column="1">
-    <widget class="ctkDoubleSpinBox" name="updateRateSpinBox">
-     <property name="toolTip">
-      <string>Choose how often Timed Update will run.</string>
-     </property>
-     <property name="decimals">
-      <number>0</number>
-     </property>
-     <property name="maximum">
-      <double>120.000000000000000</double>
-     </property>
-     <property name="value">
-      <double>60.000000000000000</double>
-     </property>
-    </widget>
-   </item>
-   <item row="16" column="0">
-    <widget class="QLabel" name="updateRateLabel">
-     <property name="text">
-      <string>Update Rate (per second)</string>
-     </property>
-    </widget>
-   </item>
-   <item row="1" column="0" colspan="2">
-    <widget class="Line" name="lineInputs">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-    </widget>
-   </item>
-   <item row="6" column="0">
-    <widget class="QLabel" name="inputInitialTransformLabel">
-     <property name="text">
-      <string>Input 'Initial' Transform Node</string>
-     </property>
-    </widget>
-   </item>
    <item row="9" column="1">
     <widget class="qMRMLNodeComboBox" name="outputTransformComboBox">
      <property name="toolTip">
@@ -338,6 +301,20 @@
      </property>
      <property name="renameEnabled">
       <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="0" colspan="2">
+    <widget class="Line" name="lineInputs">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+    </widget>
+   </item>
+   <item row="6" column="0">
+    <widget class="QLabel" name="inputInitialTransformLabel">
+     <property name="text">
+      <string>Input 'Initial' Transform Node</string>
      </property>
     </widget>
    </item>
@@ -451,39 +428,6 @@
     </widget>
    </item>
   </layout>
-  <action name="actionUpdateManual">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Manual Update</string>
-   </property>
-   <property name="toolTip">
-    <string>Manually update the output when the button is clicked.</string>
-   </property>
-  </action>
-  <action name="actionUpdateAuto">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Auto-Update</string>
-   </property>
-   <property name="toolTip">
-    <string>Auto-Update the output whenever an input is changed or modified.</string>
-   </property>
-  </action>
-  <action name="actionUpdateTimed">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Timed Update</string>
-   </property>
-   <property name="toolTip">
-    <string>Timed Update after set time intervals.</string>
-   </property>
-  </action>
  </widget>
  <customwidgets>
   <customwidget>
@@ -499,6 +443,11 @@
    <container>1</container>
   </customwidget>
   <customwidget>
+   <class>ctkCheckablePushButton</class>
+   <extends>ctkPushButton</extends>
+   <header>ctkCheckablePushButton.h</header>
+  </customwidget>
+  <customwidget>
    <class>ctkCollapsibleGroupBox</class>
    <extends>QGroupBox</extends>
    <header>ctkCollapsibleGroupBox.h</header>
@@ -510,14 +459,9 @@
    <header>ctkComboBox.h</header>
   </customwidget>
   <customwidget>
-   <class>ctkDoubleSpinBox</class>
-   <extends>QWidget</extends>
-   <header>ctkDoubleSpinBox.h</header>
-  </customwidget>
-  <customwidget>
-   <class>ctkMenuButton</class>
+   <class>ctkPushButton</class>
    <extends>QPushButton</extends>
-   <header>ctkMenuButton.h</header>
+   <header>ctkPushButton.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

@@ -708,8 +708,6 @@ std::string vtkMRMLTransformFusionNode::GetUpdateModeAsString( int mode )
     return "Manual Update";
   case UPDATE_MODE_AUTO:
     return "Auto-Update";
-  case UPDATE_MODE_TIMED:
-    return "TImed Update";
   default:
     vtkGenericWarningMacro("Unknown update mode provided as input to GetUpdateModeAsString: " << mode << ". Returning \"Unknown Update Mode\"");
     return "Unknown Update Mode";
