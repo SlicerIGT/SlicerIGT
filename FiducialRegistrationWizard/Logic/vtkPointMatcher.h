@@ -26,13 +26,16 @@ class VTK_SLICER_FIDUCIALREGISTRATIONWIZARD_MODULE_LOGIC_EXPORT vtkPointMatcher 
     void SetInputPointList2( vtkPoints* points );
     void SetMaximumDifferenceInNumberOfPoints( unsigned int );
     void SetTolerableRootMeanSquareDistanceErrorMm( double );
+    void SetAmbiguityThresholdDistanceMm( double );
     vtkGetMacro( MaximumDifferenceInNumberOfPoints, unsigned int );
     vtkGetMacro( TolerableRootMeanSquareDistanceErrorMm, double );
+    vtkGetMacro( AmbiguityThresholdDistanceMm, double );
 
     // Output Accessors
     vtkPoints* GetOutputPointList1();
     vtkPoints* GetOutputPointList2();
     double GetComputedRootMeanSquareDistanceErrorMm();
+    bool IsMatchingAmbiguous();
     bool IsMatchingWithinTolerance();
 
     // Logic
@@ -62,6 +65,17 @@ class VTK_SLICER_FIDUCIALREGISTRATIONWIZARD_MODULE_LOGIC_EXPORT vtkPointMatcher 
 
     // The mean distance error between each pair of points, after matching
     double ComputedRootMeanSquareDistanceErrorMm;
+
+    // Determine if there is more than one plausible mapping.
+    // If a suitable mapping was found, but there is at least one
+    // other mapping within
+    // ThresholdDistanceForAmbiguousMatchingMm of ComputedRootMeanSquareDistanceErrorMm
+    // mappings within this threshold of the RMS suitability metric,
+    // then the result will be considered "ambiguous".
+    // Higher = More false positives, more true positives
+    // Lower = More false negatives, more true negatives
+    double AmbiguityThresholdDistanceMm;
+    bool MatchingAmbiguous;
 
     // these points will be ordered pairs
     // and the same length as one another
