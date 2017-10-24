@@ -1038,7 +1038,6 @@ void qSlicerTransformFusionModuleWidget::onPrimaryAxisChanged( int )
 //-----------------------------------------------------------------------------
 void qSlicerTransformFusionModuleWidget::onDependentAxesModeChanged( int )
 {
-  Q_UNUSED(unused);
   Q_D( qSlicerTransformFusionModuleWidget );
   vtkMRMLTransformFusionNode* pNode = vtkMRMLTransformFusionNode::SafeDownCast( d->parameterNodeComboBox->currentNode() );
   if ( pNode == NULL || this->mrmlScene() == NULL )
