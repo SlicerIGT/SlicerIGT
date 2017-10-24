@@ -52,7 +52,7 @@ public slots:
   void updateWidget();
   void updateButtons();
   void updateInputFieldVisibility();
-  void updateInputList();
+  void updateInputCombineList();
   void updateRateSpinBoxVisibility();
 
   void setSignalsBlocked( bool );
@@ -60,14 +60,21 @@ public slots:
 
 protected slots:
 
-  void onAddInputTransform();
-  void onRemoveInputTransform();
-  void onSingleInputTransformNodeSelected( vtkMRMLNode* node );
-  void onReferenceTransformNodeSelected( vtkMRMLNode* node );
-  void onRestingTransformNodeSelected( vtkMRMLNode* node );
+  void onAddInputCombineTransform();
+  void onRemoveInputCombineTransform();
+  void onInputFromTransformNodeSelected( vtkMRMLNode* node );
+  void onInputToTransformNodeSelected( vtkMRMLNode* node );
+  void onInputInitialTransformNodeSelected( vtkMRMLNode* node );
+  void onInputChangedTransformNodeSelected( vtkMRMLNode* node );
+  void onInputAnchorTransformNodeSelected( vtkMRMLNode* node );
   void onOutputTransformNodeSelected( vtkMRMLNode* node );
 
   void onFusionModeChanged( int );
+  void onRotationModeChanged( int );
+  void onPrimaryAxisChanged( int );
+  void onDependentAxesModeChanged( int );
+  void onSecondaryAxisChanged( int );
+  void onCopyTranslationChanged();
 
   void onActionUpdateManual();
   void onActionUpdateAuto();
@@ -92,6 +99,20 @@ protected:
 private:
   Q_DECLARE_PRIVATE( qSlicerTransformFusionModuleWidget );
   Q_DISABLE_COPY( qSlicerTransformFusionModuleWidget );
+
+  enum TransformRole
+  {
+    TRANSFORM_ROLE_INPUT_COMBINE = 0,
+    TRANSFORM_ROLE_INPUT_FROM,
+    TRANSFORM_ROLE_INPUT_TO,
+    TRANSFORM_ROLE_INPUT_INITIAL,
+    TRANSFORM_ROLE_INPUT_CHANGED,
+    TRANSFORM_ROLE_INPUT_ANCHOR,
+    TRANSFORM_ROLE_OUTPUT,
+    TRANSFORM_ROLE_LAST
+  };
+  // helper function to avoid repeated code ( parameter node checks, downcast checks, etc )
+  void SetTransformAccordingToRole( vtkMRMLNode* node, TransformRole role );
 };
 
 #endif

@@ -7,63 +7,146 @@
     <x>0</x>
     <y>0</y>
     <width>404</width>
-    <height>926</height>
+    <height>952</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Module Template</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="9" column="0" colspan="2">
-    <widget class="ctkMenuButton" name="updateButton">
-     <property name="toolTip">
-      <string>Click to manually update, the drop down menu has many automatic options available.</string>
+   <item row="11" column="0" colspan="2">
+    <widget class="ctkCollapsibleGroupBox" name="advancedTranslationGroupBox">
+     <property name="title">
+      <string>Advanced Translation Options</string>
      </property>
-     <property name="text">
-      <string>Update</string>
-     </property>
+     <layout class="QGridLayout" name="gridLayout_2">
+      <item row="2" column="1">
+       <widget class="QCheckBox" name="advancedTranslationCopyXCheckbox">
+        <property name="layoutDirection">
+         <enum>Qt::LeftToRight</enum>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="advancedTranslationCopyXLabel">
+        <property name="text">
+         <string>Copy X</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="2">
+       <widget class="QLabel" name="advancedTranslationCopyYLabel">
+        <property name="text">
+         <string>Copy Y</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="3">
+       <widget class="QCheckBox" name="advancedTranslationCopyYCheckbox">
+        <property name="layoutDirection">
+         <enum>Qt::LeftToRight</enum>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="4">
+       <widget class="QLabel" name="advancedTranslationCopyZLabel">
+        <property name="text">
+         <string>Copy Z</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="5">
+       <widget class="QCheckBox" name="advancedTranslationCopyZCheckbox">
+        <property name="layoutDirection">
+         <enum>Qt::LeftToRight</enum>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
+      </item>
+     </layout>
     </widget>
    </item>
-   <item row="6" column="1">
-    <widget class="qMRMLNodeComboBox" name="referenceTransformComboBox">
-     <property name="toolTip">
-      <string>Input and Output should be expressed relative to this Reference.</string>
+   <item row="3" column="0" colspan="2">
+    <widget class="QGroupBox" name="inputCombineTransformListGroupBox">
+     <property name="title">
+      <string>Source Transform Nodes</string>
      </property>
-     <property name="nodeTypes">
-      <stringlist>
-       <string>vtkMRMLLinearTransformNode</string>
-      </stringlist>
-     </property>
-     <property name="noneEnabled">
-      <bool>false</bool>
-     </property>
-     <property name="renameEnabled">
-      <bool>true</bool>
-     </property>
+     <layout class="QGridLayout" name="gridlayout">
+      <property name="sizeConstraint">
+       <enum>QLayout::SetDefaultConstraint</enum>
+      </property>
+      <item row="0" column="1">
+       <widget class="qMRMLNodeComboBox" name="addInputCombineTransformComboBox">
+        <property name="toolTip">
+         <string>Select which transform you want to add below.</string>
+        </property>
+        <property name="nodeTypes">
+         <stringlist>
+          <string>vtkMRMLLinearTransformNode</string>
+         </stringlist>
+        </property>
+        <property name="noneEnabled">
+         <bool>false</bool>
+        </property>
+        <property name="renameEnabled">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="4">
+       <widget class="QPushButton" name="removeInputCombineTransformButton">
+        <property name="toolTip">
+         <string>Remove the transform selected below.</string>
+        </property>
+        <property name="text">
+         <string>-</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="3">
+       <widget class="QPushButton" name="addInputCombineTransformButton">
+        <property name="toolTip">
+         <string>Add the transform to the list below.</string>
+        </property>
+        <property name="text">
+         <string>+</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0" colspan="5">
+       <widget class="QListWidget" name="inputCombineTransformList">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+       </widget>
+      </item>
+     </layout>
     </widget>
    </item>
-   <item row="5" column="1">
-    <widget class="qMRMLNodeComboBox" name="restingTransformComboBox">
+   <item row="4" column="1">
+    <widget class="qMRMLNodeComboBox" name="inputFromTransformComboBox">
      <property name="toolTip">
-      <string>A &quot;resting&quot; state of the input, e.g. no force from gravity, external force, etc..</string>
-     </property>
-     <property name="nodeTypes">
-      <stringlist>
-       <string>vtkMRMLLinearTransformNode</string>
-      </stringlist>
-     </property>
-     <property name="noneEnabled">
-      <bool>false</bool>
-     </property>
-     <property name="renameEnabled">
-      <bool>true</bool>
-     </property>
-    </widget>
-   </item>
-   <item row="7" column="1">
-    <widget class="qMRMLNodeComboBox" name="outputTransformComboBox">
-     <property name="toolTip">
-      <string>The node in which to store the result.</string>
+      <string>The transform node *from* which the output is based (e.g. Source in SourceToTarget)</string>
      </property>
      <property name="nodeTypes">
       <stringlist>
@@ -99,10 +182,10 @@
      </property>
     </widget>
    </item>
-   <item row="4" column="1">
-    <widget class="qMRMLNodeComboBox" name="inputTransformComboBox">
+   <item row="5" column="1">
+    <widget class="qMRMLNodeComboBox" name="inputToTransformComboBox">
      <property name="toolTip">
-      <string>The transform on which the output is based.</string>
+      <string>The transform node *to* which the output is based (e.g. Target in SourceToTarget)</string>
      </property>
      <property name="nodeTypes">
       <stringlist>
@@ -117,7 +200,25 @@
      </property>
     </widget>
    </item>
-   <item row="12" column="1">
+   <item row="8" column="1">
+    <widget class="qMRMLNodeComboBox" name="inputAnchorTransformComboBox">
+     <property name="toolTip">
+      <string>The output will be expressed relative to this anchor</string>
+     </property>
+     <property name="nodeTypes">
+      <stringlist>
+       <string>vtkMRMLLinearTransformNode</string>
+      </stringlist>
+     </property>
+     <property name="noneEnabled">
+      <bool>false</bool>
+     </property>
+     <property name="renameEnabled">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="17" column="1">
     <spacer name="verticalSpacer">
      <property name="orientation">
       <enum>Qt::Vertical</enum>
@@ -130,31 +231,20 @@
      </property>
     </spacer>
    </item>
-   <item row="5" column="0">
-    <widget class="QLabel" name="restingTransformLabel">
+   <item row="14" column="0" colspan="2">
+    <widget class="ctkMenuButton" name="updateButton">
+     <property name="toolTip">
+      <string>Click to manually update, the drop down menu has many automatic options available.</string>
+     </property>
      <property name="text">
-      <string>Resting Transform</string>
+      <string>Update</string>
      </property>
     </widget>
    </item>
-   <item row="7" column="0">
-    <widget class="QLabel" name="outputTransformLabel">
+   <item row="8" column="0">
+    <widget class="QLabel" name="inputAnchorTransformLabel">
      <property name="text">
-      <string>Output Transform</string>
-     </property>
-    </widget>
-   </item>
-   <item row="0" column="0">
-    <widget class="QLabel" name="parameterNodeLabel">
-     <property name="text">
-      <string>Parameter Node</string>
-     </property>
-    </widget>
-   </item>
-   <item row="8" column="0" colspan="2">
-    <widget class="Line" name="lineControl">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
+      <string>Input 'Anchor' Transform Node</string>
      </property>
     </widget>
    </item>
@@ -166,9 +256,23 @@
     </widget>
    </item>
    <item row="4" column="0">
-    <widget class="QLabel" name="inputTransformLabel">
+    <widget class="QLabel" name="inputFromTransformLabel">
      <property name="text">
-      <string>Input Transform</string>
+      <string>Input 'From' Transform Node</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="0">
+    <widget class="QLabel" name="parameterNodeLabel">
+     <property name="text">
+      <string>Parameter Node</string>
+     </property>
+    </widget>
+   </item>
+   <item row="5" column="0">
+    <widget class="QLabel" name="inputToTransformLabel">
+     <property name="text">
+      <string>Input 'To' Transform Node</string>
      </property>
     </widget>
    </item>
@@ -182,88 +286,7 @@
      </property>
     </widget>
    </item>
-   <item row="6" column="0">
-    <widget class="QLabel" name="referenceTransformLabel">
-     <property name="text">
-      <string>Reference Transform</string>
-     </property>
-    </widget>
-   </item>
-   <item row="3" column="0" colspan="2">
-    <widget class="QGroupBox" name="inputTransformListGroupBox">
-     <property name="title">
-      <string>Input Transforms</string>
-     </property>
-     <layout class="QGridLayout" name="gridlayout">
-      <property name="sizeConstraint">
-       <enum>QLayout::SetDefaultConstraint</enum>
-      </property>
-      <item row="0" column="1">
-       <widget class="qMRMLNodeComboBox" name="addInputTransformComboBox">
-        <property name="toolTip">
-         <string>Select which transform you want to add below.</string>
-        </property>
-        <property name="nodeTypes">
-         <stringlist>
-          <string>vtkMRMLLinearTransformNode</string>
-         </stringlist>
-        </property>
-        <property name="noneEnabled">
-         <bool>false</bool>
-        </property>
-        <property name="renameEnabled">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="4">
-       <widget class="QPushButton" name="removeInputTransformButton">
-        <property name="toolTip">
-         <string>Remove the transform selected below.</string>
-        </property>
-        <property name="text">
-         <string>-</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="3">
-       <widget class="QPushButton" name="addInputTransformButton">
-        <property name="toolTip">
-         <string>Add the transform to the list below.</string>
-        </property>
-        <property name="text">
-         <string>+</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="0" colspan="5">
-       <widget class="QListWidget" name="inputTransformList">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item row="1" column="0" colspan="2">
-    <widget class="Line" name="lineInputs">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-    </widget>
-   </item>
-   <item row="11" column="0">
-    <widget class="QLabel" name="updateRateLabel">
-     <property name="text">
-      <string>Update Rate (per second)</string>
-     </property>
-    </widget>
-   </item>
-   <item row="11" column="1">
+   <item row="16" column="1">
     <widget class="ctkDoubleSpinBox" name="updateRateSpinBox">
      <property name="toolTip">
       <string>Choose how often Timed Update will run.</string>
@@ -276,6 +299,154 @@
      </property>
      <property name="value">
       <double>60.000000000000000</double>
+     </property>
+    </widget>
+   </item>
+   <item row="16" column="0">
+    <widget class="QLabel" name="updateRateLabel">
+     <property name="text">
+      <string>Update Rate (per second)</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="0" colspan="2">
+    <widget class="Line" name="lineInputs">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+    </widget>
+   </item>
+   <item row="6" column="0">
+    <widget class="QLabel" name="inputInitialTransformLabel">
+     <property name="text">
+      <string>Input 'Initial' Transform Node</string>
+     </property>
+    </widget>
+   </item>
+   <item row="9" column="1">
+    <widget class="qMRMLNodeComboBox" name="outputTransformComboBox">
+     <property name="toolTip">
+      <string>The node in which to store the result.</string>
+     </property>
+     <property name="nodeTypes">
+      <stringlist>
+       <string>vtkMRMLLinearTransformNode</string>
+      </stringlist>
+     </property>
+     <property name="noneEnabled">
+      <bool>false</bool>
+     </property>
+     <property name="renameEnabled">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="12" column="0" colspan="2">
+    <widget class="ctkCollapsibleGroupBox" name="advancedRotationGroupBox">
+     <property name="layoutDirection">
+      <enum>Qt::LeftToRight</enum>
+     </property>
+     <property name="title">
+      <string>Advanced Rotation Options</string>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_3">
+      <item row="2" column="1">
+       <widget class="QLabel" name="advancedRotationDependentAxesModeLabel">
+        <property name="text">
+         <string>Dependent Axes Mode</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="2">
+       <widget class="ctkComboBox" name="advancedRotationModeComboBox"/>
+      </item>
+      <item row="3" column="2">
+       <widget class="ctkComboBox" name="advancedRotationSecondaryAxisComboBox"/>
+      </item>
+      <item row="2" column="2">
+       <widget class="ctkComboBox" name="advancedRotationDependentAxesModeComboBox"/>
+      </item>
+      <item row="1" column="1">
+       <widget class="QLabel" name="advancedRotationPrimaryAxisLabel">
+        <property name="text">
+         <string>Primary Axis</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="2">
+       <widget class="ctkComboBox" name="advancedRotationPrimaryAxisComboBox"/>
+      </item>
+      <item row="3" column="1">
+       <widget class="QLabel" name="advancedRotationSecondaryAxisLabel">
+        <property name="text">
+         <string>Secondary Axis</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QLabel" name="advancedRotationModeLabel">
+        <property name="text">
+         <string>Rotation Mode</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item row="6" column="1">
+    <widget class="qMRMLNodeComboBox" name="inputInitialTransformComboBox">
+     <property name="toolTip">
+      <string>The initial state for the transform</string>
+     </property>
+     <property name="nodeTypes">
+      <stringlist>
+       <string>vtkMRMLLinearTransformNode</string>
+      </stringlist>
+     </property>
+     <property name="noneEnabled">
+      <bool>false</bool>
+     </property>
+     <property name="renameEnabled">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="7" column="0">
+    <widget class="QLabel" name="inputChangedTransformLabel">
+     <property name="text">
+      <string>Input 'Changed' Transform Node</string>
+     </property>
+    </widget>
+   </item>
+   <item row="7" column="1">
+    <widget class="qMRMLNodeComboBox" name="inputChangedTransformComboBox">
+     <property name="toolTip">
+      <string>The changed state of the input</string>
+     </property>
+     <property name="nodeTypes">
+      <stringlist>
+       <string>vtkMRMLLinearTransformNode</string>
+      </stringlist>
+     </property>
+     <property name="noneEnabled">
+      <bool>false</bool>
+     </property>
+     <property name="renameEnabled">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="13" column="0" colspan="2">
+    <widget class="Line" name="lineControl">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+    </widget>
+   </item>
+   <item row="9" column="0">
+    <widget class="QLabel" name="outputTransformLabel">
+     <property name="text">
+      <string>Output Transform Node</string>
      </property>
     </widget>
    </item>
@@ -328,6 +499,12 @@
    <container>1</container>
   </customwidget>
   <customwidget>
+   <class>ctkCollapsibleGroupBox</class>
+   <extends>QGroupBox</extends>
+   <header>ctkCollapsibleGroupBox.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
    <class>ctkComboBox</class>
    <extends>QComboBox</extends>
    <header>ctkComboBox.h</header>
@@ -364,7 +541,7 @@
   <connection>
    <sender>qSlicerTransformFusionModule</sender>
    <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
-   <receiver>addInputTransformComboBox</receiver>
+   <receiver>addInputCombineTransformComboBox</receiver>
    <slot>setMRMLScene(vtkMRMLScene*)</slot>
    <hints>
     <hint type="sourcelabel">
@@ -396,7 +573,7 @@
   <connection>
    <sender>qSlicerTransformFusionModule</sender>
    <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
-   <receiver>referenceTransformComboBox</receiver>
+   <receiver>inputAnchorTransformComboBox</receiver>
    <slot>setMRMLScene(vtkMRMLScene*)</slot>
    <hints>
     <hint type="sourcelabel">
@@ -412,7 +589,7 @@
   <connection>
    <sender>qSlicerTransformFusionModule</sender>
    <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
-   <receiver>restingTransformComboBox</receiver>
+   <receiver>inputToTransformComboBox</receiver>
    <slot>setMRMLScene(vtkMRMLScene*)</slot>
    <hints>
     <hint type="sourcelabel">
@@ -428,7 +605,7 @@
   <connection>
    <sender>qSlicerTransformFusionModule</sender>
    <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
-   <receiver>inputTransformComboBox</receiver>
+   <receiver>inputFromTransformComboBox</receiver>
    <slot>setMRMLScene(vtkMRMLScene*)</slot>
    <hints>
     <hint type="sourcelabel">
@@ -438,6 +615,38 @@
     <hint type="destinationlabel">
      <x>201</x>
      <y>390</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>qSlicerTransformFusionModule</sender>
+   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+   <receiver>inputInitialTransformComboBox</receiver>
+   <slot>setMRMLScene(vtkMRMLScene*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>201</x>
+     <y>475</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>302</x>
+     <y>414</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>qSlicerTransformFusionModule</sender>
+   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+   <receiver>inputChangedTransformComboBox</receiver>
+   <slot>setMRMLScene(vtkMRMLScene*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>201</x>
+     <y>475</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>302</x>
+     <y>444</y>
     </hint>
    </hints>
   </connection>

@@ -64,7 +64,10 @@ public:
 public:
   void UpdateOutputTransform( vtkMRMLTransformFusionNode* );
   void QuaternionAverage( vtkMRMLTransformFusionNode* );
-  void ConstrainShaftRotation( vtkMRMLTransformFusionNode* );
+  void ComputeShaftPivotTransform( vtkMRMLTransformFusionNode* );
+  void ComputeRotation( vtkMRMLTransformFusionNode* );
+  void ComputeTranslation( vtkMRMLTransformFusionNode* );
+  void ComputeFullTransform( vtkMRMLTransformFusionNode* );
   bool IsTransformFusionPossible( vtkMRMLTransformFusionNode*, bool verbose = false );
   
 protected:
@@ -72,6 +75,7 @@ protected:
   ~vtkSlicerTransformFusionLogic();
 
   virtual void RegisterNodes();
+  virtual void SetMRMLSceneInternal( vtkMRMLScene * newScene );
   virtual void OnMRMLSceneNodeAdded( vtkMRMLNode* node );
   virtual void OnMRMLSceneNodeRemoved( vtkMRMLNode* node );
   void ProcessMRMLNodesEvents( vtkObject* caller, unsigned long event, void* callData );;
@@ -81,9 +85,13 @@ private:
   void operator=( const vtkSlicerTransformFusionLogic& );// Not implemented
   
   // these helper functions should only be used by fusion modes themselves, and are therefore private
-  void TransformVectorInputToResting ( vtkMRMLTransformFusionNode* pNode, const double input[ 3 ], double resting[ 3 ]);
-  void GetRestingToReferenceRotationTransform( vtkMRMLTransformFusionNode* pNode, vtkTransform* restingToReferenceRotationOnlyTransform );
-  void GetInputToReferenceTranslation( vtkMRMLTransformFusionNode* pNode, double translation[ 3 ] );
+  void GetRotationOnlyFromTransform( vtkGeneralTransform*, int, int, const double*, const double*, vtkTransform* );
+  void GetRotationAllAxesFromTransform ( vtkGeneralTransform*, vtkTransform* );
+  void GetRotationSingleAxisFromTransform( vtkGeneralTransform*, int, const double*, const double*, vtkTransform* );
+  void GetRotationSingleAxisWithPivotFromTransform( vtkGeneralTransform*, const double*, vtkTransform* );
+  void GetRotationSingleAxisWithSecondaryFromTransform( vtkGeneralTransform*, const double*, const double*, vtkTransform* );
+  void GetTranslationOnlyFromTransform( vtkGeneralTransform*, const bool*, vtkTransform* );
+  void GetRotationMatrixFromAxes( const double*, const double*, const double*, vtkMatrix4x4* );
 
 };
 
