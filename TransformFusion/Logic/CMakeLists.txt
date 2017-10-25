@@ -8,14 +8,12 @@ set(${KIT}_INCLUDE_DIRECTORIES
   )
 
 set(${KIT}_SRCS
-  vtkSlicerTransformFusionLogic.cxx
-  vtkSlicerTransformFusionLogic.h
-  vtkMRMLTransformFusionNode.cxx
-  vtkMRMLTransformFusionNode.h
+  vtkSlicer${MODULE_NAME}Logic.cxx
+  vtkSlicer${MODULE_NAME}Logic.h
   )
 
 set(${KIT}_TARGET_LIBRARIES
-  ${ITK_LIBRARIES}
+  vtkSlicer${MODULE_NAME}ModuleMRML
   )
 
 #-----------------------------------------------------------------------------

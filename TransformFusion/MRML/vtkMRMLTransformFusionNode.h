@@ -29,10 +29,10 @@
 #include <vtkMRMLNode.h>
 #include <vtkMRMLLinearTransformNode.h>
 
-#include "vtkSlicerTransformFusionModuleLogicExport.h"
+#include "vtkSlicerTransformFusionModuleMRMLExport.h"
 
 /// \ingroup Slicer_QtModules_TransformFusion
-class VTK_SLICER_TRANSFORMFUSION_MODULE_LOGIC_EXPORT vtkMRMLTransformFusionNode : 
+class VTK_SLICER_TRANSFORMFUSION_MODULE_MRML_EXPORT vtkMRMLTransformFusionNode : 
   public vtkMRMLNode
 {
 public:   
