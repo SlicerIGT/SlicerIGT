@@ -35,13 +35,15 @@
 //----------------------------------------------------------------------------
 // constant strings for MRML reference roles
 // these should not be used outside of this class
-const char* ROLE_INPUT_COMBINE_TRANSFORM = "Input Combine Transform";
-const char* ROLE_INPUT_FROM_TRANSFORM = "Input From Transform";
-const char* ROLE_INPUT_TO_TRANSFORM = "Input To Transform";
-const char* ROLE_INPUT_INITIAL_TRANSFORM = "Input Initial Transform";
-const char* ROLE_INPUT_CHANGED_TRANSFORM = "Input Changed Transform";
-const char* ROLE_INPUT_ANCHOR_TRANSFORM = "Input Anchor Transform";
-const char* ROLE_OUTPUT_TRANSFORM = "Output Transform";
+// (further note: Do *not* put spaces in these names -
+// will wreak havok when trying to load from XML)
+const char* ROLE_INPUT_COMBINE_TRANSFORM = "InputCombineTransform";
+const char* ROLE_INPUT_FROM_TRANSFORM = "InputFromTransform";
+const char* ROLE_INPUT_TO_TRANSFORM = "InputToTransform";
+const char* ROLE_INPUT_INITIAL_TRANSFORM = "InputInitialTransform";
+const char* ROLE_INPUT_CHANGED_TRANSFORM = "InputChangedTransform";
+const char* ROLE_INPUT_ANCHOR_TRANSFORM = "InputAnchorTransform";
+const char* ROLE_OUTPUT_TRANSFORM = "OutputTransform";
 
 //----------------------------------------------------------------------------
 vtkMRMLNodeNewMacro( vtkMRMLTransformFusionNode );
@@ -81,7 +83,6 @@ vtkMRMLTransformFusionNode::~vtkMRMLTransformFusionNode()
 //----------------------------------------------------------------------------
 void vtkMRMLTransformFusionNode::ReadXMLAttributes( const char** atts )
 {
-  std::cerr << "Reading TransformFusion parameter node" << std::endl;
   Superclass::ReadXMLAttributes(atts);
 
   const char* attName;
