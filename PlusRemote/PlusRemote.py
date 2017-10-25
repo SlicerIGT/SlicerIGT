@@ -808,12 +808,17 @@ class PlusRemoteWidget(ScriptedLoadableModuleWidget):
     if self.startStopLiveReconstructionButton.isChecked():
       if self.roiNode:
         self.updateVolumeExtentFromROI()
-      self.startStopLiveReconstructionButton.setText("  Stop Live Reconstruction")
-      self.startStopLiveReconstructionButton.setIcon(self.stopIcon)
-      self.startStopLiveReconstructionButton.setToolTip( "If clicked, stop live reconstruction" )
-      self.liveReconstructStatus.setIcon(qt.QMessageBox.Information)
-      self.liveReconstructStatus.setToolTip("Live reconstruction in progress")
-      self.onStartReconstruction()
+        self.startStopLiveReconstructionButton.setText("  Stop Live Reconstruction")
+        self.startStopLiveReconstructionButton.setIcon(self.stopIcon)
+        self.startStopLiveReconstructionButton.setToolTip( "If clicked, stop live reconstruction" )
+        self.liveReconstructStatus.setIcon(qt.QMessageBox.Information)
+        self.liveReconstructStatus.setToolTip("Live reconstruction in progress")
+        self.onStartReconstruction()
+      else:
+        self.startStopLiveReconstructionButton.setChecked(False)
+        self.liveReconstructStatus.setIcon(qt.QMessageBox.Warning)
+        self.liveReconstructStatus.setToolTip("No ROI has been set yet. Start with scout scan.")
+        return
     else:
       self.startStopLiveReconstructionButton.setText("  Start Live Reconstruction")
       self.startStopLiveReconstructionButton.setIcon(self.recordIcon)
