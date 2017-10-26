@@ -68,7 +68,7 @@ void vtkMRMLCollectPointsNode::WriteXML( ostream& of, int nIndent )
   of << indent << " LabelBase=\"" << this->LabelBase << "\"";
   of << indent << " LabelCounter=\"" << this->LabelCounter << "\"";
   of << indent << " MinimumDistanceMm=\"" << this->MinimumDistanceMm << "\"";
-  of << indent << " CollectMode=\"" << this->CollectMode << "\"";
+  of << indent << " CollectMode=\"" << this->GetCollectModeAsString( this->CollectMode ) << "\"";
 }
 
 // ----------------------------------------------------------------------------
@@ -78,7 +78,7 @@ void vtkMRMLCollectPointsNode::PrintSelf( ostream& os, vtkIndent indent )
   os << indent << " LabelBase=\"" << this->LabelBase << "\"";
   os << indent << " LabelCounter=\"" << this->LabelCounter << "\"";
   os << indent << " MinimumDistanceMm=\"" << this->MinimumDistanceMm << "\"";
-  os << indent << " CollectMode=\"" << this->CollectMode << "\"";
+  os << indent << " CollectMode=\"" << this->GetCollectModeAsString(  this->CollectMode ) << "\"";
 }
 
 //------------------------------------------------------------------------------
