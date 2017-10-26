@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>qSlicerCollectFiducialsModule</class>
- <widget class="qSlicerWidget" name="qSlicerCollectFiducialsModule">
+ <class>qSlicerCollectPointsModule</class>
+ <widget class="qSlicerWidget" name="qSlicerCollectPointsModule">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -50,7 +50,7 @@
       <widget class="qMRMLNodeComboBox" name="ParameterNodeComboBox">
        <property name="nodeTypes">
         <stringlist>
-         <string>vtkMRMLCollectFiducialsNode</string>
+         <string>vtkMRMLCollectPointsNode</string>
         </stringlist>
        </property>
       </widget>
@@ -79,7 +79,7 @@
           <string>...</string>
          </property>
          <property name="icon">
-          <iconset resource="../qSlicerCollectFiducialsModule.qrc">
+          <iconset resource="../qSlicerCollectPointsModule.qrc">
            <normaloff>:/Icons/PointVisible.png</normaloff>:/Icons/PointVisible.png</iconset>
          </property>
         </widget>
@@ -97,7 +97,7 @@
           <string>...</string>
          </property>
          <property name="icon">
-          <iconset resource="../qSlicerCollectFiducialsModule.qrc">
+          <iconset resource="../qSlicerCollectPointsModule.qrc">
            <normaloff>:/Icons/PointDelete.png</normaloff>:/Icons/PointDelete.png</iconset>
          </property>
         </widget>
@@ -179,7 +179,7 @@
   </layout>
   <action name="ActionDeleteAll">
    <property name="icon">
-    <iconset resource="../qSlicerCollectFiducialsModule.qrc">
+    <iconset resource="../qSlicerCollectPointsModule.qrc">
      <normaloff>:/Icons/PointDeleteAll.png</normaloff>:/Icons/PointDeleteAll.png</iconset>
    </property>
    <property name="text">
@@ -231,11 +231,11 @@
   </customwidget>
  </customwidgets>
  <resources>
-  <include location="../qSlicerCollectFiducialsModule.qrc"/>
+  <include location="../qSlicerCollectPointsModule.qrc"/>
  </resources>
  <connections>
   <connection>
-   <sender>qSlicerCollectFiducialsModule</sender>
+   <sender>qSlicerCollectPointsModule</sender>
    <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
    <receiver>ProbeTransformNodeComboBox</receiver>
    <slot>setMRMLScene(vtkMRMLScene*)</slot>
@@ -251,7 +251,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>qSlicerCollectFiducialsModule</sender>
+   <sender>qSlicerCollectPointsModule</sender>
    <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
    <receiver>OutputNodeComboBox</receiver>
    <slot>setMRMLScene(vtkMRMLScene*)</slot>
@@ -267,7 +267,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>qSlicerCollectFiducialsModule</sender>
+   <sender>qSlicerCollectPointsModule</sender>
    <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
    <receiver>ParameterNodeComboBox</receiver>
    <slot>setMRMLScene(vtkMRMLScene*)</slot>

@@ -16,8 +16,8 @@
 ==============================================================================*/
 
 
-#ifndef __vtkMRMLCollectFiducialsNode_h
-#define __vtkMRMLCollectFiducialsNode_h
+#ifndef __vtkMRMLCollectPointsNode_h
+#define __vtkMRMLCollectPointsNode_h
 
 // vtk includes
 #include <vtkObject.h>
@@ -30,9 +30,9 @@
 #include "vtkMRMLMarkupsFiducialNode.h"
 
 // FiducialRegistrationWizard includes
-#include "vtkSlicerCollectFiducialsModuleMRMLExport.h"
+#include "vtkSlicerCollectPointsModuleMRMLExport.h"
 
-class VTK_SLICER_COLLECTFIDUCIALS_MODULE_MRML_EXPORT vtkMRMLCollectFiducialsNode
+class VTK_SLICER_COLLECTPOINTS_MODULE_MRML_EXPORT vtkMRMLCollectPointsNode
 : public vtkMRMLNode
 {
 public:
@@ -53,13 +53,13 @@ public:
     CollectMode_Last // valid types go above this line
   };
 
-  vtkTypeMacro( vtkMRMLCollectFiducialsNode, vtkMRMLNode );
+  vtkTypeMacro( vtkMRMLCollectPointsNode, vtkMRMLNode );
   
   // Standard MRML node methods
-  static vtkMRMLCollectFiducialsNode *New();  
+  static vtkMRMLCollectPointsNode *New();  
 
   virtual vtkMRMLNode* CreateNodeInstance();
-  virtual const char* GetNodeTagName() { return "CollectFiducials"; };
+  virtual const char* GetNodeTagName() { return "CollectPoints"; };
   void PrintSelf( ostream& os, vtkIndent indent );
   virtual void ReadXMLAttributes( const char** atts );
   virtual void WriteXML( ostream& of, int indent );
@@ -67,10 +67,10 @@ public:
   
 protected:
 
-  vtkMRMLCollectFiducialsNode();
-  virtual ~vtkMRMLCollectFiducialsNode();
-  vtkMRMLCollectFiducialsNode ( const vtkMRMLCollectFiducialsNode& );
-  void operator=( const vtkMRMLCollectFiducialsNode& );
+  vtkMRMLCollectPointsNode();
+  virtual ~vtkMRMLCollectPointsNode();
+  vtkMRMLCollectPointsNode ( const vtkMRMLCollectPointsNode& );
+  void operator=( const vtkMRMLCollectPointsNode& );
 
 public:
   // The point will be collected in the world coordinate system

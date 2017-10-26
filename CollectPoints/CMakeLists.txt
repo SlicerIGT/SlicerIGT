@@ -1,6 +1,6 @@
 #-----------------------------------------------------------------------------
-set(MODULE_NAME "CollectFiducials") # Do not use 'project()'
-set(MODULE_TITLE "Collect Fiducials")
+set(MODULE_NAME "CollectPoints") # Do not use 'project()'
+set(MODULE_TITLE "Collect Points")
 
 string(TOUPPER ${MODULE_NAME} MODULE_NAME_UPPER)
 

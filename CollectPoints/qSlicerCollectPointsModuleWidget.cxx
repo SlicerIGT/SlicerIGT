@@ -20,12 +20,12 @@
 #include <QDebug>
 
 // SlicerQt includes
-#include "qSlicerCollectFiducialsModuleWidget.h"
-#include "ui_qSlicerCollectFiducialsModule.h"
+#include "qSlicerCollectPointsModuleWidget.h"
+#include "ui_qSlicerCollectPointsModule.h"
 
 // module includes
-#include "vtkSlicerCollectFiducialsLogic.h"
-#include "vtkMRMLCollectFiducialsNode.h"
+#include "vtkSlicerCollectPointsLogic.h"
+#include "vtkMRMLCollectPointsNode.h"
 
 // slicer includes
 #include "vtkMRMLLinearTransformNode.h"
@@ -33,51 +33,51 @@
 #include "vtkMRMLModelDisplayNode.h"
 
 //-----------------------------------------------------------------------------
-/// \ingroup Slicer_QtModules_CollectFiducials
-class qSlicerCollectFiducialsModuleWidgetPrivate: public Ui_qSlicerCollectFiducialsModule
+/// \ingroup Slicer_QtModules_CollectPoints
+class qSlicerCollectPointsModuleWidgetPrivate: public Ui_qSlicerCollectPointsModule
 {
-  Q_DECLARE_PUBLIC( qSlicerCollectFiducialsModuleWidget ); 
+  Q_DECLARE_PUBLIC( qSlicerCollectPointsModuleWidget ); 
   
 protected:
-  qSlicerCollectFiducialsModuleWidget* const q_ptr;
+  qSlicerCollectPointsModuleWidget* const q_ptr;
 public:
-  qSlicerCollectFiducialsModuleWidgetPrivate( qSlicerCollectFiducialsModuleWidget& object );
-  vtkSlicerCollectFiducialsLogic* logic() const;
+  qSlicerCollectPointsModuleWidgetPrivate( qSlicerCollectPointsModuleWidget& object );
+  vtkSlicerCollectPointsLogic* logic() const;
   QMenu* OutputDeleteMenu;
 };
 
 //-----------------------------------------------------------------------------
-// qSlicerCollectFiducialsModuleWidgetPrivate methods
+// qSlicerCollectPointsModuleWidgetPrivate methods
 //-----------------------------------------------------------------------------
-qSlicerCollectFiducialsModuleWidgetPrivate::qSlicerCollectFiducialsModuleWidgetPrivate( qSlicerCollectFiducialsModuleWidget& object )
+qSlicerCollectPointsModuleWidgetPrivate::qSlicerCollectPointsModuleWidgetPrivate( qSlicerCollectPointsModuleWidget& object )
 : q_ptr( &object )
 {
 }
 
 //-----------------------------------------------------------------------------
-vtkSlicerCollectFiducialsLogic* qSlicerCollectFiducialsModuleWidgetPrivate::logic() const
+vtkSlicerCollectPointsLogic* qSlicerCollectPointsModuleWidgetPrivate::logic() const
 {
-  Q_Q( const qSlicerCollectFiducialsModuleWidget );
-  return vtkSlicerCollectFiducialsLogic::SafeDownCast( q->logic() );
+  Q_Q( const qSlicerCollectPointsModuleWidget );
+  return vtkSlicerCollectPointsLogic::SafeDownCast( q->logic() );
 }
 
 //-----------------------------------------------------------------------------
-// qSlicerCollectFiducialsModuleWidget methods
+// qSlicerCollectPointsModuleWidget methods
 //-----------------------------------------------------------------------------
-qSlicerCollectFiducialsModuleWidget::qSlicerCollectFiducialsModuleWidget( QWidget* _parent )
-: Superclass( _parent ), d_ptr( new qSlicerCollectFiducialsModuleWidgetPrivate( *this ) )
-{
-}
-
-//-----------------------------------------------------------------------------
-qSlicerCollectFiducialsModuleWidget::~qSlicerCollectFiducialsModuleWidget()
+qSlicerCollectPointsModuleWidget::qSlicerCollectPointsModuleWidget( QWidget* _parent )
+: Superclass( _parent ), d_ptr( new qSlicerCollectPointsModuleWidgetPrivate( *this ) )
 {
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerCollectFiducialsModuleWidget::setup()
+qSlicerCollectPointsModuleWidget::~qSlicerCollectPointsModuleWidget()
 {
-  Q_D( qSlicerCollectFiducialsModuleWidget );
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerCollectPointsModuleWidget::setup()
+{
+  Q_D( qSlicerCollectPointsModuleWidget );
   d->setupUi( this );
   this->Superclass::setup();
 
@@ -104,9 +104,9 @@ void qSlicerCollectFiducialsModuleWidget::setup()
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerCollectFiducialsModuleWidget::enter()
+void qSlicerCollectPointsModuleWidget::enter()
 {
-  Q_D( qSlicerCollectFiducialsModuleWidget );
+  Q_D( qSlicerCollectPointsModuleWidget );
   this->Superclass::enter();
 
   if ( this->mrmlScene() == NULL )
@@ -118,11 +118,11 @@ void qSlicerCollectFiducialsModuleWidget::enter()
   // For convenience, select a default parameter node.
   if ( d->ParameterNodeComboBox->currentNode() == NULL )
   {
-    vtkMRMLNode* node = this->mrmlScene()->GetNthNodeByClass( 0, "vtkMRMLCollectFiducialsNode" );
+    vtkMRMLNode* node = this->mrmlScene()->GetNthNodeByClass( 0, "vtkMRMLCollectPointsNode" );
     // Create a new parameter node if there is none in the scene.
     if ( node == NULL )
     {
-      node = this->mrmlScene()->AddNewNodeByClass( "vtkMRMLCollectFiducialsNode" );
+      node = this->mrmlScene()->AddNewNodeByClass( "vtkMRMLCollectPointsNode" );
     }
     if ( node == NULL )
     {
@@ -136,15 +136,15 @@ void qSlicerCollectFiducialsModuleWidget::enter()
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerCollectFiducialsModuleWidget::exit()
+void qSlicerCollectPointsModuleWidget::exit()
 {
   Superclass::exit();
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerCollectFiducialsModuleWidget::blockAllSignals( bool block )
+void qSlicerCollectPointsModuleWidget::blockAllSignals( bool block )
 {
-  Q_D( qSlicerCollectFiducialsModuleWidget );
+  Q_D( qSlicerCollectPointsModuleWidget );
   d->ParameterNodeComboBox->blockSignals( block );
   d->ProbeTransformNodeComboBox->blockSignals( block );
   d->OutputNodeComboBox->blockSignals( block );
@@ -158,9 +158,9 @@ void qSlicerCollectFiducialsModuleWidget::blockAllSignals( bool block )
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerCollectFiducialsModuleWidget::enableAllWidgets( bool enable )
+void qSlicerCollectPointsModuleWidget::enableAllWidgets( bool enable )
 {
-  Q_D( qSlicerCollectFiducialsModuleWidget );
+  Q_D( qSlicerCollectPointsModuleWidget );
   // don't ever disable parameter node, need to be able to select between them
   d->ProbeTransformNodeComboBox->setEnabled( enable );
   d->OutputNodeComboBox->setEnabled( enable );
@@ -174,32 +174,32 @@ void qSlicerCollectFiducialsModuleWidget::enableAllWidgets( bool enable )
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerCollectFiducialsModuleWidget::setMRMLScene( vtkMRMLScene* scene )
+void qSlicerCollectPointsModuleWidget::setMRMLScene( vtkMRMLScene* scene )
 {
-  Q_D( qSlicerCollectFiducialsModuleWidget );
+  Q_D( qSlicerCollectPointsModuleWidget );
   this->Superclass::setMRMLScene( scene );
   qvtkReconnect( d->logic(), scene, vtkMRMLScene::EndImportEvent, this, SLOT( onSceneImportedEvent() ) );
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerCollectFiducialsModuleWidget::onSceneImportedEvent()
+void qSlicerCollectPointsModuleWidget::onSceneImportedEvent()
 {
   this->updateGUIFromMRML();
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerCollectFiducialsModuleWidget::onParameterNodeSelected()
+void qSlicerCollectPointsModuleWidget::onParameterNodeSelected()
 {
   this->updateGUIFromMRML();
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerCollectFiducialsModuleWidget::onProbeTransformNodeSelected()
+void qSlicerCollectPointsModuleWidget::onProbeTransformNodeSelected()
 {
-  Q_D( qSlicerCollectFiducialsModuleWidget );
+  Q_D( qSlicerCollectPointsModuleWidget );
 
-  vtkMRMLCollectFiducialsNode* collectFiducialsNode = vtkMRMLCollectFiducialsNode::SafeDownCast( d->ParameterNodeComboBox->currentNode() );
-  if ( collectFiducialsNode == NULL )
+  vtkMRMLCollectPointsNode* collectPointsNode = vtkMRMLCollectPointsNode::SafeDownCast( d->ParameterNodeComboBox->currentNode() );
+  if ( collectPointsNode == NULL )
   {
     qCritical() << Q_FUNC_INFO << ": invalid parameter node";
     return;
@@ -208,11 +208,11 @@ void qSlicerCollectFiducialsModuleWidget::onProbeTransformNodeSelected()
   vtkMRMLLinearTransformNode* probeTransformNode = vtkMRMLLinearTransformNode::SafeDownCast( d->ProbeTransformNodeComboBox->currentNode() );
   if( probeTransformNode != NULL )
   {
-    collectFiducialsNode->SetAndObserveProbeTransformNodeId( probeTransformNode->GetID() );
+    collectPointsNode->SetAndObserveProbeTransformNodeId( probeTransformNode->GetID() );
   }
   else
   {
-    collectFiducialsNode->SetAndObserveProbeTransformNodeId( NULL );
+    collectPointsNode->SetAndObserveProbeTransformNodeId( NULL );
   }
 
   this->updateGUIFromMRML();
@@ -220,9 +220,9 @@ void qSlicerCollectFiducialsModuleWidget::onProbeTransformNodeSelected()
 
 
 //-----------------------------------------------------------------------------
-void qSlicerCollectFiducialsModuleWidget::onOutputNodeAdded( vtkMRMLNode* newNode )
+void qSlicerCollectPointsModuleWidget::onOutputNodeAdded( vtkMRMLNode* newNode )
 {
-  Q_D( qSlicerCollectFiducialsModuleWidget );
+  Q_D( qSlicerCollectPointsModuleWidget );
 
   vtkMRMLMarkupsNode* outputMarkupsNode = vtkMRMLMarkupsNode::SafeDownCast( newNode );
   if ( outputMarkupsNode != NULL )
@@ -245,12 +245,12 @@ void qSlicerCollectFiducialsModuleWidget::onOutputNodeAdded( vtkMRMLNode* newNod
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerCollectFiducialsModuleWidget::onOutputNodeSelected( vtkMRMLNode* newNode )
+void qSlicerCollectPointsModuleWidget::onOutputNodeSelected( vtkMRMLNode* newNode )
 {
-  Q_D( qSlicerCollectFiducialsModuleWidget );
+  Q_D( qSlicerCollectPointsModuleWidget );
 
-  vtkMRMLCollectFiducialsNode* collectFiducialsNode = vtkMRMLCollectFiducialsNode::SafeDownCast( d->ParameterNodeComboBox->currentNode() );
-  if ( collectFiducialsNode == NULL )
+  vtkMRMLCollectPointsNode* collectPointsNode = vtkMRMLCollectPointsNode::SafeDownCast( d->ParameterNodeComboBox->currentNode() );
+  if ( collectPointsNode == NULL )
   {
     qCritical() << Q_FUNC_INFO << ": invalid parameter node";
     return;
@@ -258,30 +258,30 @@ void qSlicerCollectFiducialsModuleWidget::onOutputNodeSelected( vtkMRMLNode* new
 
   if ( newNode == NULL )
   {
-    collectFiducialsNode->SetOutputNodeId( NULL );
+    collectPointsNode->SetOutputNodeId( NULL );
   }
   else
   {
-    collectFiducialsNode->SetOutputNodeId( newNode->GetID() );
+    collectPointsNode->SetOutputNodeId( newNode->GetID() );
   }
 
   this->updateGUIFromMRML();
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerCollectFiducialsModuleWidget::onColorButtonChanged( QColor qcolor )
+void qSlicerCollectPointsModuleWidget::onColorButtonChanged( QColor qcolor )
 {
-  Q_D( qSlicerCollectFiducialsModuleWidget );
+  Q_D( qSlicerCollectPointsModuleWidget );
   
-  vtkMRMLCollectFiducialsNode* collectFiducialsNode = vtkMRMLCollectFiducialsNode::SafeDownCast( d->ParameterNodeComboBox->currentNode() );
-  if ( collectFiducialsNode == NULL )
+  vtkMRMLCollectPointsNode* collectPointsNode = vtkMRMLCollectPointsNode::SafeDownCast( d->ParameterNodeComboBox->currentNode() );
+  if ( collectPointsNode == NULL )
   {
     qCritical() << Q_FUNC_INFO << ": invalid parameter node";
     return;
   }
 
-  vtkMRMLMarkupsFiducialNode* outputMarkupsNode = vtkMRMLMarkupsFiducialNode::SafeDownCast( collectFiducialsNode->GetOutputNode() );
-  vtkMRMLModelNode* outputModelNode = vtkMRMLModelNode::SafeDownCast( collectFiducialsNode->GetOutputNode() );
+  vtkMRMLMarkupsFiducialNode* outputMarkupsNode = vtkMRMLMarkupsFiducialNode::SafeDownCast( collectPointsNode->GetOutputNode() );
+  vtkMRMLModelNode* outputModelNode = vtkMRMLModelNode::SafeDownCast( collectPointsNode->GetOutputNode() );
   if ( outputMarkupsNode != NULL )
   {
     vtkMRMLMarkupsDisplayNode* outputDisplayNode = vtkMRMLMarkupsDisplayNode::SafeDownCast( outputMarkupsNode->GetMarkupsDisplayNode() );
@@ -309,52 +309,52 @@ void qSlicerCollectFiducialsModuleWidget::onColorButtonChanged( QColor qcolor )
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerCollectFiducialsModuleWidget::onDeleteButtonClicked()
+void qSlicerCollectPointsModuleWidget::onDeleteButtonClicked()
 {
-  Q_D( qSlicerCollectFiducialsModuleWidget );
+  Q_D( qSlicerCollectPointsModuleWidget );
   
-  vtkMRMLCollectFiducialsNode* collectFiducialsNode = vtkMRMLCollectFiducialsNode::SafeDownCast( d->ParameterNodeComboBox->currentNode() );
-  if ( collectFiducialsNode == NULL )
+  vtkMRMLCollectPointsNode* collectPointsNode = vtkMRMLCollectPointsNode::SafeDownCast( d->ParameterNodeComboBox->currentNode() );
+  if ( collectPointsNode == NULL )
   {
     qCritical() << Q_FUNC_INFO << ": invalid parameter node";
     return;
   }
 
-  d->logic()->RemoveLastPoint( collectFiducialsNode );
+  d->logic()->RemoveLastPoint( collectPointsNode );
 
   this->updateGUIFromMRML();
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerCollectFiducialsModuleWidget::onDeleteAllClicked()
+void qSlicerCollectPointsModuleWidget::onDeleteAllClicked()
 {
-  Q_D( qSlicerCollectFiducialsModuleWidget );
+  Q_D( qSlicerCollectPointsModuleWidget );
   
-  vtkMRMLCollectFiducialsNode* collectFiducialsNode = vtkMRMLCollectFiducialsNode::SafeDownCast( d->ParameterNodeComboBox->currentNode() );
-  if ( collectFiducialsNode == NULL )
+  vtkMRMLCollectPointsNode* collectPointsNode = vtkMRMLCollectPointsNode::SafeDownCast( d->ParameterNodeComboBox->currentNode() );
+  if ( collectPointsNode == NULL )
   {
     qCritical() << Q_FUNC_INFO << ": invalid parameter node";
     return;
   }
 
-  d->logic()->RemoveAllPoints( collectFiducialsNode );
+  d->logic()->RemoveAllPoints( collectPointsNode );
 
   this->updateGUIFromMRML();
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerCollectFiducialsModuleWidget::onVisibilityButtonClicked()
+void qSlicerCollectPointsModuleWidget::onVisibilityButtonClicked()
 {
-  Q_D( qSlicerCollectFiducialsModuleWidget );
+  Q_D( qSlicerCollectPointsModuleWidget );
   
-  vtkMRMLCollectFiducialsNode* collectFiducialsNode = vtkMRMLCollectFiducialsNode::SafeDownCast( d->ParameterNodeComboBox->currentNode() );
-  if ( collectFiducialsNode == NULL )
+  vtkMRMLCollectPointsNode* collectPointsNode = vtkMRMLCollectPointsNode::SafeDownCast( d->ParameterNodeComboBox->currentNode() );
+  if ( collectPointsNode == NULL )
   {
     qCritical() << Q_FUNC_INFO << ": invalid parameter node";
     return;
   }
   
-  vtkMRMLDisplayableNode* outputDisplayableNode = vtkMRMLDisplayableNode::SafeDownCast( collectFiducialsNode->GetOutputNode() );
+  vtkMRMLDisplayableNode* outputDisplayableNode = vtkMRMLDisplayableNode::SafeDownCast( collectPointsNode->GetOutputNode() );
   if ( outputDisplayableNode == NULL )
   {
     return;
@@ -373,63 +373,63 @@ void qSlicerCollectFiducialsModuleWidget::onVisibilityButtonClicked()
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerCollectFiducialsModuleWidget::onLabelBaseChanged()
+void qSlicerCollectPointsModuleWidget::onLabelBaseChanged()
 {
-  Q_D( qSlicerCollectFiducialsModuleWidget );
+  Q_D( qSlicerCollectPointsModuleWidget );
 
-  vtkMRMLCollectFiducialsNode* collectFiducialsNode = vtkMRMLCollectFiducialsNode::SafeDownCast( d->ParameterNodeComboBox->currentNode() );
-  if ( collectFiducialsNode == NULL )
+  vtkMRMLCollectPointsNode* collectPointsNode = vtkMRMLCollectPointsNode::SafeDownCast( d->ParameterNodeComboBox->currentNode() );
+  if ( collectPointsNode == NULL )
   {
     qCritical() << Q_FUNC_INFO << ": invalid parameter node";
     return;
   }
 
-  collectFiducialsNode->SetLabelBase( d->LabelBaseLineEdit->text().toStdString() );
+  collectPointsNode->SetLabelBase( d->LabelBaseLineEdit->text().toStdString() );
   
   this->updateGUIFromMRML();
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerCollectFiducialsModuleWidget::onLabelCounterChanged()
+void qSlicerCollectPointsModuleWidget::onLabelCounterChanged()
 {
-  Q_D( qSlicerCollectFiducialsModuleWidget );
+  Q_D( qSlicerCollectPointsModuleWidget );
 
-  vtkMRMLCollectFiducialsNode* collectFiducialsNode = vtkMRMLCollectFiducialsNode::SafeDownCast( d->ParameterNodeComboBox->currentNode() );
-  if ( collectFiducialsNode == NULL )
+  vtkMRMLCollectPointsNode* collectPointsNode = vtkMRMLCollectPointsNode::SafeDownCast( d->ParameterNodeComboBox->currentNode() );
+  if ( collectPointsNode == NULL )
   {
     qCritical() << Q_FUNC_INFO << ": invalid parameter node";
     return;
   }
 
-  collectFiducialsNode->SetLabelCounter( d->LabelCounterSpinBox->value() );
+  collectPointsNode->SetLabelCounter( d->LabelCounterSpinBox->value() );
   
   this->updateGUIFromMRML();
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerCollectFiducialsModuleWidget::onMinimumDistanceChanged()
+void qSlicerCollectPointsModuleWidget::onMinimumDistanceChanged()
 {
-  Q_D( qSlicerCollectFiducialsModuleWidget );
+  Q_D( qSlicerCollectPointsModuleWidget );
 
-  vtkMRMLCollectFiducialsNode* collectFiducialsNode = vtkMRMLCollectFiducialsNode::SafeDownCast( d->ParameterNodeComboBox->currentNode() );
-  if ( collectFiducialsNode == NULL )
+  vtkMRMLCollectPointsNode* collectPointsNode = vtkMRMLCollectPointsNode::SafeDownCast( d->ParameterNodeComboBox->currentNode() );
+  if ( collectPointsNode == NULL )
   {
     qCritical() << Q_FUNC_INFO << ": invalid parameter node";
     return;
   }
 
-  collectFiducialsNode->SetMinimumDistanceMm( d->MinimumDistanceSlider->value() );
+  collectPointsNode->SetMinimumDistanceMm( d->MinimumDistanceSlider->value() );
   
   this->updateGUIFromMRML();
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerCollectFiducialsModuleWidget::onCollectClicked()
+void qSlicerCollectPointsModuleWidget::onCollectClicked()
 {
-  Q_D( qSlicerCollectFiducialsModuleWidget );
+  Q_D( qSlicerCollectPointsModuleWidget );
   
-  vtkMRMLCollectFiducialsNode* collectFiducialsNode = vtkMRMLCollectFiducialsNode::SafeDownCast( d->ParameterNodeComboBox->currentNode() );
-  if ( collectFiducialsNode == NULL )
+  vtkMRMLCollectPointsNode* collectPointsNode = vtkMRMLCollectPointsNode::SafeDownCast( d->ParameterNodeComboBox->currentNode() );
+  if ( collectPointsNode == NULL )
   {
     qCritical() << Q_FUNC_INFO << ": invalid parameter node";
     return;
@@ -441,18 +441,18 @@ void qSlicerCollectFiducialsModuleWidget::onCollectClicked()
     d->CollectButton->setCheckState( Qt::Unchecked );
   }
 
-  d->logic()->AddPoint( collectFiducialsNode );
+  d->logic()->AddPoint( collectPointsNode );
 
   this->updateGUIFromMRML();
 }
 
 //------------------------------------------------------------------------------
-void qSlicerCollectFiducialsModuleWidget::onCollectCheckboxToggled()
+void qSlicerCollectPointsModuleWidget::onCollectCheckboxToggled()
 {
-  Q_D( qSlicerCollectFiducialsModuleWidget );
+  Q_D( qSlicerCollectPointsModuleWidget );
 
-  vtkMRMLCollectFiducialsNode* collectFiducialsNode = vtkMRMLCollectFiducialsNode::SafeDownCast( d->ParameterNodeComboBox->currentNode() );
-  if ( collectFiducialsNode == NULL )
+  vtkMRMLCollectPointsNode* collectPointsNode = vtkMRMLCollectPointsNode::SafeDownCast( d->ParameterNodeComboBox->currentNode() );
+  if ( collectPointsNode == NULL )
   {
     // should not be able to change parameters in a non-existant node...
     this->enableAllWidgets( false );
@@ -461,23 +461,23 @@ void qSlicerCollectFiducialsModuleWidget::onCollectCheckboxToggled()
 
   if ( d->CollectButton->checkState() == Qt::Checked )
   {
-    collectFiducialsNode->SetCollectModeToAutomatic();
+    collectPointsNode->SetCollectModeToAutomatic();
   }
   else
   {
-    collectFiducialsNode->SetCollectModeToManual();
+    collectPointsNode->SetCollectModeToManual();
   }
 
   this->updateGUIFromMRML();
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerCollectFiducialsModuleWidget::updateGUIFromMRML()
+void qSlicerCollectPointsModuleWidget::updateGUIFromMRML()
 {
-  Q_D( qSlicerCollectFiducialsModuleWidget );
+  Q_D( qSlicerCollectPointsModuleWidget );
 
-  vtkMRMLCollectFiducialsNode* collectFiducialsNode = vtkMRMLCollectFiducialsNode::SafeDownCast( d->ParameterNodeComboBox->currentNode() );
-  if ( collectFiducialsNode == NULL )
+  vtkMRMLCollectPointsNode* collectPointsNode = vtkMRMLCollectPointsNode::SafeDownCast( d->ParameterNodeComboBox->currentNode() );
+  if ( collectPointsNode == NULL )
   {
     // should not be able to change parameters in a non-existant node...
     this->enableAllWidgets( false );
@@ -491,14 +491,14 @@ void qSlicerCollectFiducialsModuleWidget::updateGUIFromMRML()
   this->blockAllSignals( true );
 
   // update all widget contents
-  d->ProbeTransformNodeComboBox->setCurrentNode( collectFiducialsNode->GetProbeTransformNode() );
-  d->OutputNodeComboBox->setCurrentNode( collectFiducialsNode->GetOutputNode() );
+  d->ProbeTransformNodeComboBox->setCurrentNode( collectPointsNode->GetProbeTransformNode() );
+  d->OutputNodeComboBox->setCurrentNode( collectPointsNode->GetOutputNode() );
   // output node buttons - disabled unless a valid output node is selected
   d->OutputColorButton->setEnabled( false );
   d->OutputColorButton->setColor( QColor() ); // default color
   d->OutputVisibilityButton->setEnabled( false );
   d->OutputDeleteButton->setEnabled( false );
-  vtkMRMLDisplayableNode* outputDisplayableNode = vtkMRMLDisplayableNode::SafeDownCast( collectFiducialsNode->GetOutputNode() );
+  vtkMRMLDisplayableNode* outputDisplayableNode = vtkMRMLDisplayableNode::SafeDownCast( collectPointsNode->GetOutputNode() );
   if ( outputDisplayableNode != NULL )
   {
     vtkMRMLDisplayNode* outputDisplayNode = outputDisplayableNode->GetDisplayNode();
@@ -519,20 +519,20 @@ void qSlicerCollectFiducialsModuleWidget::updateGUIFromMRML()
       d->OutputColorButton->setColor( colorQColor );
       d->OutputColorButton->setEnabled( true );
       d->OutputVisibilityButton->setEnabled( true );
-      if ( collectFiducialsNode->GetNumberOfPointsInOutput() > 0 )
+      if ( collectPointsNode->GetNumberOfPointsInOutput() > 0 )
       {
         d->OutputDeleteButton->setEnabled( true );
       }
     }
   }
 
-  d->LabelCounterSpinBox->setValue( collectFiducialsNode->GetLabelCounter() );
-  d->LabelBaseLineEdit->setText( collectFiducialsNode->GetLabelBase().c_str() );
-  d->MinimumDistanceSlider->setValue( collectFiducialsNode->GetMinimumDistanceMm() );
+  d->LabelCounterSpinBox->setValue( collectPointsNode->GetLabelCounter() );
+  d->LabelBaseLineEdit->setText( collectPointsNode->GetLabelBase().c_str() );
+  d->MinimumDistanceSlider->setValue( collectPointsNode->GetMinimumDistanceMm() );
 
-  bool readyToCollect = collectFiducialsNode->GetProbeTransformNode() != NULL && collectFiducialsNode->GetOutputNode() != NULL;
+  bool readyToCollect = collectPointsNode->GetProbeTransformNode() != NULL && collectPointsNode->GetOutputNode() != NULL;
   d->CollectButton->setEnabled( readyToCollect );
-  if ( collectFiducialsNode->GetCollectMode() == vtkMRMLCollectFiducialsNode::Automatic )
+  if ( collectPointsNode->GetCollectMode() == vtkMRMLCollectPointsNode::Automatic )
   {
     d->CollectButton->setText( tr( "Auto-Collect" ) );
     d->CollectButton->setCheckable( true );
@@ -545,7 +545,7 @@ void qSlicerCollectFiducialsModuleWidget::updateGUIFromMRML()
   }
 
   // update widget visibility
-  bool isInputMarkupsNode = ( vtkMRMLMarkupsNode::SafeDownCast( collectFiducialsNode->GetOutputNode() ) != NULL );
+  bool isInputMarkupsNode = ( vtkMRMLMarkupsNode::SafeDownCast( collectPointsNode->GetOutputNode() ) != NULL );
 
   d->LabelCounterLabel->setVisible( isInputMarkupsNode );
   d->LabelCounterSpinBox->setVisible( isInputMarkupsNode );

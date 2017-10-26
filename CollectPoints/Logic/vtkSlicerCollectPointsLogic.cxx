@@ -15,8 +15,8 @@
 
 ==============================================================================*/
 
-// CollectFiducials includes
-#include "vtkSlicerCollectFiducialsLogic.h"
+// CollectPoints includes
+#include "vtkSlicerCollectPointsLogic.h"
 
 // MRML includes
 #include "vtkMRMLLinearTransformNode.h"
@@ -35,35 +35,35 @@
 #include <sstream>
 
 
-vtkStandardNewMacro(vtkSlicerCollectFiducialsLogic);
+vtkStandardNewMacro(vtkSlicerCollectPointsLogic);
 
 //------------------------------------------------------------------------------
-vtkSlicerCollectFiducialsLogic::vtkSlicerCollectFiducialsLogic()
+vtkSlicerCollectPointsLogic::vtkSlicerCollectPointsLogic()
 {
 }
 
 //------------------------------------------------------------------------------
-vtkSlicerCollectFiducialsLogic::~vtkSlicerCollectFiducialsLogic()
+vtkSlicerCollectPointsLogic::~vtkSlicerCollectPointsLogic()
 {
 }
 
 //------------------------------------------------------------------------------
-void vtkSlicerCollectFiducialsLogic::PrintSelf( ostream& os, vtkIndent indent )
+void vtkSlicerCollectPointsLogic::PrintSelf( ostream& os, vtkIndent indent )
 {
   this->Superclass::PrintSelf( os, indent );
 }
 
 //------------------------------------------------------------------------------
-void vtkSlicerCollectFiducialsLogic::AddPoint( vtkMRMLCollectFiducialsNode* collectFiducialsNode )
+void vtkSlicerCollectPointsLogic::AddPoint( vtkMRMLCollectPointsNode* collectPointsNode )
 {
-  if ( collectFiducialsNode == NULL )
+  if ( collectPointsNode == NULL )
   {
     vtkErrorMacro( "No parameter node set. Will not add any points." );
     return;
   }
 
   // find the point coordinates
-  vtkSmartPointer< vtkMRMLLinearTransformNode > probeNode = vtkMRMLLinearTransformNode::SafeDownCast( collectFiducialsNode->GetProbeTransformNode() );
+  vtkSmartPointer< vtkMRMLLinearTransformNode > probeNode = vtkMRMLLinearTransformNode::SafeDownCast( collectPointsNode->GetProbeTransformNode() );
   if ( probeNode == NULL )
   {
     vtkErrorMacro( "No probe transform node set. Will not add any points." );
@@ -73,7 +73,7 @@ void vtkSlicerCollectFiducialsLogic::AddPoint( vtkMRMLCollectFiducialsNode* coll
   probeNode->GetMatrixTransformToWorld( probeToWorld );
   double pointCoordinates[ 3 ] = { probeToWorld->GetElement( 0, 3 ), probeToWorld->GetElement( 1, 3 ), probeToWorld->GetElement( 2, 3 ) };
 
-  vtkMRMLNode* outputNode = collectFiducialsNode->GetOutputNode();
+  vtkMRMLNode* outputNode = collectPointsNode->GetOutputNode();
   if ( outputNode == NULL )
   {
     vtkErrorMacro( "No output node set. Will not add any points." );
@@ -82,9 +82,9 @@ void vtkSlicerCollectFiducialsLogic::AddPoint( vtkMRMLCollectFiducialsNode* coll
 
   // determine the minimum distance for adding the point (only applies if in auto-collect mode)
   double minimumDistanceMm = 0.0; // default value, 0 means there is no minimum
-  if ( collectFiducialsNode->GetCollectMode() == vtkMRMLCollectFiducialsNode::Automatic )
+  if ( collectPointsNode->GetCollectMode() == vtkMRMLCollectPointsNode::Automatic )
   {
-    minimumDistanceMm = collectFiducialsNode->GetMinimumDistanceMm();
+    minimumDistanceMm = collectPointsNode->GetMinimumDistanceMm();
   }
 
   // try downcasting the output node to different types.
@@ -96,12 +96,12 @@ void vtkSlicerCollectFiducialsLogic::AddPoint( vtkMRMLCollectFiducialsNode* coll
   {
     // add the label to the point
     std::stringstream ss;
-    ss << collectFiducialsNode->GetLabelBase() << collectFiducialsNode->GetLabelCounter();
+    ss << collectPointsNode->GetLabelBase() << collectPointsNode->GetLabelCounter();
 
     this->AddPointToMarkups( outputMarkupsNode, pointCoordinates, ss.str(), minimumDistanceMm );
 
     // always increase the label counter
-    collectFiducialsNode->SetLabelCounter( collectFiducialsNode->GetLabelCounter() + 1 );
+    collectPointsNode->SetLabelCounter( collectPointsNode->GetLabelCounter() + 1 );
   }
   else if ( outputModelNode != NULL )
   {
@@ -115,9 +115,9 @@ void vtkSlicerCollectFiducialsLogic::AddPoint( vtkMRMLCollectFiducialsNode* coll
 }
 
 //------------------------------------------------------------------------------
-void vtkSlicerCollectFiducialsLogic::RemoveLastPoint( vtkMRMLCollectFiducialsNode* collectFiducialsNode )
+void vtkSlicerCollectPointsLogic::RemoveLastPoint( vtkMRMLCollectPointsNode* collectPointsNode )
 {
-  vtkMRMLNode* outputNode = collectFiducialsNode->GetOutputNode();
+  vtkMRMLNode* outputNode = collectPointsNode->GetOutputNode();
   if ( outputNode == NULL )
   {
     vtkErrorMacro( "No output node set. Will not remove any points." );
@@ -151,9 +151,9 @@ void vtkSlicerCollectFiducialsLogic::RemoveLastPoint( vtkMRMLCollectFiducialsNod
 }
 
 //------------------------------------------------------------------------------
-void vtkSlicerCollectFiducialsLogic::RemoveAllPoints( vtkMRMLCollectFiducialsNode* collectFiducialsNode )
+void vtkSlicerCollectPointsLogic::RemoveAllPoints( vtkMRMLCollectPointsNode* collectPointsNode )
 {
-  vtkMRMLNode* outputNode = collectFiducialsNode->GetOutputNode();
+  vtkMRMLNode* outputNode = collectPointsNode->GetOutputNode();
   if ( outputNode == NULL )
   {
     vtkErrorMacro( "No output node set. Will not remove any points." );
@@ -181,7 +181,7 @@ void vtkSlicerCollectFiducialsLogic::RemoveAllPoints( vtkMRMLCollectFiducialsNod
 }
 
 //------------------------------------------------------------------------------
-void vtkSlicerCollectFiducialsLogic::SetMRMLSceneInternal( vtkMRMLScene * newScene )
+void vtkSlicerCollectPointsLogic::SetMRMLSceneInternal( vtkMRMLScene * newScene )
 {
   vtkNew<vtkIntArray> events;
   events->InsertNextValue( vtkMRMLScene::NodeAddedEvent );
@@ -190,24 +190,24 @@ void vtkSlicerCollectFiducialsLogic::SetMRMLSceneInternal( vtkMRMLScene * newSce
 }
 
 //------------------------------------------------------------------------------
-void vtkSlicerCollectFiducialsLogic::RegisterNodes()
+void vtkSlicerCollectPointsLogic::RegisterNodes()
 {
   if( !this->GetMRMLScene() )
   {
     vtkWarningMacro("MRML scene not yet created");
     return;
   }
-  this->GetMRMLScene()->RegisterNodeClass( vtkSmartPointer< vtkMRMLCollectFiducialsNode >::New() );
+  this->GetMRMLScene()->RegisterNodeClass( vtkSmartPointer< vtkMRMLCollectPointsNode >::New() );
 }
 
 //------------------------------------------------------------------------------
-void vtkSlicerCollectFiducialsLogic::UpdateFromMRMLScene()
+void vtkSlicerCollectPointsLogic::UpdateFromMRMLScene()
 {
   assert(this->GetMRMLScene() != 0);
 }
 
 //------------------------------------------------------------------------------
-void vtkSlicerCollectFiducialsLogic::OnMRMLSceneNodeAdded( vtkMRMLNode* node )
+void vtkSlicerCollectPointsLogic::OnMRMLSceneNodeAdded( vtkMRMLNode* node )
 {
   if ( node == NULL || this->GetMRMLScene() == NULL )
   {
@@ -215,20 +215,20 @@ void vtkSlicerCollectFiducialsLogic::OnMRMLSceneNodeAdded( vtkMRMLNode* node )
     return;
   }
 
-  vtkMRMLCollectFiducialsNode* collectFiducialsNode = vtkMRMLCollectFiducialsNode::SafeDownCast( node );
-  if ( collectFiducialsNode )
+  vtkMRMLCollectPointsNode* collectPointsNode = vtkMRMLCollectPointsNode::SafeDownCast( node );
+  if ( collectPointsNode )
   {
     vtkDebugMacro( "OnMRMLSceneNodeAdded: Module node added." );
-    vtkUnObserveMRMLNodeMacro( collectFiducialsNode ); // Remove previous observers.
+    vtkUnObserveMRMLNodeMacro( collectPointsNode ); // Remove previous observers.
     vtkNew<vtkIntArray> events;
     events->InsertNextValue( vtkCommand::ModifiedEvent );
-    events->InsertNextValue( vtkMRMLCollectFiducialsNode::InputDataModifiedEvent );
-    vtkObserveMRMLNodeEventsMacro( collectFiducialsNode, events.GetPointer() );
+    events->InsertNextValue( vtkMRMLCollectPointsNode::InputDataModifiedEvent );
+    vtkObserveMRMLNodeEventsMacro( collectPointsNode, events.GetPointer() );
   }
 }
 
 //------------------------------------------------------------------------------
-void vtkSlicerCollectFiducialsLogic::OnMRMLSceneNodeRemoved( vtkMRMLNode* node )
+void vtkSlicerCollectPointsLogic::OnMRMLSceneNodeRemoved( vtkMRMLNode* node )
 {
   if ( node == NULL || this->GetMRMLScene() == NULL )
   {
@@ -236,7 +236,7 @@ void vtkSlicerCollectFiducialsLogic::OnMRMLSceneNodeRemoved( vtkMRMLNode* node )
     return;
   }
   
-  if ( node->IsA( "vtkMRMLCollectFiducialsNode" ) )
+  if ( node->IsA( "vtkMRMLCollectPointsNode" ) )
   {
     vtkDebugMacro( "OnMRMLSceneNodeRemoved" );
     vtkUnObserveMRMLNodeMacro( node );
@@ -244,33 +244,33 @@ void vtkSlicerCollectFiducialsLogic::OnMRMLSceneNodeRemoved( vtkMRMLNode* node )
 }
 
 //------------------------------------------------------------------------------
-void vtkSlicerCollectFiducialsLogic::ProcessMRMLNodesEvents( vtkObject* caller, unsigned long event, void* vtkNotUsed(callData) )
+void vtkSlicerCollectPointsLogic::ProcessMRMLNodesEvents( vtkObject* caller, unsigned long event, void* vtkNotUsed(callData) )
 {
-  vtkMRMLCollectFiducialsNode* collectFiducialsNode = vtkMRMLCollectFiducialsNode::SafeDownCast( caller );
-  if ( collectFiducialsNode == NULL )
+  vtkMRMLCollectPointsNode* collectPointsNode = vtkMRMLCollectPointsNode::SafeDownCast( caller );
+  if ( collectPointsNode == NULL )
   {
     vtkErrorMacro( "No parameter node set. Aborting." );
     return;
   }
   
-  if ( event == vtkMRMLCollectFiducialsNode::InputDataModifiedEvent )
+  if ( event == vtkMRMLCollectPointsNode::InputDataModifiedEvent )
   {
-    if ( collectFiducialsNode->GetCollectMode() == vtkMRMLCollectFiducialsNode::Automatic )
+    if ( collectPointsNode->GetCollectMode() == vtkMRMLCollectPointsNode::Automatic )
     {
-      if ( collectFiducialsNode->GetOutputNode() == NULL || collectFiducialsNode->GetProbeTransformNode() == NULL )
+      if ( collectPointsNode->GetOutputNode() == NULL || collectPointsNode->GetProbeTransformNode() == NULL )
       {
         vtkWarningMacro( "Collect fiducials node is not fully set up. Setting to manual collection." );
-        collectFiducialsNode->SetCollectModeToManual();
+        collectPointsNode->SetCollectModeToManual();
         return;
       }
-      this->AddPoint( collectFiducialsNode ); // Will create modified event to update widget
+      this->AddPoint( collectPointsNode ); // Will create modified event to update widget
     }
   }
 }
 
 //------------------------------------------------------------------------------
 // note: point coordinates MUST contain 3 values
-void vtkSlicerCollectFiducialsLogic::AddPointToModel( vtkMRMLModelNode* modelNode, double* pointCoordinates, double minimumDistanceFromPreviousPointMm )
+void vtkSlicerCollectPointsLogic::AddPointToModel( vtkMRMLModelNode* modelNode, double* pointCoordinates, double minimumDistanceFromPreviousPointMm )
 {
   if ( modelNode == NULL )
   {
@@ -309,7 +309,7 @@ void vtkSlicerCollectFiducialsLogic::AddPointToModel( vtkMRMLModelNode* modelNod
 }
 
 //------------------------------------------------------------------------------
-void vtkSlicerCollectFiducialsLogic::RemoveLastPointFromModel( vtkMRMLModelNode* modelNode )
+void vtkSlicerCollectPointsLogic::RemoveLastPointFromModel( vtkMRMLModelNode* modelNode )
 {
   if ( modelNode == NULL )
   {
@@ -345,7 +345,7 @@ void vtkSlicerCollectFiducialsLogic::RemoveLastPointFromModel( vtkMRMLModelNode*
 }
 
 //------------------------------------------------------------------------------
-void vtkSlicerCollectFiducialsLogic::UpdateCellsForPolyData( vtkPolyData* polyData )
+void vtkSlicerCollectPointsLogic::UpdateCellsForPolyData( vtkPolyData* polyData )
 {
   if ( polyData == NULL )
   {
@@ -372,7 +372,7 @@ void vtkSlicerCollectFiducialsLogic::UpdateCellsForPolyData( vtkPolyData* polyDa
 
 //------------------------------------------------------------------------------
 // note: point coordinates MUST contain 3 values
-void vtkSlicerCollectFiducialsLogic::AddPointToMarkups( vtkMRMLMarkupsFiducialNode* markupsNode, double* pointCoordinates, std::string markupLabel, double minimumDistanceFromPreviousPointMm )
+void vtkSlicerCollectPointsLogic::AddPointToMarkups( vtkMRMLMarkupsFiducialNode* markupsNode, double* pointCoordinates, std::string markupLabel, double minimumDistanceFromPreviousPointMm )
 {
   if ( markupsNode == NULL )
   {
