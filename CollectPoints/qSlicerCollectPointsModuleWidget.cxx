@@ -512,8 +512,18 @@ void qSlicerCollectPointsModuleWidget::updateGUIFromMRML()
       {
         d->OutputVisibilityButton->setIcon( QIcon( ":/Icons/PointInvisible.png" ) );
       }
+      // determine the color to assign to the color button
       double colorDouble[ 3 ];
-      outputDisplayNode->GetSelectedColor( colorDouble );
+      if ( vtkMRMLMarkupsFiducialNode::SafeDownCast( collectPointsNode->GetOutputNode() ) != NULL )
+      {
+        // for markups, use the selected color
+        outputDisplayNode->GetSelectedColor( colorDouble );
+      }
+      else if ( vtkMRMLModelNode::SafeDownCast( collectPointsNode->GetOutputNode() ) != NULL )
+      {
+        // for models, use the (not selected) color
+        outputDisplayNode->GetColor( colorDouble );
+      }
       QColor colorQColor;
       colorQColor.setRgbF( colorDouble[ 0 ], colorDouble[ 1 ], colorDouble[ 2 ] );
       d->OutputColorButton->setColor( colorQColor );
