@@ -18,70 +18,70 @@
 // Qt includes
 #include <QtPlugin>
 
-// CollectFiducials Logic includes
-#include <vtkSlicerCollectFiducialsLogic.h>
+// CollectPoints Logic includes
+#include <vtkSlicerCollectPointsLogic.h>
 
-// CollectFiducials includes
-#include "qSlicerCollectFiducialsModule.h"
-#include "qSlicerCollectFiducialsModuleWidget.h"
+// CollectPoints includes
+#include "qSlicerCollectPointsModule.h"
+#include "qSlicerCollectPointsModuleWidget.h"
 
 //-----------------------------------------------------------------------------
 #if (QT_VERSION < QT_VERSION_CHECK(5, 0, 0))
 #include <QtPlugin>
-Q_EXPORT_PLUGIN2(qSlicerCollectFiducialsModule, qSlicerCollectFiducialsModule);
+Q_EXPORT_PLUGIN2(qSlicerCollectPointsModule, qSlicerCollectPointsModule);
 #endif
 
 //-----------------------------------------------------------------------------
-/// \ingroup Slicer_QtModules_CollectFiducials
-class qSlicerCollectFiducialsModulePrivate
+/// \ingroup Slicer_QtModules_CollectPoints
+class qSlicerCollectPointsModulePrivate
 {
 public:
-  qSlicerCollectFiducialsModulePrivate();
+  qSlicerCollectPointsModulePrivate();
 };
 
 //-----------------------------------------------------------------------------
-// qSlicerCollectFiducialsModulePrivate methods
+// qSlicerCollectPointsModulePrivate methods
 
 //-----------------------------------------------------------------------------
-qSlicerCollectFiducialsModulePrivate::qSlicerCollectFiducialsModulePrivate()
+qSlicerCollectPointsModulePrivate::qSlicerCollectPointsModulePrivate()
 {
 }
 
 //-----------------------------------------------------------------------------
-// qSlicerCollectFiducialsModule methods
+// qSlicerCollectPointsModule methods
 
 //-----------------------------------------------------------------------------
-qSlicerCollectFiducialsModule::qSlicerCollectFiducialsModule(QObject* _parent)
+qSlicerCollectPointsModule::qSlicerCollectPointsModule(QObject* _parent)
   : Superclass(_parent)
-  , d_ptr(new qSlicerCollectFiducialsModulePrivate)
+  , d_ptr(new qSlicerCollectPointsModulePrivate)
 {
 }
 
 //-----------------------------------------------------------------------------
-QStringList qSlicerCollectFiducialsModule::categories()const
+QStringList qSlicerCollectPointsModule::categories()const
 {
   return QStringList() << "IGT";
 }
 
 //-----------------------------------------------------------------------------
-qSlicerCollectFiducialsModule::~qSlicerCollectFiducialsModule()
+qSlicerCollectPointsModule::~qSlicerCollectPointsModule()
 {
 }
 
 //-----------------------------------------------------------------------------
-QString qSlicerCollectFiducialsModule::helpText()const
+QString qSlicerCollectPointsModule::helpText()const
 {
   return "For help on how to use this module visit: <a href='https://www.assembla.com/spaces/slicerigt'>SlicerIGT</a>";
 }
 
 //-----------------------------------------------------------------------------
-QString qSlicerCollectFiducialsModule::acknowledgementText()const
+QString qSlicerCollectPointsModule::acknowledgementText()const
 {
   return "This work was was funded by Cancer Care Ontario and the Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO)";
 }
 
 //-----------------------------------------------------------------------------
-QStringList qSlicerCollectFiducialsModule::contributors()const
+QStringList qSlicerCollectPointsModule::contributors()const
 {
   QStringList moduleContributors;
   moduleContributors << QString("Thomas Vaughan (Queen's University)");
@@ -93,25 +93,25 @@ QStringList qSlicerCollectFiducialsModule::contributors()const
 }
 
 //-----------------------------------------------------------------------------
-QIcon qSlicerCollectFiducialsModule::icon()const
+QIcon qSlicerCollectPointsModule::icon()const
 {
-  return QIcon(":/Icons/CollectFiducials.png");
+  return QIcon(":/Icons/CollectPoints.png");
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerCollectFiducialsModule::setup()
+void qSlicerCollectPointsModule::setup()
 {
   this->Superclass::setup();
 }
 
 //-----------------------------------------------------------------------------
-qSlicerAbstractModuleRepresentation * qSlicerCollectFiducialsModule::createWidgetRepresentation()
+qSlicerAbstractModuleRepresentation * qSlicerCollectPointsModule::createWidgetRepresentation()
 {
-  return new qSlicerCollectFiducialsModuleWidget;
+  return new qSlicerCollectPointsModuleWidget;
 }
 
 //-----------------------------------------------------------------------------
-vtkMRMLAbstractLogic* qSlicerCollectFiducialsModule::createLogic()
+vtkMRMLAbstractLogic* qSlicerCollectPointsModule::createLogic()
 {
-  return vtkSlicerCollectFiducialsLogic::New();
+  return vtkSlicerCollectPointsLogic::New();
 }

@@ -15,8 +15,8 @@
 
 ==============================================================================*/
 
-// CollectFiducials includes
-#include "vtkMRMLCollectFiducialsNode.h"
+// CollectPoints includes
+#include "vtkMRMLCollectPointsNode.h"
 
 // slicer includes
 #include "vtkMRMLMarkupsFiducialNode.h"
@@ -34,10 +34,10 @@
 static const char* PROBE_TRANSFORM_REFERENCE_ROLE = "ProbeTransformNode";
 static const char* OUTPUT_REFERENCE_ROLE = "OutputNode";
 
-vtkMRMLNodeNewMacro( vtkMRMLCollectFiducialsNode );
+vtkMRMLNodeNewMacro( vtkMRMLCollectPointsNode );
 
 //------------------------------------------------------------------------------
-vtkMRMLCollectFiducialsNode::vtkMRMLCollectFiducialsNode()
+vtkMRMLCollectPointsNode::vtkMRMLCollectPointsNode()
 {
   this->HideFromEditorsOff();
   this->SetSaveWithScene( true );
@@ -55,12 +55,12 @@ vtkMRMLCollectFiducialsNode::vtkMRMLCollectFiducialsNode()
 }
 
 //------------------------------------------------------------------------------
-vtkMRMLCollectFiducialsNode::~vtkMRMLCollectFiducialsNode()
+vtkMRMLCollectPointsNode::~vtkMRMLCollectPointsNode()
 {
 }
 
 // ----------------------------------------------------------------------------
-void vtkMRMLCollectFiducialsNode::WriteXML( ostream& of, int nIndent )
+void vtkMRMLCollectPointsNode::WriteXML( ostream& of, int nIndent )
 {
   Superclass::WriteXML( of, nIndent ); // This will take care of referenced nodes
 
@@ -72,7 +72,7 @@ void vtkMRMLCollectFiducialsNode::WriteXML( ostream& of, int nIndent )
 }
 
 // ----------------------------------------------------------------------------
-void vtkMRMLCollectFiducialsNode::PrintSelf( ostream& os, vtkIndent indent )
+void vtkMRMLCollectPointsNode::PrintSelf( ostream& os, vtkIndent indent )
 {
   Superclass::PrintSelf( os, indent );
   os << indent << " LabelBase=\"" << this->LabelBase << "\"";
@@ -82,7 +82,7 @@ void vtkMRMLCollectFiducialsNode::PrintSelf( ostream& os, vtkIndent indent )
 }
 
 //------------------------------------------------------------------------------
-void vtkMRMLCollectFiducialsNode::ReadXMLAttributes( const char** atts )
+void vtkMRMLCollectPointsNode::ReadXMLAttributes( const char** atts )
 {
   Superclass::ReadXMLAttributes(atts); // This will take care of referenced nodes
 
@@ -132,21 +132,21 @@ void vtkMRMLCollectFiducialsNode::ReadXMLAttributes( const char** atts )
 }
 
 //------------------------------------------------------------------------------
-void vtkMRMLCollectFiducialsNode::Copy( vtkMRMLNode *anode )
+void vtkMRMLCollectPointsNode::Copy( vtkMRMLNode *anode )
 {  
   Superclass::Copy( anode ); // This will take care of referenced nodes
   this->Modified();
 }
 
 //------------------------------------------------------------------------------
-vtkMRMLLinearTransformNode* vtkMRMLCollectFiducialsNode::GetProbeTransformNode()
+vtkMRMLLinearTransformNode* vtkMRMLCollectPointsNode::GetProbeTransformNode()
 {
   vtkMRMLLinearTransformNode* node = vtkMRMLLinearTransformNode::SafeDownCast( this->GetNodeReference( PROBE_TRANSFORM_REFERENCE_ROLE ) );
   return node;
 }
 
 //------------------------------------------------------------------------------
-void vtkMRMLCollectFiducialsNode::SetAndObserveProbeTransformNodeId( const char* nodeId )
+void vtkMRMLCollectPointsNode::SetAndObserveProbeTransformNodeId( const char* nodeId )
 {
   const char* currentNodeId = this->GetNodeReferenceID( PROBE_TRANSFORM_REFERENCE_ROLE );
   if ( nodeId != NULL && currentNodeId != NULL && strcmp( nodeId, currentNodeId ) == 0 )
@@ -159,14 +159,14 @@ void vtkMRMLCollectFiducialsNode::SetAndObserveProbeTransformNodeId( const char*
 }
 
 //------------------------------------------------------------------------------
-vtkMRMLNode* vtkMRMLCollectFiducialsNode::GetOutputNode()
+vtkMRMLNode* vtkMRMLCollectPointsNode::GetOutputNode()
 {
   vtkMRMLNode* node = vtkMRMLNode::SafeDownCast( this->GetNodeReference( OUTPUT_REFERENCE_ROLE ) );
   return node;
 }
 
 //------------------------------------------------------------------------------
-int vtkMRMLCollectFiducialsNode::GetNumberOfPointsInOutput()
+int vtkMRMLCollectPointsNode::GetNumberOfPointsInOutput()
 {
   vtkMRMLNode* outputNode = this->GetOutputNode();
   if ( outputNode == NULL )
@@ -197,7 +197,7 @@ int vtkMRMLCollectFiducialsNode::GetNumberOfPointsInOutput()
 }
 
 //------------------------------------------------------------------------------
-void vtkMRMLCollectFiducialsNode::SetOutputNodeId( const char* nodeId )
+void vtkMRMLCollectPointsNode::SetOutputNodeId( const char* nodeId )
 {
   const char* currentNodeId = this->GetNodeReferenceID( OUTPUT_REFERENCE_ROLE );
   if ( nodeId != NULL && currentNodeId != NULL && strcmp( nodeId, currentNodeId ) == 0 )
@@ -209,7 +209,7 @@ void vtkMRMLCollectFiducialsNode::SetOutputNodeId( const char* nodeId )
 }
 
 //------------------------------------------------------------------------------
-void vtkMRMLCollectFiducialsNode::ProcessMRMLEvents( vtkObject *caller, unsigned long vtkNotUsed(event), void* vtkNotUsed(callData) )
+void vtkMRMLCollectPointsNode::ProcessMRMLEvents( vtkObject *caller, unsigned long vtkNotUsed(event), void* vtkNotUsed(callData) )
 {
   vtkMRMLNode* callerNode = vtkMRMLNode::SafeDownCast( caller );
   if ( callerNode == NULL ) 
@@ -224,7 +224,7 @@ void vtkMRMLCollectFiducialsNode::ProcessMRMLEvents( vtkObject *caller, unsigned
 }
 
 //------------------------------------------------------------------------------
-int vtkMRMLCollectFiducialsNode::GetCollectModeFromString( const char* name )
+int vtkMRMLCollectPointsNode::GetCollectModeFromString( const char* name )
 {
   if ( name == NULL )
   {
@@ -244,7 +244,7 @@ int vtkMRMLCollectFiducialsNode::GetCollectModeFromString( const char* name )
 }
 
 //------------------------------------------------------------------------------
-const char* vtkMRMLCollectFiducialsNode::GetCollectModeAsString( int id )
+const char* vtkMRMLCollectPointsNode::GetCollectModeAsString( int id )
 {
   switch ( id )
   {

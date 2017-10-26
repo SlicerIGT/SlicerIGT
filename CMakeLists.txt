@@ -23,7 +23,7 @@ include(${Slicer_USE_FILE})
 #-----------------------------------------------------------------------------
 # Extension modules
 add_subdirectory(BreachWarning)
-add_subdirectory(CollectFiducials)
+add_subdirectory(CollectPoints)
 add_subdirectory(CreateModels)
 add_subdirectory(FiducialRegistrationWizard)
 add_subdirectory(FiducialsToModelRegistration)

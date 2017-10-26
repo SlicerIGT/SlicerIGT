@@ -15,14 +15,14 @@
 
 ==============================================================================*/
 
-// .NAME vtkSlicerCollectFiducialsLogic - slicer logic class for volumes manipulation
+// .NAME vtkSlicerCollectPointsLogic - slicer logic class for volumes manipulation
 // .SECTION Description
 // This class manages the logic associated with reading, saving,
 // and changing propertied of the volumes
 
 
-#ifndef __vtkSlicerCollectFiducialsLogic_h
-#define __vtkSlicerCollectFiducialsLogic_h
+#ifndef __vtkSlicerCollectPointsLogic_h
+#define __vtkSlicerCollectPointsLogic_h
 
 // Slicer includes
 #include "vtkSlicerModuleLogic.h"
@@ -39,29 +39,29 @@
 #include <string>
 #include <cstdlib>
 
-// includes related to CollectFiducials
-#include "vtkMRMLCollectFiducialsNode.h"
-#include "vtkSlicerCollectFiducialsModuleLogicExport.h"
+// includes related to CollectPoints
+#include "vtkMRMLCollectPointsNode.h"
+#include "vtkSlicerCollectPointsModuleLogicExport.h"
 
-/// \ingroup Slicer_QtModules_CollectFiducials
-class VTK_SLICER_COLLECTFIDUCIALS_MODULE_LOGIC_EXPORT vtkSlicerCollectFiducialsLogic :
+/// \ingroup Slicer_QtModules_CollectPoints
+class VTK_SLICER_COLLECTPOINTS_MODULE_LOGIC_EXPORT vtkSlicerCollectPointsLogic :
   public vtkSlicerModuleLogic
 {
 public:
   
-  static vtkSlicerCollectFiducialsLogic *New();
-  vtkTypeMacro(vtkSlicerCollectFiducialsLogic,vtkSlicerModuleLogic);
+  static vtkSlicerCollectPointsLogic *New();
+  vtkTypeMacro(vtkSlicerCollectPointsLogic,vtkSlicerModuleLogic);
   void PrintSelf(ostream& os, vtkIndent indent);
   
-  void AddPoint( vtkMRMLCollectFiducialsNode* collectFiducialsNode );
-  void RemoveLastPoint( vtkMRMLCollectFiducialsNode* collectFiducialsNode );
-  void RemoveAllPoints( vtkMRMLCollectFiducialsNode* collectFiducialsNode );
+  void AddPoint( vtkMRMLCollectPointsNode* collectPointsNode );
+  void RemoveLastPoint( vtkMRMLCollectPointsNode* collectPointsNode );
+  void RemoveAllPoints( vtkMRMLCollectPointsNode* collectPointsNode );
   
   void ProcessMRMLNodesEvents( vtkObject* caller, unsigned long event, void* callData );
 
 protected:
-  vtkSlicerCollectFiducialsLogic();
-  virtual ~vtkSlicerCollectFiducialsLogic();
+  vtkSlicerCollectPointsLogic();
+  virtual ~vtkSlicerCollectPointsLogic();
 
   virtual void SetMRMLSceneInternal(vtkMRMLScene * newScene);
   /// Register MRML Node classes to Scene. Gets called automatically when the MRMLScene is attached to this logic class.
@@ -76,8 +76,8 @@ private:
   void UpdateCellsForPolyData( vtkPolyData* polyData );
   void AddPointToMarkups( vtkMRMLMarkupsFiducialNode* markupsNode, double pointCoordinates[ 3 ],
                           std::string label, double minimumDistanceFromPreviousPointMm=0.0 );
-  vtkSlicerCollectFiducialsLogic(const vtkSlicerCollectFiducialsLogic&); // Not implemented
-  void operator=(const vtkSlicerCollectFiducialsLogic&);               // Not implemented
+  vtkSlicerCollectPointsLogic(const vtkSlicerCollectPointsLogic&); // Not implemented
+  void operator=(const vtkSlicerCollectPointsLogic&);               // Not implemented
   
 protected:
   int Counter;

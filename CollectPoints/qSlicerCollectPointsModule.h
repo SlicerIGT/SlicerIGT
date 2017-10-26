@@ -15,18 +15,18 @@
 
 ==============================================================================*/
 
-#ifndef __qSlicerCollectFiducialsModule_h
-#define __qSlicerCollectFiducialsModule_h
+#ifndef __qSlicerCollectPointsModule_h
+#define __qSlicerCollectPointsModule_h
 
 // SlicerQt includes
 #include "qSlicerLoadableModule.h"
 
-#include "qSlicerCollectFiducialsModuleExport.h"
+#include "qSlicerCollectPointsModuleExport.h"
 
-class qSlicerCollectFiducialsModulePrivate;
+class qSlicerCollectPointsModulePrivate;
 
-/// \ingroup Slicer_QtModules_CollectFiducials
-class Q_SLICER_QTMODULES_COLLECTFIDUCIALS_EXPORT qSlicerCollectFiducialsModule :
+/// \ingroup Slicer_QtModules_CollectPoints
+class Q_SLICER_QTMODULES_COLLECTPOINTS_EXPORT qSlicerCollectPointsModule :
   public qSlicerLoadableModule
 {
   Q_OBJECT
@@ -38,8 +38,8 @@ class Q_SLICER_QTMODULES_COLLECTFIDUCIALS_EXPORT qSlicerCollectFiducialsModule :
 public:
 
   typedef qSlicerLoadableModule Superclass;
-  explicit qSlicerCollectFiducialsModule(QObject *parent=0);
-  virtual ~qSlicerCollectFiducialsModule();
+  explicit qSlicerCollectPointsModule(QObject *parent=0);
+  virtual ~qSlicerCollectPointsModule();
 
   qSlicerGetTitleMacro(QTMODULE_TITLE);
   
@@ -70,11 +70,11 @@ protected:
   virtual vtkMRMLAbstractLogic* createLogic();
 
 protected:
-  QScopedPointer<qSlicerCollectFiducialsModulePrivate> d_ptr;
+  QScopedPointer<qSlicerCollectPointsModulePrivate> d_ptr;
 
 private:
-  Q_DECLARE_PRIVATE(qSlicerCollectFiducialsModule);
-  Q_DISABLE_COPY(qSlicerCollectFiducialsModule);
+  Q_DECLARE_PRIVATE(qSlicerCollectPointsModule);
+  Q_DISABLE_COPY(qSlicerCollectPointsModule);
 
 };
 

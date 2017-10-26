@@ -15,27 +15,27 @@
 
 ==============================================================================*/
 
-#ifndef __qSlicerCollectFiducialsModuleWidget_h
-#define __qSlicerCollectFiducialsModuleWidget_h
+#ifndef __qSlicerCollectPointsModuleWidget_h
+#define __qSlicerCollectPointsModuleWidget_h
 
 // SlicerQt includes
 #include "qSlicerAbstractModuleWidget.h"
 
-#include "qSlicerCollectFiducialsModuleExport.h"
+#include "qSlicerCollectPointsModuleExport.h"
 
-class qSlicerCollectFiducialsModuleWidgetPrivate;
+class qSlicerCollectPointsModuleWidgetPrivate;
 class vtkMRMLNode;
 
-/// \ingroup Slicer_QtModules_CollectFiducials
-class Q_SLICER_QTMODULES_COLLECTFIDUCIALS_EXPORT qSlicerCollectFiducialsModuleWidget :
+/// \ingroup Slicer_QtModules_CollectPoints
+class Q_SLICER_QTMODULES_COLLECTPOINTS_EXPORT qSlicerCollectPointsModuleWidget :
   public qSlicerAbstractModuleWidget
 {
   Q_OBJECT
 
 public:
   typedef qSlicerAbstractModuleWidget Superclass;
-  qSlicerCollectFiducialsModuleWidget(QWidget *parent=0);
-  virtual ~qSlicerCollectFiducialsModuleWidget();
+  qSlicerCollectPointsModuleWidget(QWidget *parent=0);
+  virtual ~qSlicerCollectPointsModuleWidget();
 
 public slots:
   void setMRMLScene( vtkMRMLScene* scene );
@@ -60,14 +60,14 @@ protected slots:
   void updateGUIFromMRML();
   
 protected:
-  QScopedPointer<qSlicerCollectFiducialsModuleWidgetPrivate> d_ptr;
+  QScopedPointer<qSlicerCollectPointsModuleWidgetPrivate> d_ptr;
   virtual void setup();
   virtual void enter();
   virtual void exit();
 
 private:
-  Q_DECLARE_PRIVATE(qSlicerCollectFiducialsModuleWidget);
-  Q_DISABLE_COPY(qSlicerCollectFiducialsModuleWidget);
+  Q_DECLARE_PRIVATE(qSlicerCollectPointsModuleWidget);
+  Q_DISABLE_COPY(qSlicerCollectPointsModuleWidget);
 };
 
 #endif
