@@ -101,7 +101,7 @@ void vtkMRMLTransformProcessorNode::ReadXMLAttributes( const char** atts )
     }
     else if ( strcmp( attName, "UpdateMode" ) == 0 )
     {
-      int modeAsInt = GetUpdateModeFromString( attValue );
+      int modeAsInt = this->GetUpdateModeFromString( attValue );
       if ( modeAsInt >= 0 && modeAsInt < UPDATE_MODE_LAST)
       {
         this->UpdateMode = modeAsInt;
@@ -114,7 +114,7 @@ void vtkMRMLTransformProcessorNode::ReadXMLAttributes( const char** atts )
     }
     else if ( strcmp( attName, "ProcessingMode" ) == 0 )
     {
-      int modeAsInt = GetProcessingModeFromString( attValue );
+      int modeAsInt = this->GetProcessingModeFromString( attValue );
       if ( modeAsInt >= 0 && modeAsInt < PROCESSING_MODE_LAST)
       {
         this->ProcessingMode = modeAsInt;
@@ -127,7 +127,7 @@ void vtkMRMLTransformProcessorNode::ReadXMLAttributes( const char** atts )
     }
     else if ( strcmp( attName, "RotationMode" ) == 0 )
     {
-      int modeAsInt = GetRotationModeFromString( attValue );
+      int modeAsInt = this->GetRotationModeFromString( attValue );
       if ( modeAsInt >= 0 && modeAsInt < ROTATION_MODE_LAST)
       {
         this->RotationMode = modeAsInt;
@@ -140,7 +140,7 @@ void vtkMRMLTransformProcessorNode::ReadXMLAttributes( const char** atts )
     }
     else if ( strcmp( attName, "PrimaryAxisLabel" ) == 0 )
     {
-      int labelAsInt = GetAxisLabelFromString( attValue );
+      int labelAsInt = this->GetAxisLabelFromString( attValue );
       if ( labelAsInt >= 0 && labelAsInt < AXIS_LABEL_LAST)
       {
         this->PrimaryAxisLabel = labelAsInt;
@@ -153,7 +153,7 @@ void vtkMRMLTransformProcessorNode::ReadXMLAttributes( const char** atts )
     }
     else if ( strcmp( attName, "DependentAxesMode" ) == 0 )
     {
-      int modeAsInt = GetDependentAxesModeFromString( attValue );
+      int modeAsInt = this->GetDependentAxesModeFromString( attValue );
       if ( modeAsInt >= 0 && modeAsInt < DEPENDENT_AXES_MODE_LAST)
       {
         this->DependentAxesMode = modeAsInt;
@@ -166,7 +166,7 @@ void vtkMRMLTransformProcessorNode::ReadXMLAttributes( const char** atts )
     }
     else if ( strcmp( attName, "SecondaryAxisLabel" ) == 0 )
     {
-      int labelAsInt = GetAxisLabelFromString( attValue );
+      int labelAsInt = this->GetAxisLabelFromString( attValue );
       if ( labelAsInt >= 0 && labelAsInt < AXIS_LABEL_LAST)
       {
         this->SecondaryAxisLabel = labelAsInt;
@@ -180,17 +180,17 @@ void vtkMRMLTransformProcessorNode::ReadXMLAttributes( const char** atts )
     else if ( strcmp( attName, "CopyTranslationX" ) == 0 )
     {
       bool isTrue = !strcmp( attValue, "true" );
-      SetCopyTranslationX( isTrue );
+      this->SetCopyTranslationX( isTrue );
     }
     else if ( strcmp( attName, "CopyTranslationY" ) == 0 )
     {
       bool isTrue = !strcmp( attValue, "true" );
-      SetCopyTranslationY( isTrue );
+      this->SetCopyTranslationY( isTrue );
     }
     else if ( strcmp( attName, "CopyTranslationZ" ) == 0 )
     {
       bool isTrue = !strcmp( attValue, "true" );
-      SetCopyTranslationZ( isTrue );
+      this->SetCopyTranslationZ( isTrue );
     }
   }
 
@@ -203,12 +203,12 @@ void vtkMRMLTransformProcessorNode::WriteXML( ostream& of, int nIndent )
   Superclass::WriteXML( of, nIndent );
   vtkIndent indent( nIndent );
   of << indent << " UpdatesPerSecond=\"" << this->UpdatesPerSecond << "\"";
-  of << indent << " UpdateMode=\"" << GetUpdateModeAsString( this->UpdateMode ) << "\"";
-  of << indent << " ProcessingMode=\"" << GetProcessingModeAsString( this->ProcessingMode ) << "\"";
-  of << indent << " RotationMode=\"" << GetRotationModeAsString( this->RotationMode ) << "\"";
-  of << indent << " PrimaryAxisLabel=\"" << GetAxisLabelAsString( this->PrimaryAxisLabel ) << "\"";
-  of << indent << " DependentAxesMode=\"" << GetDependentAxesModeAsString( this->DependentAxesMode ) << "\"";
-  of << indent << " SecondaryAxisLabel=\"" << GetAxisLabelAsString( this->SecondaryAxisLabel ) << "\"";
+  of << indent << " UpdateMode=\"" << this->GetUpdateModeAsString( this->UpdateMode ) << "\"";
+  of << indent << " ProcessingMode=\"" << this->GetProcessingModeAsString( this->ProcessingMode ) << "\"";
+  of << indent << " RotationMode=\"" << this->GetRotationModeAsString( this->RotationMode ) << "\"";
+  of << indent << " PrimaryAxisLabel=\"" << this->GetAxisLabelAsString( this->PrimaryAxisLabel ) << "\"";
+  of << indent << " DependentAxesMode=\"" << this->GetDependentAxesModeAsString( this->DependentAxesMode ) << "\"";
+  of << indent << " SecondaryAxisLabel=\"" << this->GetAxisLabelAsString( this->SecondaryAxisLabel ) << "\"";
   of << indent << " CopyTranslationX=\"" << ( this->CopyTranslationComponents[ 0 ] ? "true" : "false" ) << "\"";
   of << indent << " CopyTranslationY=\"" << ( this->CopyTranslationComponents[ 1 ] ? "true" : "false" ) << "\"";
   of << indent << " CopyTranslationZ=\"" << ( this->CopyTranslationComponents[ 2 ] ? "true" : "false" ) << "\"";
@@ -219,12 +219,12 @@ void vtkMRMLTransformProcessorNode::PrintSelf( ostream& os, vtkIndent indent )
 {
   Superclass::PrintSelf( os, indent );
   os << indent << " UpdatesPerSecond = " << this->UpdatesPerSecond << "\n";
-  os << indent << " UpdateMode = " << GetUpdateModeAsString( this->UpdateMode ) << "\n";
-  os << indent << " ProcessingMode = " << GetProcessingModeAsString( this->ProcessingMode ) << "\n";
-  os << indent << " RotationMode = " << GetRotationModeAsString( this->RotationMode ) << "\n";
-  os << indent << " PrimaryAxisLabel = " << GetAxisLabelAsString( this->PrimaryAxisLabel ) << "\n";
-  os << indent << " DependentAxesMode = " << GetDependentAxesModeAsString( this->DependentAxesMode ) << "\n";
-  os << indent << " SecondaryAxisLabel = " << GetAxisLabelAsString( this->SecondaryAxisLabel ) << "\n";
+  os << indent << " UpdateMode = " << this->GetUpdateModeAsString( this->UpdateMode ) << "\n";
+  os << indent << " ProcessingMode = " << this->GetProcessingModeAsString( this->ProcessingMode ) << "\n";
+  os << indent << " RotationMode = " << this->GetRotationModeAsString( this->RotationMode ) << "\n";
+  os << indent << " PrimaryAxisLabel = " << this->GetAxisLabelAsString( this->PrimaryAxisLabel ) << "\n";
+  os << indent << " DependentAxesMode = " << this->GetDependentAxesModeAsString( this->DependentAxesMode ) << "\n";
+  os << indent << " SecondaryAxisLabel = " << this->GetAxisLabelAsString( this->SecondaryAxisLabel ) << "\n";
   os << indent << " CopyTranslationX = " << ( this->CopyTranslationComponents[ 0 ] ? "true" : "false" ) << "\n";
   os << indent << " CopyTranslationY = " << ( this->CopyTranslationComponents[ 1 ] ? "true" : "false" ) << "\n";
   os << indent << " CopyTranslationZ = " << ( this->CopyTranslationComponents[ 2 ] ? "true" : "false" ) << "\n";
@@ -506,7 +506,7 @@ vtkMRMLLinearTransformNode* vtkMRMLTransformProcessorNode::GetNthTransformNodeIn
 //----------------------------------------------------------------------------
 void vtkMRMLTransformProcessorNode::SetAndObserveTransformNodeInRole( const char* role, vtkMRMLLinearTransformNode* node )
 {
-  if ( node == GetTransformNodeInRole( role ) )
+  if ( node == this->GetTransformNodeInRole( role ) )
   {
     // if the node is the same, then no need to do anything
     return;
@@ -536,9 +536,9 @@ void vtkMRMLTransformProcessorNode::AddAndObserveTransformNodeInRole( const char
   }
 
   // need to iterate over existing inputs, make sure we are not adding a duplicate
-  for ( int n = 0; n < GetNumberOfTransformNodesInRole( role ); n++ )
+  for ( int n = 0; n < this->GetNumberOfTransformNodesInRole( role ); n++ )
   {
-    if ( node == GetNthTransformNodeInRole( role, n ) )
+    if ( node == this->GetNthTransformNodeInRole( role, n ) )
     {
       return;
     }
@@ -565,43 +565,43 @@ int vtkMRMLTransformProcessorNode::GetNumberOfTransformNodesInRole( const char* 
 //----------------------------------------------------------------------------
 vtkMRMLLinearTransformNode* vtkMRMLTransformProcessorNode::GetTransformNodeInRole( const char* role )
 {
-  return GetNthTransformNodeInRole( role, 0 );
+  return this->GetNthTransformNodeInRole( role, 0 );
 }
 
 //----------------------------------------------------------------------------
 vtkMRMLLinearTransformNode* vtkMRMLTransformProcessorNode::GetNthInputCombineTransformNode( int n )
 {
-  return GetNthTransformNodeInRole( ROLE_INPUT_COMBINE_TRANSFORM, n );
+  return this->GetNthTransformNodeInRole( ROLE_INPUT_COMBINE_TRANSFORM, n );
 }
 
 //----------------------------------------------------------------------------
 void vtkMRMLTransformProcessorNode::AddAndObserveInputCombineTransformNode( vtkMRMLLinearTransformNode* node )
 {
-  AddAndObserveTransformNodeInRole( ROLE_INPUT_COMBINE_TRANSFORM, node );
+  this->AddAndObserveTransformNodeInRole( ROLE_INPUT_COMBINE_TRANSFORM, node );
 }
 
 //----------------------------------------------------------------------------
 void vtkMRMLTransformProcessorNode::RemoveNthInputCombineTransformNode( int n )
 {
-  RemoveNthTransformNodeInRole( ROLE_INPUT_COMBINE_TRANSFORM, n );
+  this->RemoveNthTransformNodeInRole( ROLE_INPUT_COMBINE_TRANSFORM, n );
 }
 
 //----------------------------------------------------------------------------
 int vtkMRMLTransformProcessorNode::GetNumberOfInputCombineTransformNodes()
 {
-  return GetNumberOfTransformNodesInRole( ROLE_INPUT_COMBINE_TRANSFORM );
+  return this->GetNumberOfTransformNodesInRole( ROLE_INPUT_COMBINE_TRANSFORM );
 }
 
 //----------------------------------------------------------------------------
 vtkMRMLLinearTransformNode* vtkMRMLTransformProcessorNode::GetInputFromTransformNode()
 {
-  return GetTransformNodeInRole( ROLE_INPUT_FROM_TRANSFORM );
+  return this->GetTransformNodeInRole( ROLE_INPUT_FROM_TRANSFORM );
 }
 
 //----------------------------------------------------------------------------
 void vtkMRMLTransformProcessorNode::SetAndObserveInputFromTransformNode( vtkMRMLLinearTransformNode* node )
 {
-  SetAndObserveTransformNodeInRole( ROLE_INPUT_FROM_TRANSFORM, node );
+  this->SetAndObserveTransformNodeInRole( ROLE_INPUT_FROM_TRANSFORM, node );
 }
 
 //----------------------------------------------------------------------------
@@ -613,7 +613,7 @@ vtkMRMLLinearTransformNode* vtkMRMLTransformProcessorNode::GetInputToTransformNo
 //----------------------------------------------------------------------------
 void vtkMRMLTransformProcessorNode::SetAndObserveInputToTransformNode( vtkMRMLLinearTransformNode* node )
 {
-  SetAndObserveTransformNodeInRole( ROLE_INPUT_TO_TRANSFORM, node );
+  this->SetAndObserveTransformNodeInRole( ROLE_INPUT_TO_TRANSFORM, node );
 }
 
 //----------------------------------------------------------------------------
@@ -625,7 +625,7 @@ vtkMRMLLinearTransformNode* vtkMRMLTransformProcessorNode::GetInputInitialTransf
 //----------------------------------------------------------------------------
 void vtkMRMLTransformProcessorNode::SetAndObserveInputInitialTransformNode( vtkMRMLLinearTransformNode* node )
 {
-  SetAndObserveTransformNodeInRole( ROLE_INPUT_INITIAL_TRANSFORM, node );
+  this->SetAndObserveTransformNodeInRole( ROLE_INPUT_INITIAL_TRANSFORM, node );
 }
 
 //----------------------------------------------------------------------------
@@ -637,7 +637,7 @@ vtkMRMLLinearTransformNode* vtkMRMLTransformProcessorNode::GetInputChangedTransf
 //----------------------------------------------------------------------------
 void vtkMRMLTransformProcessorNode::SetAndObserveInputChangedTransformNode( vtkMRMLLinearTransformNode* node )
 {
-  SetAndObserveTransformNodeInRole( ROLE_INPUT_CHANGED_TRANSFORM, node );
+  this->SetAndObserveTransformNodeInRole( ROLE_INPUT_CHANGED_TRANSFORM, node );
 }
 
 //----------------------------------------------------------------------------
@@ -649,7 +649,7 @@ vtkMRMLLinearTransformNode* vtkMRMLTransformProcessorNode::GetInputAnchorTransfo
 //----------------------------------------------------------------------------
 void vtkMRMLTransformProcessorNode::SetAndObserveInputAnchorTransformNode( vtkMRMLLinearTransformNode* node )
 {
-  SetAndObserveTransformNodeInRole( ROLE_INPUT_ANCHOR_TRANSFORM, node );
+  this->SetAndObserveTransformNodeInRole( ROLE_INPUT_ANCHOR_TRANSFORM, node );
 }
 
 //----------------------------------------------------------------------------
@@ -661,7 +661,7 @@ vtkMRMLLinearTransformNode* vtkMRMLTransformProcessorNode::GetOutputTransformNod
 //----------------------------------------------------------------------------
 void vtkMRMLTransformProcessorNode::SetAndObserveOutputTransformNode( vtkMRMLLinearTransformNode* node )
 {
-  SetAndObserveTransformNodeInRole( ROLE_OUTPUT_TRANSFORM, node );
+  this->SetAndObserveTransformNodeInRole( ROLE_OUTPUT_TRANSFORM, node );
 }
 
 //----------------------------------------------------------------------------
@@ -720,7 +720,7 @@ int vtkMRMLTransformProcessorNode::GetUpdateModeFromString( std::string name )
 {
   for ( int i = 0; i < UPDATE_MODE_LAST; i++ )
   {
-    if ( name == GetUpdateModeAsString( i ) )
+    if ( name == vtkMRMLTransformProcessorNode::GetUpdateModeAsString( i ) )
     {
       // found a matching name
       return i;
@@ -750,7 +750,7 @@ int vtkMRMLTransformProcessorNode::GetRotationModeFromString( std::string name )
 {
   for ( int i = 0; i < ROTATION_MODE_LAST; i++ )
   {
-    if ( name == GetRotationModeAsString( i ) )
+    if ( name == vtkMRMLTransformProcessorNode::GetRotationModeAsString( i ) )
     {
       // found a matching name
       return i;
@@ -780,7 +780,7 @@ int vtkMRMLTransformProcessorNode::GetDependentAxesModeFromString( std::string n
 {
   for ( int i = 0; i < DEPENDENT_AXES_MODE_LAST; i++ )
   {
-    if ( name == GetDependentAxesModeAsString( i ) )
+    if ( name == vtkMRMLTransformProcessorNode::GetDependentAxesModeAsString( i ) )
     {
       // found a matching name
       return i;
@@ -812,7 +812,7 @@ int vtkMRMLTransformProcessorNode::GetAxisLabelFromString( std::string name )
 {
   for ( int i = 0; i < AXIS_LABEL_LAST; i++ )
   {
-    if ( name == GetAxisLabelAsString( i ) )
+    if ( name == vtkMRMLTransformProcessorNode::GetAxisLabelAsString( i ) )
     {
       // found a matching name
       return i;

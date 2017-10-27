@@ -177,7 +177,7 @@ void vtkSlicerTransformProcessorLogic::UpdateOutputTransform( vtkMRMLTransformPr
 void vtkSlicerTransformProcessorLogic::QuaternionAverage( vtkMRMLTransformProcessorNode* paramNode )
 {
   bool verboseWarnings = true;
-  bool conditionsMetForProcessing = IsTransformProcessingPossible( paramNode, verboseWarnings );
+  bool conditionsMetForProcessing = this->IsTransformProcessingPossible( paramNode, verboseWarnings );
   if ( conditionsMetForProcessing == false )
   {
     return;
@@ -268,7 +268,7 @@ void vtkSlicerTransformProcessorLogic::QuaternionAverage( vtkMRMLTransformProces
 void vtkSlicerTransformProcessorLogic::ComputeShaftPivotTransform( vtkMRMLTransformProcessorNode* paramNode )
 {
   bool verboseWarnings = true;
-  bool conditionsMetForProcessing = IsTransformProcessingPossible( paramNode, verboseWarnings );
+  bool conditionsMetForProcessing = this->IsTransformProcessingPossible( paramNode, verboseWarnings );
   if ( conditionsMetForProcessing == false )
   {
     return;
@@ -286,20 +286,20 @@ void vtkSlicerTransformProcessorLogic::ComputeShaftPivotTransform( vtkMRMLTransf
   inputChangedNode->GetTransformToNode( inputInitialNode, inputChangedToInputInitialTransform );
   double shaftDirection[ 3 ] = { 0.0, 0.0, -1.0 }; // conventional shaft direction in SlicerIGT
   vtkSmartPointer< vtkTransform > adjustedToInputInitialRotationOnlyTransform = vtkSmartPointer< vtkTransform >::New();
-  GetRotationSingleAxisWithPivotFromTransform( inputChangedToInputInitialTransform, shaftDirection, adjustedToInputInitialRotationOnlyTransform );
+  this->GetRotationSingleAxisWithPivotFromTransform( inputChangedToInputInitialTransform, shaftDirection, adjustedToInputInitialRotationOnlyTransform );
 
   vtkMRMLLinearTransformNode* inputAnchorNode = paramNode->GetInputAnchorTransformNode();
   vtkSmartPointer< vtkGeneralTransform > inputInitialToInputAnchorTransform = vtkSmartPointer< vtkGeneralTransform >::New();
   inputInitialNode->GetTransformToNode( inputAnchorNode, inputInitialToInputAnchorTransform );
   vtkSmartPointer< vtkTransform > inputInitialToInputAnchorRotationOnlyTransform = vtkSmartPointer< vtkTransform >::New();
-  GetRotationAllAxesFromTransform( inputInitialToInputAnchorTransform, inputInitialToInputAnchorRotationOnlyTransform );
+  this->GetRotationAllAxesFromTransform( inputInitialToInputAnchorTransform, inputInitialToInputAnchorRotationOnlyTransform );
   
   // Translation is same as input translation, since they share the same origin
   vtkSmartPointer< vtkGeneralTransform > inputChangedToInputAnchorTransform = vtkSmartPointer< vtkGeneralTransform >::New();
   inputChangedNode->GetTransformToNode( inputAnchorNode, inputChangedToInputAnchorTransform );
   vtkSmartPointer< vtkTransform > inputChangedToInputAnchorTranslationTransform = vtkSmartPointer< vtkTransform >::New();
   bool copyComponents[ 3 ] = { 1, 1, 1 }; // copy x, y, and z
-  GetTranslationOnlyFromTransform( inputChangedToInputAnchorTransform, copyComponents, inputChangedToInputAnchorTranslationTransform );
+  this->GetTranslationOnlyFromTransform( inputChangedToInputAnchorTransform, copyComponents, inputChangedToInputAnchorTranslationTransform );
 
   // put it all together
   vtkSmartPointer< vtkTransform > adjustedToInputAnchorTransform = vtkSmartPointer< vtkTransform >::New();
@@ -319,7 +319,7 @@ void vtkSlicerTransformProcessorLogic::ComputeShaftPivotTransform( vtkMRMLTransf
 void vtkSlicerTransformProcessorLogic::ComputeRotation( vtkMRMLTransformProcessorNode* paramNode )
 {
   bool verboseWarnings = true;
-  bool conditionsMetForProcessing = IsTransformProcessingPossible( paramNode, verboseWarnings );
+  bool conditionsMetForProcessing = this->IsTransformProcessingPossible( paramNode, verboseWarnings );
   if ( conditionsMetForProcessing == false )
   {
     return;
@@ -378,7 +378,7 @@ void vtkSlicerTransformProcessorLogic::ComputeRotation( vtkMRMLTransformProcesso
 
   // computation
   vtkSmartPointer< vtkTransform > fromToToRotationOnlyTransform = vtkSmartPointer< vtkTransform >::New();
-  GetRotationOnlyFromTransform( fromToToTransform, rotationMode, dependentAxesMode, primaryAxis, secondaryAxis, fromToToRotationOnlyTransform );
+  this->GetRotationOnlyFromTransform( fromToToTransform, rotationMode, dependentAxesMode, primaryAxis, secondaryAxis, fromToToRotationOnlyTransform );
   vtkMRMLLinearTransformNode* outputNode = paramNode->GetOutputTransformNode();
   // the existence of outputNode is already checked in IsTransformProcessingPossible, no error check necessary
   outputNode->SetMatrixTransformToParent( fromToToRotationOnlyTransform->GetMatrix() );
@@ -388,7 +388,7 @@ void vtkSlicerTransformProcessorLogic::ComputeRotation( vtkMRMLTransformProcesso
 void vtkSlicerTransformProcessorLogic::ComputeTranslation( vtkMRMLTransformProcessorNode* paramNode )
 {
   bool verboseWarnings = true;
-  bool conditionsMetForProcessing = IsTransformProcessingPossible( paramNode, verboseWarnings );
+  bool conditionsMetForProcessing = this->IsTransformProcessingPossible( paramNode, verboseWarnings );
   if ( conditionsMetForProcessing == false )
   {
     return;
@@ -401,7 +401,7 @@ void vtkSlicerTransformProcessorLogic::ComputeTranslation( vtkMRMLTransformProce
   vtkMRMLLinearTransformNode* toTransformNode = paramNode->GetInputToTransformNode();
   toTransformNode->GetTransformFromNode( fromTransformNode, fromToToGeneralTransform );
   vtkSmartPointer< vtkTransform > fromToToTranslationOnlyTransform = vtkSmartPointer< vtkTransform >::New();
-  GetTranslationOnlyFromTransform( fromToToGeneralTransform, copyComponents, fromToToTranslationOnlyTransform );
+  this->GetTranslationOnlyFromTransform( fromToToGeneralTransform, copyComponents, fromToToTranslationOnlyTransform );
   vtkMRMLLinearTransformNode* outputNode = paramNode->GetOutputTransformNode();
   // the existence of outputNode is already checked in IsTransformProcessingPossible, no error check necessary
   outputNode->SetMatrixTransformToParent( fromToToTranslationOnlyTransform->GetMatrix() );
@@ -411,7 +411,7 @@ void vtkSlicerTransformProcessorLogic::ComputeTranslation( vtkMRMLTransformProce
 void vtkSlicerTransformProcessorLogic::ComputeFullTransform( vtkMRMLTransformProcessorNode* paramNode )
 {
   bool verboseWarnings = true;
-  bool conditionsMetForProcessing = IsTransformProcessingPossible( paramNode, verboseWarnings );
+  bool conditionsMetForProcessing = this->IsTransformProcessingPossible( paramNode, verboseWarnings );
   if ( conditionsMetForProcessing == false )
   {
     return;
@@ -424,10 +424,10 @@ void vtkSlicerTransformProcessorLogic::ComputeFullTransform( vtkMRMLTransformPro
 
   // need to convert the general transform to a matrix. Decompose then concatenate the rotation and translation
   vtkSmartPointer< vtkTransform > fromToToRotationOnlyTransform = vtkSmartPointer< vtkTransform >::New();
-  GetRotationAllAxesFromTransform( fromToToGeneralTransform, fromToToRotationOnlyTransform );
+  this->GetRotationAllAxesFromTransform( fromToToGeneralTransform, fromToToRotationOnlyTransform );
   bool copyComponents[ 3 ] = { 1, 1, 1 }; // copy x, y, and z
   vtkSmartPointer< vtkTransform > fromToToTranslationOnlyTransform = vtkSmartPointer< vtkTransform >::New();
-  GetTranslationOnlyFromTransform( fromToToGeneralTransform, copyComponents, fromToToTranslationOnlyTransform );
+  this->GetTranslationOnlyFromTransform( fromToToGeneralTransform, copyComponents, fromToToTranslationOnlyTransform );
   
   vtkSmartPointer< vtkTransform > fromToToLinearTransformNode = vtkSmartPointer< vtkTransform >::New();
   fromToToLinearTransformNode->PreMultiply();
@@ -459,10 +459,10 @@ void vtkSlicerTransformProcessorLogic::GetRotationOnlyFromTransform( vtkGeneralT
   switch ( rotationMode )
   {
     case vtkMRMLTransformProcessorNode::ROTATION_MODE_COPY_ALL_AXES:
-      GetRotationAllAxesFromTransform( sourceToTargetTransform, rotationOnlyTransform );
+      this->GetRotationAllAxesFromTransform( sourceToTargetTransform, rotationOnlyTransform );
       break;
     case vtkMRMLTransformProcessorNode::ROTATION_MODE_COPY_SINGLE_AXIS:
-      GetRotationSingleAxisFromTransform( sourceToTargetTransform, dependentAxesMode, primaryAxis, secondaryAxis, rotationOnlyTransform );
+      this->GetRotationSingleAxisFromTransform( sourceToTargetTransform, dependentAxesMode, primaryAxis, secondaryAxis, rotationOnlyTransform );
       break;
     default:
       vtkErrorMacro( "GetRotationOnlyFromTransform: rotationMode " << rotationMode << " is unrecognized. Returning, but no operation performed." );
@@ -503,7 +503,7 @@ void vtkSlicerTransformProcessorLogic::GetRotationAllAxesFromTransform ( vtkGene
   
   // set the matrix accordingly
   vtkSmartPointer< vtkMatrix4x4 > rotationOnlyMatrix = vtkSmartPointer< vtkMatrix4x4 >::New();
-  GetRotationMatrixFromAxes( xAxisInput, yAxisInput, zAxisInput, rotationOnlyMatrix );
+  this->GetRotationMatrixFromAxes( xAxisInput, yAxisInput, zAxisInput, rotationOnlyMatrix );
   rotationOnlyTransform->SetMatrix( rotationOnlyMatrix );
 }
 
@@ -525,10 +525,10 @@ void vtkSlicerTransformProcessorLogic::GetRotationSingleAxisFromTransform( vtkGe
   switch ( dependentAxesMode )
   {
     case vtkMRMLTransformProcessorNode::DEPENDENT_AXES_MODE_FROM_PIVOT:
-      GetRotationSingleAxisWithPivotFromTransform( sourceToTargetTransform, primaryAxis, rotationOnlyTransform );
+      this->GetRotationSingleAxisWithPivotFromTransform( sourceToTargetTransform, primaryAxis, rotationOnlyTransform );
       break;
     case vtkMRMLTransformProcessorNode::DEPENDENT_AXES_MODE_FROM_SECONDARY_AXIS:
-      GetRotationSingleAxisWithSecondaryFromTransform( sourceToTargetTransform, primaryAxis, secondaryAxis, rotationOnlyTransform );
+      this->GetRotationSingleAxisWithSecondaryFromTransform( sourceToTargetTransform, primaryAxis, secondaryAxis, rotationOnlyTransform );
       break;
     default:
       vtkErrorMacro( "GetRotationSingleAxisFromTransform: dependentAxesMode " << dependentAxesMode << " is unrecognized. Returning, but no operation performed." );

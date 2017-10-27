@@ -168,7 +168,7 @@ void qSlicerTransformProcessorModuleWidget::setup()
 void qSlicerTransformProcessorModuleWidget::enter()
 {
   Q_D( qSlicerTransformProcessorModuleWidget );
-  bool wasBlocked = getSignalsBlocked();
+  bool wasBlocked = this->getSignalsBlocked();
   this->setSignalsBlocked( true );
   this->onEnter();
   vtkMRMLTransformProcessorNode* pNode = vtkMRMLTransformProcessorNode::SafeDownCast( d->parameterNodeComboBox->currentNode() );
@@ -602,8 +602,8 @@ void qSlicerTransformProcessorModuleWidget::updateInputCombineList()
 //-----------------------------------------------------------------------------
 void qSlicerTransformProcessorModuleWidget::onUpdateButtonPressed()
 {
-  singleUpdate();
-  updateButtons();
+  this->singleUpdate();
+  this->updateButtons();
 }
 
 //------------------------------------------------------------------------------
@@ -636,7 +636,7 @@ void qSlicerTransformProcessorModuleWidget::onUpdateButtonCheckboxToggled( bool 
     pNode->SetUpdateModeToManual();
   }
 
-  updateButtons();
+  this->updateButtons();
 }
 
 //-----------------------------------------------------------------------------
@@ -674,13 +674,13 @@ void qSlicerTransformProcessorModuleWidget::handleEventAutoUpdate()
     bool verboseConditionChecking = true;
     if (d->logic()->IsTransformProcessingPossible(pNode,verboseConditionChecking) == true)
     {
-      singleUpdate();
+      this->singleUpdate();
     }
     else
     {
       qWarning( "Stopping automatic update - fix afore-mentioned problems before turning it back on." );
       pNode->SetUpdateModeToManual();
-      updateButtons();
+      this->updateButtons();
     }
   }
 }
@@ -688,42 +688,42 @@ void qSlicerTransformProcessorModuleWidget::handleEventAutoUpdate()
 //-----------------------------------------------------------------------------
 void qSlicerTransformProcessorModuleWidget::onInputFromTransformNodeSelected( vtkMRMLNode* node )
 {
-  SetTransformAccordingToRole( node, TRANSFORM_ROLE_INPUT_FROM );
+  this->SetTransformAccordingToRole( node, TRANSFORM_ROLE_INPUT_FROM );
   this->updateButtons();
 }
 
 //-----------------------------------------------------------------------------
 void qSlicerTransformProcessorModuleWidget::onInputToTransformNodeSelected( vtkMRMLNode* node )
 {
-  SetTransformAccordingToRole( node, TRANSFORM_ROLE_INPUT_TO );
+  this->SetTransformAccordingToRole( node, TRANSFORM_ROLE_INPUT_TO );
   this->updateButtons();
 }
 
 //-----------------------------------------------------------------------------
 void qSlicerTransformProcessorModuleWidget::onInputInitialTransformNodeSelected( vtkMRMLNode* node )
 {
-  SetTransformAccordingToRole( node, TRANSFORM_ROLE_INPUT_INITIAL );
+  this->SetTransformAccordingToRole( node, TRANSFORM_ROLE_INPUT_INITIAL );
   this->updateButtons();
 }
 
 //-----------------------------------------------------------------------------
 void qSlicerTransformProcessorModuleWidget::onInputChangedTransformNodeSelected( vtkMRMLNode* node )
 {
-  SetTransformAccordingToRole( node, TRANSFORM_ROLE_INPUT_CHANGED );
+  this->SetTransformAccordingToRole( node, TRANSFORM_ROLE_INPUT_CHANGED );
   this->updateButtons();
 }
 
 //-----------------------------------------------------------------------------
 void qSlicerTransformProcessorModuleWidget::onInputAnchorTransformNodeSelected( vtkMRMLNode* node )
 {
-  SetTransformAccordingToRole( node, TRANSFORM_ROLE_INPUT_ANCHOR );
+  this->SetTransformAccordingToRole( node, TRANSFORM_ROLE_INPUT_ANCHOR );
   this->updateButtons();
 }
 
 //-----------------------------------------------------------------------------
 void qSlicerTransformProcessorModuleWidget::onOutputTransformNodeSelected( vtkMRMLNode* node )
 {
-  SetTransformAccordingToRole( node, TRANSFORM_ROLE_OUTPUT );
+  this->SetTransformAccordingToRole( node, TRANSFORM_ROLE_OUTPUT );
   this->updateButtons();
 }
 
