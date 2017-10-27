@@ -376,22 +376,29 @@ void vtkPointMatcher::UpdateBestMatchingForSubsetOfPoints( vtkPoints* pointSubse
 
     // flag ambiguous if suitability within some threshold of the best result so far
     double differenceComparedToBestMm = this->ComputedRootMeanSquareDistanceErrorMm - rootMeanSquareDistanceErrorMm;
-    if ( fabs( differenceComparedToBestMm ) <= this->AmbiguityThresholdDistanceMm )
-    {
-      this->MatchingAmbiguous = true;
-    }
+    bool withinAmbiguityThresholdDistanceMm = ( fabs( differenceComparedToBestMm ) <= this->AmbiguityThresholdDistanceMm );
 
     // is this the best matching?
     if ( rootMeanSquareDistanceErrorMm < this->ComputedRootMeanSquareDistanceErrorMm )
     {
-      // if this is the new best matching, AND it is outside threshold of the current best, flag as NOT ambiguous
-      if ( fabs( differenceComparedToBestMm ) > this->AmbiguityThresholdDistanceMm )
+      if ( withinAmbiguityThresholdDistanceMm )
       {
+        // case 1, described above
+        this->MatchingAmbiguous = true;
+      }
+      else
+      {
+        // case 3, described above
         this->MatchingAmbiguous = false;
       }
       this->ComputedRootMeanSquareDistanceErrorMm = rootMeanSquareDistanceErrorMm;
       this->OutputPointList1->DeepCopy( pointSubset1 );
       this->OutputPointList2->DeepCopy( permutedPointSubset2 );
+    }
+    else if ( withinAmbiguityThresholdDistanceMm )
+    {
+      // case 2, described above
+      this->MatchingAmbiguous = true;
     }
   }
 }
