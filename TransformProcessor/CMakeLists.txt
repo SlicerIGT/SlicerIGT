@@ -1,6 +1,6 @@
 #-----------------------------------------------------------------------------
-set(MODULE_NAME "TransformFusion") # Do not use 'project()'
-set(MODULE_TITLE "Transform Fusion")
+set(MODULE_NAME "TransformProcessor") # Do not use 'project()'
+set(MODULE_TITLE "Transform Processor")
 
 string(TOUPPER ${MODULE_NAME} MODULE_NAME_UPPER)
 

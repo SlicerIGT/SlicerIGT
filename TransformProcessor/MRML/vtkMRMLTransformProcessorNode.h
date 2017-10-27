@@ -20,8 +20,8 @@
 ==============================================================================*/
 
 #pragma once
-#ifndef __vtkMRMLTransformFusionNode_h
-#define __vtkMRMLTransformFusionNode_h
+#ifndef __vtkMRMLTransformProcessorNode_h
+#define __vtkMRMLTransformProcessorNode_h
 
 #include <vtkCommand.h>
 
@@ -29,10 +29,10 @@
 #include <vtkMRMLNode.h>
 #include <vtkMRMLLinearTransformNode.h>
 
-#include "vtkSlicerTransformFusionModuleMRMLExport.h"
+#include "vtkSlicerTransformProcessorModuleMRMLExport.h"
 
-/// \ingroup Slicer_QtModules_TransformFusion
-class VTK_SLICER_TRANSFORMFUSION_MODULE_MRML_EXPORT vtkMRMLTransformFusionNode : 
+/// \ingroup Slicer_QtModules_TransformProcessor
+class VTK_SLICER_TRANSFORMPROCESSOR_MODULE_MRML_EXPORT vtkMRMLTransformProcessorNode : 
   public vtkMRMLNode
 {
 public:   
@@ -57,12 +57,12 @@ public:
 
   enum
   {
-    FUSION_MODE_QUATERNION_AVERAGE = 0,
-    FUSION_MODE_COMPUTE_SHAFT_PIVOT,
-    FUSION_MODE_COMPUTE_ROTATION,
-    FUSION_MODE_COMPUTE_TRANSLATION,
-    FUSION_MODE_COMPUTE_FULL_TRANSFORM,
-    FUSION_MODE_LAST // do not set to this type, insert valid types above this line
+    PROCESSING_MODE_QUATERNION_AVERAGE = 0,
+    PROCESSING_MODE_COMPUTE_SHAFT_PIVOT,
+    PROCESSING_MODE_COMPUTE_ROTATION,
+    PROCESSING_MODE_COMPUTE_TRANSLATION,
+    PROCESSING_MODE_COMPUTE_FULL_TRANSFORM,
+    PROCESSING_MODE_LAST // do not set to this type, insert valid types above this line
   };
 
   enum
@@ -87,15 +87,15 @@ public:
     AXIS_LABEL_LAST // do not set to this type, insert valid types above this line
   };
 
-  static vtkMRMLTransformFusionNode *New();
-  vtkTypeMacro( vtkMRMLTransformFusionNode, vtkMRMLNode );
+  static vtkMRMLTransformProcessorNode *New();
+  vtkTypeMacro( vtkMRMLTransformProcessorNode, vtkMRMLNode );
   void PrintSelf( ostream& os, vtkIndent indent );
 
   virtual vtkMRMLNode* CreateNodeInstance();
   virtual void ReadXMLAttributes( const char** atts );
   virtual void WriteXML( ostream& of, int indent );
   virtual void Copy( vtkMRMLNode *node );
-  virtual const char* GetNodeTagName() { return "TransformFusionParameters"; };
+  virtual const char* GetNodeTagName() { return "TransformProcessorParameters"; };
 
   // begin accessors and mutators
   vtkMRMLLinearTransformNode* GetNthInputCombineTransformNode( int n );
@@ -126,8 +126,8 @@ public:
   vtkGetMacro( UpdatesPerSecond, int ); 
   vtkSetMacro( UpdatesPerSecond, int );
 
-  vtkGetMacro( FusionMode, int );
-  void SetFusionMode( int );
+  vtkGetMacro( ProcessingMode, int );
+  void SetProcessingMode( int );
 
   vtkGetMacro( UpdateMode, int );
   void SetUpdateMode( int );
@@ -159,8 +159,8 @@ public:
 
   void CheckAndCorrectForDuplicateAxes();
 
-  static std::string GetFusionModeAsString( int );
-  static int GetFusionModeFromString( std::string );
+  static std::string GetProcessingModeAsString( int );
+  static int GetProcessingModeFromString( std::string );
 
   static std::string GetUpdateModeAsString( int );
   static int GetUpdateModeFromString( std::string );
@@ -186,16 +186,16 @@ private:
   void SetAndObserveTransformNodeInRole( const char* role, vtkMRMLLinearTransformNode* node );
 
 protected:
-  vtkMRMLTransformFusionNode();
-  ~vtkMRMLTransformFusionNode();
+  vtkMRMLTransformProcessorNode();
+  ~vtkMRMLTransformProcessorNode();
 
-  vtkMRMLTransformFusionNode( const vtkMRMLTransformFusionNode& );
-  void operator=( const vtkMRMLTransformFusionNode& );
+  vtkMRMLTransformProcessorNode( const vtkMRMLTransformProcessorNode& );
+  void operator=( const vtkMRMLTransformProcessorNode& );
 
 //Parameters
 protected:
   int  UpdatesPerSecond;
-  int  FusionMode;
+  int  ProcessingMode;
   int  UpdateMode;
   bool CopyTranslationComponents[ 3 ];
   int  RotationMode;

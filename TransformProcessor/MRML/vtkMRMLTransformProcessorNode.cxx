@@ -19,7 +19,7 @@
 
 ==============================================================================*/
 
-#include "vtkMRMLTransformFusionNode.h"
+#include "vtkMRMLTransformProcessorNode.h"
 
 // VTK includes
 #include <vtkNew.h>
@@ -46,10 +46,10 @@ const char* ROLE_INPUT_ANCHOR_TRANSFORM = "InputAnchorTransform";
 const char* ROLE_OUTPUT_TRANSFORM = "OutputTransform";
 
 //----------------------------------------------------------------------------
-vtkMRMLNodeNewMacro( vtkMRMLTransformFusionNode );
+vtkMRMLNodeNewMacro( vtkMRMLTransformProcessorNode );
 
 //----------------------------------------------------------------------------
-vtkMRMLTransformFusionNode::vtkMRMLTransformFusionNode()
+vtkMRMLTransformProcessorNode::vtkMRMLTransformProcessorNode()
 {
   vtkNew<vtkIntArray> events;
   events->InsertNextValue( vtkCommand::ModifiedEvent );
@@ -64,7 +64,7 @@ vtkMRMLTransformFusionNode::vtkMRMLTransformFusionNode()
 
   //Parameters
   this->UpdatesPerSecond = 60;
-  this->FusionMode = FUSION_MODE_QUATERNION_AVERAGE;
+  this->ProcessingMode = PROCESSING_MODE_QUATERNION_AVERAGE;
   this->UpdateMode = UPDATE_MODE_MANUAL;
   this->CopyTranslationComponents[ 0 ] = true;
   this->CopyTranslationComponents[ 1 ] = true;
@@ -76,12 +76,12 @@ vtkMRMLTransformFusionNode::vtkMRMLTransformFusionNode()
 }
 
 //----------------------------------------------------------------------------
-vtkMRMLTransformFusionNode::~vtkMRMLTransformFusionNode()
+vtkMRMLTransformProcessorNode::~vtkMRMLTransformProcessorNode()
 {
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLTransformFusionNode::ReadXMLAttributes( const char** atts )
+void vtkMRMLTransformProcessorNode::ReadXMLAttributes( const char** atts )
 {
   Superclass::ReadXMLAttributes(atts);
 
@@ -112,17 +112,17 @@ void vtkMRMLTransformFusionNode::ReadXMLAttributes( const char** atts )
         this->UpdateMode = UPDATE_MODE_MANUAL;
       }
     }
-    else if ( strcmp( attName, "FusionMode" ) == 0 )
+    else if ( strcmp( attName, "ProcessingMode" ) == 0 )
     {
-      int modeAsInt = GetFusionModeFromString( attValue );
-      if ( modeAsInt >= 0 && modeAsInt < FUSION_MODE_LAST)
+      int modeAsInt = GetProcessingModeFromString( attValue );
+      if ( modeAsInt >= 0 && modeAsInt < PROCESSING_MODE_LAST)
       {
-        this->FusionMode = modeAsInt;
+        this->ProcessingMode = modeAsInt;
       }
       else
       {
-        vtkWarningMacro("Unrecognized fusion mode read from MRML node: " << attValue << ". Setting to quaternion average.")
-        this->FusionMode = FUSION_MODE_QUATERNION_AVERAGE;
+        vtkWarningMacro("Unrecognized processing mode read from MRML node: " << attValue << ". Setting to quaternion average.")
+        this->ProcessingMode = PROCESSING_MODE_QUATERNION_AVERAGE;
       }
     }
     else if ( strcmp( attName, "RotationMode" ) == 0 )
@@ -198,13 +198,13 @@ void vtkMRMLTransformFusionNode::ReadXMLAttributes( const char** atts )
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLTransformFusionNode::WriteXML( ostream& of, int nIndent )
+void vtkMRMLTransformProcessorNode::WriteXML( ostream& of, int nIndent )
 {
   Superclass::WriteXML( of, nIndent );
   vtkIndent indent( nIndent );
   of << indent << " UpdatesPerSecond=\"" << this->UpdatesPerSecond << "\"";
   of << indent << " UpdateMode=\"" << GetUpdateModeAsString( this->UpdateMode ) << "\"";
-  of << indent << " FusionMode=\"" << GetFusionModeAsString( this->FusionMode ) << "\"";
+  of << indent << " ProcessingMode=\"" << GetProcessingModeAsString( this->ProcessingMode ) << "\"";
   of << indent << " RotationMode=\"" << GetRotationModeAsString( this->RotationMode ) << "\"";
   of << indent << " PrimaryAxisLabel=\"" << GetAxisLabelAsString( this->PrimaryAxisLabel ) << "\"";
   of << indent << " DependentAxesMode=\"" << GetDependentAxesModeAsString( this->DependentAxesMode ) << "\"";
@@ -215,12 +215,12 @@ void vtkMRMLTransformFusionNode::WriteXML( ostream& of, int nIndent )
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLTransformFusionNode::PrintSelf( ostream& os, vtkIndent indent )
+void vtkMRMLTransformProcessorNode::PrintSelf( ostream& os, vtkIndent indent )
 {
   Superclass::PrintSelf( os, indent );
   os << indent << " UpdatesPerSecond = " << this->UpdatesPerSecond << "\n";
   os << indent << " UpdateMode = " << GetUpdateModeAsString( this->UpdateMode ) << "\n";
-  os << indent << " FusionMode = " << GetFusionModeAsString( this->FusionMode ) << "\n";
+  os << indent << " ProcessingMode = " << GetProcessingModeAsString( this->ProcessingMode ) << "\n";
   os << indent << " RotationMode = " << GetRotationModeAsString( this->RotationMode ) << "\n";
   os << indent << " PrimaryAxisLabel = " << GetAxisLabelAsString( this->PrimaryAxisLabel ) << "\n";
   os << indent << " DependentAxesMode = " << GetDependentAxesModeAsString( this->DependentAxesMode ) << "\n";
@@ -231,15 +231,15 @@ void vtkMRMLTransformFusionNode::PrintSelf( ostream& os, vtkIndent indent )
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLTransformFusionNode::Copy( vtkMRMLNode *anode )
+void vtkMRMLTransformProcessorNode::Copy( vtkMRMLNode *anode )
 {
   Superclass::Copy( anode );
-  vtkMRMLTransformFusionNode *node = vtkMRMLTransformFusionNode::SafeDownCast( anode );
+  vtkMRMLTransformProcessorNode *node = vtkMRMLTransformProcessorNode::SafeDownCast( anode );
   int wasModifying = node->StartModify();
   
   this->UpdatesPerSecond = node->UpdatesPerSecond;
   this->UpdateMode = node->UpdateMode;
-  this->FusionMode = node->FusionMode;
+  this->ProcessingMode = node->ProcessingMode;
   this->RotationMode = node->RotationMode;
   this->PrimaryAxisLabel = node->PrimaryAxisLabel;
   this->DependentAxesMode = node->DependentAxesMode;
@@ -252,7 +252,7 @@ void vtkMRMLTransformFusionNode::Copy( vtkMRMLNode *anode )
 }
 
 //------------------------------------------------------------------------------
-void vtkMRMLTransformFusionNode::ProcessMRMLEvents( vtkObject* caller, unsigned long event, void* callData )
+void vtkMRMLTransformProcessorNode::ProcessMRMLEvents( vtkObject* caller, unsigned long event, void* callData )
 {
   Superclass::ProcessMRMLEvents( caller, event, callData );
 
@@ -265,28 +265,28 @@ void vtkMRMLTransformFusionNode::ProcessMRMLEvents( vtkObject* caller, unsigned 
 }
 
 //------------------------------------------------------------------------------
-void vtkMRMLTransformFusionNode::SetFusionMode( int newFusionMode )
+void vtkMRMLTransformProcessorNode::SetProcessingMode( int newProcessingMode )
 {
-  bool validMode = ( newFusionMode >= 0 && newFusionMode < FUSION_MODE_LAST );
+  bool validMode = ( newProcessingMode >= 0 && newProcessingMode < PROCESSING_MODE_LAST );
   if ( validMode == false )
   {
-    vtkWarningMacro( "Input new fusion mode " << newFusionMode << " is not a valid option. No change will be done." )
+    vtkWarningMacro( "Input new processing mode " << newProcessingMode << " is not a valid option. No change will be done." )
     return;
   }
 
-  if ( this->FusionMode == newFusionMode )
+  if ( this->ProcessingMode == newProcessingMode )
   {
     // no change
     return;
   }
-  this->FusionMode = newFusionMode;
+  this->ProcessingMode = newProcessingMode;
 
   this->Modified();
   this->InvokeCustomModifiedEvent( InputDataModifiedEvent );
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLTransformFusionNode::SetUpdateMode( int newUpdateMode )
+void vtkMRMLTransformProcessorNode::SetUpdateMode( int newUpdateMode )
 {
   bool validMode = ( newUpdateMode >= 0 && newUpdateMode < UPDATE_MODE_LAST );
   if ( validMode == false )
@@ -306,19 +306,19 @@ void vtkMRMLTransformFusionNode::SetUpdateMode( int newUpdateMode )
 }
 
 //----------------------------------------------------------------------------
-const bool* vtkMRMLTransformFusionNode::GetCopyTranslationComponents()
+const bool* vtkMRMLTransformProcessorNode::GetCopyTranslationComponents()
 {
   return ( const bool* )this->CopyTranslationComponents;
 }
 
 //----------------------------------------------------------------------------
-bool vtkMRMLTransformFusionNode::GetCopyTranslationX()
+bool vtkMRMLTransformProcessorNode::GetCopyTranslationX()
 {
   return this->CopyTranslationComponents[ 0 ];
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLTransformFusionNode::SetCopyTranslationX( bool enabled )
+void vtkMRMLTransformProcessorNode::SetCopyTranslationX( bool enabled )
 {
   if ( this->CopyTranslationComponents[ 0 ] == enabled )
   {
@@ -331,13 +331,13 @@ void vtkMRMLTransformFusionNode::SetCopyTranslationX( bool enabled )
 }
 
 //----------------------------------------------------------------------------
-bool vtkMRMLTransformFusionNode::GetCopyTranslationY()
+bool vtkMRMLTransformProcessorNode::GetCopyTranslationY()
 {
   return this->CopyTranslationComponents[ 1 ];
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLTransformFusionNode::SetCopyTranslationY( bool enabled )
+void vtkMRMLTransformProcessorNode::SetCopyTranslationY( bool enabled )
 {
   if ( this->CopyTranslationComponents[ 1 ] == enabled )
   {
@@ -350,13 +350,13 @@ void vtkMRMLTransformFusionNode::SetCopyTranslationY( bool enabled )
 }
 
 //----------------------------------------------------------------------------
-bool vtkMRMLTransformFusionNode::GetCopyTranslationZ()
+bool vtkMRMLTransformProcessorNode::GetCopyTranslationZ()
 {
   return this->CopyTranslationComponents[ 2 ];
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLTransformFusionNode::SetCopyTranslationZ( bool enabled )
+void vtkMRMLTransformProcessorNode::SetCopyTranslationZ( bool enabled )
 {
   if ( this->CopyTranslationComponents[ 2 ] == enabled )
   {
@@ -369,7 +369,7 @@ void vtkMRMLTransformFusionNode::SetCopyTranslationZ( bool enabled )
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLTransformFusionNode::SetRotationMode( int newRotationMode )
+void vtkMRMLTransformProcessorNode::SetRotationMode( int newRotationMode )
 {
   bool validMode = ( newRotationMode >= 0 && newRotationMode < ROTATION_MODE_LAST );
   if ( validMode == false )
@@ -389,7 +389,7 @@ void vtkMRMLTransformFusionNode::SetRotationMode( int newRotationMode )
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLTransformFusionNode::SetDependentAxesMode( int newDependentAxesMode )
+void vtkMRMLTransformProcessorNode::SetDependentAxesMode( int newDependentAxesMode )
 {
   bool validMode = ( newDependentAxesMode >= 0 && newDependentAxesMode < DEPENDENT_AXES_MODE_LAST );
   if ( validMode == false )
@@ -406,7 +406,7 @@ void vtkMRMLTransformFusionNode::SetDependentAxesMode( int newDependentAxesMode 
   this->DependentAxesMode = newDependentAxesMode;
   
   // if there are other modes that need to check for duplicate axes, these should be added below:
-  if ( this->DependentAxesMode == vtkMRMLTransformFusionNode::DEPENDENT_AXES_MODE_FROM_SECONDARY_AXIS )
+  if ( this->DependentAxesMode == vtkMRMLTransformProcessorNode::DEPENDENT_AXES_MODE_FROM_SECONDARY_AXIS )
   {
     this->CheckAndCorrectForDuplicateAxes();
   }
@@ -416,7 +416,7 @@ void vtkMRMLTransformFusionNode::SetDependentAxesMode( int newDependentAxesMode 
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLTransformFusionNode::SetPrimaryAxisLabel( int newAxisLabel )
+void vtkMRMLTransformProcessorNode::SetPrimaryAxisLabel( int newAxisLabel )
 {
   bool validMode = ( newAxisLabel >= 0 && newAxisLabel < AXIS_LABEL_LAST );
   if ( validMode == false )
@@ -431,7 +431,7 @@ void vtkMRMLTransformFusionNode::SetPrimaryAxisLabel( int newAxisLabel )
     return;
   }
   this->PrimaryAxisLabel = newAxisLabel;
-  if ( this->DependentAxesMode == vtkMRMLTransformFusionNode::DEPENDENT_AXES_MODE_FROM_SECONDARY_AXIS )
+  if ( this->DependentAxesMode == vtkMRMLTransformProcessorNode::DEPENDENT_AXES_MODE_FROM_SECONDARY_AXIS )
   {
     this->CheckAndCorrectForDuplicateAxes();
   }
@@ -441,7 +441,7 @@ void vtkMRMLTransformFusionNode::SetPrimaryAxisLabel( int newAxisLabel )
 
 
 //----------------------------------------------------------------------------
-void vtkMRMLTransformFusionNode::SetSecondaryAxisLabel( int newAxisLabel )
+void vtkMRMLTransformProcessorNode::SetSecondaryAxisLabel( int newAxisLabel )
 {
   bool validMode = ( newAxisLabel >= 0 && newAxisLabel < AXIS_LABEL_LAST );
   if ( validMode == false )
@@ -456,7 +456,7 @@ void vtkMRMLTransformFusionNode::SetSecondaryAxisLabel( int newAxisLabel )
     return;
   }
   this->SecondaryAxisLabel = newAxisLabel;
-  if ( this->DependentAxesMode == vtkMRMLTransformFusionNode::DEPENDENT_AXES_MODE_FROM_SECONDARY_AXIS )
+  if ( this->DependentAxesMode == vtkMRMLTransformProcessorNode::DEPENDENT_AXES_MODE_FROM_SECONDARY_AXIS )
   {
     this->CheckAndCorrectForDuplicateAxes();
   }
@@ -465,26 +465,26 @@ void vtkMRMLTransformFusionNode::SetSecondaryAxisLabel( int newAxisLabel )
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLTransformFusionNode::CheckAndCorrectForDuplicateAxes()
+void vtkMRMLTransformProcessorNode::CheckAndCorrectForDuplicateAxes()
 {
   if (this->PrimaryAxisLabel == this->SecondaryAxisLabel )
   {
-    if ( this->PrimaryAxisLabel == vtkMRMLTransformFusionNode::AXIS_LABEL_Z )
+    if ( this->PrimaryAxisLabel == vtkMRMLTransformProcessorNode::AXIS_LABEL_Z )
     {
-      this->SecondaryAxisLabel = vtkMRMLTransformFusionNode::AXIS_LABEL_Y;
+      this->SecondaryAxisLabel = vtkMRMLTransformProcessorNode::AXIS_LABEL_Y;
       vtkWarningMacro( "Duplicate axes for primary and secondary axes. Changing secondary axis to y." );
     }
-    else if ( this->PrimaryAxisLabel == vtkMRMLTransformFusionNode::AXIS_LABEL_Y ||
-              this->PrimaryAxisLabel == vtkMRMLTransformFusionNode::AXIS_LABEL_X )
+    else if ( this->PrimaryAxisLabel == vtkMRMLTransformProcessorNode::AXIS_LABEL_Y ||
+              this->PrimaryAxisLabel == vtkMRMLTransformProcessorNode::AXIS_LABEL_X )
     {
-      this->SecondaryAxisLabel = vtkMRMLTransformFusionNode::AXIS_LABEL_Z;
+      this->SecondaryAxisLabel = vtkMRMLTransformProcessorNode::AXIS_LABEL_Z;
       vtkWarningMacro( "Duplicate axes for primary and secondary axes. Changing secondary axis to z." );
     }
   }
 }
 
 //----------------------------------------------------------------------------
-vtkMRMLLinearTransformNode* vtkMRMLTransformFusionNode::GetNthTransformNodeInRole( const char* role, int n )
+vtkMRMLLinearTransformNode* vtkMRMLTransformProcessorNode::GetNthTransformNodeInRole( const char* role, int n )
 {
   vtkMRMLNode* node = this->GetNthNodeReference( role, n );
   if ( node == NULL )
@@ -504,7 +504,7 @@ vtkMRMLLinearTransformNode* vtkMRMLTransformFusionNode::GetNthTransformNodeInRol
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLTransformFusionNode::SetAndObserveTransformNodeInRole( const char* role, vtkMRMLLinearTransformNode* node )
+void vtkMRMLTransformProcessorNode::SetAndObserveTransformNodeInRole( const char* role, vtkMRMLLinearTransformNode* node )
 {
   if ( node == GetTransformNodeInRole( role ) )
   {
@@ -523,11 +523,11 @@ void vtkMRMLTransformFusionNode::SetAndObserveTransformNodeInRole( const char* r
   }
   int indexOfNodeID = 0; // This function sets it to the first (and theoretically only) slot
   this->SetAndObserveNthNodeReferenceID( role, indexOfNodeID, nodeID );
-  this->InvokeCustomModifiedEvent( vtkMRMLTransformFusionNode::InputDataModifiedEvent );
+  this->InvokeCustomModifiedEvent( vtkMRMLTransformProcessorNode::InputDataModifiedEvent );
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLTransformFusionNode::AddAndObserveTransformNodeInRole( const char* role, vtkMRMLLinearTransformNode* node )
+void vtkMRMLTransformProcessorNode::AddAndObserveTransformNodeInRole( const char* role, vtkMRMLLinearTransformNode* node )
 {
   // adding null does nothing, so just return in this case
   if ( node == NULL )
@@ -546,151 +546,151 @@ void vtkMRMLTransformFusionNode::AddAndObserveTransformNodeInRole( const char* r
 
   const char* nodeID = node->GetID();
   this->AddAndObserveNodeReferenceID( role, nodeID );
-  this->InvokeCustomModifiedEvent( vtkMRMLTransformFusionNode::InputDataModifiedEvent );
+  this->InvokeCustomModifiedEvent( vtkMRMLTransformProcessorNode::InputDataModifiedEvent );
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLTransformFusionNode::RemoveNthTransformNodeInRole( const char* role, int n )
+void vtkMRMLTransformProcessorNode::RemoveNthTransformNodeInRole( const char* role, int n )
 {
   this->RemoveNthNodeReferenceID( role, n );
-  this->InvokeCustomModifiedEvent( vtkMRMLTransformFusionNode::InputDataModifiedEvent );
+  this->InvokeCustomModifiedEvent( vtkMRMLTransformProcessorNode::InputDataModifiedEvent );
 }
 
 //----------------------------------------------------------------------------
-int vtkMRMLTransformFusionNode::GetNumberOfTransformNodesInRole( const char* role )
+int vtkMRMLTransformProcessorNode::GetNumberOfTransformNodesInRole( const char* role )
 {
   return this->GetNumberOfNodeReferences( role );
 }
 
 //----------------------------------------------------------------------------
-vtkMRMLLinearTransformNode* vtkMRMLTransformFusionNode::GetTransformNodeInRole( const char* role )
+vtkMRMLLinearTransformNode* vtkMRMLTransformProcessorNode::GetTransformNodeInRole( const char* role )
 {
   return GetNthTransformNodeInRole( role, 0 );
 }
 
 //----------------------------------------------------------------------------
-vtkMRMLLinearTransformNode* vtkMRMLTransformFusionNode::GetNthInputCombineTransformNode( int n )
+vtkMRMLLinearTransformNode* vtkMRMLTransformProcessorNode::GetNthInputCombineTransformNode( int n )
 {
   return GetNthTransformNodeInRole( ROLE_INPUT_COMBINE_TRANSFORM, n );
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLTransformFusionNode::AddAndObserveInputCombineTransformNode( vtkMRMLLinearTransformNode* node )
+void vtkMRMLTransformProcessorNode::AddAndObserveInputCombineTransformNode( vtkMRMLLinearTransformNode* node )
 {
   AddAndObserveTransformNodeInRole( ROLE_INPUT_COMBINE_TRANSFORM, node );
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLTransformFusionNode::RemoveNthInputCombineTransformNode( int n )
+void vtkMRMLTransformProcessorNode::RemoveNthInputCombineTransformNode( int n )
 {
   RemoveNthTransformNodeInRole( ROLE_INPUT_COMBINE_TRANSFORM, n );
 }
 
 //----------------------------------------------------------------------------
-int vtkMRMLTransformFusionNode::GetNumberOfInputCombineTransformNodes()
+int vtkMRMLTransformProcessorNode::GetNumberOfInputCombineTransformNodes()
 {
   return GetNumberOfTransformNodesInRole( ROLE_INPUT_COMBINE_TRANSFORM );
 }
 
 //----------------------------------------------------------------------------
-vtkMRMLLinearTransformNode* vtkMRMLTransformFusionNode::GetInputFromTransformNode()
+vtkMRMLLinearTransformNode* vtkMRMLTransformProcessorNode::GetInputFromTransformNode()
 {
   return GetTransformNodeInRole( ROLE_INPUT_FROM_TRANSFORM );
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLTransformFusionNode::SetAndObserveInputFromTransformNode( vtkMRMLLinearTransformNode* node )
+void vtkMRMLTransformProcessorNode::SetAndObserveInputFromTransformNode( vtkMRMLLinearTransformNode* node )
 {
   SetAndObserveTransformNodeInRole( ROLE_INPUT_FROM_TRANSFORM, node );
 }
 
 //----------------------------------------------------------------------------
-vtkMRMLLinearTransformNode* vtkMRMLTransformFusionNode::GetInputToTransformNode()
+vtkMRMLLinearTransformNode* vtkMRMLTransformProcessorNode::GetInputToTransformNode()
 {
   return GetTransformNodeInRole( ROLE_INPUT_TO_TRANSFORM );
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLTransformFusionNode::SetAndObserveInputToTransformNode( vtkMRMLLinearTransformNode* node )
+void vtkMRMLTransformProcessorNode::SetAndObserveInputToTransformNode( vtkMRMLLinearTransformNode* node )
 {
   SetAndObserveTransformNodeInRole( ROLE_INPUT_TO_TRANSFORM, node );
 }
 
 //----------------------------------------------------------------------------
-vtkMRMLLinearTransformNode* vtkMRMLTransformFusionNode::GetInputInitialTransformNode()
+vtkMRMLLinearTransformNode* vtkMRMLTransformProcessorNode::GetInputInitialTransformNode()
 {
   return GetTransformNodeInRole( ROLE_INPUT_INITIAL_TRANSFORM );
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLTransformFusionNode::SetAndObserveInputInitialTransformNode( vtkMRMLLinearTransformNode* node )
+void vtkMRMLTransformProcessorNode::SetAndObserveInputInitialTransformNode( vtkMRMLLinearTransformNode* node )
 {
   SetAndObserveTransformNodeInRole( ROLE_INPUT_INITIAL_TRANSFORM, node );
 }
 
 //----------------------------------------------------------------------------
-vtkMRMLLinearTransformNode* vtkMRMLTransformFusionNode::GetInputChangedTransformNode()
+vtkMRMLLinearTransformNode* vtkMRMLTransformProcessorNode::GetInputChangedTransformNode()
 {
   return GetTransformNodeInRole( ROLE_INPUT_CHANGED_TRANSFORM );
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLTransformFusionNode::SetAndObserveInputChangedTransformNode( vtkMRMLLinearTransformNode* node )
+void vtkMRMLTransformProcessorNode::SetAndObserveInputChangedTransformNode( vtkMRMLLinearTransformNode* node )
 {
   SetAndObserveTransformNodeInRole( ROLE_INPUT_CHANGED_TRANSFORM, node );
 }
 
 //----------------------------------------------------------------------------
-vtkMRMLLinearTransformNode* vtkMRMLTransformFusionNode::GetInputAnchorTransformNode()
+vtkMRMLLinearTransformNode* vtkMRMLTransformProcessorNode::GetInputAnchorTransformNode()
 {
   return GetTransformNodeInRole( ROLE_INPUT_ANCHOR_TRANSFORM );
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLTransformFusionNode::SetAndObserveInputAnchorTransformNode( vtkMRMLLinearTransformNode* node )
+void vtkMRMLTransformProcessorNode::SetAndObserveInputAnchorTransformNode( vtkMRMLLinearTransformNode* node )
 {
   SetAndObserveTransformNodeInRole( ROLE_INPUT_ANCHOR_TRANSFORM, node );
 }
 
 //----------------------------------------------------------------------------
-vtkMRMLLinearTransformNode* vtkMRMLTransformFusionNode::GetOutputTransformNode()
+vtkMRMLLinearTransformNode* vtkMRMLTransformProcessorNode::GetOutputTransformNode()
 {
   return GetTransformNodeInRole( ROLE_OUTPUT_TRANSFORM );
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLTransformFusionNode::SetAndObserveOutputTransformNode( vtkMRMLLinearTransformNode* node )
+void vtkMRMLTransformProcessorNode::SetAndObserveOutputTransformNode( vtkMRMLLinearTransformNode* node )
 {
   SetAndObserveTransformNodeInRole( ROLE_OUTPUT_TRANSFORM, node );
 }
 
 //----------------------------------------------------------------------------
-std::string vtkMRMLTransformFusionNode::GetFusionModeAsString( int mode )
+std::string vtkMRMLTransformProcessorNode::GetProcessingModeAsString( int mode )
 {
   switch ( mode )
   {
-  case FUSION_MODE_QUATERNION_AVERAGE:
+  case PROCESSING_MODE_QUATERNION_AVERAGE:
     return "Quaternion Average";
-  case FUSION_MODE_COMPUTE_SHAFT_PIVOT:
+  case PROCESSING_MODE_COMPUTE_SHAFT_PIVOT:
     return "Compute Shaft Pivot";
-  case FUSION_MODE_COMPUTE_ROTATION:
+  case PROCESSING_MODE_COMPUTE_ROTATION:
     return "Compute Rotation Only";
-  case FUSION_MODE_COMPUTE_TRANSLATION:
+  case PROCESSING_MODE_COMPUTE_TRANSLATION:
     return "Compute Translation Only";
-  case FUSION_MODE_COMPUTE_FULL_TRANSFORM:
+  case PROCESSING_MODE_COMPUTE_FULL_TRANSFORM:
     return "Compute Full Transform";
   default:
-    vtkGenericWarningMacro("Unknown fusion mode provided as input to GetFusionModeAsString: " << mode << ". Returning \"Unknown Fusion Mode\"");
-    return "Unknown Fusion Mode";
+    vtkGenericWarningMacro("Unknown processing mode provided as input to GetProcessingModeAsString: " << mode << ". Returning \"Unknown Processing Mode\"");
+    return "Unknown Processing Mode";
   }
 }
 
 //----------------------------------------------------------------------------
-int vtkMRMLTransformFusionNode::GetFusionModeFromString( std::string name )
+int vtkMRMLTransformProcessorNode::GetProcessingModeFromString( std::string name )
 {
-  for ( int i = 0; i < FUSION_MODE_LAST; i++ )
+  for ( int i = 0; i < PROCESSING_MODE_LAST; i++ )
   {
-    if ( name == GetFusionModeAsString( i ) )
+    if ( name == GetProcessingModeAsString( i ) )
     {
       // found a matching name
       return i;
@@ -701,7 +701,7 @@ int vtkMRMLTransformFusionNode::GetFusionModeFromString( std::string name )
 }
 
 //----------------------------------------------------------------------------
-std::string vtkMRMLTransformFusionNode::GetUpdateModeAsString( int mode )
+std::string vtkMRMLTransformProcessorNode::GetUpdateModeAsString( int mode )
 {
   switch ( mode )
   {
@@ -716,7 +716,7 @@ std::string vtkMRMLTransformFusionNode::GetUpdateModeAsString( int mode )
 }
 
 //----------------------------------------------------------------------------
-int vtkMRMLTransformFusionNode::GetUpdateModeFromString( std::string name )
+int vtkMRMLTransformProcessorNode::GetUpdateModeFromString( std::string name )
 {
   for ( int i = 0; i < UPDATE_MODE_LAST; i++ )
   {
@@ -731,7 +731,7 @@ int vtkMRMLTransformFusionNode::GetUpdateModeFromString( std::string name )
 }
 
 //----------------------------------------------------------------------------
-std::string vtkMRMLTransformFusionNode::GetRotationModeAsString( int mode )
+std::string vtkMRMLTransformProcessorNode::GetRotationModeAsString( int mode )
 {
   switch ( mode )
   {
@@ -746,7 +746,7 @@ std::string vtkMRMLTransformFusionNode::GetRotationModeAsString( int mode )
 }
 
 //----------------------------------------------------------------------------
-int vtkMRMLTransformFusionNode::GetRotationModeFromString( std::string name )
+int vtkMRMLTransformProcessorNode::GetRotationModeFromString( std::string name )
 {
   for ( int i = 0; i < ROTATION_MODE_LAST; i++ )
   {
@@ -761,7 +761,7 @@ int vtkMRMLTransformFusionNode::GetRotationModeFromString( std::string name )
 }
   
 //----------------------------------------------------------------------------
-std::string vtkMRMLTransformFusionNode::GetDependentAxesModeAsString( int mode )
+std::string vtkMRMLTransformProcessorNode::GetDependentAxesModeAsString( int mode )
 {
   switch ( mode )
   {
@@ -776,7 +776,7 @@ std::string vtkMRMLTransformFusionNode::GetDependentAxesModeAsString( int mode )
 }
 
 //----------------------------------------------------------------------------
-int vtkMRMLTransformFusionNode::GetDependentAxesModeFromString( std::string name )
+int vtkMRMLTransformProcessorNode::GetDependentAxesModeFromString( std::string name )
 {
   for ( int i = 0; i < DEPENDENT_AXES_MODE_LAST; i++ )
   {
@@ -791,7 +791,7 @@ int vtkMRMLTransformFusionNode::GetDependentAxesModeFromString( std::string name
 }
 
 //----------------------------------------------------------------------------
-std::string vtkMRMLTransformFusionNode::GetAxisLabelAsString( int label )
+std::string vtkMRMLTransformProcessorNode::GetAxisLabelAsString( int label )
 {
   switch ( label )
   {
@@ -808,7 +808,7 @@ std::string vtkMRMLTransformFusionNode::GetAxisLabelAsString( int label )
 }
 
 //----------------------------------------------------------------------------
-int vtkMRMLTransformFusionNode::GetAxisLabelFromString( std::string name )
+int vtkMRMLTransformProcessorNode::GetAxisLabelFromString( std::string name )
 {
   for ( int i = 0; i < AXIS_LABEL_LAST; i++ )
   {

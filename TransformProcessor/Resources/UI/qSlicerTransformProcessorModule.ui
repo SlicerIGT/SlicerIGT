@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>qSlicerTransformFusionModule</class>
- <widget class="qSlicerWidget" name="qSlicerTransformFusionModule">
+ <class>qSlicerTransformProcessorModule</class>
+ <widget class="qSlicerWidget" name="qSlicerTransformProcessorModule">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -177,11 +177,11 @@
       <bool>false</bool>
      </property>
      <property name="toolTip">
-      <string>This stores all parameters for transform fusion.</string>
+      <string>This stores all parameters for transform processing.</string>
      </property>
      <property name="nodeTypes">
       <stringlist>
-       <string>vtkMRMLTransformFusionNode</string>
+       <string>vtkMRMLTransformProcessorNode</string>
       </stringlist>
      </property>
      <property name="showHidden">
@@ -249,9 +249,9 @@
     </widget>
    </item>
    <item row="2" column="0">
-    <widget class="QLabel" name="fusionModeLabel">
+    <widget class="QLabel" name="processingModeLabel">
      <property name="text">
-      <string>Fusion Mode</string>
+      <string>Processing Mode</string>
      </property>
     </widget>
    </item>
@@ -277,7 +277,7 @@
     </widget>
    </item>
    <item row="2" column="1">
-    <widget class="ctkComboBox" name="fusionModeComboBox">
+    <widget class="ctkComboBox" name="processingModeComboBox">
      <property name="toolTip">
       <string>Select what kind of operation to perform.</string>
      </property>
@@ -467,7 +467,7 @@
  <resources/>
  <connections>
   <connection>
-   <sender>qSlicerTransformFusionModule</sender>
+   <sender>qSlicerTransformProcessorModule</sender>
    <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
    <receiver>outputTransformComboBox</receiver>
    <slot>setMRMLScene(vtkMRMLScene*)</slot>
@@ -483,7 +483,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>qSlicerTransformFusionModule</sender>
+   <sender>qSlicerTransformProcessorModule</sender>
    <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
    <receiver>addInputCombineTransformComboBox</receiver>
    <slot>setMRMLScene(vtkMRMLScene*)</slot>
@@ -499,7 +499,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>qSlicerTransformFusionModule</sender>
+   <sender>qSlicerTransformProcessorModule</sender>
    <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
    <receiver>parameterNodeComboBox</receiver>
    <slot>setMRMLScene(vtkMRMLScene*)</slot>
@@ -515,7 +515,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>qSlicerTransformFusionModule</sender>
+   <sender>qSlicerTransformProcessorModule</sender>
    <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
    <receiver>inputAnchorTransformComboBox</receiver>
    <slot>setMRMLScene(vtkMRMLScene*)</slot>
@@ -531,7 +531,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>qSlicerTransformFusionModule</sender>
+   <sender>qSlicerTransformProcessorModule</sender>
    <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
    <receiver>inputToTransformComboBox</receiver>
    <slot>setMRMLScene(vtkMRMLScene*)</slot>
@@ -547,7 +547,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>qSlicerTransformFusionModule</sender>
+   <sender>qSlicerTransformProcessorModule</sender>
    <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
    <receiver>inputFromTransformComboBox</receiver>
    <slot>setMRMLScene(vtkMRMLScene*)</slot>
@@ -563,7 +563,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>qSlicerTransformFusionModule</sender>
+   <sender>qSlicerTransformProcessorModule</sender>
    <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
    <receiver>inputInitialTransformComboBox</receiver>
    <slot>setMRMLScene(vtkMRMLScene*)</slot>
@@ -579,7 +579,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>qSlicerTransformFusionModule</sender>
+   <sender>qSlicerTransformProcessorModule</sender>
    <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
    <receiver>inputChangedTransformComboBox</receiver>
    <slot>setMRMLScene(vtkMRMLScene*)</slot>

@@ -19,9 +19,9 @@
 
 ==============================================================================*/
 
-// TransformFusion includes
-#include "vtkSlicerTransformFusionLogic.h"
-#include "vtkMRMLTransformFusionNode.h"
+// TransformProcessor includes
+#include "vtkSlicerTransformProcessorLogic.h"
+#include "vtkMRMLTransformProcessorNode.h"
 
 // MRML includes
 #include <vtkMRMLScene.h>
@@ -40,39 +40,39 @@
 
 const float EPSILON = 0.00001;
 
-vtkStandardNewMacro( vtkSlicerTransformFusionLogic );
+vtkStandardNewMacro( vtkSlicerTransformProcessorLogic );
 
 //-----------------------------------------------------------------------------
-vtkSlicerTransformFusionLogic::vtkSlicerTransformFusionLogic()
+vtkSlicerTransformProcessorLogic::vtkSlicerTransformProcessorLogic()
 {
 }
 
 //-----------------------------------------------------------------------------
-vtkSlicerTransformFusionLogic::~vtkSlicerTransformFusionLogic()
+vtkSlicerTransformProcessorLogic::~vtkSlicerTransformProcessorLogic()
 {
 }
 
 //-----------------------------------------------------------------------------
-void vtkSlicerTransformFusionLogic::PrintSelf( ostream& os, vtkIndent indent )
+void vtkSlicerTransformProcessorLogic::PrintSelf( ostream& os, vtkIndent indent )
 {
   this->Superclass::PrintSelf( os, indent );
 }
 
 //-----------------------------------------------------------------------------
-void vtkSlicerTransformFusionLogic::RegisterNodes()
+void vtkSlicerTransformProcessorLogic::RegisterNodes()
 {
   vtkMRMLScene* scene = this->GetMRMLScene();
   if ( scene == NULL )
   {
-    vtkErrorMacro( "vtkSlicerTransformFusionLogic::RegisterNodes failed: invalid scene" );
+    vtkErrorMacro( "vtkSlicerTransformProcessorLogic::RegisterNodes failed: invalid scene" );
     return;
   }
   
-  scene->RegisterNodeClass( vtkSmartPointer<vtkMRMLTransformFusionNode>::New() );
+  scene->RegisterNodeClass( vtkSmartPointer<vtkMRMLTransformProcessorNode>::New() );
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerTransformFusionLogic::SetMRMLSceneInternal( vtkMRMLScene * newScene )
+void vtkSlicerTransformProcessorLogic::SetMRMLSceneInternal( vtkMRMLScene * newScene )
 {
   vtkNew<vtkIntArray> events;
   events->InsertNextValue( vtkMRMLScene::NodeAddedEvent );
@@ -81,7 +81,7 @@ void vtkSlicerTransformFusionLogic::SetMRMLSceneInternal( vtkMRMLScene * newScen
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerTransformFusionLogic::OnMRMLSceneNodeAdded( vtkMRMLNode* node )
+void vtkSlicerTransformProcessorLogic::OnMRMLSceneNodeAdded( vtkMRMLNode* node )
 {
   if ( node == NULL || this->GetMRMLScene() == NULL )
   {
@@ -89,20 +89,20 @@ void vtkSlicerTransformFusionLogic::OnMRMLSceneNodeAdded( vtkMRMLNode* node )
     return;
   }
 
-  vtkMRMLTransformFusionNode* pNode = vtkMRMLTransformFusionNode::SafeDownCast( node );
+  vtkMRMLTransformProcessorNode* pNode = vtkMRMLTransformProcessorNode::SafeDownCast( node );
   if ( pNode )
   {
     vtkDebugMacro( "OnMRMLSceneNodeAdded: Module node added." );
     vtkUnObserveMRMLNodeMacro( pNode ); // Remove previous observers.
     vtkNew<vtkIntArray> events;
     events->InsertNextValue( vtkCommand::ModifiedEvent );
-    events->InsertNextValue( vtkMRMLTransformFusionNode::InputDataModifiedEvent );
+    events->InsertNextValue( vtkMRMLTransformProcessorNode::InputDataModifiedEvent );
     vtkObserveMRMLNodeEventsMacro( pNode, events.GetPointer() );
   }
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerTransformFusionLogic::OnMRMLSceneNodeRemoved( vtkMRMLNode* node )
+void vtkSlicerTransformProcessorLogic::OnMRMLSceneNodeRemoved( vtkMRMLNode* node )
 {
   if ( node == NULL || this->GetMRMLScene() == NULL )
   {
@@ -110,7 +110,7 @@ void vtkSlicerTransformFusionLogic::OnMRMLSceneNodeRemoved( vtkMRMLNode* node )
     return;
   }
 
-  if ( node->IsA( "vtkMRMLTransformFusionNode" ) )
+  if ( node->IsA( "vtkMRMLTransformProcessorNode" ) )
   {
     vtkDebugMacro( "OnMRMLSceneNodeRemoved" );
     vtkUnObserveMRMLNodeMacro( node );
@@ -118,48 +118,48 @@ void vtkSlicerTransformFusionLogic::OnMRMLSceneNodeRemoved( vtkMRMLNode* node )
 }
 
 //-----------------------------------------------------------------------------
-void vtkSlicerTransformFusionLogic::ProcessMRMLNodesEvents( vtkObject* caller, unsigned long event, void* vtkNotUsed(callData) )
+void vtkSlicerTransformProcessorLogic::ProcessMRMLNodesEvents( vtkObject* caller, unsigned long event, void* vtkNotUsed(callData) )
 {
-  vtkMRMLTransformFusionNode* paramNode = vtkMRMLTransformFusionNode::SafeDownCast( caller );
+  vtkMRMLTransformProcessorNode* paramNode = vtkMRMLTransformProcessorNode::SafeDownCast( caller );
   if ( paramNode == NULL )
   {
     return;
   }
 
   // these are the only two events that should be handled
-  if ( event != vtkMRMLTransformFusionNode::InputDataModifiedEvent &&
+  if ( event != vtkMRMLTransformProcessorNode::InputDataModifiedEvent &&
        event != vtkCommand::ModifiedEvent )
   {
     return;
   }
 
-  if ( paramNode->GetUpdateMode() == vtkMRMLTransformFusionNode::UPDATE_MODE_AUTO )
+  if ( paramNode->GetUpdateMode() == vtkMRMLTransformProcessorNode::UPDATE_MODE_AUTO )
   {
     this->UpdateOutputTransform( paramNode );
   }
 }
 
 //-----------------------------------------------------------------------------
-void vtkSlicerTransformFusionLogic::UpdateOutputTransform( vtkMRMLTransformFusionNode* paramNode )
+void vtkSlicerTransformProcessorLogic::UpdateOutputTransform( vtkMRMLTransformProcessorNode* paramNode )
 {
-  int mode = paramNode->GetFusionMode();
-  if ( mode == vtkMRMLTransformFusionNode::FUSION_MODE_QUATERNION_AVERAGE )
+  int mode = paramNode->GetProcessingMode();
+  if ( mode == vtkMRMLTransformProcessorNode::PROCESSING_MODE_QUATERNION_AVERAGE )
   {
     this->QuaternionAverage( paramNode );
   }
-  else if ( mode == vtkMRMLTransformFusionNode::FUSION_MODE_COMPUTE_SHAFT_PIVOT )
+  else if ( mode == vtkMRMLTransformProcessorNode::PROCESSING_MODE_COMPUTE_SHAFT_PIVOT )
   {
     this->ComputeShaftPivotTransform( paramNode );
   }
-  else if ( mode == vtkMRMLTransformFusionNode::FUSION_MODE_COMPUTE_ROTATION )
+  else if ( mode == vtkMRMLTransformProcessorNode::PROCESSING_MODE_COMPUTE_ROTATION )
   {
     this->ComputeRotation( paramNode );
   }
-  else if ( mode == vtkMRMLTransformFusionNode::FUSION_MODE_COMPUTE_TRANSLATION )
+  else if ( mode == vtkMRMLTransformProcessorNode::PROCESSING_MODE_COMPUTE_TRANSLATION )
   {
     this->ComputeTranslation( paramNode );
   }
-  else if ( mode == vtkMRMLTransformFusionNode::FUSION_MODE_COMPUTE_FULL_TRANSFORM )
+  else if ( mode == vtkMRMLTransformProcessorNode::PROCESSING_MODE_COMPUTE_FULL_TRANSFORM )
   {
     this->ComputeFullTransform( paramNode );
   }
@@ -174,11 +174,11 @@ void vtkSlicerTransformFusionLogic::UpdateOutputTransform( vtkMRMLTransformFusio
 //   "Averaging Quaternions", Journal of Guidance, Control, and Dynamics, 
 //   Vol. 30, No. 4 (2007), pp. 1193-1197. 
 //   http://dx.doi.org/10.2514/1.28949
-void vtkSlicerTransformFusionLogic::QuaternionAverage( vtkMRMLTransformFusionNode* paramNode )
+void vtkSlicerTransformProcessorLogic::QuaternionAverage( vtkMRMLTransformProcessorNode* paramNode )
 {
   bool verboseWarnings = true;
-  bool conditionsMetForFusion = IsTransformFusionPossible( paramNode, verboseWarnings );
-  if ( conditionsMetForFusion == false )
+  bool conditionsMetForProcessing = IsTransformProcessingPossible( paramNode, verboseWarnings );
+  if ( conditionsMetForProcessing == false )
   {
     return;
   }
@@ -192,7 +192,7 @@ void vtkSlicerTransformFusionLogic::QuaternionAverage( vtkMRMLTransformFusionNod
   // Average quaternion
   vtkSmartPointer< vtkMatrix4x4 > resultMatrix = vtkSmartPointer< vtkMatrix4x4 >::New();
   int numberOfInputs = paramNode->GetNumberOfInputCombineTransformNodes();
-  // numberOfInputs is greater than 1, as checked by IsTransformFusionPossible
+  // numberOfInputs is greater than 1, as checked by IsTransformProcessingPossible
   vtkSmartPointer< vtkMatrix4x4 > matrix4x4Pointer = vtkSmartPointer< vtkMatrix4x4 >::New();
 
   float rotationMatrix[ 3 ][ 3 ] = { { 0 } };
@@ -265,11 +265,11 @@ void vtkSlicerTransformFusionLogic::QuaternionAverage( vtkMRMLTransformFusionNod
 //-----------------------------------------------------------------------------
 // Re-express the Input transform so that the shaft direction and translation from the primary source are 
 // preserved, but the other axes resemble the secondary source coordinate system
-void vtkSlicerTransformFusionLogic::ComputeShaftPivotTransform( vtkMRMLTransformFusionNode* paramNode )
+void vtkSlicerTransformProcessorLogic::ComputeShaftPivotTransform( vtkMRMLTransformProcessorNode* paramNode )
 {
   bool verboseWarnings = true;
-  bool conditionsMetForFusion = IsTransformFusionPossible( paramNode, verboseWarnings );
-  if ( conditionsMetForFusion == false )
+  bool conditionsMetForProcessing = IsTransformProcessingPossible( paramNode, verboseWarnings );
+  if ( conditionsMetForProcessing == false )
   {
     return;
   }
@@ -311,16 +311,16 @@ void vtkSlicerTransformFusionLogic::ComputeShaftPivotTransform( vtkMRMLTransform
   adjustedToInputAnchorTransform->Update();
 
   vtkMRMLLinearTransformNode* outputNode = paramNode->GetOutputTransformNode();
-  // the existence of outputNode is already checked in IsTransformFusionPossible, no error check necessary
+  // the existence of outputNode is already checked in IsTransformProcessingPossible, no error check necessary
   outputNode->SetMatrixTransformToParent( adjustedToInputAnchorTransform->GetMatrix() );
 }
 
 //----------------------------------------------------------------------------
-void vtkSlicerTransformFusionLogic::ComputeRotation( vtkMRMLTransformFusionNode* paramNode )
+void vtkSlicerTransformProcessorLogic::ComputeRotation( vtkMRMLTransformProcessorNode* paramNode )
 {
   bool verboseWarnings = true;
-  bool conditionsMetForFusion = IsTransformFusionPossible( paramNode, verboseWarnings );
-  if ( conditionsMetForFusion == false )
+  bool conditionsMetForProcessing = IsTransformProcessingPossible( paramNode, verboseWarnings );
+  if ( conditionsMetForProcessing == false )
   {
     return;
   }
@@ -333,13 +333,13 @@ void vtkSlicerTransformFusionLogic::ComputeRotation( vtkMRMLTransformFusionNode*
   int primaryAxisLabel = paramNode->GetPrimaryAxisLabel();
   switch ( primaryAxisLabel )
   {
-    case vtkMRMLTransformFusionNode::AXIS_LABEL_X:
+    case vtkMRMLTransformProcessorNode::AXIS_LABEL_X:
       primaryAxis[ 0 ] = 1.0;
       break;
-    case vtkMRMLTransformFusionNode::AXIS_LABEL_Y:
+    case vtkMRMLTransformProcessorNode::AXIS_LABEL_Y:
       primaryAxis[ 1 ] = 1.0;
       break;
-    case vtkMRMLTransformFusionNode::AXIS_LABEL_Z:
+    case vtkMRMLTransformProcessorNode::AXIS_LABEL_Z:
       primaryAxis[ 2 ] = 1.0;
       break;
     default:
@@ -351,13 +351,13 @@ void vtkSlicerTransformFusionLogic::ComputeRotation( vtkMRMLTransformFusionNode*
   int secondaryAxisLabel = paramNode->GetSecondaryAxisLabel();
   switch ( secondaryAxisLabel )
   {
-    case vtkMRMLTransformFusionNode::AXIS_LABEL_X:
+    case vtkMRMLTransformProcessorNode::AXIS_LABEL_X:
       secondaryAxis[ 0 ] = 1.0;
       break;
-    case vtkMRMLTransformFusionNode::AXIS_LABEL_Y:
+    case vtkMRMLTransformProcessorNode::AXIS_LABEL_Y:
       secondaryAxis[ 1 ] = 1.0;
       break;
-    case vtkMRMLTransformFusionNode::AXIS_LABEL_Z:
+    case vtkMRMLTransformProcessorNode::AXIS_LABEL_Z:
       secondaryAxis[ 2 ] = 1.0;
       break;
     default:
@@ -371,7 +371,7 @@ void vtkSlicerTransformFusionLogic::ComputeRotation( vtkMRMLTransformFusionNode*
   toTransformNode->GetTransformFromNode( fromTransformNode, fromToToTransform );
 
   // if there are other modes that need to check and corrrect for duplicate axes, these should be added below:
-  if ( paramNode->GetDependentAxesMode() == vtkMRMLTransformFusionNode::DEPENDENT_AXES_MODE_FROM_SECONDARY_AXIS )
+  if ( paramNode->GetDependentAxesMode() == vtkMRMLTransformProcessorNode::DEPENDENT_AXES_MODE_FROM_SECONDARY_AXIS )
   {
     paramNode->CheckAndCorrectForDuplicateAxes();
   }
@@ -380,16 +380,16 @@ void vtkSlicerTransformFusionLogic::ComputeRotation( vtkMRMLTransformFusionNode*
   vtkSmartPointer< vtkTransform > fromToToRotationOnlyTransform = vtkSmartPointer< vtkTransform >::New();
   GetRotationOnlyFromTransform( fromToToTransform, rotationMode, dependentAxesMode, primaryAxis, secondaryAxis, fromToToRotationOnlyTransform );
   vtkMRMLLinearTransformNode* outputNode = paramNode->GetOutputTransformNode();
-  // the existence of outputNode is already checked in IsTransformFusionPossible, no error check necessary
+  // the existence of outputNode is already checked in IsTransformProcessingPossible, no error check necessary
   outputNode->SetMatrixTransformToParent( fromToToRotationOnlyTransform->GetMatrix() );
 }
 
 //----------------------------------------------------------------------------
-void vtkSlicerTransformFusionLogic::ComputeTranslation( vtkMRMLTransformFusionNode* paramNode )
+void vtkSlicerTransformProcessorLogic::ComputeTranslation( vtkMRMLTransformProcessorNode* paramNode )
 {
   bool verboseWarnings = true;
-  bool conditionsMetForFusion = IsTransformFusionPossible( paramNode, verboseWarnings );
-  if ( conditionsMetForFusion == false )
+  bool conditionsMetForProcessing = IsTransformProcessingPossible( paramNode, verboseWarnings );
+  if ( conditionsMetForProcessing == false )
   {
     return;
   }
@@ -403,16 +403,16 @@ void vtkSlicerTransformFusionLogic::ComputeTranslation( vtkMRMLTransformFusionNo
   vtkSmartPointer< vtkTransform > fromToToTranslationOnlyTransform = vtkSmartPointer< vtkTransform >::New();
   GetTranslationOnlyFromTransform( fromToToGeneralTransform, copyComponents, fromToToTranslationOnlyTransform );
   vtkMRMLLinearTransformNode* outputNode = paramNode->GetOutputTransformNode();
-  // the existence of outputNode is already checked in IsTransformFusionPossible, no error check necessary
+  // the existence of outputNode is already checked in IsTransformProcessingPossible, no error check necessary
   outputNode->SetMatrixTransformToParent( fromToToTranslationOnlyTransform->GetMatrix() );
 }
 
 //----------------------------------------------------------------------------
-void vtkSlicerTransformFusionLogic::ComputeFullTransform( vtkMRMLTransformFusionNode* paramNode )
+void vtkSlicerTransformProcessorLogic::ComputeFullTransform( vtkMRMLTransformProcessorNode* paramNode )
 {
   bool verboseWarnings = true;
-  bool conditionsMetForFusion = IsTransformFusionPossible( paramNode, verboseWarnings );
-  if ( conditionsMetForFusion == false )
+  bool conditionsMetForProcessing = IsTransformProcessingPossible( paramNode, verboseWarnings );
+  if ( conditionsMetForProcessing == false )
   {
     return;
   }
@@ -437,12 +437,12 @@ void vtkSlicerTransformFusionLogic::ComputeFullTransform( vtkMRMLTransformFusion
   fromToToLinearTransformNode->Update();
 
   vtkMRMLLinearTransformNode* outputTransformNode = paramNode->GetOutputTransformNode();
-  // the existence of outputTransformNode is already checked in IsTransformFusionPossible, no error check necessary
+  // the existence of outputTransformNode is already checked in IsTransformProcessingPossible, no error check necessary
   outputTransformNode->SetAndObserveTransformToParent( fromToToLinearTransformNode );
 }
 
 //----------------------------------------------------------------------------
-void vtkSlicerTransformFusionLogic::GetRotationOnlyFromTransform( vtkGeneralTransform* sourceToTargetTransform, int rotationMode, int dependentAxesMode, const double* primaryAxis, const double* secondaryAxis, vtkTransform* rotationOnlyTransform )
+void vtkSlicerTransformProcessorLogic::GetRotationOnlyFromTransform( vtkGeneralTransform* sourceToTargetTransform, int rotationMode, int dependentAxesMode, const double* primaryAxis, const double* secondaryAxis, vtkTransform* rotationOnlyTransform )
 {
   if ( rotationOnlyTransform == NULL )
   {
@@ -458,10 +458,10 @@ void vtkSlicerTransformFusionLogic::GetRotationOnlyFromTransform( vtkGeneralTran
 
   switch ( rotationMode )
   {
-    case vtkMRMLTransformFusionNode::ROTATION_MODE_COPY_ALL_AXES:
+    case vtkMRMLTransformProcessorNode::ROTATION_MODE_COPY_ALL_AXES:
       GetRotationAllAxesFromTransform( sourceToTargetTransform, rotationOnlyTransform );
       break;
-    case vtkMRMLTransformFusionNode::ROTATION_MODE_COPY_SINGLE_AXIS:
+    case vtkMRMLTransformProcessorNode::ROTATION_MODE_COPY_SINGLE_AXIS:
       GetRotationSingleAxisFromTransform( sourceToTargetTransform, dependentAxesMode, primaryAxis, secondaryAxis, rotationOnlyTransform );
       break;
     default:
@@ -474,7 +474,7 @@ void vtkSlicerTransformFusionLogic::GetRotationOnlyFromTransform( vtkGeneralTran
 // Get the orientation transform from one transform to the other.
 // In other words, return the 3x3 matrix that is used to
 // rotate from one basis to another. Translation is not used here.
-void vtkSlicerTransformFusionLogic::GetRotationAllAxesFromTransform ( vtkGeneralTransform* sourceToTargetTransform, vtkTransform* rotationOnlyTransform )
+void vtkSlicerTransformProcessorLogic::GetRotationAllAxesFromTransform ( vtkGeneralTransform* sourceToTargetTransform, vtkTransform* rotationOnlyTransform )
 {
   if ( rotationOnlyTransform == NULL )
   {
@@ -508,7 +508,7 @@ void vtkSlicerTransformFusionLogic::GetRotationAllAxesFromTransform ( vtkGeneral
 }
 
 //----------------------------------------------------------------------------
-void vtkSlicerTransformFusionLogic::GetRotationSingleAxisFromTransform( vtkGeneralTransform* sourceToTargetTransform, int dependentAxesMode, const double* primaryAxis, const double* secondaryAxis, vtkTransform* rotationOnlyTransform )
+void vtkSlicerTransformProcessorLogic::GetRotationSingleAxisFromTransform( vtkGeneralTransform* sourceToTargetTransform, int dependentAxesMode, const double* primaryAxis, const double* secondaryAxis, vtkTransform* rotationOnlyTransform )
 {
   if ( rotationOnlyTransform == NULL )
   {
@@ -524,10 +524,10 @@ void vtkSlicerTransformFusionLogic::GetRotationSingleAxisFromTransform( vtkGener
 
   switch ( dependentAxesMode )
   {
-    case vtkMRMLTransformFusionNode::DEPENDENT_AXES_MODE_FROM_PIVOT:
+    case vtkMRMLTransformProcessorNode::DEPENDENT_AXES_MODE_FROM_PIVOT:
       GetRotationSingleAxisWithPivotFromTransform( sourceToTargetTransform, primaryAxis, rotationOnlyTransform );
       break;
-    case vtkMRMLTransformFusionNode::DEPENDENT_AXES_MODE_FROM_SECONDARY_AXIS:
+    case vtkMRMLTransformProcessorNode::DEPENDENT_AXES_MODE_FROM_SECONDARY_AXIS:
       GetRotationSingleAxisWithSecondaryFromTransform( sourceToTargetTransform, primaryAxis, secondaryAxis, rotationOnlyTransform );
       break;
     default:
@@ -540,7 +540,7 @@ void vtkSlicerTransformFusionLogic::GetRotationSingleAxisFromTransform( vtkGener
 // Get the orientation transform *such that* the primary axis
 // the other axes are described using the smallest pivot rotation
 // from the source
-void vtkSlicerTransformFusionLogic::GetRotationSingleAxisWithPivotFromTransform( vtkGeneralTransform* sourceToTargetTransform, const double* primaryAxis, vtkTransform* rotationOnlyTransform )
+void vtkSlicerTransformProcessorLogic::GetRotationSingleAxisWithPivotFromTransform( vtkGeneralTransform* sourceToTargetTransform, const double* primaryAxis, vtkTransform* rotationOnlyTransform )
 {
   // Key point: We REFER to the Target transform, then
   // rotate between it and the Source. We use an axis-angle rotation,
@@ -590,7 +590,7 @@ void vtkSlicerTransformFusionLogic::GetRotationSingleAxisWithPivotFromTransform(
 }
 
 //----------------------------------------------------------------------------
-void vtkSlicerTransformFusionLogic::GetRotationSingleAxisWithSecondaryFromTransform( vtkGeneralTransform* sourceToTargetTransform, const double* primaryAxis, const double* secondaryAxis, vtkTransform* rotationOnlyTransform )
+void vtkSlicerTransformProcessorLogic::GetRotationSingleAxisWithSecondaryFromTransform( vtkGeneralTransform* sourceToTargetTransform, const double* primaryAxis, const double* secondaryAxis, vtkTransform* rotationOnlyTransform )
 {
   // Rotate from the sourceToTargetTransform, such that the primary axis 
   // remains the same, but the secondary axis is as close as possible to the target.
@@ -672,7 +672,7 @@ void vtkSlicerTransformFusionLogic::GetRotationSingleAxisWithSecondaryFromTransf
 }
 
 //----------------------------------------------------------------------------
-void vtkSlicerTransformFusionLogic::GetTranslationOnlyFromTransform( vtkGeneralTransform* sourceToTargetTransform, const bool* copyComponents, vtkTransform* translationOnlyTransform )
+void vtkSlicerTransformProcessorLogic::GetTranslationOnlyFromTransform( vtkGeneralTransform* sourceToTargetTransform, const bool* copyComponents, vtkTransform* translationOnlyTransform )
 {
   if ( translationOnlyTransform == NULL )
   {
@@ -704,7 +704,7 @@ void vtkSlicerTransformFusionLogic::GetTranslationOnlyFromTransform( vtkGeneralT
 }
 
 //----------------------------------------------------------------------------
-void vtkSlicerTransformFusionLogic::GetRotationMatrixFromAxes( const double* xAxis, const double* yAxis, const double* zAxis, vtkMatrix4x4* rotationMatrix )
+void vtkSlicerTransformProcessorLogic::GetRotationMatrixFromAxes( const double* xAxis, const double* yAxis, const double* zAxis, vtkMatrix4x4* rotationMatrix )
 {
   rotationMatrix->Identity();
   rotationMatrix->SetElement( 0, 0, xAxis[ 0 ] );
@@ -719,11 +719,11 @@ void vtkSlicerTransformFusionLogic::GetRotationMatrixFromAxes( const double* xAx
 }
 
 //----------------------------------------------------------------------------
-bool vtkSlicerTransformFusionLogic::IsTransformFusionPossible( vtkMRMLTransformFusionNode *node, bool verbose )
+bool vtkSlicerTransformProcessorLogic::IsTransformProcessingPossible( vtkMRMLTransformProcessorNode *node, bool verbose )
 {
   if ( node == NULL )
   {
-    vtkErrorMacro( "IsTransformFusionPossible: Input parameter node is null. Returning false." );
+    vtkErrorMacro( "IsTransformProcessingPossible: Input parameter node is null. Returning false." );
     return false;
   }
 
@@ -731,12 +731,12 @@ bool vtkSlicerTransformFusionLogic::IsTransformFusionPossible( vtkMRMLTransformF
   bool result = true; // assume the conditions are met until otherwise shown
   
   // first check for valid mode
-  int mode = node->GetFusionMode();
-  if ( mode < 0 || mode >= vtkMRMLTransformFusionNode::FUSION_MODE_LAST )
+  int mode = node->GetProcessingMode();
+  if ( mode < 0 || mode >= vtkMRMLTransformProcessorNode::PROCESSING_MODE_LAST )
   {
     // output regardless of verbose, since this is an error that should not happen at all.
-    // output the fusion mode number, since the "Unknown" string is not going to be useful
-    vtkErrorMacro( "IsTransformFusionPossible: Unrecognized fusion mode provided as input: " << mode << ". Returning false." );
+    // output the processing mode number, since the "Unknown" string is not going to be useful
+    vtkErrorMacro( "IsTransformProcessingPossible: Unrecognized processing mode provided as input: " << mode << ". Returning false." );
     return false;
   }
 
@@ -744,15 +744,15 @@ bool vtkSlicerTransformFusionLogic::IsTransformFusionPossible( vtkMRMLTransformF
   // then check whether the current mode applies
   // If many more modes are added, then this scheme should be re-evaluated
   
-  if ( mode == vtkMRMLTransformFusionNode::FUSION_MODE_COMPUTE_ROTATION ||
-       mode == vtkMRMLTransformFusionNode::FUSION_MODE_COMPUTE_TRANSLATION ||
-       mode == vtkMRMLTransformFusionNode::FUSION_MODE_COMPUTE_FULL_TRANSFORM )
+  if ( mode == vtkMRMLTransformProcessorNode::PROCESSING_MODE_COMPUTE_ROTATION ||
+       mode == vtkMRMLTransformProcessorNode::PROCESSING_MODE_COMPUTE_TRANSLATION ||
+       mode == vtkMRMLTransformProcessorNode::PROCESSING_MODE_COMPUTE_FULL_TRANSFORM )
   {
     if ( node->GetInputFromTransformNode() == NULL )
     {
       if ( verbose )
       {
-        vtkWarningMacro( "IsTransformFusionPossible: No \"From\" node provided for fusion mode " << vtkMRMLTransformFusionNode::GetFusionModeAsString( mode ) );
+        vtkWarningMacro( "IsTransformProcessingPossible: No \"From\" node provided for processing mode " << vtkMRMLTransformProcessorNode::GetProcessingModeAsString( mode ) );
       }
       result = false;
     }
@@ -760,19 +760,19 @@ bool vtkSlicerTransformFusionLogic::IsTransformFusionPossible( vtkMRMLTransformF
     {
       if ( verbose )
       {
-        vtkWarningMacro( "IsTransformFusionPossible: No \"To\" node provided for fusion mode " << vtkMRMLTransformFusionNode::GetFusionModeAsString( mode ) );
+        vtkWarningMacro( "IsTransformProcessingPossible: No \"To\" node provided for processing mode " << vtkMRMLTransformProcessorNode::GetProcessingModeAsString( mode ) );
       }
       result = false;
     }
   }
 
-  if ( mode == vtkMRMLTransformFusionNode::FUSION_MODE_COMPUTE_SHAFT_PIVOT )
+  if ( mode == vtkMRMLTransformProcessorNode::PROCESSING_MODE_COMPUTE_SHAFT_PIVOT )
   {
     if ( node->GetInputInitialTransformNode() == NULL )
     {
       if ( verbose )
       {
-        vtkWarningMacro( "IsTransformFusionPossible: No \"Initial\" node provided for fusion mode " << vtkMRMLTransformFusionNode::GetFusionModeAsString( mode ) );
+        vtkWarningMacro( "IsTransformProcessingPossible: No \"Initial\" node provided for processing mode " << vtkMRMLTransformProcessorNode::GetProcessingModeAsString( mode ) );
       }
       result = false;
     }
@@ -780,7 +780,7 @@ bool vtkSlicerTransformFusionLogic::IsTransformFusionPossible( vtkMRMLTransformF
     {
       if ( verbose )
       {
-        vtkWarningMacro( "IsTransformFusionPossible: No \"Changed\" node provided for fusion mode " << vtkMRMLTransformFusionNode::GetFusionModeAsString( mode ) );
+        vtkWarningMacro( "IsTransformProcessingPossible: No \"Changed\" node provided for processing mode " << vtkMRMLTransformProcessorNode::GetProcessingModeAsString( mode ) );
       }
       result = false;
     }
@@ -788,19 +788,19 @@ bool vtkSlicerTransformFusionLogic::IsTransformFusionPossible( vtkMRMLTransformF
     {
       if ( verbose )
       {
-        vtkWarningMacro( "IsTransformFusionPossible: No \"Anchor\" node provided for fusion mode " << vtkMRMLTransformFusionNode::GetFusionModeAsString( mode ) );
+        vtkWarningMacro( "IsTransformProcessingPossible: No \"Anchor\" node provided for processing mode " << vtkMRMLTransformProcessorNode::GetProcessingModeAsString( mode ) );
       }
       result = false;
     }
   }
 
-  if ( mode == vtkMRMLTransformFusionNode::FUSION_MODE_QUATERNION_AVERAGE )
+  if ( mode == vtkMRMLTransformProcessorNode::PROCESSING_MODE_QUATERNION_AVERAGE )
   {
     if ( node->GetNumberOfInputCombineTransformNodes() < 2 )
     {
       if ( verbose )
       {
-        vtkWarningMacro( "IsTransformFusionPossible: Not enough source nodes as input for fusion mode " << vtkMRMLTransformFusionNode::GetFusionModeAsString( mode ) );
+        vtkWarningMacro( "IsTransformProcessingPossible: Not enough source nodes as input for processing mode " << vtkMRMLTransformProcessorNode::GetProcessingModeAsString( mode ) );
       }
       result = false;
     }
@@ -812,7 +812,7 @@ bool vtkSlicerTransformFusionLogic::IsTransformFusionPossible( vtkMRMLTransformF
     // this is an error for *any* mode, no need to check mode
     if ( verbose )
     {
-      vtkWarningMacro( "IsTransformFusionPossible: No \"Output\" node provided for fusion mode " << vtkMRMLTransformFusionNode::GetFusionModeAsString( mode ) );
+      vtkWarningMacro( "IsTransformProcessingPossible: No \"Output\" node provided for processing mode " << vtkMRMLTransformProcessorNode::GetProcessingModeAsString( mode ) );
     }
     result = false;
   }

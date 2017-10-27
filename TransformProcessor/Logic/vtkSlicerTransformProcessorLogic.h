@@ -19,12 +19,12 @@
 
 ==============================================================================*/
 
-// .NAME vtkSlicerTransformFusionLogic - slicer logic class for volumes manipulation
+// .NAME vtkSlicerTransformProcessorLogic - slicer logic class for volumes manipulation
 // .SECTION Description
 // This class manages the logic associated with reading, saving,
 // and changing propertied of the volumes
-#ifndef __vtkSlicerTransformFusionLogic_h
-#define __vtkSlicerTransformFusionLogic_h
+#ifndef __vtkSlicerTransformProcessorLogic_h
+#define __vtkSlicerTransformProcessorLogic_h
 
 #include <string>
 
@@ -36,7 +36,7 @@
 #include "vtkMRMLNode.h"
 #include "vtkMRMLScene.h"
 
-class vtkMRMLTransformFusionNode;
+class vtkMRMLTransformProcessorNode;
 class vtkMRMLLinearTransformNode;
 
 
@@ -48,31 +48,31 @@ class vtkMRMLLinearTransformNode;
 #include "vtkTransform.h"
 #include "vtkSmartPointer.h"
 
-#include "vtkSlicerTransformFusionModuleLogicExport.h"
+#include "vtkSlicerTransformProcessorModuleLogicExport.h"
 
 
-/// \ingroup Slicer_QtModules_TransformFusion
-class VTK_SLICER_TRANSFORMFUSION_MODULE_LOGIC_EXPORT vtkSlicerTransformFusionLogic :
+/// \ingroup Slicer_QtModules_TransformProcessor
+class VTK_SLICER_TRANSFORMPROCESSOR_MODULE_LOGIC_EXPORT vtkSlicerTransformProcessorLogic :
   public vtkSlicerModuleLogic
 {
 public:
   
-  static vtkSlicerTransformFusionLogic *New();
-  vtkTypeMacro( vtkSlicerTransformFusionLogic, vtkSlicerModuleLogic );
+  static vtkSlicerTransformProcessorLogic *New();
+  vtkTypeMacro( vtkSlicerTransformProcessorLogic, vtkSlicerModuleLogic );
   void PrintSelf( ostream& os, vtkIndent indent );
   
 public:
-  void UpdateOutputTransform( vtkMRMLTransformFusionNode* );
-  void QuaternionAverage( vtkMRMLTransformFusionNode* );
-  void ComputeShaftPivotTransform( vtkMRMLTransformFusionNode* );
-  void ComputeRotation( vtkMRMLTransformFusionNode* );
-  void ComputeTranslation( vtkMRMLTransformFusionNode* );
-  void ComputeFullTransform( vtkMRMLTransformFusionNode* );
-  bool IsTransformFusionPossible( vtkMRMLTransformFusionNode*, bool verbose = false );
+  void UpdateOutputTransform( vtkMRMLTransformProcessorNode* );
+  void QuaternionAverage( vtkMRMLTransformProcessorNode* );
+  void ComputeShaftPivotTransform( vtkMRMLTransformProcessorNode* );
+  void ComputeRotation( vtkMRMLTransformProcessorNode* );
+  void ComputeTranslation( vtkMRMLTransformProcessorNode* );
+  void ComputeFullTransform( vtkMRMLTransformProcessorNode* );
+  bool IsTransformProcessingPossible( vtkMRMLTransformProcessorNode*, bool verbose = false );
   
 protected:
-  vtkSlicerTransformFusionLogic();
-  ~vtkSlicerTransformFusionLogic();
+  vtkSlicerTransformProcessorLogic();
+  ~vtkSlicerTransformProcessorLogic();
 
   virtual void RegisterNodes();
   virtual void SetMRMLSceneInternal( vtkMRMLScene * newScene );
@@ -81,10 +81,10 @@ protected:
   void ProcessMRMLNodesEvents( vtkObject* caller, unsigned long event, void* callData );;
   
 private:
-  vtkSlicerTransformFusionLogic( const vtkSlicerTransformFusionLogic& );// Not implemented
-  void operator=( const vtkSlicerTransformFusionLogic& );// Not implemented
+  vtkSlicerTransformProcessorLogic( const vtkSlicerTransformProcessorLogic& );// Not implemented
+  void operator=( const vtkSlicerTransformProcessorLogic& );// Not implemented
   
-  // these helper functions should only be used by fusion modes themselves, and are therefore private
+  // these helper functions should only be used by processing modes themselves, and are therefore private
   void GetRotationOnlyFromTransform( vtkGeneralTransform*, int, int, const double*, const double*, vtkTransform* );
   void GetRotationAllAxesFromTransform ( vtkGeneralTransform*, vtkTransform* );
   void GetRotationSingleAxisFromTransform( vtkGeneralTransform*, int, const double*, const double*, vtkTransform* );
