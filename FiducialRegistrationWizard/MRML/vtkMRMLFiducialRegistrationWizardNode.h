@@ -97,18 +97,23 @@ protected:
   void operator=( const vtkMRMLFiducialRegistrationWizardNode& );
 
 public:
+  // Transform 'from' these points
   vtkMRMLMarkupsFiducialNode* GetFromFiducialListNode();
   void SetAndObserveFromFiducialListNodeId( const char* nodeId );
 
+  // Transform 'to' these points
   vtkMRMLMarkupsFiducialNode* GetToFiducialListNode();
   void SetAndObserveToFiducialListNodeId( const char* nodeId );
 
+  // Where to store the output registration
   vtkMRMLTransformNode* GetOutputTransformNode();
   void SetOutputTransformNodeId( const char* nodeId );
 
+  // Transform to record 'From' Points
   vtkMRMLTransformNode* GetProbeTransformFromNode();
   void SetProbeTransformFromNodeId( const char* nodeId );
 
+  // Transform to record 'To' Points
   vtkMRMLTransformNode* GetProbeTransformToNode();
   void SetProbeTransformToNodeId( const char* nodeId );
 
@@ -142,9 +147,31 @@ public:
   void ProcessMRMLEvents( vtkObject *caller, unsigned long event, void *callData );
 
 private:
+  // Three modes:
+  // - Rigid (translation, orientation)
+  // - Similarity (translation, orientation, scale)
+  // - Warping (non-uniform, cannot be stored in a vtkMRMLLinearTransformNode)
   int RegistrationMode;
+
+  // There are two modes:
+  // - Manual will only update the registration when the UpdateCalibration()
+  //   method in the logic is called
+  // - Automatic will update automatically whenever one of the observed lists
+  //   is modified.
   int UpdateMode;
+
+  // Point matching can be either manual or automatic.
+  // - Manual assumes that there are two equally-sized lists of points,
+  //   And that they are organized (ordered) in pairs.
+  // - Automatic makes neither of the above assumptions. It does assume
+  //   that there are at least three points in both lists, that there
+  //   is no symmetry among said points, and that a rigid registration
+  //   is being performed (similarity and warping are not yet supported).
   int PointMatching;
+
+  // The Calibration status message reports the RMS error,
+  // as well as any warnings about how the registration
+  // was set up.
   std::string CalibrationStatusMessage; // TODO: add this to the ouput transform as a custom node attribute
 
 };  
