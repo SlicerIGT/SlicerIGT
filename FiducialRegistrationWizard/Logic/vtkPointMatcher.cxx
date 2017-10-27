@@ -15,8 +15,9 @@ vtkPointMatcher::vtkPointMatcher()
   this->InputPointList2 = NULL;
   this->MaximumDifferenceInNumberOfPoints = 2;
   this->TolerableRootMeanSquareDistanceErrorMm = 10.0;
-  this->AmbiguityThresholdDistanceMm = 5.0;
   this->ComputedRootMeanSquareDistanceErrorMm = RESET_VALUE_COMPUTED_ROOT_MEAN_DISTANCE_ERROR;
+  this->AmbiguityThresholdDistanceMm = 5.0;
+  this->MatchingAmbiguous = false;
   // outputs are never null
   this->OutputPointList1 = vtkSmartPointer< vtkPoints >::New();
   this->OutputPointList2 = vtkSmartPointer< vtkPoints >::New();
@@ -341,6 +342,37 @@ void vtkPointMatcher::UpdateBestMatchingForSubsetOfPoints( vtkPoints* pointSubse
     permutedPointSubset2DistanceMatrix->SetPointList2( permutedPointSubset2 );
     permutedPointSubset2DistanceMatrix->Update();
     double rootMeanSquareDistanceErrorMm = this->ComputeRootMeanSquareistanceErrors( pointSubset1DistanceMatrix, permutedPointSubset2DistanceMatrix );
+
+    // case analysis for setting MatchingAmbiguous:
+    // let ComputedRootMeanSquareDistanceErrorMm store the distance error for the *best* matching
+    // let rootMeanSquareDistanceErrorMm store the distance error for the *current* matching
+    // use AmbiguityThresholdDistanceMm and MatchingAmbiguous as described in the header file
+    // 1
+    // rootMeanSquareDistanceErrorMm is better (lower) than ComputedRootMeanSquareDistanceErrorMm,
+    // but by less than AmbiguityThresholdDistanceMm
+    // Result => MatchingAmbiguous should be set to true
+    //   - trivial justification
+    // 2
+    // rootMeanSquareDistanceErrorMm is worse (higher) than ComputedRootMeanSquareDistanceErrorMm,
+    // but by less than AmbiguityThresholdDistanceMm
+    // Result => MatchingAmbiguous should be set to true
+    //   - trivial justification
+    // 3
+    // rootMeanSquareDistanceErrorMm is better (lower) than ComputedRootMeanSquareDistanceErrorMm,
+    // but by more than AmbiguityThresholdDistanceMm
+    // Result => MatchingAmbiguous should be set to false.
+    //   - If there was a _previous_ rootMeanSquareDistanceErrorMm within AmbiguityThresholdDistanceMm,
+    //     that would have become ComputedRootMeanSquareDistanceErrorMm. Therefore there have not been
+    //     any _previous_ rootMeanSquareDistanceErrorMm within AmbiguityThresholdDistanceMm.
+    //   - If _later_ there is a rootMeanSquareDistanceErrorMm within AmbiguityThresholdDistanceMm,
+    //     then MatchingAmbiguous will be set to true by either case 1 or case 2.
+    //     Cases 1 and 2 will always catch an ambiguous matching, because the search is exhaustive.
+    // 4
+    // rootMeanSquareDistanceErrorMm is worse (higher) than ComputedRootMeanSquareDistanceErrorMm,
+    // but by more than AmbiguityThresholdDistanceMm
+    // Result => do nothing
+    //   - This result does not matter. It *cannot* be within AmbiguityThresholdDistanceMm
+    //     of the best (final) ComputedRootMeanSquareDistanceErrorMm
 
     // flag ambiguous if suitability within some threshold of the best result so far
     double differenceComparedToBestMm = this->ComputedRootMeanSquareDistanceErrorMm - rootMeanSquareDistanceErrorMm;
