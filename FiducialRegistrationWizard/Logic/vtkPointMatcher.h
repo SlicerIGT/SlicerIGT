@@ -66,7 +66,9 @@ class VTK_SLICER_FIDUCIALREGISTRATIONWIZARD_MODULE_LOGIC_EXPORT vtkPointMatcher 
     // The mean distance error between each pair of points, after matching
     double ComputedRootMeanSquareDistanceErrorMm;
 
-    // Determine if there is more than one plausible mapping.
+    // Determine if there is more than one plausible point-to-point
+    // mapping (for re-ordering the point lists) based on their
+    // positions.
     // If a suitable mapping was found, but there is at least one
     // other mapping within
     // ThresholdDistanceForAmbiguousMatchingMm of ComputedRootMeanSquareDistanceErrorMm
@@ -78,7 +80,7 @@ class VTK_SLICER_FIDUCIALREGISTRATIONWIZARD_MODULE_LOGIC_EXPORT vtkPointMatcher 
     bool MatchingAmbiguous;
 
     // these points will be ordered pairs
-    // and the same length as one another
+    // and the lists will be the same length as one another
     vtkSmartPointer< vtkPoints > OutputPointList1;
     vtkSmartPointer< vtkPoints > OutputPointList2;
 
