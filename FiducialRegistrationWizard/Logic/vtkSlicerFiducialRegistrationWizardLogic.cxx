@@ -276,6 +276,16 @@ bool vtkSlicerFiducialRegistrationWizardLogic::UpdateCalibration( vtkMRMLNode* n
   }
   else if ( pointMatching == vtkMRMLFiducialRegistrationWizardNode::POINT_MATCHING_AUTOMATIC )
   {
+    int registrationMode = fiducialRegistrationWizardNode->GetRegistrationMode();
+    if ( registrationMode == vtkMRMLFiducialRegistrationWizardNode::REGISTRATION_MODE_SIMILARITY || 
+         registrationMode == vtkMRMLFiducialRegistrationWizardNode::REGISTRATION_MODE_WARPING )
+    {
+      std::stringstream msg;
+      msg << "Automatic point matching is currently supported only for rigid registration." << std::endl
+          << "Currently " << fiducialRegistrationWizardNode->RegistrationModeAsString( registrationMode )
+          << " registration is being used." << std::endl << "Unexpected results may occur.";
+      fiducialRegistrationWizardNode->AddToCalibrationStatusMessage( msg.str() );
+    }
     const int MAX_NUMBER_OF_POINTS_FOR_POINT_MATCHING_AUTOMATIC = 8; // more than this and it tends to take a long time. Algorithm is at least N!
     int fromNumberOfPoints = fromPointsUnordered->GetNumberOfPoints();
     int toNumberOfPoints = toPointsUnordered->GetNumberOfPoints();
@@ -286,7 +296,7 @@ bool vtkSlicerFiducialRegistrationWizardLogic::UpdateCalibration( vtkMRMLNode* n
       msg << "Too many points to compute point pairing " << numberOfPointsToMatch << "." << std::endl
           << "To avoid long computation time, there should be at most "<< MAX_NUMBER_OF_POINTS_FOR_POINT_MATCHING_AUTOMATIC << " points." << std::endl
           << "Aborting registration.";
-      fiducialRegistrationWizardNode->SetCalibrationStatusMessage( msg.str() );
+      fiducialRegistrationWizardNode->AddToCalibrationStatusMessage( msg.str() );
       return false;
     }
     vtkSmartPointer< vtkPointMatcher > pointMatcher = vtkSmartPointer< vtkPointMatcher >::New();
