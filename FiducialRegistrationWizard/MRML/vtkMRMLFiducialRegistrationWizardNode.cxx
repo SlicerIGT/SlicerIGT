@@ -71,6 +71,7 @@ void vtkMRMLFiducialRegistrationWizardNode::WriteXML( ostream& of, int nIndent )
   Superclass::WriteXML(of, nIndent); // This will take care of referenced nodes
 
   vtkIndent indent(nIndent); 
+  of << indent << " PointMatching=\"" << PointMatchingAsString( this->PointMatching ) << "\"";
   of << indent << " RegistrationMode=\"" << RegistrationModeAsString( this->RegistrationMode ) << "\"";
   of << indent << " UpdateMode=\"" << UpdateModeAsString( this->UpdateMode ) << "\"";
 }
@@ -88,11 +89,15 @@ void vtkMRMLFiducialRegistrationWizardNode::ReadXMLAttributes( const char** atts
     attName  = *(atts++);
     attValue = *(atts++);
     
-    if ( ! strcmp( attName, "RegistrationMode" ) )
+    if ( ! strcmp( attName, "PointMatching" ) )
+    {
+      this->PointMatching = PointMatchingFromString( std::string( attValue ) );
+    }
+    else if ( ! strcmp( attName, "RegistrationMode" ) )
     {
       this->RegistrationMode = RegistrationModeFromString( std::string( attValue ) );
     }
-    if ( ! strcmp( attName, "UpdateMode" ) )
+    else if ( ! strcmp( attName, "UpdateMode" ) )
     {
       this->UpdateMode = UpdateModeFromString( std::string( attValue ) );
     }
@@ -118,6 +123,7 @@ void vtkMRMLFiducialRegistrationWizardNode::Copy( vtkMRMLNode *anode )
 void vtkMRMLFiducialRegistrationWizardNode::PrintSelf( ostream& os, vtkIndent indent )
 {
   vtkMRMLNode::PrintSelf(os,indent); // This will take care of referenced nodes
+  os << indent << "PointMatching: " << PointMatchingAsString( this->PointMatching ) << "\n";
   os << indent << "RegistrationMode: " << RegistrationModeAsString( this->RegistrationMode ) << "\n";
   os << indent << "UpdateMode: " << UpdateModeAsString( this->UpdateMode ) << "\n";
 }
