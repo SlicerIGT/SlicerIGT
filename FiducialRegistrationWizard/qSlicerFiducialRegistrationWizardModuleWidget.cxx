@@ -228,6 +228,11 @@ void qSlicerFiducialRegistrationWizardModuleWidget::setup()
   connect( this, SIGNAL(mrmlSceneChanged(vtkMRMLScene*)), d->ToMarkupsWidget, SLOT(setMRMLScene(vtkMRMLScene*)) );
   connect( this, SIGNAL(mrmlSceneChanged(vtkMRMLScene*)), d->TransformPreviewWidget, SLOT(setMRMLScene(vtkMRMLScene*)) );
 
+  // from/to markups widgets need to have scene set before this module widget,
+  // otherwise they will run into errors
+  d->FromMarkupsWidget->setMRMLScene( d->logic()->GetMRMLScene() );
+  d->ToMarkupsWidget->setMRMLScene( d->logic()->GetMRMLScene() );
+
   this->setMRMLScene( d->logic()->GetMRMLScene() );
 
   // Make connections to update the mrml from the widget
