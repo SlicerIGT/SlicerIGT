@@ -22,8 +22,10 @@
 #include <QTimer>
 #include <QtPlugin>
 
+// Slicer includes
 #include "qSlicerCoreApplication.h"
 #include "qSlicerApplication.h"
+#include <vtkSlicerVersionConfigure.h> // For Slicer_VERSION_MAJOR, Slicer_VERSION_MINOR
 
 // Watchdog Logic includes
 #include <vtkSlicerWatchdogLogic.h>
@@ -38,6 +40,12 @@
 #include "vtkMRMLWatchdogNode.h"
 
 static const double UPDATE_WATCHDOG_NODES_PERIOD_SEC = 0.2;
+
+// DisplayableManager initialization
+#if Slicer_VERSION_MAJOR == 4 && Slicer_VERSION_MINOR >= 9
+#include <vtkAutoInit.h>
+VTK_MODULE_INIT(vtkSlicerWatchdogModuleMRMLDisplayableManager)
+#endif
 
 //-----------------------------------------------------------------------------
 #if (QT_VERSION < QT_VERSION_CHECK(5, 0, 0))
