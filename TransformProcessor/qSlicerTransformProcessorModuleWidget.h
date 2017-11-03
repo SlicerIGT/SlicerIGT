@@ -19,19 +19,19 @@
 
 ==============================================================================*/
 
-#ifndef __qSlicerTransformFusionModuleWidget_h
-#define __qSlicerTransformFusionModuleWidget_h
+#ifndef __qSlicerTransformProcessorModuleWidget_h
+#define __qSlicerTransformProcessorModuleWidget_h
 
 // SlicerQt includes
 #include "qSlicerAbstractModuleWidget.h"
 
-#include "qSlicerTransformFusionModuleExport.h"
+#include "qSlicerTransformProcessorModuleExport.h"
 
-class qSlicerTransformFusionModuleWidgetPrivate;
+class qSlicerTransformProcessorModuleWidgetPrivate;
 class vtkMRMLNode;
 
-/// \ingroup Slicer_QtModules_TransformFusion
-class Q_SLICER_QTMODULES_TRANSFORMFUSION_EXPORT qSlicerTransformFusionModuleWidget :
+/// \ingroup Slicer_QtModules_TransformProcessor
+class Q_SLICER_QTMODULES_TRANSFORMPROCESSOR_EXPORT qSlicerTransformProcessorModuleWidget :
   public qSlicerAbstractModuleWidget
 {
   Q_OBJECT
@@ -39,8 +39,8 @@ class Q_SLICER_QTMODULES_TRANSFORMFUSION_EXPORT qSlicerTransformFusionModuleWidg
 public:
 
   typedef qSlicerAbstractModuleWidget Superclass;
-  qSlicerTransformFusionModuleWidget( QWidget *parent = 0 );
-  virtual ~qSlicerTransformFusionModuleWidget();
+  qSlicerTransformProcessorModuleWidget( QWidget *parent = 0 );
+  virtual ~qSlicerTransformProcessorModuleWidget();
 
   virtual void enter();
 
@@ -48,7 +48,7 @@ public slots:
   virtual void setMRMLScene( vtkMRMLScene* );
   void onSceneImportedEvent();
   void onLogicModified();
-  void setTransformFusionParametersNode( vtkMRMLNode* );
+  void setTransformProcessorParametersNode( vtkMRMLNode* );
   void updateWidget();
   void updateButtons();
   void updateInputFieldVisibility();
@@ -68,7 +68,7 @@ protected slots:
   void onInputAnchorTransformNodeSelected( vtkMRMLNode* node );
   void onOutputTransformNodeSelected( vtkMRMLNode* node );
 
-  void onFusionModeChanged( int );
+  void onProcessingModeChanged( int );
   void onRotationModeChanged( int );
   void onPrimaryAxisChanged( int );
   void onDependentAxesModeChanged( int );
@@ -81,7 +81,7 @@ protected slots:
   void handleEventAutoUpdate();
   
 protected:
-  QScopedPointer< qSlicerTransformFusionModuleWidgetPrivate > d_ptr;
+  QScopedPointer< qSlicerTransformProcessorModuleWidgetPrivate > d_ptr;
   
   virtual bool eventFilter(QObject * obj, QEvent *event);
   virtual void setup();
@@ -90,8 +90,8 @@ protected:
   QTimer* updateTimer;
 
 private:
-  Q_DECLARE_PRIVATE( qSlicerTransformFusionModuleWidget );
-  Q_DISABLE_COPY( qSlicerTransformFusionModuleWidget );
+  Q_DECLARE_PRIVATE( qSlicerTransformProcessorModuleWidget );
+  Q_DISABLE_COPY( qSlicerTransformProcessorModuleWidget );
 
   enum TransformRole
   {

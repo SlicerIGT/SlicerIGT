@@ -18,70 +18,70 @@
 // Qt includes
 #include <QtPlugin>
 
-// TransformFusion Logic includes
-#include <vtkSlicerTransformFusionLogic.h>
+// TransformProcessor Logic includes
+#include <vtkSlicerTransformProcessorLogic.h>
 
-// TransformFusion includes
-#include "qSlicerTransformFusionModule.h"
-#include "qSlicerTransformFusionModuleWidget.h"
+// TransformProcessor includes
+#include "qSlicerTransformProcessorModule.h"
+#include "qSlicerTransformProcessorModuleWidget.h"
 
 //-----------------------------------------------------------------------------
 #if (QT_VERSION < QT_VERSION_CHECK(5, 0, 0))
 #include <QtPlugin>
-Q_EXPORT_PLUGIN2(qSlicerTransformFusionModule, qSlicerTransformFusionModule);
+Q_EXPORT_PLUGIN2(qSlicerTransformProcessorModule, qSlicerTransformProcessorModule);
 #endif
 
 //-----------------------------------------------------------------------------
-/// \ingroup Slicer_QtModules_TransformFusion
-class qSlicerTransformFusionModulePrivate
+/// \ingroup Slicer_QtModules_TransformProcessor
+class qSlicerTransformProcessorModulePrivate
 {
 public:
-  qSlicerTransformFusionModulePrivate();
+  qSlicerTransformProcessorModulePrivate();
 };
 
 //-----------------------------------------------------------------------------
-// qSlicerTransformFusionModulePrivate methods
+// qSlicerTransformProcessorModulePrivate methods
 
 //-----------------------------------------------------------------------------
-qSlicerTransformFusionModulePrivate::qSlicerTransformFusionModulePrivate()
+qSlicerTransformProcessorModulePrivate::qSlicerTransformProcessorModulePrivate()
 {
 }
 
 //-----------------------------------------------------------------------------
-// qSlicerTransformFusionModule methods
+// qSlicerTransformProcessorModule methods
 
 //-----------------------------------------------------------------------------
-qSlicerTransformFusionModule::qSlicerTransformFusionModule(QObject* _parent)
+qSlicerTransformProcessorModule::qSlicerTransformProcessorModule(QObject* _parent)
   : Superclass(_parent)
-  , d_ptr(new qSlicerTransformFusionModulePrivate)
+  , d_ptr(new qSlicerTransformProcessorModulePrivate)
 {
 }
 
 //-----------------------------------------------------------------------------
-QStringList qSlicerTransformFusionModule::categories()const
+QStringList qSlicerTransformProcessorModule::categories()const
 {
   return QStringList() << "IGT";
 }
 
 //-----------------------------------------------------------------------------
-qSlicerTransformFusionModule::~qSlicerTransformFusionModule()
+qSlicerTransformProcessorModule::~qSlicerTransformProcessorModule()
 {
 }
 
 //-----------------------------------------------------------------------------
-QString qSlicerTransformFusionModule::helpText()const
+QString qSlicerTransformProcessorModule::helpText()const
 {
   return "For help on how to use this module visit: <a href='https://www.assembla.com/spaces/slicerigt'>SlicerIGT</a>";
 }
 
 //-----------------------------------------------------------------------------
-QString qSlicerTransformFusionModule::acknowledgementText()const
+QString qSlicerTransformProcessorModule::acknowledgementText()const
 {
   return "This work was was funded by Cancer Care Ontario and the Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO)";
 }
 
 //-----------------------------------------------------------------------------
-QStringList qSlicerTransformFusionModule::contributors()const
+QStringList qSlicerTransformProcessorModule::contributors()const
 {
   QStringList moduleContributors;
   moduleContributors << QString("Franklin King (Queen's University), Tamas Ungi (Queen's University), Thomas Vaughan (Queen's University)");
@@ -91,25 +91,25 @@ QStringList qSlicerTransformFusionModule::contributors()const
 }
 
 //-----------------------------------------------------------------------------
-QIcon qSlicerTransformFusionModule::icon()const
+QIcon qSlicerTransformProcessorModule::icon()const
 {
-  return QIcon(":/Icons/TransformFusion.png");
+  return QIcon(":/Icons/TransformProcessor.png");
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerTransformFusionModule::setup()
+void qSlicerTransformProcessorModule::setup()
 {
   this->Superclass::setup();
 }
 
 //-----------------------------------------------------------------------------
-qSlicerAbstractModuleRepresentation * qSlicerTransformFusionModule::createWidgetRepresentation()
+qSlicerAbstractModuleRepresentation * qSlicerTransformProcessorModule::createWidgetRepresentation()
 {
-  return new qSlicerTransformFusionModuleWidget;
+  return new qSlicerTransformProcessorModuleWidget;
 }
 
 //-----------------------------------------------------------------------------
-vtkMRMLAbstractLogic* qSlicerTransformFusionModule::createLogic()
+vtkMRMLAbstractLogic* qSlicerTransformProcessorModule::createLogic()
 {
-  return vtkSlicerTransformFusionLogic::New();
+  return vtkSlicerTransformProcessorLogic::New();
 }

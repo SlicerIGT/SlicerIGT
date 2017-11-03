@@ -15,18 +15,18 @@
 
 ==============================================================================*/
 
-#ifndef __qSlicerTransformFusionModule_h
-#define __qSlicerTransformFusionModule_h
+#ifndef __qSlicerTransformProcessorModule_h
+#define __qSlicerTransformProcessorModule_h
 
 // SlicerQt includes
 #include "qSlicerLoadableModule.h"
 
-#include "qSlicerTransformFusionModuleExport.h"
+#include "qSlicerTransformProcessorModuleExport.h"
 
-class qSlicerTransformFusionModulePrivate;
+class qSlicerTransformProcessorModulePrivate;
 
-/// \ingroup Slicer_QtModules_TransformFusion
-class Q_SLICER_QTMODULES_TRANSFORMFUSION_EXPORT qSlicerTransformFusionModule :
+/// \ingroup Slicer_QtModules_TransformProcessor
+class Q_SLICER_QTMODULES_TRANSFORMPROCESSOR_EXPORT qSlicerTransformProcessorModule :
   public qSlicerLoadableModule
 {
   Q_OBJECT
@@ -38,8 +38,8 @@ class Q_SLICER_QTMODULES_TRANSFORMFUSION_EXPORT qSlicerTransformFusionModule :
 public:
 
   typedef qSlicerLoadableModule Superclass;
-  explicit qSlicerTransformFusionModule(QObject *parent=0);
-  virtual ~qSlicerTransformFusionModule();
+  explicit qSlicerTransformProcessorModule(QObject *parent=0);
+  virtual ~qSlicerTransformProcessorModule();
 
   qSlicerGetTitleMacro(QTMODULE_TITLE);
   
@@ -70,11 +70,11 @@ protected:
   virtual vtkMRMLAbstractLogic* createLogic();
 
 protected:
-  QScopedPointer<qSlicerTransformFusionModulePrivate> d_ptr;
+  QScopedPointer<qSlicerTransformProcessorModulePrivate> d_ptr;
 
 private:
-  Q_DECLARE_PRIVATE(qSlicerTransformFusionModule);
-  Q_DISABLE_COPY(qSlicerTransformFusionModule);
+  Q_DECLARE_PRIVATE(qSlicerTransformProcessorModule);
+  Q_DISABLE_COPY(qSlicerTransformProcessorModule);
 
 };
 
