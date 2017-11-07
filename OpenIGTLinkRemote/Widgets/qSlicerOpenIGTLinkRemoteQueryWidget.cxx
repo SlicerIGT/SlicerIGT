@@ -349,7 +349,13 @@ void qSlicerOpenIGTLinkRemoteQueryWidget::querySelectedItem()
   {
     int topRowIndex = selectRange.at(selectionIndex).topRow();
     // Get the item identifier from the table
-    std::string dataId( d->remoteDataListTable->item(topRowIndex, 0)->text().toLatin1() );
+    QTableWidgetItem *selectedItem = d->remoteDataListTable->item(topRowIndex, 0);
+    if (!selectedItem)
+    {
+      qCritical() << Q_FUNC_INFO << " failed: selected item is empty";
+      continue;
+    }
+    std::string dataId( selectedItem->text().toLatin1() );
     switch (d->typeButtonGroup.checkedId()) 
     {
     case qSlicerOpenIGTLinkRemoteQueryWidgetPrivate::TYPE_IMAGE:
@@ -628,6 +634,7 @@ void qSlicerOpenIGTLinkRemoteQueryWidget::onQueryTypeChanged(int id)
 {
   Q_D(qSlicerOpenIGTLinkRemoteQueryWidget);
   d->remoteDataListTable->clearContents();
+  d->remoteDataListTable->setRowCount(0);
   QStringList list;
   switch(id)
   {
