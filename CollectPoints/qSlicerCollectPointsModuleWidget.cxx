@@ -18,6 +18,7 @@
 // Qt includes
 #include <QtGui>
 #include <QDebug>
+#include <QMenu>
 
 // SlicerQt includes
 #include "qSlicerCollectPointsModuleWidget.h"
