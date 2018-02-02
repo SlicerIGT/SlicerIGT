@@ -5,8 +5,7 @@ set(MODULE_TITLE "OpenIGTLink Remote" )
 
 string(TOUPPER ${MODULE_NAME} MODULE_NAME_UPPER)
 
-find_package(OpenIGTLink REQUIRED)
-include(${OpenIGTLink_USE_FILE})
+find_package(OpenIGTLinkIF REQUIRED)
 
 #-----------------------------------------------------------------------------
 add_subdirectory(MRML)
