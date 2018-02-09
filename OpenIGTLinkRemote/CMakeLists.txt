@@ -5,7 +5,7 @@ set(MODULE_TITLE "OpenIGTLink Remote" )
 
 string(TOUPPER ${MODULE_NAME} MODULE_NAME_UPPER)
 
-find_package(OpenIGTLinkIF REQUIRED)
+find_package(SlicerOpenIGTLink REQUIRED)
 
 #-----------------------------------------------------------------------------
 add_subdirectory(MRML)
