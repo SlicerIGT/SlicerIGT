@@ -2,11 +2,16 @@ project(vtkSlicer${MODULE_NAME}ModuleLogic)
 
 set(KIT ${PROJECT_NAME})
 
-set(${KIT}_EXPORT_DIRECTIVE "VTK_SLICER_${MODULE_NAME_UPPER}_MODULE_LOGIC_EXPORT")
+if(SlicerOpenIGTLink_FOUND)
+  set(${KIT}_TARGET_LIBRARIES vtkSlicerOpenIGTLinkIFModuleLogic)
+  set(${KIT}_INCLUDE_DIRECTORIES ${vtkSlicerOpenIGTLinkIFModuleLogic_INCLUDE_DIRS})
+else()
+  find_package(OpenIGTLink REQUIRED)
+  set(${KIT}_TARGET_LIBRARIES OpenIGTLink)
+  set(${KIT}_INCLUDE_DIRECTORIES "")
+endif()
 
-set(${KIT}_INCLUDE_DIRECTORIES
-  ${vtkSlicerOpenIGTLinkIFModuleLogic_INCLUDE_DIRS}
-  )
+set(${KIT}_EXPORT_DIRECTIVE "VTK_SLICER_${MODULE_NAME_UPPER}_MODULE_LOGIC_EXPORT")
 
 set(${KIT}_SRCS
   vtkSlicerOpenIGTLinkCommand.cxx
@@ -15,10 +20,9 @@ set(${KIT}_SRCS
   vtkSlicerOpenIGTLinkRemoteLogic.h
   )
 
-set(${KIT}_TARGET_LIBRARIES
+LIST(APPEND ${KIT}_TARGET_LIBRARIES
   ${ITK_LIBRARIES}
   vtkSlicer${MODULE_NAME}ModuleMRML
-  vtkSlicerOpenIGTLinkIFModuleLogic
   )
 
 #-----------------------------------------------------------------------------

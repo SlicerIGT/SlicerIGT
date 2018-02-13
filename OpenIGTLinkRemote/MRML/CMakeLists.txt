@@ -2,6 +2,15 @@ project(vtkSlicer${MODULE_NAME}ModuleMRML)
 
 set(KIT ${PROJECT_NAME})
 
+if(SlicerOpenIGTLink_FOUND)
+  set(${KIT}_TARGET_LIBRARIES vtkSlicerOpenIGTLinkIFModuleMRML)
+  set(${KIT}_INCLUDE_DIRECTORIES ${vtkSlicerOpenIGTLinkIFModuleMRML_INCLUDE_DIRS})
+else()
+  find_package(OpenIGTLink REQUIRED)
+  set(${KIT}_TARGET_LIBRARIES OpenIGTLink)
+  set(${KIT}_INCLUDE_DIRECTORIES "")
+endif()
+
 set(${KIT}_EXPORT_DIRECTIVE "VTK_SLICER_${MODULE_NAME_UPPER}_MODULE_MRML_EXPORT")
 
 # message( WARNING, ${${KIT}_EXPORT_DIRECTIVE} )
@@ -19,10 +28,8 @@ set(${KIT}_SRCS
   vtkMRMLOpenIGTLinkRemoteNode.cxx
   )
 
-set(${KIT}_TARGET_LIBRARIES
-  ${OpenIGTLink_LIBRARIES}
+LIST(APPEND ${KIT}_TARGET_LIBRARIES
   ${MRML_LIBRARIES}
-#  vtkSlicerOpenIGTLinkIFModuleMRML
   )
 
 #-----------------------------------------------------------------------------
