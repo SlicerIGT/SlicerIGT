@@ -58,6 +58,7 @@ vtkMRMLFiducialRegistrationWizardNode::vtkMRMLFiducialRegistrationWizardNode()
   this->RegistrationMode = REGISTRATION_MODE_RIGID;
   this->UpdateMode = UPDATE_MODE_AUTOMATIC;
   this->PointMatching = POINT_MATCHING_MANUAL;
+  this->WarpingTransformFromParent = true;
 }
 
 //------------------------------------------------------------------------------
@@ -74,6 +75,7 @@ void vtkMRMLFiducialRegistrationWizardNode::WriteXML( ostream& of, int nIndent )
   of << indent << " PointMatching=\"" << PointMatchingAsString( this->PointMatching ) << "\"";
   of << indent << " RegistrationMode=\"" << RegistrationModeAsString( this->RegistrationMode ) << "\"";
   of << indent << " UpdateMode=\"" << UpdateModeAsString( this->UpdateMode ) << "\"";
+  of << indent << " WarpingTransformFromParent=\"" << (this->WarpingTransformFromParent ? "true" : "false") << "\"";
 }
 
 //------------------------------------------------------------------------------
@@ -101,6 +103,10 @@ void vtkMRMLFiducialRegistrationWizardNode::ReadXMLAttributes( const char** atts
     {
       this->UpdateMode = UpdateModeFromString( std::string( attValue ) );
     }
+    else if (!strcmp(attName, "WarpingTransformFromParent"))
+    {
+      this->WarpingTransformFromParent = (strcmp(attValue,"true") ? false : true);
+    }
   }
 
   this->Modified();
@@ -112,10 +118,10 @@ void vtkMRMLFiducialRegistrationWizardNode::Copy( vtkMRMLNode *anode )
   Superclass::Copy( anode ); // This will take care of referenced nodes
   vtkMRMLFiducialRegistrationWizardNode *node = ( vtkMRMLFiducialRegistrationWizardNode* ) anode;
   
-  // Note: It seems that the WriteXML function copies the node then writes the copied node to file
-  // So, anything we want in the MRML file we must copy here (I don't think we need to copy other things)
   this->RegistrationMode = node->RegistrationMode;
   this->UpdateMode = node->UpdateMode;
+  this->PointMatching = node->PointMatching;
+  this->WarpingTransformFromParent = node->WarpingTransformFromParent;
   this->Modified();
 }
 
@@ -126,6 +132,7 @@ void vtkMRMLFiducialRegistrationWizardNode::PrintSelf( ostream& os, vtkIndent in
   os << indent << "PointMatching: " << PointMatchingAsString( this->PointMatching ) << "\n";
   os << indent << "RegistrationMode: " << RegistrationModeAsString( this->RegistrationMode ) << "\n";
   os << indent << "UpdateMode: " << UpdateModeAsString( this->UpdateMode ) << "\n";
+  os << indent << "WarpingTransformFromParent: " << (this->WarpingTransformFromParent ? "true" : "false") << "\n";
 }
 
 //------------------------------------------------------------------------------
@@ -414,4 +421,17 @@ void vtkMRMLFiducialRegistrationWizardNode::ProcessMRMLEvents( vtkObject *caller
   {
     this->InvokeCustomModifiedEvent(InputDataModifiedEvent);
   }
+}
+
+//------------------------------------------------------------------------------
+void vtkMRMLFiducialRegistrationWizardNode::SetWarpingTransformFromParent(bool warpingTransformFromParent)
+{
+  if ( this->GetWarpingTransformFromParent() == warpingTransformFromParent )
+  {
+    // no change
+    return;
+  }
+  this->WarpingTransformFromParent = warpingTransformFromParent;
+  this->Modified();
+  this->InvokeCustomModifiedEvent(InputDataModifiedEvent);
 }

@@ -78,9 +78,9 @@ public:
   };
 
   vtkTypeMacro( vtkMRMLFiducialRegistrationWizardNode, vtkMRMLNode );
-  
-  // Standard MRML node methods  
-  static vtkMRMLFiducialRegistrationWizardNode *New();  
+
+  // Standard MRML node methods
+  static vtkMRMLFiducialRegistrationWizardNode *New();
 
   virtual vtkMRMLNode* CreateNodeInstance();
   virtual const char* GetNodeTagName() { return "FiducialRegistrationWizard"; };
@@ -88,7 +88,7 @@ public:
   virtual void ReadXMLAttributes( const char** atts );
   virtual void WriteXML( ostream& of, int indent );
   virtual void Copy( vtkMRMLNode *node );
-  
+
 protected:
 
   vtkMRMLFiducialRegistrationWizardNode();
@@ -144,6 +144,15 @@ public:
   void AddToCalibrationStatusMessage( std::string text );
   void ClearCalibrationStatusMessage();
 
+  /// Get/Set forward transform direction for warping transform.
+  /// Forward transforms are applied much faster than inverse transforms.
+  /// If WarpingTransformFromParent is set to true (this is the default) then images are transformed fast.
+  /// If WarpingTransformFromParent is set to false then models and markups are transformed fast.
+  /// \sa WarpingTransformFromParent, SetWarpingTransformFromParent(), WarpingTransformFromParentOn(), WarpingTransformFromParentOff()
+  void SetWarpingTransformFromParent(bool warpingTransformFromParent);
+  vtkGetMacro(WarpingTransformFromParent, bool);
+  vtkBooleanMacro(WarpingTransformFromParent, bool);
+
   void ProcessMRMLEvents( vtkObject *caller, unsigned long event, void *callData );
 
 private:
@@ -169,11 +178,15 @@ private:
   //   is being performed (similarity and warping are not yet supported).
   int PointMatching;
 
+  /// If true then transformation speedi is optimized for images, otherwise
+  /// transformation speed is optimized for models and markups.
+  bool WarpingTransformFromParent;
+
   // The Calibration status message reports the RMS error,
   // as well as any warnings about how the registration
   // was set up.
-  std::string CalibrationStatusMessage; // TODO: add this to the ouput transform as a custom node attribute
+  std::string CalibrationStatusMessage; // TODO: add this to the output transform as a custom node attribute
 
-};  
+};
 
 #endif
