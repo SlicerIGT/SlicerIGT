@@ -3,7 +3,6 @@ project(vtkSlicer${MODULE_NAME}ModuleLogic)
 set(KIT ${PROJECT_NAME})
 
 if(SlicerOpenIGTLink_FOUND)
-  set(${KIT}_TARGET_LIBRARIES vtkSlicerOpenIGTLinkIFModuleLogic)
   set(${KIT}_INCLUDE_DIRECTORIES ${vtkSlicerOpenIGTLinkIFModuleLogic_INCLUDE_DIRS})
 else()
   find_package(OpenIGTLink REQUIRED)
@@ -23,6 +22,7 @@ set(${KIT}_SRCS
 LIST(APPEND ${KIT}_TARGET_LIBRARIES
   ${ITK_LIBRARIES}
   vtkSlicer${MODULE_NAME}ModuleMRML
+  vtkSlicerOpenIGTLinkIFModuleLogic
   )
 
 #-----------------------------------------------------------------------------
