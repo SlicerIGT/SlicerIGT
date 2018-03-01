@@ -48,20 +48,6 @@
        </widget>
       </item>
       <item>
-       <layout class="QGridLayout" name="PointMatchingLayout">
-        <item row="1" column="0">
-         <widget class="QLabel" name="PointMatchingLabel">
-          <property name="text">
-           <string>Point Matching Method:</string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="1">
-         <widget class="QComboBox" name="PointMatchingComboBox"/>
-        </item>
-       </layout>
-      </item>
-      <item>
        <widget class="ctkCollapsibleGroupBox" name="FromGroupBox">
         <property name="title">
          <string>From fiducials</string>
@@ -261,6 +247,20 @@
               <string>Warping</string>
              </property>
             </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <layout class="QGridLayout" name="PointMatchingLayout">
+           <item row="0" column="0">
+            <widget class="QLabel" name="PointMatchingLabel">
+             <property name="text">
+              <string>Point Matching Method:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="QComboBox" name="PointMatchingComboBox"/>
            </item>
           </layout>
          </item>
