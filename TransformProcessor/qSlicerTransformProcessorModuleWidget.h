@@ -66,6 +66,7 @@ protected slots:
   void onInputInitialTransformNodeSelected( vtkMRMLNode* node );
   void onInputChangedTransformNodeSelected( vtkMRMLNode* node );
   void onInputAnchorTransformNodeSelected( vtkMRMLNode* node );
+  void onInputForwardTransformNodeSelected( vtkMRMLNode* node );
   void onOutputTransformNodeSelected( vtkMRMLNode* node );
 
   void onProcessingModeChanged( int );
@@ -101,6 +102,7 @@ private:
     TRANSFORM_ROLE_INPUT_INITIAL,
     TRANSFORM_ROLE_INPUT_CHANGED,
     TRANSFORM_ROLE_INPUT_ANCHOR,
+    TRANSFORM_ROLE_INPUT_FORWARD,
     TRANSFORM_ROLE_OUTPUT,
     TRANSFORM_ROLE_LAST
   };

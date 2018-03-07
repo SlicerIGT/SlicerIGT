@@ -163,6 +163,10 @@ void vtkSlicerTransformProcessorLogic::UpdateOutputTransform( vtkMRMLTransformPr
   {
     this->ComputeFullTransform( paramNode );
   }
+  else if ( mode == vtkMRMLTransformProcessorNode::PROCESSING_MODE_COMPUTE_INVERSE )
+  {
+    this->ComputeInverseTransform( paramNode );
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -439,6 +443,25 @@ void vtkSlicerTransformProcessorLogic::ComputeFullTransform( vtkMRMLTransformPro
   vtkMRMLLinearTransformNode* outputTransformNode = paramNode->GetOutputTransformNode();
   // the existence of outputTransformNode is already checked in IsTransformProcessingPossible, no error check necessary
   outputTransformNode->SetAndObserveTransformToParent( fromToToLinearTransformNode );
+}
+
+//----------------------------------------------------------------------------
+void vtkSlicerTransformProcessorLogic::ComputeInverseTransform( vtkMRMLTransformProcessorNode* paramNode )
+{
+  bool verboseWarnings = true;
+  bool conditionsMetForProcessing = this->IsTransformProcessingPossible( paramNode, verboseWarnings );
+  if ( conditionsMetForProcessing == false )
+  {
+    return;
+  }
+
+  vtkMRMLLinearTransformNode* forwardTransformNode = paramNode->GetInputForwardTransformNode();
+  // node stores the transform _to_ parent. Inverse will be the transform _from_ parent.
+  vtkSmartPointer< vtkMatrix4x4 > matrixTransformFromParent = vtkSmartPointer< vtkMatrix4x4 >::New(); 
+  forwardTransformNode->GetMatrixTransformFromParent( matrixTransformFromParent );
+  vtkMRMLLinearTransformNode* outputTransformNode = paramNode->GetOutputTransformNode();
+  // the existence of outputTransformNode is already checked in IsTransformProcessingPossible, no error check necessary
+  outputTransformNode->SetMatrixTransformToParent( matrixTransformFromParent );
 }
 
 //----------------------------------------------------------------------------
@@ -789,6 +812,18 @@ bool vtkSlicerTransformProcessorLogic::IsTransformProcessingPossible( vtkMRMLTra
       if ( verbose )
       {
         vtkWarningMacro( "IsTransformProcessingPossible: No \"Anchor\" node provided for processing mode " << vtkMRMLTransformProcessorNode::GetProcessingModeAsString( mode ) );
+      }
+      result = false;
+    }
+  }
+
+  if ( mode == vtkMRMLTransformProcessorNode::PROCESSING_MODE_COMPUTE_INVERSE )
+  {
+    if ( node->GetInputForwardTransformNode() == NULL )
+    {
+      if ( verbose )
+      {
+        vtkWarningMacro( "IsTransformProcessingPossible: No \"Forward\" node provided for processing mode " << vtkMRMLTransformProcessorNode::GetProcessingModeAsString( mode ) );
       }
       result = false;
     }

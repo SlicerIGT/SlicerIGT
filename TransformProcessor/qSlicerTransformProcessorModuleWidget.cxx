@@ -87,6 +87,7 @@ qSlicerTransformProcessorModuleWidget::~qSlicerTransformProcessorModuleWidget()
   disconnect( d->inputInitialTransformComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onInputInitialTransformNodeSelected( vtkMRMLNode* ) ) );
   disconnect( d->inputChangedTransformComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onInputChangedTransformNodeSelected( vtkMRMLNode* ) ) );
   disconnect( d->inputAnchorTransformComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onInputAnchorTransformNodeSelected( vtkMRMLNode* ) ) );
+  disconnect( d->inputForwardTransformComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onInputForwardTransformNodeSelected( vtkMRMLNode* ) ) );
   disconnect( d->outputTransformComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onOutputTransformNodeSelected( vtkMRMLNode* ) ) );
   disconnect( d->addInputCombineTransformButton, SIGNAL( clicked() ), this, SLOT( onAddInputCombineTransform() ) );
   disconnect( d->removeInputCombineTransformButton, SIGNAL( clicked() ), this, SLOT( onRemoveInputCombineTransform() ) );
@@ -122,8 +123,10 @@ void qSlicerTransformProcessorModuleWidget::setup()
   d->processingModeComboBox->setItemData( 2, "Compute a copy of the translation from the Source to the Reference.", Qt::ToolTipRole );
   d->processingModeComboBox->addItem( vtkMRMLTransformProcessorNode::GetProcessingModeAsString( vtkMRMLTransformProcessorNode::PROCESSING_MODE_COMPUTE_FULL_TRANSFORM ).c_str() );
   d->processingModeComboBox->setItemData( 3, "Compute a copy of the full transform from the Source to the Reference.", Qt::ToolTipRole );
+  d->processingModeComboBox->addItem( vtkMRMLTransformProcessorNode::GetProcessingModeAsString( vtkMRMLTransformProcessorNode::PROCESSING_MODE_COMPUTE_INVERSE ).c_str() );
+  d->processingModeComboBox->setItemData( 4, "Compute the inverse of transform to parent, and store it in another node.", Qt::ToolTipRole );
   d->processingModeComboBox->addItem( vtkMRMLTransformProcessorNode::GetProcessingModeAsString( vtkMRMLTransformProcessorNode::PROCESSING_MODE_COMPUTE_SHAFT_PIVOT ).c_str() );
-  d->processingModeComboBox->setItemData( 4, "Compute a constrained version of an Source transform, the translation and z direction are preserved but the other axes resemble the Target coordinate system.", Qt::ToolTipRole );
+  d->processingModeComboBox->setItemData( 5, "Compute a constrained version of an Source transform, the translation and z direction are preserved but the other axes resemble the Target coordinate system.", Qt::ToolTipRole );
 
   d->advancedRotationModeComboBox->addItem( vtkMRMLTransformProcessorNode::GetRotationModeAsString( vtkMRMLTransformProcessorNode::ROTATION_MODE_COPY_ALL_AXES ).c_str() );
   d->advancedRotationModeComboBox->addItem( vtkMRMLTransformProcessorNode::GetRotationModeAsString( vtkMRMLTransformProcessorNode::ROTATION_MODE_COPY_SINGLE_AXIS ).c_str() );
@@ -147,6 +150,7 @@ void qSlicerTransformProcessorModuleWidget::setup()
   connect( d->inputInitialTransformComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onInputInitialTransformNodeSelected( vtkMRMLNode* ) ) );
   connect( d->inputChangedTransformComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onInputChangedTransformNodeSelected( vtkMRMLNode* ) ) );
   connect( d->inputAnchorTransformComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onInputAnchorTransformNodeSelected( vtkMRMLNode* ) ) );
+  connect( d->inputForwardTransformComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onInputForwardTransformNodeSelected( vtkMRMLNode* ) ) );
   connect( d->outputTransformComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onOutputTransformNodeSelected( vtkMRMLNode* ) ) );
   connect( d->addInputCombineTransformButton, SIGNAL( clicked() ), this, SLOT( onAddInputCombineTransform() ) );
   connect( d->removeInputCombineTransformButton, SIGNAL( clicked() ), this, SLOT( onRemoveInputCombineTransform() ) );
@@ -256,6 +260,7 @@ void qSlicerTransformProcessorModuleWidget::setSignalsBlocked( bool newBlock )
   d->inputInitialTransformComboBox->blockSignals( newBlock );
   d->inputChangedTransformComboBox->blockSignals( newBlock );
   d->inputAnchorTransformComboBox->blockSignals( newBlock );
+  d->inputForwardTransformComboBox->blockSignals( newBlock );
   d->outputTransformComboBox->blockSignals( newBlock );
   d->advancedRotationModeComboBox->blockSignals( newBlock );
   d->advancedRotationPrimaryAxisComboBox->blockSignals( newBlock );
@@ -281,6 +286,7 @@ bool qSlicerTransformProcessorModuleWidget::getSignalsBlocked()
        parameterNodeBlocked == d->inputInitialTransformComboBox->signalsBlocked() &&
        parameterNodeBlocked == d->inputChangedTransformComboBox->signalsBlocked() &&
        parameterNodeBlocked == d->inputAnchorTransformComboBox->signalsBlocked() &&
+       parameterNodeBlocked == d->inputForwardTransformComboBox->signalsBlocked() &&
        parameterNodeBlocked == d->outputTransformComboBox->signalsBlocked() &&
        parameterNodeBlocked == d->advancedRotationModeComboBox->signalsBlocked() &&
        parameterNodeBlocked == d->advancedRotationPrimaryAxisComboBox->signalsBlocked() &&
@@ -338,6 +344,7 @@ void qSlicerTransformProcessorModuleWidget::updateWidget()
   d->inputInitialTransformComboBox->setCurrentNode( pNode->GetInputInitialTransformNode() );
   d->inputChangedTransformComboBox->setCurrentNode( pNode->GetInputChangedTransformNode() );
   d->inputAnchorTransformComboBox->setCurrentNode( pNode->GetInputAnchorTransformNode() );
+  d->inputForwardTransformComboBox->setCurrentNode( pNode->GetInputForwardTransformNode() );
   d->outputTransformComboBox->setCurrentNode( pNode->GetOutputTransformNode() );
 
   // Parameters
@@ -412,6 +419,8 @@ void qSlicerTransformProcessorModuleWidget::updateInputFieldVisibility()
     d->inputChangedTransformComboBox->setVisible( false );
     d->inputAnchorTransformLabel->setVisible( false );
     d->inputAnchorTransformComboBox->setVisible( false );
+    d->inputForwardTransformLabel->setVisible( false );
+    d->inputForwardTransformComboBox->setVisible( false );
     d->outputTransformLabel->setVisible( true );
     d->outputTransformComboBox->setVisible( true );
     d->advancedRotationGroupBox->setVisible( false );
@@ -430,6 +439,8 @@ void qSlicerTransformProcessorModuleWidget::updateInputFieldVisibility()
     d->inputChangedTransformComboBox->setVisible( true );
     d->inputAnchorTransformLabel->setVisible( true );
     d->inputAnchorTransformComboBox->setVisible( true );
+    d->inputForwardTransformLabel->setVisible( false );
+    d->inputForwardTransformComboBox->setVisible( false );
     d->outputTransformLabel->setVisible( true );
     d->outputTransformComboBox->setVisible( true );
     d->advancedRotationGroupBox->setVisible( false );
@@ -448,6 +459,8 @@ void qSlicerTransformProcessorModuleWidget::updateInputFieldVisibility()
     d->inputChangedTransformComboBox->setVisible( false );
     d->inputAnchorTransformLabel->setVisible( false );
     d->inputAnchorTransformComboBox->setVisible( false );
+    d->inputForwardTransformLabel->setVisible( false );
+    d->inputForwardTransformComboBox->setVisible( false );
     d->outputTransformLabel->setVisible( true );
     d->outputTransformComboBox->setVisible( true );
     d->advancedRotationGroupBox->setVisible( true );
@@ -492,6 +505,8 @@ void qSlicerTransformProcessorModuleWidget::updateInputFieldVisibility()
     d->inputChangedTransformComboBox->setVisible( false );
     d->inputAnchorTransformLabel->setVisible( false );
     d->inputAnchorTransformComboBox->setVisible( false );
+    d->inputForwardTransformLabel->setVisible( false );
+    d->inputForwardTransformComboBox->setVisible( false );
     d->outputTransformLabel->setVisible( true );
     d->outputTransformComboBox->setVisible( true );
     d->advancedRotationGroupBox->setVisible( false );
@@ -510,6 +525,28 @@ void qSlicerTransformProcessorModuleWidget::updateInputFieldVisibility()
     d->inputChangedTransformComboBox->setVisible( false );
     d->inputAnchorTransformLabel->setVisible( false );
     d->inputAnchorTransformComboBox->setVisible( false );
+    d->inputForwardTransformLabel->setVisible( false );
+    d->inputForwardTransformComboBox->setVisible( false );
+    d->outputTransformLabel->setVisible( true );
+    d->outputTransformComboBox->setVisible( true );
+    d->advancedRotationGroupBox->setVisible( false );
+    d->advancedTranslationGroupBox->setVisible( false );
+  }
+  else if ( pNode->GetProcessingMode() == vtkMRMLTransformProcessorNode::PROCESSING_MODE_COMPUTE_INVERSE )
+  {
+    d->inputCombineTransformListGroupBox->setVisible( false );
+    d->inputFromTransformLabel->setVisible( false );
+    d->inputFromTransformComboBox->setVisible( false );
+    d->inputToTransformLabel->setVisible( false );
+    d->inputToTransformComboBox->setVisible( false );
+    d->inputInitialTransformLabel->setVisible( false );
+    d->inputInitialTransformComboBox->setVisible( false );
+    d->inputChangedTransformLabel->setVisible( false );
+    d->inputChangedTransformComboBox->setVisible( false );
+    d->inputAnchorTransformLabel->setVisible( false );
+    d->inputAnchorTransformComboBox->setVisible( false );
+    d->inputForwardTransformLabel->setVisible( true );
+    d->inputForwardTransformComboBox->setVisible( true );
     d->outputTransformLabel->setVisible( true );
     d->outputTransformComboBox->setVisible( true );
     d->advancedRotationGroupBox->setVisible( false );
@@ -528,6 +565,8 @@ void qSlicerTransformProcessorModuleWidget::updateInputFieldVisibility()
     d->inputChangedTransformComboBox->setVisible( false );
     d->inputAnchorTransformLabel->setVisible( false );
     d->inputAnchorTransformComboBox->setVisible( false );
+    d->inputForwardTransformLabel->setVisible( false );
+    d->inputForwardTransformComboBox->setVisible( false );
     d->outputTransformLabel->setVisible( true );
     d->outputTransformComboBox->setVisible( true );
     d->advancedRotationGroupBox->setVisible( false );
@@ -725,6 +764,13 @@ void qSlicerTransformProcessorModuleWidget::onInputAnchorTransformNodeSelected( 
 }
 
 //-----------------------------------------------------------------------------
+void qSlicerTransformProcessorModuleWidget::onInputForwardTransformNodeSelected( vtkMRMLNode* node )
+{
+  this->SetTransformAccordingToRole( node, TRANSFORM_ROLE_INPUT_FORWARD );
+  this->updateButtons();
+}
+
+//-----------------------------------------------------------------------------
 void qSlicerTransformProcessorModuleWidget::onOutputTransformNodeSelected( vtkMRMLNode* node )
 {
   this->SetTransformAccordingToRole( node, TRANSFORM_ROLE_OUTPUT );
@@ -829,6 +875,11 @@ void qSlicerTransformProcessorModuleWidget::SetTransformAccordingToRole( vtkMRML
     case TRANSFORM_ROLE_INPUT_ANCHOR:
     {
       pNode->SetAndObserveInputAnchorTransformNode( linearTransformNode );
+      break;
+    }
+    case TRANSFORM_ROLE_INPUT_FORWARD:
+    {
+      pNode->SetAndObserveInputForwardTransformNode( linearTransformNode );
       break;
     }
     case TRANSFORM_ROLE_OUTPUT:

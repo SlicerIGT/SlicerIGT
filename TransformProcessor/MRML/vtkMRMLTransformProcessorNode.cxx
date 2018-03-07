@@ -43,6 +43,7 @@ const char* ROLE_INPUT_TO_TRANSFORM = "InputToTransform";
 const char* ROLE_INPUT_INITIAL_TRANSFORM = "InputInitialTransform";
 const char* ROLE_INPUT_CHANGED_TRANSFORM = "InputChangedTransform";
 const char* ROLE_INPUT_ANCHOR_TRANSFORM = "InputAnchorTransform";
+const char* ROLE_INPUT_FORWARD_TRANSFORM = "InputForwardTransform";
 const char* ROLE_OUTPUT_TRANSFORM = "OutputTransform";
 
 //----------------------------------------------------------------------------
@@ -60,6 +61,7 @@ vtkMRMLTransformProcessorNode::vtkMRMLTransformProcessorNode()
   this->AddNodeReferenceRole( ROLE_INPUT_INITIAL_TRANSFORM, NULL, events.GetPointer() );
   this->AddNodeReferenceRole( ROLE_INPUT_CHANGED_TRANSFORM, NULL, events.GetPointer() );
   this->AddNodeReferenceRole( ROLE_INPUT_ANCHOR_TRANSFORM, NULL, events.GetPointer() );
+  this->AddNodeReferenceRole( ROLE_INPUT_FORWARD_TRANSFORM, NULL, events.GetPointer() );
   this->AddNodeReferenceRole( ROLE_OUTPUT_TRANSFORM );
 
   //Parameters
@@ -653,6 +655,18 @@ void vtkMRMLTransformProcessorNode::SetAndObserveInputAnchorTransformNode( vtkMR
 }
 
 //----------------------------------------------------------------------------
+vtkMRMLLinearTransformNode* vtkMRMLTransformProcessorNode::GetInputForwardTransformNode()
+{
+  return GetTransformNodeInRole( ROLE_INPUT_FORWARD_TRANSFORM );
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLTransformProcessorNode::SetAndObserveInputForwardTransformNode( vtkMRMLLinearTransformNode* node )
+{
+  this->SetAndObserveTransformNodeInRole( ROLE_INPUT_FORWARD_TRANSFORM, node );
+}
+
+//----------------------------------------------------------------------------
 vtkMRMLLinearTransformNode* vtkMRMLTransformProcessorNode::GetOutputTransformNode()
 {
   return GetTransformNodeInRole( ROLE_OUTPUT_TRANSFORM );
@@ -679,6 +693,8 @@ std::string vtkMRMLTransformProcessorNode::GetProcessingModeAsString( int mode )
     return "Compute Translation Only";
   case PROCESSING_MODE_COMPUTE_FULL_TRANSFORM:
     return "Compute Full Transform";
+  case PROCESSING_MODE_COMPUTE_INVERSE:
+    return "Compute Inverse";
   default:
     vtkGenericWarningMacro("Unknown processing mode provided as input to GetProcessingModeAsString: " << mode << ". Returning \"Unknown Processing Mode\"");
     return "Unknown Processing Mode";

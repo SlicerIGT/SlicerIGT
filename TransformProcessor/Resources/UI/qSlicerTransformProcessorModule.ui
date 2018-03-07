@@ -14,7 +14,7 @@
    <string>Module Template</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="14" column="0" colspan="2">
+   <item row="15" column="0" colspan="2">
     <widget class="ctkCheckablePushButton" name="updateButton">
      <property name="toolTip">
       <string>Click to manually update, click the checkbox to enable automatic updates</string>
@@ -24,7 +24,7 @@
      </property>
     </widget>
    </item>
-   <item row="11" column="0" colspan="2">
+   <item row="12" column="0" colspan="2">
     <widget class="ctkCollapsibleGroupBox" name="advancedTranslationGroupBox">
      <property name="title">
       <string>Advanced Translation Options</string>
@@ -228,7 +228,7 @@
      </property>
     </widget>
    </item>
-   <item row="16" column="1">
+   <item row="17" column="1">
     <spacer name="verticalSpacer">
      <property name="orientation">
       <enum>Qt::Vertical</enum>
@@ -286,7 +286,7 @@
      </property>
     </widget>
    </item>
-   <item row="9" column="1">
+   <item row="10" column="1">
     <widget class="qMRMLNodeComboBox" name="outputTransformComboBox">
      <property name="toolTip">
       <string>The node in which to store the result.</string>
@@ -318,7 +318,7 @@
      </property>
     </widget>
    </item>
-   <item row="12" column="0" colspan="2">
+   <item row="13" column="0" colspan="2">
     <widget class="ctkCollapsibleGroupBox" name="advancedRotationGroupBox">
      <property name="layoutDirection">
       <enum>Qt::LeftToRight</enum>
@@ -413,17 +413,42 @@
      </property>
     </widget>
    </item>
-   <item row="13" column="0" colspan="2">
+   <item row="14" column="0" colspan="2">
     <widget class="Line" name="lineControl">
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
      </property>
     </widget>
    </item>
-   <item row="9" column="0">
+   <item row="10" column="0">
     <widget class="QLabel" name="outputTransformLabel">
      <property name="text">
       <string>Output Transform Node</string>
+     </property>
+    </widget>
+   </item>
+   <item row="9" column="0">
+    <widget class="QLabel" name="inputForwardTransformLabel">
+     <property name="text">
+      <string>Input 'Foward' Transform Node</string>
+     </property>
+    </widget>
+   </item>
+   <item row="9" column="1">
+    <widget class="qMRMLNodeComboBox" name="inputForwardTransformComboBox">
+     <property name="toolTip">
+      <string>The forward transform; what should be inverted.</string>
+     </property>
+     <property name="nodeTypes">
+      <stringlist>
+       <string>vtkMRMLLinearTransformNode</string>
+      </stringlist>
+     </property>
+     <property name="noneEnabled">
+      <bool>false</bool>
+     </property>
+     <property name="renameEnabled">
+      <bool>true</bool>
      </property>
     </widget>
    </item>
@@ -591,6 +616,22 @@
     <hint type="destinationlabel">
      <x>302</x>
      <y>444</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>qSlicerTransformProcessorModule</sender>
+   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+   <receiver>inputForwardTransformComboBox</receiver>
+   <slot>setMRMLScene(vtkMRMLScene*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>201</x>
+     <y>475</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>302</x>
+     <y>504</y>
     </hint>
    </hints>
   </connection>
