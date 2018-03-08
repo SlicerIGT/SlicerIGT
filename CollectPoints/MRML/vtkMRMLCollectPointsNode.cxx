@@ -31,7 +31,8 @@
 #include <sstream>
 
 // Constants ------------------------------------------------------------------
-static const char* PROBE_TRANSFORM_REFERENCE_ROLE = "ProbeTransformNode";
+static const char* SAMPLING_TRANSFORM_REFERENCE_ROLE = "ProbeTransformNode";
+static const char* ANCHOR_TRANSFORM_REFERENCE_ROLE = "AnchorTransformNode";
 static const char* OUTPUT_REFERENCE_ROLE = "OutputNode";
 
 vtkMRMLNodeNewMacro( vtkMRMLCollectPointsNode );
@@ -46,7 +47,8 @@ vtkMRMLCollectPointsNode::vtkMRMLCollectPointsNode()
   transformListEvents->InsertNextValue( vtkCommand::ModifiedEvent );
   transformListEvents->InsertNextValue( vtkMRMLTransformNode::TransformModifiedEvent );
 
-  this->AddNodeReferenceRole( PROBE_TRANSFORM_REFERENCE_ROLE, NULL, transformListEvents.GetPointer() );
+  this->AddNodeReferenceRole( SAMPLING_TRANSFORM_REFERENCE_ROLE, NULL, transformListEvents.GetPointer() );
+  this->AddNodeReferenceRole( ANCHOR_TRANSFORM_REFERENCE_ROLE );
   this->AddNodeReferenceRole( OUTPUT_REFERENCE_ROLE );
   this->LabelBase = "P";
   this->LabelCounter = 0;
@@ -139,23 +141,58 @@ void vtkMRMLCollectPointsNode::Copy( vtkMRMLNode *anode )
 }
 
 //------------------------------------------------------------------------------
-vtkMRMLLinearTransformNode* vtkMRMLCollectPointsNode::GetProbeTransformNode()
+vtkMRMLLinearTransformNode* vtkMRMLCollectPointsNode::GetSamplingTransformNode()
 {
-  vtkMRMLLinearTransformNode* node = vtkMRMLLinearTransformNode::SafeDownCast( this->GetNodeReference( PROBE_TRANSFORM_REFERENCE_ROLE ) );
+  vtkMRMLLinearTransformNode* node = vtkMRMLLinearTransformNode::SafeDownCast( this->GetNodeReference( SAMPLING_TRANSFORM_REFERENCE_ROLE ) );
   return node;
 }
 
 //------------------------------------------------------------------------------
-void vtkMRMLCollectPointsNode::SetAndObserveProbeTransformNodeId( const char* nodeId )
+void vtkMRMLCollectPointsNode::SetAndObserveSamplingTransformNodeID( const char* nodeID )
 {
-  const char* currentNodeId = this->GetNodeReferenceID( PROBE_TRANSFORM_REFERENCE_ROLE );
-  if ( nodeId != NULL && currentNodeId != NULL && strcmp( nodeId, currentNodeId ) == 0 )
+  const char* currentNodeID = this->GetNodeReferenceID( SAMPLING_TRANSFORM_REFERENCE_ROLE );
+  if ( nodeID != NULL && currentNodeID != NULL && strcmp( nodeID, currentNodeID ) == 0 )
   {
     // not changed
     return;
   }
-  this->SetAndObserveNodeReferenceID( PROBE_TRANSFORM_REFERENCE_ROLE, nodeId );
+
+  const char* currentAnchorNodeID = this->GetNodeReferenceID( ANCHOR_TRANSFORM_REFERENCE_ROLE );
+  if ( nodeID != NULL && currentAnchorNodeID != NULL && strcmp( nodeID, currentAnchorNodeID ) == 0 )
+  {
+    vtkErrorMacro( "Anchor and sampling transforms cannot be the same." );
+    return;
+  }
+
+  this->SetAndObserveNodeReferenceID( SAMPLING_TRANSFORM_REFERENCE_ROLE, nodeID );
   this->InvokeCustomModifiedEvent( InputDataModifiedEvent );
+}
+
+//------------------------------------------------------------------------------
+vtkMRMLLinearTransformNode* vtkMRMLCollectPointsNode::GetAnchorTransformNode()
+{
+  vtkMRMLLinearTransformNode* node = vtkMRMLLinearTransformNode::SafeDownCast( this->GetNodeReference( ANCHOR_TRANSFORM_REFERENCE_ROLE ) );
+  return node;
+}
+
+//------------------------------------------------------------------------------
+void vtkMRMLCollectPointsNode::SetAndObserveAnchorTransformNodeID( const char* nodeID )
+{
+  const char* currentAnchorNodeID = this->GetNodeReferenceID( ANCHOR_TRANSFORM_REFERENCE_ROLE );
+  if ( nodeID != NULL && currentAnchorNodeID != NULL && strcmp( nodeID, currentAnchorNodeID ) == 0 )
+  {
+    // not changed
+    return;
+  }
+
+  const char* currentSamplingNodeID = this->GetNodeReferenceID( SAMPLING_TRANSFORM_REFERENCE_ROLE );
+  if ( nodeID != NULL && currentSamplingNodeID != NULL && strcmp( nodeID, currentSamplingNodeID ) == 0 )
+  {
+    vtkErrorMacro( "Anchor and sampling transforms cannot be the same." );
+    return;
+  }
+
+  this->SetAndObserveNodeReferenceID( ANCHOR_TRANSFORM_REFERENCE_ROLE, nodeID );
 }
 
 //------------------------------------------------------------------------------
@@ -197,15 +234,15 @@ int vtkMRMLCollectPointsNode::GetNumberOfPointsInOutput()
 }
 
 //------------------------------------------------------------------------------
-void vtkMRMLCollectPointsNode::SetOutputNodeId( const char* nodeId )
+void vtkMRMLCollectPointsNode::SetOutputNodeID( const char* nodeID )
 {
-  const char* currentNodeId = this->GetNodeReferenceID( OUTPUT_REFERENCE_ROLE );
-  if ( nodeId != NULL && currentNodeId != NULL && strcmp( nodeId, currentNodeId ) == 0 )
+  const char* currentNodeID = this->GetNodeReferenceID( OUTPUT_REFERENCE_ROLE );
+  if ( nodeID != NULL && currentNodeID != NULL && strcmp( nodeID, currentNodeID ) == 0 )
   {
     // not changed
     return;
   }
-  this->SetAndObserveNodeReferenceID( OUTPUT_REFERENCE_ROLE, nodeId );
+  this->SetAndObserveNodeReferenceID( OUTPUT_REFERENCE_ROLE, nodeID );
 }
 
 //------------------------------------------------------------------------------
@@ -217,7 +254,7 @@ void vtkMRMLCollectPointsNode::ProcessMRMLEvents( vtkObject *caller, unsigned lo
     return;
   }
 
-  if ( this->GetProbeTransformNode() && callerNode == this->GetProbeTransformNode() )
+  if ( this->GetSamplingTransformNode() && callerNode == this->GetSamplingTransformNode() )
   {
     this->InvokeCustomModifiedEvent( InputDataModifiedEvent );
   }
@@ -254,4 +291,20 @@ const char* vtkMRMLCollectPointsNode::GetCollectModeAsString( int id )
     // invalid id
     return "";
   }
+}
+
+//------------------------------------------------------------------------------
+// DEPRECATED March 8 2018
+vtkMRMLLinearTransformNode* vtkMRMLCollectPointsNode::GetProbeTransformNode()
+{
+  vtkWarningMacro( "GetProbeTransformNode is deprecated. Use GetSamplingTransformNode instead.");
+  return this->GetSamplingTransformNode();
+}
+
+//------------------------------------------------------------------------------
+// DEPRECATED March 8 2018
+void vtkMRMLCollectPointsNode::SetAndObserveProbeTransformNodeID( const char* nodeID )
+{
+  vtkWarningMacro( "SetAndObserveProbeTransformNodeID is deprecated. Use SetAndObserveSamplingTransformNodeID instead.");
+  this->SetAndObserveProbeTransformNodeID( nodeID );
 }

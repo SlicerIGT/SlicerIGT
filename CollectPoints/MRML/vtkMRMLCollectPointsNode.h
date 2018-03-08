@@ -73,14 +73,17 @@ protected:
   void operator=( const vtkMRMLCollectPointsNode& );
 
 public:
-  // The point will be collected in the world coordinate system
+  // The point will be collected in the anchor coordinate system
   // at the location indicated by this probe transform.
-  vtkMRMLLinearTransformNode* GetProbeTransformNode();
-  void SetAndObserveProbeTransformNodeId( const char* nodeId );
+  vtkMRMLLinearTransformNode* GetSamplingTransformNode();
+  void SetAndObserveSamplingTransformNodeID( const char* nodeID );
+
+  vtkMRMLLinearTransformNode* GetAnchorTransformNode();
+  void SetAndObserveAnchorTransformNodeID( const char* nodeID );
   
   // need to determine type at run-time
   vtkMRMLNode* GetOutputNode();
-  void SetOutputNodeId( const char* nodeId );
+  void SetOutputNodeID( const char* nodeID );
   int GetNumberOfPointsInOutput();
 
   vtkGetMacro(LabelBase, std::string);
@@ -100,6 +103,10 @@ public:
 
   static int GetCollectModeFromString( const char* name );
   static const char* GetCollectModeAsString( int id );
+
+  // deprecated on March 8 2018
+  vtkMRMLLinearTransformNode* GetProbeTransformNode();
+  void SetAndObserveProbeTransformNodeID( const char* nodeID );
   
 private:
   // the next collected point will have label "[LabelBase]-[LabelCounter]"

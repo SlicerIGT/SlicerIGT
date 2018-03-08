@@ -70,12 +70,12 @@ protected:
   virtual void OnMRMLSceneNodeAdded(vtkMRMLNode* node);
   virtual void OnMRMLSceneNodeRemoved(vtkMRMLNode* node);
 private:
-  void AddPointToModel( vtkMRMLModelNode* modelNode, double pointCoordinates[ 3 ],
-                        double minimumDistanceFromPreviousPointMm=0.0 );
+  void ComputePointCoordinates( vtkMRMLCollectPointsNode* collectPointsNode, double outputPointCoordinates[ 3 ], bool& success );
+  double ComputeMinimumDistanceFromPreviousPointMm( vtkMRMLCollectPointsNode* collectPointsNode );
+  void AddPointToModel( vtkMRMLCollectPointsNode* collectPointsNode,  double pointCoordinates[ 3 ] );
   void RemoveLastPointFromModel( vtkMRMLModelNode* modelNode );
   void UpdateCellsForPolyData( vtkPolyData* polyData );
-  void AddPointToMarkups( vtkMRMLMarkupsFiducialNode* markupsNode, double pointCoordinates[ 3 ],
-                          std::string label, double minimumDistanceFromPreviousPointMm=0.0 );
+  void AddPointToMarkups( vtkMRMLCollectPointsNode* collectPointsNode, double pointCoordinates[ 3 ] );
   vtkSlicerCollectPointsLogic(const vtkSlicerCollectPointsLogic&); // Not implemented
   void operator=(const vtkSlicerCollectPointsLogic&);               // Not implemented
   

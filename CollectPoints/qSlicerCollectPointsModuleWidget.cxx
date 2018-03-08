@@ -73,6 +73,21 @@ qSlicerCollectPointsModuleWidget::qSlicerCollectPointsModuleWidget( QWidget* _pa
 //-----------------------------------------------------------------------------
 qSlicerCollectPointsModuleWidget::~qSlicerCollectPointsModuleWidget()
 {
+  Q_D( qSlicerCollectPointsModuleWidget );
+  disconnect( d->ParameterNodeComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onParameterNodeSelected() ) );
+  disconnect( d->SamplingTransformNodeComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onSamplingTransformNodeSelected() ) );
+  disconnect( d->AnchorTransformNodeComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onAnchorTransformNodeSelected() ) );
+  disconnect( d->OutputNodeComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onOutputNodeSelected( vtkMRMLNode* ) ) );
+  disconnect( d->OutputNodeComboBox, SIGNAL( nodeAddedByUser( vtkMRMLNode* ) ), this, SLOT( onOutputNodeAdded( vtkMRMLNode* ) ) );
+  disconnect( d->OutputColorButton, SIGNAL( colorChanged( QColor ) ), this, SLOT( onColorButtonChanged( QColor ) ) );
+  disconnect( d->OutputDeleteButton, SIGNAL( clicked() ), this, SLOT( onDeleteButtonClicked() ) );
+  disconnect( d->ActionDeleteAll, SIGNAL( triggered() ), this, SLOT( onDeleteAllClicked() ) );
+  disconnect( d->OutputVisibilityButton, SIGNAL( clicked() ), this, SLOT( onVisibilityButtonClicked() ) );
+  disconnect( d->LabelBaseLineEdit, SIGNAL( editingFinished() ), this, SLOT( onLabelBaseChanged() ) );
+  disconnect( d->LabelCounterSpinBox, SIGNAL( valueChanged( int ) ), this, SLOT( onLabelCounterChanged() ) );
+  disconnect( d->MinimumDistanceSlider, SIGNAL( valueChanged( double ) ), this, SLOT( onMinimumDistanceChanged() ) );
+  disconnect( d->CollectButton, SIGNAL( clicked() ), this, SLOT( onCollectClicked() ) );
+  disconnect( d->CollectButton, SIGNAL( checkBoxToggled( bool ) ), this, SLOT( onCollectCheckboxToggled() ) );
 }
 
 //-----------------------------------------------------------------------------
@@ -85,7 +100,8 @@ void qSlicerCollectPointsModuleWidget::setup()
   this->setMRMLScene( d->logic()->GetMRMLScene() );
 
   connect( d->ParameterNodeComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onParameterNodeSelected() ) );
-  connect( d->ProbeTransformNodeComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onProbeTransformNodeSelected() ) );
+  connect( d->SamplingTransformNodeComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onSamplingTransformNodeSelected() ) );
+  connect( d->AnchorTransformNodeComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onAnchorTransformNodeSelected() ) );
   connect( d->OutputNodeComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onOutputNodeSelected( vtkMRMLNode* ) ) );
   connect( d->OutputNodeComboBox, SIGNAL( nodeAddedByUser( vtkMRMLNode* ) ), this, SLOT( onOutputNodeAdded( vtkMRMLNode* ) ) );
   connect( d->OutputColorButton, SIGNAL( colorChanged( QColor ) ), this, SLOT( onColorButtonChanged( QColor ) ) );
@@ -147,7 +163,8 @@ void qSlicerCollectPointsModuleWidget::blockAllSignals( bool block )
 {
   Q_D( qSlicerCollectPointsModuleWidget );
   d->ParameterNodeComboBox->blockSignals( block );
-  d->ProbeTransformNodeComboBox->blockSignals( block );
+  d->SamplingTransformNodeComboBox->blockSignals( block );
+  d->AnchorTransformNodeComboBox->blockSignals( block );
   d->OutputNodeComboBox->blockSignals( block );
   d->OutputDeleteButton->blockSignals( block );
   d->OutputColorButton->blockSignals( block );
@@ -163,7 +180,8 @@ void qSlicerCollectPointsModuleWidget::enableAllWidgets( bool enable )
 {
   Q_D( qSlicerCollectPointsModuleWidget );
   // don't ever disable parameter node, need to be able to select between them
-  d->ProbeTransformNodeComboBox->setEnabled( enable );
+  d->SamplingTransformNodeComboBox->setEnabled( enable );
+  d->AnchorTransformNodeComboBox->setEnabled( enable );
   d->OutputNodeComboBox->setEnabled( enable );
   d->OutputDeleteButton->setEnabled( enable );
   d->OutputColorButton->setEnabled( enable );
@@ -195,7 +213,7 @@ void qSlicerCollectPointsModuleWidget::onParameterNodeSelected()
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerCollectPointsModuleWidget::onProbeTransformNodeSelected()
+void qSlicerCollectPointsModuleWidget::onSamplingTransformNodeSelected()
 {
   Q_D( qSlicerCollectPointsModuleWidget );
 
@@ -206,19 +224,43 @@ void qSlicerCollectPointsModuleWidget::onProbeTransformNodeSelected()
     return;
   }
   
-  vtkMRMLLinearTransformNode* probeTransformNode = vtkMRMLLinearTransformNode::SafeDownCast( d->ProbeTransformNodeComboBox->currentNode() );
+  vtkMRMLLinearTransformNode* probeTransformNode = vtkMRMLLinearTransformNode::SafeDownCast( d->SamplingTransformNodeComboBox->currentNode() );
   if( probeTransformNode != NULL )
   {
-    collectPointsNode->SetAndObserveProbeTransformNodeId( probeTransformNode->GetID() );
+    collectPointsNode->SetAndObserveSamplingTransformNodeID( probeTransformNode->GetID() );
   }
   else
   {
-    collectPointsNode->SetAndObserveProbeTransformNodeId( NULL );
+    collectPointsNode->SetAndObserveSamplingTransformNodeID( NULL );
   }
 
   this->updateGUIFromMRML();
 }
 
+//-----------------------------------------------------------------------------
+void qSlicerCollectPointsModuleWidget::onAnchorTransformNodeSelected()
+{
+  Q_D( qSlicerCollectPointsModuleWidget );
+
+  vtkMRMLCollectPointsNode* collectPointsNode = vtkMRMLCollectPointsNode::SafeDownCast( d->ParameterNodeComboBox->currentNode() );
+  if ( collectPointsNode == NULL )
+  {
+    qCritical() << Q_FUNC_INFO << ": invalid parameter node";
+    return;
+  }
+  
+  vtkMRMLLinearTransformNode* anchorTransformNode = vtkMRMLLinearTransformNode::SafeDownCast( d->AnchorTransformNodeComboBox->currentNode() );
+  if( anchorTransformNode != NULL )
+  {
+    collectPointsNode->SetAndObserveAnchorTransformNodeID( anchorTransformNode->GetID() );
+  }
+  else
+  {
+    collectPointsNode->SetAndObserveAnchorTransformNodeID( NULL );
+  }
+
+  this->updateGUIFromMRML();
+}
 
 //-----------------------------------------------------------------------------
 void qSlicerCollectPointsModuleWidget::onOutputNodeAdded( vtkMRMLNode* newNode )
@@ -259,11 +301,11 @@ void qSlicerCollectPointsModuleWidget::onOutputNodeSelected( vtkMRMLNode* newNod
 
   if ( newNode == NULL )
   {
-    collectPointsNode->SetOutputNodeId( NULL );
+    collectPointsNode->SetOutputNodeID( NULL );
   }
   else
   {
-    collectPointsNode->SetOutputNodeId( newNode->GetID() );
+    collectPointsNode->SetOutputNodeID( newNode->GetID() );
   }
 
   this->updateGUIFromMRML();
@@ -492,7 +534,8 @@ void qSlicerCollectPointsModuleWidget::updateGUIFromMRML()
   this->blockAllSignals( true );
 
   // update all widget contents
-  d->ProbeTransformNodeComboBox->setCurrentNode( collectPointsNode->GetProbeTransformNode() );
+  d->SamplingTransformNodeComboBox->setCurrentNode( collectPointsNode->GetSamplingTransformNode() );
+  d->AnchorTransformNodeComboBox->setCurrentNode( collectPointsNode->GetAnchorTransformNode() );
   d->OutputNodeComboBox->setCurrentNode( collectPointsNode->GetOutputNode() );
   // output node buttons - disabled unless a valid output node is selected
   d->OutputColorButton->setEnabled( false );
@@ -541,7 +584,7 @@ void qSlicerCollectPointsModuleWidget::updateGUIFromMRML()
   d->LabelBaseLineEdit->setText( collectPointsNode->GetLabelBase().c_str() );
   d->MinimumDistanceSlider->setValue( collectPointsNode->GetMinimumDistanceMm() );
 
-  bool readyToCollect = collectPointsNode->GetProbeTransformNode() != NULL && collectPointsNode->GetOutputNode() != NULL;
+  bool readyToCollect = collectPointsNode->GetSamplingTransformNode() != NULL && collectPointsNode->GetOutputNode() != NULL;
   d->CollectButton->setEnabled( readyToCollect );
   if ( collectPointsNode->GetCollectMode() == vtkMRMLCollectPointsNode::Automatic )
   {

@@ -45,7 +45,8 @@ protected slots:
   void enableAllWidgets( bool enable );
   void onSceneImportedEvent();
   void onParameterNodeSelected();
-  void onProbeTransformNodeSelected();
+  void onSamplingTransformNodeSelected();
+  void onAnchorTransformNodeSelected();
   void onLabelBaseChanged();
   void onLabelCounterChanged();
   void onMinimumDistanceChanged();
