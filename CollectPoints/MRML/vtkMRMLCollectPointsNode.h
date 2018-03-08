@@ -82,6 +82,7 @@ public:
   void SetAndObserveAnchorTransformNodeID( const char* nodeID );
   
   // need to determine type at run-time
+  void CreateDefaultDisplayNodesForOutputNode();
   vtkMRMLNode* GetOutputNode();
   void SetOutputNodeID( const char* nodeID );
   int GetNumberOfPointsInOutput();

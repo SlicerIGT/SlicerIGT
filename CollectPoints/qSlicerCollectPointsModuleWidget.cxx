@@ -263,26 +263,17 @@ void qSlicerCollectPointsModuleWidget::onAnchorTransformNodeSelected()
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerCollectPointsModuleWidget::onOutputNodeAdded( vtkMRMLNode* newNode )
+void qSlicerCollectPointsModuleWidget::onOutputNodeAdded( vtkMRMLNode* vtkNotUsed(newNode) )
 {
   Q_D( qSlicerCollectPointsModuleWidget );
 
-  vtkMRMLMarkupsNode* outputMarkupsNode = vtkMRMLMarkupsNode::SafeDownCast( newNode );
-  if ( outputMarkupsNode != NULL )
+  vtkMRMLCollectPointsNode* collectPointsNode = vtkMRMLCollectPointsNode::SafeDownCast( d->ParameterNodeComboBox->currentNode() );
+  if ( collectPointsNode == NULL )
   {
-    outputMarkupsNode->CreateDefaultDisplayNodes();
+    qCritical() << Q_FUNC_INFO << ": invalid parameter node";
+    return;
   }
-
-  vtkMRMLModelNode* outputModelNode = vtkMRMLModelNode::SafeDownCast( newNode );
-  if ( outputModelNode != NULL )
-  {
-    // display node should be set to show points only
-    outputModelNode->CreateDefaultDisplayNodes();
-    vtkMRMLModelDisplayNode* outputModelDisplayNode = outputModelNode->GetModelDisplayNode();
-    outputModelDisplayNode->SetRepresentation( vtkMRMLDisplayNode::PointsRepresentation );
-    const int DEFAULT_POINT_SIZE = 5; // This could be made an advanced display setting in the GUI
-    outputModelDisplayNode->SetPointSize( DEFAULT_POINT_SIZE );
-  }
+  collectPointsNode->CreateDefaultDisplayNodesForOutputNode();
 
   this->updateGUIFromMRML();
 }
@@ -599,7 +590,7 @@ void qSlicerCollectPointsModuleWidget::updateGUIFromMRML()
   }
 
   // update widget visibility
-  bool isInputMarkupsNode = ( vtkMRMLMarkupsNode::SafeDownCast( collectPointsNode->GetOutputNode() ) != NULL );
+  bool isInputMarkupsNode = ( vtkMRMLMarkupsFiducialNode::SafeDownCast( collectPointsNode->GetOutputNode() ) != NULL );
 
   d->LabelCounterLabel->setVisible( isInputMarkupsNode );
   d->LabelCounterSpinBox->setVisible( isInputMarkupsNode );

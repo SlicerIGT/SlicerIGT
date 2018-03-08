@@ -20,6 +20,7 @@
 
 // slicer includes
 #include "vtkMRMLMarkupsFiducialNode.h"
+#include "vtkMRMLModelDisplayNode.h"
 #include "vtkMRMLModelNode.h"
 #include "vtkMRMLTransformNode.h"
 
@@ -193,6 +194,36 @@ void vtkMRMLCollectPointsNode::SetAndObserveAnchorTransformNodeID( const char* n
   }
 
   this->SetAndObserveNodeReferenceID( ANCHOR_TRANSFORM_REFERENCE_ROLE, nodeID );
+}
+
+//------------------------------------------------------------------------------
+void vtkMRMLCollectPointsNode::CreateDefaultDisplayNodesForOutputNode()
+{
+  vtkMRMLNode* outputNode = this->GetOutputNode();
+  if ( outputNode == NULL )
+  {
+    vtkErrorMacro( "Output node is null. Cannot create display nodes for null node." );
+    return;
+  }
+
+  // handle markups outputs  
+  vtkMRMLMarkupsFiducialNode* outputMarkupsNode = vtkMRMLMarkupsFiducialNode::SafeDownCast( outputNode );
+  if ( outputMarkupsNode != NULL && outputMarkupsNode->GetDisplayNode() == NULL )
+  {
+    outputMarkupsNode->CreateDefaultDisplayNodes();
+  }
+
+  // handle model outputs
+  vtkMRMLModelNode* outputModelNode = vtkMRMLModelNode::SafeDownCast( outputNode );
+  if ( outputModelNode != NULL && outputModelNode->GetModelDisplayNode() == NULL )
+  {
+    // display node should be set to show points only
+    outputModelNode->CreateDefaultDisplayNodes();
+    vtkMRMLModelDisplayNode* outputModelDisplayNode = outputModelNode->GetModelDisplayNode();
+    outputModelDisplayNode->SetRepresentation( vtkMRMLDisplayNode::PointsRepresentation );
+    const int DEFAULT_POINT_SIZE = 5; // This could be made an advanced display setting in the GUI
+    outputModelDisplayNode->SetPointSize( DEFAULT_POINT_SIZE );
+  }
 }
 
 //------------------------------------------------------------------------------
