@@ -21,8 +21,8 @@ set(EXTENSION_DEPENDS SlicerOpenIGTLink)
 find_package(Slicer REQUIRED)
 include(${Slicer_USE_FILE})
 
-find_package(SlicerOpenIGTLink REQUIRED)
-mark_as_superbuild(SlicerOpenIGTLink_DIR)
+find_package(OpenIGTLinkIF REQUIRED)
+mark_as_superbuild(OpenIGTLinkIF_DIR)
 
 #-----------------------------------------------------------------------------
 # Extension modules
