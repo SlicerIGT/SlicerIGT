@@ -337,5 +337,5 @@ vtkMRMLLinearTransformNode* vtkMRMLCollectPointsNode::GetProbeTransformNode()
 void vtkMRMLCollectPointsNode::SetAndObserveProbeTransformNodeID( const char* nodeID )
 {
   vtkWarningMacro( "SetAndObserveProbeTransformNodeID is deprecated. Use SetAndObserveSamplingTransformNodeID instead.");
-  this->SetAndObserveProbeTransformNodeID( nodeID );
+  this->SetAndObserveSamplingTransformNodeID( nodeID );
 }
