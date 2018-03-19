@@ -14,15 +14,11 @@ set(EXTENSION_CONTRIBUTORS "Tamas Ungi (Queen's University), Junichi Tokuda (Bri
 set(EXTENSION_DESCRIPTION "This extension contains modules that enable rapid prototyping of applications for image-guided interventions. Intended users should have real-time imaging and/or tracking hardware (e.g. tracked ultrasound) connected to 3D Slicer through OpenIGTLink network. Specific modules allow patient registration to the navigation coordinate system in 3D Slicer, and real-time update of tracked models and images." )
 set(EXTENSION_ICONURL "http://www.slicer.org/slicerWiki/images/2/2b/SlicerIGTLogo.png" )
 set(EXTENSION_SCREENSHOTURLS "http://www.slicer.org/slicerWiki/images/7/78/SlicerIGTScreenshot.png" )
-set(EXTENSION_DEPENDS SlicerOpenIGTLink)
 
 #-----------------------------------------------------------------------------
 # Extension dependencies
 find_package(Slicer REQUIRED)
 include(${Slicer_USE_FILE})
-
-find_package(SlicerOpenIGTLink REQUIRED)
-mark_as_superbuild(SlicerOpenIGTLink_DIR)
 
 #-----------------------------------------------------------------------------
 # Extension modules
@@ -33,10 +29,8 @@ add_subdirectory(FiducialRegistrationWizard)
 add_subdirectory(FiducialsToModelRegistration)
 add_subdirectory(Guidelet)
 add_subdirectory(ModelRegistration)
-add_subdirectory(OpenIGTLinkRemote)
 add_subdirectory(PathExplorer)
 add_subdirectory(PivotCalibration)
-add_subdirectory(PlusRemote)
 add_subdirectory(TextureModel)
 add_subdirectory(ToolWatchdog)
 add_subdirectory(TransformProcessor)

@@ -11,6 +11,12 @@ class UltraSound(object):
     self.captureDeviceName = self.guideletParent.parameterNode.GetParameter('PLUSCaptureDeviceName')
     self.referenceToRas = None
 
+    try:
+      slicer.modules.plusremote
+    except:
+      raise Exception('Error: Could not find Plus Remote module. Please install the SlicerOpenIGTLink extension')
+      return
+
     from PlusRemote import PlusRemoteLogic
     self.plusRemoteLogic = PlusRemoteLogic()
 

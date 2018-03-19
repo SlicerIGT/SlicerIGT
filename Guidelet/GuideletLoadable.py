@@ -61,7 +61,7 @@ class GuideletWidget(ScriptedLoadableModuleWidget):
     try:
       slicer.modules.plusremote
     except:
-      self.errorLabel = qt.QLabel("Error: Could not find Plus Remote module. Please install the SlicerIGT extension.")
+      self.errorLabel = qt.QLabel("Error: Could not find Plus Remote module. Please install the SlicerOpenIGTLink extension.")
       self.layout.addWidget(self.errorLabel)
       return
 
