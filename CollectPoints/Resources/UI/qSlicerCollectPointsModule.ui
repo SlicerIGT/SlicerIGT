@@ -38,6 +38,9 @@
        <property name="nodeTypes">
         <stringlist>
          <string>vtkMRMLLinearTransformNode</string>
+         <string>vtkMRMLBSplineTransformNode</string>
+         <string>vtkMRMLGridTransformNode</string>
+         <string>vtkMRMLTransformNode</string>
         </stringlist>
        </property>
        <property name="renameEnabled">
@@ -151,7 +154,7 @@
        </widget>
       </item>
       <item row="3" column="1">
-       <widget class="QSpinBox" name="LabelCounterSpinBox">
+       <widget class="QSpinBox" name="NextLabelNumberSpinBox">
         <property name="toolTip">
          <string>Markups will be numbered according to the current counter (incremented automatically)</string>
         </property>
@@ -165,9 +168,9 @@
        </widget>
       </item>
       <item row="3" column="0">
-       <widget class="QLabel" name="LabelCounterLabel">
+       <widget class="QLabel" name="NextLabelNumberLabel">
         <property name="text">
-         <string>Label Counter:</string>
+         <string>Next Label Number:</string>
         </property>
        </widget>
       </item>
@@ -206,6 +209,9 @@
         <property name="nodeTypes">
          <stringlist>
           <string>vtkMRMLLinearTransformNode</string>
+          <string>vtkMRMLBSplineTransformNode</string>
+          <string>vtkMRMLGridTransformNode</string>
+          <string>vtkMRMLTransformNode</string>
          </stringlist>
         </property>
         <property name="noneEnabled">

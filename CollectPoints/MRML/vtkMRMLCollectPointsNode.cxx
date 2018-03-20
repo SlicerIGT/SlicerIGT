@@ -52,8 +52,8 @@ vtkMRMLCollectPointsNode::vtkMRMLCollectPointsNode()
   this->AddNodeReferenceRole( ANCHOR_TRANSFORM_REFERENCE_ROLE );
   this->AddNodeReferenceRole( OUTPUT_REFERENCE_ROLE );
   this->LabelBase = "P";
-  this->LabelCounter = 0;
-  this->MinimumDistanceMm = 10.0;
+  this->NextLabelNumber = 0;
+  this->MinimumDistance = 10.0;
   this->CollectMode = Manual;
 }
 
@@ -69,8 +69,8 @@ void vtkMRMLCollectPointsNode::WriteXML( ostream& of, int nIndent )
 
   vtkIndent indent( nIndent ); 
   of << indent << " LabelBase=\"" << this->LabelBase << "\"";
-  of << indent << " LabelCounter=\"" << this->LabelCounter << "\"";
-  of << indent << " MinimumDistanceMm=\"" << this->MinimumDistanceMm << "\"";
+  of << indent << " NextLabelNumber=\"" << this->NextLabelNumber << "\"";
+  of << indent << " MinimumDistance=\"" << this->MinimumDistance << "\"";
   of << indent << " CollectMode=\"" << this->GetCollectModeAsString( this->CollectMode ) << "\"";
 }
 
@@ -79,8 +79,8 @@ void vtkMRMLCollectPointsNode::PrintSelf( ostream& os, vtkIndent indent )
 {
   Superclass::PrintSelf( os, indent );
   os << indent << " LabelBase=\"" << this->LabelBase << "\"";
-  os << indent << " LabelCounter=\"" << this->LabelCounter << "\"";
-  os << indent << " MinimumDistanceMm=\"" << this->MinimumDistanceMm << "\"";
+  os << indent << " NextLabelNumber=\"" << this->NextLabelNumber << "\"";
+  os << indent << " MinimumDistance=\"" << this->MinimumDistance << "\"";
   os << indent << " CollectMode=\"" << this->GetCollectModeAsString(  this->CollectMode ) << "\"";
 }
 
@@ -102,18 +102,18 @@ void vtkMRMLCollectPointsNode::ReadXMLAttributes( const char** atts )
       this->LabelBase = std::string(attValue);
       continue;
     }
-    else if ( ! strcmp( attName, "LabelCounter" ) )
+    else if ( ! strcmp( attName, "NextLabelNumber" ) )
     {
       std::stringstream ss;
       ss << attValue;
-      ss >> this->LabelCounter;
+      ss >> this->NextLabelNumber;
       continue;
     }
-    else if ( ! strcmp( attName, "MinimumDistanceMm" ) )
+    else if ( ! strcmp( attName, "MinimumDistance" ) )
     {
       std::stringstream ss;
       ss << attValue;
-      ss >> this->MinimumDistanceMm;
+      ss >> this->MinimumDistance;
       continue;
     }
     else if ( ! strcmp( attName, "CollectMode" ) )
@@ -142,9 +142,9 @@ void vtkMRMLCollectPointsNode::Copy( vtkMRMLNode *anode )
 }
 
 //------------------------------------------------------------------------------
-vtkMRMLLinearTransformNode* vtkMRMLCollectPointsNode::GetSamplingTransformNode()
+vtkMRMLTransformNode* vtkMRMLCollectPointsNode::GetSamplingTransformNode()
 {
-  vtkMRMLLinearTransformNode* node = vtkMRMLLinearTransformNode::SafeDownCast( this->GetNodeReference( SAMPLING_TRANSFORM_REFERENCE_ROLE ) );
+  vtkMRMLTransformNode* node = vtkMRMLTransformNode::SafeDownCast( this->GetNodeReference( SAMPLING_TRANSFORM_REFERENCE_ROLE ) );
   return node;
 }
 
@@ -170,9 +170,9 @@ void vtkMRMLCollectPointsNode::SetAndObserveSamplingTransformNodeID( const char*
 }
 
 //------------------------------------------------------------------------------
-vtkMRMLLinearTransformNode* vtkMRMLCollectPointsNode::GetAnchorTransformNode()
+vtkMRMLTransformNode* vtkMRMLCollectPointsNode::GetAnchorTransformNode()
 {
-  vtkMRMLLinearTransformNode* node = vtkMRMLLinearTransformNode::SafeDownCast( this->GetNodeReference( ANCHOR_TRANSFORM_REFERENCE_ROLE ) );
+  vtkMRMLTransformNode* node = vtkMRMLTransformNode::SafeDownCast( this->GetNodeReference( ANCHOR_TRANSFORM_REFERENCE_ROLE ) );
   return node;
 }
 
@@ -326,7 +326,7 @@ const char* vtkMRMLCollectPointsNode::GetCollectModeAsString( int id )
 
 //------------------------------------------------------------------------------
 // DEPRECATED March 8 2018
-vtkMRMLLinearTransformNode* vtkMRMLCollectPointsNode::GetProbeTransformNode()
+vtkMRMLTransformNode* vtkMRMLCollectPointsNode::GetProbeTransformNode()
 {
   vtkWarningMacro( "GetProbeTransformNode is deprecated. Use GetSamplingTransformNode instead.");
   return this->GetSamplingTransformNode();

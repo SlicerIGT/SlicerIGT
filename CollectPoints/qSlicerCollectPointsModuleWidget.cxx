@@ -29,7 +29,7 @@
 #include "vtkMRMLCollectPointsNode.h"
 
 // slicer includes
-#include "vtkMRMLLinearTransformNode.h"
+#include "vtkMRMLTransformNode.h"
 #include "vtkMRMLMarkupsFiducialNode.h"
 #include "vtkMRMLModelDisplayNode.h"
 
@@ -73,21 +73,6 @@ qSlicerCollectPointsModuleWidget::qSlicerCollectPointsModuleWidget( QWidget* _pa
 //-----------------------------------------------------------------------------
 qSlicerCollectPointsModuleWidget::~qSlicerCollectPointsModuleWidget()
 {
-  Q_D( qSlicerCollectPointsModuleWidget );
-  disconnect( d->ParameterNodeComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onParameterNodeSelected() ) );
-  disconnect( d->SamplingTransformNodeComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onSamplingTransformNodeSelected() ) );
-  disconnect( d->AnchorTransformNodeComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onAnchorTransformNodeSelected() ) );
-  disconnect( d->OutputNodeComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onOutputNodeSelected( vtkMRMLNode* ) ) );
-  disconnect( d->OutputNodeComboBox, SIGNAL( nodeAddedByUser( vtkMRMLNode* ) ), this, SLOT( onOutputNodeAdded( vtkMRMLNode* ) ) );
-  disconnect( d->OutputColorButton, SIGNAL( colorChanged( QColor ) ), this, SLOT( onColorButtonChanged( QColor ) ) );
-  disconnect( d->OutputDeleteButton, SIGNAL( clicked() ), this, SLOT( onDeleteButtonClicked() ) );
-  disconnect( d->ActionDeleteAll, SIGNAL( triggered() ), this, SLOT( onDeleteAllClicked() ) );
-  disconnect( d->OutputVisibilityButton, SIGNAL( clicked() ), this, SLOT( onVisibilityButtonClicked() ) );
-  disconnect( d->LabelBaseLineEdit, SIGNAL( editingFinished() ), this, SLOT( onLabelBaseChanged() ) );
-  disconnect( d->LabelCounterSpinBox, SIGNAL( valueChanged( int ) ), this, SLOT( onLabelCounterChanged() ) );
-  disconnect( d->MinimumDistanceSlider, SIGNAL( valueChanged( double ) ), this, SLOT( onMinimumDistanceChanged() ) );
-  disconnect( d->CollectButton, SIGNAL( clicked() ), this, SLOT( onCollectClicked() ) );
-  disconnect( d->CollectButton, SIGNAL( checkBoxToggled( bool ) ), this, SLOT( onCollectCheckboxToggled() ) );
 }
 
 //-----------------------------------------------------------------------------
@@ -114,7 +99,7 @@ void qSlicerCollectPointsModuleWidget::setup()
   connect( d->OutputVisibilityButton, SIGNAL( clicked() ), this, SLOT( onVisibilityButtonClicked() ) );
 
   connect( d->LabelBaseLineEdit, SIGNAL( editingFinished() ), this, SLOT( onLabelBaseChanged() ) );
-  connect( d->LabelCounterSpinBox, SIGNAL( valueChanged( int ) ), this, SLOT( onLabelCounterChanged() ) );
+  connect( d->NextLabelNumberSpinBox, SIGNAL( valueChanged( int ) ), this, SLOT( onNextLabelNumberChanged() ) );
   connect( d->MinimumDistanceSlider, SIGNAL( valueChanged( double ) ), this, SLOT( onMinimumDistanceChanged() ) );
   connect( d->CollectButton, SIGNAL( clicked() ), this, SLOT( onCollectClicked() ) );
   connect( d->CollectButton, SIGNAL( checkBoxToggled( bool ) ), this, SLOT( onCollectCheckboxToggled() ) );
@@ -170,7 +155,7 @@ void qSlicerCollectPointsModuleWidget::blockAllSignals( bool block )
   d->OutputColorButton->blockSignals( block );
   d->OutputVisibilityButton->blockSignals( block );
   d->LabelBaseLineEdit->blockSignals( block );
-  d->LabelCounterSpinBox->blockSignals( block );
+  d->NextLabelNumberSpinBox->blockSignals( block );
   d->MinimumDistanceSlider->blockSignals( block );
   d->CollectButton->blockSignals( block );
 }
@@ -187,7 +172,7 @@ void qSlicerCollectPointsModuleWidget::enableAllWidgets( bool enable )
   d->OutputColorButton->setEnabled( enable );
   d->OutputVisibilityButton->setEnabled( enable );
   d->LabelBaseLineEdit->setEnabled( enable );
-  d->LabelCounterSpinBox->setEnabled( enable );
+  d->NextLabelNumberSpinBox->setEnabled( enable );
   d->MinimumDistanceSlider->setEnabled( enable );
   d->CollectButton->setEnabled( enable );
 }
@@ -224,15 +209,8 @@ void qSlicerCollectPointsModuleWidget::onSamplingTransformNodeSelected()
     return;
   }
   
-  vtkMRMLLinearTransformNode* probeTransformNode = vtkMRMLLinearTransformNode::SafeDownCast( d->SamplingTransformNodeComboBox->currentNode() );
-  if( probeTransformNode != NULL )
-  {
-    collectPointsNode->SetAndObserveSamplingTransformNodeID( probeTransformNode->GetID() );
-  }
-  else
-  {
-    collectPointsNode->SetAndObserveSamplingTransformNodeID( NULL );
-  }
+  vtkMRMLTransformNode* samplingTransformNode = vtkMRMLTransformNode::SafeDownCast( d->SamplingTransformNodeComboBox->currentNode() );
+  collectPointsNode->SetAndObserveSamplingTransformNodeID( samplingTransformNode ? samplingTransformNode->GetID() : NULL );
 
   this->updateGUIFromMRML();
 }
@@ -249,15 +227,8 @@ void qSlicerCollectPointsModuleWidget::onAnchorTransformNodeSelected()
     return;
   }
   
-  vtkMRMLLinearTransformNode* anchorTransformNode = vtkMRMLLinearTransformNode::SafeDownCast( d->AnchorTransformNodeComboBox->currentNode() );
-  if( anchorTransformNode != NULL )
-  {
-    collectPointsNode->SetAndObserveAnchorTransformNodeID( anchorTransformNode->GetID() );
-  }
-  else
-  {
-    collectPointsNode->SetAndObserveAnchorTransformNodeID( NULL );
-  }
+  vtkMRMLTransformNode* anchorTransformNode = vtkMRMLTransformNode::SafeDownCast( d->AnchorTransformNodeComboBox->currentNode() );
+  collectPointsNode->SetAndObserveAnchorTransformNodeID( anchorTransformNode ? anchorTransformNode->GetID() : NULL );
 
   this->updateGUIFromMRML();
 }
@@ -290,14 +261,7 @@ void qSlicerCollectPointsModuleWidget::onOutputNodeSelected( vtkMRMLNode* newNod
     return;
   }
 
-  if ( newNode == NULL )
-  {
-    collectPointsNode->SetOutputNodeID( NULL );
-  }
-  else
-  {
-    collectPointsNode->SetOutputNodeID( newNode->GetID() );
-  }
+  collectPointsNode->SetOutputNodeID( newNode ? newNode->GetID() : NULL );
 
   this->updateGUIFromMRML();
 }
@@ -424,7 +388,7 @@ void qSlicerCollectPointsModuleWidget::onLabelBaseChanged()
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerCollectPointsModuleWidget::onLabelCounterChanged()
+void qSlicerCollectPointsModuleWidget::onNextLabelNumberChanged()
 {
   Q_D( qSlicerCollectPointsModuleWidget );
 
@@ -435,7 +399,7 @@ void qSlicerCollectPointsModuleWidget::onLabelCounterChanged()
     return;
   }
 
-  collectPointsNode->SetLabelCounter( d->LabelCounterSpinBox->value() );
+  collectPointsNode->SetNextLabelNumber( d->NextLabelNumberSpinBox->value() );
   
   this->updateGUIFromMRML();
 }
@@ -452,7 +416,7 @@ void qSlicerCollectPointsModuleWidget::onMinimumDistanceChanged()
     return;
   }
 
-  collectPointsNode->SetMinimumDistanceMm( d->MinimumDistanceSlider->value() );
+  collectPointsNode->SetMinimumDistance( d->MinimumDistanceSlider->value() );
   
   this->updateGUIFromMRML();
 }
@@ -571,9 +535,9 @@ void qSlicerCollectPointsModuleWidget::updateGUIFromMRML()
     }
   }
 
-  d->LabelCounterSpinBox->setValue( collectPointsNode->GetLabelCounter() );
+  d->NextLabelNumberSpinBox->setValue( collectPointsNode->GetNextLabelNumber() );
   d->LabelBaseLineEdit->setText( collectPointsNode->GetLabelBase().c_str() );
-  d->MinimumDistanceSlider->setValue( collectPointsNode->GetMinimumDistanceMm() );
+  d->MinimumDistanceSlider->setValue( collectPointsNode->GetMinimumDistance() );
 
   bool readyToCollect = collectPointsNode->GetSamplingTransformNode() != NULL && collectPointsNode->GetOutputNode() != NULL;
   d->CollectButton->setEnabled( readyToCollect );
@@ -592,8 +556,8 @@ void qSlicerCollectPointsModuleWidget::updateGUIFromMRML()
   // update widget visibility
   bool isInputMarkupsNode = ( vtkMRMLMarkupsFiducialNode::SafeDownCast( collectPointsNode->GetOutputNode() ) != NULL );
 
-  d->LabelCounterLabel->setVisible( isInputMarkupsNode );
-  d->LabelCounterSpinBox->setVisible( isInputMarkupsNode );
+  d->NextLabelNumberLabel->setVisible( isInputMarkupsNode );
+  d->NextLabelNumberSpinBox->setVisible( isInputMarkupsNode );
   d->LabelBaseLabel->setVisible( isInputMarkupsNode );
   d->LabelBaseLineEdit->setVisible( isInputMarkupsNode );
 

@@ -48,7 +48,7 @@ protected slots:
   void onSamplingTransformNodeSelected();
   void onAnchorTransformNodeSelected();
   void onLabelBaseChanged();
-  void onLabelCounterChanged();
+  void onNextLabelNumberChanged();
   void onMinimumDistanceChanged();
   void onOutputNodeAdded( vtkMRMLNode* );
   void onOutputNodeSelected( vtkMRMLNode* );
