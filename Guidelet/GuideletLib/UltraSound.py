@@ -132,7 +132,7 @@ class UltraSound(object):
     '''
 
     if self.referenceToRas is None or (self.referenceToRas and slicer.mrmlScene.GetNodeByID(self.referenceToRas.GetID()) is None):
-      self.referenceToRas = slicer.util.getNode('ReferenceToRas')
+      self.referenceToRas = slicer.mrmlScene.GetFirstNodeByName('ReferenceToRas')
       if self.referenceToRas is None:
         self.referenceToRas = slicer.vtkMRMLLinearTransformNode()
         self.referenceToRas.SetName("ReferenceToRas")
@@ -144,7 +144,7 @@ class UltraSound(object):
 
     # live ultrasound
     liveUltrasoundNodeName = self.guideletParent.parameterNode.GetParameter('LiveUltrasoundNodeName')
-    self.liveUltrasoundNode_Reference = slicer.util.getNode(liveUltrasoundNodeName)
+    self.liveUltrasoundNode_Reference = slicer.mrmlScene.GetFirstNodeByName(liveUltrasoundNodeName)
     if not self.liveUltrasoundNode_Reference:
       imageSpacing=[0.2, 0.2, 0.2]
       # Create an empty image volume
@@ -164,7 +164,7 @@ class UltraSound(object):
       slicer.mrmlScene.AddNode(self.liveUltrasoundNode_Reference)
       displayNode=slicer.vtkMRMLScalarVolumeDisplayNode()
       slicer.mrmlScene.AddNode(displayNode)
-      colorNode = slicer.util.getNode('Grey')
+      colorNode = slicer.mrmlScene.GetFirstNodeByName('Grey')
       displayNode.SetAndObserveColorNodeID(colorNode.GetID())
       self.liveUltrasoundNode_Reference.SetAndObserveDisplayNodeID(displayNode.GetID())
 
@@ -179,7 +179,7 @@ class UltraSound(object):
     # Set up volume reslice driver.
     resliceLogic = slicer.modules.volumereslicedriver.logic()
     if resliceLogic:
-      redNode = slicer.util.getNode('vtkMRMLSliceNodeRed')
+      redNode = slicer.mrmlScene.GetNodeByID('vtkMRMLSliceNodeRed')
       # Typically the image is zoomed in, therefore it is faster if the original resolution is used
       # on the 3D slice (and also we can show the full image and not the shape and size of the 2D view)
       redNode.SetSliceResolutionMode(slicer.vtkMRMLSliceNode.SliceResolutionMatchVolumes)
@@ -209,7 +209,7 @@ class UltraSound(object):
     self.brigthnessContrastButtonBrighter.disconnect('clicked()', self.onBrightnessContrastBrighterClicked)
 
   def createPlusConnector(self):
-    connectorNode = slicer.util.getNode('PlusConnector')
+    connectorNode = slicer.mrmlScene.GetFirstNodeByName('PlusConnector')
     if not connectorNode:
       connectorNode = slicer.vtkMRMLIGTLConnectorNode()
       connectorNode.SetLogErrorIfServerConnectionFailed(False)

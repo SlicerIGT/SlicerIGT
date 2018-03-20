@@ -73,7 +73,7 @@ class GuideletWidget(ScriptedLoadableModuleWidget):
     hbox.addWidget(self.plusServerHostNamePortLineEdit)
     self.launcherFormLayout.addRow(hbox)
 
-    lnNode = slicer.util.getNode(self.moduleName)
+    lnNode = slicer.mrmlScene.GetFirstNodeByName(self.moduleName)
     if lnNode is not None and lnNode.GetParameter('PlusServerHostNamePort'):
         #logging.debug("There is already a connector PlusServerHostNamePort parameter " + lnNode.GetParameter('PlusServerHostNamePort'))
         self.plusServerHostNamePortLineEdit.setDisabled(True)
