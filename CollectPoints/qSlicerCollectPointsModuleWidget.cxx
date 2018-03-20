@@ -514,7 +514,7 @@ void qSlicerCollectPointsModuleWidget::updateGUIFromMRML()
   d->LabelBaseLineEdit->setText( collectPointsNode->GetLabelBase().c_str() );
   d->MinimumDistanceSlider->setValue( collectPointsNode->GetMinimumDistance() );
 
-  bool readyToCollect = collectPointsNode->GetSamplingTransformNode() != NULL && collectPointsNode->GetOutputNode() != NULL;
+  bool readyToCollect = collectPointsNode->GetOutputNode() != NULL;
   d->CollectButton->setEnabled( readyToCollect );
   if ( collectPointsNode->GetCollectMode() == vtkMRMLCollectPointsNode::Automatic )
   {

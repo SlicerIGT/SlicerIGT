@@ -150,20 +150,6 @@ vtkMRMLTransformNode* vtkMRMLCollectPointsNode::GetSamplingTransformNode()
 //------------------------------------------------------------------------------
 void vtkMRMLCollectPointsNode::SetAndObserveSamplingTransformNodeID( const char* nodeID )
 {
-  const char* currentNodeID = this->GetNodeReferenceID( SAMPLING_TRANSFORM_REFERENCE_ROLE );
-  if ( nodeID != NULL && currentNodeID != NULL && strcmp( nodeID, currentNodeID ) == 0 )
-  {
-    // not changed
-    return;
-  }
-
-  const char* currentAnchorNodeID = this->GetNodeReferenceID( ANCHOR_TRANSFORM_REFERENCE_ROLE );
-  if ( nodeID != NULL && currentAnchorNodeID != NULL && strcmp( nodeID, currentAnchorNodeID ) == 0 )
-  {
-    vtkErrorMacro( "Anchor and sampling transforms cannot be the same." );
-    return;
-  }
-
   this->SetAndObserveNodeReferenceID( SAMPLING_TRANSFORM_REFERENCE_ROLE, nodeID );
   this->InvokeCustomModifiedEvent( InputDataModifiedEvent );
 }
@@ -178,20 +164,6 @@ vtkMRMLTransformNode* vtkMRMLCollectPointsNode::GetAnchorTransformNode()
 //------------------------------------------------------------------------------
 void vtkMRMLCollectPointsNode::SetAndObserveAnchorTransformNodeID( const char* nodeID )
 {
-  const char* currentAnchorNodeID = this->GetNodeReferenceID( ANCHOR_TRANSFORM_REFERENCE_ROLE );
-  if ( nodeID != NULL && currentAnchorNodeID != NULL && strcmp( nodeID, currentAnchorNodeID ) == 0 )
-  {
-    // not changed
-    return;
-  }
-
-  const char* currentSamplingNodeID = this->GetNodeReferenceID( SAMPLING_TRANSFORM_REFERENCE_ROLE );
-  if ( nodeID != NULL && currentSamplingNodeID != NULL && strcmp( nodeID, currentSamplingNodeID ) == 0 )
-  {
-    vtkErrorMacro( "Anchor and sampling transforms cannot be the same." );
-    return;
-  }
-
   this->SetAndObserveNodeReferenceID( ANCHOR_TRANSFORM_REFERENCE_ROLE, nodeID );
   this->InvokeCustomModifiedEvent( InputDataModifiedEvent );
 }
@@ -267,12 +239,6 @@ int vtkMRMLCollectPointsNode::GetNumberOfPointsInOutput()
 //------------------------------------------------------------------------------
 void vtkMRMLCollectPointsNode::SetOutputNodeID( const char* nodeID )
 {
-  const char* currentNodeID = this->GetNodeReferenceID( OUTPUT_REFERENCE_ROLE );
-  if ( nodeID != NULL && currentNodeID != NULL && strcmp( nodeID, currentNodeID ) == 0 )
-  {
-    // not changed
-    return;
-  }
   this->SetAndObserveNodeReferenceID( OUTPUT_REFERENCE_ROLE, nodeID );
 }
 

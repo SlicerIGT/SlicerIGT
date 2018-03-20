@@ -64,13 +64,6 @@ void vtkSlicerCollectPointsLogic::AddPoint( vtkMRMLCollectPointsNode* collectPoi
     return;
   }
 
-  vtkSmartPointer< vtkMRMLTransformNode > samplingNode = vtkMRMLTransformNode::SafeDownCast( collectPointsNode->GetSamplingTransformNode() );
-  if ( samplingNode == NULL )
-  {
-    vtkErrorMacro( "No sampling transform node set. Will not add any points." );
-    return;
-  }
-
   vtkMRMLNode* outputNode = collectPointsNode->GetOutputNode();
   if ( outputNode == NULL )
   {
@@ -119,11 +112,6 @@ bool vtkSlicerCollectPointsLogic::ComputePointCoordinates( vtkMRMLCollectPointsN
 
   // find the point coordinates
   vtkSmartPointer< vtkMRMLTransformNode > samplingNode = vtkMRMLTransformNode::SafeDownCast( collectPointsNode->GetSamplingTransformNode() );
-  if ( samplingNode == NULL )
-  {
-    vtkErrorMacro( "No sampling transform node set. Cannot compute point coordinates." );
-    return false;
-  }
   vtkSmartPointer< vtkMRMLTransformNode > anchorNode = vtkMRMLTransformNode::SafeDownCast( collectPointsNode->GetAnchorTransformNode() );
   vtkSmartPointer < vtkGeneralTransform > samplingToAnchorTransform = vtkSmartPointer< vtkGeneralTransform >::New();
   vtkMRMLTransformNode::GetTransformBetweenNodes( samplingNode, anchorNode, samplingToAnchorTransform ); // parameters are: source, target, transform
@@ -275,10 +263,9 @@ void vtkSlicerCollectPointsLogic::ProcessMRMLNodesEvents( vtkObject* caller, uns
   {
     if ( collectPointsNode->GetCollectMode() == vtkMRMLCollectPointsNode::Automatic )
     {
-      if ( collectPointsNode->GetOutputNode() == NULL || collectPointsNode->GetSamplingTransformNode() == NULL )
+      if ( collectPointsNode->GetOutputNode() == NULL )
       {
-        vtkWarningMacro( "Collect fiducials node is not fully set up. Setting to manual collection." );
-        collectPointsNode->SetCollectModeToManual();
+        vtkWarningMacro( "Collect fiducials node is not fully set up, there needs to be an output node." );
         return;
       }
       this->AddPoint( collectPointsNode ); // Will create modified event to update widget

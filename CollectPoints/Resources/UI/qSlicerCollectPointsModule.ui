@@ -43,6 +43,9 @@
          <string>vtkMRMLTransformNode</string>
         </stringlist>
        </property>
+       <property name="noneEnabled">
+        <bool>true</bool>
+       </property>
        <property name="renameEnabled">
         <bool>true</bool>
        </property>
@@ -194,13 +197,6 @@
         </property>
        </widget>
       </item>
-      <item row="0" column="0">
-       <widget class="QLabel" name="AnchorTransformNodeLabel">
-        <property name="text">
-         <string>Anchor Node:</string>
-        </property>
-       </widget>
-      </item>
       <item row="0" column="1">
        <widget class="qMRMLNodeComboBox" name="AnchorTransformNodeComboBox">
         <property name="toolTip">
@@ -219,6 +215,13 @@
         </property>
         <property name="renameEnabled">
          <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0">
+       <widget class="QLabel" name="AnchorTransformNodeLabel">
+        <property name="text">
+         <string>Anchor Node:</string>
         </property>
        </widget>
       </item>
