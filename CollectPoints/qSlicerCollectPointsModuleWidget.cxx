@@ -44,6 +44,9 @@ protected:
 public:
   qSlicerCollectPointsModuleWidgetPrivate( qSlicerCollectPointsModuleWidget& object );
   vtkSlicerCollectPointsLogic* logic() const;
+
+  vtkWeakPointer< vtkMRMLCollectPointsNode > CollectPointsNode;
+
   QMenu* OutputDeleteMenu;
 };
 
@@ -178,22 +181,12 @@ void qSlicerCollectPointsModuleWidget::enableAllWidgets( bool enable )
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerCollectPointsModuleWidget::setMRMLScene( vtkMRMLScene* scene )
-{
-  Q_D( qSlicerCollectPointsModuleWidget );
-  this->Superclass::setMRMLScene( scene );
-  qvtkReconnect( d->logic(), scene, vtkMRMLScene::EndImportEvent, this, SLOT( onSceneImportedEvent() ) );
-}
-
-//-----------------------------------------------------------------------------
-void qSlicerCollectPointsModuleWidget::onSceneImportedEvent()
-{
-  this->updateGUIFromMRML();
-}
-
-//-----------------------------------------------------------------------------
 void qSlicerCollectPointsModuleWidget::onParameterNodeSelected()
 {
+  Q_D( qSlicerCollectPointsModuleWidget );
+  vtkMRMLCollectPointsNode* collectPointsNode = vtkMRMLCollectPointsNode::SafeDownCast( d->ParameterNodeComboBox->currentNode() );
+  qvtkReconnect( d->CollectPointsNode, collectPointsNode, vtkCommand::ModifiedEvent, this, SLOT( updateGUIFromMRML() ) );
+  d->CollectPointsNode = collectPointsNode;
   this->updateGUIFromMRML();
 }
 
@@ -211,8 +204,6 @@ void qSlicerCollectPointsModuleWidget::onSamplingTransformNodeSelected()
   
   vtkMRMLTransformNode* samplingTransformNode = vtkMRMLTransformNode::SafeDownCast( d->SamplingTransformNodeComboBox->currentNode() );
   collectPointsNode->SetAndObserveSamplingTransformNodeID( samplingTransformNode ? samplingTransformNode->GetID() : NULL );
-
-  this->updateGUIFromMRML();
 }
 
 //-----------------------------------------------------------------------------
@@ -229,8 +220,6 @@ void qSlicerCollectPointsModuleWidget::onAnchorTransformNodeSelected()
   
   vtkMRMLTransformNode* anchorTransformNode = vtkMRMLTransformNode::SafeDownCast( d->AnchorTransformNodeComboBox->currentNode() );
   collectPointsNode->SetAndObserveAnchorTransformNodeID( anchorTransformNode ? anchorTransformNode->GetID() : NULL );
-
-  this->updateGUIFromMRML();
 }
 
 //-----------------------------------------------------------------------------
@@ -245,8 +234,6 @@ void qSlicerCollectPointsModuleWidget::onOutputNodeAdded( vtkMRMLNode* vtkNotUse
     return;
   }
   collectPointsNode->CreateDefaultDisplayNodesForOutputNode();
-
-  this->updateGUIFromMRML();
 }
 
 //-----------------------------------------------------------------------------
@@ -262,8 +249,6 @@ void qSlicerCollectPointsModuleWidget::onOutputNodeSelected( vtkMRMLNode* newNod
   }
 
   collectPointsNode->SetOutputNodeID( newNode ? newNode->GetID() : NULL );
-
-  this->updateGUIFromMRML();
 }
 
 //-----------------------------------------------------------------------------
@@ -383,8 +368,6 @@ void qSlicerCollectPointsModuleWidget::onLabelBaseChanged()
   }
 
   collectPointsNode->SetLabelBase( d->LabelBaseLineEdit->text().toStdString() );
-  
-  this->updateGUIFromMRML();
 }
 
 //-----------------------------------------------------------------------------
@@ -400,8 +383,6 @@ void qSlicerCollectPointsModuleWidget::onNextLabelNumberChanged()
   }
 
   collectPointsNode->SetNextLabelNumber( d->NextLabelNumberSpinBox->value() );
-  
-  this->updateGUIFromMRML();
 }
 
 //-----------------------------------------------------------------------------
@@ -417,8 +398,6 @@ void qSlicerCollectPointsModuleWidget::onMinimumDistanceChanged()
   }
 
   collectPointsNode->SetMinimumDistance( d->MinimumDistanceSlider->value() );
-  
-  this->updateGUIFromMRML();
 }
 
 //-----------------------------------------------------------------------------
@@ -440,8 +419,6 @@ void qSlicerCollectPointsModuleWidget::onCollectClicked()
   }
 
   d->logic()->AddPoint( collectPointsNode );
-
-  this->updateGUIFromMRML();
 }
 
 //------------------------------------------------------------------------------
@@ -465,8 +442,6 @@ void qSlicerCollectPointsModuleWidget::onCollectCheckboxToggled()
   {
     collectPointsNode->SetCollectModeToManual();
   }
-
-  this->updateGUIFromMRML();
 }
 
 //-----------------------------------------------------------------------------

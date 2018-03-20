@@ -26,6 +26,7 @@
 // MRML includes
 #include <vtkMRMLScene.h>
 #include "vtkMRMLLinearTransformNode.h"
+#include "vtkMRMLTransformNode.h"
 
 // VTK includes
 #include <vtkNew.h>
@@ -127,15 +128,13 @@ void vtkSlicerTransformProcessorLogic::ProcessMRMLNodesEvents( vtkObject* caller
   }
 
   // these are the only two events that should be handled
-  if ( event != vtkMRMLTransformProcessorNode::InputDataModifiedEvent &&
-       event != vtkCommand::ModifiedEvent )
+  if ( event == vtkMRMLTransformProcessorNode::InputDataModifiedEvent ||
+       event == vtkCommand::ModifiedEvent )
   {
-    return;
-  }
-
-  if ( paramNode->GetUpdateMode() == vtkMRMLTransformProcessorNode::UPDATE_MODE_AUTO )
-  {
-    this->UpdateOutputTransform( paramNode );
+    if ( paramNode->GetUpdateMode() == vtkMRMLTransformProcessorNode::UPDATE_MODE_AUTO )
+    {
+      this->UpdateOutputTransform( paramNode );
+    }
   }
 }
 
@@ -287,20 +286,20 @@ void vtkSlicerTransformProcessorLogic::ComputeShaftPivotTransform( vtkMRMLTransf
   vtkMRMLLinearTransformNode* inputChangedNode = paramNode->GetInputChangedTransformNode();
   vtkMRMLLinearTransformNode* inputInitialNode = paramNode->GetInputInitialTransformNode();
   vtkSmartPointer< vtkGeneralTransform > inputChangedToInputInitialTransform = vtkSmartPointer< vtkGeneralTransform >::New();
-  inputChangedNode->GetTransformToNode( inputInitialNode, inputChangedToInputInitialTransform );
+  vtkMRMLTransformNode::GetTransformBetweenNodes( inputChangedNode, inputInitialNode, inputChangedToInputInitialTransform );
   double shaftDirection[ 3 ] = { 0.0, 0.0, -1.0 }; // conventional shaft direction in SlicerIGT
   vtkSmartPointer< vtkTransform > adjustedToInputInitialRotationOnlyTransform = vtkSmartPointer< vtkTransform >::New();
   this->GetRotationSingleAxisWithPivotFromTransform( inputChangedToInputInitialTransform, shaftDirection, adjustedToInputInitialRotationOnlyTransform );
 
   vtkMRMLLinearTransformNode* inputAnchorNode = paramNode->GetInputAnchorTransformNode();
   vtkSmartPointer< vtkGeneralTransform > inputInitialToInputAnchorTransform = vtkSmartPointer< vtkGeneralTransform >::New();
-  inputInitialNode->GetTransformToNode( inputAnchorNode, inputInitialToInputAnchorTransform );
+  vtkMRMLTransformNode::GetTransformBetweenNodes( inputInitialNode, inputAnchorNode, inputInitialToInputAnchorTransform );
   vtkSmartPointer< vtkTransform > inputInitialToInputAnchorRotationOnlyTransform = vtkSmartPointer< vtkTransform >::New();
   this->GetRotationAllAxesFromTransform( inputInitialToInputAnchorTransform, inputInitialToInputAnchorRotationOnlyTransform );
   
   // Translation is same as input translation, since they share the same origin
   vtkSmartPointer< vtkGeneralTransform > inputChangedToInputAnchorTransform = vtkSmartPointer< vtkGeneralTransform >::New();
-  inputChangedNode->GetTransformToNode( inputAnchorNode, inputChangedToInputAnchorTransform );
+  vtkMRMLTransformNode::GetTransformBetweenNodes( inputChangedNode, inputAnchorNode, inputChangedToInputAnchorTransform );
   vtkSmartPointer< vtkTransform > inputChangedToInputAnchorTranslationTransform = vtkSmartPointer< vtkTransform >::New();
   bool copyComponents[ 3 ] = { 1, 1, 1 }; // copy x, y, and z
   this->GetTranslationOnlyFromTransform( inputChangedToInputAnchorTransform, copyComponents, inputChangedToInputAnchorTranslationTransform );
@@ -369,10 +368,10 @@ void vtkSlicerTransformProcessorLogic::ComputeRotation( vtkMRMLTransformProcesso
       return;
   }
 
-  vtkSmartPointer< vtkGeneralTransform > fromToToTransform = vtkSmartPointer< vtkGeneralTransform >::New();
+  vtkSmartPointer< vtkGeneralTransform > fromToToGeneralTransform = vtkSmartPointer< vtkGeneralTransform >::New();
   vtkMRMLLinearTransformNode* fromTransformNode = paramNode->GetInputFromTransformNode();
   vtkMRMLLinearTransformNode* toTransformNode = paramNode->GetInputToTransformNode();
-  toTransformNode->GetTransformFromNode( fromTransformNode, fromToToTransform );
+  vtkMRMLTransformNode::GetTransformBetweenNodes( fromTransformNode, toTransformNode, fromToToGeneralTransform );
 
   // if there are other modes that need to check and corrrect for duplicate axes, these should be added below:
   if ( paramNode->GetDependentAxesMode() == vtkMRMLTransformProcessorNode::DEPENDENT_AXES_MODE_FROM_SECONDARY_AXIS )
@@ -382,7 +381,7 @@ void vtkSlicerTransformProcessorLogic::ComputeRotation( vtkMRMLTransformProcesso
 
   // computation
   vtkSmartPointer< vtkTransform > fromToToRotationOnlyTransform = vtkSmartPointer< vtkTransform >::New();
-  this->GetRotationOnlyFromTransform( fromToToTransform, rotationMode, dependentAxesMode, primaryAxis, secondaryAxis, fromToToRotationOnlyTransform );
+  this->GetRotationOnlyFromTransform( fromToToGeneralTransform, rotationMode, dependentAxesMode, primaryAxis, secondaryAxis, fromToToRotationOnlyTransform );
   vtkMRMLLinearTransformNode* outputNode = paramNode->GetOutputTransformNode();
   // the existence of outputNode is already checked in IsTransformProcessingPossible, no error check necessary
   outputNode->SetMatrixTransformToParent( fromToToRotationOnlyTransform->GetMatrix() );
@@ -403,7 +402,7 @@ void vtkSlicerTransformProcessorLogic::ComputeTranslation( vtkMRMLTransformProce
   vtkSmartPointer< vtkGeneralTransform > fromToToGeneralTransform = vtkSmartPointer< vtkGeneralTransform >::New();
   vtkMRMLLinearTransformNode* fromTransformNode = paramNode->GetInputFromTransformNode();
   vtkMRMLLinearTransformNode* toTransformNode = paramNode->GetInputToTransformNode();
-  toTransformNode->GetTransformFromNode( fromTransformNode, fromToToGeneralTransform );
+  vtkMRMLTransformNode::GetTransformBetweenNodes( fromTransformNode, toTransformNode, fromToToGeneralTransform );
   vtkSmartPointer< vtkTransform > fromToToTranslationOnlyTransform = vtkSmartPointer< vtkTransform >::New();
   this->GetTranslationOnlyFromTransform( fromToToGeneralTransform, copyComponents, fromToToTranslationOnlyTransform );
   vtkMRMLLinearTransformNode* outputNode = paramNode->GetOutputTransformNode();
@@ -424,7 +423,7 @@ void vtkSlicerTransformProcessorLogic::ComputeFullTransform( vtkMRMLTransformPro
   vtkSmartPointer< vtkGeneralTransform > fromToToGeneralTransform = vtkSmartPointer< vtkGeneralTransform >::New();
   vtkMRMLLinearTransformNode* fromTransformNode = paramNode->GetInputFromTransformNode();
   vtkMRMLLinearTransformNode* toTransformNode = paramNode->GetInputToTransformNode();
-  toTransformNode->GetTransformFromNode( fromTransformNode, fromToToGeneralTransform );
+  vtkMRMLTransformNode::GetTransformBetweenNodes( fromTransformNode, toTransformNode, fromToToGeneralTransform );
 
   // need to convert the general transform to a matrix. Decompose then concatenate the rotation and translation
   vtkSmartPointer< vtkTransform > fromToToRotationOnlyTransform = vtkSmartPointer< vtkTransform >::New();

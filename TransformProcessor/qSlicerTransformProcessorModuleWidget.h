@@ -45,20 +45,14 @@ public:
   virtual void enter();
 
 public slots:
-  virtual void setMRMLScene( vtkMRMLScene* );
-  void onSceneImportedEvent();
-  void onLogicModified();
-  void setTransformProcessorParametersNode( vtkMRMLNode* );
-  void updateWidget();
-  void updateButtons();
-  void updateInputFieldVisibility();
-  void updateInputCombineList();
+  void updateGUIFromMRML();
 
   void setSignalsBlocked( bool );
   bool getSignalsBlocked();
 
 protected slots:
-
+  void onParameterNodeChanged();
+  
   void onAddInputCombineTransform();
   void onRemoveInputCombineTransform();
   void onInputFromTransformNodeSelected( vtkMRMLNode* node );
@@ -86,7 +80,6 @@ protected:
   
   virtual bool eventFilter(QObject * obj, QEvent *event);
   virtual void setup();
-  void onEnter();
 
   QTimer* updateTimer;
 

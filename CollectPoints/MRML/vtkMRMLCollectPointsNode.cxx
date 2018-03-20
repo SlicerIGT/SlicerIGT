@@ -45,11 +45,10 @@ vtkMRMLCollectPointsNode::vtkMRMLCollectPointsNode()
   this->SetSaveWithScene( true );
 
   vtkNew<vtkIntArray> transformListEvents;
-  transformListEvents->InsertNextValue( vtkCommand::ModifiedEvent );
   transformListEvents->InsertNextValue( vtkMRMLTransformNode::TransformModifiedEvent );
 
   this->AddNodeReferenceRole( SAMPLING_TRANSFORM_REFERENCE_ROLE, NULL, transformListEvents.GetPointer() );
-  this->AddNodeReferenceRole( ANCHOR_TRANSFORM_REFERENCE_ROLE );
+  this->AddNodeReferenceRole( ANCHOR_TRANSFORM_REFERENCE_ROLE, NULL, transformListEvents.GetPointer() );
   this->AddNodeReferenceRole( OUTPUT_REFERENCE_ROLE );
   this->LabelBase = "P";
   this->NextLabelNumber = 0;
@@ -194,6 +193,7 @@ void vtkMRMLCollectPointsNode::SetAndObserveAnchorTransformNodeID( const char* n
   }
 
   this->SetAndObserveNodeReferenceID( ANCHOR_TRANSFORM_REFERENCE_ROLE, nodeID );
+  this->InvokeCustomModifiedEvent( InputDataModifiedEvent );
 }
 
 //------------------------------------------------------------------------------
@@ -277,17 +277,22 @@ void vtkMRMLCollectPointsNode::SetOutputNodeID( const char* nodeID )
 }
 
 //------------------------------------------------------------------------------
-void vtkMRMLCollectPointsNode::ProcessMRMLEvents( vtkObject *caller, unsigned long vtkNotUsed(event), void* vtkNotUsed(callData) )
+void vtkMRMLCollectPointsNode::ProcessMRMLEvents( vtkObject *caller, unsigned long event, void* callData )
 {
+  Superclass::ProcessMRMLEvents( caller, event, callData );
+
   vtkMRMLNode* callerNode = vtkMRMLNode::SafeDownCast( caller );
-  if ( callerNode == NULL ) 
+  if ( callerNode == NULL )
   {
     return;
   }
-
-  if ( this->GetSamplingTransformNode() && callerNode == this->GetSamplingTransformNode() )
+  else if ( callerNode == this->GetSamplingTransformNode() ||
+            callerNode == this->GetAnchorTransformNode() )
   {
-    this->InvokeCustomModifiedEvent( InputDataModifiedEvent );
+    if ( event == vtkMRMLTransformNode::TransformModifiedEvent )
+    {
+      this->InvokeCustomModifiedEvent( InputDataModifiedEvent );
+    }
   }
 }
 

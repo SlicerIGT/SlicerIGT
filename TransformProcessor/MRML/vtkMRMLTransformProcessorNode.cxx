@@ -53,8 +53,8 @@ vtkMRMLNodeNewMacro( vtkMRMLTransformProcessorNode );
 vtkMRMLTransformProcessorNode::vtkMRMLTransformProcessorNode()
 {
   vtkNew<vtkIntArray> events;
-  events->InsertNextValue( vtkCommand::ModifiedEvent );
-  events->InsertNextValue( vtkMRMLTransformableNode::TransformModifiedEvent );
+  events->InsertNextValue( vtkMRMLTransformNode::TransformModifiedEvent );
+
   this->AddNodeReferenceRole( ROLE_INPUT_COMBINE_TRANSFORM, NULL, events.GetPointer() );
   this->AddNodeReferenceRole( ROLE_INPUT_FROM_TRANSFORM, NULL, events.GetPointer() );
   this->AddNodeReferenceRole( ROLE_INPUT_TO_TRANSFORM, NULL, events.GetPointer() );
@@ -263,7 +263,18 @@ void vtkMRMLTransformProcessorNode::ProcessMRMLEvents( vtkObject* caller, unsign
   {
     return;
   }
-  this->InvokeCustomModifiedEvent( InputDataModifiedEvent );
+  else if ( callerNode == this->GetInputAnchorTransformNode() ||
+            callerNode == this->GetInputChangedTransformNode() ||
+            callerNode == this->GetInputInitialTransformNode() ||
+            callerNode == this->GetInputFromTransformNode() ||
+            callerNode == this->GetInputToTransformNode() ||
+            callerNode == this->GetInputForwardTransformNode() )
+  {
+    if ( event == vtkMRMLTransformNode::TransformModifiedEvent )
+    {
+      this->InvokeCustomModifiedEvent( InputDataModifiedEvent );
+    }
+  }
 }
 
 //------------------------------------------------------------------------------

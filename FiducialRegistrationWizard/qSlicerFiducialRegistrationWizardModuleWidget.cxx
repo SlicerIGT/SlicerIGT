@@ -236,17 +236,17 @@ void qSlicerFiducialRegistrationWizardModuleWidget::setup()
   this->setMRMLScene( d->logic()->GetMRMLScene() );
 
   // Make connections to update the mrml from the widget
-  connect( d->PointMatchingComboBox, SIGNAL( currentIndexChanged(int)), this, SLOT(UpdateToMRMLNode()) );
-  connect( d->ProbeTransformFromComboBox, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(UpdateToMRMLNode()) );
-  connect( d->ProbeTransformToComboBox, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(UpdateToMRMLNode()) );
-  connect( d->OutputTransformComboBox, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(UpdateToMRMLNode()) );
-  connect( d->RigidRadioButton, SIGNAL(toggled(bool)), this, SLOT(UpdateToMRMLNode()) );
-  connect( d->SimilarityRadioButton, SIGNAL(toggled(bool)), this, SLOT(UpdateToMRMLNode()) );
-  connect( d->WarpingRadioButton, SIGNAL(toggled(bool)), this, SLOT(UpdateToMRMLNode()) );
+  connect( d->PointMatchingComboBox, SIGNAL( currentIndexChanged(int)), this, SLOT(updateMRMLFromGUI()) );
+  connect( d->ProbeTransformFromComboBox, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(updateMRMLFromGUI()) );
+  connect( d->ProbeTransformToComboBox, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(updateMRMLFromGUI()) );
+  connect( d->OutputTransformComboBox, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(updateMRMLFromGUI()) );
+  connect( d->RigidRadioButton, SIGNAL(toggled(bool)), this, SLOT(updateMRMLFromGUI()) );
+  connect( d->SimilarityRadioButton, SIGNAL(toggled(bool)), this, SLOT(updateMRMLFromGUI()) );
+  connect( d->WarpingRadioButton, SIGNAL(toggled(bool)), this, SLOT(updateMRMLFromGUI()) );
 
-  connect( d->FromMarkupsWidget, SIGNAL(markupsFiducialNodeChanged()), this, SLOT(UpdateToMRMLNode()) );
+  connect( d->FromMarkupsWidget, SIGNAL(markupsFiducialNodeChanged()), this, SLOT(updateMRMLFromGUI()) );
   connect( d->FromMarkupsWidget, SIGNAL(updateFinished()), this, SLOT(PostProcessFromMarkupsWidget()) );
-  connect( d->ToMarkupsWidget, SIGNAL(markupsFiducialNodeChanged()), this, SLOT(UpdateToMRMLNode()) );
+  connect( d->ToMarkupsWidget, SIGNAL(markupsFiducialNodeChanged()), this, SLOT(updateMRMLFromGUI()) );
   connect( d->ToMarkupsWidget, SIGNAL(updateFinished()), this, SLOT(PostProcessToMarkupsWidget()) );
 
   // These connections will do work (after being updated from the node)
@@ -254,8 +254,6 @@ void qSlicerFiducialRegistrationWizardModuleWidget::setup()
   connect( d->RecordToButton, SIGNAL(clicked()), this, SLOT(onRecordToButtonClicked()) );
   connect( d->UpdateButton, SIGNAL(clicked()), this, SLOT(onUpdateButtonClicked()) );
   connect( d->UpdateButton, SIGNAL(checkBoxToggled(bool)), this, SLOT(onUpdateButtonCheckboxToggled(bool)));
-
-  this->UpdateFromMRMLNode();
 }
 
 //------------------------------------------------------------------------------
@@ -290,14 +288,14 @@ void qSlicerFiducialRegistrationWizardModuleWidget::enter()
   }
   else
   {
-    this->UpdateFromMRMLNode();
+    this->updateGUIFromMRML();
   }
 
   this->Superclass::enter();
 }
 
 //------------------------------------------------------------------------------
-void qSlicerFiducialRegistrationWizardModuleWidget::UpdateToMRMLNode()
+void qSlicerFiducialRegistrationWizardModuleWidget::updateMRMLFromGUI()
 {
   Q_D( qSlicerFiducialRegistrationWizardModuleWidget );
 
@@ -340,11 +338,11 @@ void qSlicerFiducialRegistrationWizardModuleWidget::UpdateToMRMLNode()
 
   // The modified event was blocked... Now allow it to happen
   d->ModuleNodeComboBox->currentNode()->Modified();
-  this->UpdateFromMRMLNode();
+  this->updateGUIFromMRML();
 }
 
 //------------------------------------------------------------------------------
-void qSlicerFiducialRegistrationWizardModuleWidget::UpdateFromMRMLNode()
+void qSlicerFiducialRegistrationWizardModuleWidget::updateGUIFromMRML()
 {
   Q_D( qSlicerFiducialRegistrationWizardModuleWidget );
 
@@ -488,8 +486,8 @@ void qSlicerFiducialRegistrationWizardModuleWidget::PostProcessToMarkupsWidget()
 void qSlicerFiducialRegistrationWizardModuleWidget::onFiducialRegistrationWizardNodeSelectionChanged()
 {
   Q_D( qSlicerFiducialRegistrationWizardModuleWidget );
-  vtkMRMLFiducialRegistrationWizardNode* selectedFiducialRegistrationWizardNode = vtkMRMLFiducialRegistrationWizardNode::SafeDownCast( d->ModuleNodeComboBox->currentNode() );
-  qvtkReconnect(d->FiducialRegistrationWizardNode, selectedFiducialRegistrationWizardNode, vtkCommand::ModifiedEvent, this, SLOT(UpdateFromMRMLNode()));
-  d->FiducialRegistrationWizardNode = selectedFiducialRegistrationWizardNode;
-  this->UpdateFromMRMLNode();
+  vtkMRMLFiducialRegistrationWizardNode* pNode = vtkMRMLFiducialRegistrationWizardNode::SafeDownCast( d->ModuleNodeComboBox->currentNode() );
+  qvtkReconnect(d->FiducialRegistrationWizardNode, pNode, vtkCommand::ModifiedEvent, this, SLOT(updateGUIFromMRML()));
+  d->FiducialRegistrationWizardNode = pNode;
+  this->updateGUIFromMRML();
 }
