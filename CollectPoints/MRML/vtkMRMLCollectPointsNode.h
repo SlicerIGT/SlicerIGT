@@ -26,7 +26,7 @@
 // Slicer includes
 #include "vtkMRMLNode.h"
 #include "vtkMRMLScene.h"
-#include "vtkMRMLLinearTransformNode.h"
+#include "vtkMRMLTransformNode.h"
 #include "vtkMRMLMarkupsFiducialNode.h"
 
 // FiducialRegistrationWizard includes
@@ -73,45 +73,53 @@ protected:
   void operator=( const vtkMRMLCollectPointsNode& );
 
 public:
-  // The point will be collected in the world coordinate system
+  // The point will be collected in the anchor coordinate system
   // at the location indicated by this probe transform.
-  vtkMRMLLinearTransformNode* GetProbeTransformNode();
-  void SetAndObserveProbeTransformNodeId( const char* nodeId );
+  vtkMRMLTransformNode* GetSamplingTransformNode();
+  void SetAndObserveSamplingTransformNodeID( const char* nodeID );
+
+  vtkMRMLTransformNode* GetAnchorTransformNode();
+  void SetAndObserveAnchorTransformNodeID( const char* nodeID );
   
   // need to determine type at run-time
+  void CreateDefaultDisplayNodesForOutputNode();
   vtkMRMLNode* GetOutputNode();
-  void SetOutputNodeId( const char* nodeId );
+  void SetOutputNodeID( const char* nodeID );
   int GetNumberOfPointsInOutput();
 
   vtkGetMacro(LabelBase, std::string);
   vtkSetMacro(LabelBase, std::string);
-  vtkGetMacro(LabelCounter, int);
-  vtkSetMacro(LabelCounter, int);
+  vtkGetMacro(NextLabelNumber, int);
+  vtkSetMacro(NextLabelNumber, int);
 
   vtkGetMacro( CollectMode, int );
   vtkSetMacro( CollectMode, int );
   void SetCollectModeToManual() { this->SetCollectMode( Manual ); }
   void SetCollectModeToAutomatic() { this->SetCollectMode( Automatic ); }
 
-  vtkGetMacro( MinimumDistanceMm, double );
-  vtkSetMacro( MinimumDistanceMm, double );
+  vtkGetMacro( MinimumDistance, double );
+  vtkSetMacro( MinimumDistance, double );
 
   void ProcessMRMLEvents( vtkObject *caller, unsigned long event, void *callData );
 
   static int GetCollectModeFromString( const char* name );
   static const char* GetCollectModeAsString( int id );
+
+  // deprecated on March 8 2018
+  vtkMRMLTransformNode* GetProbeTransformNode();
+  void SetAndObserveProbeTransformNodeID( const char* nodeID );
   
 private:
-  // the next collected point will have label "[LabelBase]-[LabelCounter]"
+  // the next collected point will have label "[LabelBase]-[NextLabelNumber]"
   // The counter can be reset or changed by the user, if necessary
   // These are "advanced" options
   std::string LabelBase;
-  int LabelCounter;
+  int NextLabelNumber;
 
   // For automatic CollectMode only:
   // Only collect a new point if the probe transform has moved by
   // at least this much from the previous point
-  double MinimumDistanceMm;
+  double MinimumDistance;
 
   // Determine when new points are collected:
   // Manual - when the user clicks on "Collect"

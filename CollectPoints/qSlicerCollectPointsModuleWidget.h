@@ -37,17 +37,14 @@ public:
   qSlicerCollectPointsModuleWidget(QWidget *parent=0);
   virtual ~qSlicerCollectPointsModuleWidget();
 
-public slots:
-  void setMRMLScene( vtkMRMLScene* scene );
-
 protected slots:
   void blockAllSignals( bool block );
   void enableAllWidgets( bool enable );
-  void onSceneImportedEvent();
   void onParameterNodeSelected();
-  void onProbeTransformNodeSelected();
+  void onSamplingTransformNodeSelected();
+  void onAnchorTransformNodeSelected();
   void onLabelBaseChanged();
-  void onLabelCounterChanged();
+  void onNextLabelNumberChanged();
   void onMinimumDistanceChanged();
   void onOutputNodeAdded( vtkMRMLNode* );
   void onOutputNodeSelected( vtkMRMLNode* );

@@ -62,6 +62,7 @@ public:
     PROCESSING_MODE_COMPUTE_ROTATION,
     PROCESSING_MODE_COMPUTE_TRANSLATION,
     PROCESSING_MODE_COMPUTE_FULL_TRANSFORM,
+    PROCESSING_MODE_COMPUTE_INVERSE,
     PROCESSING_MODE_LAST // do not set to this type, insert valid types above this line
   };
 
@@ -117,6 +118,9 @@ public:
 
   vtkMRMLLinearTransformNode* GetInputAnchorTransformNode();
   void SetAndObserveInputAnchorTransformNode( vtkMRMLLinearTransformNode* node );
+
+  vtkMRMLLinearTransformNode* GetInputForwardTransformNode();
+  void SetAndObserveInputForwardTransformNode( vtkMRMLLinearTransformNode* node );
 
   vtkMRMLLinearTransformNode* GetOutputTransformNode();
   void SetAndObserveOutputTransformNode( vtkMRMLLinearTransformNode* node );

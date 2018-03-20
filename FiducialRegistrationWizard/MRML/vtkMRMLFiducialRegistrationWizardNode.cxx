@@ -47,8 +47,9 @@ vtkMRMLFiducialRegistrationWizardNode::vtkMRMLFiducialRegistrationWizardNode()
   this->SetSaveWithScene( true );
 
   vtkNew<vtkIntArray> fiducialListEvents;
-  fiducialListEvents->InsertNextValue( vtkCommand::ModifiedEvent );
-  fiducialListEvents->InsertNextValue( vtkMRMLMarkupsNode::PointModifiedEvent ); //PointEndInteractionEvent
+  fiducialListEvents->InsertNextValue( vtkMRMLMarkupsNode::MarkupAddedEvent );
+  fiducialListEvents->InsertNextValue( vtkMRMLMarkupsNode::MarkupRemovedEvent );
+  fiducialListEvents->InsertNextValue( vtkMRMLMarkupsNode::PointModifiedEvent );
 
   this->AddNodeReferenceRole( PROBE_TRANSFORM_FROM_REFERENCE_ROLE );
   this->AddNodeReferenceRole( PROBE_TRANSFORM_TO_REFERENCE_ROLE );
@@ -405,21 +406,25 @@ void vtkMRMLFiducialRegistrationWizardNode::ClearCalibrationStatusMessage()
 }
 
 //------------------------------------------------------------------------------
-void vtkMRMLFiducialRegistrationWizardNode::ProcessMRMLEvents( vtkObject *caller, unsigned long vtkNotUsed(event), void* vtkNotUsed(callData) )
+void vtkMRMLFiducialRegistrationWizardNode::ProcessMRMLEvents( vtkObject *caller, unsigned long event, void* callData )
 {
+  Superclass::ProcessMRMLEvents( caller, event, callData );
+
   vtkMRMLNode* callerNode = vtkMRMLNode::SafeDownCast( caller );
-  if ( callerNode == NULL ) 
+
+  if ( callerNode == NULL )
   {
     return;
   }
-
-  if (this->GetFromFiducialListNode()==callerNode)
+  else if ( callerNode == this->GetFromFiducialListNode() || 
+            callerNode == this->GetToFiducialListNode() )
   {
-    this->InvokeCustomModifiedEvent(InputDataModifiedEvent);
-  }
-  else if (this->GetToFiducialListNode()==callerNode)
-  {
-    this->InvokeCustomModifiedEvent(InputDataModifiedEvent);
+    if ( event == vtkMRMLMarkupsNode::PointModifiedEvent ||
+         event == vtkMRMLMarkupsNode::MarkupAddedEvent ||
+         event == vtkMRMLMarkupsNode::MarkupRemovedEvent )
+    {
+      this->InvokeCustomModifiedEvent( InputDataModifiedEvent );
+    }
   }
 }
 

@@ -45,20 +45,14 @@ public:
   virtual void enter();
 
 public slots:
-  virtual void setMRMLScene( vtkMRMLScene* );
-  void onSceneImportedEvent();
-  void onLogicModified();
-  void setTransformProcessorParametersNode( vtkMRMLNode* );
-  void updateWidget();
-  void updateButtons();
-  void updateInputFieldVisibility();
-  void updateInputCombineList();
+  void updateGUIFromMRML();
 
   void setSignalsBlocked( bool );
   bool getSignalsBlocked();
 
 protected slots:
-
+  void onParameterNodeChanged();
+  
   void onAddInputCombineTransform();
   void onRemoveInputCombineTransform();
   void onInputFromTransformNodeSelected( vtkMRMLNode* node );
@@ -66,6 +60,7 @@ protected slots:
   void onInputInitialTransformNodeSelected( vtkMRMLNode* node );
   void onInputChangedTransformNodeSelected( vtkMRMLNode* node );
   void onInputAnchorTransformNodeSelected( vtkMRMLNode* node );
+  void onInputForwardTransformNodeSelected( vtkMRMLNode* node );
   void onOutputTransformNodeSelected( vtkMRMLNode* node );
 
   void onProcessingModeChanged( int );
@@ -85,7 +80,6 @@ protected:
   
   virtual bool eventFilter(QObject * obj, QEvent *event);
   virtual void setup();
-  void onEnter();
 
   QTimer* updateTimer;
 
@@ -101,6 +95,7 @@ private:
     TRANSFORM_ROLE_INPUT_INITIAL,
     TRANSFORM_ROLE_INPUT_CHANGED,
     TRANSFORM_ROLE_INPUT_ANCHOR,
+    TRANSFORM_ROLE_INPUT_FORWARD,
     TRANSFORM_ROLE_OUTPUT,
     TRANSFORM_ROLE_LAST
   };

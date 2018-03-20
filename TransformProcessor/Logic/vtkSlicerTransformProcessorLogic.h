@@ -68,6 +68,7 @@ public:
   void ComputeRotation( vtkMRMLTransformProcessorNode* );
   void ComputeTranslation( vtkMRMLTransformProcessorNode* );
   void ComputeFullTransform( vtkMRMLTransformProcessorNode* );
+  void ComputeInverseTransform( vtkMRMLTransformProcessorNode* );
   bool IsTransformProcessingPossible( vtkMRMLTransformProcessorNode*, bool verbose = false );
   
 protected:

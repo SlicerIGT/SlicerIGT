@@ -43,13 +43,10 @@ public:
 
   std::string GetCorrespondingFiducialString();
 
-public slots:
-
-
 protected slots:
 
-  void UpdateToMRMLNode();
-  void UpdateFromMRMLNode();
+  void updateMRMLFromGUI();
+  void updateGUIFromMRML();
 
   // Update widget after node is added or deleted
   void PostProcessFromMarkupsWidget();

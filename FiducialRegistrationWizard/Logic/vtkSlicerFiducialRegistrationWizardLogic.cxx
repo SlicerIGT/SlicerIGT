@@ -549,10 +549,10 @@ void vtkSlicerFiducialRegistrationWizardLogic::ProcessMRMLNodesEvents(vtkObject*
     return;
   }
 
+  // only recompute output if the input is changed
+  // (for example we do not recompute the calibration output if the computed calibration transform or status message is changed)
   if (event == vtkMRMLFiducialRegistrationWizardNode::InputDataModifiedEvent)
   {
-    // only recompute output if the input is changed
-    // (for example we do not recompute the calibration output if the computed calibration transform or status message is changed)
     if (frwNode->GetUpdateMode() == vtkMRMLFiducialRegistrationWizardNode::UPDATE_MODE_AUTOMATIC)
     {
       this->UpdateCalibration(frwNode); // Will create modified event to update widget

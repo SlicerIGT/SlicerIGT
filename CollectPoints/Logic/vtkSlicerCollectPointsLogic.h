@@ -31,7 +31,7 @@
 #include "vtkMRML.h"
 #include "vtkMRMLNode.h"
 #include "vtkMRMLScene.h"
-#include "vtkMRMLLinearTransformNode.h"
+#include "vtkMRMLTransformNode.h"
 #include "vtkMRMLMarkupsFiducialNode.h"
 #include "vtkMRMLModelNode.h"
 
@@ -70,12 +70,15 @@ protected:
   virtual void OnMRMLSceneNodeAdded(vtkMRMLNode* node);
   virtual void OnMRMLSceneNodeRemoved(vtkMRMLNode* node);
 private:
-  void AddPointToModel( vtkMRMLModelNode* modelNode, double pointCoordinates[ 3 ],
-                        double minimumDistanceFromPreviousPointMm=0.0 );
+
+  // Computes the sampling coordinates in the anchor coordinate system
+  // returns true if it was able to compute point coordinates. Returns false otherwise.
+  bool ComputePointCoordinates( vtkMRMLCollectPointsNode* collectPointsNode, double outputPointCoordinates[ 3 ] );
+
+  void AddPointToModel( vtkMRMLCollectPointsNode* collectPointsNode,  double pointCoordinates[ 3 ] );
   void RemoveLastPointFromModel( vtkMRMLModelNode* modelNode );
   void UpdateCellsForPolyData( vtkPolyData* polyData );
-  void AddPointToMarkups( vtkMRMLMarkupsFiducialNode* markupsNode, double pointCoordinates[ 3 ],
-                          std::string label, double minimumDistanceFromPreviousPointMm=0.0 );
+  void AddPointToMarkups( vtkMRMLCollectPointsNode* collectPointsNode, double pointCoordinates[ 3 ] );
   vtkSlicerCollectPointsLogic(const vtkSlicerCollectPointsLogic&); // Not implemented
   void operator=(const vtkSlicerCollectPointsLogic&);               // Not implemented
   

@@ -20,6 +20,7 @@
 
 // slicer includes
 #include "vtkMRMLMarkupsFiducialNode.h"
+#include "vtkMRMLModelDisplayNode.h"
 #include "vtkMRMLModelNode.h"
 #include "vtkMRMLTransformNode.h"
 
@@ -31,7 +32,8 @@
 #include <sstream>
 
 // Constants ------------------------------------------------------------------
-static const char* PROBE_TRANSFORM_REFERENCE_ROLE = "ProbeTransformNode";
+static const char* SAMPLING_TRANSFORM_REFERENCE_ROLE = "ProbeTransformNode";
+static const char* ANCHOR_TRANSFORM_REFERENCE_ROLE = "AnchorTransformNode";
 static const char* OUTPUT_REFERENCE_ROLE = "OutputNode";
 
 vtkMRMLNodeNewMacro( vtkMRMLCollectPointsNode );
@@ -43,14 +45,14 @@ vtkMRMLCollectPointsNode::vtkMRMLCollectPointsNode()
   this->SetSaveWithScene( true );
 
   vtkNew<vtkIntArray> transformListEvents;
-  transformListEvents->InsertNextValue( vtkCommand::ModifiedEvent );
   transformListEvents->InsertNextValue( vtkMRMLTransformNode::TransformModifiedEvent );
 
-  this->AddNodeReferenceRole( PROBE_TRANSFORM_REFERENCE_ROLE, NULL, transformListEvents.GetPointer() );
+  this->AddNodeReferenceRole( SAMPLING_TRANSFORM_REFERENCE_ROLE, NULL, transformListEvents.GetPointer() );
+  this->AddNodeReferenceRole( ANCHOR_TRANSFORM_REFERENCE_ROLE, NULL, transformListEvents.GetPointer() );
   this->AddNodeReferenceRole( OUTPUT_REFERENCE_ROLE );
   this->LabelBase = "P";
-  this->LabelCounter = 0;
-  this->MinimumDistanceMm = 10.0;
+  this->NextLabelNumber = 0;
+  this->MinimumDistance = 10.0;
   this->CollectMode = Manual;
 }
 
@@ -66,8 +68,8 @@ void vtkMRMLCollectPointsNode::WriteXML( ostream& of, int nIndent )
 
   vtkIndent indent( nIndent ); 
   of << indent << " LabelBase=\"" << this->LabelBase << "\"";
-  of << indent << " LabelCounter=\"" << this->LabelCounter << "\"";
-  of << indent << " MinimumDistanceMm=\"" << this->MinimumDistanceMm << "\"";
+  of << indent << " NextLabelNumber=\"" << this->NextLabelNumber << "\"";
+  of << indent << " MinimumDistance=\"" << this->MinimumDistance << "\"";
   of << indent << " CollectMode=\"" << this->GetCollectModeAsString( this->CollectMode ) << "\"";
 }
 
@@ -76,8 +78,8 @@ void vtkMRMLCollectPointsNode::PrintSelf( ostream& os, vtkIndent indent )
 {
   Superclass::PrintSelf( os, indent );
   os << indent << " LabelBase=\"" << this->LabelBase << "\"";
-  os << indent << " LabelCounter=\"" << this->LabelCounter << "\"";
-  os << indent << " MinimumDistanceMm=\"" << this->MinimumDistanceMm << "\"";
+  os << indent << " NextLabelNumber=\"" << this->NextLabelNumber << "\"";
+  os << indent << " MinimumDistance=\"" << this->MinimumDistance << "\"";
   os << indent << " CollectMode=\"" << this->GetCollectModeAsString(  this->CollectMode ) << "\"";
 }
 
@@ -99,18 +101,18 @@ void vtkMRMLCollectPointsNode::ReadXMLAttributes( const char** atts )
       this->LabelBase = std::string(attValue);
       continue;
     }
-    else if ( ! strcmp( attName, "LabelCounter" ) )
+    else if ( ! strcmp( attName, "NextLabelNumber" ) )
     {
       std::stringstream ss;
       ss << attValue;
-      ss >> this->LabelCounter;
+      ss >> this->NextLabelNumber;
       continue;
     }
-    else if ( ! strcmp( attName, "MinimumDistanceMm" ) )
+    else if ( ! strcmp( attName, "MinimumDistance" ) )
     {
       std::stringstream ss;
       ss << attValue;
-      ss >> this->MinimumDistanceMm;
+      ss >> this->MinimumDistance;
       continue;
     }
     else if ( ! strcmp( attName, "CollectMode" ) )
@@ -139,23 +141,61 @@ void vtkMRMLCollectPointsNode::Copy( vtkMRMLNode *anode )
 }
 
 //------------------------------------------------------------------------------
-vtkMRMLLinearTransformNode* vtkMRMLCollectPointsNode::GetProbeTransformNode()
+vtkMRMLTransformNode* vtkMRMLCollectPointsNode::GetSamplingTransformNode()
 {
-  vtkMRMLLinearTransformNode* node = vtkMRMLLinearTransformNode::SafeDownCast( this->GetNodeReference( PROBE_TRANSFORM_REFERENCE_ROLE ) );
+  vtkMRMLTransformNode* node = vtkMRMLTransformNode::SafeDownCast( this->GetNodeReference( SAMPLING_TRANSFORM_REFERENCE_ROLE ) );
   return node;
 }
 
 //------------------------------------------------------------------------------
-void vtkMRMLCollectPointsNode::SetAndObserveProbeTransformNodeId( const char* nodeId )
+void vtkMRMLCollectPointsNode::SetAndObserveSamplingTransformNodeID( const char* nodeID )
 {
-  const char* currentNodeId = this->GetNodeReferenceID( PROBE_TRANSFORM_REFERENCE_ROLE );
-  if ( nodeId != NULL && currentNodeId != NULL && strcmp( nodeId, currentNodeId ) == 0 )
+  this->SetAndObserveNodeReferenceID( SAMPLING_TRANSFORM_REFERENCE_ROLE, nodeID );
+  this->InvokeCustomModifiedEvent( InputDataModifiedEvent );
+}
+
+//------------------------------------------------------------------------------
+vtkMRMLTransformNode* vtkMRMLCollectPointsNode::GetAnchorTransformNode()
+{
+  vtkMRMLTransformNode* node = vtkMRMLTransformNode::SafeDownCast( this->GetNodeReference( ANCHOR_TRANSFORM_REFERENCE_ROLE ) );
+  return node;
+}
+
+//------------------------------------------------------------------------------
+void vtkMRMLCollectPointsNode::SetAndObserveAnchorTransformNodeID( const char* nodeID )
+{
+  this->SetAndObserveNodeReferenceID( ANCHOR_TRANSFORM_REFERENCE_ROLE, nodeID );
+  this->InvokeCustomModifiedEvent( InputDataModifiedEvent );
+}
+
+//------------------------------------------------------------------------------
+void vtkMRMLCollectPointsNode::CreateDefaultDisplayNodesForOutputNode()
+{
+  vtkMRMLNode* outputNode = this->GetOutputNode();
+  if ( outputNode == NULL )
   {
-    // not changed
+    vtkErrorMacro( "Output node is null. Cannot create display nodes for null node." );
     return;
   }
-  this->SetAndObserveNodeReferenceID( PROBE_TRANSFORM_REFERENCE_ROLE, nodeId );
-  this->InvokeCustomModifiedEvent( InputDataModifiedEvent );
+
+  // handle markups outputs  
+  vtkMRMLMarkupsFiducialNode* outputMarkupsNode = vtkMRMLMarkupsFiducialNode::SafeDownCast( outputNode );
+  if ( outputMarkupsNode != NULL && outputMarkupsNode->GetDisplayNode() == NULL )
+  {
+    outputMarkupsNode->CreateDefaultDisplayNodes();
+  }
+
+  // handle model outputs
+  vtkMRMLModelNode* outputModelNode = vtkMRMLModelNode::SafeDownCast( outputNode );
+  if ( outputModelNode != NULL && outputModelNode->GetModelDisplayNode() == NULL )
+  {
+    // display node should be set to show points only
+    outputModelNode->CreateDefaultDisplayNodes();
+    vtkMRMLModelDisplayNode* outputModelDisplayNode = outputModelNode->GetModelDisplayNode();
+    outputModelDisplayNode->SetRepresentation( vtkMRMLDisplayNode::PointsRepresentation );
+    const int DEFAULT_POINT_SIZE = 5; // This could be made an advanced display setting in the GUI
+    outputModelDisplayNode->SetPointSize( DEFAULT_POINT_SIZE );
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -197,29 +237,28 @@ int vtkMRMLCollectPointsNode::GetNumberOfPointsInOutput()
 }
 
 //------------------------------------------------------------------------------
-void vtkMRMLCollectPointsNode::SetOutputNodeId( const char* nodeId )
+void vtkMRMLCollectPointsNode::SetOutputNodeID( const char* nodeID )
 {
-  const char* currentNodeId = this->GetNodeReferenceID( OUTPUT_REFERENCE_ROLE );
-  if ( nodeId != NULL && currentNodeId != NULL && strcmp( nodeId, currentNodeId ) == 0 )
-  {
-    // not changed
-    return;
-  }
-  this->SetAndObserveNodeReferenceID( OUTPUT_REFERENCE_ROLE, nodeId );
+  this->SetAndObserveNodeReferenceID( OUTPUT_REFERENCE_ROLE, nodeID );
 }
 
 //------------------------------------------------------------------------------
-void vtkMRMLCollectPointsNode::ProcessMRMLEvents( vtkObject *caller, unsigned long vtkNotUsed(event), void* vtkNotUsed(callData) )
+void vtkMRMLCollectPointsNode::ProcessMRMLEvents( vtkObject *caller, unsigned long event, void* callData )
 {
+  Superclass::ProcessMRMLEvents( caller, event, callData );
+
   vtkMRMLNode* callerNode = vtkMRMLNode::SafeDownCast( caller );
-  if ( callerNode == NULL ) 
+  if ( callerNode == NULL )
   {
     return;
   }
-
-  if ( this->GetProbeTransformNode() && callerNode == this->GetProbeTransformNode() )
+  else if ( callerNode == this->GetSamplingTransformNode() ||
+            callerNode == this->GetAnchorTransformNode() )
   {
-    this->InvokeCustomModifiedEvent( InputDataModifiedEvent );
+    if ( event == vtkMRMLTransformNode::TransformModifiedEvent )
+    {
+      this->InvokeCustomModifiedEvent( InputDataModifiedEvent );
+    }
   }
 }
 
@@ -254,4 +293,20 @@ const char* vtkMRMLCollectPointsNode::GetCollectModeAsString( int id )
     // invalid id
     return "";
   }
+}
+
+//------------------------------------------------------------------------------
+// DEPRECATED March 8 2018
+vtkMRMLTransformNode* vtkMRMLCollectPointsNode::GetProbeTransformNode()
+{
+  vtkWarningMacro( "GetProbeTransformNode is deprecated. Use GetSamplingTransformNode instead.");
+  return this->GetSamplingTransformNode();
+}
+
+//------------------------------------------------------------------------------
+// DEPRECATED March 8 2018
+void vtkMRMLCollectPointsNode::SetAndObserveProbeTransformNodeID( const char* nodeID )
+{
+  vtkWarningMacro( "SetAndObserveProbeTransformNodeID is deprecated. Use SetAndObserveSamplingTransformNodeID instead.");
+  this->SetAndObserveSamplingTransformNodeID( nodeID );
 }

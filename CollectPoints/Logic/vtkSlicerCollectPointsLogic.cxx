@@ -19,11 +19,12 @@
 #include "vtkSlicerCollectPointsLogic.h"
 
 // MRML includes
-#include "vtkMRMLLinearTransformNode.h"
+#include "vtkMRMLTransformNode.h"
 #include "vtkMRMLMarkupsFiducialNode.h"
 #include "vtkMRMLScene.h"
 
 // VTK includes
+#include <vtkGeneralTransform.h>
 #include <vtkMatrix4x4.h>
 #include <vtkNew.h>
 #include <vtkObjectFactory.h>
@@ -56,22 +57,12 @@ void vtkSlicerCollectPointsLogic::PrintSelf( ostream& os, vtkIndent indent )
 //------------------------------------------------------------------------------
 void vtkSlicerCollectPointsLogic::AddPoint( vtkMRMLCollectPointsNode* collectPointsNode )
 {
+  // basic error checking
   if ( collectPointsNode == NULL )
   {
     vtkErrorMacro( "No parameter node set. Will not add any points." );
     return;
   }
-
-  // find the point coordinates
-  vtkSmartPointer< vtkMRMLLinearTransformNode > probeNode = vtkMRMLLinearTransformNode::SafeDownCast( collectPointsNode->GetProbeTransformNode() );
-  if ( probeNode == NULL )
-  {
-    vtkErrorMacro( "No probe transform node set. Will not add any points." );
-    return;
-  }
-  vtkSmartPointer< vtkMatrix4x4 > probeToWorld = vtkSmartPointer< vtkMatrix4x4 >::New();
-  probeNode->GetMatrixTransformToWorld( probeToWorld );
-  double pointCoordinates[ 3 ] = { probeToWorld->GetElement( 0, 3 ), probeToWorld->GetElement( 1, 3 ), probeToWorld->GetElement( 2, 3 ) };
 
   vtkMRMLNode* outputNode = collectPointsNode->GetOutputNode();
   if ( outputNode == NULL )
@@ -80,11 +71,13 @@ void vtkSlicerCollectPointsLogic::AddPoint( vtkMRMLCollectPointsNode* collectPoi
     return;
   }
 
-  // determine the minimum distance for adding the point (only applies if in auto-collect mode)
-  double minimumDistanceMm = 0.0; // default value, 0 means there is no minimum
-  if ( collectPointsNode->GetCollectMode() == vtkMRMLCollectPointsNode::Automatic )
+  // find the point coordinates
+  double pointCoordinates[ 3 ] = { 0.0, 0.0, 0.0 }; // temporary values
+  bool success = this->ComputePointCoordinates( collectPointsNode, pointCoordinates );
+  if ( !success )
   {
-    minimumDistanceMm = collectPointsNode->GetMinimumDistanceMm();
+    vtkErrorMacro( "Could not compute point coordinates. Will not add any points." );
+    return;
   }
 
   // try downcasting the output node to different types.
@@ -94,24 +87,37 @@ void vtkSlicerCollectPointsLogic::AddPoint( vtkMRMLCollectPointsNode* collectPoi
   vtkMRMLModelNode* outputModelNode = vtkMRMLModelNode::SafeDownCast( outputNode );
   if ( outputMarkupsNode != NULL )
   {
-    // add the label to the point
-    std::stringstream ss;
-    ss << collectPointsNode->GetLabelBase() << collectPointsNode->GetLabelCounter();
+    this->AddPointToMarkups( collectPointsNode, pointCoordinates );
 
-    this->AddPointToMarkups( outputMarkupsNode, pointCoordinates, ss.str(), minimumDistanceMm );
-
-    // always increase the label counter
-    collectPointsNode->SetLabelCounter( collectPointsNode->GetLabelCounter() + 1 );
   }
   else if ( outputModelNode != NULL )
   {
-    this->AddPointToModel( outputModelNode, pointCoordinates, minimumDistanceMm );
+    this->AddPointToModel( collectPointsNode, pointCoordinates );
   }
   else
   {
     vtkErrorMacro( "Could not recognize the type of output node. Will not add any points." );
     return;
   }
+}
+
+//------------------------------------------------------------------------------
+bool vtkSlicerCollectPointsLogic::ComputePointCoordinates( vtkMRMLCollectPointsNode* collectPointsNode, double outputPointCoordinates[ 3 ] )
+{
+  if ( collectPointsNode == NULL )
+  {
+    vtkErrorMacro( "No parameter node set. Cannot compute point coordinates." );
+    return false;
+  }
+
+  // find the point coordinates
+  vtkSmartPointer< vtkMRMLTransformNode > samplingNode = vtkMRMLTransformNode::SafeDownCast( collectPointsNode->GetSamplingTransformNode() );
+  vtkSmartPointer< vtkMRMLTransformNode > anchorNode = vtkMRMLTransformNode::SafeDownCast( collectPointsNode->GetAnchorTransformNode() );
+  vtkSmartPointer < vtkGeneralTransform > samplingToAnchorTransform = vtkSmartPointer< vtkGeneralTransform >::New();
+  vtkMRMLTransformNode::GetTransformBetweenNodes( samplingNode, anchorNode, samplingToAnchorTransform ); // parameters are: source, target, transform
+  double samplingPoint[ 3 ] = { 0, 0, 0 }; // origin of coordinate system
+  samplingToAnchorTransform->TransformPoint( samplingPoint, outputPointCoordinates );
+  return true;
 }
 
 //------------------------------------------------------------------------------
@@ -257,10 +263,9 @@ void vtkSlicerCollectPointsLogic::ProcessMRMLNodesEvents( vtkObject* caller, uns
   {
     if ( collectPointsNode->GetCollectMode() == vtkMRMLCollectPointsNode::Automatic )
     {
-      if ( collectPointsNode->GetOutputNode() == NULL || collectPointsNode->GetProbeTransformNode() == NULL )
+      if ( collectPointsNode->GetOutputNode() == NULL )
       {
-        vtkWarningMacro( "Collect fiducials node is not fully set up. Setting to manual collection." );
-        collectPointsNode->SetCollectModeToManual();
+        vtkWarningMacro( "Collect fiducials node is not fully set up, there needs to be an output node." );
         return;
       }
       this->AddPoint( collectPointsNode ); // Will create modified event to update widget
@@ -269,9 +274,9 @@ void vtkSlicerCollectPointsLogic::ProcessMRMLNodesEvents( vtkObject* caller, uns
 }
 
 //------------------------------------------------------------------------------
-// note: point coordinates MUST contain 3 values
-void vtkSlicerCollectPointsLogic::AddPointToModel( vtkMRMLModelNode* modelNode, double* pointCoordinates, double minimumDistanceFromPreviousPointMm )
+void vtkSlicerCollectPointsLogic::AddPointToModel( vtkMRMLCollectPointsNode* collectPointsNode, double pointCoordinates[ 3 ] )
 {
+  vtkMRMLModelNode* modelNode = vtkMRMLModelNode::SafeDownCast( collectPointsNode->GetOutputNode() );
   if ( modelNode == NULL )
   {
     vtkErrorMacro( "Output node is null. No points added." );
@@ -293,14 +298,19 @@ void vtkSlicerCollectPointsLogic::AddPointToModel( vtkMRMLModelNode* modelNode, 
   }
 
   int numberOfPoints = ( int )points->GetNumberOfPoints();
-  if ( minimumDistanceFromPreviousPointMm > 0.0 && numberOfPoints > 0 )
+  if ( numberOfPoints > 0 )
   {
-    double previousCoordinates[ 3 ];
-    points->GetPoint( numberOfPoints - 1, previousCoordinates );
-    double distanceMm = sqrt( vtkMath::Distance2BetweenPoints( pointCoordinates, previousCoordinates ) );
-    if ( distanceMm < minimumDistanceFromPreviousPointMm )
+    double minimumDistanceFromPreviousPoint = collectPointsNode->GetMinimumDistance();
+    // minimum distance for adding point only applies if in auto-collect mode
+    if ( minimumDistanceFromPreviousPoint > 0.0 && collectPointsNode->GetCollectMode() == vtkMRMLCollectPointsNode::Automatic )
     {
-      return;
+      double previousCoordinates[ 3 ];
+      points->GetPoint( numberOfPoints - 1, previousCoordinates );
+      double distance = sqrt( vtkMath::Distance2BetweenPoints( pointCoordinates, previousCoordinates ) );
+      if ( distance < minimumDistanceFromPreviousPoint )
+      {
+        return;
+      }
     }
   }
   points->InsertNextPoint( pointCoordinates );
@@ -371,9 +381,9 @@ void vtkSlicerCollectPointsLogic::UpdateCellsForPolyData( vtkPolyData* polyData 
 }
 
 //------------------------------------------------------------------------------
-// note: point coordinates MUST contain 3 values
-void vtkSlicerCollectPointsLogic::AddPointToMarkups( vtkMRMLMarkupsFiducialNode* markupsNode, double* pointCoordinates, std::string markupLabel, double minimumDistanceFromPreviousPointMm )
+void vtkSlicerCollectPointsLogic::AddPointToMarkups( vtkMRMLCollectPointsNode* collectPointsNode, double pointCoordinates[ 3 ] )
 {
+  vtkMRMLMarkupsFiducialNode* markupsNode = vtkMRMLMarkupsFiducialNode::SafeDownCast( collectPointsNode->GetOutputNode() );
   if ( markupsNode == NULL )
   {
     vtkErrorMacro( "Output node is null. No points added." );
@@ -382,18 +392,30 @@ void vtkSlicerCollectPointsLogic::AddPointToMarkups( vtkMRMLMarkupsFiducialNode*
 
   // if in automatic collection mode, make sure sufficient there is sufficient distance from previous point
   int numberOfPoints = markupsNode->GetNumberOfFiducials();
-  if ( minimumDistanceFromPreviousPointMm > 0.0 && numberOfPoints > 0 )
+  if ( numberOfPoints > 0 )
   {
-    double previousCoordinates[ 3 ];
-    markupsNode->GetNthFiducialPosition( numberOfPoints - 1, previousCoordinates );
-    double distanceMm = sqrt( vtkMath::Distance2BetweenPoints( pointCoordinates, previousCoordinates ) );
-    if ( distanceMm < minimumDistanceFromPreviousPointMm )
+    double minimumDistanceFromPreviousPoint = collectPointsNode->GetMinimumDistance();
+    // minimum distance for adding point only applies if in auto-collect mode
+    if ( minimumDistanceFromPreviousPoint > 0.0 && collectPointsNode->GetCollectMode() == vtkMRMLCollectPointsNode::Automatic )
     {
-      return;
+      double previousCoordinates[ 3 ];
+      markupsNode->GetNthFiducialPosition( numberOfPoints - 1, previousCoordinates );
+      double distance = sqrt( vtkMath::Distance2BetweenPoints( pointCoordinates, previousCoordinates ) );
+      if ( distance < minimumDistanceFromPreviousPoint )
+      {
+        return;
+      }
     }
   }
 
+  // add the label to the point
+  std::stringstream markupLabel;
+  markupLabel << collectPointsNode->GetLabelBase() << collectPointsNode->GetNextLabelNumber();
+
   // Add point to the markups node
   int pointIndexInMarkups = markupsNode->AddFiducialFromArray( pointCoordinates );
-  markupsNode->SetNthFiducialLabel( pointIndexInMarkups, markupLabel.c_str() );
+  markupsNode->SetNthFiducialLabel( pointIndexInMarkups, markupLabel.str().c_str() );
+
+  // always increase the label counter
+  collectPointsNode->SetNextLabelNumber( collectPointsNode->GetNextLabelNumber() + 1 );
 }

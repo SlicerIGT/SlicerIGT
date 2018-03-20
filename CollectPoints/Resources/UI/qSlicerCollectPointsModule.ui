@@ -24,25 +24,30 @@
       </widget>
      </item>
      <item row="1" column="0">
-      <widget class="QLabel" name="ProbeTransformNodeLabel">
+      <widget class="QLabel" name="SamplingTransformNodeLabel">
        <property name="text">
-        <string>Transform Node:</string>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="0">
-      <widget class="QLabel" name="OutputNodeLabel">
-       <property name="text">
-        <string>Output Node:</string>
+        <string>Sampling Node:</string>
        </property>
       </widget>
      </item>
      <item row="1" column="1">
-      <widget class="qMRMLNodeComboBox" name="ProbeTransformNodeComboBox">
+      <widget class="qMRMLNodeComboBox" name="SamplingTransformNodeComboBox">
+       <property name="toolTip">
+        <string>Points will be collected according to the origin of this coordinate system.</string>
+       </property>
        <property name="nodeTypes">
         <stringlist>
          <string>vtkMRMLLinearTransformNode</string>
+         <string>vtkMRMLBSplineTransformNode</string>
+         <string>vtkMRMLGridTransformNode</string>
+         <string>vtkMRMLTransformNode</string>
         </stringlist>
+       </property>
+       <property name="noneEnabled">
+        <bool>true</bool>
+       </property>
+       <property name="renameEnabled">
+        <bool>true</bool>
        </property>
       </widget>
      </item>
@@ -57,8 +62,39 @@
      </item>
      <item row="2" column="1">
       <layout class="QGridLayout" name="OutputLayout">
+       <item row="0" column="3">
+        <widget class="QToolButton" name="OutputVisibilityButton">
+         <property name="toolTip">
+          <string>Toggle visibility of the output node</string>
+         </property>
+         <property name="text">
+          <string>...</string>
+         </property>
+         <property name="icon">
+          <iconset resource="../qSlicerCollectPointsModule.qrc">
+           <normaloff>:/Icons/PointVisible.png</normaloff>:/Icons/PointVisible.png</iconset>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="2">
+        <widget class="QToolButton" name="OutputDeleteButton">
+         <property name="toolTip">
+          <string>Delete the last point from the output node (hold click to see the option delete all)</string>
+         </property>
+         <property name="text">
+          <string>...</string>
+         </property>
+         <property name="icon">
+          <iconset resource="../qSlicerCollectPointsModule.qrc">
+           <normaloff>:/Icons/PointDelete.png</normaloff>:/Icons/PointDelete.png</iconset>
+         </property>
+        </widget>
+       </item>
        <item row="0" column="0">
         <widget class="qMRMLNodeComboBox" name="OutputNodeComboBox">
+         <property name="toolTip">
+          <string>Store points in either a markups or a model node</string>
+         </property>
          <property name="nodeTypes">
           <stringlist>
            <string>vtkMRMLMarkupsFiducialNode</string>
@@ -73,41 +109,32 @@
          </property>
         </widget>
        </item>
-       <item row="0" column="3">
-        <widget class="QToolButton" name="OutputVisibilityButton">
-         <property name="text">
-          <string>...</string>
-         </property>
-         <property name="icon">
-          <iconset resource="../qSlicerCollectPointsModule.qrc">
-           <normaloff>:/Icons/PointVisible.png</normaloff>:/Icons/PointVisible.png</iconset>
-         </property>
-        </widget>
-       </item>
        <item row="0" column="1">
         <widget class="ctkColorPickerButton" name="OutputColorButton">
+         <property name="toolTip">
+          <string>Change the color of the output node</string>
+         </property>
          <property name="displayColorName">
           <bool>false</bool>
          </property>
         </widget>
        </item>
-       <item row="0" column="2">
-        <widget class="QToolButton" name="OutputDeleteButton">
-         <property name="text">
-          <string>...</string>
-         </property>
-         <property name="icon">
-          <iconset resource="../qSlicerCollectPointsModule.qrc">
-           <normaloff>:/Icons/PointDelete.png</normaloff>:/Icons/PointDelete.png</iconset>
-         </property>
-        </widget>
-       </item>
       </layout>
+     </item>
+     <item row="2" column="0">
+      <widget class="QLabel" name="OutputNodeLabel">
+       <property name="text">
+        <string>Output Node:</string>
+       </property>
+      </widget>
      </item>
     </layout>
    </item>
    <item>
     <widget class="ctkCheckablePushButton" name="CollectButton">
+     <property name="toolTip">
+      <string>Collect points either one at a time, or collect them automatically (tick the checkbox).</string>
+     </property>
      <property name="text">
       <string>Collect</string>
      </property>
@@ -122,41 +149,79 @@
       <bool>false</bool>
      </property>
      <layout class="QGridLayout" name="gridLayout_3">
-      <item row="1" column="1">
-       <widget class="QSpinBox" name="LabelCounterSpinBox"/>
-      </item>
       <item row="2" column="0">
-       <widget class="QLabel" name="MinimumDistanceLabel">
-        <property name="text">
-         <string>Minimum Distance:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="0">
-       <widget class="QLabel" name="LabelCounterLabel">
-        <property name="text">
-         <string>Label Counter:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="1">
-       <widget class="QLineEdit" name="LabelBaseLineEdit">
-        <property name="text">
-         <string>P</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="0">
        <widget class="QLabel" name="LabelBaseLabel">
         <property name="text">
          <string>Label Base:</string>
         </property>
        </widget>
       </item>
+      <item row="3" column="1">
+       <widget class="QSpinBox" name="NextLabelNumberSpinBox">
+        <property name="toolTip">
+         <string>Markups will be numbered according to the current counter (incremented automatically)</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="0">
+       <widget class="QLabel" name="MinimumDistanceLabel">
+        <property name="text">
+         <string>Minimum Distance:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0">
+       <widget class="QLabel" name="NextLabelNumberLabel">
+        <property name="text">
+         <string>Next Label Number:</string>
+        </property>
+       </widget>
+      </item>
       <item row="2" column="1">
+       <widget class="QLineEdit" name="LabelBaseLineEdit">
+        <property name="toolTip">
+         <string>Markups will have labels that begin with this text.</string>
+        </property>
+        <property name="text">
+         <string>P</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="1">
        <widget class="ctkSliderWidget" name="MinimumDistanceSlider">
+        <property name="toolTip">
+         <string>Specify a minimum distance before a new point is automatically collected (Auto-Collect mode only)</string>
+        </property>
         <property name="value">
          <double>10.000000000000000</double>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="qMRMLNodeComboBox" name="AnchorTransformNodeComboBox">
+        <property name="toolTip">
+         <string>Points will be collected relative to the anchor coordinate system.</string>
+        </property>
+        <property name="nodeTypes">
+         <stringlist>
+          <string>vtkMRMLLinearTransformNode</string>
+          <string>vtkMRMLBSplineTransformNode</string>
+          <string>vtkMRMLGridTransformNode</string>
+          <string>vtkMRMLTransformNode</string>
+         </stringlist>
+        </property>
+        <property name="noneEnabled">
+         <bool>true</bool>
+        </property>
+        <property name="renameEnabled">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0">
+       <widget class="QLabel" name="AnchorTransformNodeLabel">
+        <property name="text">
+         <string>Anchor Node:</string>
         </property>
        </widget>
       </item>
@@ -237,7 +302,7 @@
   <connection>
    <sender>qSlicerCollectPointsModule</sender>
    <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
-   <receiver>ProbeTransformNodeComboBox</receiver>
+   <receiver>SamplingTransformNodeComboBox</receiver>
    <slot>setMRMLScene(vtkMRMLScene*)</slot>
    <hints>
     <hint type="sourcelabel">
@@ -279,6 +344,22 @@
     <hint type="destinationlabel">
      <x>241</x>
      <y>21</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>qSlicerCollectPointsModule</sender>
+   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+   <receiver>AnchorTransformNodeComboBox</receiver>
+   <slot>setMRMLScene(vtkMRMLScene*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>194</x>
+     <y>238</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>255</x>
+     <y>176</y>
     </hint>
    </hints>
   </connection>
