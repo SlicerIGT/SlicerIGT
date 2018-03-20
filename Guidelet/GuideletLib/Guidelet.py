@@ -39,7 +39,7 @@ class Guidelet(object):
 
   @staticmethod
   def showUltrasoundIn3dView(show):
-    redNode = slicer.util.getNode('vtkMRMLSliceNodeRed')
+    redNode = slicer.mrmlScene.GetNodeByID('vtkMRMLSliceNodeRed')
     if show:
       redNode.SetSliceVisible(1)
     else:
