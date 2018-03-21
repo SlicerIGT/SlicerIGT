@@ -78,11 +78,13 @@ class TextureModelWidget(ScriptedLoadableModuleWidget):
     self.inputTextureSelector.setToolTip( "Color image containing texture image." )
     parametersFormLayout.addRow("Texture: ", self.inputTextureSelector)
 
-    self.addColorAsPointAttributeCheckbox = qt.QCheckBox()
-    self.addColorAsPointAttributeCheckbox.checked = False
-    self.addColorAsPointAttributeCheckbox.setToolTip("If checked, color information will be saved as point data."
-      " It is useful if further color-based filtering will be performed on the model.")
-    parametersFormLayout.addRow("Set color information as point data: ", self.addColorAsPointAttributeCheckbox)
+    self.addColorAsPointAttributeComboBox = qt.QComboBox()
+    self.addColorAsPointAttributeComboBox.addItem("disabled")
+    self.addColorAsPointAttributeComboBox.addItem("separate scalars")
+    self.addColorAsPointAttributeComboBox.addItem("single vector")
+    self.addColorAsPointAttributeComboBox.setCurrentIndex(0)
+    self.addColorAsPointAttributeComboBox.setToolTip("It is useful if further color-based filtering will be performed on the model.")
+    parametersFormLayout.addRow("Save color information as point data: ", self.addColorAsPointAttributeComboBox)
 
     #
     # Apply Button
@@ -110,8 +112,11 @@ class TextureModelWidget(ScriptedLoadableModuleWidget):
     self.applyButton.enabled = self.inputTextureSelector.currentNode() and self.inputModelSelector.currentNode()
 
   def onApplyButton(self):
+    qt.QApplication.setOverrideCursor(qt.Qt.WaitCursor)
     logic = TextureModelLogic()
-    logic.applyTexture(self.inputModelSelector.currentNode(), self.inputTextureSelector.currentNode(), self.addColorAsPointAttributeCheckbox.checked)
+    logic.applyTexture(self.inputModelSelector.currentNode(), self.inputTextureSelector.currentNode(),
+      self.addColorAsPointAttributeComboBox.currentIndex > 0, self.addColorAsPointAttributeComboBox.currentIndex > 1)
+    qt.QApplication.restoreOverrideCursor()
 
 #
 # TextureModelLogic
@@ -122,13 +127,13 @@ class TextureModelLogic(ScriptedLoadableModuleLogic):
   https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
   """
 
-  def applyTexture(self, modelNode, textureImageNode, addColorAsPointAttribute = False):
+  def applyTexture(self, modelNode, textureImageNode, addColorAsPointAttribute = False, colorAsVector = False):
     """
     Apply texture to model node
     """
     self.showTextureOnModel(modelNode, textureImageNode)
     if addColorAsPointAttribute:
-      self.convertTextureToPointAttribute(modelNode, textureImageNode)
+      self.convertTextureToPointAttribute(modelNode, textureImageNode, colorAsVector)
 
   # Show texture
   def showTextureOnModel(self, modelNode, textureImageNode):
@@ -140,7 +145,7 @@ class TextureModelLogic(ScriptedLoadableModuleLogic):
     modelDisplayNode.SetTextureImageDataConnection(textureImageFlipVert.GetOutputPort())
 
   # Add texture data to scalars
-  def convertTextureToPointAttribute(self, modelNode, textureImageNode):
+  def convertTextureToPointAttribute(self, modelNode, textureImageNode, colorAsVector):
     polyData = modelNode.GetPolyData()
     textureImageFlipVert = vtk.vtkImageFlip()
     textureImageFlipVert.SetFilteredAxis(1)
@@ -174,26 +179,39 @@ class TextureModelLogic(ScriptedLoadableModuleLogic):
     probeFilter.SetSourceData(textureImageData)
     probeFilter.Update()
     rgbPoints = probeFilter.GetOutput().GetPointData().GetArray('ImageScalars')
-    colorArrayRed = vtk.vtkDoubleArray()
-    colorArrayRed.SetName('ColorRed')
-    colorArrayRed.SetNumberOfTuples(numOfPoints)
-    colorArrayGreen = vtk.vtkDoubleArray()
-    colorArrayGreen.SetName('ColorGreen')
-    colorArrayGreen.SetNumberOfTuples(numOfPoints)
-    colorArrayBlue = vtk.vtkDoubleArray()
-    colorArrayBlue.SetName('ColorBlue')
-    colorArrayBlue.SetNumberOfTuples(numOfPoints)
-    for pointIndex in xrange(numOfPoints):
-      rgb = rgbPoints.GetTuple3(pointIndex)
-      colorArrayRed.SetValue(pointIndex, rgb[0])
-      colorArrayGreen.SetValue(pointIndex, rgb[1])
-      colorArrayBlue.SetValue(pointIndex, rgb[2])
-    colorArrayRed.Modified()
-    colorArrayGreen.Modified()
-    colorArrayBlue.Modified()
-    pointData.AddArray(colorArrayRed)
-    pointData.AddArray(colorArrayGreen)
-    pointData.AddArray(colorArrayBlue)
+
+    if colorAsVector:
+      colorArray = vtk.vtkDoubleArray()
+      colorArray.SetName('Color')
+      colorArray.SetNumberOfComponents(3)
+      colorArray.SetNumberOfTuples(numOfPoints)
+      for pointIndex in range(numOfPoints):
+        rgb = rgbPoints.GetTuple3(pointIndex)
+        colorArray.SetTuple3(pointIndex, rgb[0]/255., rgb[1]/255., rgb[2]/255.)
+      colorArray.Modified()
+      pointData.AddArray(colorArray)
+    else:
+      colorArrayRed = vtk.vtkDoubleArray()
+      colorArrayRed.SetName('ColorRed')
+      colorArrayRed.SetNumberOfTuples(numOfPoints)
+      colorArrayGreen = vtk.vtkDoubleArray()
+      colorArrayGreen.SetName('ColorGreen')
+      colorArrayGreen.SetNumberOfTuples(numOfPoints)
+      colorArrayBlue = vtk.vtkDoubleArray()
+      colorArrayBlue.SetName('ColorBlue')
+      colorArrayBlue.SetNumberOfTuples(numOfPoints)
+      for pointIndex in range(numOfPoints):
+        rgb = rgbPoints.GetTuple3(pointIndex)
+        colorArrayRed.SetValue(pointIndex, rgb[0])
+        colorArrayGreen.SetValue(pointIndex, rgb[1])
+        colorArrayBlue.SetValue(pointIndex, rgb[2])
+      colorArrayRed.Modified()
+      colorArrayGreen.Modified()
+      colorArrayBlue.Modified()
+      pointData.AddArray(colorArrayRed)
+      pointData.AddArray(colorArrayGreen)
+      pointData.AddArray(colorArrayBlue)
+
     pointData.Modified()
     polyData.Modified()
 
