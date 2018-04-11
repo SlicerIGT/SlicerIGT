@@ -545,7 +545,7 @@ class Guidelet(object):
 
   def addConnectorObservers(self):
     # Force initial update
-    if self.connectorNode.GetState() == slicer.vtkMRMLIGTLConnectorNode.STATE_CONNECTED:
+    if self.connectorNode.GetState() == slicer.vtkMRMLIGTLConnectorNode.StateConnected:
       self.onConnectorNodeConnected(None, None, True)
     else:
       self.onConnectorNodeDisconnected(None, None, True)
