@@ -131,6 +131,11 @@ class GuideletWidget(ScriptedLoadableModuleWidget):
 
     if not self.guideletInstance:
       self.guideletInstance = self.createGuideletInstance()
+
+    settings = slicer.app.userSettings()
+    hasBorder = settings.value(self.moduleName + '/Configurations/' + self.selectedConfigurationName + '/HasBorderInFullScreen') == 'True'
+    slicer.app.setHasBorderInFullScreen(hasBorder)
+
     self.guideletInstance.setupScene()
     self.guideletInstance.onSceneLoaded()
     self.guideletInstance.showFullScreen()
@@ -193,6 +198,7 @@ class GuideletLogic(ScriptedLoadableModuleLogic):
                    'UltrasoundBrightnessControl' : 'Buttons',
                    'RecordingEnabledWhenConnectorNodeDisconnected' : 'False',
                    'PLUSCaptureDeviceName' : 'CaptureDevice', # If '', no PLUS recordings are saved.
+                   'HasBorderInFullScreen' : 'False', # If True, allows certain Qt widgets to appear properly with Qt versions >= 5.
                    }
     self.updateSettings(settingList, 'Default')
 
