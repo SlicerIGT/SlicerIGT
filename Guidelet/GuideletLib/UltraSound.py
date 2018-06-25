@@ -17,8 +17,8 @@ class UltraSound(object):
       raise Exception('Error: Could not find Plus Remote module. Please install the SlicerOpenIGTLink extension')
       return
 
-    from PlusRemote import PlusRemoteLogic
-    self.plusRemoteLogic = PlusRemoteLogic()
+    self.plusRemoteLogic = slicer.modules.plusremote.logic()
+    self.plusRemoteNode = None
 
     fileDir = os.path.dirname(__file__)
     iconPathRecord = os.path.join(fileDir, 'Resources', 'Icons', 'icon_Record.png')
@@ -168,6 +168,15 @@ class UltraSound(object):
       displayNode.SetAndObserveColorNodeID(colorNode.GetID())
       self.liveUltrasoundNode_Reference.SetAndObserveDisplayNodeID(displayNode.GetID())
 
+    self.plusRemoteNode = slicer.mrmlScene.GetFirstNodeByClass('vtkMRMLPlusRemoteNode')
+    if self.plusRemoteNode is None:
+      self.plusRemoteNode = slicer.vtkMRMLPlusRemoteNode()
+      self.plusRemoteNode.SetName("PlusRemoteNode")
+      slicer.mrmlScene.AddNode(self.plusRemoteNode)
+    self.plusRemoteNode.AddObserver(slicer.vtkMRMLPlusRemoteNode.RecordingStartedEvent, self.recordingCommandCompleted)
+    self.plusRemoteNode.AddObserver(slicer.vtkMRMLPlusRemoteNode.RecordingCompletedEvent, self.recordingCommandCompleted)
+    self.plusRemoteNode.SetAndObserveOpenIGTLinkConnectorNode(self.guideletParent.connectorNode)
+
     self.setupResliceDriver()
 
   def setupResliceDriver(self):
@@ -221,16 +230,11 @@ class UltraSound(object):
     return connectorNode
 
   def recordingCommandCompleted(self, command, q):
-    statusText = "Command {0} [{1}]: {2}\n".format(command.GetCommandName(), command.GetID(), command.StatusToString(command.GetStatus()))
-    statusTextUser = "{0} {1}\n".format(command.GetCommandName(), command.StatusToString(command.GetStatus()))
-    if command.GetResponseMessage():
-      statusText = statusText + command.GetResponseMessage()
-      statusTextUser = command.GetResponseMessage()
-    elif command.GetResponseText():
-      statusText = statusText + command.GetResponseText()
-      statusTextUser = command.GetResponseText()
+    statusText = "Recording "
+    statusText = statusText + self.plusRemoteNode.GetRecordingStatusAsString(self.plusRemoteNode.GetRecordingStatus()) + " "
+    statusText = statusText + self.plusRemoteNode.GetRecordingMessage() + " "
     logging.info(statusText)
-    self.startStopRecordingButton.setToolTip(statusTextUser)
+    self.startStopRecordingButton.setToolTip(statusText)
 
   def cleanup(self):
     self.disconnect()
@@ -248,18 +252,18 @@ class UltraSound(object):
 
         logging.info("Starting recording to: {0}".format(self.recordingFileName))
 
-        self.plusRemoteLogic.cmdStartRecording.SetCommandAttribute('CaptureDeviceId', self.captureDeviceName)
-        self.plusRemoteLogic.cmdStartRecording.SetCommandAttribute('OutputFilename', self.recordingFileName)
-        self.guideletParent.executeCommand(self.plusRemoteLogic.cmdStartRecording, self.recordingCommandCompleted)
+        self.plusRemoteNode.SetCurrentCaptureID(self.captureDeviceName)
+        self.plusRemoteNode.SetRecordingFilename(self.recordingFileName)
+        self.plusRemoteLogic.StartRecording(self.plusRemoteNode)
 
     else:
       self.startStopRecordingButton.setText("  Start Recording")
       self.startStopRecordingButton.setIcon(self.recordIcon)
       self.startStopRecordingButton.setToolTip( "Recording is being stopped..." )
-      if self.captureDeviceName  != '':  
-        logging.info("Stopping recording")  
-        self.plusRemoteLogic.cmdStopRecording.SetCommandAttribute('CaptureDeviceId', self.captureDeviceName)
-        self.guideletParent.executeCommand(self.plusRemoteLogic.cmdStopRecording, self.recordingCommandCompleted)
+      if self.captureDeviceName  != '':
+        logging.info("Stopping recording")
+        self.plusRemoteNode.SetCurrentCaptureID(self.captureDeviceName)
+        self.plusRemoteLogic.StopRecording(self.plusRemoteNode)
 
   def onFreezeUltrasoundClicked(self):
     logging.debug('onFreezeUltrasoundClicked')
