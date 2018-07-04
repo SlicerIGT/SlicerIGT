@@ -131,13 +131,13 @@ void qSlicerCollectPointsModuleWidget::enter()
     }
     if ( node == NULL )
     {
-      qCritical( "Failed to create module node" );
+      qCritical( "Failed to create module node vtkMRMLCollectPointsNode" );
       return;
     }
     d->ParameterNodeComboBox->setCurrentNode( node );
   }
 
-  this->updateGUIFromMRML();
+  this->onParameterNodeSelected();
 }
 
 //-----------------------------------------------------------------------------

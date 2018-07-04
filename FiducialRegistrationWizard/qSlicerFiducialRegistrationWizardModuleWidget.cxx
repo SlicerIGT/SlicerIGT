@@ -222,7 +222,7 @@ void qSlicerFiducialRegistrationWizardModuleWidget::setup()
   // to be moved a lot to click the manual/auto option.
   updateMenu->installEventFilter(this);
   updateMenu->setObjectName("UpdateOptions");
-  connect( d->ModuleNodeComboBox, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(onFiducialRegistrationWizardNodeSelectionChanged()) );
+  connect( d->ModuleNodeComboBox, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(onParameterNodeSelected()) );
 
   connect( this, SIGNAL(mrmlSceneChanged(vtkMRMLScene*)), d->FromMarkupsWidget, SLOT(setMRMLScene(vtkMRMLScene*)) );
   connect( this, SIGNAL(mrmlSceneChanged(vtkMRMLScene*)), d->ToMarkupsWidget, SLOT(setMRMLScene(vtkMRMLScene*)) );
@@ -260,38 +260,36 @@ void qSlicerFiducialRegistrationWizardModuleWidget::setup()
 void qSlicerFiducialRegistrationWizardModuleWidget::enter()
 {
   Q_D(qSlicerFiducialRegistrationWizardModuleWidget);
+  this->Superclass::enter();
+
   if ( this->mrmlScene() == NULL )
   {
     qCritical() << "Invalid scene!";
     return;
   }
 
+
   // Create a module MRML node if there is none in the scene.
-  vtkMRMLNode* node = this->mrmlScene()->GetNthNodeByClass(0, "vtkMRMLFiducialRegistrationWizardNode");
-  if ( node == NULL )
-  {
-    vtkSmartPointer< vtkMRMLFiducialRegistrationWizardNode > newNode = vtkSmartPointer< vtkMRMLFiducialRegistrationWizardNode >::New();
-    this->mrmlScene()->AddNode( newNode );
-  }
-
-  node = this->mrmlScene()->GetNthNodeByClass( 0, "vtkMRMLFiducialRegistrationWizardNode" );
-  if ( node == NULL )
-  {
-    qCritical( "Failed to create module node vtkMRMLFiducialRegistrationWizardNode" );
-    return;
-  }
-
   // For convenience, select a default module.
   if ( d->ModuleNodeComboBox->currentNode() == NULL )
   {
+    vtkMRMLNode* node = this->mrmlScene()->GetNthNodeByClass(0, "vtkMRMLFiducialRegistrationWizardNode");
+    if (node == NULL)
+    {
+      node = this->mrmlScene()->AddNewNodeByClass("vtkMRMLFiducialRegistrationWizardNode");
+    }
+
+    if ( node == NULL )
+    {
+      qCritical( "Failed to create module node vtkMRMLFiducialRegistrationWizardNode" );
+      return;
+    }
+
     d->ModuleNodeComboBox->setCurrentNode( node );
   }
-  else
-  {
-    this->updateGUIFromMRML();
-  }
-
-  this->Superclass::enter();
+ 
+  // Need to update the GUI so that it observes whichever parameter node is selected
+  this->onParameterNodeSelected();
 }
 
 //------------------------------------------------------------------------------
@@ -483,7 +481,7 @@ void qSlicerFiducialRegistrationWizardModuleWidget::PostProcessToMarkupsWidget()
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerFiducialRegistrationWizardModuleWidget::onFiducialRegistrationWizardNodeSelectionChanged()
+void qSlicerFiducialRegistrationWizardModuleWidget::onParameterNodeSelected()
 {
   Q_D( qSlicerFiducialRegistrationWizardModuleWidget );
   vtkMRMLFiducialRegistrationWizardNode* pNode = vtkMRMLFiducialRegistrationWizardNode::SafeDownCast( d->ModuleNodeComboBox->currentNode() );

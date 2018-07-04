@@ -51,7 +51,7 @@ public slots:
   bool getSignalsBlocked();
 
 protected slots:
-  void onParameterNodeChanged();
+  void onParameterNodeSelected();
   
   void onAddInputCombineTransform();
   void onRemoveInputCombineTransform();

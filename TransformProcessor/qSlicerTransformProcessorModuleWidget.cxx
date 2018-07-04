@@ -121,7 +121,7 @@ void qSlicerTransformProcessorModuleWidget::setup()
   this->setMRMLScene( d->logic()->GetMRMLScene() );
 
   // set up connections
-  connect( d->parameterNodeComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onParameterNodeChanged() ) );
+  connect( d->parameterNodeComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onParameterNodeSelected() ) );
 
   connect( d->inputFromTransformComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onInputFromTransformNodeSelected( vtkMRMLNode* ) ) );
   connect( d->inputToTransformComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onInputToTransformNodeSelected( vtkMRMLNode* ) ) );
@@ -152,6 +152,8 @@ void qSlicerTransformProcessorModuleWidget::setup()
 void qSlicerTransformProcessorModuleWidget::enter()
 {
   Q_D( qSlicerTransformProcessorModuleWidget );
+  this->Superclass::enter();
+  
   if ( this->mrmlScene() == NULL )
   {
     qCritical( "Invalid scene!" );
@@ -159,31 +161,26 @@ void qSlicerTransformProcessorModuleWidget::enter()
   }
 
   // Create a module MRML node if there is none in the scene.
-  vtkMRMLNode* node = this->mrmlScene()->GetNthNodeByClass(0, "vtkMRMLTransformProcessorNode");
-  if ( node == NULL )
-  {
-    vtkSmartPointer< vtkMRMLTransformProcessorNode > newNode = vtkSmartPointer< vtkMRMLTransformProcessorNode >::New();
-    this->mrmlScene()->AddNode( newNode );
-  }
-
-  node = this->mrmlScene()->GetNthNodeByClass( 0, "vtkMRMLTransformProcessorNode" );
-  if ( node == NULL )
-  {
-    qCritical( "Failed to create module node vtkMRMLTransformProcessorNode" );
-    return;
-  }
-
   // For convenience, select a default module.
   if ( d->parameterNodeComboBox->currentNode() == NULL )
   {
+    vtkMRMLNode* node = this->mrmlScene()->GetNthNodeByClass(0, "vtkMRMLTransformProcessorNode");
+    if (node == NULL)
+    {
+      node = this->mrmlScene()->AddNewNodeByClass("vtkMRMLTransformProcessorNode");
+    }
+
+    if ( node == NULL )
+    {
+      qCritical( "Failed to create module node vtkMRMLTransformProcessorNode" );
+      return;
+    }
+
     d->parameterNodeComboBox->setCurrentNode( node );
   }
-  else
-  {
-    this->updateGUIFromMRML();
-  }
-
-  this->Superclass::enter();
+ 
+  // Need to update the GUI so that it observes whichever parameter node is selected
+  this->onParameterNodeSelected();
 }
 
 //-----------------------------------------------------------------------------
@@ -756,7 +753,7 @@ bool qSlicerTransformProcessorModuleWidget::eventFilter( QObject * obj, QEvent *
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerTransformProcessorModuleWidget::onParameterNodeChanged()
+void qSlicerTransformProcessorModuleWidget::onParameterNodeSelected()
 {
   Q_D( qSlicerTransformProcessorModuleWidget );
   vtkMRMLTransformProcessorNode* pNode = vtkMRMLTransformProcessorNode::SafeDownCast( d->parameterNodeComboBox->currentNode() );
