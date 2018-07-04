@@ -392,15 +392,15 @@ void qSlicerFiducialRegistrationWizardModuleWidget::updateGUIFromMRML()
 
   if ( fiducialRegistrationWizardNode->GetRegistrationMode() == vtkMRMLFiducialRegistrationWizardNode::REGISTRATION_MODE_RIGID )
   {
-    d->RigidRadioButton->setChecked( Qt::Checked );
+    d->RigidRadioButton->setChecked( true );
   }
   else if ( fiducialRegistrationWizardNode->GetRegistrationMode() == vtkMRMLFiducialRegistrationWizardNode::REGISTRATION_MODE_SIMILARITY )
   {
-    d->SimilarityRadioButton->setChecked( Qt::Checked );
+    d->SimilarityRadioButton->setChecked( true );
   }
   else if ( fiducialRegistrationWizardNode->GetRegistrationMode() == vtkMRMLFiducialRegistrationWizardNode::REGISTRATION_MODE_WARPING )
   {
-    d->WarpingRadioButton->setChecked( Qt::Checked );
+    d->WarpingRadioButton->setChecked( true );
   }
 
   if ( fiducialRegistrationWizardNode->GetUpdateMode() == vtkMRMLFiducialRegistrationWizardNode::UPDATE_MODE_AUTOMATIC )
