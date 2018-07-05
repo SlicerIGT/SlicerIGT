@@ -780,7 +780,7 @@ bool vtkSlicerTransformProcessorLogic::IsTransformProcessingPossible( vtkMRMLTra
 
   if ( mode == vtkMRMLTransformProcessorNode::PROCESSING_MODE_QUATERNION_AVERAGE )
   {
-    if ( node->GetNumberOfInputCombineTransformNodes() < 2 )
+    if ( node->GetNumberOfInputCombineTransformNodes() < 1 )
     {
       if ( verbose )
       {
