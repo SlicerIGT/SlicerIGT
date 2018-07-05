@@ -128,8 +128,7 @@ void vtkSlicerTransformProcessorLogic::ProcessMRMLNodesEvents( vtkObject* caller
   }
 
   // these are the only two events that should be handled
-  if ( event == vtkMRMLTransformProcessorNode::InputDataModifiedEvent ||
-       event == vtkCommand::ModifiedEvent )
+  if ( event == vtkMRMLTransformProcessorNode::InputDataModifiedEvent )
   {
     if ( paramNode->GetUpdateMode() == vtkMRMLTransformProcessorNode::UPDATE_MODE_AUTO )
     {
