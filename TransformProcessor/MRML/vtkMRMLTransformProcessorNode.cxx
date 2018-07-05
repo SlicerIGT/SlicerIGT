@@ -263,12 +263,29 @@ void vtkMRMLTransformProcessorNode::ProcessMRMLEvents( vtkObject* caller, unsign
   {
     return;
   }
-  else if ( callerNode == this->GetInputAnchorTransformNode() ||
-            callerNode == this->GetInputChangedTransformNode() ||
-            callerNode == this->GetInputInitialTransformNode() ||
-            callerNode == this->GetInputFromTransformNode() ||
-            callerNode == this->GetInputToTransformNode() ||
-            callerNode == this->GetInputForwardTransformNode() )
+
+  // Make sure that the calling node is one of the inputs
+  bool callerNodeIsAnInputTransform = ( callerNode == this->GetInputAnchorTransformNode() ||
+                                        callerNode == this->GetInputChangedTransformNode() ||
+                                        callerNode == this->GetInputInitialTransformNode() ||
+                                        callerNode == this->GetInputFromTransformNode() ||
+                                        callerNode == this->GetInputToTransformNode() ||
+                                        callerNode == this->GetInputForwardTransformNode() );
+  // Also check the "InputCombine" transforms:
+  if ( !callerNodeIsAnInputTransform ) // don't need to check if we already know the caller node is an input transform
+  {
+    int numberOfInputCombineTransformNodes = GetNumberOfInputCombineTransformNodes();
+    for ( int inputCombineTransformIndex = 0; inputCombineTransformIndex < numberOfInputCombineTransformNodes; inputCombineTransformIndex++ )
+    {
+      if ( callerNode == GetNthInputCombineTransformNode( inputCombineTransformIndex ) )
+      {
+        callerNodeIsAnInputTransform = true;
+        break;
+      }
+    }
+  }
+
+  if ( callerNodeIsAnInputTransform == true )
   {
     if ( event == vtkMRMLTransformNode::TransformModifiedEvent )
     {
