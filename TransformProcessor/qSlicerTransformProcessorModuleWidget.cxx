@@ -322,12 +322,10 @@ void qSlicerTransformProcessorModuleWidget::updateGUIFromMRML()
   d->inputToTransformLabel->setVisible( showFromToTransform );
   d->inputToTransformComboBox->setVisible( showFromToTransform );
 
-  bool showTranslationGroupBox = ( pNode->GetProcessingMode() == vtkMRMLTransformProcessorNode::PROCESSING_MODE_COMPUTE_TRANSLATION ||
-                                   pNode->GetProcessingMode() == vtkMRMLTransformProcessorNode::PROCESSING_MODE_COMPUTE_FULL_TRANSFORM );
+  bool showTranslationGroupBox = ( pNode->GetProcessingMode() == vtkMRMLTransformProcessorNode::PROCESSING_MODE_COMPUTE_TRANSLATION );
   d->advancedTranslationGroupBox->setVisible( showTranslationGroupBox );
 
-  bool showRotationGroupBox = ( pNode->GetProcessingMode() == vtkMRMLTransformProcessorNode::PROCESSING_MODE_COMPUTE_ROTATION ||
-                                pNode->GetProcessingMode() == vtkMRMLTransformProcessorNode::PROCESSING_MODE_COMPUTE_FULL_TRANSFORM );
+  bool showRotationGroupBox = ( pNode->GetProcessingMode() == vtkMRMLTransformProcessorNode::PROCESSING_MODE_COMPUTE_ROTATION );
   d->advancedRotationGroupBox->setVisible( showRotationGroupBox );
 
   bool showRotationPrimaryAxis = ( showRotationGroupBox &&
