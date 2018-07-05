@@ -762,60 +762,10 @@ bool vtkSlicerTransformProcessorLogic::IsTransformProcessingPossible( vtkMRMLTra
     return false;
   }
 
-  // check every possible condition,
-  // then check whether the current mode applies
+  // Check for individual modes whether the requisite nodes have been provided
+  // Not all modes require non-NULL transform nodes. NULL is treated like RAS
   // If many more modes are added, then this scheme should be re-evaluated
   
-  if ( mode == vtkMRMLTransformProcessorNode::PROCESSING_MODE_COMPUTE_ROTATION ||
-       mode == vtkMRMLTransformProcessorNode::PROCESSING_MODE_COMPUTE_TRANSLATION ||
-       mode == vtkMRMLTransformProcessorNode::PROCESSING_MODE_COMPUTE_FULL_TRANSFORM )
-  {
-    if ( node->GetInputFromTransformNode() == NULL )
-    {
-      if ( verbose )
-      {
-        vtkWarningMacro( "IsTransformProcessingPossible: No \"From\" node provided for processing mode " << vtkMRMLTransformProcessorNode::GetProcessingModeAsString( mode ) );
-      }
-      result = false;
-    }
-    if ( node->GetInputToTransformNode() == NULL )
-    {
-      if ( verbose )
-      {
-        vtkWarningMacro( "IsTransformProcessingPossible: No \"To\" node provided for processing mode " << vtkMRMLTransformProcessorNode::GetProcessingModeAsString( mode ) );
-      }
-      result = false;
-    }
-  }
-
-  if ( mode == vtkMRMLTransformProcessorNode::PROCESSING_MODE_COMPUTE_SHAFT_PIVOT )
-  {
-    if ( node->GetInputInitialTransformNode() == NULL )
-    {
-      if ( verbose )
-      {
-        vtkWarningMacro( "IsTransformProcessingPossible: No \"Initial\" node provided for processing mode " << vtkMRMLTransformProcessorNode::GetProcessingModeAsString( mode ) );
-      }
-      result = false;
-    }
-    if ( node->GetInputChangedTransformNode() == NULL )
-    {
-      if ( verbose )
-      {
-        vtkWarningMacro( "IsTransformProcessingPossible: No \"Changed\" node provided for processing mode " << vtkMRMLTransformProcessorNode::GetProcessingModeAsString( mode ) );
-      }
-      result = false;
-    }
-    if ( node->GetInputAnchorTransformNode() == NULL )
-    {
-      if ( verbose )
-      {
-        vtkWarningMacro( "IsTransformProcessingPossible: No \"Anchor\" node provided for processing mode " << vtkMRMLTransformProcessorNode::GetProcessingModeAsString( mode ) );
-      }
-      result = false;
-    }
-  }
-
   if ( mode == vtkMRMLTransformProcessorNode::PROCESSING_MODE_COMPUTE_INVERSE )
   {
     if ( node->GetInputForwardTransformNode() == NULL )
