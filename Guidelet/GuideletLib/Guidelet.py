@@ -53,6 +53,8 @@ class Guidelet(object):
   VIEW_3D = unicode("3D")
   VIEW_DUAL_3D = unicode("Dual 3D")
   VIEW_TRIPLE_3D = unicode("Triple 3D")
+  VIEW_TRIPLE_3D_PARALLEL = unicode("Triple 3D Parallel")
+  VIEW_QUAD_3D = unicode("Quad 3D")
 
   def __init__(self, parent, logic, configurationName='Default', sliceletDockWidgetPosition = qt.Qt.LeftDockWidgetArea):
     logging.debug('Guidelet.__init__')
@@ -229,6 +231,8 @@ class Guidelet(object):
     self.viewSelectorComboBox.addItem(self.VIEW_3D)
     self.viewSelectorComboBox.addItem(self.VIEW_DUAL_3D)
     self.viewSelectorComboBox.addItem(self.VIEW_TRIPLE_3D)
+    self.viewSelectorComboBox.addItem(self.VIEW_TRIPLE_3D_PARALLEL)
+    self.viewSelectorComboBox.addItem(self.VIEW_QUAD_3D)
 
   def setupAdditionalPanel(self):
     pass
@@ -363,6 +367,53 @@ class Guidelet(object):
       "</layout>")
     self.threedultrasoundCustomLayoutId=508
     layoutLogic.GetLayoutNode().AddLayoutDescription(self.threedultrasoundCustomLayoutId, customLayout)
+
+    customLayout = (
+      "<layout type=\"horizontal\" split=\"false\" >"
+      " <item>"
+      "  <view class=\"vtkMRMLViewNode\" singletontag=\"1\">"
+      "    <property name=\"viewlabel\" action=\"default\">1</property>"
+      "  </view>"
+      " </item>"
+      " <item>"
+      "  <view class=\"vtkMRMLViewNode\" singletontag=\"2\" type=\"secondary\">"
+      "   <property name=\"viewlabel\" action=\"default\">2</property>"
+      "  </view>"
+      " </item>"
+      " <item>"
+      "  <view class=\"vtkMRMLViewNode\" singletontag=\"3\" type=\"secondary\">"
+      "   <property name=\"viewlabel\" action=\"default\">3</property>"
+      "  </view>"
+      " </item>"
+      "</layout>")
+    self.triple3dparallelCustomLayoutId=509
+    layoutLogic.GetLayoutNode().AddLayoutDescription(self.triple3dparallelCustomLayoutId, customLayout)
+
+    customLayout = (
+      "<layout type=\"horizontal\" split=\"false\" >"
+      " <item>"
+      "  <view class=\"vtkMRMLViewNode\" singletontag=\"1\">"
+      "    <property name=\"viewlabel\" action=\"default\">1</property>"
+      "  </view>"
+      " </item>"
+      " <item>"
+      "  <view class=\"vtkMRMLViewNode\" singletontag=\"2\" type=\"secondary\">"
+      "   <property name=\"viewlabel\" action=\"default\">2</property>"
+      "  </view>"
+      " </item>"
+      " <item>"
+      "  <view class=\"vtkMRMLViewNode\" singletontag=\"3\" type=\"secondary\">"
+      "   <property name=\"viewlabel\" action=\"default\">3</property>"
+      "  </view>"
+      " </item>"
+      " <item>"
+      "  <view class=\"vtkMRMLViewNode\" singletontag=\"4\" type=\"secondary\">"
+      "   <property name=\"viewlabel\" action=\"default\">4</property>"
+      "  </view>"
+      " </item>"
+      "</layout>")
+    self.quad3dCustomLayoutId=510
+    layoutLogic.GetLayoutNode().AddLayoutDescription(self.quad3dCustomLayoutId, customLayout)
 
   def onSceneLoaded(self):
     """ Derived classes can override this function
@@ -603,6 +654,12 @@ class Guidelet(object):
       self.layoutManager.setLayout(self.threedultrasoundCustomLayoutId)
       self.delayedFitUltrasoundImageToView()
       self.showUltrasoundIn3dView(True)
+    elif text == self.VIEW_TRIPLE_3D_PARALLEL:
+      self.layoutManager.setLayout(self.triple3dparallelCustomLayoutId)
+      self.showUltrasoundIn3dView(False)
+    elif text == self.VIEW_QUAD_3D:
+      self.layoutManager.setLayout(self.quad3dCustomLayoutId)
+      self.showUltrasoundIn3dView(False)
 
   def onUltrasoundPanelToggled(self, toggled):
     logging.debug('onUltrasoundPanelToggled: {0}'.format(toggled))
