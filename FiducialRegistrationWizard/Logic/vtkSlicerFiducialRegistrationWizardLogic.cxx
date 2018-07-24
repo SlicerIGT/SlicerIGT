@@ -300,18 +300,18 @@ bool vtkSlicerFiducialRegistrationWizardLogic::UpdateCalibration(vtkMRMLNode* no
       return false;
     }
     vtkSmartPointer< vtkPointMatcher > pointMatcher = vtkSmartPointer< vtkPointMatcher >::New();
-    pointMatcher->SetInputPointList1(fromPointsUnordered);
-    pointMatcher->SetInputPointList2(toPointsUnordered);
+    pointMatcher->SetInputSourcePoints(fromPointsUnordered);
+    pointMatcher->SetInputTargetPoints(toPointsUnordered);
     pointMatcher->SetMaximumDifferenceInNumberOfPoints(2);
-    pointMatcher->SetTolerableRootMeanSquareDistanceErrorMm(10.0);
-    pointMatcher->SetAmbiguityThresholdDistanceMm(5.0);
+    pointMatcher->SetTolerableDistanceErrorMultiple(0.1);
+    pointMatcher->SetAmbiguityDistanceErrorMultiple(0.05);
     pointMatcher->Update();
     if (!pointMatcher->IsMatchingWithinTolerance())
     {
       std::stringstream msg;
       msg << "Could not find a good mapping." << std::endl
-        << "Mean squared distance error was " << pointMatcher->GetComputedRootMeanSquareDistanceErrorMm()
-        << ", but tolerance is " << pointMatcher->GetTolerableRootMeanSquareDistanceErrorMm() << "." << std::endl
+        << "Mean squared distance error was " << pointMatcher->GetComputedDistanceError()
+        << ", but tolerance is " << pointMatcher->GetTolerableDistanceError() << "." << std::endl
         << "Results are not expected to be accurate.";
       fiducialRegistrationWizardNode->AddToCalibrationStatusMessage(msg.str());
     }
@@ -323,8 +323,8 @@ bool vtkSlicerFiducialRegistrationWizardLogic::UpdateCalibration(vtkMRMLNode* no
         << "Results are not necessarily expected to be accurate.";
       fiducialRegistrationWizardNode->AddToCalibrationStatusMessage(msg.str());
     }
-    fromPointsOrdered = pointMatcher->GetOutputPointList1();
-    toPointsOrdered = pointMatcher->GetOutputPointList2();
+    fromPointsOrdered = pointMatcher->GetOutputSourcePoints();
+    toPointsOrdered = pointMatcher->GetOutputTargetPoints();
   }
   else
   {
