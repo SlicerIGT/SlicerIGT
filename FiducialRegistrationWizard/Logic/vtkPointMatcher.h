@@ -2,13 +2,11 @@
 #define __vtkPointMatcher_h
 
 #include <vtkObject.h>
-#include <vtkPoints.h>
 #include <vtkTimeStamp.h>
 #include <vtkSmartPointer.h>
 
-class vtkDoubleArray;
-class vtkPointDistanceMatrix;
 class vtkPoints;
+class vtkPolyData;
 
 // export
 #include "vtkSlicerFiducialRegistrationWizardModuleLogicExport.h"
@@ -108,7 +106,7 @@ class VTK_SLICER_FIDUCIALREGISTRATIONWIZARD_MODULE_LOGIC_EXPORT vtkPointMatcher 
                                                      double ambiguityThresholdDistanceMm, bool& matchingAmbiguous,
                                                      double& computedRootMeanSquareDistanceErrorMm,
                                                      vtkPoints* outputMatchedPointList1, vtkPoints* outputMatchedPointList2 );
-    static double ComputeRootMeanSquareDistanceErrors( vtkPointDistanceMatrix*, vtkPointDistanceMatrix* );
+    static double ComputeRootMeanSquareDistanceBetweenRegisteredPointSets( vtkPoints* sourcePoints, vtkPoints* targetPoints );
     static void CopyFirstNPoints( vtkPoints* inputList, vtkPoints* outputList, int n );
 
     // Not implemented:

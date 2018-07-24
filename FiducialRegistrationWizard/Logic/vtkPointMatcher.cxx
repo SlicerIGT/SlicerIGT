@@ -1,8 +1,10 @@
 #include "vtkPointMatcher.h"
-#include "vtkPointDistanceMatrix.h"
 #include "vtkCombinatoricGenerator.h"
 #include <vtkDoubleArray.h>
+#include <vtkLandmarkTransform.h>
+#include <vtkPolyData.h>
 #include <vtkSmartPointer.h>
+#include <vtkTransformPolyDataFilter.h>
 #include <vtkMath.h>
 
 #define RESET_VALUE_COMPUTED_ROOT_MEAN_DISTANCE_ERROR VTK_DOUBLE_MAX
@@ -233,9 +235,9 @@ void vtkPointMatcher::HandleMatchFailure()
   }
 
   // matching failed... just output the first N points of both lists
-  int pointList1Size = this->InputPointList1->GetNumberOfPoints();
-  int pointList2Size = this->InputPointList1->GetNumberOfPoints();
-  int smallestNumberOfPoints = vtkMath::Min( pointList1Size, pointList2Size );
+  int numberOfPointsInList1 = this->InputPointList1->GetNumberOfPoints();
+  int numberOfPointsInList2 = this->InputPointList1->GetNumberOfPoints();
+  int smallestNumberOfPoints = vtkMath::Min( numberOfPointsInList1, numberOfPointsInList2 );
 
   if ( smallestNumberOfPoints < MINIMUM_NUMBER_OF_POINTS_NEEDED_TO_MATCH )
   {
@@ -457,12 +459,6 @@ void vtkPointMatcher::UpdateBestMatchingForSubsetOfPoints(
     return;
   }
 
-  // Point distance matrix
-  vtkSmartPointer< vtkPointDistanceMatrix > pointSubset1DistanceMatrix = vtkSmartPointer< vtkPointDistanceMatrix >::New();
-  pointSubset1DistanceMatrix->SetPointList1( pointSubset1 );
-  pointSubset1DistanceMatrix->SetPointList2( pointSubset1 ); // distances to itself
-  pointSubset1DistanceMatrix->Update();
-
   // compute the permutations, store them in a vtkIntArray.
   vtkSmartPointer< vtkCombinatoricGenerator > combinatoricGenerator = vtkSmartPointer< vtkCombinatoricGenerator >::New();
   combinatoricGenerator->SetCombinatoricToPermutation();
@@ -482,7 +478,6 @@ void vtkPointMatcher::UpdateBestMatchingForSubsetOfPoints(
   // the loop to avoid allocation/deallocation time costs.
   vtkSmartPointer< vtkPoints > permutedPointSubset2 = vtkSmartPointer< vtkPoints >::New();
   permutedPointSubset2->DeepCopy( pointSubset2 ); // fill it with placeholder data, same size as compareList
-  vtkSmartPointer< vtkPointDistanceMatrix > permutedPointSubset2DistanceMatrix = vtkSmartPointer< vtkPointDistanceMatrix >::New();
   int numberOfPermutations = pointSubset2IndexPermutations.size();
   for ( int permutationIndex = 0; permutationIndex < numberOfPermutations; permutationIndex++ )
   {
@@ -494,10 +489,7 @@ void vtkPointMatcher::UpdateBestMatchingForSubsetOfPoints(
       double* permutedPoint = pointSubset2->GetPoint( permutedPointIndex );
       permutedPointSubset2->SetPoint( pointIndex, permutedPoint );
     }
-    permutedPointSubset2DistanceMatrix->SetPointList1( permutedPointSubset2 );
-    permutedPointSubset2DistanceMatrix->SetPointList2( permutedPointSubset2 );
-    permutedPointSubset2DistanceMatrix->Update();
-    double rootMeanSquareDistanceErrorMm = vtkPointMatcher::ComputeRootMeanSquareDistanceErrors( pointSubset1DistanceMatrix, permutedPointSubset2DistanceMatrix );
+    double rootMeanSquareDistanceErrorMm = vtkPointMatcher::ComputeRootMeanSquareDistanceBetweenRegisteredPointSets( pointSubset1, permutedPointSubset2 );
 
     // case analysis for setting MatchingAmbiguous:
     // let ComputedRootMeanSquareDistanceErrorMm store the distance error for the *best* matching
@@ -560,33 +552,60 @@ void vtkPointMatcher::UpdateBestMatchingForSubsetOfPoints(
 }
 
 //------------------------------------------------------------------------------
-double vtkPointMatcher::ComputeRootMeanSquareDistanceErrors( vtkPointDistanceMatrix* distanceMatrix1, vtkPointDistanceMatrix* distanceMatrix2 )
+double vtkPointMatcher::ComputeRootMeanSquareDistanceBetweenRegisteredPointSets( vtkPoints* sourcePoints, vtkPoints* targetPoints )
 {
-  if ( distanceMatrix1 == NULL || distanceMatrix2 == NULL )
+  if ( sourcePoints == NULL || targetPoints == NULL )
   {
-    vtkGenericWarningMacro( "One of the input distance matrices is null. Cannot compute similarity. Returning default value " << RESET_VALUE_COMPUTED_ROOT_MEAN_DISTANCE_ERROR << "." );
+    vtkGenericWarningMacro( "At least one of the input points point lists is null. Returning default value " << RESET_VALUE_COMPUTED_ROOT_MEAN_DISTANCE_ERROR << "." );
     return RESET_VALUE_COMPUTED_ROOT_MEAN_DISTANCE_ERROR;
   }
 
-  vtkSmartPointer< vtkDoubleArray > distanceErrorMatrix = vtkSmartPointer< vtkDoubleArray >::New();
-  vtkPointDistanceMatrix::ComputePairWiseDifferences( distanceMatrix2, distanceMatrix1, distanceErrorMatrix );
+  vtkSmartPointer< vtkLandmarkTransform > landmarkTransform = vtkSmartPointer< vtkLandmarkTransform >::New();
+  landmarkTransform->SetSourceLandmarks( sourcePoints );
+  landmarkTransform->SetTargetLandmarks( targetPoints );
+  landmarkTransform->Update();
 
-  double sumOfSquaredDistanceErrors = 0;
-  int numberOfColumns = distanceErrorMatrix->GetNumberOfTuples();
-  int numberOfRows = distanceErrorMatrix->GetNumberOfComponents();
-  for ( int columnIndex = 0; columnIndex < numberOfColumns; columnIndex++ )
+  vtkSmartPointer< vtkPolyData > sourcePointsPolyData = vtkSmartPointer< vtkPolyData >::New();
+  sourcePointsPolyData->SetPoints( sourcePoints );
+
+  vtkSmartPointer< vtkTransformPolyDataFilter > transformFilter = vtkSmartPointer< vtkTransformPolyDataFilter >::New();
+  transformFilter->SetTransform( landmarkTransform );
+  transformFilter->SetInputData( sourcePointsPolyData );
+  transformFilter->Update();
+
+  vtkPolyData* transformedSourcePointsPolyData = transformFilter->GetOutput();
+  if ( transformedSourcePointsPolyData == NULL )
   {
-    for ( int rowIndex = 0; rowIndex < numberOfRows; rowIndex++ )
-    {
-      double currentDistanceError = distanceErrorMatrix->GetComponent( columnIndex, rowIndex );
-      sumOfSquaredDistanceErrors += ( currentDistanceError * currentDistanceError );
-    }
+    vtkGenericWarningMacro( "Transformed source points poly data is null Returning default value " << RESET_VALUE_COMPUTED_ROOT_MEAN_DISTANCE_ERROR << "." );
+    return RESET_VALUE_COMPUTED_ROOT_MEAN_DISTANCE_ERROR;
   }
 
-  int numberOfDistances = numberOfColumns * numberOfRows;
-  double meanOfSquaredDistanceErrors = sumOfSquaredDistanceErrors / numberOfDistances;
-  double rootMeanSquareistanceErrors = sqrt( meanOfSquaredDistanceErrors );
+  vtkPoints* transformedSourcePoints = transformedSourcePointsPolyData->GetPoints();
+  if ( transformedSourcePoints == NULL )
+  {
+    vtkGenericWarningMacro( "Transformed source point list is null. Returning default value " << RESET_VALUE_COMPUTED_ROOT_MEAN_DISTANCE_ERROR << "." );
+    return RESET_VALUE_COMPUTED_ROOT_MEAN_DISTANCE_ERROR;
+  }
 
+  int numberOfPoints = targetPoints->GetNumberOfPoints();
+  if ( transformedSourcePoints->GetNumberOfPoints() != numberOfPoints )
+  {
+    vtkGenericWarningMacro( "Point lists are not of same size " << transformedSourcePoints->GetNumberOfPoints() << " and " << numberOfPoints << ". Returning default value " << RESET_VALUE_COMPUTED_ROOT_MEAN_DISTANCE_ERROR << "." );
+    return RESET_VALUE_COMPUTED_ROOT_MEAN_DISTANCE_ERROR;
+  }
+
+  double sumOfSquaredDistances = 0.0;
+  for ( int pointIndex = 0; pointIndex < numberOfPoints; pointIndex++ )
+  {
+    double transformedSourcePoint[ 3 ];
+    transformedSourcePoints->GetPoint( pointIndex, transformedSourcePoint );
+    double targetPoint[ 3 ];
+    targetPoints->GetPoint( pointIndex, targetPoint );
+    double squaredDistance = vtkMath::Distance2BetweenPoints( transformedSourcePoint, targetPoint );
+    sumOfSquaredDistances += squaredDistance;
+  }
+  double meanOfSquaredDistances = sumOfSquaredDistances / numberOfPoints;
+  double rootMeanSquareistanceErrors = sqrt( meanOfSquaredDistances );
   return rootMeanSquareistanceErrors;
 }
 

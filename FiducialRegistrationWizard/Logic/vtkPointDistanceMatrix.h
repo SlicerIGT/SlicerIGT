@@ -36,11 +36,6 @@ class VTK_SLICER_FIDUCIALREGISTRATIONWIZARD_MODULE_LOGIC_EXPORT vtkPointDistance
     
     void Update();
 
-    // compute pair-wise difference between two point distance matrices.
-    // Store the result in a structure other than a point distance matrix
-    // because its contents are not regenerated.
-    static void ComputePairWiseDifferences( vtkPointDistanceMatrix* firstMatrix, vtkPointDistanceMatrix* secondMatrix, vtkDoubleArray* output );
-
   protected:
     vtkPointDistanceMatrix();
     ~vtkPointDistanceMatrix();
