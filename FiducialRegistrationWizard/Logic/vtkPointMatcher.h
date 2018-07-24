@@ -4,7 +4,11 @@
 #include <vtkObject.h>
 #include <vtkPoints.h>
 #include <vtkTimeStamp.h>
-#include "vtkPointDistanceMatrix.h"
+#include <vtkSmartPointer.h>
+
+class vtkDoubleArray;
+class vtkPointDistanceMatrix;
+class vtkPoints;
 
 // export
 #include "vtkSlicerFiducialRegistrationWizardModuleLogicExport.h"
@@ -89,9 +93,23 @@ class VTK_SLICER_FIDUCIALREGISTRATIONWIZARD_MODULE_LOGIC_EXPORT vtkPointMatcher 
     bool UpdateNeeded();
 
     // Logic helpers
-    void UpdateBestMatchingForAllSubsetsOfPoints( int sizeOfSubset );
-    void UpdateBestMatchingForSubsetOfPoints( vtkPoints* list1, vtkPoints* list2 );
-    double ComputeRootMeanSquareistanceErrors( vtkPointDistanceMatrix*, vtkPointDistanceMatrix* );
+    void HandleMatchFailure(); // copies input point list to output point list. Used when matching is otherwise impossible.
+    static void UpdateBestMatchingForSubsetsOfPoints( int minimumSubsetSize, int maximumSubsetSize,
+                                                      vtkPoints* unmatchedPointList1, vtkPoints* unmatchedPointList2,
+                                                      double ambiguityThresholdDistanceMm, bool& matchingAmbiguous, 
+                                                      double& computedRootMeanSquareDistanceErrorMm, double tolerableRootMeanSquareDistanceErrorMm,
+                                                      vtkPoints* outputMatchedPointList1, vtkPoints* outputMatchedPointList2 );
+    static void UpdateBestMatchingForNSizedSubsetsOfPoints( int subsetSize,
+                                                            vtkPoints* unmatchedPointList1, vtkPoints* unmatchedPointList2,
+                                                            double ambiguityThresholdDistanceMm, bool& matchingAmbiguous,
+                                                            double& computedRootMeanSquareDistanceErrorMm,
+                                                            vtkPoints* outputMatchedPointList1, vtkPoints* outputMatchedPointList2 );
+    static void UpdateBestMatchingForSubsetOfPoints( vtkPoints* unmatchedPointList1, vtkPoints* unmatchedPointList2,
+                                                     double ambiguityThresholdDistanceMm, bool& matchingAmbiguous,
+                                                     double& computedRootMeanSquareDistanceErrorMm,
+                                                     vtkPoints* outputMatchedPointList1, vtkPoints* outputMatchedPointList2 );
+    static double ComputeRootMeanSquareDistanceErrors( vtkPointDistanceMatrix*, vtkPointDistanceMatrix* );
+    static void CopyFirstNPoints( vtkPoints* inputList, vtkPoints* outputList, int n );
 
     // Not implemented:
 		vtkPointMatcher(const vtkPointMatcher&);
