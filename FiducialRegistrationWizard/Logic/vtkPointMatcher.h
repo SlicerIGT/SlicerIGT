@@ -5,6 +5,7 @@
 #include <vtkTimeStamp.h>
 #include <vtkSmartPointer.h>
 
+class vtkDoubleArray;
 class vtkPoints;
 class vtkPolyData;
 
@@ -112,9 +113,12 @@ class VTK_SLICER_FIDUCIALREGISTRATIONWIZARD_MODULE_LOGIC_EXPORT vtkPointMatcher 
                                                      double ambiguityDistance, bool& matchingAmbiguous, 
                                                      double& computedDistanceError,
                                                      vtkPoints* outputMatchedPointList1, vtkPoints* outputMatchedPointList2 );
-    static double ComputeRootMeanSquareDistanceBetweenRegisteredPointSets( vtkPoints* sourcePoints, vtkPoints* targetPoints );
+    static double ComputeRegistrationRootMeanSquareError( vtkPoints* sourcePoints, vtkPoints* targetPoints );
     static double ComputeMaximumDistanceInPointSet( vtkPoints* points );
     static void CopyFirstNPoints( vtkPoints* inputList, vtkPoints* outputList, int n );
+    static void ReorderPointsAccordingToUniqueGeometry( vtkPoints* inputUnsortedPointList, vtkPoints* outputSortedPointList );
+    static void ComputeUniquenessesForPoints( vtkPoints* points, vtkDoubleArray* uniquenesses );
+    static double ComputeUniquenessForDistance( double distance, double maximumDistance, vtkDoubleArray* allDistancesArray );
 
     // Not implemented:
 		vtkPointMatcher(const vtkPointMatcher&);

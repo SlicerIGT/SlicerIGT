@@ -286,7 +286,7 @@ bool vtkSlicerFiducialRegistrationWizardLogic::UpdateCalibration(vtkMRMLNode* no
         << " registration is being used." << std::endl << "Unexpected results may occur.";
       fiducialRegistrationWizardNode->AddToCalibrationStatusMessage(msg.str());
     }
-    const int MAX_NUMBER_OF_POINTS_FOR_POINT_MATCHING_AUTOMATIC = 8; // more than this and it tends to take a long time. Algorithm is at least N!
+    const int MAX_NUMBER_OF_POINTS_FOR_POINT_MATCHING_AUTOMATIC = 30; // more than this and it tends to take a long time. Algorithm is at least N!
     int fromNumberOfPoints = fromPointsUnordered->GetNumberOfPoints();
     int toNumberOfPoints = toPointsUnordered->GetNumberOfPoints();
     int numberOfPointsToMatch = std::max(fromNumberOfPoints, toNumberOfPoints);
@@ -303,8 +303,8 @@ bool vtkSlicerFiducialRegistrationWizardLogic::UpdateCalibration(vtkMRMLNode* no
     pointMatcher->SetInputSourcePoints(fromPointsUnordered);
     pointMatcher->SetInputTargetPoints(toPointsUnordered);
     pointMatcher->SetMaximumDifferenceInNumberOfPoints(2);
-    pointMatcher->SetTolerableDistanceErrorMultiple(0.1);
-    pointMatcher->SetAmbiguityDistanceErrorMultiple(0.05);
+    pointMatcher->SetTolerableDistanceErrorMultiple(0.05);
+    pointMatcher->SetAmbiguityDistanceErrorMultiple(0.025);
     pointMatcher->Update();
     if (!pointMatcher->IsMatchingWithinTolerance())
     {
