@@ -5,6 +5,7 @@
 #include <vtkTimeStamp.h>
 #include <vtkSmartPointer.h>
 
+class vtkAbstractTransform;
 class vtkDoubleArray;
 class vtkPoints;
 class vtkPolyData;
@@ -98,7 +99,17 @@ class VTK_SLICER_FIDUCIALREGISTRATIONWIZARD_MODULE_LOGIC_EXPORT vtkPointMatcher 
     bool InputsValid( bool verbose=true );
 
     // Logic helpers
+    // all the bool methods below return 'true' on successful registration
+    // otherwise they return false
+    bool MatchPointsExhaustively();
+    bool MatchPointsGenerally();
+    bool MatchPointsGenerallyUsingSubsample();
+    bool MatchPointsGenerallyUsingICP();
+
     void HandleMatchFailure(); // copies input point list to output point list. Used when matching is otherwise impossible.
+
+    double Distance2ForOutlierRemovalAfterInitialRegistration();
+
     static void UpdateBestMatchingForSubsetsOfPoints( int minimumSubsetSize, int maximumSubsetSize,
                                                       vtkPoints* unmatchedPointList1, vtkPoints* unmatchedPointList2,
                                                       double ambiguityDistance, bool& matchingAmbiguous, 
@@ -113,7 +124,12 @@ class VTK_SLICER_FIDUCIALREGISTRATIONWIZARD_MODULE_LOGIC_EXPORT vtkPointMatcher 
                                                      double ambiguityDistance, bool& matchingAmbiguous, 
                                                      double& computedDistanceError,
                                                      vtkPoints* outputMatchedPointList1, vtkPoints* outputMatchedPointList2 );
+    static void UpdateAmbiguityFlag( double currentDistance, double& bestDistance, double ambiguityDistance, bool& ambiguityFlag );
     static double ComputeRegistrationRootMeanSquareError( vtkPoints* sourcePoints, vtkPoints* targetPoints );
+    static bool ComputePointMatchingBasedOnRegistration( vtkAbstractTransform* registration,
+                                                         vtkPoints* unmatchedSourcePoints, vtkPoints* unmatchedTargetPoints,
+                                                         double thresholdDistance2ForOutlier, unsigned int maximumOutlierCount,
+                                                         vtkPoints* matchedSourcePoints, vtkPoints* matchedTargetPoints );
     static double ComputeMaximumDistanceInPointSet( vtkPoints* points );
     static void CopyFirstNPoints( vtkPoints* inputList, vtkPoints* outputList, int n );
     static void ReorderPointsAccordingToUniqueGeometry( vtkPoints* inputUnsortedPointList, vtkPoints* outputSortedPointList );

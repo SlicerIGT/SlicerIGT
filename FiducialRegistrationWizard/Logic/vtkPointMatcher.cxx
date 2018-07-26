@@ -2,10 +2,13 @@
 #include "vtkPointDistanceMatrix.h"
 #include "vtkCombinatoricGenerator.h"
 #include <vtkDoubleArray.h>
+#include <vtkGeneralTransform.h>
+#include <vtkIterativeClosestPointTransform.h>
 #include <vtkLandmarkTransform.h>
 #include <vtkPointLocator.h>
 #include <vtkPolyData.h>
 #include <vtkSmartPointer.h>
+#include <vtkTransform.h>
 #include <vtkTransformPolyDataFilter.h>
 #include <vtkMath.h>
 
@@ -179,150 +182,287 @@ void vtkPointMatcher::Update()
   this->OutputSourcePoints->Reset();
   this->OutputTargetPoints->Reset();
 
-  // check number of points, make sure point lists are already similar/same sizes
   int numberOfSourcePoints = this->InputSourcePoints->GetNumberOfPoints();
   int numberOfTargetPoints = this->InputTargetPoints->GetNumberOfPoints();
-
   unsigned int differenceInPointListSizes = abs( numberOfSourcePoints - numberOfTargetPoints );
-  if ( differenceInPointListSizes > this->MaximumDifferenceInNumberOfPoints )
+  bool matchingSuccessful = false;
+  if ( numberOfSourcePoints < MINIMUM_NUMBER_OF_POINTS_NEEDED_TO_MATCH ||
+       numberOfTargetPoints < MINIMUM_NUMBER_OF_POINTS_NEEDED_TO_MATCH ||
+       differenceInPointListSizes > this->MaximumDifferenceInNumberOfPoints )
+  {
+    // failure cases
+    matchingSuccessful = false;
+  }
+  else if ( numberOfSourcePoints <= MAXIMUM_NUMBER_OF_POINTS_NEEDED_FOR_DETERMINISTIC_MATCH &&
+            numberOfTargetPoints <= MAXIMUM_NUMBER_OF_POINTS_NEEDED_FOR_DETERMINISTIC_MATCH )
+  {
+    matchingSuccessful = this->MatchPointsExhaustively();
+  }
+  else
+  {
+    matchingSuccessful = this->MatchPointsGenerally();
+  }
+
+  if ( !matchingSuccessful )
   {
     this->HandleMatchFailure();
-    return;
   }
-
-  int smallerPointListSize = vtkMath::Min( numberOfSourcePoints, numberOfTargetPoints );
-  if ( numberOfSourcePoints <= MAXIMUM_NUMBER_OF_POINTS_NEEDED_FOR_DETERMINISTIC_MATCH &&
-       numberOfTargetPoints <= MAXIMUM_NUMBER_OF_POINTS_NEEDED_FOR_DETERMINISTIC_MATCH )
-  {
-    // point set is small enough for brute force approach
-    int minimumSubsetSize = vtkMath::Max( ( smallerPointListSize - this->MaximumDifferenceInNumberOfPoints ), ( unsigned int )MINIMUM_NUMBER_OF_POINTS_NEEDED_TO_MATCH );
-    int maximumSubsetSize = smallerPointListSize;
-    vtkPointMatcher::UpdateBestMatchingForSubsetsOfPoints( minimumSubsetSize, maximumSubsetSize,
-                                                           this->InputSourcePoints, this->InputTargetPoints,
-                                                           this->AmbiguityDistanceError, this->MatchingAmbiguous,
-                                                           this->ComputedDistanceError, this->TolerableDistanceError,
-                                                           this->OutputSourcePoints, this->OutputTargetPoints );
-  }
-  else // brute force is unsuitable
-  {
-    int numberOfPointsToUseForInitialRegistration = vtkMath::Min( smallerPointListSize, MAXIMUM_NUMBER_OF_POINTS_NEEDED_FOR_DETERMINISTIC_MATCH );
-
-    // Select a subset of points according to the 'uniqueness' of their geometry relative to other points
-    vtkSmartPointer< vtkPoints > unmatchedSourcePointsSortedByUniqueness = vtkSmartPointer< vtkPoints >::New();
-    vtkPointMatcher::ReorderPointsAccordingToUniqueGeometry( this->InputSourcePoints, unmatchedSourcePointsSortedByUniqueness );
-    vtkSmartPointer< vtkPoints > unmatchedReducedSourcePoints = vtkSmartPointer< vtkPoints >::New();
-    vtkPointMatcher::CopyFirstNPoints( unmatchedSourcePointsSortedByUniqueness, unmatchedReducedSourcePoints, numberOfPointsToUseForInitialRegistration );
-    
-    vtkSmartPointer< vtkPoints > unmatchedTargetPointsSortedByUniqueness = vtkSmartPointer< vtkPoints >::New();
-    vtkPointMatcher::ReorderPointsAccordingToUniqueGeometry( this->InputTargetPoints, unmatchedTargetPointsSortedByUniqueness );
-    vtkSmartPointer< vtkPoints > unmatchedReducedTargetPoints = vtkSmartPointer< vtkPoints >::New();
-    vtkPointMatcher::CopyFirstNPoints( unmatchedTargetPointsSortedByUniqueness, unmatchedReducedTargetPoints, numberOfPointsToUseForInitialRegistration );
-
-    // Compute correspondence between those points
-    int minimumSubsetSize = vtkMath::Max( ( numberOfPointsToUseForInitialRegistration - this->MaximumDifferenceInNumberOfPoints ), ( unsigned int )MINIMUM_NUMBER_OF_POINTS_NEEDED_TO_MATCH );
-    int maximumSubsetSize = numberOfPointsToUseForInitialRegistration;
-    vtkSmartPointer< vtkPoints > initiallyMatchedReducedSourcePoints = vtkSmartPointer< vtkPoints >::New();
-    vtkSmartPointer< vtkPoints > initiallyMatchedReducedTargetPoints = vtkSmartPointer< vtkPoints >::New();
-    double bestError = VTK_DOUBLE_MAX;
-    double toleranceError = 0.0; // will keep searching for the best fit, no early exits here
-    vtkPointMatcher::UpdateBestMatchingForSubsetsOfPoints( minimumSubsetSize, maximumSubsetSize,
-                                                           unmatchedReducedSourcePoints, unmatchedReducedTargetPoints,
-                                                           this->AmbiguityDistanceError, this->MatchingAmbiguous,
-                                                           bestError, toleranceError,
-                                                           initiallyMatchedReducedSourcePoints, initiallyMatchedReducedTargetPoints );
-
-    // Compute initial registration based on this correspondence
-    vtkSmartPointer< vtkLandmarkTransform > initialRegistrationTransform = vtkSmartPointer< vtkLandmarkTransform >::New();
-    initialRegistrationTransform->SetSourceLandmarks( initiallyMatchedReducedSourcePoints );
-    initialRegistrationTransform->SetTargetLandmarks( initiallyMatchedReducedTargetPoints );
-    initialRegistrationTransform->SetModeToRigidBody();
-    initiallyMatchedReducedTargetPoints->Modified();
-    initialRegistrationTransform->Update();
-
-    vtkSmartPointer< vtkPolyData > unmatchedSourcePointsPolyData = vtkSmartPointer< vtkPolyData >::New();
-    unmatchedSourcePointsPolyData->SetPoints( this->InputSourcePoints );
-    
-    vtkSmartPointer< vtkTransformPolyDataFilter > initialRegistrationTransformFilter = vtkSmartPointer< vtkTransformPolyDataFilter >::New();
-    initialRegistrationTransformFilter->SetTransform( initialRegistrationTransform );
-    initialRegistrationTransformFilter->SetInputData( unmatchedSourcePointsPolyData );
-    initialRegistrationTransformFilter->Update();
-
-    // get the transformed source points
-    vtkPolyData* initialRegistrationSourcePointsPolyData = vtkPolyData::SafeDownCast( initialRegistrationTransformFilter->GetOutput() );
-    if ( initialRegistrationSourcePointsPolyData == NULL )
-    {
-      vtkGenericWarningMacro( "Initially registered point list poly data is null." );
-      return;
-    }
-
-    vtkPoints* initialRegistrationSourcePoints = initialRegistrationSourcePointsPolyData->GetPoints();
-    if ( initialRegistrationSourcePoints == NULL )
-    {
-      vtkGenericWarningMacro( "Initially registered point list is null." );
-      return;
-    }
-
-    // create poly data from target points
-    vtkSmartPointer< vtkCellArray > targetVertices = vtkSmartPointer< vtkCellArray >::New();
-    for ( int targetPointIndex = 0; targetPointIndex < numberOfTargetPoints; targetPointIndex++ )
-    {
-      vtkIdType id[ 1 ];
-      id[ 0 ] = ( vtkIdType ) targetPointIndex;
-      targetVertices->InsertNextCell( 1, id );
-    }
-    vtkSmartPointer< vtkPolyData > targetPolyData = vtkSmartPointer< vtkPolyData >::New();
-    targetPolyData->SetPoints( this->InputTargetPoints );
-    targetPolyData->SetVerts( targetVertices );
-
-    // create the matched list, while removing outliers
-    vtkSmartPointer< vtkPoints > matchedSourcePoints = vtkSmartPointer< vtkPoints >::New();
-    vtkSmartPointer< vtkPoints > matchedTargetPoints = vtkSmartPointer< vtkPoints >::New();
-    vtkSmartPointer< vtkPointLocator > pointLocator = vtkSmartPointer< vtkPointLocator >::New();
-    pointLocator->SetDataSet( targetPolyData );
-    pointLocator->BuildLocator();
-    double thresholdDistanceMultiplier = 3; // Necessary to be a bit lenient, the initial registration is not very accurate. 3 is chosen arbitrarily
-    double thresholdDistance2ForOutlier = pow( this->TolerableDistanceError, 2 ) * thresholdDistanceMultiplier;
-    int outlierCount = 0;
-    for ( int sourcePointIndex = 0; sourcePointIndex < numberOfSourcePoints; sourcePointIndex++ )
-    {
-      double initialRegistrationSourcePoint[ 3 ];
-      initialRegistrationSourcePoints->GetPoint( sourcePointIndex, initialRegistrationSourcePoint );
-      vtkIdType matchedTargetPointIndex = pointLocator->FindClosestPoint( initialRegistrationSourcePoint );
-      double matchedTargetPoint[ 3 ];
-      this->InputTargetPoints->GetPoint( matchedTargetPointIndex, matchedTargetPoint );
-      double distance2 = vtkMath::Distance2BetweenPoints( initialRegistrationSourcePoint, matchedTargetPoint );
-      if ( distance2 < thresholdDistance2ForOutlier )
-      {
-        matchedTargetPoints->InsertNextPoint( matchedTargetPoint );
-        double sourcePoint[ 3 ];
-        this->InputSourcePoints->GetPoint( sourcePointIndex, sourcePoint );
-        matchedSourcePoints->InsertNextPoint( sourcePoint );
-      }
-      else
-      {
-        outlierCount += 1;
-      }
-      if ( outlierCount > ( int )this->MaximumDifferenceInNumberOfPoints )
-      {
-        this->HandleMatchFailure();
-        return;
-      }
-    }
-
-    // if there are not enough points in the output after outlier removal, then this is also a failure
-    int numberOfMatchedPoints = matchedSourcePoints->GetNumberOfPoints();
-    if ( numberOfMatchedPoints < MINIMUM_NUMBER_OF_POINTS_NEEDED_TO_MATCH )
-    {
-      this->HandleMatchFailure();
-      return;
-    }
-
-    this->OutputSourcePoints->DeepCopy( matchedSourcePoints );
-    this->OutputTargetPoints->DeepCopy( matchedTargetPoints );
-
-    this->ComputedDistanceError = vtkPointMatcher::ComputeRegistrationRootMeanSquareError( this->OutputSourcePoints, this->OutputTargetPoints );
-  }
+  
   this->OutputChangedTime.Modified();
+}
+
+//------------------------------------------------------------------------------
+bool vtkPointMatcher::MatchPointsExhaustively()
+{
+  int numberOfSourcePoints = this->InputSourcePoints->GetNumberOfPoints();
+  int numberOfTargetPoints = this->InputTargetPoints->GetNumberOfPoints();
+  int smallerPointListSize = vtkMath::Min( numberOfSourcePoints, numberOfTargetPoints );
+  int minimumSubsetSize = vtkMath::Max( ( smallerPointListSize - this->MaximumDifferenceInNumberOfPoints ), ( unsigned int )MINIMUM_NUMBER_OF_POINTS_NEEDED_TO_MATCH );
+  int maximumSubsetSize = smallerPointListSize;
+  vtkPointMatcher::UpdateBestMatchingForSubsetsOfPoints( minimumSubsetSize, maximumSubsetSize,
+                                                          this->InputSourcePoints, this->InputTargetPoints,
+                                                          this->AmbiguityDistanceError, this->MatchingAmbiguous,
+                                                          this->ComputedDistanceError, this->TolerableDistanceError,
+                                                          this->OutputSourcePoints, this->OutputTargetPoints );
+  return true; // search is exhaustive, so it *will* find the best match
+}
+
+//------------------------------------------------------------------------------
+bool vtkPointMatcher::MatchPointsGenerally()
+{
+  bool matchingSuccessful = false;
+
+  // try any algorithms here in turn until one is successful
+  matchingSuccessful = this->MatchPointsGenerallyUsingSubsample();
+  if ( matchingSuccessful )
+  {
+    return true;
+  }
+
+  matchingSuccessful = this->MatchPointsGenerallyUsingICP();
+  if ( matchingSuccessful )
+  {
+    return true;
+  }
+
+  return false;
+}
+
+//------------------------------------------------------------------------------
+bool vtkPointMatcher::MatchPointsGenerallyUsingSubsample()
+{
+  // Select a subset of points according to the 'uniqueness' of their geometry relative to other points
+  int numberOfSourcePoints = this->InputSourcePoints->GetNumberOfPoints();
+  int numberOfTargetPoints = this->InputTargetPoints->GetNumberOfPoints();
+  int smallerPointListSize = vtkMath::Min( numberOfSourcePoints, numberOfTargetPoints );
+  int numberOfPointsToUseForInitialRegistration = vtkMath::Min( smallerPointListSize, MAXIMUM_NUMBER_OF_POINTS_NEEDED_FOR_DETERMINISTIC_MATCH );
+
+  vtkSmartPointer< vtkPoints > unmatchedSourcePointsSortedByUniqueness = vtkSmartPointer< vtkPoints >::New();
+  vtkPointMatcher::ReorderPointsAccordingToUniqueGeometry( this->InputSourcePoints, unmatchedSourcePointsSortedByUniqueness );
+  vtkSmartPointer< vtkPoints > unmatchedReducedSourcePoints = vtkSmartPointer< vtkPoints >::New();
+  vtkPointMatcher::CopyFirstNPoints( unmatchedSourcePointsSortedByUniqueness, unmatchedReducedSourcePoints, numberOfPointsToUseForInitialRegistration );
+  
+  vtkSmartPointer< vtkPoints > unmatchedTargetPointsSortedByUniqueness = vtkSmartPointer< vtkPoints >::New();
+  vtkPointMatcher::ReorderPointsAccordingToUniqueGeometry( this->InputTargetPoints, unmatchedTargetPointsSortedByUniqueness );
+  vtkSmartPointer< vtkPoints > unmatchedReducedTargetPoints = vtkSmartPointer< vtkPoints >::New();
+  vtkPointMatcher::CopyFirstNPoints( unmatchedTargetPointsSortedByUniqueness, unmatchedReducedTargetPoints, numberOfPointsToUseForInitialRegistration );
+
+  // Compute correspondence between those points
+  int minimumSubsetSize = vtkMath::Max( ( numberOfPointsToUseForInitialRegistration - this->MaximumDifferenceInNumberOfPoints ), ( unsigned int )MINIMUM_NUMBER_OF_POINTS_NEEDED_TO_MATCH );
+  int maximumSubsetSize = numberOfPointsToUseForInitialRegistration;
+  vtkSmartPointer< vtkPoints > initiallyMatchedReducedSourcePoints = vtkSmartPointer< vtkPoints >::New();
+  vtkSmartPointer< vtkPoints > initiallyMatchedReducedTargetPoints = vtkSmartPointer< vtkPoints >::New();
+  double bestDistanceError = VTK_DOUBLE_MAX;
+  double tolerableDistanceErrorForSubsets = 0.0; // will keep searching for the best fit, no early exits when dealing with subsets
+  bool matchingAmbiguous = false;
+  vtkPointMatcher::UpdateBestMatchingForSubsetsOfPoints( minimumSubsetSize, maximumSubsetSize,
+                                                          unmatchedReducedSourcePoints, unmatchedReducedTargetPoints,
+                                                          this->AmbiguityDistanceError, matchingAmbiguous,
+                                                          bestDistanceError, tolerableDistanceErrorForSubsets,
+                                                          initiallyMatchedReducedSourcePoints, initiallyMatchedReducedTargetPoints );
+
+  // Compute initial registration based on this correspondence
+  vtkSmartPointer< vtkLandmarkTransform > initialRegistrationTransform = vtkSmartPointer< vtkLandmarkTransform >::New();
+  initialRegistrationTransform->SetSourceLandmarks( initiallyMatchedReducedSourcePoints );
+  initialRegistrationTransform->SetTargetLandmarks( initiallyMatchedReducedTargetPoints );
+  initialRegistrationTransform->SetModeToRigidBody();
+  initiallyMatchedReducedTargetPoints->Modified();
+  initialRegistrationTransform->Update();
+
+  vtkSmartPointer< vtkPoints > matchedSourcePoints = vtkSmartPointer< vtkPoints >::New();
+  vtkSmartPointer< vtkPoints > matchedTargetPoints = vtkSmartPointer< vtkPoints >::New();
+  double thresholdDistance2ForOutlier = this->Distance2ForOutlierRemovalAfterInitialRegistration();
+  bool matchingSuccessful = vtkPointMatcher::ComputePointMatchingBasedOnRegistration( initialRegistrationTransform,
+                                                                                      this->InputSourcePoints, this->InputTargetPoints,
+                                                                                      thresholdDistance2ForOutlier, this->MaximumDifferenceInNumberOfPoints,
+                                                                                      matchedSourcePoints, matchedTargetPoints );
+  if ( !matchingSuccessful )
+  {
+    return false;
+  }
+
+  double distanceError = vtkPointMatcher::ComputeRegistrationRootMeanSquareError( matchedSourcePoints, matchedTargetPoints );
+  if ( distanceError > this->TolerableDistanceError )
+  {
+    return false;
+  }
+
+  this->MatchingAmbiguous = matchingAmbiguous;
+  this->ComputedDistanceError = distanceError;
+  this->OutputSourcePoints->DeepCopy( matchedSourcePoints );
+  this->OutputTargetPoints->DeepCopy( matchedTargetPoints );
+  return true;
+}
+
+//------------------------------------------------------------------------------
+bool vtkPointMatcher::MatchPointsGenerallyUsingICP()
+{
+  // try ICP from several different starting orientations
+  // represented as axis-angle combinations
+  const int numberOfAxes = 13;
+  const double axes[ 39 ] = // 13 axes
+  { 1.0, 0.0, 0.0,
+    0.0, 1.0, 0.0,
+    0.0, 0.0, 1.0,
+    0.7071, 0.7071, 0.0,
+    0.7071, -0.7071, 0.0,
+    0.0, 0.7071, 0.7071,
+    0.0, 0.7071, -0.7071,
+    0.7071, 0.0, 0.7071,
+    0.7071, 0.0, -0.7071,
+    0.5745, 0.5745, 0.5745,
+    0.5745, -0.5745, 0.5745,
+    0.5745, -0.5745, -0.5745,
+    0.5745, 0.5745, -0.5745
+  };
+  const int numberOfAngles = 8;
+  const double angles[ 8 ] = // 8 angles
+  {
+    0,
+    45,
+    90,
+    135,
+    180,
+    225,
+    270,
+    315
+  };
+
+  // ICP tends to fail with the default float representation of vtkPoints
+  // http://vtk.1045678.n5.nabble.com/ICP-Error-vtkMath-Jacobi-Error-extracting-eigenfunctions-td5441946.html
+  // So copy to a vtkPoints that uses double storage instead - should hopefully reduce the frequency of failure
+  // If stability/warning message reduction is a priority then the vtk implementation of ICP can be 
+  // abandoned in favour of a custom one.
+  
+  vtkSmartPointer< vtkPoints > unmatchedSourcePoints = vtkSmartPointer< vtkPoints >::New();
+  unmatchedSourcePoints->SetDataTypeToDouble();
+  vtkSmartPointer< vtkCellArray > sourceVertices = vtkSmartPointer< vtkCellArray >::New();
+  int numberOfSourcePoints = this->InputSourcePoints->GetNumberOfPoints();
+  for ( int sourcePointIndex = 0; sourcePointIndex < numberOfSourcePoints; sourcePointIndex++ )
+  {
+    double point[ 3 ];
+    this->InputSourcePoints->GetPoint( sourcePointIndex, point );
+    unmatchedSourcePoints->InsertNextPoint( point );
+    vtkIdType id[ 1 ];
+    id[ 0 ] = ( vtkIdType ) sourcePointIndex;
+    sourceVertices->InsertNextCell( 1, id );
+  }
+
+  vtkSmartPointer< vtkPolyData > unmatchedSourcePointsPolyData = vtkSmartPointer< vtkPolyData >::New();
+  unmatchedSourcePointsPolyData->SetPoints( unmatchedSourcePoints );
+  unmatchedSourcePointsPolyData->SetVerts( sourceVertices );
+
+  vtkSmartPointer< vtkPoints > unmatchedTargetPoints = vtkSmartPointer< vtkPoints >::New();
+  unmatchedTargetPoints->SetDataTypeToDouble();
+  vtkSmartPointer< vtkCellArray > targetVertices = vtkSmartPointer< vtkCellArray >::New();
+  int numberOfTargetPoints = this->InputTargetPoints->GetNumberOfPoints();
+  for ( int targetPointIndex = 0; targetPointIndex < numberOfTargetPoints; targetPointIndex++ )
+  {
+    double point[ 3 ];
+    this->InputTargetPoints->GetPoint( targetPointIndex, point );
+    unmatchedTargetPoints->InsertNextPoint( point );
+    vtkIdType id[ 1 ];
+    id[ 0 ] = ( vtkIdType ) targetPointIndex;
+    targetVertices->InsertNextCell( 1, id );
+  }
+
+  vtkSmartPointer< vtkPolyData > unmatchedTargetPointsPolyData = vtkSmartPointer< vtkPolyData >::New();
+  unmatchedTargetPointsPolyData->SetPoints( unmatchedTargetPoints );
+  unmatchedTargetPointsPolyData->SetVerts( targetVertices );
+
+  // re-used variables
+  vtkSmartPointer< vtkTransform > initialAlignmentTransform = vtkSmartPointer< vtkTransform >::New();
+  vtkSmartPointer< vtkTransformPolyDataFilter > initialAlignmentransformFilter = vtkSmartPointer< vtkTransformPolyDataFilter >::New();
+  vtkSmartPointer< vtkIterativeClosestPointTransform > icpTransform = vtkSmartPointer< vtkIterativeClosestPointTransform >::New();
+  icpTransform->GetLandmarkTransform()->SetModeToRigidBody();
+  icpTransform->StartByMatchingCentroidsOn();
+  vtkSmartPointer< vtkGeneralTransform > concatenatedAlignment = vtkSmartPointer< vtkGeneralTransform >::New();
+  double thresholdDistance2ForOutlier = this->Distance2ForOutlierRemovalAfterInitialRegistration();
+  vtkSmartPointer< vtkPoints > matchedSourcePoints = vtkSmartPointer< vtkPoints >::New();
+  vtkSmartPointer< vtkPoints > matchedTargetPoints = vtkSmartPointer< vtkPoints >::New();
+  vtkSmartPointer< vtkPoints > bestMatchedSourcePoints = vtkSmartPointer< vtkPoints >::New();
+  vtkSmartPointer< vtkPoints > bestMatchedTargetPoints = vtkSmartPointer< vtkPoints >::New();
+  double bestDistanceError = VTK_DOUBLE_MAX;
+  bool matchingAmbiguous;
+  for ( int axisIndex = 0; axisIndex < numberOfAxes; axisIndex++ )
+  {
+    double axis[ 3 ];
+    axis[ 0 ] = axes[ axisIndex * 3 ];
+    axis[ 1 ] = axes[ axisIndex * 3 + 1 ];
+    axis[ 2 ] = axes[ axisIndex * 3 + 2 ];
+    for ( int angleIndex = 0; angleIndex < numberOfAngles; angleIndex++ )
+    {
+      double angle = angles[ angleIndex ];
+      initialAlignmentTransform->Identity();
+      initialAlignmentTransform->RotateWXYZ( angle, axis );
+  
+      initialAlignmentransformFilter->SetTransform( initialAlignmentTransform );
+      initialAlignmentransformFilter->SetInputData( unmatchedSourcePointsPolyData );
+      initialAlignmentransformFilter->Update();
+
+      vtkPolyData* initiallyAlignedSourcePointsPolyData = vtkPolyData::SafeDownCast( initialAlignmentransformFilter->GetOutput() );
+      if ( initiallyAlignedSourcePointsPolyData == NULL )
+      {
+        vtkGenericWarningMacro( "Initially aligned points poly data is null." );
+        return false;
+      }
+
+      icpTransform->SetSource( initiallyAlignedSourcePointsPolyData );
+      icpTransform->SetTarget( unmatchedTargetPointsPolyData );
+      icpTransform->Update();
+
+      concatenatedAlignment->Identity();
+      concatenatedAlignment->Concatenate( initialAlignmentTransform );
+      concatenatedAlignment->Concatenate( icpTransform );
+      bool matchingSuccessful = vtkPointMatcher::ComputePointMatchingBasedOnRegistration( concatenatedAlignment,
+                                                                                          this->InputSourcePoints, this->InputTargetPoints,
+                                                                                          thresholdDistance2ForOutlier, this->MaximumDifferenceInNumberOfPoints,
+                                                                                          matchedSourcePoints, matchedTargetPoints );
+      if ( !matchingSuccessful )
+      {
+        continue;
+      }
+
+      double currentDistanceError = vtkPointMatcher::ComputeRegistrationRootMeanSquareError( matchedSourcePoints, matchedTargetPoints );
+      vtkPointMatcher::UpdateAmbiguityFlag( currentDistanceError, bestDistanceError, this->AmbiguityDistanceError, matchingAmbiguous );
+      if ( currentDistanceError == bestDistanceError )
+      {
+        bestMatchedSourcePoints->DeepCopy( matchedSourcePoints );
+        bestMatchedTargetPoints->DeepCopy( matchedTargetPoints );
+      }
+    }
+  }
+
+  if ( bestDistanceError > this->TolerableDistanceError )
+  {
+    return false;
+  }
+  
+  this->MatchingAmbiguous = matchingAmbiguous;
+  this->ComputedDistanceError = bestDistanceError;
+  this->OutputSourcePoints->DeepCopy( bestMatchedSourcePoints );
+  this->OutputTargetPoints->DeepCopy( bestMatchedTargetPoints );
+  return true;
 }
 
 //------------------------------------------------------------------------------
@@ -383,10 +523,15 @@ void vtkPointMatcher::HandleMatchFailure()
 
   vtkPointMatcher::CopyFirstNPoints( this->InputSourcePoints, this->OutputSourcePoints, smallestNumberOfPoints );
   vtkPointMatcher::CopyFirstNPoints( this->InputTargetPoints, this->OutputTargetPoints, smallestNumberOfPoints );
-
   this->ComputedDistanceError = vtkPointMatcher::ComputeRegistrationRootMeanSquareError( this->OutputSourcePoints, this->OutputTargetPoints );
+}
 
-  this->OutputChangedTime.Modified();
+//------------------------------------------------------------------------------
+double vtkPointMatcher::Distance2ForOutlierRemovalAfterInitialRegistration()
+{
+  const double thresholdDistanceMultiplier = 3; // Necessary to be a bit lenient, the initial registration is not very accurate. 3 is chosen arbitrarily
+  double thresholdDistance2ForOutlier = pow( this->TolerableDistanceError, 2 ) * thresholdDistanceMultiplier;
+  return thresholdDistance2ForOutlier;
 }
 
 //------------------------------------------------------------------------------
@@ -631,60 +776,69 @@ void vtkPointMatcher::UpdateBestMatchingForSubsetOfPoints(
     }
     double distanceError = vtkPointMatcher::ComputeRegistrationRootMeanSquareError( sourceSubset, permutedTargetSubset );
 
-    // case analysis for setting MatchingAmbiguous:
-    // 1
-    // Error is better (lower) than the current best,
-    // but by less than Ambiguity Distance Error
-    // Result => MatchingAmbiguous should be set to true
-    //   - trivial justification
-    // 2
-    // Error is worse (higher) than the current best,
-    // but by less than Ambiguity Distance Error
-    // Result => MatchingAmbiguous should be set to true
-    //   - trivial justification
-    // 3
-    // Error is better (lower) than the current best,
-    // but by more than Ambiguity Distance Error
-    // Result => MatchingAmbiguous should be set to false.
-    //   - If there was a _previous_ error within Ambiguity Distance Error,
-    //     that would have become the best. Therefore there have not been
-    //     any _previous_ error within Ambiguity Distance Error.
-    //   - If _later_ there is a error within Ambiguity Distance Error,
-    //     then MatchingAmbiguous will be set to true by either case 1 or case 2.
-    //     Cases 1 and 2 will always catch an ambiguous matching, because the search is exhaustive.
-    // 4
-    // Error is worse (higher) than the current best,
-    // but by more than Ambiguity Distance Error
-    // Result => do nothing
-    //   - This result does not matter. It *cannot* be within Ambiguity Distance Error
-    //     of the overall (final) best error
-
-    // flag ambiguous if suitability within some threshold of the best result so far
-    double differenceComparedToBest = currentBestDistanceError - distanceError;
-    bool withinAmbiguityError = ( fabs( differenceComparedToBest ) <= ambiguityDistanceError );
-
-    // is this the best matching?
-    if ( distanceError < currentBestDistanceError )
+    vtkPointMatcher::UpdateAmbiguityFlag( distanceError, currentBestDistanceError, ambiguityDistanceError, matchingAmbiguous );
+    if ( distanceError == currentBestDistanceError )
     {
-      if ( withinAmbiguityError )
-      {
-        // case 1, described above
-        matchingAmbiguous = true;
-      }
-      else
-      {
-        // case 3, described above
-        matchingAmbiguous = false;
-      }
-      currentBestDistanceError = distanceError;
       outputMatchedSourcePoints->DeepCopy( sourceSubset );
       outputMatchedTargetPoints->DeepCopy( permutedTargetSubset );
     }
-    else if ( withinAmbiguityError )
+  }
+}
+
+//------------------------------------------------------------------------------
+void vtkPointMatcher::UpdateAmbiguityFlag( double currentDistance, double& bestDistance, double ambiguityDistance, bool& ambiguityFlag )
+{
+  // case analysis for setting MatchingAmbiguous:
+  // 1
+  // Error is better (lower) than the current best,
+  // but by less than Ambiguity Distance Error
+  // Result => MatchingAmbiguous should be set to true
+  //   - trivial justification
+  // 2
+  // Error is worse (higher) than the current best,
+  // but by less than Ambiguity Distance Error
+  // Result => MatchingAmbiguous should be set to true
+  //   - trivial justification
+  // 3
+  // Error is better (lower) than the current best,
+  // but by more than Ambiguity Distance Error
+  // Result => MatchingAmbiguous should be set to false.
+  //   - If there was a _previous_ error within Ambiguity Distance Error,
+  //     that would have become the best. Therefore there have not been
+  //     any _previous_ error within Ambiguity Distance Error.
+  //   - If _later_ there is a error within Ambiguity Distance Error,
+  //     then MatchingAmbiguous will be set to true by either case 1 or case 2.
+  //     Cases 1 and 2 will always catch an ambiguous matching, because the search is exhaustive.
+  // 4
+  // Error is worse (higher) than the current best,
+  // but by more than Ambiguity Distance Error
+  // Result => do nothing
+  //   - This result does not matter. It *cannot* be within Ambiguity Distance Error
+  //     of the overall (final) best error
+
+  // flag ambiguous if suitability within some threshold of the best result so far
+  double differenceComparedToBest = bestDistance - currentDistance;
+  bool withinAmbiguityError = ( fabs( differenceComparedToBest ) <= ambiguityDistance );
+
+  // is this the best matching?
+  if ( currentDistance < bestDistance )
+  {
+    if ( withinAmbiguityError )
     {
-      // case 2, described above
-      matchingAmbiguous = true;
+      // case 1, described above
+      ambiguityFlag = true;
     }
+    else
+    {
+      // case 3, described above
+      ambiguityFlag = false;
+    }
+    bestDistance = currentDistance;
+  }
+  else if ( withinAmbiguityError )
+  {
+    // case 2, described above
+    ambiguityFlag = true;
   }
 }
 
@@ -745,6 +899,124 @@ double vtkPointMatcher::ComputeRegistrationRootMeanSquareError( vtkPoints* sourc
   double meanOfSquaredDistances = sumOfSquaredDistances / numberOfPoints;
   double rootMeanSquareistanceErrors = sqrt( meanOfSquaredDistances );
   return rootMeanSquareistanceErrors;
+}
+
+//------------------------------------------------------------------------------
+bool vtkPointMatcher::ComputePointMatchingBasedOnRegistration( vtkAbstractTransform* registration,
+                                                               vtkPoints* unmatchedSourcePoints,
+                                                               vtkPoints* unmatchedTargetPoints,
+                                                               double thresholdDistance2ForOutlier,
+                                                               unsigned int maximumOutlierCount,
+                                                               vtkPoints* matchedSourcePoints,
+                                                               vtkPoints* matchedTargetPoints )
+{
+  if ( registration == NULL )
+  {
+    vtkGenericWarningMacro( "Registration is null." );
+    return false;
+  }
+
+  if ( unmatchedSourcePoints == NULL )
+  {
+    vtkGenericWarningMacro( "Unmatched source points are null." );
+    return false;
+  }
+
+  if ( unmatchedTargetPoints == NULL )
+  {
+    vtkGenericWarningMacro( "Unmatched target points are null." );
+    return false;
+  }
+
+  if ( matchedSourcePoints == NULL )
+  {
+    vtkGenericWarningMacro( "Matched source points are null." );
+    return false;
+  }
+
+  if ( matchedTargetPoints == NULL )
+  {
+    vtkGenericWarningMacro( "Matched target points are null." );
+    return false;
+  }
+
+  vtkSmartPointer< vtkPolyData > unmatchedSourcePointsPolyData = vtkSmartPointer< vtkPolyData >::New();
+  unmatchedSourcePointsPolyData->SetPoints( unmatchedSourcePoints );
+
+  vtkSmartPointer< vtkTransformPolyDataFilter > registrationTransformFilter = vtkSmartPointer< vtkTransformPolyDataFilter >::New();
+  registrationTransformFilter->SetTransform( registration );
+  registrationTransformFilter->SetInputData( unmatchedSourcePointsPolyData );
+  registrationTransformFilter->Update();
+
+  // get the transformed source points
+  vtkPolyData* registeredUnmatchedSourcePointsPolyData = vtkPolyData::SafeDownCast( registrationTransformFilter->GetOutput() );
+  if ( registeredUnmatchedSourcePointsPolyData == NULL )
+  {
+    vtkGenericWarningMacro( "Registered source points poly data is null." );
+    return false;
+  }
+
+  vtkPoints* registeredUnmatchedSourcePoints = registeredUnmatchedSourcePointsPolyData->GetPoints();
+  if ( registeredUnmatchedSourcePoints == NULL )
+  {
+    vtkGenericWarningMacro( "Registered source points are null." );
+    return false;
+  }
+
+  // create poly data from target points
+  vtkSmartPointer< vtkCellArray > unmatchedTargetVertices = vtkSmartPointer< vtkCellArray >::New();
+  int numberOfTargetPoints = unmatchedTargetPoints->GetNumberOfPoints();
+  for ( int targetPointIndex = 0; targetPointIndex < numberOfTargetPoints; targetPointIndex++ )
+  {
+    vtkIdType id[ 1 ];
+    id[ 0 ] = ( vtkIdType ) targetPointIndex;
+    unmatchedTargetVertices->InsertNextCell( 1, id );
+  }
+  vtkSmartPointer< vtkPolyData > unmatchedTargetPointsPolyData = vtkSmartPointer< vtkPolyData >::New();
+  unmatchedTargetPointsPolyData->SetPoints( unmatchedTargetPoints );
+  unmatchedTargetPointsPolyData->SetVerts( unmatchedTargetVertices );
+
+  // create the matched list, while removing outliers
+  matchedSourcePoints->Reset();
+  matchedTargetPoints->Reset();
+  vtkSmartPointer< vtkPointLocator > pointLocator = vtkSmartPointer< vtkPointLocator >::New();
+  pointLocator->SetDataSet( unmatchedTargetPointsPolyData );
+  pointLocator->BuildLocator();
+  int numberOfSourcePoints = registeredUnmatchedSourcePoints->GetNumberOfPoints();
+  unsigned int outlierCount = 0;
+  for ( int sourcePointIndex = 0; sourcePointIndex < numberOfSourcePoints; sourcePointIndex++ )
+  {
+    double registeredUnmatchedSourcePoint[ 3 ];
+    registeredUnmatchedSourcePoints->GetPoint( sourcePointIndex, registeredUnmatchedSourcePoint );
+    vtkIdType matchedTargetPointIndex = pointLocator->FindClosestPoint( registeredUnmatchedSourcePoint );
+    double matchedTargetPoint[ 3 ];
+    unmatchedTargetPoints->GetPoint( matchedTargetPointIndex, matchedTargetPoint );
+    double distance2 = vtkMath::Distance2BetweenPoints( registeredUnmatchedSourcePoint, matchedTargetPoint );
+    if ( distance2 < thresholdDistance2ForOutlier )
+    {
+      matchedTargetPoints->InsertNextPoint( matchedTargetPoint );
+      double matchedSourcePoint[ 3 ];
+      unmatchedSourcePoints->GetPoint( sourcePointIndex, matchedSourcePoint );
+      matchedSourcePoints->InsertNextPoint( matchedSourcePoint );
+    }
+    else
+    {
+      outlierCount += 1;
+    }
+    if ( outlierCount > maximumOutlierCount )
+    {
+      return false;
+    }
+  }
+
+  // if there are not enough points in the output after outlier removal, then this is not a valid solution
+  int numberOfMatchedPoints = matchedSourcePoints->GetNumberOfPoints();
+  if ( numberOfMatchedPoints < MINIMUM_NUMBER_OF_POINTS_NEEDED_TO_MATCH )
+  {
+    return false;
+  }
+  
+  return true;
 }
 
 //------------------------------------------------------------------------------
