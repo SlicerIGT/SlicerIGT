@@ -289,10 +289,41 @@ bool vtkPointMatcher::MatchPointsGenerallyUsingSubsample()
   initiallyMatchedReducedTargetPoints->Modified();
   initialRegistrationTransform->Update();
 
+  vtkSmartPointer< vtkPolyData > unmatchedSourcePointsPolyData = vtkSmartPointer< vtkPolyData >::New();
+  vtkPointMatcher::GeneratePolyDataFromPoints( this->InputSourcePoints, unmatchedSourcePointsPolyData );
+
+  vtkSmartPointer< vtkTransformPolyDataFilter > initialRegistrationTransformFilter = vtkSmartPointer< vtkTransformPolyDataFilter >::New();
+  initialRegistrationTransformFilter->SetTransform( initialRegistrationTransform );
+  initialRegistrationTransformFilter->SetInputData( unmatchedSourcePointsPolyData );
+  initialRegistrationTransformFilter->Update();
+
+  vtkPolyData* initiallyRegisteredSourcePointsPolyData = vtkPolyData::SafeDownCast( initialRegistrationTransformFilter->GetOutput() );
+  if ( initiallyRegisteredSourcePointsPolyData == NULL )
+  {
+    vtkWarningMacro( "Initially registered source points poly data is null." );
+    return false;
+  }
+
+  vtkSmartPointer< vtkPolyData > unmatchedTargetPointsPolyData = vtkSmartPointer< vtkPolyData >::New();
+  vtkPointMatcher::GeneratePolyDataFromPoints( this->InputTargetPoints, unmatchedTargetPointsPolyData );
+
+  // Do some ICP to refine the result
+  vtkSmartPointer< vtkIterativeClosestPointTransform > icpTransform = vtkSmartPointer< vtkIterativeClosestPointTransform >::New();
+  icpTransform->GetLandmarkTransform()->SetModeToRigidBody();
+  icpTransform->StartByMatchingCentroidsOn();
+  icpTransform->SetSource( initiallyRegisteredSourcePointsPolyData );
+  icpTransform->SetTarget( unmatchedTargetPointsPolyData );
+  icpTransform->Update();
+
+  vtkSmartPointer< vtkGeneralTransform > concatenatedAlignment = vtkSmartPointer< vtkGeneralTransform >::New();
+  concatenatedAlignment->Identity();
+  concatenatedAlignment->Concatenate( initialRegistrationTransform );
+  concatenatedAlignment->Concatenate( icpTransform );
+
   vtkSmartPointer< vtkPoints > matchedSourcePoints = vtkSmartPointer< vtkPoints >::New();
   vtkSmartPointer< vtkPoints > matchedTargetPoints = vtkSmartPointer< vtkPoints >::New();
   double thresholdDistance2ForOutlier = this->Distance2ForOutlierRemovalAfterInitialRegistration();
-  bool matchingSuccessful = vtkPointMatcher::ComputePointMatchingBasedOnRegistration( initialRegistrationTransform,
+  bool matchingSuccessful = vtkPointMatcher::ComputePointMatchingBasedOnRegistration( concatenatedAlignment,
                                                                                       this->InputSourcePoints, this->InputTargetPoints,
                                                                                       thresholdDistance2ForOutlier, this->MaximumDifferenceInNumberOfPoints,
                                                                                       matchedSourcePoints, matchedTargetPoints );
@@ -348,47 +379,21 @@ bool vtkPointMatcher::MatchPointsGenerallyUsingICP()
     315
   };
 
-  // ICP tends to fail with the default float representation of vtkPoints
-  // http://vtk.1045678.n5.nabble.com/ICP-Error-vtkMath-Jacobi-Error-extracting-eigenfunctions-td5441946.html
-  // So copy to a vtkPoints that uses double storage instead - should hopefully reduce the frequency of failure
-  // If stability/warning message reduction is a priority then the vtk implementation of ICP can be 
-  // abandoned in favour of a custom one.
-  
-  vtkSmartPointer< vtkPoints > unmatchedSourcePoints = vtkSmartPointer< vtkPoints >::New();
-  unmatchedSourcePoints->SetDataTypeToDouble();
-  vtkSmartPointer< vtkCellArray > sourceVertices = vtkSmartPointer< vtkCellArray >::New();
-  int numberOfSourcePoints = this->InputSourcePoints->GetNumberOfPoints();
-  for ( int sourcePointIndex = 0; sourcePointIndex < numberOfSourcePoints; sourcePointIndex++ )
-  {
-    double point[ 3 ];
-    this->InputSourcePoints->GetPoint( sourcePointIndex, point );
-    unmatchedSourcePoints->InsertNextPoint( point );
-    vtkIdType id[ 1 ];
-    id[ 0 ] = ( vtkIdType ) sourcePointIndex;
-    sourceVertices->InsertNextCell( 1, id );
-  }
-
   vtkSmartPointer< vtkPolyData > unmatchedSourcePointsPolyData = vtkSmartPointer< vtkPolyData >::New();
-  unmatchedSourcePointsPolyData->SetPoints( unmatchedSourcePoints );
-  unmatchedSourcePointsPolyData->SetVerts( sourceVertices );
-
-  vtkSmartPointer< vtkPoints > unmatchedTargetPoints = vtkSmartPointer< vtkPoints >::New();
-  unmatchedTargetPoints->SetDataTypeToDouble();
-  vtkSmartPointer< vtkCellArray > targetVertices = vtkSmartPointer< vtkCellArray >::New();
-  int numberOfTargetPoints = this->InputTargetPoints->GetNumberOfPoints();
-  for ( int targetPointIndex = 0; targetPointIndex < numberOfTargetPoints; targetPointIndex++ )
+  bool polyDataGenerated = vtkPointMatcher::GeneratePolyDataFromPoints( this->InputSourcePoints, unmatchedSourcePointsPolyData );
+  if ( !polyDataGenerated )
   {
-    double point[ 3 ];
-    this->InputTargetPoints->GetPoint( targetPointIndex, point );
-    unmatchedTargetPoints->InsertNextPoint( point );
-    vtkIdType id[ 1 ];
-    id[ 0 ] = ( vtkIdType ) targetPointIndex;
-    targetVertices->InsertNextCell( 1, id );
+    vtkGenericWarningMacro( "Unable to generate poly data from source points" );
+    return false;
   }
 
   vtkSmartPointer< vtkPolyData > unmatchedTargetPointsPolyData = vtkSmartPointer< vtkPolyData >::New();
-  unmatchedTargetPointsPolyData->SetPoints( unmatchedTargetPoints );
-  unmatchedTargetPointsPolyData->SetVerts( targetVertices );
+  polyDataGenerated = vtkPointMatcher::GeneratePolyDataFromPoints( this->InputTargetPoints, unmatchedTargetPointsPolyData );
+  if ( !polyDataGenerated )
+  {
+    vtkGenericWarningMacro( "Unable to generate poly data from target points" );
+    return false;
+  }
 
   // re-used variables
   vtkSmartPointer< vtkTransform > initialAlignmentTransform = vtkSmartPointer< vtkTransform >::New();
@@ -963,18 +968,13 @@ bool vtkPointMatcher::ComputePointMatchingBasedOnRegistration( vtkAbstractTransf
     return false;
   }
 
-  // create poly data from target points
-  vtkSmartPointer< vtkCellArray > unmatchedTargetVertices = vtkSmartPointer< vtkCellArray >::New();
-  int numberOfTargetPoints = unmatchedTargetPoints->GetNumberOfPoints();
-  for ( int targetPointIndex = 0; targetPointIndex < numberOfTargetPoints; targetPointIndex++ )
-  {
-    vtkIdType id[ 1 ];
-    id[ 0 ] = ( vtkIdType ) targetPointIndex;
-    unmatchedTargetVertices->InsertNextCell( 1, id );
-  }
   vtkSmartPointer< vtkPolyData > unmatchedTargetPointsPolyData = vtkSmartPointer< vtkPolyData >::New();
-  unmatchedTargetPointsPolyData->SetPoints( unmatchedTargetPoints );
-  unmatchedTargetPointsPolyData->SetVerts( unmatchedTargetVertices );
+  bool polyDataGenerated = vtkPointMatcher::GeneratePolyDataFromPoints( unmatchedTargetPoints, unmatchedTargetPointsPolyData );
+  if ( !polyDataGenerated )
+  {
+    vtkGenericWarningMacro( "Unable to generate poly data from points" );
+    return false;
+  }
 
   // create the matched list, while removing outliers
   matchedSourcePoints->Reset();
@@ -1205,3 +1205,43 @@ bool vtkPointMatcher::UpdateNeeded()
   return ( this->GetMTime() > this->OutputChangedTime );
 }
 
+//------------------------------------------------------------------------------
+bool vtkPointMatcher::GeneratePolyDataFromPoints( vtkPoints* points, vtkPolyData* polyData )
+{
+  if ( points == NULL )
+  {
+    vtkGenericWarningMacro( "Points are null." );
+    return false;
+  }
+
+  if ( polyData == NULL )
+  {
+    vtkGenericWarningMacro( "Poly data is null." );
+    return false;
+  }
+
+  // This function is typically called before using ICP
+  // ICP tends to fail with the default float representation of vtkPoints
+  // http://vtk.1045678.n5.nabble.com/ICP-Error-vtkMath-Jacobi-Error-extracting-eigenfunctions-td5441946.html
+  // So copy to a vtkPoints that uses double storage instead - should hopefully reduce the frequency of failure
+  // If stability/warning message reduction is a priority then the vtk implementation of ICP can be 
+  // abandoned in favour of a custom one.
+
+  vtkSmartPointer< vtkPoints > copiedPoints = vtkSmartPointer< vtkPoints >::New();
+  copiedPoints->SetDataTypeToDouble();
+  vtkSmartPointer< vtkCellArray > verts = vtkSmartPointer< vtkCellArray >::New();
+  int numberOfPoints = points->GetNumberOfPoints();
+  for ( int pointIndex = 0; pointIndex < numberOfPoints; pointIndex++ )
+  {
+    double point[ 3 ];
+    points->GetPoint( pointIndex, point );
+    copiedPoints->InsertNextPoint( point );
+    vtkIdType id[ 1 ];
+    id[ 0 ] = ( vtkIdType ) pointIndex;
+    verts->InsertNextCell( 1, id );
+  }
+  polyData->SetPoints( copiedPoints );
+  polyData->SetVerts( verts );
+
+  return true;
+}

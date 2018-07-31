@@ -135,6 +135,7 @@ class VTK_SLICER_FIDUCIALREGISTRATIONWIZARD_MODULE_LOGIC_EXPORT vtkPointMatcher 
     static void ReorderPointsAccordingToUniqueGeometry( vtkPoints* inputUnsortedPointList, vtkPoints* outputSortedPointList );
     static void ComputeUniquenessesForPoints( vtkPoints* points, vtkDoubleArray* uniquenesses );
     static double ComputeUniquenessForDistance( double distance, double maximumDistance, vtkDoubleArray* allDistancesArray );
+    static bool GeneratePolyDataFromPoints( vtkPoints*, vtkPolyData* );
 
     // Not implemented:
 		vtkPointMatcher(const vtkPointMatcher&);
