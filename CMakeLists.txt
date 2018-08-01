@@ -38,6 +38,7 @@ add_subdirectory(UltrasoundSnapshots)
 add_subdirectory(VolumeResliceDriver)
 #add_subdirectory(PlusModelCatalogBrowser)  # Qt5's qSlicerWebWidget does not support simple redirection of link clicks yet
 add_subdirectory(Viewpoint)
+add_subdirectory(PlusSupport)
 ## NEXT_MODULE
 if(SLICERIGT_ENABLE_EXPERIMENTAL_MODULES)
   add_subdirectory(Experimental)
