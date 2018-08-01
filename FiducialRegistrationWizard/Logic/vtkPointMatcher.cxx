@@ -560,7 +560,7 @@ void vtkPointMatcher::UpdateBestMatchingForSubsetsOfPoints( int minimumSubsetSiz
   // lots of error checking
   if ( maximumSubsetSize < MINIMUM_NUMBER_OF_POINTS_NEEDED_TO_MATCH )
   {
-    vtkGenericWarningMacro( "Maximum subset size " << minimumSubsetSize << " must be at least " << MINIMUM_NUMBER_OF_POINTS_NEEDED_TO_MATCH << ". Setting to " << MINIMUM_NUMBER_OF_POINTS_NEEDED_TO_MATCH << "." );
+    vtkGenericWarningMacro( "Maximum subset size " << maximumSubsetSize << " must be at least " << MINIMUM_NUMBER_OF_POINTS_NEEDED_TO_MATCH << ". Setting to " << MINIMUM_NUMBER_OF_POINTS_NEEDED_TO_MATCH << "." );
     maximumSubsetSize = MINIMUM_NUMBER_OF_POINTS_NEEDED_TO_MATCH;
   }
 
