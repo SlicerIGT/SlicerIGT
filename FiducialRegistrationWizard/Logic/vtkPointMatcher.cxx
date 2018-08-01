@@ -217,7 +217,7 @@ bool vtkPointMatcher::MatchPointsExhaustively()
   int numberOfSourcePoints = this->InputSourcePoints->GetNumberOfPoints();
   int numberOfTargetPoints = this->InputTargetPoints->GetNumberOfPoints();
   int smallerPointListSize = vtkMath::Min( numberOfSourcePoints, numberOfTargetPoints );
-  int minimumSubsetSize = vtkMath::Max( ( smallerPointListSize - this->MaximumDifferenceInNumberOfPoints ), ( unsigned int )MINIMUM_NUMBER_OF_POINTS_NEEDED_TO_MATCH );
+  int minimumSubsetSize = vtkMath::Max( ( smallerPointListSize - ( int )this->MaximumDifferenceInNumberOfPoints ), MINIMUM_NUMBER_OF_POINTS_NEEDED_TO_MATCH );
   int maximumSubsetSize = smallerPointListSize;
   vtkPointMatcher::UpdateBestMatchingForSubsetsOfPoints( minimumSubsetSize, maximumSubsetSize,
                                                           this->InputSourcePoints, this->InputTargetPoints,
@@ -274,7 +274,7 @@ bool vtkPointMatcher::MatchPointsGenerallyUsingSubsample()
   unmatchedReducedTargetPoints->InsertNextPoint( unmatchedReducedTargetPointCentroid );
 
   // Compute correspondence between those points
-  int minimumSubsetSize = vtkMath::Max( ( numberOfPointsToUseForInitialRegistration - this->MaximumDifferenceInNumberOfPoints ), ( unsigned int )MINIMUM_NUMBER_OF_POINTS_NEEDED_TO_MATCH );
+  int minimumSubsetSize = vtkMath::Max( ( numberOfPointsToUseForInitialRegistration - ( int )this->MaximumDifferenceInNumberOfPoints ), MINIMUM_NUMBER_OF_POINTS_NEEDED_TO_MATCH );
   int maximumSubsetSize = numberOfPointsToUseForInitialRegistration;
   vtkSmartPointer< vtkPoints > initiallyMatchedReducedSourcePoints = vtkSmartPointer< vtkPoints >::New();
   vtkSmartPointer< vtkPoints > initiallyMatchedReducedTargetPoints = vtkSmartPointer< vtkPoints >::New();
