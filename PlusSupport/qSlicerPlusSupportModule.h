@@ -27,7 +27,7 @@ class qSlicerPlusSupportModulePrivate;
 
 /// \ingroup Slicer_QtModules_ExtensionTemplate
 class Q_SLICER_QTMODULES_PLUSSUPPORT_EXPORT
-qSlicerPlusSupportModule
+  qSlicerPlusSupportModule
   : public qSlicerLoadableModule
 {
   Q_OBJECT
@@ -37,12 +37,13 @@ qSlicerPlusSupportModule
   Q_INTERFACES(qSlicerLoadableModule);
 
 public:
-
   typedef qSlicerLoadableModule Superclass;
-  explicit qSlicerPlusSupportModule(QObject *parent=0);
+  explicit qSlicerPlusSupportModule(QObject* parent = 0);
   virtual ~qSlicerPlusSupportModule();
 
   qSlicerGetTitleMacro(QTMODULE_TITLE);
+
+  virtual bool isHidden() const { return true; };
 
   virtual QString helpText()const;
   virtual QString acknowledgementText()const;
@@ -54,12 +55,11 @@ public:
   virtual QStringList dependencies() const;
 
 protected:
-
   /// Initialize the module. Register the volumes reader/writer
   virtual void setup();
 
   /// Create and return the widget representation associated to this module
-  virtual qSlicerAbstractModuleRepresentation * createWidgetRepresentation();
+  virtual qSlicerAbstractModuleRepresentation* createWidgetRepresentation();
 
   /// Create and return the logic associated to this module
   virtual vtkMRMLAbstractLogic* createLogic();

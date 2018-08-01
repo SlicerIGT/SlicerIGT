@@ -27,18 +27,32 @@
 #include "qSlicerPlusSupportModuleWidgetsExport.h"
 
 class qSlicerPlusSupportTransformWidgetPrivate;
+class qMRMLNodeComboBox;
+class vtkMRMLNode;
+
+class QSize;
+class vtkObject;
 
 /// \ingroup Slicer_QtModules_PlusSupport
-class Q_SLICER_MODULE_PLUSSUPPORT_WIDGETS_EXPORT qSlicerPlusSupportTransformWidget
-  : public QWidget
+class Q_SLICER_MODULE_PLUSSUPPORT_WIDGETS_EXPORT qSlicerPlusSupportTransformWidget : public QWidget
 {
   Q_OBJECT
+
 public:
   typedef QWidget Superclass;
-  qSlicerPlusSupportTransformWidget(QWidget* parent = 0);
+  qSlicerPlusSupportTransformWidget(QWidget* parent = 0, QSize pixmapSize = QSize(32, 32));
   virtual ~qSlicerPlusSupportTransformWidget();
 
+  Q_INVOKABLE void setTransformSelector(qMRMLNodeComboBox* comboBox);
+  Q_INVOKABLE void updateLabel();
+  Q_INVOKABLE void setLabelSize(QSize& newSize);
+
 protected slots:
+  void onTransformNodeChanged(vtkMRMLNode* newNode);
+  void onTimerTick();
+
+protected:
+  void onTransformNodeModified(vtkObject* caller, long unsigned int eventId, void* callData);
 
 protected:
   QScopedPointer<qSlicerPlusSupportTransformWidgetPrivate> d_ptr;

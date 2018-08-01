@@ -24,8 +24,8 @@
 
 //-----------------------------------------------------------------------------
 #if (QT_VERSION < QT_VERSION_CHECK(5, 0, 0))
-#include <QtPlugin>
-Q_EXPORT_PLUGIN2(qSlicerPlusSupportModule, qSlicerPlusSupportModule);
+  #include <QtPlugin>
+  Q_EXPORT_PLUGIN2(qSlicerPlusSupportModule, qSlicerPlusSupportModule);
 #endif
 
 //-----------------------------------------------------------------------------
@@ -52,6 +52,7 @@ qSlicerPlusSupportModule::qSlicerPlusSupportModule(QObject* _parent)
   : Superclass(_parent)
   , d_ptr(new qSlicerPlusSupportModulePrivate)
 {
+  this->setWidgetRepresentationCreationEnabled(false);
 }
 
 //-----------------------------------------------------------------------------
@@ -62,20 +63,20 @@ qSlicerPlusSupportModule::~qSlicerPlusSupportModule()
 //-----------------------------------------------------------------------------
 QString qSlicerPlusSupportModule::helpText() const
 {
-  return "This is a loadable module that can be bundled in an extension";
+  return "This is a loadable module that exposes Plus related tools for use in Slicer modules";
 }
 
 //-----------------------------------------------------------------------------
 QString qSlicerPlusSupportModule::acknowledgementText() const
 {
-  return "This work was partially funded by NIH grant NXNNXXNNNNNN-NNXN";
+  return "This work was supported by the VASST Lab, Robarts Research Institute, Western University.";
 }
 
 //-----------------------------------------------------------------------------
 QStringList qSlicerPlusSupportModule::contributors() const
 {
   QStringList moduleContributors;
-  moduleContributors << QString("John Doe (AnyWare Corp.)");
+  moduleContributors << QString("Adam Rankin (Robarts Research Institute.)");
   return moduleContributors;
 }
 
@@ -88,7 +89,7 @@ QIcon qSlicerPlusSupportModule::icon() const
 //-----------------------------------------------------------------------------
 QStringList qSlicerPlusSupportModule::categories() const
 {
-  return QStringList() << "Examples";
+  return QStringList() << "IGT";
 }
 
 //-----------------------------------------------------------------------------

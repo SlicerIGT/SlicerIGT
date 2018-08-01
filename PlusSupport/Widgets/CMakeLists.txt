@@ -40,3 +40,6 @@ SlicerMacroBuildModuleWidgets(
   RESOURCES ${${KIT}_RESOURCES}
   WRAP_PYTHONQT
   )
+
+  #-----------------------------------------------------------------------------
+add_subdirectory(DesignerPlugins)

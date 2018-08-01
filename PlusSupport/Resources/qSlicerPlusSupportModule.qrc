@@ -1,5 +1,8 @@
-<!DOCTYPE RCC><RCC version="1.0">
+<RCC>
   <qresource>
+    <file>Icons/icon_NotOk.png</file>
+    <file>Icons/icon_Ok.png</file>
+    <file>Icons/icon_Warning.png</file>
     <file>Icons/PlusSupport.png</file>
   </qresource>
 </RCC>
