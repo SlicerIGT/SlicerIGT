@@ -255,17 +255,23 @@ bool vtkPointMatcher::MatchPointsGenerallyUsingSubsample()
   int numberOfSourcePoints = this->InputSourcePoints->GetNumberOfPoints();
   int numberOfTargetPoints = this->InputTargetPoints->GetNumberOfPoints();
   int smallerPointListSize = vtkMath::Min( numberOfSourcePoints, numberOfTargetPoints );
-  int numberOfPointsToUseForInitialRegistration = vtkMath::Min( smallerPointListSize, MAXIMUM_NUMBER_OF_POINTS_NEEDED_FOR_DETERMINISTIC_MATCH );
+  int numberOfPointsToUseForInitialRegistration = vtkMath::Min( smallerPointListSize, MAXIMUM_NUMBER_OF_POINTS_NEEDED_FOR_DETERMINISTIC_MATCH - 1 );
 
   vtkSmartPointer< vtkPoints > unmatchedSourcePointsSortedByUniqueness = vtkSmartPointer< vtkPoints >::New();
   vtkPointMatcher::ReorderPointsAccordingToUniqueGeometry( this->InputSourcePoints, unmatchedSourcePointsSortedByUniqueness );
   vtkSmartPointer< vtkPoints > unmatchedReducedSourcePoints = vtkSmartPointer< vtkPoints >::New();
   vtkPointMatcher::CopyFirstNPoints( unmatchedSourcePointsSortedByUniqueness, unmatchedReducedSourcePoints, numberOfPointsToUseForInitialRegistration );
-  
+  double unmatchedReducedSourcePointCentroid[ 3 ];
+  vtkPointMatcher::ComputeCentroidOfPoints( unmatchedReducedSourcePoints, unmatchedReducedSourcePointCentroid );
+  unmatchedReducedSourcePoints->InsertNextPoint( unmatchedReducedSourcePointCentroid );
+
   vtkSmartPointer< vtkPoints > unmatchedTargetPointsSortedByUniqueness = vtkSmartPointer< vtkPoints >::New();
   vtkPointMatcher::ReorderPointsAccordingToUniqueGeometry( this->InputTargetPoints, unmatchedTargetPointsSortedByUniqueness );
   vtkSmartPointer< vtkPoints > unmatchedReducedTargetPoints = vtkSmartPointer< vtkPoints >::New();
   vtkPointMatcher::CopyFirstNPoints( unmatchedTargetPointsSortedByUniqueness, unmatchedReducedTargetPoints, numberOfPointsToUseForInitialRegistration );
+  double unmatchedReducedTargetPointCentroid[ 3 ];
+  vtkPointMatcher::ComputeCentroidOfPoints( unmatchedReducedTargetPoints, unmatchedReducedTargetPointCentroid );
+  unmatchedReducedTargetPoints->InsertNextPoint( unmatchedReducedTargetPointCentroid );
 
   // Compute correspondence between those points
   int minimumSubsetSize = vtkMath::Max( ( numberOfPointsToUseForInitialRegistration - this->MaximumDifferenceInNumberOfPoints ), ( unsigned int )MINIMUM_NUMBER_OF_POINTS_NEEDED_TO_MATCH );
@@ -1243,5 +1249,36 @@ bool vtkPointMatcher::GeneratePolyDataFromPoints( vtkPoints* points, vtkPolyData
   polyData->SetPoints( copiedPoints );
   polyData->SetVerts( verts );
 
+  return true;
+}
+
+//------------------------------------------------------------------------------
+bool vtkPointMatcher::ComputeCentroidOfPoints( vtkPoints* points, double centroid[ 3 ] )
+{
+  if ( points == NULL )
+  {
+    vtkGenericWarningMacro( "Points are null." );
+    return false;
+  }
+
+  int numberOfPoints = points->GetNumberOfPoints();
+  if ( numberOfPoints == 0 )
+  {
+    vtkGenericWarningMacro( "There are no points." );
+    return false;
+  }
+
+  double sumOfCoordinates[ 3 ] = { 0, 0, 0 };
+  for ( int pointIndex = 0; pointIndex < numberOfPoints; pointIndex++ )
+  {
+    double point[ 3 ];
+    points->GetPoint( pointIndex, point );
+    sumOfCoordinates[ 0 ] += point[ 0 ];
+    sumOfCoordinates[ 1 ] += point[ 1 ];
+    sumOfCoordinates[ 2 ] += point[ 2 ];
+  }
+  centroid[ 0 ] = sumOfCoordinates[ 0 ] / numberOfPoints;
+  centroid[ 1 ] = sumOfCoordinates[ 1 ] / numberOfPoints;
+  centroid[ 2 ] = sumOfCoordinates[ 2 ] / numberOfPoints;
   return true;
 }
