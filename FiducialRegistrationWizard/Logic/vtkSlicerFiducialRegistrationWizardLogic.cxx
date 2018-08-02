@@ -213,6 +213,8 @@ bool vtkSlicerFiducialRegistrationWizardLogic::UpdateCalibration(vtkMRMLNode* no
     return false;
   }
 
+  fiducialRegistrationWizardNode->SetCalibrationError( VTK_DOUBLE_MAX );
+
   vtkMRMLMarkupsFiducialNode* fromMarkupsFiducialNode = fiducialRegistrationWizardNode->GetFromFiducialListNode();
   if (fromMarkupsFiducialNode == NULL)
   {
@@ -456,6 +458,7 @@ bool vtkSlicerFiducialRegistrationWizardLogic::UpdateCalibration(vtkMRMLNode* no
   double rmsError = this->CalculateRegistrationError(fromPointsOrdered, toPointsOrdered, outputTransform);
   completeMessage << "Registration Complete. RMS Error: " << rmsError;
   fiducialRegistrationWizardNode->AddToCalibrationStatusMessage(completeMessage.str());
+  fiducialRegistrationWizardNode->SetCalibrationError( rmsError );
   return true;
 }
 

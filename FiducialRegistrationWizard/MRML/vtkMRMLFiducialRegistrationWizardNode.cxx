@@ -60,6 +60,7 @@ vtkMRMLFiducialRegistrationWizardNode::vtkMRMLFiducialRegistrationWizardNode()
   this->UpdateMode = UPDATE_MODE_AUTOMATIC;
   this->PointMatching = POINT_MATCHING_MANUAL;
   this->WarpingTransformFromParent = true;
+  this->CalibrationError = VTK_DOUBLE_MAX;
 }
 
 //------------------------------------------------------------------------------

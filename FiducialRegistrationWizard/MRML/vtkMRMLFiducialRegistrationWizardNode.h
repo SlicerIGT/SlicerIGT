@@ -144,6 +144,9 @@ public:
   void AddToCalibrationStatusMessage( std::string text );
   void ClearCalibrationStatusMessage();
 
+  vtkSetMacro( CalibrationError, double );
+  vtkGetMacro( CalibrationError, double );
+
   /// Get/Set forward transform direction for warping transform.
   /// Forward transforms are applied much faster than inverse transforms.
   /// If WarpingTransformFromParent is set to true (this is the default) then images are transformed fast.
@@ -185,7 +188,9 @@ private:
   // The Calibration status message reports the RMS error,
   // as well as any warnings about how the registration
   // was set up.
-  std::string CalibrationStatusMessage; // TODO: add this to the output transform as a custom node attribute
+  // TODO: add these to the output transform as custom node attributes
+  std::string CalibrationStatusMessage;
+  double CalibrationError;
 
 };
 
