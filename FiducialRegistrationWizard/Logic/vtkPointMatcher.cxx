@@ -323,6 +323,7 @@ bool vtkPointMatcher::MatchPointsGenerallyUsingSubsample()
 
   vtkSmartPointer< vtkGeneralTransform > concatenatedAlignment = vtkSmartPointer< vtkGeneralTransform >::New();
   concatenatedAlignment->Identity();
+  concatenatedAlignment->PostMultiply();
   concatenatedAlignment->Concatenate( initialRegistrationTransform );
   concatenatedAlignment->Concatenate( icpTransform );
 
@@ -443,6 +444,7 @@ bool vtkPointMatcher::MatchPointsGenerallyUsingICP()
       icpTransform->Update();
 
       concatenatedAlignment->Identity();
+      concatenatedAlignment->PostMultiply();
       concatenatedAlignment->Concatenate( initialAlignmentTransform );
       concatenatedAlignment->Concatenate( icpTransform );
       bool matchingSuccessful = vtkPointMatcher::ComputePointMatchingBasedOnRegistration( concatenatedAlignment,
