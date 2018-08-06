@@ -233,7 +233,13 @@ bool vtkPointMatcher::MatchPointsGenerally()
   bool matchingSuccessful = false;
 
   // try any algorithms here in turn until one is successful
-  matchingSuccessful = this->MatchPointsGenerallyUsingSubsample();
+  matchingSuccessful = this->MatchPointsGenerallyUsingMaximumDistancesAndCentroid();
+  if ( matchingSuccessful )
+  {
+    return true;
+  }
+
+  matchingSuccessful = this->MatchPointsGenerallyUsingUniqueDistances();
   if ( matchingSuccessful )
   {
     return true;
@@ -249,29 +255,75 @@ bool vtkPointMatcher::MatchPointsGenerally()
 }
 
 //------------------------------------------------------------------------------
-bool vtkPointMatcher::MatchPointsGenerallyUsingSubsample()
+bool vtkPointMatcher::MatchPointsGenerallyUsingUniqueDistances()
 {
   // Select a subset of points according to the 'uniqueness' of their geometry relative to other points
   int numberOfSourcePoints = this->InputSourcePoints->GetNumberOfPoints();
   int numberOfTargetPoints = this->InputTargetPoints->GetNumberOfPoints();
   int smallerPointListSize = vtkMath::Min( numberOfSourcePoints, numberOfTargetPoints );
-  int numberOfPointsToUseForInitialRegistration = vtkMath::Min( smallerPointListSize, MAXIMUM_NUMBER_OF_POINTS_NEEDED_FOR_DETERMINISTIC_MATCH - 1 );
+  int numberOfPointsToUseForInitialRegistration = vtkMath::Min( smallerPointListSize, MAXIMUM_NUMBER_OF_POINTS_NEEDED_FOR_DETERMINISTIC_MATCH );
 
   vtkSmartPointer< vtkPoints > unmatchedSourcePointsSortedByUniqueness = vtkSmartPointer< vtkPoints >::New();
   vtkPointMatcher::ReorderPointsAccordingToUniqueGeometry( this->InputSourcePoints, unmatchedSourcePointsSortedByUniqueness );
   vtkSmartPointer< vtkPoints > unmatchedReducedSourcePoints = vtkSmartPointer< vtkPoints >::New();
   vtkPointMatcher::CopyFirstNPoints( unmatchedSourcePointsSortedByUniqueness, unmatchedReducedSourcePoints, numberOfPointsToUseForInitialRegistration );
-  double unmatchedReducedSourcePointCentroid[ 3 ];
-  vtkPointMatcher::ComputeCentroidOfPoints( unmatchedReducedSourcePoints, unmatchedReducedSourcePointCentroid );
-  unmatchedReducedSourcePoints->InsertNextPoint( unmatchedReducedSourcePointCentroid );
 
   vtkSmartPointer< vtkPoints > unmatchedTargetPointsSortedByUniqueness = vtkSmartPointer< vtkPoints >::New();
   vtkPointMatcher::ReorderPointsAccordingToUniqueGeometry( this->InputTargetPoints, unmatchedTargetPointsSortedByUniqueness );
   vtkSmartPointer< vtkPoints > unmatchedReducedTargetPoints = vtkSmartPointer< vtkPoints >::New();
   vtkPointMatcher::CopyFirstNPoints( unmatchedTargetPointsSortedByUniqueness, unmatchedReducedTargetPoints, numberOfPointsToUseForInitialRegistration );
-  double unmatchedReducedTargetPointCentroid[ 3 ];
-  vtkPointMatcher::ComputeCentroidOfPoints( unmatchedReducedTargetPoints, unmatchedReducedTargetPointCentroid );
-  unmatchedReducedTargetPoints->InsertNextPoint( unmatchedReducedTargetPointCentroid );
+
+  return this->MatchPointsGenerallyUsingSubsample( unmatchedReducedSourcePoints, unmatchedReducedTargetPoints );
+}
+
+//------------------------------------------------------------------------------
+bool vtkPointMatcher::MatchPointsGenerallyUsingMaximumDistancesAndCentroid()
+{
+  bool featureExtractionSuccessful = false;
+
+  vtkSmartPointer< vtkPoints > sourceFeatures = vtkSmartPointer< vtkPoints >::New();
+  featureExtractionSuccessful = vtkPointMatcher::ExtractMaximumDistanceAndCentroidFeatures( this->InputSourcePoints, sourceFeatures );
+  if ( featureExtractionSuccessful == false )
+  {
+    vtkWarningMacro( "Unable to extract maximum distances and centroids from source list" );
+    return false;
+  }
+  
+  vtkSmartPointer< vtkPoints > targetFeatures = vtkSmartPointer< vtkPoints >::New();
+  featureExtractionSuccessful = vtkPointMatcher::ExtractMaximumDistanceAndCentroidFeatures( this->InputTargetPoints, targetFeatures );
+  if ( featureExtractionSuccessful == false )
+  {
+    vtkWarningMacro( "Unable to extract maximum distances and centroids from target list" );
+    return false;
+  }
+
+  return this->MatchPointsGenerallyUsingSubsample( sourceFeatures, targetFeatures );
+}
+
+//------------------------------------------------------------------------------
+bool vtkPointMatcher::MatchPointsGenerallyUsingSubsample( vtkPoints* unmatchedReducedSourcePoints, vtkPoints* unmatchedReducedTargetPoints )
+{
+  if ( unmatchedReducedSourcePoints == NULL )
+  {
+    vtkWarningMacro( "Reduced source points are null." );
+    return false;
+  }
+
+  if ( unmatchedReducedTargetPoints == NULL )
+  {
+    vtkWarningMacro( "Reduced target points are null." );
+    return false;
+  }
+
+  int numberOfReducedSourcePoints = unmatchedReducedSourcePoints->GetNumberOfPoints();
+  int numberOfReducedTargetPoints = unmatchedReducedTargetPoints->GetNumberOfPoints();
+  if ( numberOfReducedSourcePoints != numberOfReducedTargetPoints )
+  {
+    vtkWarningMacro( "Number of reduced source points " << numberOfReducedSourcePoints << 
+                     " does not match number of reduced target points " << numberOfReducedTargetPoints << "." );
+    return false;
+  }
+  int numberOfPointsToUseForInitialRegistration = numberOfReducedSourcePoints;
 
   // Compute correspondence between those points
   int minimumSubsetSize = vtkMath::Max( ( numberOfPointsToUseForInitialRegistration - ( int )this->MaximumDifferenceInNumberOfPoints ), MINIMUM_NUMBER_OF_POINTS_NEEDED_TO_MATCH );
@@ -281,7 +333,7 @@ bool vtkPointMatcher::MatchPointsGenerallyUsingSubsample()
   double bestDistanceError = VTK_DOUBLE_MAX;
   double tolerableDistanceErrorForSubsets = 0.0; // will keep searching for the best fit, no early exits when dealing with subsets
   bool matchingAmbiguous = false;
-  vtkPointMatcher::UpdateBestMatchingForSubsetsOfPoints( minimumSubsetSize, maximumSubsetSize,
+  vtkPointMatcher::UpdateBestMatchingForSubsetsOfPoints(  minimumSubsetSize, maximumSubsetSize,
                                                           unmatchedReducedSourcePoints, unmatchedReducedTargetPoints,
                                                           this->AmbiguityDistanceError, matchingAmbiguous,
                                                           bestDistanceError, tolerableDistanceErrorForSubsets,
@@ -1282,5 +1334,102 @@ bool vtkPointMatcher::ComputeCentroidOfPoints( vtkPoints* points, double centroi
   centroid[ 0 ] = sumOfCoordinates[ 0 ] / numberOfPoints;
   centroid[ 1 ] = sumOfCoordinates[ 1 ] / numberOfPoints;
   centroid[ 2 ] = sumOfCoordinates[ 2 ] / numberOfPoints;
+  return true;
+}
+
+//------------------------------------------------------------------------------
+bool vtkPointMatcher::ExtractMaximumDistanceAndCentroidFeatures( vtkPoints* points, vtkPoints* features )
+{
+  if ( points == NULL )
+  {
+    vtkGenericWarningMacro( "Points are null." );
+    return false;
+  }
+
+  if ( features == NULL )
+  {
+    vtkGenericWarningMacro( "Features are null." );
+    return false;
+  }
+
+  int numberOfPoints = points->GetNumberOfPoints();
+  if ( numberOfPoints <= 4 ) // there must be at least two pairs of maximum distances...
+  {
+    vtkGenericWarningMacro( "There are not enough points." );
+    return false;
+  }
+
+  vtkSmartPointer< vtkPointDistanceMatrix > pointDistanceMatrix = vtkSmartPointer< vtkPointDistanceMatrix >::New();
+  pointDistanceMatrix->SetPointList1( points );
+  pointDistanceMatrix->SetPointList2( points );
+  pointDistanceMatrix->Update();
+  
+  // first pair of distances
+  int pointFeatureIndex1 = 0;
+  int pointFeatureIndex2 = 0;
+  double maximumDistance = 0.0;
+  for ( int pointIndex1 = 0; pointIndex1 < numberOfPoints; pointIndex1++ )
+  {
+    for ( int pointIndex2 = 0; pointIndex2 < numberOfPoints; pointIndex2++ )
+    {
+      double distance = pointDistanceMatrix->GetDistance( pointIndex1, pointIndex2 );
+      if ( distance > maximumDistance )
+      {
+        maximumDistance = distance;
+        pointFeatureIndex1 = pointIndex1;
+        pointFeatureIndex2 = pointIndex2;
+      }
+    }
+  }
+
+  double pointFeature1[ 3 ];
+  points->GetPoint( pointFeatureIndex1, pointFeature1 );
+  features->InsertNextPoint( pointFeature1 );
+
+  double pointFeature2[ 3 ];
+  points->GetPoint( pointFeatureIndex2, pointFeature2 );
+  features->InsertNextPoint( pointFeature2 );
+
+  // second pair of distances
+  int pointFeatureIndex3 = 0;
+  int pointFeatureIndex4 = 0;
+  maximumDistance = 0.0;
+  for ( int pointIndex3 = 0; pointIndex3 < numberOfPoints; pointIndex3++ )
+  {
+    if ( pointIndex3 == pointFeatureIndex1 || pointIndex3 == pointFeatureIndex2 )
+    {
+      // make sure we get two entirely different points
+      continue;
+    }
+    for ( int pointIndex4 = 0; pointIndex4 < numberOfPoints; pointIndex4++ )
+    {
+      if ( pointIndex4 == pointFeatureIndex1 || pointIndex4 == pointFeatureIndex2 )
+      {
+        // make sure we get two entirely different points
+        continue;
+      }
+      double distance = pointDistanceMatrix->GetDistance( pointIndex3, pointIndex4 );
+      if ( distance > maximumDistance )
+      {
+        maximumDistance = distance;
+        pointFeatureIndex3 = pointIndex3;
+        pointFeatureIndex4 = pointIndex4;
+      }
+    }
+  }
+
+  double pointFeature3[ 3 ];
+  points->GetPoint( pointFeatureIndex3, pointFeature3 );
+  features->InsertNextPoint( pointFeature3 );
+
+  double pointFeature4[ 3 ];
+  points->GetPoint( pointFeatureIndex4, pointFeature4 );
+  features->InsertNextPoint( pointFeature4 );
+
+  // centroid
+  double centroid[ 3 ];
+  vtkPointMatcher::ComputeCentroidOfPoints( points, centroid );
+  features->InsertNextPoint( centroid );
+
   return true;
 }

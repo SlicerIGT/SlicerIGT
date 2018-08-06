@@ -103,7 +103,9 @@ class VTK_SLICER_FIDUCIALREGISTRATIONWIZARD_MODULE_LOGIC_EXPORT vtkPointMatcher 
     // otherwise they return false
     bool MatchPointsExhaustively();
     bool MatchPointsGenerally();
-    bool MatchPointsGenerallyUsingSubsample();
+    bool MatchPointsGenerallyUsingUniqueDistances();
+    bool MatchPointsGenerallyUsingMaximumDistancesAndCentroid();
+    bool MatchPointsGenerallyUsingSubsample( vtkPoints* unmatchedReducedSourcePoints, vtkPoints* unmatchedReducedTargetPoints ); // helper to the functions above
     bool MatchPointsGenerallyUsingICP();
 
     void HandleMatchFailure(); // copies input point list to output point list. Used when matching is otherwise impossible.
@@ -137,6 +139,7 @@ class VTK_SLICER_FIDUCIALREGISTRATIONWIZARD_MODULE_LOGIC_EXPORT vtkPointMatcher 
     static double ComputeUniquenessForDistance( double distance, double maximumDistance, vtkDoubleArray* allDistancesArray );
     static bool GeneratePolyDataFromPoints( vtkPoints*, vtkPolyData* );
     static bool ComputeCentroidOfPoints( vtkPoints*, double* centroid );
+    static bool ExtractMaximumDistanceAndCentroidFeatures( vtkPoints* points, vtkPoints* features );
 
     // Not implemented:
 		vtkPointMatcher(const vtkPointMatcher&);
