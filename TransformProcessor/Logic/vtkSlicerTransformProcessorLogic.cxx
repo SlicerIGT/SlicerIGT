@@ -380,7 +380,7 @@ void vtkSlicerTransformProcessorLogic::ComputeRotation( vtkMRMLTransformProcesso
 
   // computation
   vtkSmartPointer< vtkTransform > fromToToRotationOnlyTransform = vtkSmartPointer< vtkTransform >::New();
-  this->GetRotationOnlyFromTransform( fromToToGeneralTransform, rotationMode, dependentAxesMode, primaryAxis, secondaryAxis, fromToToRotationOnlyTransform );
+  vtkSlicerTransformProcessorLogic::GetRotationOnlyFromTransform( fromToToGeneralTransform, rotationMode, dependentAxesMode, primaryAxis, secondaryAxis, fromToToRotationOnlyTransform );
   vtkMRMLLinearTransformNode* outputNode = paramNode->GetOutputTransformNode();
   // the existence of outputNode is already checked in IsTransformProcessingPossible, no error check necessary
   outputNode->SetMatrixTransformToParent( fromToToRotationOnlyTransform->GetMatrix() );
@@ -480,10 +480,10 @@ void vtkSlicerTransformProcessorLogic::GetRotationOnlyFromTransform( vtkGeneralT
   switch ( rotationMode )
   {
     case vtkMRMLTransformProcessorNode::ROTATION_MODE_COPY_ALL_AXES:
-      this->GetRotationAllAxesFromTransform( sourceToTargetTransform, rotationOnlyTransform );
+      vtkSlicerTransformProcessorLogic::GetRotationAllAxesFromTransform( sourceToTargetTransform, rotationOnlyTransform );
       break;
     case vtkMRMLTransformProcessorNode::ROTATION_MODE_COPY_SINGLE_AXIS:
-      this->GetRotationSingleAxisFromTransform( sourceToTargetTransform, dependentAxesMode, primaryAxis, secondaryAxis, rotationOnlyTransform );
+      vtkSlicerTransformProcessorLogic::GetRotationSingleAxisFromTransform( sourceToTargetTransform, dependentAxesMode, primaryAxis, secondaryAxis, rotationOnlyTransform );
       break;
     default:
       vtkErrorMacro( "GetRotationOnlyFromTransform: rotationMode " << rotationMode << " is unrecognized. Returning, but no operation performed." );
@@ -499,13 +499,13 @@ void vtkSlicerTransformProcessorLogic::GetRotationAllAxesFromTransform ( vtkGene
 {
   if ( rotationOnlyTransform == NULL )
   {
-    vtkErrorMacro( "GetRotationAllAxesFromTransform: rotationOnlyTransform is null. Returning, but transform will remain null." );
+    vtkGenericWarningMacro( "rotationOnlyTransform is null" );
     return;
   }
 
   if ( sourceToTargetTransform == NULL )
   {
-    vtkErrorMacro( "GetRotationAllAxesFromTransform: sourceToTargetTransform is null. Returning, but no operation performed." );
+    vtkGenericWarningMacro( "sourceToTargetTransform is NULL" );
     return;
   }
 
@@ -524,7 +524,7 @@ void vtkSlicerTransformProcessorLogic::GetRotationAllAxesFromTransform ( vtkGene
   
   // set the matrix accordingly
   vtkSmartPointer< vtkMatrix4x4 > rotationOnlyMatrix = vtkSmartPointer< vtkMatrix4x4 >::New();
-  this->GetRotationMatrixFromAxes( xAxisInput, yAxisInput, zAxisInput, rotationOnlyMatrix );
+  vtkSlicerTransformProcessorLogic::GetRotationMatrixFromAxes( xAxisInput, yAxisInput, zAxisInput, rotationOnlyMatrix );
   rotationOnlyTransform->SetMatrix( rotationOnlyMatrix );
 }
 
@@ -563,6 +563,24 @@ void vtkSlicerTransformProcessorLogic::GetRotationSingleAxisFromTransform( vtkGe
 // from the source
 void vtkSlicerTransformProcessorLogic::GetRotationSingleAxisWithPivotFromTransform( vtkGeneralTransform* sourceToTargetTransform, const double* primaryAxis, vtkTransform* rotationOnlyTransform )
 {
+  if ( sourceToTargetTransform == NULL )
+  {
+    vtkGenericWarningMacro( "sourceToTargetTransform is NULL" );
+    return;
+  }
+
+  if ( primaryAxis == NULL )
+  {
+    vtkGenericWarningMacro( "primaryAxis is NULL" );
+    return;
+  }
+
+  if ( rotationOnlyTransform == NULL )
+  {
+    vtkGenericWarningMacro( "rotationOnlyTransform is NULL" );
+    return;
+  }
+
   // Key point: We REFER to the Target transform, then
   // rotate between it and the Source. We use an axis-angle rotation,
   // but make sure that the rotation axis is perpendicular to primary axis.
@@ -613,6 +631,30 @@ void vtkSlicerTransformProcessorLogic::GetRotationSingleAxisWithPivotFromTransfo
 //----------------------------------------------------------------------------
 void vtkSlicerTransformProcessorLogic::GetRotationSingleAxisWithSecondaryFromTransform( vtkGeneralTransform* sourceToTargetTransform, const double* primaryAxis, const double* secondaryAxis, vtkTransform* rotationOnlyTransform )
 {
+  if ( sourceToTargetTransform == NULL )
+  {
+    vtkGenericWarningMacro( "sourceToTargetTransform is NULL" );
+    return;
+  }
+
+  if ( primaryAxis == NULL )
+  {
+    vtkGenericWarningMacro( "primaryAxis is NULL" );
+    return;
+  }
+
+  if ( secondaryAxis == NULL )
+  {
+    vtkGenericWarningMacro( "secondaryAxis is NULL" );
+    return;
+  }
+
+  if ( rotationOnlyTransform == NULL )
+  {
+    vtkGenericWarningMacro( "rotationOnlyTransform is NULL" );
+    return;
+  }
+
   // Rotate from the sourceToTargetTransform, such that the primary axis 
   // remains the same, but the secondary axis is as close as possible to the target.
 
@@ -684,7 +726,7 @@ void vtkSlicerTransformProcessorLogic::GetRotationSingleAxisWithSecondaryFromTra
   }
 
   vtkSmartPointer< vtkTransform > sourceToTargetRotationOnlyTransform = vtkSmartPointer< vtkTransform >::New();
-  this->GetRotationAllAxesFromTransform( sourceToTargetTransform, sourceToTargetRotationOnlyTransform );
+  vtkSlicerTransformProcessorLogic::GetRotationAllAxesFromTransform( sourceToTargetTransform, sourceToTargetRotationOnlyTransform );
   
   rotationOnlyTransform->Identity();
   rotationOnlyTransform->PreMultiply();
@@ -697,13 +739,19 @@ void vtkSlicerTransformProcessorLogic::GetTranslationOnlyFromTransform( vtkGener
 {
   if ( translationOnlyTransform == NULL )
   {
-    vtkErrorMacro( "GetTranslationOnlyFromTransform: translationOnlyTransform is null. Returning, but transform will remain null." );
+    vtkGenericWarningMacro( "translationOnlyTransform is NULL" );
     return;
   }
 
   if ( sourceToTargetTransform == NULL )
   {
-    vtkErrorMacro( "GetTranslationOnlyFromTransform: inputFullTransform is null. Returning, but no operation performed." );
+    vtkGenericWarningMacro( "sourceToTargetTransform is NULL" );
+    return;
+  }
+
+  if ( copyComponents == NULL )
+  {
+    vtkGenericWarningMacro( "copyComponents is NULL" );
     return;
   }
 
@@ -727,6 +775,30 @@ void vtkSlicerTransformProcessorLogic::GetTranslationOnlyFromTransform( vtkGener
 //----------------------------------------------------------------------------
 void vtkSlicerTransformProcessorLogic::GetRotationMatrixFromAxes( const double* xAxis, const double* yAxis, const double* zAxis, vtkMatrix4x4* rotationMatrix )
 {
+  if ( xAxis == NULL )
+  {
+    vtkGenericWarningMacro( "xAxis is NULL" );
+    return;
+  }
+  
+  if ( yAxis == NULL )
+  {
+    vtkGenericWarningMacro( "yAxis is NULL" );
+    return;
+  }
+
+  if ( zAxis == NULL )
+  {
+    vtkGenericWarningMacro( "zAxis is NULL" );
+    return;
+  }
+
+  if ( rotationMatrix == NULL )
+  {
+    vtkGenericWarningMacro( "rotationMatrix is NULL" );
+    return;
+  }
+
   rotationMatrix->Identity();
   rotationMatrix->SetElement( 0, 0, xAxis[ 0 ] );
   rotationMatrix->SetElement( 1, 0, xAxis[ 1 ] );

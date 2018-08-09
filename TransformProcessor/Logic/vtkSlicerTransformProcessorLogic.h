@@ -70,6 +70,12 @@ public:
   void ComputeFullTransform( vtkMRMLTransformProcessorNode* );
   void ComputeInverseTransform( vtkMRMLTransformProcessorNode* );
   bool IsTransformProcessingPossible( vtkMRMLTransformProcessorNode*, bool verbose = false );
+
+  static void GetRotationAllAxesFromTransform ( vtkGeneralTransform*, vtkTransform* );
+  static void GetRotationSingleAxisWithPivotFromTransform( vtkGeneralTransform*, const double*, vtkTransform* );
+  static void GetRotationSingleAxisWithSecondaryFromTransform( vtkGeneralTransform*, const double*, const double*, vtkTransform* );
+  static void GetTranslationOnlyFromTransform( vtkGeneralTransform*, const bool*, vtkTransform* );
+  static void GetRotationMatrixFromAxes( const double*, const double*, const double*, vtkMatrix4x4* );
   
 protected:
   vtkSlicerTransformProcessorLogic();
@@ -87,12 +93,7 @@ private:
   
   // these helper functions should only be used by processing modes themselves, and are therefore private
   void GetRotationOnlyFromTransform( vtkGeneralTransform*, int, int, const double*, const double*, vtkTransform* );
-  void GetRotationAllAxesFromTransform ( vtkGeneralTransform*, vtkTransform* );
   void GetRotationSingleAxisFromTransform( vtkGeneralTransform*, int, const double*, const double*, vtkTransform* );
-  void GetRotationSingleAxisWithPivotFromTransform( vtkGeneralTransform*, const double*, vtkTransform* );
-  void GetRotationSingleAxisWithSecondaryFromTransform( vtkGeneralTransform*, const double*, const double*, vtkTransform* );
-  void GetTranslationOnlyFromTransform( vtkGeneralTransform*, const bool*, vtkTransform* );
-  void GetRotationMatrixFromAxes( const double*, const double*, const double*, vtkMatrix4x4* );
 
 };
 
