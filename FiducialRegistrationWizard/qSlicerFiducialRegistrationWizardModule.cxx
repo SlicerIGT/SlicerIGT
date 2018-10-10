@@ -80,7 +80,7 @@ qSlicerFiducialRegistrationWizardModule::~qSlicerFiducialRegistrationWizardModul
 //-----------------------------------------------------------------------------
 QString qSlicerFiducialRegistrationWizardModule::helpText()const
 {
-  return "For help on how to use this module visit: <a href='https://www.assembla.com/spaces/slicerigt'>SlicerIGT</a>";
+  return "For help on how to use this module visit: <a href='https://www.slicerigt.org'>SlicerIGT</a>";
 }
 
 //-----------------------------------------------------------------------------

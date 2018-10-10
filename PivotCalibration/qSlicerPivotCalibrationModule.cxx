@@ -68,7 +68,7 @@ QString qSlicerPivotCalibrationModule::helpText()const
   return "Perform pivot calibration to determine the tool tip's position, by pivoting the tip of the tool about some fixed point. "
     "Perform spin calibration to determine the tool's orientation, by spinning the tool about its axis. "
     "The pivot and spin calibrations can be performed in any order. "
-    "For help on how to use this module visit: <a href='https://www.assembla.com/spaces/slicerigt'>SlicerIGT</a>.";
+    "For help on how to use this module visit: <a href='https://www.slicerigt.org'>SlicerIGT</a>.";
 }
 
 //-----------------------------------------------------------------------------
