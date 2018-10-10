@@ -1181,7 +1181,6 @@ class ViewpointInstance:
     if viewNodeParallelProjection != self.bullseyeCameraParallelProjection:
       viewNode.SetRenderMode(slicer.vtkMRMLViewNode.Orthographic if self.bullseyeCameraParallelProjection else slicer.vtkMRMLViewNode.Perspective)
 
-    camera.SetRoll(180) # appears to be the default value for a camera in Slicer
     camera.SetPosition(cameraOriginInRASMm)
     camera.SetFocalPoint(focalPointInRASMm)
     camera.SetViewUp(upDirectionInRAS)
