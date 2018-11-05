@@ -134,13 +134,13 @@ class Guidelet(object):
   def getUltrasoundClass(self):
     return UltraSound(self)
 
-  def cleanup(self):
+  def preCleanup(self):
     self.sliceletDockWidget.setWidget(None)
     self.sliceletPanel = None
     self.mainWindow.removeDockWidget(self.sliceletDockWidget)
     self.sliceletDockWidget = None
 
-    self.ultrasound.cleanup()
+    self.ultrasound.preCleanup()
     self.disconnect()
 
   def createFeaturePanels(self):
