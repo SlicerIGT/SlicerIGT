@@ -37,14 +37,7 @@ class Guidelet(object):
     else:
       logging.debug("Timeout. Command Id: {0}".format(commandId))
 
-  @staticmethod
-  def showUltrasoundIn3dView(show):
-    redNode = slicer.mrmlScene.GetNodeByID('vtkMRMLSliceNodeRed')
-    if show:
-      redNode.SetSliceVisible(1)
-    else:
-      redNode.SetSliceVisible(0)
-
+  # Guidelet layout name definitions
   VIEW_ULTRASOUND = unicode("Ultrasound")
   VIEW_ULTRASOUND_3D = unicode("Ultrasound + 3D")
   VIEW_3D_ULTRASOUND = unicode("3D + Ultrasound")
@@ -65,6 +58,9 @@ class Guidelet(object):
     self.parameterNodeObserver = None
     self.parameterNode = self.logic.getParameterNode()
     self.layoutManager = slicer.app.layoutManager()
+    self.layoutNameToIdMap = {}
+    self.layoutNameToSelectCallbackMap = {}
+    self.defaultLayoutName = self.VIEW_ULTRASOUND
 
     self.logic.updateParameterNodeFromSettings(self.parameterNode, self.configurationName)
     self.setAndObserveParameterNode(self.parameterNode)
@@ -84,7 +80,7 @@ class Guidelet(object):
     self.topPanelLayout = qt.QGridLayout(self.sliceletPanel)
     self.sliceletPanelLayout.addLayout(self.topPanelLayout)
     self.setupTopPanel()
-    
+
     self.setupFeaturePanelList()
     self.setupAdvancedPanel()
     self.setupAdditionalPanel()
@@ -138,13 +134,13 @@ class Guidelet(object):
   def getUltrasoundClass(self):
     return UltraSound(self)
 
-  def cleanup(self):
+  def preCleanup(self):
     self.sliceletDockWidget.setWidget(None)
     self.sliceletPanel = None
     self.mainWindow.removeDockWidget(self.sliceletDockWidget)
     self.sliceletDockWidget = None
 
-    self.ultrasound.cleanup()
+    self.ultrasound.preCleanup()
     self.disconnect()
 
   def createFeaturePanels(self):
@@ -168,10 +164,9 @@ class Guidelet(object):
 
     # Layout selection combo box
     self.viewSelectorComboBox = qt.QComboBox(self.advancedCollapsibleButton)
-    self.setupViewerLayouts()
     self.advancedLayout.addRow("Layout: ", self.viewSelectorComboBox)
 
-    self.registerCustomLayouts()
+    self.registerDefaultGuideletLayouts()
 
     self.selectView(self.VIEW_ULTRASOUND_3D)
 
@@ -222,23 +217,41 @@ class Guidelet(object):
     self.exitButton.setText("Exit")
     self.advancedLayout.addRow(self.exitButton)
 
-  def setupViewerLayouts(self):
-    self.viewSelectorComboBox.addItem(self.VIEW_ULTRASOUND)
-    self.viewSelectorComboBox.addItem(self.VIEW_ULTRASOUND_3D)
-    self.viewSelectorComboBox.addItem(self.VIEW_3D_ULTRASOUND)
-    self.viewSelectorComboBox.addItem(self.VIEW_ULTRASOUND_CAM_3D)
-    self.viewSelectorComboBox.addItem(self.VIEW_ULTRASOUND_DUAL_3D)
-    self.viewSelectorComboBox.addItem(self.VIEW_3D)
-    self.viewSelectorComboBox.addItem(self.VIEW_DUAL_3D)
-    self.viewSelectorComboBox.addItem(self.VIEW_TRIPLE_3D)
-    self.viewSelectorComboBox.addItem(self.VIEW_TRIPLE_3D_PARALLEL)
-    self.viewSelectorComboBox.addItem(self.VIEW_QUAD_3D)
-
   def setupAdditionalPanel(self):
     pass
 
-  def registerCustomLayouts(self):#common
+  def registerLayout(self, layoutName, layoutId, layoutXmlDescription, layoutSelectCallback=None):
+    if (type(layoutName) != str and type(layoutName) != unicode) or len(layoutName) < 1:
+      logging.error('Failed to register layout, because layout name must be a non-empty string. Got ' + repr(layoutName))
+      return False
+    if not isinstance(layoutId, int):
+      logging.error('Failed to register layout named ' + str(layoutName) + ', because given layout ID is not an integer. Got ' + str(layoutId))
+      return False
+    if layoutName in self.layoutNameToIdMap:
+      logging.error('Failed to register layout, because a layout with name ' + str(layoutName) + ' is already registered')
+      return False
+
     layoutLogic = self.layoutManager.layoutLogic()
+    if not isinstance(layoutId, slicer.vtkMRMLLayoutNode.SlicerLayout) and layoutLogic.GetLayoutNode().IsLayoutDescription(layoutId):
+      logging.error('Failed to register layout, because a layout with ID ' + str(layoutId) + ' is already registered. Try to choose a larger number')
+      return False
+
+    logging.info('Registering layout ' + str(layoutName) + ', ' + str(layoutId))
+
+    # Remember layout
+    self.layoutNameToIdMap[layoutName] = layoutId
+    self.layoutNameToSelectCallbackMap[layoutName] = layoutSelectCallback
+
+    # Add layout to view selector combobox
+    self.viewSelectorComboBox.addItem(layoutName)
+
+    # Register layout to layout logic
+    if not layoutLogic.GetLayoutNode().IsLayoutDescription(layoutId):
+      layoutLogic.GetLayoutNode().AddLayoutDescription(layoutId, layoutXmlDescription)
+
+    return True
+
+  def registerDefaultGuideletLayouts(self): # Common
     customLayout = (
       "<layout type=\"horizontal\" split=\"false\" >"
       " <item>"
@@ -252,8 +265,7 @@ class Guidelet(object):
       "  </view>"
       " </item>"
       "</layout>")
-    self.dual3dCustomLayoutId=503
-    layoutLogic.GetLayoutNode().AddLayoutDescription(self.dual3dCustomLayoutId, customLayout)
+    self.registerLayout(self.VIEW_DUAL_3D, 503, customLayout, self.hideUltrasoundSliceIn3DView)
 
     customLayout = (
       "<layout type=\"horizontal\" split=\"false\" >"
@@ -270,8 +282,7 @@ class Guidelet(object):
       "  </view>"
       " </item>"
       "</layout>")
-    self.red3dCustomLayoutId=504
-    layoutLogic.GetLayoutNode().AddLayoutDescription(self.red3dCustomLayoutId, customLayout)
+    self.registerLayout(self.VIEW_ULTRASOUND_3D, 504, customLayout, self.delayedFitAndShowUltrasoundSliceIn3dView)
 
     customLayout = (
       "<layout type=\"horizontal\" split=\"false\" >"
@@ -293,8 +304,7 @@ class Guidelet(object):
       "  </view>"
       " </item>"
       "</layout>")
-    self.redDual3dCustomLayoutId=505
-    layoutLogic.GetLayoutNode().AddLayoutDescription(self.redDual3dCustomLayoutId, customLayout)
+    self.registerLayout(self.VIEW_ULTRASOUND_DUAL_3D, 505, customLayout, self.delayedFitAndShowUltrasoundSliceIn3dView)
 
     customLayout = (
       "<layout type=\"vertical\" split=\"true\" >"
@@ -318,8 +328,7 @@ class Guidelet(object):
       "  </view>"
       " </item>"
       "</layout>")
-    self.triple3dCustomLayoutId=506
-    layoutLogic.GetLayoutNode().AddLayoutDescription(self.triple3dCustomLayoutId, customLayout)
+    self.registerLayout(self.VIEW_TRIPLE_3D, 506, customLayout, self.hideUltrasoundSliceIn3DView)
 
     customLayout = (
       "<layout type=\"horizontal\" split=\"false\" >"
@@ -347,8 +356,7 @@ class Guidelet(object):
       "  </layout>"
       " </item>"
       "</layout>")
-    self.redyellow3dCustomLayoutId=507
-    layoutLogic.GetLayoutNode().AddLayoutDescription(self.redyellow3dCustomLayoutId, customLayout)
+    self.registerLayout(self.VIEW_ULTRASOUND_CAM_3D, 507, customLayout, self.delayedFitAndShowUltrasoundSliceIn3dView)
 
     customLayout = (
       "<layout type=\"horizontal\" split=\"false\" >"
@@ -365,8 +373,7 @@ class Guidelet(object):
       "  </view>"
       " </item>"
       "</layout>")
-    self.threedultrasoundCustomLayoutId=508
-    layoutLogic.GetLayoutNode().AddLayoutDescription(self.threedultrasoundCustomLayoutId, customLayout)
+    self.registerLayout(self.VIEW_3D_ULTRASOUND, 508, customLayout, self.delayedFitAndShowUltrasoundSliceIn3dView)
 
     customLayout = (
       "<layout type=\"horizontal\" split=\"false\" >"
@@ -386,8 +393,7 @@ class Guidelet(object):
       "  </view>"
       " </item>"
       "</layout>")
-    self.triple3dparallelCustomLayoutId=509
-    layoutLogic.GetLayoutNode().AddLayoutDescription(self.triple3dparallelCustomLayoutId, customLayout)
+    self.registerLayout(self.VIEW_TRIPLE_3D_PARALLEL, 509, customLayout, self.hideUltrasoundSliceIn3DView)
 
     customLayout = (
       "<layout type=\"horizontal\" split=\"false\" >"
@@ -412,8 +418,18 @@ class Guidelet(object):
       "  </view>"
       " </item>"
       "</layout>")
-    self.quad3dCustomLayoutId=510
-    layoutLogic.GetLayoutNode().AddLayoutDescription(self.quad3dCustomLayoutId, customLayout)
+    self.registerLayout(self.VIEW_QUAD_3D, 510, customLayout, self.hideUltrasoundSliceIn3DView)
+
+    # Add existing Slicer layouts with callbacks
+    layoutNode = self.layoutManager.layoutLogic().GetLayoutNode()
+
+    ultrasoundViewId = slicer.vtkMRMLLayoutNode.SlicerLayoutOneUpRedSliceView
+    self.registerLayout(self.VIEW_ULTRASOUND, ultrasoundViewId, \
+      layoutNode.GetLayoutDescription(ultrasoundViewId), self.delayedFitAndHideUltrasoundSliceIn3dView)
+
+    threeDViewId = slicer.vtkMRMLLayoutNode.SlicerLayoutOneUp3DView
+    self.registerLayout(self.VIEW_3D, threeDViewId, \
+      layoutNode.GetLayoutDescription(threeDViewId), self.showUltrasoundSliceIn3DView)
 
   def onSceneLoaded(self):
     """ Derived classes can override this function
@@ -608,12 +624,33 @@ class Guidelet(object):
       connectorNodeObserverTag = self.connectorNode.AddObserver(tagEventHandler[0], tagEventHandler[1])
       self.connectorNodeObserverTagList.append(connectorNodeObserverTag)
 
+  def showUltrasoundSliceIn3DView(self):
+    self.setUltrasoundSliceVisibilityIn3dView(True)
+
+  def hideUltrasoundSliceIn3DView(self):
+    self.setUltrasoundSliceVisibilityIn3dView(False)
+
+  def setUltrasoundSliceVisibilityIn3dView(self, visible):
+    redNode = slicer.mrmlScene.GetNodeByID('vtkMRMLSliceNodeRed')
+    if visible:
+      redNode.SetSliceVisible(1)
+    else:
+      redNode.SetSliceVisible(0)
+
   def fitUltrasoundImageToView(self):
     redWidget = self.layoutManager.sliceWidget('Red')
     redWidget.sliceController().fitSliceToBackground()
 
   def delayedFitUltrasoundImageToView(self, delayMsec=500):
     qt.QTimer.singleShot(delayMsec, self.fitUltrasoundImageToView)
+
+  def delayedFitAndShowUltrasoundSliceIn3dView(self):
+    self.delayedFitUltrasoundImageToView()
+    self.showUltrasoundSliceIn3DView()
+
+  def delayedFitAndHideUltrasoundSliceIn3dView(self):
+    self.delayedFitUltrasoundImageToView()
+    self.hideUltrasoundSliceIn3DView()
 
   def selectView(self, viewName):
     index = self.viewSelectorComboBox.findText(viewName)
@@ -623,43 +660,18 @@ class Guidelet(object):
     self.onViewSelect(index)
 
   def onViewSelect(self, layoutIndex):
-    text = self.viewSelectorComboBox.currentText
-    logging.debug('onViewSelect: {0}'.format(text))
-    if text == self.VIEW_ULTRASOUND:
-      self.layoutManager.setLayout(slicer.vtkMRMLLayoutNode.SlicerLayoutOneUpRedSliceView)
-      self.delayedFitUltrasoundImageToView()
-      self.showUltrasoundIn3dView(False)
-    elif text == self.VIEW_ULTRASOUND_3D:
-      self.layoutManager.setLayout(self.red3dCustomLayoutId)
-      self.delayedFitUltrasoundImageToView()
-      self.showUltrasoundIn3dView(True)
-    elif text == self.VIEW_ULTRASOUND_DUAL_3D:
-      self.layoutManager.setLayout(self.redDual3dCustomLayoutId)
-      self.delayedFitUltrasoundImageToView()
-      self.showUltrasoundIn3dView(True)
-    elif text == self.VIEW_3D:
-      self.layoutManager.setLayout(slicer.vtkMRMLLayoutNode.SlicerLayoutOneUp3DView)
-      self.showUltrasoundIn3dView(True)
-    elif text == self.VIEW_DUAL_3D:
-      self.layoutManager.setLayout(self.dual3dCustomLayoutId)
-      self.showUltrasoundIn3dView(False)
-    elif text == self.VIEW_TRIPLE_3D:
-      self.layoutManager.setLayout(self.triple3dCustomLayoutId)
-      self.showUltrasoundIn3dView(False)
-    elif text == self.VIEW_ULTRASOUND_CAM_3D:
-      self.layoutManager.setLayout(self.redyellow3dCustomLayoutId)
-      self.delayedFitUltrasoundImageToView()
-      self.showUltrasoundIn3dView(True)
-    elif text == self.VIEW_3D_ULTRASOUND:
-      self.layoutManager.setLayout(self.threedultrasoundCustomLayoutId)
-      self.delayedFitUltrasoundImageToView()
-      self.showUltrasoundIn3dView(True)
-    elif text == self.VIEW_TRIPLE_3D_PARALLEL:
-      self.layoutManager.setLayout(self.triple3dparallelCustomLayoutId)
-      self.showUltrasoundIn3dView(False)
-    elif text == self.VIEW_QUAD_3D:
-      self.layoutManager.setLayout(self.quad3dCustomLayoutId)
-      self.showUltrasoundIn3dView(False)
+    layoutName = self.viewSelectorComboBox.currentText
+    logging.debug('onViewSelect: {0}'.format(layoutName))
+
+    if layoutName not in self.layoutNameToIdMap:
+      logging.error('Layout called ' + str(layoutName) + ' has not been registered to the guidelet')
+      return
+
+    layoutId = self.layoutNameToIdMap[layoutName]
+    callback = self.layoutNameToSelectCallbackMap[layoutName]
+
+    self.layoutManager.setLayout(layoutId)
+    callback()
 
   def onUltrasoundPanelToggled(self, toggled):
     logging.debug('onUltrasoundPanelToggled: {0}'.format(toggled))
@@ -672,4 +684,4 @@ class Guidelet(object):
     self.showDefaultView()
 
   def showDefaultView(self):
-    self.selectView(self.VIEW_ULTRASOUND) # Red only layout
+    self.selectView(self.defaultLayoutName) # Red only layout by default

@@ -236,7 +236,7 @@ class UltraSound(object):
     logging.info(statusText)
     self.startStopRecordingButton.setToolTip(statusText)
 
-  def cleanup(self):
+  def preCleanup(self):
     self.disconnect()
 
   def onStartStopRecordingClicked(self):
