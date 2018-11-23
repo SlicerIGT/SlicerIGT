@@ -198,7 +198,7 @@ class GuideletLogic(ScriptedLoadableModuleLogic):
                    'UltrasoundBrightnessControl' : 'Buttons',
                    'RecordingEnabledWhenConnectorNodeDisconnected' : 'False',
                    'PLUSCaptureDeviceName' : 'CaptureDevice', # If '', no PLUS recordings are saved.
-                   'HasBorderInFullScreen' : 'False', # If True, allows certain Qt widgets to appear properly with Qt versions >= 5.
+                   'HasBorderInFullScreen' : 'True', # If True, allows certain Qt widgets to appear properly with Qt versions >= 5.
                    }
     self.updateSettings(settingList, 'Default')
 
