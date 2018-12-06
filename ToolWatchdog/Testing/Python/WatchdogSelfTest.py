@@ -168,7 +168,7 @@ class WatchdogSelfTestTest(ScriptedLoadableModuleTest):
       watchdogNode.GetWatchedNode(watchedNodeIndex).Modified()
       self.delayDisplay("Wait for the transform name to update",200.0)
       self.assertEqual(statusCheckBox.toolTip, "<p>valid</p>")
-    self.delayDisplay("Wait for the node to become outdated",1000.0)
+    self.delayDisplay("Wait for the node to become outdated",1100.0)
     self.assertEqual(statusCheckBox.toolTip, "<p>invalid</p>")
 
     #remove module node
