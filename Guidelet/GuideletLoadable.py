@@ -32,6 +32,9 @@ class GuideletWidget(ScriptedLoadableModuleWidget):
     self.guideletLogic = self.createGuideletLogic()
     self.selectedConfigurationName = 'Default'
 
+  def hideEvent(self, event):
+    self.preCleanup()
+
   def setup(self):
     ScriptedLoadableModuleWidget.setup(self)
 
@@ -119,12 +122,12 @@ class GuideletWidget(ScriptedLoadableModuleWidget):
     plusServerHostNamePort = settings.value(self.moduleName + '/Configurations/' + self.selectedConfigurationName + '/PlusServerHostNamePort')
     self.plusServerHostNamePortLineEdit.setText(plusServerHostNamePort)
 
-  def cleanup(self):
+  def preCleanup(self):
     self.launchGuideletButton.disconnect('clicked()', self.onLaunchGuideletButtonClicked)
     if self.guideletLogic:
-      self.guideletLogic.cleanup()
+      self.guideletLogic.preCleanup()
     if self.guideletInstance:
-      self.guideletInstance.cleanup()
+      self.guideletInstance.preCleanup()
 
   def onLaunchGuideletButtonClicked(self):
     logging.debug('onLaunchGuideletButtonClicked')
