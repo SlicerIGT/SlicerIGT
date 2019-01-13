@@ -317,7 +317,7 @@ void qSlicerTransformPreviewWidget::clearPreviewNodes()
 {
   Q_D(qSlicerTransformPreviewWidget);
 
-  for ( size_t i = 0; i < d->PreviewNodes.size(); i++ )
+  for (std::vector<vtkSmartPointer<vtkMRMLTransformableNode>>::size_type i = 0; i < d->PreviewNodes.size(); i++ )
   {
     this->mrmlScene()->RemoveNode( d->PreviewNodes.at(i) );
   }
