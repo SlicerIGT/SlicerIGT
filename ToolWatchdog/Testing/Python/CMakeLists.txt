@@ -1,3 +1,8 @@
+# With regards to issue 188
+# https://github.com/SlicerIGT/SlicerIGT/issues/188
+# disable watchdog self test until solution can be found
+return()
+
 #-----------------------------------------------------------------------------
 set(MODULE_NAME WatchdogSelfTest)
 
