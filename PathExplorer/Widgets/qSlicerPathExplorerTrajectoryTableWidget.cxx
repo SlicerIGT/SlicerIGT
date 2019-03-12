@@ -150,8 +150,8 @@ void qSlicerPathExplorerTrajectoryTableWidget
   
   if (!this->mrmlScene() || !d->TableWidget || 
       !d->EntryNode || !d->TargetNode ||
-      !d->EntryNode->MarkupExists(d->SelectedEntryMarkupIndex) ||
-      !d->TargetNode->MarkupExists(d->SelectedTargetMarkupIndex) ||
+      !d->EntryNode->ControlPointExists(d->SelectedEntryMarkupIndex) ||
+      !d->TargetNode->ControlPointExists(d->SelectedTargetMarkupIndex) ||
       !d->TrajectoryNode)
     {
     return;
@@ -259,8 +259,8 @@ void qSlicerPathExplorerTrajectoryTableWidget
     return;
     }
 
-  if (d->EntryNode->MarkupExists(d->SelectedEntryMarkupIndex) &&
-      d->TargetNode->MarkupExists(d->SelectedTargetMarkupIndex))
+  if (d->EntryNode->ControlPointExists(d->SelectedEntryMarkupIndex) &&
+      d->TargetNode->ControlPointExists(d->SelectedTargetMarkupIndex))
     {
     d->TableWidget->item(d->SelectedTrajectoryIndex, Self::EntryName)->setText(d->EntryNode->GetNthMarkupLabel(d->SelectedEntryMarkupIndex).c_str());
     d->TableWidget->item(d->SelectedTrajectoryIndex, Self::EntryName)->setData(Self::EntryIndex, d->SelectedEntryMarkupIndex);
@@ -348,8 +348,8 @@ void qSlicerPathExplorerTrajectoryTableWidget
    entryMarkupIndex = d->TableWidget->item(d->SelectedTrajectoryIndex, Self::EntryName)->data(Self::EntryIndex).toInt();
    targetMarkupIndex = d->TableWidget->item(d->SelectedTrajectoryIndex, Self::TargetName)->data(Self::TargetIndex).toInt();
 
-   if (!d->EntryNode->MarkupExists(entryMarkupIndex) || 
-       !d->TargetNode->MarkupExists(targetMarkupIndex))
+   if (!d->EntryNode->ControlPointExists(entryMarkupIndex) ||
+       !d->TargetNode->ControlPointExists(targetMarkupIndex))
      {
      return;
      }
@@ -463,7 +463,7 @@ void qSlicerPathExplorerTrajectoryTableWidget
   d->SelectedEntryMarkupIndex = entryMarkupIndex;
 
   if (!d->TableWidget || !fNode || 
-      !fNode->MarkupExists(entryMarkupIndex))
+      !fNode->ControlPointExists(entryMarkupIndex))
     {
     return;
     }
@@ -487,7 +487,7 @@ void qSlicerPathExplorerTrajectoryTableWidget
   Q_D(qSlicerPathExplorerTrajectoryTableWidget);
 
   if (!d->TableWidget || !fNode ||
-      !fNode->MarkupExists(targetMarkupIndex))
+      !fNode->ControlPointExists(targetMarkupIndex))
     {
     return;
     }
@@ -590,7 +590,7 @@ void qSlicerPathExplorerTrajectoryTableWidget
   if (!d->EntryNode || !entryNode ||
       d->EntryNode != entryNode ||
       !d->TableWidget || !this->mrmlScene() ||
-      !entryNode->MarkupExists(entryMarkupIndex))
+      !entryNode->ControlPointExists(entryMarkupIndex))
     {
     return;
     }
@@ -642,7 +642,7 @@ void qSlicerPathExplorerTrajectoryTableWidget
   if (!d->TargetNode || !targetNode ||
       d->TargetNode != targetNode ||
       !d->TableWidget || !this->mrmlScene() ||
-      !targetNode->MarkupExists(targetMarkupIndex))
+      !targetNode->ControlPointExists(targetMarkupIndex))
     {
     return;
     }

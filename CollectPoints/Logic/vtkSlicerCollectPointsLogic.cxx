@@ -173,7 +173,7 @@ void vtkSlicerCollectPointsLogic::RemoveAllPoints( vtkMRMLCollectPointsNode* col
   vtkMRMLModelNode* outputModelNode = vtkMRMLModelNode::SafeDownCast( outputNode );
   if ( outputMarkupsNode != NULL )
   {
-    outputMarkupsNode->RemoveAllMarkups();
+    outputMarkupsNode->RemoveAllControlPoints();
   }
   else if ( outputModelNode != NULL )
   {
