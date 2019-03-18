@@ -133,12 +133,21 @@ void qSlicerPathExplorerMarkupsTableWidget
   if (d->FiducialNode)
     {
     // Disconnect signals
+#if Slicer_VERSION_MAJOR >= 5 || (Slicer_VERSION_MAJOR >= 4 && Slicer_VERSION_MINOR >= 11)
+    this->qvtkDisconnect(d->FiducialNode, vtkMRMLMarkupsNode::PointAddedEvent,
+                         this, SLOT(refreshMarkupTable(vtkObject*, void*)));
+    this->qvtkDisconnect(d->FiducialNode, vtkMRMLMarkupsNode::PointModifiedEvent,
+                         this, SLOT(onMarkupModified(vtkObject*, void*)));
+    this->qvtkDisconnect(d->FiducialNode, vtkMRMLMarkupsNode::PointRemovedEvent,
+                         this, SLOT(refreshMarkupTable()));
+#else
     this->qvtkDisconnect(d->FiducialNode, vtkMRMLMarkupsNode::NthMarkupModifiedEvent,
                          this, SLOT(onMarkupModified(vtkObject*, void*)));
     this->qvtkDisconnect(d->FiducialNode, vtkMRMLMarkupsNode::PointModifiedEvent,
                          this, SLOT(onMarkupModified(vtkObject*, void*)));
     this->qvtkDisconnect(d->FiducialNode, vtkMRMLMarkupsNode::MarkupRemovedEvent,
                          this, SLOT(refreshMarkupTable()));
+#endif
     }
 
   // Update FiducialNode with new markup list
@@ -158,12 +167,21 @@ void qSlicerPathExplorerMarkupsTableWidget
     }
 
   // Connect signals to new node
+#if Slicer_VERSION_MAJOR >= 5 || (Slicer_VERSION_MAJOR >= 4 && Slicer_VERSION_MINOR >= 11)
+  this->qvtkConnect(d->FiducialNode, vtkMRMLMarkupsNode::PointAddedEvent,
+                    this, SLOT(refreshMarkupTable(vtkObject*, void*)));
+  this->qvtkConnect(d->FiducialNode, vtkMRMLMarkupsNode::PointModifiedEvent,
+                    this, SLOT(onMarkupModified(vtkObject*, void*)));
+  this->qvtkConnect(d->FiducialNode, vtkMRMLMarkupsNode::PointRemovedEvent,
+                    this, SLOT(refreshMarkupTable()));
+#else
   this->qvtkConnect(d->FiducialNode, vtkMRMLMarkupsNode::NthMarkupModifiedEvent,
                     this, SLOT(onMarkupModified(vtkObject*, void*)));
   this->qvtkConnect(d->FiducialNode, vtkMRMLMarkupsNode::PointModifiedEvent,
                     this, SLOT(onMarkupModified(vtkObject*, void*)));
   this->qvtkConnect(d->FiducialNode, vtkMRMLMarkupsNode::MarkupRemovedEvent,
                     this, SLOT(refreshMarkupTable()));
+#endif
 }
 
 
@@ -308,10 +326,15 @@ void qSlicerPathExplorerMarkupsTableWidget
      return;
      }
 
+
    // Performance: Block signals to avoid updating all information of the selected markups 
-   // when selecting it. SetNthFiducialSelected fired the NthMarkupModifiedEvent, but neither
+   // when selecting it. SetNthFiducialSelected fired the modified event, but neither
    // the name or the position is changed, so table doesn't require to be updated
-   this->qvtkBlock(d->FiducialNode, vtkMRMLMarkupsNode::NthMarkupModifiedEvent, this); 
+#if Slicer_VERSION_MAJOR >= 5 || (Slicer_VERSION_MAJOR >= 4 && Slicer_VERSION_MINOR >= 11)
+   this->qvtkBlock(d->FiducialNode, vtkMRMLMarkupsNode::PointModifiedEvent, this);
+#else
+  this->qvtkBlock(d->FiducialNode, vtkMRMLMarkupsNode::NthMarkupModifiedEvent, this); 
+#endif
 
    if (d->CurrentMarkupSelected >= 0 && d->CurrentMarkupSelected < d->FiducialNode->GetNumberOfMarkups())
      {
@@ -333,8 +356,11 @@ void qSlicerPathExplorerMarkupsTableWidget
 
    emit markupSelected(d->FiducialNode, markupIndex);
 
-   this->qvtkUnblock(d->FiducialNode, vtkMRMLMarkupsNode::NthMarkupModifiedEvent, this); 
-
+#if Slicer_VERSION_MAJOR >= 5 || (Slicer_VERSION_MAJOR >= 4 && Slicer_VERSION_MINOR >= 11)
+   this->qvtkUnblock(d->FiducialNode, vtkMRMLMarkupsNode::PointModifiedEvent, this);
+#else
+  this->qvtkUnblock(d->FiducialNode, vtkMRMLMarkupsNode::NthMarkupModifiedEvent, this);
+#endif
    d->FiducialNode->Modified();
 }
 
@@ -403,7 +429,28 @@ void qSlicerPathExplorerMarkupsTableWidget
     }
 
   // Update or add markup if doesn't exists in the widget
-  if (d->FiducialNode->MarkupExists(markupIndex))
+#if Slicer_VERSION_MAJOR >= 5 || (Slicer_VERSION_MAJOR >= 4 && Slicer_VERSION_MINOR >= 11)
+  if (d->FiducialNode->ControlPointExists(markupIndex))
+    {
+    // Check if node already in table
+    QAbstractItemModel* model = d->TableWidget->model();
+    if (model)
+	    {
+	    QModelIndexList found = model->match(model->index(0,Self::Name),
+					          Self::MarkupIndex, markupIndex, 
+					          1, Qt::MatchExactly);
+	    if (found.isEmpty())
+	      {
+	      this->addMarkupInTable(d->FiducialNode, markupIndex);
+	      }
+	    else
+	      {
+	      this->updateMarkupInTable(d->FiducialNode, markupIndex, found[0]);
+	      }
+      }
+    }
+#else
+    if (d->FiducialNode->MarkupExists(markupIndex))
     {
     Markup* modifiedMarkup = d->FiducialNode->GetNthMarkup(markupIndex);
     if (modifiedMarkup)
@@ -426,6 +473,8 @@ void qSlicerPathExplorerMarkupsTableWidget
 	}
       }
     }
+#endif
+
 }
 
 //-----------------------------------------------------------------------------
@@ -541,30 +590,25 @@ void qSlicerPathExplorerMarkupsTableWidget
 }
 
 //-----------------------------------------------------------------------------
-const char* qSlicerPathExplorerMarkupsTableWidget
-::getSelectedMarkupID()
+QString qSlicerPathExplorerMarkupsTableWidget
+::selectedMarkupID()
 {
   Q_D(qSlicerPathExplorerMarkupsTableWidget);
 
   if (!d->TableWidget || !d->FiducialNode)
     {
-    return NULL;
+    return QString();
     }
 
   int row = d->TableWidget->currentRow();
   int markupIndex = d->TableWidget->item(row, Self::Name)->data(Self::MarkupIndex).toInt();
   
-  if (!d->FiducialNode->MarkupExists(markupIndex))
+  if (!d->FiducialNode->ControlPointExists(markupIndex))
     {
-    return NULL;
+    return QString();
     }
 
-  std::string markupID = d->FiducialNode->GetNthMarkupID(markupIndex);
-  if (!markupID.empty())
-    {
-    return markupID.c_str();
-    }
-  return NULL;
+  return d->FiducialNode->GetNthMarkupID(markupIndex).c_str();
 }
 
 //-----------------------------------------------------------------------------

@@ -62,7 +62,7 @@ public:
   void setAndObserveMarkupFiducialNode(vtkMRMLMarkupsFiducialNode* markupList);
   void setColor(double r, double g, double b);
   vtkMRMLMarkupsFiducialNode* getMarkupFiducialNode();
-  const char* getSelectedMarkupID();
+  QString selectedMarkupID();
   
 public slots:
 

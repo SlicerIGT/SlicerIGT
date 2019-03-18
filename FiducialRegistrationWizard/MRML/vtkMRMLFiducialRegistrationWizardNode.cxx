@@ -18,6 +18,8 @@
 
 ==============================================================================*/
 
+#include "vtkSlicerVersionConfigure.h" // For Slicer_VERSION_MAJOR,Slicer_VERSION_MINOR 
+
 // FiducialRegistrationWizard MRML includes
 #include "vtkMRMLFiducialRegistrationWizardNode.h"
 
@@ -47,8 +49,13 @@ vtkMRMLFiducialRegistrationWizardNode::vtkMRMLFiducialRegistrationWizardNode()
   this->SetSaveWithScene( true );
 
   vtkNew<vtkIntArray> fiducialListEvents;
+#if Slicer_VERSION_MAJOR >= 5 || (Slicer_VERSION_MAJOR >= 4 && Slicer_VERSION_MINOR >= 11)
+  fiducialListEvents->InsertNextValue( vtkMRMLMarkupsNode::PointAddedEvent );
+  fiducialListEvents->InsertNextValue( vtkMRMLMarkupsNode::PointRemovedEvent );
+#else
   fiducialListEvents->InsertNextValue( vtkMRMLMarkupsNode::MarkupAddedEvent );
   fiducialListEvents->InsertNextValue( vtkMRMLMarkupsNode::MarkupRemovedEvent );
+#endif 
   fiducialListEvents->InsertNextValue( vtkMRMLMarkupsNode::PointModifiedEvent );
 
   this->AddNodeReferenceRole( PROBE_TRANSFORM_FROM_REFERENCE_ROLE );
@@ -420,9 +427,15 @@ void vtkMRMLFiducialRegistrationWizardNode::ProcessMRMLEvents( vtkObject *caller
   else if ( callerNode == this->GetFromFiducialListNode() || 
             callerNode == this->GetToFiducialListNode() )
   {
+#if Slicer_VERSION_MAJOR >= 5 || (Slicer_VERSION_MAJOR >= 4 && Slicer_VERSION_MINOR >= 11)
+    if ( event == vtkMRMLMarkupsNode::PointModifiedEvent ||
+         event == vtkMRMLMarkupsNode::PointAddedEvent ||
+         event == vtkMRMLMarkupsNode::PointRemovedEvent )
+#else
     if ( event == vtkMRMLMarkupsNode::PointModifiedEvent ||
          event == vtkMRMLMarkupsNode::MarkupAddedEvent ||
          event == vtkMRMLMarkupsNode::MarkupRemovedEvent )
+#endif
     {
       this->InvokeCustomModifiedEvent( InputDataModifiedEvent );
     }

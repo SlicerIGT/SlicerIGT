@@ -249,9 +249,9 @@ class TextureModelTest(ScriptedLoadableModuleTest):
 
     # Download
     import urllib
-    url = 'https://artec3d-production.s3-eu-west-1.amazonaws.com/3Dmodels/human_eye_obj.zip'
-    zipFilePath = slicer.app.temporaryPath + '/' + 'Human_Eye_obj.zip'
-    extractPath = slicer.app.temporaryPath + '/' + 'Human_Eye_obj'
+    url = 'https://github.com/Slicer/SlicerTestingData/releases/download/SHA256/752ce9afe8b708fcd4f8448612170f8e730670d845f65177860edc0e08004ecf'
+    zipFilePath = slicer.app.temporaryPath + '/' + 'FemurHeadSurfaceScan.zip'
+    extractPath = slicer.app.temporaryPath + '/' + 'FemurHeadSurfaceScan'
     if not os.path.exists(zipFilePath) or os.stat(zipFilePath).st_size == 0:
       logging.info('Requesting download from %s...\n' % url)
       urllib.urlretrieve(url, zipFilePath)
@@ -264,14 +264,14 @@ class TextureModelTest(ScriptedLoadableModuleTest):
     applicationLogic.Unzip(zipFilePath, extractPath)
 
     # Load
-    slicer.util.loadModel(extractPath+"/Human_Eye_obj.obj")
-    slicer.util.loadVolume(extractPath+"/Human_Eye_obj_0.jpg")
+    slicer.util.loadModel(extractPath+"/head_obj.obj")
+    slicer.util.loadVolume(extractPath+"/head_obj_0.png")
 
     self.delayDisplay('Finished with download and loading')
 
     # Test
-    modelNode = slicer.util.getNode("Human_Eye_obj")
-    textureNode = slicer.util.getNode("Human_Eye_obj_0")
+    modelNode = slicer.util.getNode("head_obj")
+    textureNode = slicer.util.getNode("head_obj_0")
     logic = TextureModelLogic()
     logic.applyTexture(modelNode, textureNode)
     self.delayDisplay('Test passed!')
