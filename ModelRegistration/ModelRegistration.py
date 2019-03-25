@@ -196,6 +196,8 @@ class ModelRegistrationLogic(ScriptedLoadableModuleLogic):
     icpTransform.Update()
 
     outputSourceToTargetTransform.SetMatrixTransformToParent( icpTransform.GetMatrix() )
+    outputSourceToTargetTransform.AddNodeReferenceID(slicer.vtkMRMLTransformNode.GetMovingNodeReferenceRole(), inputSourceModel.GetID())
+    outputSourceToTargetTransform.AddNodeReferenceID(slicer.vtkMRMLTransformNode.GetFixedNodeReferenceRole(), inputTargetModel.GetID())
 
     return True
 
@@ -211,7 +213,7 @@ class ModelRegistrationLogic(ScriptedLoadableModuleLogic):
     locator.SetDataSet( targetPolyData )
     locator.SetNumberOfCellsPerBucket( 1 )
     locator.BuildLocator()
-    
+
     totalDistance = 0.0
 
     sourcePoints = sourcePolyData.GetPoints()
@@ -223,7 +225,7 @@ class ModelRegistrationLogic(ScriptedLoadableModuleLogic):
       transformedSourcePointPos = [0, 0, 0, 1]
       #transform.GetTransformToParent().TransformVector( sourcePointPos, transformedSourcePointPos )
       sourcePointPos.append(1)
-      transform.GetTransformToParent().MultiplyPoint( sourcePointPos, transformedSourcePointPos )      
+      transform.GetTransformToParent().MultiplyPoint( sourcePointPos, transformedSourcePointPos )
       #transformedPoints.InsertNextPoint( transformedSourcePointPos )
       surfacePoint = [0, 0, 0]
       transformedSourcePointPos.pop()

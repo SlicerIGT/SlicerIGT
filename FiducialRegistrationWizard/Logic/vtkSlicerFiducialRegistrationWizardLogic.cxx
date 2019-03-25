@@ -459,6 +459,8 @@ bool vtkSlicerFiducialRegistrationWizardLogic::UpdateCalibration(vtkMRMLNode* no
   completeMessage << "Registration Complete. RMS Error: " << rmsError;
   fiducialRegistrationWizardNode->AddToCalibrationStatusMessage(completeMessage.str());
   fiducialRegistrationWizardNode->SetCalibrationError( rmsError );
+  outputTransformNode->AddNodeReferenceID(vtkMRMLTransformNode::GetMovingNodeReferenceRole(), fromMarkupsFiducialNode->GetID());
+  outputTransformNode->AddNodeReferenceID(vtkMRMLTransformNode::GetFixedNodeReferenceRole(), toMarkupsFiducialNode->GetID());
   return true;
 }
 
