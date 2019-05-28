@@ -218,8 +218,9 @@ class FiducialsToModelRegistrationLogic(ScriptedLoadableModuleLogic):
     icpTransform.Update()
 
     outputTransform.SetMatrixTransformToParent( icpTransform.GetMatrix() )
-    outputTransform.AddNodeReferenceID(slicer.vtkMRMLTransformNode.GetMovingNodeReferenceRole(), inputFiducials.GetID())
-    outputTransform.AddNodeReferenceID(slicer.vtkMRMLTransformNode.GetFixedNodeReferenceRole(), inputModel.GetID())
+    if slicer.app.majorVersion >= 5 or (slicer.app.majorVersion >= 4 and slicer.app.minorVersion >= 11):
+      outputTransform.AddNodeReferenceID(slicer.vtkMRMLTransformNode.GetMovingNodeReferenceRole(), inputFiducials.GetID())
+      outputTransform.AddNodeReferenceID(slicer.vtkMRMLTransformNode.GetFixedNodeReferenceRole(), inputModel.GetID())
 
     return True
 

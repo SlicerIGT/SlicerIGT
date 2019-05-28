@@ -18,6 +18,7 @@
 
 ==============================================================================*/
 
+#include "vtkSlicerVersionConfigure.h" // For Slicer_VERSION_MAJOR,Slicer_VERSION_MINOR 
 
 // FiducialRegistrationWizard includes
 #include "vtkSlicerFiducialRegistrationWizardLogic.h"
@@ -459,8 +460,10 @@ bool vtkSlicerFiducialRegistrationWizardLogic::UpdateCalibration(vtkMRMLNode* no
   completeMessage << "Registration Complete. RMS Error: " << rmsError;
   fiducialRegistrationWizardNode->AddToCalibrationStatusMessage(completeMessage.str());
   fiducialRegistrationWizardNode->SetCalibrationError( rmsError );
+#if Slicer_VERSION_MAJOR >= 5 || (Slicer_VERSION_MAJOR >= 4 && Slicer_VERSION_MINOR >= 11)
   outputTransformNode->AddNodeReferenceID(vtkMRMLTransformNode::GetMovingNodeReferenceRole(), fromMarkupsFiducialNode->GetID());
   outputTransformNode->AddNodeReferenceID(vtkMRMLTransformNode::GetFixedNodeReferenceRole(), toMarkupsFiducialNode->GetID());
+#endif 
   return true;
 }
 
