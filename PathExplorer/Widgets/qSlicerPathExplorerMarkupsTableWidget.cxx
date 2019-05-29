@@ -603,7 +603,11 @@ QString qSlicerPathExplorerMarkupsTableWidget
   int row = d->TableWidget->currentRow();
   int markupIndex = d->TableWidget->item(row, Self::Name)->data(Self::MarkupIndex).toInt();
   
+#if Slicer_VERSION_MAJOR >= 5 || (Slicer_VERSION_MAJOR >= 4 && Slicer_VERSION_MINOR >= 11)
   if (!d->FiducialNode->ControlPointExists(markupIndex))
+#else
+  if (!d->FiducialNode->MarkupExists(markupIndex))
+#endif
     {
     return QString();
     }
