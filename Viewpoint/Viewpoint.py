@@ -949,7 +949,7 @@ class ViewpointInstance:
       logging.error("Error in getThreeDWidgetIndex: No View node selected. Returning 0.");
       return 0
     layoutManager = slicer.app.layoutManager()
-    for threeDViewIndex in xrange(layoutManager.threeDViewCount):
+    for threeDViewIndex in range(layoutManager.threeDViewCount):
       threeDViewNode = layoutManager.threeDWidget(threeDViewIndex).threeDView().mrmlViewNode()
       if (threeDViewNode == self.viewNode):
         return threeDViewIndex
@@ -1306,7 +1306,7 @@ class ViewpointInstance:
       weightTarget = 1
     cameraNewPositionRas = [0,0,0]
     cameraNewFocalPointRas = [0,0,0]
-    for i in xrange(0,3):
+    for i in range(3):
       translation = weightTarget * self.autoCenterBaseCameraTranslationRas[i]
       cameraNewPositionRas[i] = translation + self.autoCenterBaseCameraPositionRas[i]
       cameraNewFocalPointRas[i] = translation + self.autoCenterBaseCameraFocalPointRas[i]

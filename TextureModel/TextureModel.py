@@ -158,7 +158,7 @@ class TextureModelLogic(ScriptedLoadableModuleLogic):
     assert numOfPoints == tcoords.GetNumberOfTuples(), "Number of texture coordinates does not equal number of points"
     textureSamplingPointsUv = vtk.vtkPoints()
     textureSamplingPointsUv.SetNumberOfPoints(numOfPoints)
-    for pointIndex in xrange(numOfPoints):
+    for pointIndex in range(numOfPoints):
       uv = tcoords.GetTuple2(pointIndex)
       textureSamplingPointsUv.SetPoint(pointIndex, uv[0], uv[1], 0)
 

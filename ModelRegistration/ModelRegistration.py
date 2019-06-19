@@ -220,7 +220,7 @@ class ModelRegistrationLogic(ScriptedLoadableModuleLogic):
     sourcePoints = sourcePolyData.GetPoints()
     n = sourcePoints.GetNumberOfPoints()
     m = vtk.vtkMath()
-    for sourcePointIndex in xrange(n):
+    for sourcePointIndex in range(n):
       sourcePointPos = [0, 0, 0]
       sourcePoints.GetPoint( sourcePointIndex, sourcePointPos )
       transformedSourcePointPos = [0, 0, 0, 1]

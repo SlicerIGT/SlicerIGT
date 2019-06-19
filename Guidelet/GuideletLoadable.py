@@ -234,8 +234,8 @@ class GuideletLogic(ScriptedLoadableModuleLogic):
 
   def writeTransformToSettings(self, transformName, transformMatrix, configurationName):
     transformMatrixArray = []
-    for r in xrange(4):
-      for c in xrange(4):
+    for r in range(4):
+      for c in range(4):
         transformMatrixArray.append(transformMatrix.GetElement(r,c))
     transformMatrixString = ' '.join(map(str, transformMatrixArray)) # string, numbers are separated by spaces
     settings = slicer.app.userSettings()
@@ -245,8 +245,8 @@ class GuideletLogic(ScriptedLoadableModuleLogic):
   def createMatrixFromString(self, transformMatrixString):
     transformMatrix = vtk.vtkMatrix4x4()
     transformMatrixArray = map(float, transformMatrixString.split(' '))
-    for r in xrange(4):
-      for c in xrange(4):
+    for r in range(4):
+      for c in range(4):
         transformMatrix.SetElement(r,c, transformMatrixArray[r*4+c])
     return transformMatrix
 
