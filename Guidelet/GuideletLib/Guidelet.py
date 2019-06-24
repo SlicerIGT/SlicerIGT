@@ -3,7 +3,7 @@ from __main__ import vtk, qt, ctk, slicer
 import logging
 import time
 
-from UltraSound import UltraSound
+from .UltraSound import UltraSound
 
 class Guidelet(object):
   @staticmethod
@@ -38,16 +38,16 @@ class Guidelet(object):
       logging.debug("Timeout. Command Id: {0}".format(commandId))
 
   # Guidelet layout name definitions
-  VIEW_ULTRASOUND = unicode("Ultrasound")
-  VIEW_ULTRASOUND_3D = unicode("Ultrasound + 3D")
-  VIEW_3D_ULTRASOUND = unicode("3D + Ultrasound")
-  VIEW_ULTRASOUND_CAM_3D = unicode("Ultrasound + Webcam + 3D")
-  VIEW_ULTRASOUND_DUAL_3D = unicode("Ultrasound + Dual 3D")
-  VIEW_3D = unicode("3D")
-  VIEW_DUAL_3D = unicode("Dual 3D")
-  VIEW_TRIPLE_3D = unicode("Triple 3D")
-  VIEW_TRIPLE_3D_PARALLEL = unicode("Triple 3D Parallel")
-  VIEW_QUAD_3D = unicode("Quad 3D")
+  VIEW_ULTRASOUND = ("Ultrasound").encode
+  VIEW_ULTRASOUND_3D = ("Ultrasound + 3D").encode
+  VIEW_3D_ULTRASOUND = ("3D + Ultrasound").encode
+  VIEW_ULTRASOUND_CAM_3D = ("Ultrasound + Webcam + 3D").encode
+  VIEW_ULTRASOUND_DUAL_3D = ("Ultrasound + Dual 3D").encode
+  VIEW_3D = ("3D").encode
+  VIEW_DUAL_3D = ("Dual 3D").encode
+  VIEW_TRIPLE_3D = ("Triple 3D").encode
+  VIEW_TRIPLE_3D_PARALLEL = ("Triple 3D Parallel").encode
+  VIEW_QUAD_3D = ("Quad 3D").encode
 
   def __init__(self, parent, logic, configurationName='Default', sliceletDockWidgetPosition = qt.Qt.LeftDockWidgetArea):
     logging.debug('Guidelet.__init__')
@@ -221,7 +221,7 @@ class Guidelet(object):
     pass
 
   def registerLayout(self, layoutName, layoutId, layoutXmlDescription, layoutSelectCallback=None):
-    if (type(layoutName) != str and type(layoutName) != unicode) or len(layoutName) < 1:
+    if (type(layoutName) != str) or len(layoutName) < 1:
       logging.error('Failed to register layout, because layout name must be a non-empty string. Got ' + repr(layoutName))
       return False
     if not isinstance(layoutId, int):

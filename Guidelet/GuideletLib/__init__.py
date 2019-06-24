@@ -1,2 +1,2 @@
-from UltraSound import UltraSound
-from Guidelet import Guidelet
+from .UltraSound import UltraSound
+from .Guidelet import Guidelet
