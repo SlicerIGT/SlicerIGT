@@ -41,17 +41,17 @@ class Guidelet(object):
     else:
       logging.debug("Timeout. Command Id: {0}".format(commandId))
 
-    # Guidelet layout name definitions
-    VIEW_ULTRASOUND = unicode("Ultrasound")
-    VIEW_ULTRASOUND_3D = unicode("Ultrasound + 3D")
-    VIEW_3D_ULTRASOUND = unicode("3D + Ultrasound")
-    VIEW_ULTRASOUND_CAM_3D = unicode("Ultrasound + Webcam + 3D")
-    VIEW_ULTRASOUND_DUAL_3D = unicode("Ultrasound + Dual 3D")
-    VIEW_3D = unicode("3D")
-    VIEW_DUAL_3D = unicode("Dual 3D")
-    VIEW_TRIPLE_3D = unicode("Triple 3D")
-    VIEW_TRIPLE_3D_PARALLEL = unicode("Triple 3D Parallel")
-    VIEW_QUAD_3D = unicode("Quad 3D")
+  # Guidelet layout name definitions
+  VIEW_ULTRASOUND = unicode("Ultrasound")
+  VIEW_ULTRASOUND_3D = unicode("Ultrasound + 3D")
+  VIEW_3D_ULTRASOUND = unicode("3D + Ultrasound")
+  VIEW_ULTRASOUND_CAM_3D = unicode("Ultrasound + Webcam + 3D")
+  VIEW_ULTRASOUND_DUAL_3D = unicode("Ultrasound + Dual 3D")
+  VIEW_3D = unicode("3D")
+  VIEW_DUAL_3D = unicode("Dual 3D")
+  VIEW_TRIPLE_3D = unicode("Triple 3D")
+  VIEW_TRIPLE_3D_PARALLEL = unicode("Triple 3D Parallel")
+  VIEW_QUAD_3D = unicode("Quad 3D")
 
   def __init__(self, parent, logic, configurationName='Default', sliceletDockWidgetPosition = qt.Qt.LeftDockWidgetArea):
     logging.debug('Guidelet.__init__')
