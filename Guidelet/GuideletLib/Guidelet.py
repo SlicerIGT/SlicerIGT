@@ -225,7 +225,7 @@ class Guidelet(object):
     pass
 
   def registerLayout(self, layoutName, layoutId, layoutXmlDescription, layoutSelectCallback=None):
-    if (type(layoutName) != str and type(layoutName)!= unicode) or len(layoutName) < 1:
+    if (type(layoutName) != str and type(layoutName) != unicode) or len(layoutName) < 1:
       logging.error('Failed to register layout, because layout name must be a non-empty string. Got ' + repr(layoutName))
       return False
     if not isinstance(layoutId, int):
