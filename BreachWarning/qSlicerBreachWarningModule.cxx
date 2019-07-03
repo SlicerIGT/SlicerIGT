@@ -16,9 +16,10 @@
 ==============================================================================*/
 
 // Qt includes
+#include <QDebug>
 #include <QDir>
 #include <QPointer>
-#include <QSound>
+#include <QSoundEffect>
 #include <QTime>
 #include <QTimer>
 #include <QtPlugin>
@@ -47,7 +48,7 @@ public:
 
   vtkSlicerBreachWarningLogic* ObservedLogic; // should be the same as logic(), it is used for adding/removing observer safely
   QTimer UpdateWarningSoundTimer;
-  QPointer<QSound> WarningSound;
+  QPointer<QSoundEffect> WarningSound;
   double WarningSoundPeriodSec;
 };
 
@@ -141,7 +142,14 @@ void qSlicerBreachWarningModule::setup()
 
   if (d->WarningSound == NULL)
   {
-    d->WarningSound = new QSound( QDir::toNativeSeparators( QString::fromStdString( moduleLogic->GetModuleShareDirectory()+"/alarm.wav" ) ) );
+    QString soundFilePath = QDir::toNativeSeparators(QString::fromStdString(moduleLogic->GetModuleShareDirectory() + "/alarm.wav"));
+    QFile soundFile(soundFilePath);
+    if (!soundFile.exists())
+    {
+      qWarning() << "BreachWarning sound file " << soundFilePath << " not found.";
+    }
+    d->WarningSound = new QSoundEffect();
+    d->WarningSound->setSource(QUrl::fromLocalFile(soundFilePath));
   }
 
   this->qvtkReconnect(d->ObservedLogic, moduleLogic, vtkCommand::ModifiedEvent, this, SLOT(updateWarningSound()));
@@ -180,7 +188,7 @@ void qSlicerBreachWarningModule::updateWarningSound()
   bool warningSoundShouldPlay = d->ObservedLogic->GetWarningSoundPlaying();
   if (warningSoundShouldPlay)
   {
-    d->WarningSound->setLoops(1);
+    d->WarningSound->setLoopCount(1);
     d->WarningSound->play();
   }
   else
