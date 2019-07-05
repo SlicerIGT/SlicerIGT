@@ -83,14 +83,14 @@ qSlicerBreachWarningModuleWidget::~qSlicerBreachWarningModuleWidget()
   // Make connections to update the mrml from the widget
   disconnect( d->ModelNodeComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onModelNodeChanged() ) );
   disconnect( d->ToolComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onToolTransformChanged() ) );
-  disconnect( d->WarningColorPickerButton, SIGNAL( colorChanged( QColor ) ), this, SLOT( UpdateWarningColor( QColor ) ) );
-  disconnect( d->SoundCheckBox, SIGNAL(toggled(bool)), this, SLOT(PlayWarningSound(bool)));
-  disconnect( d->WarningCheckBox, SIGNAL(toggled(bool)), this, SLOT(DisplayWarningColor(bool)));
-  disconnect( d->LineToClosestPointVisibilityCheckBox, SIGNAL(toggled(bool)), this, SLOT(LineToClosestPointVisibilityChanged(bool)));
-  disconnect( d->LineToClosestPointColorPickerButton, SIGNAL( colorChanged( QColor ) ), this, SLOT( LineToClosestPointColorChanged( QColor ) ) );  
-  disconnect( d->LineToClosestPointTextSizeSlider, SIGNAL( valueChanged (double ) ), this, SLOT( LineToClosestPointTextSizeChanged( double ) ) );  
-  disconnect( d->LineToClosestPointThicknessSlider, SIGNAL( valueChanged (double ) ), this, SLOT( LineToClosestPointThicknessChanged( double ) ) );  
-  disconnect(d->WarningDistanceMMSpinBox, SIGNAL(valueChanged(double)), this, SLOT(WarningDistanceMMChanged(double)));
+  disconnect( d->WarningColorPickerButton, SIGNAL( colorChanged( QColor ) ), this, SLOT( updateWarningColor( QColor ) ) );
+  disconnect( d->SoundCheckBox, SIGNAL(toggled(bool)), this, SLOT(playWarningSound(bool)));
+  disconnect( d->WarningCheckBox, SIGNAL(toggled(bool)), this, SLOT(displayWarningColor(bool)));
+  disconnect( d->LineToClosestPointVisibilityCheckBox, SIGNAL(toggled(bool)), this, SLOT(lineToClosestPointVisibilityChanged(bool)));
+  disconnect( d->LineToClosestPointColorPickerButton, SIGNAL( colorChanged( QColor ) ), this, SLOT(lineToClosestPointColorChanged( QColor ) ) );  
+  disconnect( d->LineToClosestPointTextSizeSlider, SIGNAL( valueChanged (double ) ), this, SLOT(lineToClosestPointTextSizeChanged( double ) ) );  
+  disconnect(d->LineToClosestPointThicknessSlider, SIGNAL(valueChanged(double)), this, SLOT(lineToClosestPointThicknessChanged(double)));
+  disconnect(d->WarningDistanceMMSpinBox, SIGNAL(valueChanged(double)), this, SLOT(warningDistanceMMChanged(double)));
 }
 
 //-----------------------------------------------------------------------------
@@ -108,16 +108,16 @@ void qSlicerBreachWarningModuleWidget::setup()
   // Make connections to update the mrml from the widget
   connect( d->ModelNodeComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onModelNodeChanged() ) );
   connect( d->ToolComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onToolTransformChanged() ) );
-  connect( d->WarningColorPickerButton, SIGNAL( colorChanged( QColor ) ), this, SLOT( UpdateWarningColor( QColor ) ) );
-  connect(d->SoundCheckBox, SIGNAL(toggled(bool)), this, SLOT(PlayWarningSound(bool)));
-  connect(d->WarningCheckBox, SIGNAL(toggled(bool)), this, SLOT(DisplayWarningColor(bool)));
-  connect(d->LineToClosestPointVisibilityCheckBox, SIGNAL(toggled(bool)), this, SLOT(LineToClosestPointVisibilityChanged(bool)));
-  connect( d->LineToClosestPointColorPickerButton, SIGNAL( colorChanged( QColor ) ), this, SLOT( LineToClosestPointColorChanged( QColor ) ) );
-  connect( d->LineToClosestPointTextSizeSlider, SIGNAL( valueChanged (double ) ), this, SLOT( LineToClosestPointTextSizeChanged( double ) ) );  
-  connect( d->LineToClosestPointThicknessSlider, SIGNAL( valueChanged (double ) ), this, SLOT( LineToClosestPointThicknessChanged( double ) ) );  
-  connect(d->WarningDistanceMMSpinBox, SIGNAL(valueChanged(double)), this, SLOT(WarningDistanceMMChanged(double)));
+  connect( d->WarningColorPickerButton, SIGNAL( colorChanged( QColor ) ), this, SLOT( updateWarningColor( QColor ) ) );
+  connect(d->SoundCheckBox, SIGNAL(toggled(bool)), this, SLOT(playWarningSound(bool)));
+  connect(d->WarningCheckBox, SIGNAL(toggled(bool)), this, SLOT(displayWarningColor(bool)));
+  connect(d->LineToClosestPointVisibilityCheckBox, SIGNAL(toggled(bool)), this, SLOT(lineToClosestPointVisibilityChanged(bool)));
+  connect( d->LineToClosestPointColorPickerButton, SIGNAL( colorChanged( QColor ) ), this, SLOT(lineToClosestPointColorChanged( QColor ) ) );
+  connect( d->LineToClosestPointTextSizeSlider, SIGNAL( valueChanged (double ) ), this, SLOT(lineToClosestPointTextSizeChanged( double ) ) );  
+  connect( d->LineToClosestPointThicknessSlider, SIGNAL( valueChanged (double ) ), this, SLOT(lineToClosestPointThicknessChanged( double ) ) );  
+  connect(d->WarningDistanceMMSpinBox, SIGNAL(valueChanged(double)), this, SLOT(warningDistanceMMChanged(double)));
 
-  this->UpdateFromMRMLNode();
+  this->updateWidgetFromMRML();
 }
 
 //-----------------------------------------------------------------------------
@@ -174,7 +174,9 @@ void qSlicerBreachWarningModuleWidget::onSceneImportedEvent()
 void qSlicerBreachWarningModuleWidget::onParameterNodeChanged()
 {
   Q_D( qSlicerBreachWarningModuleWidget );
-  this->UpdateFromMRMLNode();
+  vtkMRMLBreachWarningNode* bwNode = vtkMRMLBreachWarningNode::SafeDownCast(d->ParameterNodeComboBox->currentNode());
+  qvtkReconnect(bwNode, vtkMRMLBreachWarningNode::InputDataModifiedEvent, this, SLOT(updateWidgetFromMRML()));
+  this->updateWidgetFromMRML();
 }
 
 //-----------------------------------------------------------------------------
@@ -210,7 +212,7 @@ void qSlicerBreachWarningModuleWidget::onToolTransformChanged()
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerBreachWarningModuleWidget::PlayWarningSound(bool playWarningSound)
+void qSlicerBreachWarningModuleWidget::playWarningSound(bool playWarningSound)
 {
   Q_D(qSlicerBreachWarningModuleWidget);
   vtkMRMLBreachWarningNode* parameterNode = vtkMRMLBreachWarningNode::SafeDownCast( d->ParameterNodeComboBox->currentNode() );
@@ -223,7 +225,7 @@ void qSlicerBreachWarningModuleWidget::PlayWarningSound(bool playWarningSound)
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerBreachWarningModuleWidget::DisplayWarningColor(bool displayWarningColor)
+void qSlicerBreachWarningModuleWidget::displayWarningColor(bool displayWarningColor)
 {
   Q_D(qSlicerBreachWarningModuleWidget);
   vtkMRMLBreachWarningNode* parameterNode = vtkMRMLBreachWarningNode::SafeDownCast( d->ParameterNodeComboBox->currentNode() );
@@ -236,7 +238,7 @@ void qSlicerBreachWarningModuleWidget::DisplayWarningColor(bool displayWarningCo
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerBreachWarningModuleWidget::LineToClosestPointVisibilityChanged(bool visible)
+void qSlicerBreachWarningModuleWidget::lineToClosestPointVisibilityChanged(bool visible)
 {
   Q_D(qSlicerBreachWarningModuleWidget);
   vtkMRMLBreachWarningNode* parameterNode = vtkMRMLBreachWarningNode::SafeDownCast( d->ParameterNodeComboBox->currentNode() );
@@ -249,7 +251,7 @@ void qSlicerBreachWarningModuleWidget::LineToClosestPointVisibilityChanged(bool 
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerBreachWarningModuleWidget::UpdateWarningColor( QColor newColor )
+void qSlicerBreachWarningModuleWidget::updateWarningColor( QColor newColor )
 {
   Q_D(qSlicerBreachWarningModuleWidget);
 
@@ -264,7 +266,7 @@ void qSlicerBreachWarningModuleWidget::UpdateWarningColor( QColor newColor )
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerBreachWarningModuleWidget::LineToClosestPointColorChanged( QColor newColor )
+void qSlicerBreachWarningModuleWidget::lineToClosestPointColorChanged( QColor newColor )
 {
   Q_D(qSlicerBreachWarningModuleWidget);
 
@@ -279,7 +281,7 @@ void qSlicerBreachWarningModuleWidget::LineToClosestPointColorChanged( QColor ne
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerBreachWarningModuleWidget::LineToClosestPointTextSizeChanged( double size )
+void qSlicerBreachWarningModuleWidget::lineToClosestPointTextSizeChanged( double size )
 {
   Q_D(qSlicerBreachWarningModuleWidget);
 
@@ -294,7 +296,7 @@ void qSlicerBreachWarningModuleWidget::LineToClosestPointTextSizeChanged( double
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerBreachWarningModuleWidget::LineToClosestPointThicknessChanged( double thickness )
+void qSlicerBreachWarningModuleWidget::lineToClosestPointThicknessChanged( double thickness )
 {
   Q_D(qSlicerBreachWarningModuleWidget);
 
@@ -309,7 +311,7 @@ void qSlicerBreachWarningModuleWidget::LineToClosestPointThicknessChanged( doubl
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerBreachWarningModuleWidget::WarningDistanceMMChanged(double warningDistanceMM)
+void qSlicerBreachWarningModuleWidget::warningDistanceMMChanged(double warningDistanceMM)
 {
   Q_D(qSlicerBreachWarningModuleWidget);
 
@@ -323,7 +325,7 @@ void qSlicerBreachWarningModuleWidget::WarningDistanceMMChanged(double warningDi
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerBreachWarningModuleWidget::UpdateFromMRMLNode()
+void qSlicerBreachWarningModuleWidget::updateWidgetFromMRML()
 {
   Q_D( qSlicerBreachWarningModuleWidget );
   
@@ -341,6 +343,7 @@ void qSlicerBreachWarningModuleWidget::UpdateFromMRMLNode()
     d->LineToClosestPointColorPickerButton->setEnabled( false );
     d->LineToClosestPointTextSizeSlider->setEnabled( false );
     d->LineToClosestPointThicknessSlider->setEnabled( false );
+    d->WarningDistanceMMSpinBox->setValue(0.0);
     return;
   }
     
@@ -372,4 +375,6 @@ void qSlicerBreachWarningModuleWidget::UpdateFromMRMLNode()
   d->LineToClosestPointVisibilityCheckBox->setChecked( d->logic()->GetLineToClosestPointVisibility(bwNode) );
   d->LineToClosestPointTextSizeSlider->setValue( d->logic()->GetLineToClosestPointTextScale(bwNode) );
   d->LineToClosestPointThicknessSlider->setValue( d->logic()->GetLineToClosestPointThickness(bwNode) );
+
+  d->WarningDistanceMMSpinBox->setValue(bwNode->GetWarningDistanceMM());
 }

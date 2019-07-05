@@ -50,15 +50,15 @@ protected slots:
 
   void onModelNodeChanged();
   void onToolTransformChanged();
-  void PlayWarningSound(bool warningSound);
-  void DisplayWarningColor(bool displayWarningColor);
-  void UpdateWarningColor( QColor newColor );
-  void UpdateFromMRMLNode();
-  void LineToClosestPointVisibilityChanged(bool displayRuler);
-  void LineToClosestPointColorChanged( QColor newColor );  
-  void LineToClosestPointTextSizeChanged(double size);
-  void LineToClosestPointThicknessChanged(double thickness);
-  void WarningDistanceMMChanged(double warningDistanceMM);
+  void playWarningSound(bool warningSound);
+  void displayWarningColor(bool displayWarningColor);
+  void updateWarningColor( QColor newColor );
+  void updateWidgetFromMRML();
+  void lineToClosestPointVisibilityChanged(bool displayRuler);
+  void lineToClosestPointColorChanged( QColor newColor );  
+  void lineToClosestPointTextSizeChanged(double size);
+  void lineToClosestPointThicknessChanged(double thickness);
+  void warningDistanceMMChanged(double warningDistanceMM);
 
 protected:
   QScopedPointer<qSlicerBreachWarningModuleWidgetPrivate> d_ptr;
