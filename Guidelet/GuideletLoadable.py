@@ -237,14 +237,14 @@ class GuideletLogic(ScriptedLoadableModuleLogic):
     for r in range(4):
       for c in range(4):
         transformMatrixArray.append(transformMatrix.GetElement(r,c))
-    transformMatrixString = ' '.join(map(str, transformMatrixArray)) # string, numbers are separated by spaces
+    transformMatrixString = ' '.join(list(map(str, transformMatrixArray))) # string, numbers are separated by spaces
     settings = slicer.app.userSettings()
     settingString = self.moduleName + '/Configurations/' + configurationName + '/{0}' # Write to selected configuration
     settings.setValue(settingString.format(transformName), transformMatrixString)
 
   def createMatrixFromString(self, transformMatrixString):
     transformMatrix = vtk.vtkMatrix4x4()
-    transformMatrixArray = map(float, transformMatrixString.split(' '))
+    transformMatrixArray = list(map(float, transformMatrixString.split(' ')))
     for r in range(4):
       for c in range(4):
         transformMatrix.SetElement(r,c, transformMatrixArray[r*4+c])
