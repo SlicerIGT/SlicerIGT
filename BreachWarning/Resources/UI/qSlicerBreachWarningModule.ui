@@ -267,12 +267,12 @@
        </widget>
       </item>
       <item row="0" column="1">
-       <widget class="ctkSliderWidget" name="WarningDistanceMMSlider">
-        <property name="singleStep">
-         <double>0.500000000000000</double>
+       <widget class="ctkDoubleSpinBox" name="WarningDistanceMMSpinBox">
+        <property name="minimum">
+         <double>-10000000000.000000000000000</double>
         </property>
         <property name="maximum">
-         <double>100.000000000000000</double>
+         <double>10000000000.000000000000000</double>
         </property>
        </widget>
       </item>
@@ -316,6 +316,11 @@
    <class>ctkColorPickerButton</class>
    <extends>QPushButton</extends>
    <header>ctkColorPickerButton.h</header>
+  </customwidget>
+  <customwidget>
+   <class>ctkDoubleSpinBox</class>
+   <extends>QWidget</extends>
+   <header>ctkDoubleSpinBox.h</header>
   </customwidget>
   <customwidget>
    <class>ctkSliderWidget</class>
