@@ -57,6 +57,7 @@ vtkMRMLBreachWarningNode::vtkMRMLBreachWarningNode()
   this->ClosestPointOnModel[1] = 0.0;
   this->ClosestPointOnModel[2] = 0.0;
 
+  this->WarningDistanceMM = 0.0;
 }
 
 //------------------------------------------------------------------------------
@@ -70,114 +71,52 @@ void vtkMRMLBreachWarningNode::WriteXML( ostream& of, int nIndent )
   Superclass::WriteXML(of, nIndent); // This will take care of referenced nodes
   vtkIndent indent(nIndent);
 
-  of << indent << " warningColor=\"" << this->WarningColor[0] << " " << this->WarningColor[1] << " " << this->WarningColor[2] << "\"";
-  of << indent << " originalColor=\"" << this->OriginalColor[0] << " " << this->OriginalColor[1] << " " << this->OriginalColor[2] << "\"";
-  of << indent << " displayWarningColor=\"" << ( this->DisplayWarningColor ? "true" : "false" ) << "\"";
-  of << indent << " playWarningSound=\"" << ( this->PlayWarningSound ? "true" : "false" ) << "\"";
-  of << indent << " closestDistanceToModelFromToolTip=\"" << ClosestDistanceToModelFromToolTip << "\"";
-  of << indent << " closestPointOnModel=\"" << this->ClosestPointOnModel[0] << " " << this->ClosestPointOnModel[1] << " " << this->ClosestPointOnModel[2] << "\"";
+  vtkMRMLWriteXMLBeginMacro(of);
+  vtkMRMLWriteXMLVectorMacro(warningColor, WarningColor, double, 3);
+  vtkMRMLWriteXMLVectorMacro(originalColor, OriginalColor, double, 3);
+  vtkMRMLWriteXMLBooleanMacro(displayWarningColor, DisplayWarningColor);
+  vtkMRMLWriteXMLBooleanMacro(playWarningSound, PlayWarningSound);
+  vtkMRMLWriteXMLFloatMacro(closestDistanceToModelFromToolTip, ClosestDistanceToModelFromToolTip);
+  vtkMRMLWriteXMLVectorMacro(closestPointOnModel, ClosestPointOnModel, double, 3);
+  vtkMRMLWriteXMLFloatMacro(warningDistanceMM, WarningDistanceMM);
+  vtkMRMLWriteXMLEndMacro();
 }
 
 //------------------------------------------------------------------------------
 void vtkMRMLBreachWarningNode::ReadXMLAttributes( const char** atts )
 {
+  int wasModifying = this->StartModify();
   Superclass::ReadXMLAttributes(atts); // This will take care of referenced nodes
-
-  // Read all MRML node attributes from two arrays of names and values
-  const char* attName;
-  const char* attValue;
-
-  while (*atts != NULL)
-  {
-    attName  = *(atts++);
-    attValue = *(atts++);
-    
-    if (!strcmp(attName, "warningColor"))
-    {
-      std::stringstream ss;
-      ss << attValue;
-      double val;
-      ss >> val;
-      this->WarningColor[0] = val;
-      ss >> val;
-      this->WarningColor[1] = val;
-      ss >> val;
-      this->WarningColor[2] = val;
-    }
-    else if (!strcmp(attName, "originalColor"))
-    {
-      std::stringstream ss;
-      ss << attValue;
-      double val;
-      ss >> val;
-      this->OriginalColor[0] = val;
-      ss >> val;
-      this->OriginalColor[1] = val;
-      ss >> val;
-      this->OriginalColor[2] = val;
-    }
-    else if ( ! strcmp( attName, "displayWarningColor" ) )
-    {
-      if (!strcmp(attValue,"true"))
-      {
-        this->DisplayWarningColor = true;
-      }
-      else
-      {
-        this->DisplayWarningColor = false;
-      }
-    }
-    else if ( ! strcmp( attName, "playWarningSound" ) )
-    {
-      if (!strcmp(attValue,"true"))
-      {
-        this->PlayWarningSound = true;
-      }
-      else
-      {
-        this->PlayWarningSound = false;
-      }
-    }
-    else if (!strcmp(attName, "closestDistanceToModelFromToolTip"))
-    {
-      std::stringstream ss;
-      ss << attValue;
-      double val=0.0;
-      ss >> val;
-      this->ClosestDistanceToModelFromToolTip = val;
-    }
-    else if (!strcmp(attName, "closestPointOnModel"))
-    {
-      std::stringstream ss;
-      ss << attValue;
-      double val;
-      ss >> val;
-      this->ClosestPointOnModel[0] = val;
-      ss >> val;
-      this->ClosestPointOnModel[1] = val;
-      ss >> val;
-      this->ClosestPointOnModel[2] = val;
-    }
-  }
+  vtkMRMLReadXMLBeginMacro(atts);
+  vtkMRMLReadXMLVectorMacro(warningColor, WarningColor, double, 3);
+  vtkMRMLReadXMLVectorMacro(originalColor, OriginalColor, double, 3);
+  vtkMRMLReadXMLBooleanMacro(displayWarningColor, DisplayWarningColor);
+  vtkMRMLReadXMLBooleanMacro(playWarningSound, PlayWarningSound);
+  vtkMRMLReadXMLFloatMacro(closestDistanceToModelFromToolTip, ClosestDistanceToModelFromToolTip);
+  vtkMRMLReadXMLVectorMacro(closestPointOnModel, ClosestPointOnModel, double, 3);
+  vtkMRMLReadXMLFloatMacro(warningDistanceMM, WarningDistanceMM);
+  vtkMRMLReadXMLEndMacro();
+  this->EndModify(wasModifying);
 }
 
 //------------------------------------------------------------------------------
 void vtkMRMLBreachWarningNode::Copy( vtkMRMLNode *anode )
-{  
+{
+  int wasModifying = this->StartModify();
   Superclass::Copy( anode ); // This will take care of referenced nodes
-  
-  vtkMRMLBreachWarningNode *node = ( vtkMRMLBreachWarningNode* ) anode;
-  
-  for ( int i = 0; i < 3; ++ i )
-  {
-    this->WarningColor[ i ] = node->WarningColor[ i ];
-    this->OriginalColor[ i ] = node->OriginalColor[ i ];
-  }
 
-  this->PlayWarningSound = node->PlayWarningSound;  
-  this->DisplayWarningColor = node->DisplayWarningColor;
+  vtkMRMLCopyBeginMacro(anode);
+  vtkMRMLCopyVectorMacro(WarningColor, double, 3);
+  vtkMRMLCopyVectorMacro(OriginalColor, double, 3);
+  vtkMRMLCopyBooleanMacro(DisplayWarningColor);
+  vtkMRMLCopyBooleanMacro(PlayWarningSound);
+  vtkMRMLCopyFloatMacro(ClosestDistanceToModelFromToolTip);
+  vtkMRMLCopyVectorMacro(ClosestPointOnModel, double, 3);
+  vtkMRMLCopyFloatMacro(WarningDistanceMM);
+  vtkMRMLCopyEndMacro();
 
   this->Modified();
+  this->EndModify(wasModifying);
 }
 
 //------------------------------------------------------------------------------
@@ -185,16 +124,15 @@ void vtkMRMLBreachWarningNode::PrintSelf( ostream& os, vtkIndent indent )
 {
   vtkMRMLNode::PrintSelf(os,indent); // This will take care of referenced nodes
 
-  os << indent << "WatchedModelID: " << (this->GetWatchedModelNode() && this->GetWatchedModelNode()->GetID() ?
-   this->GetWatchedModelNode()->GetID() : "(none)" ) << std::endl;
-  os << indent << "ToolTipTransformID: " << (this->GetToolTransformNode() && this->GetToolTransformNode()->GetID() ?
-   this->GetToolTransformNode()->GetID() : "(none)" ) << std::endl;
-  os << indent << "LineToClosestPointID: " << (this->GetLineToClosestPointNode() && this->GetLineToClosestPointNode()->GetID() ?
-   this->GetLineToClosestPointNode()->GetID() : "(none)" ) << std::endl;
-  os << indent << "DisplayWarningColor: " << this->DisplayWarningColor << std::endl;
-  os << indent << "PlayWarningSound: " << this->PlayWarningSound << std::endl;
-  os << indent << "WarningColor: " << this->WarningColor[0] << ", " << this->WarningColor[1] << ", " << this->WarningColor[2] << std::endl;
-  os << indent << "OriginalColor: " << this->OriginalColor[0] << ", " << this->OriginalColor[1] << ", " << this->OriginalColor[2] << std::endl;
+  vtkMRMLPrintBeginMacro(os, indent);
+  vtkMRMLPrintVectorMacro(WarningColor, double, 3);
+  vtkMRMLPrintVectorMacro(OriginalColor, double, 3);
+  vtkMRMLPrintBooleanMacro(DisplayWarningColor);
+  vtkMRMLPrintBooleanMacro(PlayWarningSound);
+  vtkMRMLPrintFloatMacro(ClosestDistanceToModelFromToolTip);
+  vtkMRMLPrintVectorMacro(ClosestPointOnModel, double, 3);
+  vtkMRMLPrintFloatMacro(WarningDistanceMM);
+  vtkMRMLPrintEndMacro();
 }
 
 //------------------------------------------------------------------------------
@@ -301,7 +239,7 @@ void vtkMRMLBreachWarningNode::ProcessMRMLEvents( vtkObject *caller, unsigned lo
 //------------------------------------------------------------------------------
 bool vtkMRMLBreachWarningNode::IsToolTipInsideModel()
 {
-  return (this->ClosestDistanceToModelFromToolTip<0);
+  return (this->ClosestDistanceToModelFromToolTip<this->WarningDistanceMM);
 }
 
 //------------------------------------------------------------------------------
@@ -366,4 +304,16 @@ void vtkMRMLBreachWarningNode::SetOriginalColor(double _arg1, double _arg2, doub
 void vtkMRMLBreachWarningNode::SetOriginalColor(double _arg[3])
 {
   this->SetOriginalColor(_arg[0], _arg[1], _arg[2]);
+}
+
+//------------------------------------------------------------------------------
+void vtkMRMLBreachWarningNode::SetWarningDistanceMM(double warningDistanceMM)
+{
+  if (this->WarningDistanceMM == warningDistanceMM)
+  {
+    return;
+  }
+  this->WarningDistanceMM = warningDistanceMM;
+  this->Modified();
+  this->InvokeCustomModifiedEvent(InputDataModifiedEvent);
 }

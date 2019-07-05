@@ -259,6 +259,23 @@
         </property>
        </widget>
       </item>
+      <item row="0" column="0">
+       <widget class="QLabel" name="WarningDistanceMMLabel">
+        <property name="text">
+         <string>Breach warning distance (mm):</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="ctkSliderWidget" name="WarningDistanceMMSlider">
+        <property name="singleStep">
+         <double>0.500000000000000</double>
+        </property>
+        <property name="maximum">
+         <double>100.000000000000000</double>
+        </property>
+       </widget>
+      </item>
      </layout>
     </widget>
    </item>

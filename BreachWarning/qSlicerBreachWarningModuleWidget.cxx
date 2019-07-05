@@ -90,6 +90,7 @@ qSlicerBreachWarningModuleWidget::~qSlicerBreachWarningModuleWidget()
   disconnect( d->LineToClosestPointColorPickerButton, SIGNAL( colorChanged( QColor ) ), this, SLOT( LineToClosestPointColorChanged( QColor ) ) );  
   disconnect( d->LineToClosestPointTextSizeSlider, SIGNAL( valueChanged (double ) ), this, SLOT( LineToClosestPointTextSizeChanged( double ) ) );  
   disconnect( d->LineToClosestPointThicknessSlider, SIGNAL( valueChanged (double ) ), this, SLOT( LineToClosestPointThicknessChanged( double ) ) );  
+  disconnect(d->WarningDistanceMMSlider, SIGNAL(valueChanged(double)), this, SLOT(WarningDistanceMMChanged(double)));
 }
 
 //-----------------------------------------------------------------------------
@@ -114,6 +115,7 @@ void qSlicerBreachWarningModuleWidget::setup()
   connect( d->LineToClosestPointColorPickerButton, SIGNAL( colorChanged( QColor ) ), this, SLOT( LineToClosestPointColorChanged( QColor ) ) );
   connect( d->LineToClosestPointTextSizeSlider, SIGNAL( valueChanged (double ) ), this, SLOT( LineToClosestPointTextSizeChanged( double ) ) );  
   connect( d->LineToClosestPointThicknessSlider, SIGNAL( valueChanged (double ) ), this, SLOT( LineToClosestPointThicknessChanged( double ) ) );  
+  connect(d->WarningDistanceMMSlider, SIGNAL(valueChanged(double)), this, SLOT(WarningDistanceMMChanged(double)));
 
   this->UpdateFromMRMLNode();
 }
@@ -304,6 +306,20 @@ void qSlicerBreachWarningModuleWidget::LineToClosestPointThicknessChanged( doubl
   }
 
   d->logic()->SetLineToClosestPointThickness( thickness, parameterNode);
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerBreachWarningModuleWidget::WarningDistanceMMChanged(double warningDistanceMM)
+{
+  Q_D(qSlicerBreachWarningModuleWidget);
+
+  vtkMRMLBreachWarningNode* parameterNode = vtkMRMLBreachWarningNode::SafeDownCast(d->ParameterNodeComboBox->currentNode());
+  if (parameterNode == NULL)
+  {
+    qCritical("No module node selected");
+    return;
+  }
+  parameterNode->SetWarningDistanceMM(warningDistanceMM);
 }
 
 //-----------------------------------------------------------------------------

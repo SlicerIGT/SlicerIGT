@@ -58,6 +58,7 @@ protected slots:
   void LineToClosestPointColorChanged( QColor newColor );  
   void LineToClosestPointTextSizeChanged(double size);
   void LineToClosestPointThicknessChanged(double thickness);
+  void WarningDistanceMMChanged(double warningDistanceMM);
 
 protected:
   QScopedPointer<qSlicerBreachWarningModuleWidgetPrivate> d_ptr;
