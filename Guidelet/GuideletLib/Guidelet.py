@@ -3,7 +3,11 @@ from __main__ import vtk, qt, ctk, slicer
 import logging
 import time
 
-from UltraSound import UltraSound
+# fix unicode error by aliasing str as unicode in Python 3
+if slicer.app.majorVersion >= 5 or (slicer.app.majorVersion >= 4 and slicer.app.minorVersion >= 11):
+  unicode = str
+
+from .UltraSound import UltraSound
 
 class Guidelet(object):
   @staticmethod
