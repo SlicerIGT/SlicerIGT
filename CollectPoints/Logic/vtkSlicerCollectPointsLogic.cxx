@@ -314,6 +314,7 @@ void vtkSlicerCollectPointsLogic::AddPointToModel( vtkMRMLCollectPointsNode* col
     }
   }
   points->InsertNextPoint( pointCoordinates );
+  points->Modified();
 
   this->UpdateCellsForPolyData( polyData );
 }
