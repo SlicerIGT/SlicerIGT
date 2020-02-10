@@ -52,6 +52,7 @@ class Guidelet(object):
   VIEW_TRIPLE_3D = unicode("Triple 3D")
   VIEW_TRIPLE_3D_PARALLEL = unicode("Triple 3D Parallel")
   VIEW_QUAD_3D = unicode("Quad 3D")
+  VIEW_4UP = unicode("Four Up")
 
   def __init__(self, parent, logic, configurationName='Default', sliceletDockWidgetPosition = qt.Qt.LeftDockWidgetArea):
     logging.debug('Guidelet.__init__')
@@ -434,6 +435,10 @@ class Guidelet(object):
     threeDViewId = slicer.vtkMRMLLayoutNode.SlicerLayoutOneUp3DView
     self.registerLayout(self.VIEW_3D, threeDViewId, \
       layoutNode.GetLayoutDescription(threeDViewId), self.showUltrasoundSliceIn3DView)
+
+    fourUpViewId = slicer.vtkMRMLLayoutNode.SlicerLayoutFourUpView
+    self.registerLayout(self.VIEW_4UP, fourUpViewId, \
+      layoutNode.GetLayoutDescription(fourUpViewId), self.showUltrasoundSliceIn3DView)
 
   def onSceneLoaded(self):
     """ Derived classes can override this function
