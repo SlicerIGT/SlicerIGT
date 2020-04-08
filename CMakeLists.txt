@@ -38,6 +38,14 @@ add_subdirectory(UltrasoundSnapshots)
 add_subdirectory(VolumeResliceDriver)
 add_subdirectory(Viewpoint)
 ## NEXT_MODULE
+
+# Sequences module was moved to Slicer core in Slicer-4.11 and MetafileImporter module
+# was moved to this extension.
+if(${Slicer_VERSION_MAJOR}.${Slicer_VERSION_MINOR} VERSION_GREATER_EQUAL 4.11)
+  message(STATUS "Slicer version ${Slicer_VERSION_MAJOR}.${Slicer_VERSION_MINOR} - MetafileImporter is included")
+  add_subdirectory(MetafileImporter)
+endif() 
+
 if(SLICERIGT_ENABLE_EXPERIMENTAL_MODULES)
   add_subdirectory(Experimental)
 endif(SLICERIGT_ENABLE_EXPERIMENTAL_MODULES)
