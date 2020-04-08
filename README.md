@@ -1,5 +1,5 @@
 # SlicerIGT
-This repository contains SlicerIGT extension for 3D Slicer, which consists of modules forsupporting image-guided interventions.
+This repository contains the SlicerIGT extension for 3D Slicer, which consists of modules for supporting image-guided interventions.
 
 ## User documentation
 
