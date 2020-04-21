@@ -26,7 +26,7 @@ class qSlicerWatchdogModuleWidgetPrivate;
 class vtkMRMLNode;
 //class vtkMRMLWatchdogNode;
 
-/// \ingroup Slicer_QtModules_ToolWatchdog
+/// \ingroup Slicer_QtModules_Watchdog
 class Q_SLICER_QTMODULES_WATCHDOG_EXPORT qSlicerWatchdogModuleWidget :
   public qSlicerAbstractModuleWidget
 {
@@ -63,7 +63,7 @@ protected slots:
   /// Starts/stops playing sound based on the status of all current tools
   //void onUpdateSound();
 
-  /// Refresh the gui from the currently active toolwatchdog node 
+  /// Refresh the gui from the currently active watchdog node 
   void updateFromMRMLNode();
   /// Update the selection node from the combobox
   void onWatchdogNodeSelectionChanged();

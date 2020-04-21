@@ -37,7 +37,7 @@ int TOOL_STATUS_COLUMN = 3;
 int TOOL_COLUMNS = 4;
 
 //-----------------------------------------------------------------------------
-/// \ingroup Slicer_QtModules_ToolWatchdog
+/// \ingroup Slicer_QtModules_Watchdog
 class qSlicerWatchdogModuleWidgetPrivate: public Ui_qSlicerWatchdogModuleWidget
 {
   Q_DECLARE_PUBLIC( qSlicerWatchdogModuleWidget ); 
