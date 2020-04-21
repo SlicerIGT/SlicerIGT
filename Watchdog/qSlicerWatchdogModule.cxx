@@ -54,7 +54,7 @@ Q_EXPORT_PLUGIN2(qSlicerWatchdogModule, qSlicerWatchdogModule);
 #endif
 
 //-----------------------------------------------------------------------------
-/// \ingroup Slicer_QtModules_ToolWatchdog
+/// \ingroup Slicer_QtModules_Watchdog
 class qSlicerWatchdogModulePrivate
 {
 public:

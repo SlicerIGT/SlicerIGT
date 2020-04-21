@@ -63,7 +63,7 @@ endif()
 
 configure_file(
   ${CMAKE_CURRENT_SOURCE_DIR}/Resources/alarm.wav
-  ${SlicerIGT_BINARY_DIR}/${Slicer_QTLOADABLEMODULES_SHARE_DIR}/${MODULE_NAME}/alarm.wav
+  ${CMAKE_BINARY_DIR}/${Slicer_QTLOADABLEMODULES_SHARE_DIR}/${MODULE_NAME}/alarm.wav
   COPYONLY)
 
 install(

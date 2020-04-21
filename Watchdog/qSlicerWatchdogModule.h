@@ -28,7 +28,7 @@
 
 class qSlicerWatchdogModulePrivate;
 
-/// \ingroup Slicer_QtModules_ToolWatchdog
+/// \ingroup Slicer_QtModules_Watchdog
 class Q_SLICER_QTMODULES_WATCHDOG_EXPORT qSlicerWatchdogModule
   : public qSlicerLoadableModule
 {
