@@ -82,7 +82,7 @@ class Guidelet(object):
     self.sliceletPanelLayout = qt.QVBoxLayout(self.sliceletPanel)
     self.sliceletDockWidget.setWidget(self.sliceletPanel)
 
-    self.topPanelLayout = qt.QGridLayout(self.sliceletPanel)
+    self.topPanelLayout = qt.QGridLayout()
     self.sliceletPanelLayout.addLayout(self.topPanelLayout)
     self.setupTopPanel()
 
