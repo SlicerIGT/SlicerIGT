@@ -73,7 +73,8 @@ QString qSlicerVolumeResliceDriverModule::helpText()const
 {
   QString help = 
     "This module allows to set reslicing planes by using linear transforms nodes"
-    "or positions/orientations in image nodes.";
+    " or positions/orientations in image nodes."
+    " For help on how to use this module visit: <a href='https://www.slicerigt.org'>SlicerIGT website</a>.";
   return help;
 }
 

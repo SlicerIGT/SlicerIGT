@@ -15,15 +15,22 @@
 
 ==============================================================================*/
 
+// Slicer includes
+#include "qSlicerCoreApplication.h"
+
 // Qt includes
 #include <QtPlugin>
+#include <QTimer>
 
 // TransformProcessor Logic includes
 #include <vtkSlicerTransformProcessorLogic.h>
+#include <vtkMRMLTransformProcessorNode.h>
 
 // TransformProcessor includes
 #include "qSlicerTransformProcessorModule.h"
 #include "qSlicerTransformProcessorModuleWidget.h"
+
+static const double UPDATE_OUTPUTS_PERIOD_SEC = 0.033; // about 30 fps update rate
 
 //-----------------------------------------------------------------------------
 #if (QT_VERSION < QT_VERSION_CHECK(5, 0, 0))
@@ -37,6 +44,8 @@ class qSlicerTransformProcessorModulePrivate
 {
 public:
   qSlicerTransformProcessorModulePrivate();
+
+  QTimer UpdateAllOutputsTimer;
 };
 
 //-----------------------------------------------------------------------------
@@ -55,6 +64,15 @@ qSlicerTransformProcessorModule::qSlicerTransformProcessorModule(QObject* _paren
   : Superclass(_parent)
   , d_ptr(new qSlicerTransformProcessorModulePrivate)
 {
+  Q_D(qSlicerTransformProcessorModule);
+  connect(&d->UpdateAllOutputsTimer, SIGNAL(timeout()), this, SLOT(updateAllOutputs()));
+  vtkMRMLScene* scene = qSlicerCoreApplication::application()->mrmlScene();
+  if (scene)
+  {
+    // Need to listen for any new watchdog nodes being added to start/stop timer
+    this->qvtkConnect(scene, vtkMRMLScene::NodeAddedEvent, this, SLOT(onNodeAddedEvent(vtkObject*, vtkObject*)));
+    this->qvtkConnect(scene, vtkMRMLScene::NodeRemovedEvent, this, SLOT(onNodeRemovedEvent(vtkObject*, vtkObject*)));
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -71,22 +89,27 @@ qSlicerTransformProcessorModule::~qSlicerTransformProcessorModule()
 //-----------------------------------------------------------------------------
 QString qSlicerTransformProcessorModule::helpText()const
 {
-  return "For help on how to use this module visit: <a href='https://www.slicerigt.org'>SlicerIGT</a>";
+  return "This module allows combining, inverting, stabilizing, termporal smoothing of transforms in real-time."
+    " For more information, visit <a href='https://github.com/SlicerIGT/SlicerIGT/#user-documentation'>SlicerIGT project website</a>.";
 }
 
 //-----------------------------------------------------------------------------
 QString qSlicerTransformProcessorModule::acknowledgementText()const
 {
-  return "This work was was funded by Cancer Care Ontario and the Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO)";
+  return "This work was partially funded by Cancer Care Ontario and the Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO),"
+    " and by National Institute of Health (grants 5P01CA067165, 5R01CA124377, 5R01CA138586, 2R44DE019322, 7R01CA124377, 5R42CA137886, 8P41EB015898).";
 }
 
 //-----------------------------------------------------------------------------
 QStringList qSlicerTransformProcessorModule::contributors()const
 {
   QStringList moduleContributors;
-  moduleContributors << QString("Franklin King (Queen's University), Tamas Ungi (Queen's University), Thomas Vaughan (Queen's University)");
-  // moduleContributors << QString("Richard Roe (Organization2)");
-  // ...
+  moduleContributors << QString("Franklin King (PerkLab, Queen's University)")
+    << QString("Thomas Vaughan (PerkLab, Queen's University)")
+    << QString("Andras Lasso (PerkLab, Queen's University)")
+    << QString("Tamas Ungi (PerkLab, Queen's University)")
+    << QString("Laurent Chauvin (BWH)")
+    << QString("Jayender Jagadeesan (BWH)");
   return moduleContributors;
 }
 
@@ -112,4 +135,59 @@ qSlicerAbstractModuleRepresentation * qSlicerTransformProcessorModule::createWid
 vtkMRMLAbstractLogic* qSlicerTransformProcessorModule::createLogic()
 {
   return vtkSlicerTransformProcessorLogic::New();
+}
+
+// --------------------------------------------------------------------------
+void qSlicerTransformProcessorModule::onNodeAddedEvent(vtkObject*, vtkObject* node)
+{
+  Q_D(qSlicerTransformProcessorModule);
+
+  vtkMRMLTransformProcessorNode* processorNode = vtkMRMLTransformProcessorNode::SafeDownCast(node);
+  if (processorNode)
+  {
+    // If the timer is not active
+    if (!d->UpdateAllOutputsTimer.isActive())
+    {
+      d->UpdateAllOutputsTimer.start(UPDATE_OUTPUTS_PERIOD_SEC * 1000.0);
+    }
+  }
+}
+
+// --------------------------------------------------------------------------
+void qSlicerTransformProcessorModule::onNodeRemovedEvent(vtkObject*, vtkObject* node)
+{
+  Q_D(qSlicerTransformProcessorModule);
+
+  vtkMRMLTransformProcessorNode* processorNode = vtkMRMLTransformProcessorNode::SafeDownCast(node);
+  if (processorNode)
+  {
+    // If the timer is active
+    if (d->UpdateAllOutputsTimer.isActive())
+    {
+      // Check if there is any other sequence browser node left in the Scene
+      vtkMRMLScene* scene = qSlicerCoreApplication::application()->mrmlScene();
+      if (scene)
+      {
+        std::vector<vtkMRMLNode*> nodes;
+        this->mrmlScene()->GetNodesByClass("vtkMRMLTransformProcessorNode", nodes);
+        if (nodes.size() == 0)
+        {
+          // The last sequence browser was removed
+          d->UpdateAllOutputsTimer.stop();
+        }
+      }
+    }
+  }
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerTransformProcessorModule::updateAllOutputs()
+{
+  Q_D(qSlicerTransformProcessorModule);
+  vtkSlicerTransformProcessorLogic* processorLogic = vtkSlicerTransformProcessorLogic::SafeDownCast(this->Superclass::logic());
+  if (!processorLogic)
+  {
+    return;
+  }
+  processorLogic->UpdateAllOutputs();
 }

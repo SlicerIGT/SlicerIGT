@@ -101,7 +101,9 @@ qSlicerBreachWarningModule::~qSlicerBreachWarningModule()
 //-----------------------------------------------------------------------------
 QString qSlicerBreachWarningModule::helpText()const
 {
-  return "This module can alert the user by color change and sound signal if a tool enters a restricted area. The restricted area is defined by a surface model, the tool position is defined by a linear transform. For help on how to use this module visit: <a href='http://www.slicerigt.org/'>SlicerIGT</a>";
+  return "This module can alert the user by color change and sound signal if a tool enters a restricted area."
+    " The restricted area is defined by a surface model, the tool position is defined by a linear transform."
+    " For help on how to use this module visit: <a href='http://www.slicerigt.org/'>SlicerIGT website</a>.";
 }
 
 //-----------------------------------------------------------------------------

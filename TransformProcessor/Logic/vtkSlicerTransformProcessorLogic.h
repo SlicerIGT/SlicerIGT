@@ -27,6 +27,7 @@
 #define __vtkSlicerTransformProcessorLogic_h
 
 #include <string>
+#include <deque>
 
 // Slicer includes
 #include "vtkSlicerModuleLogic.h"
@@ -62,6 +63,10 @@ public:
   void PrintSelf( ostream& os, vtkIndent indent );
   
 public:
+  // Update all output transforms that are to be updated continuously.
+  // This method is called regularly by the application.
+  void UpdateAllOutputs();
+
   void UpdateOutputTransform( vtkMRMLTransformProcessorNode* );
   void QuaternionAverage( vtkMRMLTransformProcessorNode* );
   void ComputeShaftPivotTransform( vtkMRMLTransformProcessorNode* );
@@ -69,6 +74,7 @@ public:
   void ComputeTranslation( vtkMRMLTransformProcessorNode* );
   void ComputeFullTransform( vtkMRMLTransformProcessorNode* );
   void ComputeInverseTransform( vtkMRMLTransformProcessorNode* );
+  void ComputeStabilizedTransform(vtkMRMLTransformProcessorNode*);
   bool IsTransformProcessingPossible( vtkMRMLTransformProcessorNode*, bool verbose = false );
 
   static void GetRotationAllAxesFromTransform ( vtkGeneralTransform*, vtkTransform* );
@@ -94,6 +100,15 @@ private:
   // these helper functions should only be used by processing modes themselves, and are therefore private
   void GetRotationOnlyFromTransform( vtkGeneralTransform*, int, int, const double*, const double*, vtkTransform* );
   void GetRotationSingleAxisFromTransform( vtkGeneralTransform*, int, const double*, const double*, vtkTransform* );
+
+  void UpdateContinuouslyUpdatedNodesList(vtkMRMLTransformProcessorNode* paramNode);
+
+  void Slerp(double* result, double t, double* from, double* to, bool adjustSign = true);
+  void GetInterpolatedTransform(vtkMatrix4x4* itemAmatrix, vtkMatrix4x4* itemBmatrix,
+    double itemAweight, double itemBweight,
+    vtkMatrix4x4* interpolatedMatrix);
+
+  std::deque< vtkWeakPointer<vtkMRMLTransformProcessorNode> > ContinuouslyUpdatedNodes;
 
 };
 

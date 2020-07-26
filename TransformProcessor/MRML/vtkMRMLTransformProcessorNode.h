@@ -63,6 +63,7 @@ public:
     PROCESSING_MODE_COMPUTE_TRANSLATION,
     PROCESSING_MODE_COMPUTE_FULL_TRANSFORM,
     PROCESSING_MODE_COMPUTE_INVERSE,
+    PROCESSING_MODE_STABILIZE,
     PROCESSING_MODE_LAST // do not set to this type, insert valid types above this line
   };
 
@@ -122,13 +123,13 @@ public:
   vtkMRMLLinearTransformNode* GetInputForwardTransformNode();
   void SetAndObserveInputForwardTransformNode( vtkMRMLLinearTransformNode* node );
 
+  vtkMRMLLinearTransformNode* GetInputUnstabilizedTransformNode();
+  void SetAndObserveInputUnstabilizedTransformNode(vtkMRMLLinearTransformNode* node);
+
   vtkMRMLLinearTransformNode* GetOutputTransformNode();
   void SetAndObserveOutputTransformNode( vtkMRMLLinearTransformNode* node );
   
   void ProcessMRMLEvents( vtkObject* caller, unsigned long event, void* callData );
-
-  vtkGetMacro( UpdatesPerSecond, int ); 
-  vtkSetMacro( UpdatesPerSecond, int );
 
   vtkGetMacro( ProcessingMode, int );
   void SetProcessingMode( int );
@@ -161,22 +162,34 @@ public:
   vtkGetMacro( SecondaryAxisLabel, int );
   void SetSecondaryAxisLabel( int );
 
+  vtkGetMacro(StabilizationCutOffFrequency, double);
+  void SetStabilizationCutOffFrequency(double);
+
+  vtkGetMacro(StabilizationEnabled, bool);
+  void SetStabilizationEnabled(bool);
+
   void CheckAndCorrectForDuplicateAxes();
 
-  static std::string GetProcessingModeAsString( int );
+  static const char* GetProcessingModeAsString( int );
   static int GetProcessingModeFromString( std::string );
 
-  static std::string GetUpdateModeAsString( int );
+  static const char* GetUpdateModeAsString( int );
   static int GetUpdateModeFromString( std::string );
 
-  static std::string GetRotationModeAsString( int );
+  static const char* GetRotationModeAsString( int );
   static int GetRotationModeFromString( std::string );
   
-  static std::string GetDependentAxesModeAsString( int );
+  static const char* GetDependentAxesModeAsString( int );
   static int GetDependentAxesModeFromString( std::string );
 
-  static std::string GetAxisLabelAsString( int );
+  static const char* GetAxisLabelAsString( int );
   static int GetAxisLabelFromString( std::string );
+
+  static const char* GetPrimaryAxisLabelAsString(int);
+  static int GetPrimaryAxisLabelFromString(std::string);
+
+  static const char* GetSecondaryAxisLabelAsString(int);
+  static int GetSecondaryAxisLabelFromString(std::string);
 
 private:
   // common functions internal to the class.
@@ -198,14 +211,15 @@ protected:
 
 //Parameters
 protected:
-  int  UpdatesPerSecond;
-  int  ProcessingMode;
-  int  UpdateMode;
+  int ProcessingMode;
+  int UpdateMode;
   bool CopyTranslationComponents[ 3 ];
-  int  RotationMode;
-  int  DependentAxesMode;
-  int  PrimaryAxisLabel;
-  int  SecondaryAxisLabel;
+  int RotationMode;
+  int DependentAxesMode;
+  int PrimaryAxisLabel;
+  int SecondaryAxisLabel;
+  double StabilizationCutOffFrequency;
+  bool StabilizationEnabled;
 };
 
 #endif

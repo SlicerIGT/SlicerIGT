@@ -16,11 +16,12 @@ class FiducialsToModelRegistration(ScriptedLoadableModule):
     self.parent.dependencies = []
     self.parent.contributors = ["Tamas Ungi (Queen's University"] # replace with "Firstname Lastname (Organization)"
     self.parent.helpText = """
-    This module applies Iterative Closest Points registration from a fiducial list to a model surface.
+This module registers fiducial list to a model surface using iterative closest points (ICP) method.
+For help on how to use this module visit: <a href='https://www.slicerigt.org'>SlicerIGT website</a>.
     """
     self.parent.acknowledgementText = """
-    This file was originally developed by Jean-Christophe Fillion-Robin, Kitware Inc.
-    and Steve Pieper, Isomics, Inc. and was partially funded by NIH grant 3P41RR013218-12S1.
+This file was originally developed by Jean-Christophe Fillion-Robin, Kitware Inc.
+and Steve Pieper, Isomics, Inc. and was partially funded by NIH grant 3P41RR013218-12S1.
 """ # replace with organization, grant and thanks.
 
 #

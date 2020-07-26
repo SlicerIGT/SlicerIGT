@@ -61,6 +61,7 @@ protected slots:
   void onInputChangedTransformNodeSelected( vtkMRMLNode* node );
   void onInputAnchorTransformNodeSelected( vtkMRMLNode* node );
   void onInputForwardTransformNodeSelected( vtkMRMLNode* node );
+  void onInputUnstabilizedTransformNodeSelected(vtkMRMLNode* node);
   void onOutputTransformNodeSelected( vtkMRMLNode* node );
 
   void onProcessingModeChanged( int );
@@ -74,7 +75,10 @@ protected slots:
   void onUpdateButtonCheckboxToggled( bool );
   void singleUpdate();
   void handleEventAutoUpdate();
-  
+
+  void onStabilizationFilterCheckBoxToggled(bool);
+  void onStabilizationCutOffFrequencyChanged(double);
+
 protected:
   QScopedPointer< qSlicerTransformProcessorModuleWidgetPrivate > d_ptr;
   
@@ -96,6 +100,7 @@ private:
     TRANSFORM_ROLE_INPUT_CHANGED,
     TRANSFORM_ROLE_INPUT_ANCHOR,
     TRANSFORM_ROLE_INPUT_FORWARD,
+    TRANSFORM_ROLE_INPUT_UNSTABILIZED,
     TRANSFORM_ROLE_OUTPUT,
     TRANSFORM_ROLE_LAST
   };

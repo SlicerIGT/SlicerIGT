@@ -18,6 +18,9 @@
 #ifndef __qSlicerTransformProcessorModule_h
 #define __qSlicerTransformProcessorModule_h
 
+// CTK includes
+#include <ctkVTKObject.h> 
+
 // SlicerQt includes
 #include "qSlicerLoadableModule.h"
 
@@ -29,7 +32,8 @@ class qSlicerTransformProcessorModulePrivate;
 class Q_SLICER_QTMODULES_TRANSFORMPROCESSOR_EXPORT qSlicerTransformProcessorModule :
   public qSlicerLoadableModule
 {
-  Q_OBJECT
+  Q_OBJECT;
+  QVTK_OBJECT;
 #ifdef Slicer_HAVE_QT5
   Q_PLUGIN_METADATA(IID "org.slicer.modules.loadable.qSlicerLoadableModule/1.0");
 #endif
@@ -57,6 +61,11 @@ public:
 
   /// Return the categories for the module
   virtual QStringList categories()const;
+
+public slots:
+  void onNodeAddedEvent(vtkObject*, vtkObject*);
+  void onNodeRemovedEvent(vtkObject*, vtkObject*);
+  void updateAllOutputs();
 
 protected:
 

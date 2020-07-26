@@ -16,11 +16,12 @@ class ModelRegistration(ScriptedLoadableModule):
     self.parent.dependencies = []
     self.parent.contributors = ["Andras Lasso, Tamas Ungi (PerkLab, Queen's University"]
     self.parent.helpText = """
-    This module applies Iterative Closest Points registration between two surface models.
-    """
+This module applies Iterative Closest Points registration between two surface models.
+For help on how to use this module visit: <a href='https://www.slicerigt.org'>SlicerIGT website</a>.
+"""
     self.parent.acknowledgementText = """
-    This work is part of SparKit project, funded by Cancer Care Ontario (CCO)'s ACRU program and Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO).
-    """
+This work is part of SparKit project, funded by Cancer Care Ontario (CCO)'s ACRU program and Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO).
+"""
 
 #
 # ModelRegistrationWidget

@@ -115,7 +115,9 @@ qSlicerWatchdogModule::~qSlicerWatchdogModule()
 //-----------------------------------------------------------------------------
 QString qSlicerWatchdogModule::helpText() const
 {
-  return "For help on how to use this module visit: <a href='http://www.slicerigt.org/'>SlicerIGT</a>";
+  return "Displays warning if selected transforms are not continuously updated."
+    " It is useful for detecting tracking errors, such as occluded marker or network connection error."
+    " For help on how to use this module visit: <a href='http://www.slicerigt.org/'>SlicerIGT website</a>.";
 }
 
 //-----------------------------------------------------------------------------

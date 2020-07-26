@@ -65,7 +65,8 @@ qSlicerCreateModelsModule::~qSlicerCreateModelsModule()
 //-----------------------------------------------------------------------------
 QString qSlicerCreateModelsModule::helpText()const
 {
-  return "For help on how to use this module visit: <a href='http://www.slicerigt.org'>SlicerIGT</a>";
+  return "Module for creating simple shapes, such as sphere, cylinder, prism, needle, and coordinate system axes."
+    "For help on how to use this module visit: <a href='http://www.slicerigt.org'>SlicerIGT website</a>.";
 }
 
 //-----------------------------------------------------------------------------

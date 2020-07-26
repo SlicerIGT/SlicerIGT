@@ -16,7 +16,8 @@ class Viewpoint:
                            "Tamas Ungi (Queen's)",
                            "Gabor Fichtinger (Queen's)"]
     parent.helpText = """This module adjusts camera viewpoint of a 3D viewer.
-Bullseye View: position/orient the camera using a tracked tool. 
+Bullseye View: position/orient the camera using a tracked tool.
+For help on how to use this module visit: <a href='https://www.slicerigt.org'>SlicerIGT website</a>.
 """
     parent.acknowledgementText = """
     This work is part of the Breast NaviKnife project within the Laboratory for Percutaneous Surgery, Queen's University, Kingston, Ontario. Thomas Vaughan is funded by an NSERC Postgraduate award. Gabor Fichtinger is funded as a Cancer Care Ontario (CCO) Chair.

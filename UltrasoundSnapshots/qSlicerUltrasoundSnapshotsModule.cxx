@@ -65,7 +65,8 @@ qSlicerUltrasoundSnapshotsModule::~qSlicerUltrasoundSnapshotsModule()
 //-----------------------------------------------------------------------------
 QString qSlicerUltrasoundSnapshotsModule::helpText()const
 {
-  return "For help on how to use this module visit: <a href='https://www.slicerigt.org'>SlicerIGT</a>";
+  return "Module for taking a snapshot of a position tracked ultrasound image and display it as a model node."
+    " For help on how to use this module visit: <a href='https://www.slicerigt.org'>SlicerIGT website</a>.";
 }
 
 //-----------------------------------------------------------------------------

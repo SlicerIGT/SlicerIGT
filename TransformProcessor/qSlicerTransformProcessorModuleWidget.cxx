@@ -21,9 +21,10 @@
 
 
 // Qt includes
-#include <QTimer>
+#include <QDebug>
 #include <QListWidgetItem>
 #include <QMenu>
+#include <QTimer>
 
 // SlicerQt includes
 #include "qSlicerTransformProcessorModuleWidget.h"
@@ -91,32 +92,34 @@ void qSlicerTransformProcessorModuleWidget::setup()
   this->Superclass::setup();
 
   // processing modes
-  d->processingModeComboBox->addItem( vtkMRMLTransformProcessorNode::GetProcessingModeAsString( vtkMRMLTransformProcessorNode::PROCESSING_MODE_QUATERNION_AVERAGE ).c_str() );
+  d->processingModeComboBox->addItem( vtkMRMLTransformProcessorNode::GetProcessingModeAsString( vtkMRMLTransformProcessorNode::PROCESSING_MODE_QUATERNION_AVERAGE ));
   d->processingModeComboBox->setItemData( 0, "Compute the quaternion average of all Source transforms provided.", Qt::ToolTipRole );
-  d->processingModeComboBox->addItem( vtkMRMLTransformProcessorNode::GetProcessingModeAsString( vtkMRMLTransformProcessorNode::PROCESSING_MODE_COMPUTE_ROTATION ).c_str() );
+  d->processingModeComboBox->addItem( vtkMRMLTransformProcessorNode::GetProcessingModeAsString( vtkMRMLTransformProcessorNode::PROCESSING_MODE_COMPUTE_ROTATION ));
   d->processingModeComboBox->setItemData( 1, "Compute a copy of the rotation from the Source to the Reference.", Qt::ToolTipRole );
-  d->processingModeComboBox->addItem( vtkMRMLTransformProcessorNode::GetProcessingModeAsString( vtkMRMLTransformProcessorNode::PROCESSING_MODE_COMPUTE_TRANSLATION ).c_str() );
+  d->processingModeComboBox->addItem( vtkMRMLTransformProcessorNode::GetProcessingModeAsString( vtkMRMLTransformProcessorNode::PROCESSING_MODE_COMPUTE_TRANSLATION ));
   d->processingModeComboBox->setItemData( 2, "Compute a copy of the translation from the Source to the Reference.", Qt::ToolTipRole );
-  d->processingModeComboBox->addItem( vtkMRMLTransformProcessorNode::GetProcessingModeAsString( vtkMRMLTransformProcessorNode::PROCESSING_MODE_COMPUTE_FULL_TRANSFORM ).c_str() );
+  d->processingModeComboBox->addItem( vtkMRMLTransformProcessorNode::GetProcessingModeAsString( vtkMRMLTransformProcessorNode::PROCESSING_MODE_COMPUTE_FULL_TRANSFORM ));
   d->processingModeComboBox->setItemData( 3, "Compute a copy of the full transform from the Source to the Reference.", Qt::ToolTipRole );
-  d->processingModeComboBox->addItem( vtkMRMLTransformProcessorNode::GetProcessingModeAsString( vtkMRMLTransformProcessorNode::PROCESSING_MODE_COMPUTE_INVERSE ).c_str() );
+  d->processingModeComboBox->addItem( vtkMRMLTransformProcessorNode::GetProcessingModeAsString( vtkMRMLTransformProcessorNode::PROCESSING_MODE_COMPUTE_INVERSE ));
   d->processingModeComboBox->setItemData( 4, "Compute the inverse of transform to parent, and store it in another node.", Qt::ToolTipRole );
-  d->processingModeComboBox->addItem( vtkMRMLTransformProcessorNode::GetProcessingModeAsString( vtkMRMLTransformProcessorNode::PROCESSING_MODE_COMPUTE_SHAFT_PIVOT ).c_str() );
+  d->processingModeComboBox->addItem( vtkMRMLTransformProcessorNode::GetProcessingModeAsString( vtkMRMLTransformProcessorNode::PROCESSING_MODE_COMPUTE_SHAFT_PIVOT ));
   d->processingModeComboBox->setItemData( 5, "Compute a constrained version of an Source transform, the translation and z direction are preserved but the other axes resemble the Target coordinate system.", Qt::ToolTipRole );
+  d->processingModeComboBox->addItem(vtkMRMLTransformProcessorNode::GetProcessingModeAsString(vtkMRMLTransformProcessorNode::PROCESSING_MODE_STABILIZE));
+  d->processingModeComboBox->setItemData( 6, "Compute a stabilized transform by low-pass filtering.", Qt::ToolTipRole);
 
-  d->advancedRotationModeComboBox->addItem( vtkMRMLTransformProcessorNode::GetRotationModeAsString( vtkMRMLTransformProcessorNode::ROTATION_MODE_COPY_ALL_AXES ).c_str() );
-  d->advancedRotationModeComboBox->addItem( vtkMRMLTransformProcessorNode::GetRotationModeAsString( vtkMRMLTransformProcessorNode::ROTATION_MODE_COPY_SINGLE_AXIS ).c_str() );
+  d->advancedRotationModeComboBox->addItem( vtkMRMLTransformProcessorNode::GetRotationModeAsString( vtkMRMLTransformProcessorNode::ROTATION_MODE_COPY_ALL_AXES ));
+  d->advancedRotationModeComboBox->addItem( vtkMRMLTransformProcessorNode::GetRotationModeAsString( vtkMRMLTransformProcessorNode::ROTATION_MODE_COPY_SINGLE_AXIS ));
 
-  d->advancedRotationPrimaryAxisComboBox->addItem( vtkMRMLTransformProcessorNode::GetAxisLabelAsString( vtkMRMLTransformProcessorNode::AXIS_LABEL_X ).c_str() );
-  d->advancedRotationPrimaryAxisComboBox->addItem( vtkMRMLTransformProcessorNode::GetAxisLabelAsString( vtkMRMLTransformProcessorNode::AXIS_LABEL_Y ).c_str() );
-  d->advancedRotationPrimaryAxisComboBox->addItem( vtkMRMLTransformProcessorNode::GetAxisLabelAsString( vtkMRMLTransformProcessorNode::AXIS_LABEL_Z ).c_str() );
+  d->advancedRotationPrimaryAxisComboBox->addItem( vtkMRMLTransformProcessorNode::GetAxisLabelAsString( vtkMRMLTransformProcessorNode::AXIS_LABEL_X ));
+  d->advancedRotationPrimaryAxisComboBox->addItem( vtkMRMLTransformProcessorNode::GetAxisLabelAsString( vtkMRMLTransformProcessorNode::AXIS_LABEL_Y ));
+  d->advancedRotationPrimaryAxisComboBox->addItem( vtkMRMLTransformProcessorNode::GetAxisLabelAsString( vtkMRMLTransformProcessorNode::AXIS_LABEL_Z ));
 
-  d->advancedRotationDependentAxesModeComboBox->addItem( vtkMRMLTransformProcessorNode::GetDependentAxesModeAsString( vtkMRMLTransformProcessorNode::DEPENDENT_AXES_MODE_FROM_PIVOT ).c_str() );
-  d->advancedRotationDependentAxesModeComboBox->addItem( vtkMRMLTransformProcessorNode::GetDependentAxesModeAsString( vtkMRMLTransformProcessorNode::DEPENDENT_AXES_MODE_FROM_SECONDARY_AXIS ).c_str() );
+  d->advancedRotationDependentAxesModeComboBox->addItem( vtkMRMLTransformProcessorNode::GetDependentAxesModeAsString( vtkMRMLTransformProcessorNode::DEPENDENT_AXES_MODE_FROM_PIVOT ));
+  d->advancedRotationDependentAxesModeComboBox->addItem( vtkMRMLTransformProcessorNode::GetDependentAxesModeAsString( vtkMRMLTransformProcessorNode::DEPENDENT_AXES_MODE_FROM_SECONDARY_AXIS ));
   
-  d->advancedRotationSecondaryAxisComboBox->addItem( vtkMRMLTransformProcessorNode::GetAxisLabelAsString( vtkMRMLTransformProcessorNode::AXIS_LABEL_X ).c_str() );
-  d->advancedRotationSecondaryAxisComboBox->addItem( vtkMRMLTransformProcessorNode::GetAxisLabelAsString( vtkMRMLTransformProcessorNode::AXIS_LABEL_Y ).c_str() );
-  d->advancedRotationSecondaryAxisComboBox->addItem( vtkMRMLTransformProcessorNode::GetAxisLabelAsString( vtkMRMLTransformProcessorNode::AXIS_LABEL_Z ).c_str() );
+  d->advancedRotationSecondaryAxisComboBox->addItem( vtkMRMLTransformProcessorNode::GetAxisLabelAsString( vtkMRMLTransformProcessorNode::AXIS_LABEL_X ));
+  d->advancedRotationSecondaryAxisComboBox->addItem( vtkMRMLTransformProcessorNode::GetAxisLabelAsString( vtkMRMLTransformProcessorNode::AXIS_LABEL_Y ));
+  d->advancedRotationSecondaryAxisComboBox->addItem( vtkMRMLTransformProcessorNode::GetAxisLabelAsString( vtkMRMLTransformProcessorNode::AXIS_LABEL_Z ));
 
   this->setMRMLScene( d->logic()->GetMRMLScene() );
 
@@ -129,6 +132,7 @@ void qSlicerTransformProcessorModuleWidget::setup()
   connect( d->inputChangedTransformComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onInputChangedTransformNodeSelected( vtkMRMLNode* ) ) );
   connect( d->inputAnchorTransformComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onInputAnchorTransformNodeSelected( vtkMRMLNode* ) ) );
   connect( d->inputForwardTransformComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onInputForwardTransformNodeSelected( vtkMRMLNode* ) ) );
+  connect(d->inputUnstabilizedTransformComboBox, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(onInputUnstabilizedTransformNodeSelected(vtkMRMLNode*)));
   connect( d->outputTransformComboBox, SIGNAL( currentNodeChanged( vtkMRMLNode* ) ), this, SLOT( onOutputTransformNodeSelected( vtkMRMLNode* ) ) );
   connect( d->addInputCombineTransformButton, SIGNAL( clicked() ), this, SLOT( onAddInputCombineTransform() ) );
   connect( d->removeInputCombineTransformButton, SIGNAL( clicked() ), this, SLOT( onRemoveInputCombineTransform() ) );
@@ -146,6 +150,9 @@ void qSlicerTransformProcessorModuleWidget::setup()
 
   connect( d->updateButton, SIGNAL( clicked() ), this, SLOT( onUpdateButtonPressed() ) );
   connect( d->updateButton, SIGNAL( checkBoxToggled( bool ) ), this, SLOT( onUpdateButtonCheckboxToggled( bool ) ) );
+
+  connect(d->stabilizationFilterCheckBox, SIGNAL(toggled(bool)), this, SLOT(onStabilizationFilterCheckBoxToggled(bool)));
+  connect(d->stabilizationCutOffFrequencySlider, SIGNAL(valueChanged(double)), this, SLOT(onStabilizationCutOffFrequencyChanged(double)));
 }
 
 //-----------------------------------------------------------------------------
@@ -195,6 +202,7 @@ void qSlicerTransformProcessorModuleWidget::setSignalsBlocked( bool newBlock )
   d->inputChangedTransformComboBox->blockSignals( newBlock );
   d->inputAnchorTransformComboBox->blockSignals( newBlock );
   d->inputForwardTransformComboBox->blockSignals( newBlock );
+  d->inputUnstabilizedTransformComboBox->blockSignals(newBlock);
   d->outputTransformComboBox->blockSignals( newBlock );
   d->advancedRotationModeComboBox->blockSignals( newBlock );
   d->advancedRotationPrimaryAxisComboBox->blockSignals( newBlock );
@@ -204,6 +212,9 @@ void qSlicerTransformProcessorModuleWidget::setSignalsBlocked( bool newBlock )
   d->advancedTranslationCopyYCheckbox->blockSignals( newBlock );
   d->advancedTranslationCopyZCheckbox->blockSignals( newBlock );
   d->updateButton->blockSignals( newBlock );
+  d->stabilizationFilterCheckBox->blockSignals(newBlock);
+  d->stabilizationCutOffFrequencySlider->blockSignals(newBlock);
+  d->stabilizationCutOffFrequencySpinBox->blockSignals(newBlock);
 }
 
 //-----------------------------------------------------------------------------
@@ -221,6 +232,7 @@ bool qSlicerTransformProcessorModuleWidget::getSignalsBlocked()
        parameterNodeBlocked == d->inputChangedTransformComboBox->signalsBlocked() &&
        parameterNodeBlocked == d->inputAnchorTransformComboBox->signalsBlocked() &&
        parameterNodeBlocked == d->inputForwardTransformComboBox->signalsBlocked() &&
+       parameterNodeBlocked == d->inputUnstabilizedTransformComboBox->signalsBlocked() &&
        parameterNodeBlocked == d->outputTransformComboBox->signalsBlocked() &&
        parameterNodeBlocked == d->advancedRotationModeComboBox->signalsBlocked() &&
        parameterNodeBlocked == d->advancedRotationPrimaryAxisComboBox->signalsBlocked() &&
@@ -229,7 +241,10 @@ bool qSlicerTransformProcessorModuleWidget::getSignalsBlocked()
        parameterNodeBlocked == d->advancedTranslationCopyXCheckbox->signalsBlocked() &&
        parameterNodeBlocked == d->advancedTranslationCopyYCheckbox->signalsBlocked() &&
        parameterNodeBlocked == d->advancedTranslationCopyZCheckbox->signalsBlocked() &&
-       parameterNodeBlocked == d->updateButton->signalsBlocked() )
+       parameterNodeBlocked == d->updateButton->signalsBlocked() &&
+       parameterNodeBlocked == d->stabilizationFilterCheckBox->signalsBlocked() &&
+       parameterNodeBlocked == d->stabilizationCutOffFrequencySlider->signalsBlocked() &&
+       parameterNodeBlocked == d->stabilizationCutOffFrequencySpinBox->signalsBlocked() )
   {
     return parameterNodeBlocked;
   }
@@ -268,41 +283,42 @@ void qSlicerTransformProcessorModuleWidget::updateGUIFromMRML()
   d->inputChangedTransformComboBox->setCurrentNode( pNode->GetInputChangedTransformNode() );
   d->inputAnchorTransformComboBox->setCurrentNode( pNode->GetInputAnchorTransformNode() );
   d->inputForwardTransformComboBox->setCurrentNode( pNode->GetInputForwardTransformNode() );
+  d->inputUnstabilizedTransformComboBox->setCurrentNode(pNode->GetInputUnstabilizedTransformNode());
   d->outputTransformComboBox->setCurrentNode( pNode->GetOutputTransformNode() );
 
   d->advancedTranslationCopyXCheckbox->setChecked( pNode->GetCopyTranslationX() );
   d->advancedTranslationCopyYCheckbox->setChecked( pNode->GetCopyTranslationY() );
   d->advancedTranslationCopyZCheckbox->setChecked( pNode->GetCopyTranslationZ() );
 
-  int processingComboBoxIndex = d->processingModeComboBox->findText( QString( vtkMRMLTransformProcessorNode::GetProcessingModeAsString( pNode->GetProcessingMode() ).c_str() ) );
+  int processingComboBoxIndex = d->processingModeComboBox->findText( QString( vtkMRMLTransformProcessorNode::GetProcessingModeAsString( pNode->GetProcessingMode() )) );
   if ( processingComboBoxIndex < 0 )
   {
     processingComboBoxIndex = 0;
   }
   d->processingModeComboBox->setCurrentIndex( processingComboBoxIndex );
 
-  int rotationComboBoxIndex = d->advancedRotationModeComboBox->findText( QString( vtkMRMLTransformProcessorNode::GetRotationModeAsString( pNode->GetRotationMode() ).c_str() ) );
+  int rotationComboBoxIndex = d->advancedRotationModeComboBox->findText( QString( vtkMRMLTransformProcessorNode::GetRotationModeAsString( pNode->GetRotationMode() )) );
   if ( rotationComboBoxIndex < 0 )
   {
     rotationComboBoxIndex = 0;
   }
   d->advancedRotationModeComboBox->setCurrentIndex( rotationComboBoxIndex );
   
-  int primaryAxisComboBoxIndex = d->advancedRotationPrimaryAxisComboBox->findText( QString( vtkMRMLTransformProcessorNode::GetAxisLabelAsString( pNode->GetPrimaryAxisLabel() ).c_str() ) );
+  int primaryAxisComboBoxIndex = d->advancedRotationPrimaryAxisComboBox->findText( QString( vtkMRMLTransformProcessorNode::GetAxisLabelAsString( pNode->GetPrimaryAxisLabel() )) );
   if ( primaryAxisComboBoxIndex < 0 )
   {
     primaryAxisComboBoxIndex = 0;
   }
   d->advancedRotationPrimaryAxisComboBox->setCurrentIndex( primaryAxisComboBoxIndex );
 
-  int dependentAxesModeIndex = d->advancedRotationDependentAxesModeComboBox->findText( QString( vtkMRMLTransformProcessorNode::GetDependentAxesModeAsString( pNode->GetDependentAxesMode() ).c_str() ) );
+  int dependentAxesModeIndex = d->advancedRotationDependentAxesModeComboBox->findText( QString( vtkMRMLTransformProcessorNode::GetDependentAxesModeAsString( pNode->GetDependentAxesMode() )) );
   if ( dependentAxesModeIndex < 0 )
   {
     dependentAxesModeIndex = 0;
   }
   d->advancedRotationDependentAxesModeComboBox->setCurrentIndex( dependentAxesModeIndex );
   
-  int secondaryAxisComboBoxIndex = d->advancedRotationSecondaryAxisComboBox->findText( QString( vtkMRMLTransformProcessorNode::GetAxisLabelAsString( pNode->GetSecondaryAxisLabel() ).c_str() ) );
+  int secondaryAxisComboBoxIndex = d->advancedRotationSecondaryAxisComboBox->findText( QString( vtkMRMLTransformProcessorNode::GetAxisLabelAsString( pNode->GetSecondaryAxisLabel() )) );
   if ( secondaryAxisComboBoxIndex < 0 )
   {
     secondaryAxisComboBoxIndex = 0;
@@ -354,6 +370,10 @@ void qSlicerTransformProcessorModuleWidget::updateGUIFromMRML()
   d->inputForwardTransformLabel->setVisible( showForwardTransform );
   d->inputForwardTransformComboBox->setVisible( showForwardTransform );
 
+  bool showStabilizationOptions = (pNode->GetProcessingMode() == vtkMRMLTransformProcessorNode::PROCESSING_MODE_STABILIZE);
+  d->inputUnstabilizedTransformLabel->setVisible(showStabilizationOptions);
+  d->inputUnstabilizedTransformComboBox->setVisible(showStabilizationOptions);
+
   d->outputTransformLabel->setVisible( true ); // always visible
   d->outputTransformComboBox->setVisible( true );
 
@@ -394,6 +414,11 @@ void qSlicerTransformProcessorModuleWidget::updateGUIFromMRML()
     d->updateButton->setText( tr( "Update" ) );
     d->updateButton->blockSignals( wasBlocked );
   }
+
+  d->filteringOptionsGroupBox->setVisible(showStabilizationOptions);
+  d->stabilizationFilterCheckBox->setChecked(pNode->GetStabilizationEnabled());
+  d->stabilizationCutOffFrequencySlider->setValue(pNode->GetStabilizationCutOffFrequency());
+  d->stabilizationCutOffFrequencySpinBox->setValue(pNode->GetStabilizationCutOffFrequency());
 
   this->setSignalsBlocked( wasBlocked );
 }
@@ -517,6 +542,12 @@ void qSlicerTransformProcessorModuleWidget::onInputForwardTransformNodeSelected(
 }
 
 //-----------------------------------------------------------------------------
+void qSlicerTransformProcessorModuleWidget::onInputUnstabilizedTransformNodeSelected(vtkMRMLNode* node)
+{
+  this->SetTransformAccordingToRole(node, TRANSFORM_ROLE_INPUT_UNSTABILIZED);
+}
+
+//-----------------------------------------------------------------------------
 void qSlicerTransformProcessorModuleWidget::onOutputTransformNodeSelected( vtkMRMLNode* node )
 {
   this->SetTransformAccordingToRole( node, TRANSFORM_ROLE_OUTPUT );
@@ -621,6 +652,11 @@ void qSlicerTransformProcessorModuleWidget::SetTransformAccordingToRole( vtkMRML
     case TRANSFORM_ROLE_INPUT_FORWARD:
     {
       pNode->SetAndObserveInputForwardTransformNode( linearTransformNode );
+      break;
+    }
+    case TRANSFORM_ROLE_INPUT_UNSTABILIZED:
+    {
+      pNode->SetAndObserveInputUnstabilizedTransformNode(linearTransformNode);
       break;
     }
     case TRANSFORM_ROLE_OUTPUT:
@@ -758,4 +794,30 @@ void qSlicerTransformProcessorModuleWidget::onParameterNodeSelected()
   qvtkReconnect( d->TransformProcessorNode, pNode, vtkCommand::ModifiedEvent, this, SLOT( updateGUIFromMRML() ) );
   d->TransformProcessorNode = pNode;
   this->updateGUIFromMRML();
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerTransformProcessorModuleWidget::onStabilizationFilterCheckBoxToggled(bool toggle)
+{
+  Q_D(qSlicerTransformProcessorModuleWidget);
+  vtkMRMLTransformProcessorNode* pNode = vtkMRMLTransformProcessorNode::SafeDownCast(d->parameterNodeComboBox->currentNode());
+  if (pNode == NULL || this->mrmlScene() == NULL)
+  {
+    qCritical() << Q_FUNC_INFO << " failed: no parameter node/scene found.";
+    return;
+  }
+  pNode->SetStabilizationEnabled(toggle);
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerTransformProcessorModuleWidget::onStabilizationCutOffFrequencyChanged(double cutOffFreequency)
+{
+  Q_D(qSlicerTransformProcessorModuleWidget);
+  vtkMRMLTransformProcessorNode* pNode = vtkMRMLTransformProcessorNode::SafeDownCast(d->parameterNodeComboBox->currentNode());
+  if (pNode == NULL || this->mrmlScene() == NULL)
+  {
+    qCritical() << Q_FUNC_INFO << " failed: no parameter node/scene found.";
+    return;
+  }
+  pNode->SetStabilizationCutOffFrequency(cutOffFreequency);
 }

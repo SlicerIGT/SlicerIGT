@@ -33,6 +33,9 @@
 #include <vtkObjectFactory.h>
 #include <vtkMatrix4x4.h>
 #include <vtkMath.h>
+#include <vtkNumberToString.h>
+#include <vtkTimerLog.h>
+
 //#include <vtkQuaternionInterpolator.h>
 
 // STD includes
@@ -99,6 +102,7 @@ void vtkSlicerTransformProcessorLogic::OnMRMLSceneNodeAdded( vtkMRMLNode* node )
     events->InsertNextValue( vtkCommand::ModifiedEvent );
     events->InsertNextValue( vtkMRMLTransformProcessorNode::InputDataModifiedEvent );
     vtkObserveMRMLNodeEventsMacro( pNode, events.GetPointer() );
+    this->UpdateContinuouslyUpdatedNodesList(pNode);
   }
 }
 
@@ -111,10 +115,58 @@ void vtkSlicerTransformProcessorLogic::OnMRMLSceneNodeRemoved( vtkMRMLNode* node
     return;
   }
 
-  if ( node->IsA( "vtkMRMLTransformProcessorNode" ) )
+  vtkMRMLTransformProcessorNode* pNode = vtkMRMLTransformProcessorNode::SafeDownCast(node);
+  if (pNode)
   {
     vtkDebugMacro( "OnMRMLSceneNodeRemoved" );
-    vtkUnObserveMRMLNodeMacro( node );
+    vtkUnObserveMRMLNodeMacro( pNode );
+    this->UpdateContinuouslyUpdatedNodesList(pNode);
+  }
+}
+
+//-----------------------------------------------------------------------------
+void vtkSlicerTransformProcessorLogic::UpdateContinuouslyUpdatedNodesList(vtkMRMLTransformProcessorNode* paramNode)
+{
+  if (!paramNode)
+  {
+    return;
+  }
+  // Find node in the current list
+  std::deque< vtkWeakPointer<vtkMRMLTransformProcessorNode> >::iterator continuouslyUpdatedNodesIt;
+  for (continuouslyUpdatedNodesIt = this->ContinuouslyUpdatedNodes.begin();
+    continuouslyUpdatedNodesIt != this->ContinuouslyUpdatedNodes.end(); ++continuouslyUpdatedNodesIt)
+  {
+    if (*continuouslyUpdatedNodesIt == paramNode)
+    {
+      break;
+    }
+  }
+  // Add/remove node to current list
+  if (paramNode->GetProcessingMode() == vtkMRMLTransformProcessorNode::PROCESSING_MODE_STABILIZE && paramNode->GetStabilizationEnabled())
+  {
+    // node should be in ContinuouslyUpdatedNodes
+    if (continuouslyUpdatedNodesIt == this->ContinuouslyUpdatedNodes.end())
+    {
+      this->ContinuouslyUpdatedNodes.push_back(paramNode);
+    }
+  }
+  else
+  {
+    // node should not be in ContinuouslyUpdatedNodes
+    // node should be in ContinuouslyUpdatedNodes
+    if (continuouslyUpdatedNodesIt != this->ContinuouslyUpdatedNodes.end())
+    {
+      this->ContinuouslyUpdatedNodes.erase(continuouslyUpdatedNodesIt);
+    }
+  }
+  // Remove deleted nodes
+  for (continuouslyUpdatedNodesIt = this->ContinuouslyUpdatedNodes.begin();
+    continuouslyUpdatedNodesIt != this->ContinuouslyUpdatedNodes.end(); ++continuouslyUpdatedNodesIt)
+  {
+    if (continuouslyUpdatedNodesIt->GetPointer() == nullptr)
+    {
+      continuouslyUpdatedNodesIt = this->ContinuouslyUpdatedNodes.erase(continuouslyUpdatedNodesIt);
+    }
   }
 }
 
@@ -134,6 +186,12 @@ void vtkSlicerTransformProcessorLogic::ProcessMRMLNodesEvents( vtkObject* caller
     {
       this->UpdateOutputTransform( paramNode );
     }
+  }
+  else if (event == vtkCommand::ModifiedEvent)
+  {
+    // This is less frequent than vtkMRMLTransformProcessorNode::InputDataModifiedEvent
+    // (which is called at every input transform node change)
+    this->UpdateContinuouslyUpdatedNodesList(paramNode);
   }
 }
 
@@ -164,6 +222,10 @@ void vtkSlicerTransformProcessorLogic::UpdateOutputTransform( vtkMRMLTransformPr
   else if ( mode == vtkMRMLTransformProcessorNode::PROCESSING_MODE_COMPUTE_INVERSE )
   {
     this->ComputeInverseTransform( paramNode );
+  }
+  else if (mode == vtkMRMLTransformProcessorNode::PROCESSING_MODE_STABILIZE)
+  {
+    this->ComputeStabilizedTransform(paramNode);
   }
 }
 
@@ -849,6 +911,18 @@ bool vtkSlicerTransformProcessorLogic::IsTransformProcessingPossible( vtkMRMLTra
     }
   }
 
+  if (mode == vtkMRMLTransformProcessorNode::PROCESSING_MODE_STABILIZE)
+  {
+    if (node->GetInputUnstabilizedTransformNode() == NULL)
+    {
+      if (verbose)
+      {
+        vtkWarningMacro("IsTransformProcessingPossible: No input transform node provided for processing mode " << vtkMRMLTransformProcessorNode::GetProcessingModeAsString(mode));
+      }
+      result = false;
+    }
+  }
+
   if ( mode == vtkMRMLTransformProcessorNode::PROCESSING_MODE_QUATERNION_AVERAGE )
   {
     if ( node->GetNumberOfInputCombineTransformNodes() < 1 )
@@ -873,4 +947,177 @@ bool vtkSlicerTransformProcessorLogic::IsTransformProcessingPossible( vtkMRMLTra
   }
 
   return result;
+}
+
+//----------------------------------------------------------------------------
+void vtkSlicerTransformProcessorLogic::ComputeStabilizedTransform(vtkMRMLTransformProcessorNode* paramNode)
+{
+  bool verboseWarnings = true;
+  bool conditionsMetForProcessing = this->IsTransformProcessingPossible(paramNode, verboseWarnings);
+  if (conditionsMetForProcessing == false)
+  {
+    return;
+  }
+
+  vtkMRMLLinearTransformNode* inputNode = paramNode->GetInputUnstabilizedTransformNode();
+  vtkMRMLLinearTransformNode* outputNode = paramNode->GetOutputTransformNode();
+  if (inputNode == NULL || outputNode == NULL)
+  {
+    return;
+  }
+
+  // Get timestamps
+  double currentTimeSec = vtkTimerLog::GetUniversalTime();
+  double lastUpdateTimeSec = 0.0;
+  const char* lastUpdateTimeSecStr = outputNode->GetAttribute("TransformProcessor.LastUpdateTimeSec");
+  if (lastUpdateTimeSecStr)
+  {
+    std::istringstream convertedStream(lastUpdateTimeSecStr);
+    convertedStream >> lastUpdateTimeSec;
+  }
+  std::stringstream ss;
+  ss.precision(4);
+  ss << std::fixed << currentTimeSec;
+  outputNode->SetAttribute("TransformProcessor.LastUpdateTimeSec", ss.str().c_str());
+
+  // Get matrices
+  vtkNew<vtkMatrix4x4> matrixCurrent;
+  inputNode->GetMatrixTransformToParent(matrixCurrent);
+  
+  if (lastUpdateTimeSec <= 0.0 || !paramNode->GetStabilizationEnabled())
+  {
+    // No filter enabled or no history of previous values: Output Transform = Input Transform
+    outputNode->SetMatrixTransformToParent(matrixCurrent);
+  }
+  else
+  {
+    // Compute weights (low-pass filter with w_cutoff frequency)
+    const double elapsedTimeSec = currentTimeSec - lastUpdateTimeSec;
+    const double cutoff_frequency = paramNode->GetStabilizationCutOffFrequency();
+    const double weightPrevious = 1;
+    const double weightCurrent = elapsedTimeSec * cutoff_frequency;
+
+    vtkNew<vtkMatrix4x4> matrixPrevious;
+    outputNode->GetMatrixTransformToParent(matrixPrevious);
+
+    vtkNew<vtkMatrix4x4> matrixOutput;
+    this->GetInterpolatedTransform(matrixPrevious, matrixCurrent, weightPrevious, weightCurrent, matrixOutput);
+    outputNode->SetMatrixTransformToParent(matrixOutput);
+  }
+}
+
+//----------------------------------------------------------------------------
+// Spherical linear interpolation between two rotation quaternions.
+// t is a value between 0 and 1 that interpolates between from and to (t=0 means the results is the same as "from").
+// Precondition: no aliasing problems to worry about ("result" can be "from" or "to" param).
+// Parameters: adjustSign - If true, then slerp will operate by adjusting the sign of the slerp to take shortest path. True is recommended, otherwise the interpolation sometimes give unexpected results. 
+// References: From Adv Anim and Rendering Tech. Pg 364
+void vtkSlicerTransformProcessorLogic::Slerp(double* result, double t, double* from, double* to, bool adjustSign)
+{
+  const double* p = from; // just an alias to match q
+
+  // calc cosine theta
+  double cosom = from[0] * to[0] + from[1] * to[1] + from[2] * to[2] + from[3] * to[3]; // dot( from, to )
+
+  // adjust signs (if necessary)
+  double q[4];
+  if (adjustSign && (cosom < (double)0.0))
+  {
+    cosom = -cosom;
+    q[0] = -to[0];   // Reverse all signs
+    q[1] = -to[1];
+    q[2] = -to[2];
+    q[3] = -to[3];
+  }
+  else
+  {
+    q[0] = to[0];
+    q[1] = to[1];
+    q[2] = to[2];
+    q[3] = to[3];
+  }
+
+  // Calculate coefficients
+  double sclp, sclq;
+  if (((double)1.0 - cosom) > (double)0.0001) // 0.0001 -> some epsillon
+  {
+    // Standard case (slerp)
+    double omega, sinom;
+    omega = acos(cosom); // extract theta from dot product's cos theta
+    sinom = sin(omega);
+    sclp = sin(((double)1.0 - t) * omega) / sinom;
+    sclq = sin(t * omega) / sinom;
+  }
+  else
+  {
+    // Very close, do linear interp (because it's faster)
+    sclp = (double)1.0 - t;
+    sclq = t;
+  }
+
+  for (int i = 0; i < 4; i++)
+  {
+    result[i] = sclp * p[i] + sclq * q[i];
+  }
+}
+
+//----------------------------------------------------------------------------
+// Interpolate the matrix for the given timestamp from the two nearest
+// transforms in the buffer.
+// The rotation is interpolated with SLERP interpolation, and the
+// position is interpolated with linear interpolation.
+// The flags correspond to the closest element.
+void vtkSlicerTransformProcessorLogic::GetInterpolatedTransform(vtkMatrix4x4* itemAmatrix, vtkMatrix4x4* itemBmatrix,
+  double itemAweight, double itemBweight,
+  vtkMatrix4x4* interpolatedMatrix)
+{
+  double itemAweightNormalized = itemAweight / (itemAweight + itemBweight);
+  double itemBweightNormalized = itemBweight / (itemAweight + itemBweight);
+
+  double matrixA[3][3] = { {0,0,0},{0,0,0},{0,0,0} };
+  for (int i = 0; i < 3; i++)
+  {
+    matrixA[i][0] = itemAmatrix->GetElement(i, 0);
+    matrixA[i][1] = itemAmatrix->GetElement(i, 1);
+    matrixA[i][2] = itemAmatrix->GetElement(i, 2);
+  }
+
+  double matrixB[3][3] = { {0,0,0}, {0,0,0}, {0,0,0} };
+  for (int i = 0; i < 3; i++)
+  {
+    matrixB[i][0] = itemBmatrix->GetElement(i, 0);
+    matrixB[i][1] = itemBmatrix->GetElement(i, 1);
+    matrixB[i][2] = itemBmatrix->GetElement(i, 2);
+  }
+
+  double matrixAquat[4] = { 0,0,0,0 };
+  vtkMath::Matrix3x3ToQuaternion(matrixA, matrixAquat);
+  double matrixBquat[4] = { 0,0,0,0 };
+  vtkMath::Matrix3x3ToQuaternion(matrixB, matrixBquat);
+  double interpolatedRotationQuat[4] = { 0,0,0,0 };
+  this->Slerp(interpolatedRotationQuat, itemBweightNormalized, matrixAquat, matrixBquat);
+  double interpolatedRotation[3][3] = { {0,0,0},{0,0,0},{0,0,0} };
+  vtkMath::QuaternionToMatrix3x3(interpolatedRotationQuat, interpolatedRotation);
+
+  for (int i = 0; i < 3; i++)
+  {
+    interpolatedMatrix->Element[i][0] = interpolatedRotation[i][0];
+    interpolatedMatrix->Element[i][1] = interpolatedRotation[i][1];
+    interpolatedMatrix->Element[i][2] = interpolatedRotation[i][2];
+    interpolatedMatrix->Element[i][3] = itemAmatrix->GetElement(i, 3) * itemAweightNormalized +
+      itemBmatrix->GetElement(i, 3) * itemBweightNormalized;
+  }
+}
+
+//----------------------------------------------------------------------------
+void vtkSlicerTransformProcessorLogic::UpdateAllOutputs()
+{
+  for (auto paramNode : this->ContinuouslyUpdatedNodes)
+  {
+    if (paramNode->GetUpdateMode() == vtkMRMLTransformProcessorNode::UPDATE_MODE_AUTO &&
+      paramNode->GetProcessingMode() == vtkMRMLTransformProcessorNode::PROCESSING_MODE_STABILIZE && paramNode->GetStabilizationEnabled())
+    {
+      this->UpdateOutputTransform(paramNode);
+    }
+  }
 }

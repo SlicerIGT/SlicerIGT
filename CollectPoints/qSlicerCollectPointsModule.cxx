@@ -71,7 +71,8 @@ qSlicerCollectPointsModule::~qSlicerCollectPointsModule()
 //-----------------------------------------------------------------------------
 QString qSlicerCollectPointsModule::helpText()const
 {
-  return "For help on how to use this module visit: <a href='https://www.slicerigt.org'>SlicerIGT</a>";
+  return "Record motion trajectory of a tracked tool into markups fiducial list, markups curve, or model node."
+    " For more information, visit <a href='https://github.com/SlicerIGT/SlicerIGT/#user-documentation'>SlicerIGT project website</a>.";
 }
 
 //-----------------------------------------------------------------------------

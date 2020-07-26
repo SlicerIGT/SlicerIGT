@@ -23,6 +23,7 @@ class TextureModel(ScriptedLoadableModule):
     self.parent.helpText = """This module applies a texture (stored in a volume node) to a model node.
 It is typically used to display colored surfaces, provided by surface scanners, exported in OBJ format.
 The model must contain texture coordinates. Only a single texture file per model is supported.
+For more information, visit <a href='https://github.com/SlicerIGT/SlicerIGT/#user-documentation'>SlicerIGT project website</a>.
 """
     self.parent.acknowledgementText = """ """ # replace with organization, grant and thanks.
 

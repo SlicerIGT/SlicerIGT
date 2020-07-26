@@ -67,7 +67,8 @@ qSlicerPathExplorerModule::~qSlicerPathExplorerModule()
 //-----------------------------------------------------------------------------
 QString qSlicerPathExplorerModule::helpText()const
 {
-  return QString("PathExplorer is a module designed to facilitate the creation of trajectory, and visualization of volumes along these trajectories");
+  return QString("PathExplorer is a module designed to facilitate the creation of trajectory, and visualization of volumes along these trajectories"
+    " For help on how to use this module visit: <a href='https://www.slicerigt.org'>SlicerIGT website</a>.");
 }
 
 //-----------------------------------------------------------------------------

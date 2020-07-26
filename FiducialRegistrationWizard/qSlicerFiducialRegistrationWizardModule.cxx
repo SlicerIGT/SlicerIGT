@@ -80,7 +80,9 @@ qSlicerFiducialRegistrationWizardModule::~qSlicerFiducialRegistrationWizardModul
 //-----------------------------------------------------------------------------
 QString qSlicerFiducialRegistrationWizardModule::helpText()const
 {
-  return "For help on how to use this module visit: <a href='https://www.slicerigt.org'>SlicerIGT</a>";
+  return "Register images, models, or any other nodes to each other using manually placed landmark points."
+    " Rigid, affine, and warping transforms are supported."
+    " For help on how to use this module visit: <a href='https://www.slicerigt.org'>SlicerIGT website</a>.";
 }
 
 //-----------------------------------------------------------------------------

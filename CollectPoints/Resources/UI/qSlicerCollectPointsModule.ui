@@ -99,6 +99,7 @@
           <stringlist>
            <string>vtkMRMLMarkupsFiducialNode</string>
            <string>vtkMRMLModelNode</string>
+           <string>vtkMRMLMarkupsCurveNode</string>
           </stringlist>
          </property>
          <property name="noneEnabled">
