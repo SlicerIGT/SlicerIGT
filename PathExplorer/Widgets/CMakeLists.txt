@@ -8,23 +8,15 @@ set(${KIT}_INCLUDE_DIRECTORIES
   )
 
 set(${KIT}_SRCS
-  qSlicer${MODULE_NAME}MarkupsTableWidget.cxx
-  qSlicer${MODULE_NAME}MarkupsTableWidget.h
-  qSlicer${MODULE_NAME}TrajectoryTableWidget.cxx
-  qSlicer${MODULE_NAME}TrajectoryTableWidget.h
   qSlicer${MODULE_NAME}ReslicingWidget.cxx
   qSlicer${MODULE_NAME}ReslicingWidget.h
   )
 
 set(${KIT}_MOC_SRCS
-  qSlicer${MODULE_NAME}MarkupsTableWidget.h
-  qSlicer${MODULE_NAME}TrajectoryTableWidget.h
   qSlicer${MODULE_NAME}ReslicingWidget.h
   )
 
 set(${KIT}_UI_SRCS
-  ../Resources/UI/qSlicer${MODULE_NAME}MarkupsTableWidget.ui
-  ../Resources/UI/qSlicer${MODULE_NAME}TrajectoryTableWidget.ui
   ../Resources/UI/qSlicer${MODULE_NAME}ReslicingWidget.ui
   )
 
@@ -34,8 +26,6 @@ set(${KIT}_RESOURCES
 set(${KIT}_TARGET_LIBRARIES
   vtkSlicer${MODULE_NAME}ModuleLogic
   vtkSlicerMarkupsModuleMRML
-  vtkSlicerAnnotationsModuleMRML
-  vtkSlicerAnnotationsModuleLogic
   )
 
 #-----------------------------------------------------------------------------

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>316</width>
-    <height>226</height>
+    <height>517</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -15,16 +15,74 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <property name="bottomMargin">
+      <number>6</number>
+     </property>
+     <item>
+      <widget class="QLabel" name="label">
+       <property name="text">
+        <string>Paths:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="qMRMLNodeComboBox" name="TrajectoryListSelector">
+       <property name="nodeTypes">
+        <stringlist>
+         <string>vtkMRMLPathPlannerTrajectoryNode</string>
+        </stringlist>
+       </property>
+       <property name="baseName">
+        <string>Trajectory list</string>
+       </property>
+       <property name="renameEnabled">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
     <widget class="ctkCollapsibleButton" name="PlanningFrame">
      <property name="text">
       <string>Planning</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_2">
       <item>
-       <widget class="qSlicerPathExplorerMarkupsTableWidget" name="EntryWidget" native="true"/>
+       <widget class="qSlicerSimpleMarkupsWidget" name="EntryWidget">
+        <property name="enterPlaceModeOnNodeChange">
+         <bool>false</bool>
+        </property>
+        <property name="defaultNodeColor">
+         <color>
+          <red>75</red>
+          <green>100</green>
+          <blue>180</blue>
+         </color>
+        </property>
+       </widget>
       </item>
       <item>
-       <widget class="qSlicerPathExplorerMarkupsTableWidget" name="TargetWidget" native="true"/>
+       <widget class="qSlicerSimpleMarkupsWidget" name="TargetWidget">
+        <property name="enterPlaceModeOnNodeChange">
+         <bool>false</bool>
+        </property>
+        <property name="defaultNodeColor">
+         <color>
+          <red>50</red>
+          <green>200</green>
+          <blue>25</blue>
+         </color>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="AddPathButton">
+        <property name="text">
+         <string>Add path</string>
+        </property>
+       </widget>
       </item>
      </layout>
     </widget>
@@ -35,68 +93,14 @@
       <string>Visualization</string>
      </property>
      <property name="collapsed">
-      <bool>true</bool>
-     </property>
-     <property name="contentsFrameShape">
-      <enum>QFrame::StyledPanel</enum>
+      <bool>false</bool>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_3">
       <item>
-       <widget class="qSlicerPathExplorerTrajectoryTableWidget" name="TrajectoryWidget" native="true"/>
+       <widget class="qMRMLSubjectHierarchyTreeView" name="TrajectoryTreeView"/>
       </item>
       <item>
        <layout class="QVBoxLayout" name="ReslicingLayout"/>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item>
-    <widget class="ctkCollapsibleButton" name="AdvancedFrame">
-     <property name="text">
-      <string>Advanced</string>
-     </property>
-     <property name="collapsed">
-      <bool>true</bool>
-     </property>
-     <property name="contentsFrameShape">
-      <enum>QFrame::StyledPanel</enum>
-     </property>
-     <layout class="QVBoxLayout" name="verticalLayout_4">
-      <item>
-       <widget class="qMRMLNodeComboBox" name="EntryListSelector">
-        <property name="nodeTypes">
-         <stringlist>
-          <string>vtkMRMLMarkupsFiducialNode</string>
-         </stringlist>
-        </property>
-        <property name="baseName">
-         <string>Entry</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="qMRMLNodeComboBox" name="TargetListSelector">
-        <property name="nodeTypes">
-         <stringlist>
-          <string>vtkMRMLMarkupsFiducialNode</string>
-         </stringlist>
-        </property>
-        <property name="baseName">
-         <string>Target</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="qMRMLNodeComboBox" name="TrajectoryListSelector">
-        <property name="nodeTypes">
-         <stringlist>
-          <string>vtkMRMLPathPlannerTrajectoryNode</string>
-         </stringlist>
-        </property>
-        <property name="baseName">
-         <string>Traj</string>
-        </property>
-       </widget>
       </item>
      </layout>
     </widget>
@@ -129,112 +133,24 @@
    <container>1</container>
   </customwidget>
   <customwidget>
+   <class>qSlicerSimpleMarkupsWidget</class>
+   <extends>qSlicerWidget</extends>
+   <header>qSlicerSimpleMarkupsWidget.h</header>
+  </customwidget>
+  <customwidget>
+   <class>qMRMLSubjectHierarchyTreeView</class>
+   <extends>QTreeView</extends>
+   <header>qMRMLSubjectHierarchyTreeView.h</header>
+  </customwidget>
+  <customwidget>
    <class>ctkCollapsibleButton</class>
    <extends>QWidget</extends>
    <header>ctkCollapsibleButton.h</header>
    <container>1</container>
   </customwidget>
-  <customwidget>
-   <class>qSlicerPathExplorerMarkupsTableWidget</class>
-   <extends>QWidget</extends>
-   <header>qSlicerPathExplorerMarkupsTableWidget.h</header>
-   <container>1</container>
-   <slots>
-    <slot>setMRMLScene(vtkMRMLScene*)</slot>
-   </slots>
-  </customwidget>
-  <customwidget>
-   <class>qSlicerPathExplorerTrajectoryTableWidget</class>
-   <extends>QWidget</extends>
-   <header>qSlicerPathExplorerTrajectoryTableWidget.h</header>
-   <container>1</container>
-   <slots>
-    <slot>setMRMLScene(vtkMRMLScene*)</slot>
-   </slots>
-  </customwidget>
  </customwidgets>
  <resources/>
  <connections>
-  <connection>
-   <sender>qSlicerPathExplorerModuleWidget</sender>
-   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
-   <receiver>EntryWidget</receiver>
-   <slot>setMRMLScene(vtkMRMLScene*)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>38</x>
-     <y>7</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>21</x>
-     <y>53</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>qSlicerPathExplorerModuleWidget</sender>
-   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
-   <receiver>TargetWidget</receiver>
-   <slot>setMRMLScene(vtkMRMLScene*)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>5</x>
-     <y>70</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>19</x>
-     <y>69</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>qSlicerPathExplorerModuleWidget</sender>
-   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
-   <receiver>TrajectoryWidget</receiver>
-   <slot>setMRMLScene(vtkMRMLScene*)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>4</x>
-     <y>136</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>21</x>
-     <y>134</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>qSlicerPathExplorerModuleWidget</sender>
-   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
-   <receiver>EntryListSelector</receiver>
-   <slot>setMRMLScene(vtkMRMLScene*)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>59</x>
-     <y>309</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>59</x>
-     <y>218</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>qSlicerPathExplorerModuleWidget</sender>
-   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
-   <receiver>TargetListSelector</receiver>
-   <slot>setMRMLScene(vtkMRMLScene*)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>117</x>
-     <y>310</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>109</x>
-     <y>249</y>
-    </hint>
-   </hints>
-  </connection>
   <connection>
    <sender>qSlicerPathExplorerModuleWidget</sender>
    <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
@@ -246,8 +162,88 @@
      <y>312</y>
     </hint>
     <hint type="destinationlabel">
-     <x>170</x>
-     <y>275</y>
+     <x>217</x>
+     <y>10</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>qSlicerPathExplorerModuleWidget</sender>
+   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+   <receiver>EntryWidget</receiver>
+   <slot>setMRMLScene(vtkMRMLScene*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>309</x>
+     <y>320</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>273</x>
+     <y>116</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>qSlicerPathExplorerModuleWidget</sender>
+   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+   <receiver>TargetWidget</receiver>
+   <slot>setMRMLScene(vtkMRMLScene*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>103</x>
+     <y>333</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>81</x>
+     <y>331</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>TrajectoryListSelector</sender>
+   <signal>currentNodeChanged(bool)</signal>
+   <receiver>EntryWidget</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>143</x>
+     <y>18</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>136</x>
+     <y>81</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>TrajectoryListSelector</sender>
+   <signal>currentNodeChanged(bool)</signal>
+   <receiver>TargetWidget</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>72</x>
+     <y>21</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>106</x>
+     <y>280</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>qSlicerPathExplorerModuleWidget</sender>
+   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+   <receiver>TrajectoryTreeView</receiver>
+   <slot>setMRMLScene(vtkMRMLScene*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>180</x>
+     <y>513</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>186</x>
+     <y>474</y>
     </hint>
    </hints>
   </connection>

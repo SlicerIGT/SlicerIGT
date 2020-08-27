@@ -37,7 +37,7 @@ class qSlicerPathExplorerReslicingWidgetPrivate;
 class vtkMRMLNode;
 class vtkMRMLScene;
 class vtkMRMLSliceNode;
-class vtkMRMLAnnotationRulerNode;
+class vtkMRMLMarkupsLineNode;
 
 class Q_SLICER_MODULE_PATHEXPLORER_WIDGETS_EXPORT qSlicerPathExplorerReslicingWidget
 : public qSlicerWidget
@@ -48,18 +48,19 @@ class Q_SLICER_MODULE_PATHEXPLORER_WIDGETS_EXPORT qSlicerPathExplorerReslicingWi
  public:
   typedef qSlicerWidget Superclass;
 
-  qSlicerPathExplorerReslicingWidget(vtkMRMLSliceNode* sliceNode, QWidget *parent=0);
+  qSlicerPathExplorerReslicingWidget(QWidget *parent=0);
   virtual ~qSlicerPathExplorerReslicingWidget();
 
  public slots:
-  void setReslicingRulerNode(vtkMRMLAnnotationRulerNode* ruler);
+  void setSliceNode(vtkMRMLSliceNode* sliceNode);
+  void setReslicingRulerNode(vtkMRMLMarkupsLineNode* ruler);
   void onMRMLSceneChanged(vtkMRMLScene* newScene);
   void onMRMLNodeRemoved(vtkObject*, void* callData);
   void onResliceToggled(bool buttonStatus);
   void onPerpendicularToggled(bool status);
   void onResliceValueChanged(int resliceValue);
   void onRulerModified();
-  void resliceWithRuler(vtkMRMLAnnotationRulerNode* ruler,
+  void resliceWithRuler(vtkMRMLMarkupsLineNode* ruler,
                         vtkMRMLSliceNode* viewer,
                         bool perpendicular,
                         double resliceValue);

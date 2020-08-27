@@ -35,6 +35,7 @@
 
 #include "vtkSlicerPathExplorerModuleLogicExport.h"
 
+class vtkMRMLPathPlannerTrajectoryNode;
 
 /// \ingroup Slicer_QtModules_ExtensionTemplate
 class VTK_SLICER_PATHEXPLORER_MODULE_LOGIC_EXPORT vtkSlicerPathExplorerLogic :
@@ -46,13 +47,9 @@ public:
   vtkTypeMacro(vtkSlicerPathExplorerLogic, vtkSlicerModuleLogic);
   void PrintSelf(ostream& os, vtkIndent indent);
 
-  // TODO: Add new entry
+  void UpdateTrajectory(vtkMRMLPathPlannerTrajectoryNode* trajectoryNode);
 
-  // TODO: Add new target
-
-  // TODO: Add new trajectory
-
-  // TODO: Reslice
+  void ProcessMRMLNodesEvents(vtkObject* caller, unsigned long event, void* callData) override;
 
 protected:
   vtkSlicerPathExplorerLogic();
@@ -61,7 +58,6 @@ protected:
   virtual void SetMRMLSceneInternal(vtkMRMLScene* newScene);
   /// Register MRML Node classes to Scene. Gets called automatically when the MRMLScene is attached to this logic class.
   virtual void RegisterNodes();
-  virtual void UpdateFromMRMLScene();
   virtual void OnMRMLSceneNodeAdded(vtkMRMLNode* node);
   virtual void OnMRMLSceneNodeRemoved(vtkMRMLNode* node);
 private:

@@ -24,18 +24,32 @@
 #define __vtkMRMLPathPlannerTrajectoryNode_h
 
 #include "vtkSlicerPathExplorerModuleMRMLExport.h"
-#include "vtkMRMLAnnotationHierarchyNode.h" 
+
+#include "vtkCommand.h"
+#include "vtkMRMLDisplayableNode.h"
+
+#include <deque>
 
 class vtkMRMLNode;
 class vtkMRMLScene;
-class vtkMRMLAnnotationFiducialNode;
-class vtkMRMLAnnotationRulerNode;
-
-class  VTK_SLICER_PATHEXPLORER_MODULE_MRML_EXPORT vtkMRMLPathPlannerTrajectoryNode : public vtkMRMLAnnotationHierarchyNode
+class vtkMRMLMarkupsNode;
+class vtkMRMLMarkupsLineNode;
+ 
+class  VTK_SLICER_PATHEXPLORER_MODULE_MRML_EXPORT vtkMRMLPathPlannerTrajectoryNode
+  : public vtkMRMLDisplayableNode  // parent is displayable node so that color and visibility can be set for all children nodes
 {
 public:
   static vtkMRMLPathPlannerTrajectoryNode *New();
-  vtkTypeMacro(vtkMRMLPathPlannerTrajectoryNode, vtkMRMLAnnotationHierarchyNode);
+  vtkTypeMacro(vtkMRMLPathPlannerTrajectoryNode, vtkMRMLDisplayableNode);
+
+  enum Events
+  {
+    /// The node stores both inputs (e.g., tooltip position, model, colors, etc.) and computed parameters.
+    /// InputDataModifiedEvent is only invoked when input parameters are changed.
+    /// In contrast, ModifiedEvent event is called if either an input or output parameter is changed.
+    // vtkCommand::UserEvent + 555 is just a random value that is very unlikely to be used for anything else in this class
+    InputDataModifiedEvent = vtkCommand::UserEvent + 555
+  };
 
   //--------------------------------------------------------------------------
   // MRMLNode methods
@@ -56,11 +70,11 @@ public:
   // Write this node's information to a MRML file in XML format.
   virtual void WriteXML(ostream& of, int indent);
 
-  virtual void UpdateScene(vtkMRMLScene *scene);
+  /// Copy node content (excludes basic data, such as name and node references).
+  /// \sa vtkMRMLNode::CopyContent
+  vtkMRMLCopyContentMacro(vtkMRMLPathPlannerTrajectoryNode);
 
-  // Description:
-  // Copy the node's attributes to this object
-  virtual void Copy(vtkMRMLNode *node);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   // Description:
   // alternative method to propagate events generated in Display nodes
@@ -68,16 +82,52 @@ public:
                                    unsigned long /*event*/, 
                                    void * /*callData*/ );
 
+  /// Get/Set entry points markups node
+  vtkMRMLMarkupsNode* GetEntryPointsNode();
+  void SetAndObserveEntryPointsNodeId(const char* markupsNodeId);
+
+  /// Get/Set target points markups node
+  vtkMRMLMarkupsNode* GetTargetPointsNode();
+  void SetAndObserveTargetPointsNodeId(const char* markupsNodeId);
+
+  /// Add path between entry and target points.
+  /// Return path index.
+  virtual int AddPath(const std::string& entryPointId, const std::string& targetPointId);
+
+  /// Remove a path.
+  virtual void RemovePath(int pathIndex);
+
+  /// Return number of paths.
+  virtual int GetNumberOfPaths();
+
+  bool IsPathValid(int pathIndex);
+
+  bool SetNthPathLineNode(int pathIndex, vtkMRMLMarkupsLineNode* pathNode);
+  vtkMRMLMarkupsLineNode* GetNthPathLineNode(int pathIndex);
+
+  void SetNthEntryPointIndex(int pathIndex, int pointIndex);
+  int GetNthEntryPointIndex(int pathIndex);
+  
+  void SetNthTargetPointIndex(int pathIndex, int pointIndex);
+  int GetNthTargetPointIndex(int pathIndex);
+
 protected:
   vtkMRMLPathPlannerTrajectoryNode();
   ~vtkMRMLPathPlannerTrajectoryNode();
   vtkMRMLPathPlannerTrajectoryNode(const vtkMRMLPathPlannerTrajectoryNode&);
-  void operator=(const vtkMRMLPathPlannerTrajectoryNode&); 
+  void operator=(const vtkMRMLPathPlannerTrajectoryNode&);
 
-  typedef std::pair<vtkMRMLAnnotationFiducialNode*, vtkMRMLAnnotationFiducialNode*> FiducialPair;
-  typedef std::map<FiducialPair, vtkMRMLAnnotationRulerNode*> FiducialRuler;
+  void SetPathList(const std::deque<std::string>& pathList);
+  std::deque<std::string> GetPathList();
 
-  FiducialRuler RulerList;
+  struct PathType
+  {
+    std::string EntryPointId;
+    std::string TargetPointId;
+    std::string PathNodeReferenceRole;
+  };
+
+  std::deque<PathType> PathList;
 };
 
 #endif

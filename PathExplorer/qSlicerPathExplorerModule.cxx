@@ -24,6 +24,8 @@
 // PathExplorer includes
 #include "qSlicerPathExplorerModule.h"
 #include "qSlicerPathExplorerModuleWidget.h"
+#include "qSlicerSubjectHierarchyPluginHandler.h"
+#include "qSlicerSubjectHierarchyPathExplorerPlugin.h"
 
 //-----------------------------------------------------------------------------
 #if (QT_VERSION < QT_VERSION_CHECK(5, 0, 0))
@@ -67,7 +69,7 @@ qSlicerPathExplorerModule::~qSlicerPathExplorerModule()
 //-----------------------------------------------------------------------------
 QString qSlicerPathExplorerModule::helpText()const
 {
-  return QString("PathExplorer is a module designed to facilitate the creation of trajectory, and visualization of volumes along these trajectories"
+  return QString("Path Explorer is a module designed to facilitate the creation of trajectory, and visualization of volumes along these trajectories"
     " For help on how to use this module visit: <a href='https://www.slicerigt.org'>SlicerIGT website</a>.");
 }
 
@@ -101,13 +103,14 @@ QStringList qSlicerPathExplorerModule::categories() const
 //-----------------------------------------------------------------------------
 QStringList qSlicerPathExplorerModule::dependencies() const
 {
-  return QStringList() << "Markups" << "Annotations";
+  return QStringList() << "Markups";
 }
 
 //-----------------------------------------------------------------------------
 void qSlicerPathExplorerModule::setup()
 {
   this->Superclass::setup();
+  qSlicerSubjectHierarchyPluginHandler::instance()->registerPlugin(new qSlicerSubjectHierarchyPathExplorerPlugin());
 }
 
 //-----------------------------------------------------------------------------

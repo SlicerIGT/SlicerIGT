@@ -35,6 +35,8 @@ Automatic registration of models (surface meshes) using iterative closest points
 
 Module for specifying tool trajectories by entry and target points and reslice image along and orthogonal to the trajectory line.
 
+Hit `E` or `T` key to switch between placement of entry and target point.
+
 ### Pivot calibration
 
 Determine transformation between tooltip and tracking sensor attached to a tracked tool.

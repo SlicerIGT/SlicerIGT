@@ -23,11 +23,8 @@
 
 #include "qSlicerPathExplorerModuleExport.h"
 
-#include "qSlicerPathExplorerMarkupsTableWidget.h"
 #include "qSlicerPathExplorerReslicingWidget.h"
-#include "qSlicerPathExplorerTrajectoryTableWidget.h"
 
-#include "vtkMRMLAnnotationHierarchyNode.h"
 #include "vtkMRMLSliceNode.h"
 
 
@@ -51,19 +48,21 @@ public:
   virtual void exit();
 
 public slots:
-  void onEntryNodeActivated(vtkMRMLNode* node);
-  void onTargetNodeActivated(vtkMRMLNode* node);
   void onTrajectoryNodeActivated(vtkMRMLNode* node);
   void onMRMLSceneChanged(vtkMRMLScene* scene);
-  void onEntryAddButtonToggled(bool state);
-  void onTargetAddButtonToggled(bool state);
   void onEKeyPressed();
   void onTKeyPressed();
+  void onAddPath();
+  void onEntryNodeSelected();
+  void onTargetNodeSelected();
+  void selectedPathLineItem(vtkIdType);
 
 protected:
   QScopedPointer<qSlicerPathExplorerModuleWidgetPrivate> d_ptr;
   
   virtual void setup();
+
+  void updateGUIFromMRML();
 
 private:
   Q_DECLARE_PRIVATE(qSlicerPathExplorerModuleWidget);

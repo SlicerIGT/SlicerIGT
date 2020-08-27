@@ -24,8 +24,8 @@
 #include "qSlicerPathExplorerReslicingWidget.h"
 #include "ui_qSlicerPathExplorerReslicingWidget.h"
 
-#include <vtkMRMLAnnotationLineDisplayNode.h>
-#include <vtkMRMLAnnotationRulerNode.h>
+#include <vtkMRMLMarkupsDisplayNode.h>
+#include <vtkMRMLMarkupsLineNode.h>
 #include <vtkMRMLSliceNode.h>
 
 #include "ctkPopupWidget.h"
@@ -57,7 +57,7 @@ class Q_SLICER_MODULE_PATHEXPLORER_WIDGETS_EXPORT qSlicerPathExplorerReslicingWi
  protected:
   qSlicerPathExplorerReslicingWidget * const   q_ptr;
   vtkMRMLSliceNode*                             SliceNode;
-  vtkMRMLAnnotationRulerNode*                   ReslicingRulerNode;
+  vtkMRMLMarkupsLineNode*                       ReslicingLineNode;
   std::string                                   DrivingRulerNodeID;
   std::string                                   DrivingRulerNodeName;
   double                                        ResliceAngle;
@@ -73,10 +73,10 @@ qSlicerPathExplorerReslicingWidgetPrivate
 {
   this->DrivingRulerNodeID.assign("");
   this->DrivingRulerNodeName.assign("");
-  this->SliceNode            = NULL;
-  this->ReslicingRulerNode   = NULL;
-  this->ResliceAngle         = 0.0;
-  this->ReslicePosition      = 0.0;
+  this->SliceNode = nullptr;
+  this->ReslicingLineNode = nullptr;
+  this->ResliceAngle = 0.0;
+  this->ReslicePosition = 0.0;
   this->ReslicePerpendicular = true;
 }
 
@@ -97,7 +97,7 @@ void qSlicerPathExplorerReslicingWidgetPrivate
 int qSlicerPathExplorerReslicingWidgetPrivate
 ::loadAttributesFromViewer()
 {
-  if (!this->ReslicingRulerNode)
+  if (!this->ReslicingLineNode)
     {
     return 0;
     }
@@ -117,21 +117,21 @@ int qSlicerPathExplorerReslicingWidgetPrivate
   this->DrivingRulerNodeName.assign(drivingName);
 
   std::stringstream itemPosAttrStr;
-  itemPosAttrStr << "PathExplorer." << this->ReslicingRulerNode->GetName() << "_" << this->SliceNode->GetName() << "_Position";
+  itemPosAttrStr << "PathExplorer." << this->ReslicingLineNode->GetName() << "_" << this->SliceNode->GetName() << "_Position";
   const char* posStr = this->SliceNode->GetAttribute(itemPosAttrStr.str().c_str());
   this->ReslicePosition = posStr ?
     atof(posStr) :
     0.0;
 
   std::stringstream itemAngleAttrStr;
-  itemAngleAttrStr << "PathExplorer." << this->ReslicingRulerNode->GetName() << "_" << this->SliceNode->GetName() << "_Angle";
+  itemAngleAttrStr << "PathExplorer." << this->ReslicingLineNode->GetName() << "_" << this->SliceNode->GetName() << "_Angle";
   const char* angleStr = this->SliceNode->GetAttribute(itemAngleAttrStr.str().c_str());
   this->ResliceAngle = angleStr ?
     atof(angleStr) :
     0.0;
 
   std::stringstream itemPerpAttrStr;
-  itemPerpAttrStr << "PathExplorer." << this->ReslicingRulerNode->GetName() << "_" << this->SliceNode->GetName() << "_Perpendicular";
+  itemPerpAttrStr << "PathExplorer." << this->ReslicingLineNode->GetName() << "_" << this->SliceNode->GetName() << "_Perpendicular";
   const char* perpStr = this->SliceNode->GetAttribute(itemPerpAttrStr.str().c_str());
   if (perpStr)
     {
@@ -145,25 +145,25 @@ int qSlicerPathExplorerReslicingWidgetPrivate
 void qSlicerPathExplorerReslicingWidgetPrivate
 ::saveAttributesToViewer()
 {
-  if (!this->ReslicingRulerNode)
+  if (!this->ReslicingLineNode)
     {
     return;
     }
 
   std::stringstream posAttrStr;
-  posAttrStr << "PathExplorer." << this->ReslicingRulerNode->GetName() << "_" << this->SliceNode->GetName() << "_Position";
+  posAttrStr << "PathExplorer." << this->ReslicingLineNode->GetName() << "_" << this->SliceNode->GetName() << "_Position";
   std::stringstream posValStr;
   posValStr << this->ReslicePosition;
   this->SliceNode->SetAttribute(posAttrStr.str().c_str(), posValStr.str().c_str());
 
   std::stringstream angleAttrStr;
-  angleAttrStr << "PathExplorer." << this->ReslicingRulerNode->GetName() << "_" << this->SliceNode->GetName() << "_Angle";
+  angleAttrStr << "PathExplorer." << this->ReslicingLineNode->GetName() << "_" << this->SliceNode->GetName() << "_Angle";
   std::stringstream angleValStr;
   angleValStr << this->ResliceAngle;
   this->SliceNode->SetAttribute(angleAttrStr.str().c_str(), angleValStr.str().c_str());
 
   std::stringstream perpAttrStr;
-  perpAttrStr << "PathExplorer." << this->ReslicingRulerNode->GetName() << "_" << this->SliceNode->GetName() << "_Perpendicular";
+  perpAttrStr << "PathExplorer." << this->ReslicingLineNode->GetName() << "_" << this->SliceNode->GetName() << "_Perpendicular";
   this->SliceNode->SetAttribute(perpAttrStr.str().c_str(), this->ReslicePerpendicularRadioButton->isChecked() ?
                                 "ON" :
                                 "OFF");
@@ -172,12 +172,12 @@ void qSlicerPathExplorerReslicingWidgetPrivate
 void qSlicerPathExplorerReslicingWidgetPrivate
 ::updateWidget()
 {
-  if (!this->SliceNode || !this->ReslicingRulerNode)
+  if (!this->SliceNode || !this->ReslicingLineNode)
     {
     return;
     }
 
-  vtkMRMLAnnotationLineDisplayNode* rulerDisplayNode = this->ReslicingRulerNode->GetAnnotationLineDisplayNode();
+  vtkMRMLMarkupsDisplayNode* lineDisplayNode = vtkMRMLMarkupsDisplayNode::SafeDownCast(this->ReslicingLineNode->GetDisplayNode());
 
   // block all signals while updating
   bool sliderOldState = this->ResliceSlider->blockSignals(true);
@@ -193,7 +193,7 @@ void qSlicerPathExplorerReslicingWidgetPrivate
 
   // Update reslice button
   int enabled = 0;
-  if (!this->DrivingRulerNodeID.empty() && this->DrivingRulerNodeID.compare(this->ReslicingRulerNode->GetID()) == 0)
+  if (!this->DrivingRulerNodeID.empty() && this->DrivingRulerNodeID.compare(this->ReslicingLineNode->GetID()) == 0)
     {
     enabled = 1;
     this->ResliceButton->setText(this->DrivingRulerNodeName.c_str());
@@ -215,7 +215,7 @@ void qSlicerPathExplorerReslicingWidgetPrivate
   QString decimalValue = QString::number(this->ResliceAngle);
   if (this->ReslicePerpendicular)
     {
-    double distanceValue = this->ReslicingRulerNode->GetDistanceMeasurement() * this->ReslicePosition / 100;
+    double distanceValue = this->ReslicingLineNode->GetLineLengthWorld() * this->ReslicePosition / 100;
     decimalValue.setNum(distanceValue, 'f', 2);
     }
   this->ResliceValueLabel->setText(decimalValue);
@@ -225,9 +225,9 @@ void qSlicerPathExplorerReslicingWidgetPrivate
   this->ResliceInPlaneRadioButton->setChecked(!this->ReslicePerpendicular);
 
   // Update slice intersection visibility
-  if (rulerDisplayNode && this->ResliceButton->isChecked())
+  if (lineDisplayNode && this->ResliceButton->isChecked())
     {
-    rulerDisplayNode->SetSliceIntersectionVisibility(this->ReslicePerpendicular);
+    lineDisplayNode->SetVisibility2D(this->ReslicePerpendicular);
     }
 
   // Restore signals
@@ -238,49 +238,14 @@ void qSlicerPathExplorerReslicingWidgetPrivate
 
 //-----------------------------------------------------------------------------
 qSlicerPathExplorerReslicingWidget
-::qSlicerPathExplorerReslicingWidget(vtkMRMLSliceNode* sliceNode, QWidget *parentWidget)
+::qSlicerPathExplorerReslicingWidget(QWidget *parentWidget)
   : Superclass (parentWidget)
-    , d_ptr ( new qSlicerPathExplorerReslicingWidgetPrivate(*this) )
+  , d_ptr(new qSlicerPathExplorerReslicingWidgetPrivate(*this))
 {
   Q_D(qSlicerPathExplorerReslicingWidget);
   d->setupUi(this);
 
-  if (!sliceNode)
-    {
-    return;
-    }
-
-  this->setEnabled(0);
-  d->SliceNode = sliceNode;
-
-  // Set text
-  d->ResliceButton->setText(sliceNode->GetName());
-
-  // Set color
-  double color[3];
-  sliceNode->GetLayoutColor(color);
-  std::stringstream buttonBgColor;
-  buttonBgColor << "QPushButton { background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 rgba("
-                << color[0]*255 << ","
-                << color[1]*255 << ","
-                << color[2]*255 << ","
-                << "128), stop: 1 rgba("
-                << color[0]*255 << ","
-                << color[1]*255 << ","
-                << color[2]*255 << ","
-                << "128)); width:100%; border:1px solid black;} "
-                << ":checked { background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 rgba("
-                << color[0]*255 << ","
-                << color[1]*255 << ","
-                << color[2]*255 << ","
-                << "255), stop: 1 rgba("
-                << color[0]*255 << ","
-                << color[1]*255 << ","
-                << color[2]*255 << ","
-                << "255)); width:100%; border:1px solid black;} ";
-
-  d->ResliceButton->setAutoFillBackground(true);
-  d->ResliceButton->setStyleSheet(QString::fromStdString(buttonBgColor.str()));
+  this->setSliceNode(nullptr);
 
   connect(d->ResliceButton, SIGNAL(toggled(bool)),
           this, SLOT(onResliceToggled(bool)));
@@ -302,7 +267,7 @@ qSlicerPathExplorerReslicingWidget
 
 //-----------------------------------------------------------------------------
 void qSlicerPathExplorerReslicingWidget
-::setReslicingRulerNode(vtkMRMLAnnotationRulerNode* ruler)
+::setReslicingRulerNode(vtkMRMLMarkupsLineNode* ruler)
 {
   Q_D(qSlicerPathExplorerReslicingWidget);
 
@@ -314,14 +279,14 @@ void qSlicerPathExplorerReslicingWidget
     return;
     }
 
-  if (d->ReslicingRulerNode)
+  if (d->ReslicingLineNode)
     {
     // If previous trajectory, save values as attributes before changing it
     d->saveAttributesToViewer();
     }
 
   // Load previous values of new trajectory
-  d->ReslicingRulerNode = ruler;
+  d->ReslicingLineNode = ruler;
   if (d->loadAttributesFromViewer())
     {
     d->updateWidget();
@@ -348,14 +313,14 @@ void qSlicerPathExplorerReslicingWidget
 {
   Q_D(qSlicerPathExplorerReslicingWidget);
 
-  if (!d->ReslicingRulerNode)
+  if (!d->ReslicingLineNode)
     {
     return;
     }
 
-  if (callData == d->ReslicingRulerNode)
+  if (callData == d->ReslicingLineNode)
     {
-    d->ReslicingRulerNode = NULL;
+    d->ReslicingLineNode = NULL;
     }
 }
 
@@ -365,12 +330,12 @@ void qSlicerPathExplorerReslicingWidget
 {
   Q_D(qSlicerPathExplorerReslicingWidget);
 
-  if (!d->ReslicingRulerNode)
+  if (!d->ReslicingLineNode)
     {
     return;
     }
 
-  this->resliceWithRuler(d->ReslicingRulerNode,
+  this->resliceWithRuler(d->ReslicingLineNode,
 			 d->SliceNode,
 			 d->ReslicePerpendicular,
 			 d->ReslicePerpendicular ? d->ReslicePosition : d->ResliceAngle);
@@ -382,7 +347,7 @@ void qSlicerPathExplorerReslicingWidget
 {
   Q_D(qSlicerPathExplorerReslicingWidget);
 
-  if (!d->SliceNode || !d->ReslicingRulerNode)
+  if (!d->SliceNode || !d->ReslicingLineNode)
     {
     return;
     }
@@ -394,18 +359,18 @@ void qSlicerPathExplorerReslicingWidget
     d->ReslicePerpendicularRadioButton->setEnabled(1);
     d->ResliceInPlaneRadioButton->setEnabled(1);
 
-    d->DrivingRulerNodeID.assign(d->ReslicingRulerNode->GetID());
-    d->DrivingRulerNodeName.assign(d->ReslicingRulerNode->GetName());
-    d->SliceNode->SetAttribute("PathExplorer.DrivingPathID",d->ReslicingRulerNode->GetID());
-    d->SliceNode->SetAttribute("PathExplorer.DrivingPathName",d->ReslicingRulerNode->GetName());
+    d->DrivingRulerNodeID.assign(d->ReslicingLineNode->GetID());
+    d->DrivingRulerNodeName.assign(d->ReslicingLineNode->GetName());
+    d->SliceNode->SetAttribute("PathExplorer.DrivingPathID",d->ReslicingLineNode->GetID());
+    d->SliceNode->SetAttribute("PathExplorer.DrivingPathName",d->ReslicingLineNode->GetName());
     d->updateWidget();
 
-    this->resliceWithRuler(d->ReslicingRulerNode,
+    this->resliceWithRuler(d->ReslicingLineNode,
                            d->SliceNode,
                            d->ReslicePerpendicular,
                            d->ReslicePerpendicular ? d->ReslicePosition : d->ResliceAngle);
 
-    this->qvtkConnect(d->ReslicingRulerNode, vtkCommand::ModifiedEvent,
+    this->qvtkConnect(d->ReslicingLineNode, vtkCommand::ModifiedEvent,
 		      this, SLOT(onRulerModified()));
     }
   else
@@ -415,7 +380,7 @@ void qSlicerPathExplorerReslicingWidget
     d->ReslicePerpendicularRadioButton->setEnabled(0);
     d->ResliceInPlaneRadioButton->setEnabled(0);
 
-    this->qvtkDisconnect(d->ReslicingRulerNode, vtkCommand::ModifiedEvent,
+    this->qvtkDisconnect(d->ReslicingLineNode, vtkCommand::ModifiedEvent,
 			 this, SLOT(onRulerModified()));
     }
 }
@@ -426,7 +391,7 @@ void qSlicerPathExplorerReslicingWidget
 {
   Q_D(qSlicerPathExplorerReslicingWidget);
 
-  if (!d->ReslicingRulerNode)
+  if (!d->ReslicingLineNode)
     {
     return;
     }
@@ -434,7 +399,7 @@ void qSlicerPathExplorerReslicingWidget
   d->ReslicePerpendicular = status;
   d->updateWidget();
 
-  this->resliceWithRuler(d->ReslicingRulerNode,
+  this->resliceWithRuler(d->ReslicingLineNode,
                          d->SliceNode,
                          d->ReslicePerpendicular,
                          d->ReslicePerpendicular ? d->ReslicePosition : d->ResliceAngle);
@@ -446,7 +411,7 @@ void qSlicerPathExplorerReslicingWidget
 {
   Q_D(qSlicerPathExplorerReslicingWidget);
 
-  if (!d->ReslicingRulerNode)
+  if (!d->ReslicingLineNode)
     {
     return;
     }
@@ -455,7 +420,7 @@ void qSlicerPathExplorerReslicingWidget
     {
     d->ReslicePosition = resliceValue;
     QString decimalValue;
-    double distanceValue = d->ReslicingRulerNode->GetDistanceMeasurement() * d->ReslicePosition / 100;
+    double distanceValue = d->ReslicingLineNode->GetLineLengthWorld() * d->ReslicePosition / 100;
     decimalValue = decimalValue.setNum(distanceValue, 'f', 2);
     d->ResliceValueLabel->setText(decimalValue);
     }
@@ -467,7 +432,7 @@ void qSlicerPathExplorerReslicingWidget
 
   if (d->ResliceButton->isChecked())
     {
-    this->resliceWithRuler(d->ReslicingRulerNode,
+    this->resliceWithRuler(d->ReslicingLineNode,
                            d->SliceNode,
                            d->ReslicePerpendicular,
                            d->ReslicePerpendicular ? d->ReslicePosition : d->ResliceAngle);
@@ -476,7 +441,7 @@ void qSlicerPathExplorerReslicingWidget
 
 //-----------------------------------------------------------------------------
 void qSlicerPathExplorerReslicingWidget
-::resliceWithRuler(vtkMRMLAnnotationRulerNode* ruler,
+::resliceWithRuler(vtkMRMLMarkupsLineNode* ruler,
                    vtkMRMLSliceNode* viewer,
                    bool perpendicular,
                    double resliceValue)
@@ -489,8 +454,8 @@ void qSlicerPathExplorerReslicingWidget
   // Get ruler points
   double point1[4] = {0,0,0,0};
   double point2[4] = {0,0,0,0};
-  ruler->GetPositionWorldCoordinates1(point1);
-  ruler->GetPositionWorldCoordinates2(point2);
+  ruler->GetNthControlPointPositionWorld(0, point1);
+  ruler->GetNthControlPointPositionWorld(1, point2);
 
   // Compute vectors
   double t[3];
@@ -552,3 +517,46 @@ void qSlicerPathExplorerReslicingWidget
   viewer->SetSliceToRASByNTP(nx, ny, nz, tx, ty, tz, px, py, pz, 0);
 }
 
+
+//-----------------------------------------------------------------------------
+void qSlicerPathExplorerReslicingWidget::setSliceNode(vtkMRMLSliceNode* sliceNode)
+{
+  Q_D(qSlicerPathExplorerReslicingWidget);
+
+  this->setEnabled(sliceNode!=nullptr);
+  d->SliceNode = sliceNode;
+  
+  std::string name;
+  double color[3] = { 0.5, 0.5, 0.5 };
+  if (sliceNode)
+  {
+    name = sliceNode->GetName();
+    sliceNode->GetLayoutColor(color);
+  }
+  
+  d->ResliceButton->setText(QString::fromStdString(name));
+  
+  // Set color  
+  std::stringstream buttonBgColor;
+  buttonBgColor << "QPushButton { background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 rgba("
+    << color[0] * 255 << ","
+    << color[1] * 255 << ","
+    << color[2] * 255 << ","
+    << "128), stop: 1 rgba("
+    << color[0] * 255 << ","
+    << color[1] * 255 << ","
+    << color[2] * 255 << ","
+    << "128)); width:100%; border:1px solid black;} "
+    << ":checked { background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 rgba("
+    << color[0] * 255 << ","
+    << color[1] * 255 << ","
+    << color[2] * 255 << ","
+    << "255), stop: 1 rgba("
+    << color[0] * 255 << ","
+    << color[1] * 255 << ","
+    << color[2] * 255 << ","
+    << "255)); width:100%; border:1px solid black;} ";
+
+  d->ResliceButton->setAutoFillBackground(true);
+  d->ResliceButton->setStyleSheet(QString::fromStdString(buttonBgColor.str()));
+}

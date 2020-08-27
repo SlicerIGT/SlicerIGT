@@ -5,8 +5,8 @@ set(KIT ${PROJECT_NAME})
 set(${KIT}_EXPORT_DIRECTIVE "VTK_SLICER_${MODULE_NAME_UPPER}_MODULE_MRML_EXPORT")
 
 set(${KIT}_INCLUDE_DIRECTORIES
-  ${vtkSlicerAnnotationsModuleMRML_SOURCE_DIR}
-  ${vtkSlicerAnnotationsModuleMRML_BINARY_DIR}
+  #${vtkSlicerMarkupsModuleMRML_SOURCE_DIR}
+  #${vtkSlicerMarkupsModuleMRML_BINARY_DIR}
   )
 
 set(${KIT}_SRCS
@@ -17,7 +17,7 @@ set(${KIT}_SRCS
 set(${KIT}_TARGET_LIBRARIES
   ${ITK_LIBRARIES}
   ${MRML_LIBRARIES}
-  vtkSlicerAnnotationsModuleMRML
+  vtkSlicerMarkupsModuleMRML
   )
 
 #-----------------------------------------------------------------------------
