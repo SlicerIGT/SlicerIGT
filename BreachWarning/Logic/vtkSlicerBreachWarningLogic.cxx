@@ -471,7 +471,7 @@ double* vtkSlicerBreachWarningLogic::GetLineToClosestPointColor(vtkMRMLBreachWar
   vtkMRMLAnnotationLineDisplayNode* displayNode = ruler->GetAnnotationLineDisplayNode();
   if ( displayNode == NULL )
   {
-    vtkErrorMacro("vtkSlicerBreachWarningLogic::GetLineToClosestPointColor failed: displayNode is invalid")
+    vtkErrorMacro("vtkSlicerBreachWarningLogic::GetLineToClosestPointColor failed: displayNode is invalid");
     return this->DefaultLineToClosestPointColor;
   }
   return displayNode->GetColor();
@@ -564,7 +564,7 @@ double vtkSlicerBreachWarningLogic::GetLineToClosestPointThickness(vtkMRMLBreach
   vtkMRMLAnnotationLineDisplayNode* displayNode = ruler->GetAnnotationLineDisplayNode();
   if ( displayNode == NULL )
   {
-    vtkErrorMacro("vtkSlicerBreachWarningLogic::GetLineToClosestPointColor failed: displayNode is invalid")
+    vtkErrorMacro("vtkSlicerBreachWarningLogic::GetLineToClosestPointColor failed: displayNode is invalid");
     return this->DefaultLineToClosestPointThickness;
   }
   return displayNode->GetLineThickness();

@@ -573,7 +573,7 @@ void vtkMRMLWatchdogDisplayableManager::UpdateFromMRML()
   vtkMRMLScene* scene = this->GetMRMLScene();
   if (!scene)
   {
-    vtkDebugMacro( "vtkMRMLWatchdogDisplayableManager->UpdateFromMRML: Scene is not set.")
+    vtkDebugMacro("vtkMRMLWatchdogDisplayableManager->UpdateFromMRML: Scene is not set.");
       return;
   }
   this->Internal->ClearDisplayableNodes();

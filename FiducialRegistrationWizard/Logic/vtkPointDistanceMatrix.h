@@ -20,7 +20,7 @@ class VTK_SLICER_FIDUCIALREGISTRATIONWIZARD_MODULE_LOGIC_EXPORT vtkPointDistance
 {
   public:
     vtkTypeMacro( vtkPointDistanceMatrix, vtkObject );
-    void PrintSelf( ostream &os, vtkIndent indent ) VTK_OVERRIDE;
+    void PrintSelf( ostream &os, vtkIndent indent ) override;
     
     static vtkPointDistanceMatrix* New();
     

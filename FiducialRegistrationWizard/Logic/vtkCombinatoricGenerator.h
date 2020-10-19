@@ -19,7 +19,7 @@ class VTK_SLICER_FIDUCIALREGISTRATIONWIZARD_MODULE_LOGIC_EXPORT vtkCombinatoricG
     vtkTypeMacro( vtkCombinatoricGenerator, vtkObject );
     static vtkCombinatoricGenerator* New();
 
-    void PrintSelf( ostream &os, vtkIndent indent ) VTK_OVERRIDE;
+    void PrintSelf( ostream &os, vtkIndent indent ) override;
     void PrintVectorOfVectors( ostream &os, vtkIndent indent, std::vector< std::vector< int > > vectorOfVectors ); // helper
     
     // type of combinatoric to compute

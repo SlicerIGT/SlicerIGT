@@ -44,7 +44,7 @@ double vtkPointDistanceMatrix::GetDistance( int pointList1Index, int pointList2I
 
   if ( this->DistanceMatrix->GetNumberOfTuples() == 0 )
   {
-    vtkWarningMacro( "Matrix has no contents. Returning 0." )
+    vtkWarningMacro("Matrix has no contents. Returning 0.");
     return 0.0;
   }
 
@@ -52,7 +52,7 @@ double vtkPointDistanceMatrix::GetDistance( int pointList1Index, int pointList2I
   int numberOfTuples = this->DistanceMatrix->GetNumberOfTuples();
   if ( tupleIndex < 0 || tupleIndex >= numberOfTuples )
   {
-    vtkWarningMacro( "Point index of first list " << tupleIndex << " is outside the range 0 to " << ( numberOfTuples - 1 ) << ". Returning 0." )
+    vtkWarningMacro("Point index of first list " << tupleIndex << " is outside the range 0 to " << (numberOfTuples - 1) << ". Returning 0.");
     return 0.0;
   }
 
@@ -60,7 +60,7 @@ double vtkPointDistanceMatrix::GetDistance( int pointList1Index, int pointList2I
   int numberOfComponents = this->DistanceMatrix->GetNumberOfComponents();
   if ( componentIndex < 0 || componentIndex >= numberOfComponents )
   {
-    vtkWarningMacro( "Point index of secondList list " << componentIndex << " is outside the range 0 to " << ( numberOfComponents - 1 ) << ". Returning 0." )
+    vtkWarningMacro("Point index of secondList list " << componentIndex << " is outside the range 0 to " << (numberOfComponents - 1) << ". Returning 0.");
     return 0.0;
   }
 
@@ -83,7 +83,7 @@ void vtkPointDistanceMatrix::GetDistances( vtkDoubleArray* outputArray )
 
   if ( this->DistanceMatrix->GetNumberOfTuples() == 0 )
   {
-    vtkWarningMacro( "Matrix has no contents." )
+    vtkWarningMacro("Matrix has no contents.");
     return;
   }
 
@@ -127,7 +127,7 @@ void vtkPointDistanceMatrix::Update()
 {
   if ( this->InputsContainErrors() )
   {
-    vtkWarningMacro( "Cannot update." )
+    vtkWarningMacro("Cannot update.");
     return;
   }
 

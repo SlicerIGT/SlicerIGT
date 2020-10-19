@@ -23,7 +23,7 @@ class VTK_SLICER_FIDUCIALREGISTRATIONWIZARD_MODULE_LOGIC_EXPORT vtkPointMatcher 
     vtkTypeMacro( vtkPointMatcher, vtkObject );
     static vtkPointMatcher* New();
 
-    void PrintSelf( ostream &os, vtkIndent indent ) VTK_OVERRIDE;
+    void PrintSelf( ostream &os, vtkIndent indent ) override;
     
     // Input Mutators/Accessors
     // these points may not be in order and may be different lengths

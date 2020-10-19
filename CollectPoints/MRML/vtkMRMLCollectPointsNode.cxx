@@ -124,7 +124,7 @@ void vtkMRMLCollectPointsNode::ReadXMLAttributes( const char** atts )
       }
       else
       {
-        vtkWarningMacro("Unrecognized collect mode read from MRML node: " << attValue << ". Setting to manual.")
+        vtkWarningMacro("Unrecognized collect mode read from MRML node: " << attValue << ". Setting to manual.");
         this->CollectMode = Manual;
       }
     }

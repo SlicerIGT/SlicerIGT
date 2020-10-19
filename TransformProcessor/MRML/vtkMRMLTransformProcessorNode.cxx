@@ -214,7 +214,7 @@ void vtkMRMLTransformProcessorNode::SetProcessingMode( int newProcessingMode )
   bool validMode = ( newProcessingMode >= 0 && newProcessingMode < PROCESSING_MODE_LAST );
   if ( validMode == false )
   {
-    vtkWarningMacro( "Input new processing mode " << newProcessingMode << " is not a valid option. No change will be done." )
+    vtkWarningMacro("Input new processing mode " << newProcessingMode << " is not a valid option. No change will be done.");
     return;
   }
 
@@ -235,7 +235,7 @@ void vtkMRMLTransformProcessorNode::SetUpdateMode( int newUpdateMode )
   bool validMode = ( newUpdateMode >= 0 && newUpdateMode < UPDATE_MODE_LAST );
   if ( validMode == false )
   {
-    vtkWarningMacro( "Input new update mode " << newUpdateMode << " is not a valid option. No change will be done." )
+    vtkWarningMacro("Input new update mode " << newUpdateMode << " is not a valid option. No change will be done.");
     return;
   }
 
@@ -318,7 +318,7 @@ void vtkMRMLTransformProcessorNode::SetRotationMode( int newRotationMode )
   bool validMode = ( newRotationMode >= 0 && newRotationMode < ROTATION_MODE_LAST );
   if ( validMode == false )
   {
-    vtkWarningMacro( "Input new rotation mode " << newRotationMode << " is not a valid option. No change will be done." )
+    vtkWarningMacro("Input new rotation mode " << newRotationMode << " is not a valid option. No change will be done.");
     return;
   }
 
@@ -338,7 +338,7 @@ void vtkMRMLTransformProcessorNode::SetDependentAxesMode( int newDependentAxesMo
   bool validMode = ( newDependentAxesMode >= 0 && newDependentAxesMode < DEPENDENT_AXES_MODE_LAST );
   if ( validMode == false )
   {
-    vtkWarningMacro( "Input new dependent axes mode " << newDependentAxesMode << " is not a valid option. No change will be done." )
+    vtkWarningMacro("Input new dependent axes mode " << newDependentAxesMode << " is not a valid option. No change will be done.");
     return;
   }
 
@@ -365,7 +365,7 @@ void vtkMRMLTransformProcessorNode::SetPrimaryAxisLabel( int newAxisLabel )
   bool validMode = ( newAxisLabel >= 0 && newAxisLabel < AXIS_LABEL_LAST );
   if ( validMode == false )
   {
-    vtkWarningMacro( "Input primary axis " << newAxisLabel << " is not a valid option. No change will be done." )
+    vtkWarningMacro("Input primary axis " << newAxisLabel << " is not a valid option. No change will be done.");
     return;
   }
 
@@ -390,7 +390,7 @@ void vtkMRMLTransformProcessorNode::SetSecondaryAxisLabel( int newAxisLabel )
   bool validMode = ( newAxisLabel >= 0 && newAxisLabel < AXIS_LABEL_LAST );
   if ( validMode == false )
   {
-    vtkWarningMacro( "Input secondary axis " << newAxisLabel << " is not a valid option. No change will be done." )
+    vtkWarningMacro("Input secondary axis " << newAxisLabel << " is not a valid option. No change will be done.");
     return;
   }
 
