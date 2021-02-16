@@ -198,8 +198,8 @@ class ModelRegistrationLogic(ScriptedLoadableModuleLogic):
 
     outputSourceToTargetTransform.SetMatrixTransformToParent( icpTransform.GetMatrix() )
     if slicer.app.majorVersion >= 5 or (slicer.app.majorVersion >= 4 and slicer.app.minorVersion >= 11):
-      outputSourceToTargetTransform.AddNodeReferenceID(slicer.vtkMRMLTransformNode.GetMovingNodeReferenceRole(), inputSourceModel.GetID())
-      outputSourceToTargetTransform.AddNodeReferenceID(slicer.vtkMRMLTransformNode.GetFixedNodeReferenceRole(), inputTargetModel.GetID())
+      outputSourceToTargetTransform.SetNodeReferenceID(slicer.vtkMRMLTransformNode.GetMovingNodeReferenceRole(), inputSourceModel.GetID())
+      outputSourceToTargetTransform.SetNodeReferenceID(slicer.vtkMRMLTransformNode.GetFixedNodeReferenceRole(), inputTargetModel.GetID())
 
     return True
 

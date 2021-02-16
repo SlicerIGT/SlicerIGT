@@ -101,6 +101,11 @@ void vtkSlicerPivotCalibrationLogic::SetAndObserveTransformNode( vtkMRMLLinearTr
 //---------------------------------------------------------------------------
 void vtkSlicerPivotCalibrationLogic::AddToolToReferenceMatrix(vtkMatrix4x4* transformMatrix)
 {
+  if (!transformMatrix)
+  {
+    vtkErrorMacro("vtkSlicerPivotCalibrationLogic::AddToolToReferenceMatrix failed: invalid transformMatrix");
+    return;
+  }
   this->ToolToReferenceMatrices.push_back(transformMatrix);
 }
 

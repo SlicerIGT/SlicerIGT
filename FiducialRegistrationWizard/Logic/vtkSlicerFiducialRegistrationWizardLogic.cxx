@@ -461,8 +461,8 @@ bool vtkSlicerFiducialRegistrationWizardLogic::UpdateCalibration(vtkMRMLNode* no
   fiducialRegistrationWizardNode->AddToCalibrationStatusMessage(completeMessage.str());
   fiducialRegistrationWizardNode->SetCalibrationError( rmsError );
 #if Slicer_VERSION_MAJOR >= 5 || (Slicer_VERSION_MAJOR >= 4 && Slicer_VERSION_MINOR >= 11)
-  outputTransformNode->AddNodeReferenceID(vtkMRMLTransformNode::GetMovingNodeReferenceRole(), fromMarkupsFiducialNode->GetID());
-  outputTransformNode->AddNodeReferenceID(vtkMRMLTransformNode::GetFixedNodeReferenceRole(), toMarkupsFiducialNode->GetID());
+  outputTransformNode->SetNodeReferenceID(vtkMRMLTransformNode::GetMovingNodeReferenceRole(), fromMarkupsFiducialNode->GetID());
+  outputTransformNode->SetNodeReferenceID(vtkMRMLTransformNode::GetFixedNodeReferenceRole(), toMarkupsFiducialNode->GetID());
 #endif 
   return true;
 }
