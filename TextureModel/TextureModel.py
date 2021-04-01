@@ -42,6 +42,56 @@ class TextureModelWidget(ScriptedLoadableModuleWidget):
     # Instantiate and connect widgets ...
 
     #
+    # Multi Texture Section
+    #
+
+    multiTextureParametersCollapsibleButton = ctk.ctkCollapsibleButton()
+    multiTextureParametersCollapsibleButton.text = "Import Multi Texture OBJ"
+    self.layout.addWidget(multiTextureParametersCollapsibleButton)
+    multiTextureParametersCollapsibleButton.collapsed = True
+
+    # Layout within the dummy collapsible button
+    multiTextureparametersFormLayout = qt.QFormLayout(multiTextureParametersCollapsibleButton)
+
+    # Input OBJ file path
+    self.baseMeshSelector = ctk.ctkPathLineEdit()
+    self.baseMeshSelector.nameFilters = ["*.obj"]
+    multiTextureparametersFormLayout.addRow("Model file: ", self.baseMeshSelector)
+
+    # Input MTL file path
+    self.materialFileSelector = ctk.ctkPathLineEdit()
+    self.materialFileSelector.nameFilters = ["*.mtl"]
+    multiTextureparametersFormLayout.addRow("Material file: ", self.materialFileSelector)
+
+    # Input texture image directory path
+    self.textureDirectory = ctk.ctkPathLineEdit()
+    self.textureDirectory.filters = ctk.ctkPathLineEdit.Dirs
+    self.textureDirectory.setToolTip("Select directory containing texture images")
+    multiTextureparametersFormLayout.addRow("Texture directory: ", self.textureDirectory)
+
+    self.multiTextureAddColorAsPointAttributeComboBox = qt.QComboBox()
+    self.multiTextureAddColorAsPointAttributeComboBox.addItem("disabled")
+    self.multiTextureAddColorAsPointAttributeComboBox.addItem("separate scalars")
+    self.multiTextureAddColorAsPointAttributeComboBox.addItem("single vector")
+    self.multiTextureAddColorAsPointAttributeComboBox.setCurrentIndex(0)
+    self.multiTextureAddColorAsPointAttributeComboBox.setToolTip("It is useful if further color-based filtering will be performed on the model.")
+    multiTextureparametersFormLayout.addRow("Save color information as point data: ", self.multiTextureAddColorAsPointAttributeComboBox)
+
+    #
+    # Apply Button
+    #
+    self.multiTextureApplyButton = qt.QPushButton("Import")
+    self.multiTextureApplyButton.toolTip = "Import model with multiple texture images to scene."
+    self.multiTextureApplyButton.enabled = False
+    multiTextureparametersFormLayout.addRow(self.multiTextureApplyButton)
+
+    # connections
+    self.multiTextureApplyButton.connect('clicked(bool)', self.onMultiTextureApplyButton)
+    self.baseMeshSelector.connect("validInputChanged(bool)", self.onMultiTextureSelect)
+    self.materialFileSelector.connect("validInputChanged(bool)", self.onMultiTextureSelect)
+    self.textureDirectory.connect("validInputChanged(bool)", self.onMultiTextureSelect)
+
+    #
     # Parameters Area
     #
     parametersCollapsibleButton = ctk.ctkCollapsibleButton()
@@ -105,6 +155,7 @@ class TextureModelWidget(ScriptedLoadableModuleWidget):
 
     # Refresh Apply button state
     self.onSelect()
+    self.onMultiTextureSelect()
 
   def cleanup(self):
     pass
@@ -112,11 +163,29 @@ class TextureModelWidget(ScriptedLoadableModuleWidget):
   def onSelect(self):
     self.applyButton.enabled = self.inputTextureSelector.currentNode() and self.inputModelSelector.currentNode()
 
+  def onMultiTextureSelect(self):
+    self.multiTextureApplyButton.enabled = self.baseMeshSelector.currentPath and self.materialFileSelector.currentPath and self.textureDirectory.currentPath
+    import re
+    obj = re.compile(re.escape("obj"), re.IGNORECASE)
+    if os.path.exists(obj.sub("mtl", self.baseMeshSelector.currentPath)):
+      self.materialFileSelector.currentPath = obj.sub("mtl", self.baseMeshSelector.currentPath)
+    elif os.path.exists(obj.sub("MTL", self.baseMeshSelector.currentPath)):
+      self.materialFileSelector.currentPath = obj.sub("MTL", self.baseMeshSelector.currentPath)
+
+    self.textureDirectory.currentPath = os.path.dirname(self.baseMeshSelector.currentPath)
+
   def onApplyButton(self):
     qt.QApplication.setOverrideCursor(qt.Qt.WaitCursor)
     logic = TextureModelLogic()
     logic.applyTexture(self.inputModelSelector.currentNode(), self.inputTextureSelector.currentNode(),
       self.addColorAsPointAttributeComboBox.currentIndex > 0, self.addColorAsPointAttributeComboBox.currentIndex > 1)
+    qt.QApplication.restoreOverrideCursor()
+
+  def onMultiTextureApplyButton(self):
+    qt.QApplication.setOverrideCursor(qt.Qt.WaitCursor)
+    logic = TextureModelLogic()
+    logic.applyMultiTexture(self.baseMeshSelector.currentPath, self.materialFileSelector.currentPath, self.textureDirectory.currentPath,
+      self.multiTextureAddColorAsPointAttributeComboBox.currentIndex > 0, self.multiTextureAddColorAsPointAttributeComboBox.currentIndex > 1)
     qt.QApplication.restoreOverrideCursor()
 
 #
@@ -215,6 +284,36 @@ class TextureModelLogic(ScriptedLoadableModuleLogic):
 
     pointData.Modified()
     polyData.Modified()
+
+  def applyMultiTexture(self, objPath, mtlPath, texPath, addColorAsPointAttribute = False, colorAsVector = False):
+    modelNode, textureImageNode = self.OBJtoVTP(objPath, mtlPath, texPath)
+    self.applyTexture(modelNode, textureImageNode, addColorAsPointAttribute, colorAsVector)
+
+
+  def OBJtoVTP(self, objPath, mtlPath, texPath):
+    importer = vtk.vtkOBJImporter()
+    importer.SetFileName(objPath)
+    importer.SetFileNameMTL(mtlPath)
+    importer.SetTexturePath(texPath)
+    importer.Update()
+
+    exporter = vtk.vtkSingleVTPExporter()
+    exporter.SetRenderWindow(importer.GetRenderWindow())
+    exporter.SetFilePrefix(slicer.app.temporaryPath + os.path.splitext(os.path.basename(objPath))[0])
+    exporter.Write()
+
+    modelNode = slicer.util.loadModel(slicer.app.temporaryPath + os.path.splitext(os.path.basename(objPath))[0] + ".vtp")
+    textureImageNode = slicer.util.loadVolume(slicer.app.temporaryPath + os.path.splitext(os.path.basename(objPath))[0] + ".png", {'singleFile': True})
+    return modelNode, textureImageNode
+
+
+
+
+
+
+
+
+
 
 class TextureModelTest(ScriptedLoadableModuleTest):
   """
