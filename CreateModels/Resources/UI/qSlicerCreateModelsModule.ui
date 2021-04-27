@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>415</width>
-    <height>1354</height>
+    <height>700</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -32,9 +32,6 @@
      <property name="text">
       <string>Create models</string>
      </property>
-     <property name="contentsFrameShape">
-      <enum>QFrame::StyledPanel</enum>
-     </property>
      <layout class="QFormLayout" name="formLayout">
       <item row="0" column="0" colspan="2">
        <widget class="ctkCollapsibleGroupBox" name="CollapsibleGroupBox">
@@ -42,23 +39,58 @@
          <string>Needle model</string>
         </property>
         <layout class="QGridLayout" name="gridLayout">
-         <item row="3" column="2">
-          <widget class="QLabel" name="label_18">
+         <item row="1" column="1">
+          <widget class="QCheckBox" name="markersCheckBox">
            <property name="text">
-            <string>mm</string>
+            <string/>
            </property>
           </widget>
          </item>
-         <item row="3" column="1">
-          <widget class="QDoubleSpinBox" name="NeedleTipRadius">
-           <property name="decimals">
-            <number>1</number>
+         <item row="2" column="1">
+          <widget class="qMRMLSpinBox" name="NeedleRadius">
+           <property name="decimalsOption">
+            <set>ctkDoubleSpinBox::DecimalsByKey|ctkDoubleSpinBox::DecimalsByShortcuts|ctkDoubleSpinBox::DecimalsByValue|ctkDoubleSpinBox::InsertDecimals</set>
+           </property>
+           <property name="maximum">
+            <double>50.000000000000000</double>
            </property>
            <property name="singleStep">
-            <double>0.500000000000000</double>
+            <double>0.100000000000000</double>
            </property>
            <property name="value">
-            <double>2.500000000000000</double>
+            <double>1.000000000000000</double>
+           </property>
+           <property name="quantity">
+            <string>length</string>
+           </property>
+           <property name="unitAwareProperties">
+            <set>qMRMLSpinBox::Precision|qMRMLSpinBox::Prefix|qMRMLSpinBox::Suffix</set>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="qMRMLSpinBox" name="NeedleLength">
+           <property name="decimalsOption">
+            <set>ctkDoubleSpinBox::DecimalsByKey|ctkDoubleSpinBox::DecimalsByShortcuts|ctkDoubleSpinBox::DecimalsByValue|ctkDoubleSpinBox::InsertDecimals</set>
+           </property>
+           <property name="maximum">
+            <double>500.000000000000000</double>
+           </property>
+           <property name="value">
+            <double>80.000000000000000</double>
+           </property>
+           <property name="quantity">
+            <string>length</string>
+           </property>
+           <property name="unitAwareProperties">
+            <set>qMRMLSpinBox::Precision|qMRMLSpinBox::Prefix|qMRMLSpinBox::Suffix</set>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="0">
+          <widget class="QLabel" name="label_17">
+           <property name="text">
+            <string>Tip radius:</string>
            </property>
           </widget>
          </item>
@@ -69,10 +101,10 @@
            </property>
           </widget>
          </item>
-         <item row="1" column="1">
-          <widget class="QCheckBox" name="markersCheckBox">
+         <item row="2" column="0">
+          <widget class="QLabel" name="label_3">
            <property name="text">
-            <string>  </string>
+            <string>Radius: </string>
            </property>
           </widget>
          </item>
@@ -83,7 +115,7 @@
            </property>
           </widget>
          </item>
-         <item row="4" column="0" colspan="3">
+         <item row="4" column="0" colspan="2">
           <widget class="QPushButton" name="CreateNeedleButton">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
@@ -96,63 +128,25 @@
            </property>
           </widget>
          </item>
-         <item row="2" column="1">
-          <widget class="QDoubleSpinBox" name="NeedleRadius">
-           <property name="decimals">
-            <number>1</number>
+         <item row="3" column="1">
+          <widget class="qMRMLSpinBox" name="NeedleTipRadius">
+           <property name="decimalsOption">
+            <set>ctkDoubleSpinBox::DecimalsByKey|ctkDoubleSpinBox::DecimalsByShortcuts|ctkDoubleSpinBox::DecimalsByValue|ctkDoubleSpinBox::InsertDecimals</set>
            </property>
            <property name="maximum">
-            <double>50.000000000000000</double>
-           </property>
-           <property name="singleStep">
-            <double>0.100000000000000</double>
-           </property>
-           <property name="value">
-            <double>1.000000000000000</double>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="2">
-          <widget class="QLabel" name="label_2">
-           <property name="text">
-            <string>mm</string>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="2">
-          <widget class="QLabel" name="label_4">
-           <property name="text">
-            <string>mm</string>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="0">
-          <widget class="QLabel" name="label_17">
-           <property name="text">
-            <string>Tip radius:</string>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="0">
-          <widget class="QLabel" name="label_3">
-           <property name="text">
-            <string>Radius: </string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="1">
-          <widget class="QDoubleSpinBox" name="NeedleLength">
-           <property name="decimals">
-            <number>1</number>
-           </property>
-           <property name="maximum">
-            <double>500.000000000000000</double>
+            <double>100.000000000000000</double>
            </property>
            <property name="singleStep">
             <double>1.000000000000000</double>
            </property>
            <property name="value">
-            <double>80.000000000000000</double>
+            <double>2.500000000000000</double>
+           </property>
+           <property name="quantity">
+            <string>length</string>
+           </property>
+           <property name="unitAwareProperties">
+            <set>qMRMLSpinBox::Precision|qMRMLSpinBox::Prefix|qMRMLSpinBox::Suffix</set>
            </property>
           </widget>
          </item>
@@ -165,20 +159,16 @@
          <string>Coordinate system model</string>
         </property>
         <layout class="QGridLayout" name="gridLayout_2">
-         <item row="1" column="1">
-          <widget class="QDoubleSpinBox" name="CAxisThicknessSpinBox">
-           <property name="maximum">
-            <double>19.989999999999998</double>
+         <item row="2" column="0" colspan="2">
+          <widget class="QPushButton" name="CreateCoordinateButton">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
            </property>
-           <property name="value">
-            <double>2.000000000000000</double>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="2">
-          <widget class="QLabel" name="label_20">
            <property name="text">
-            <string>mm</string>
+            <string>Create coordinate system</string>
            </property>
           </widget>
          </item>
@@ -189,13 +179,6 @@
            </property>
           </widget>
          </item>
-         <item row="0" column="2">
-          <widget class="QLabel" name="label_22">
-           <property name="text">
-            <string>mm</string>
-           </property>
-          </widget>
-         </item>
          <item row="1" column="0">
           <widget class="QLabel" name="label_19">
            <property name="text">
@@ -203,26 +186,41 @@
            </property>
           </widget>
          </item>
+         <item row="1" column="1">
+          <widget class="qMRMLSpinBox" name="CAxisThicknessSpinBox">
+           <property name="decimalsOption">
+            <set>ctkDoubleSpinBox::DecimalsByKey|ctkDoubleSpinBox::DecimalsByShortcuts|ctkDoubleSpinBox::DecimalsByValue|ctkDoubleSpinBox::InsertDecimals</set>
+           </property>
+           <property name="maximum">
+            <double>20.000000000000000</double>
+           </property>
+           <property name="value">
+            <double>2.000000000000000</double>
+           </property>
+           <property name="quantity">
+            <string>length</string>
+           </property>
+           <property name="unitAwareProperties">
+            <set>qMRMLSpinBox::Precision|qMRMLSpinBox::Prefix|qMRMLSpinBox::Suffix</set>
+           </property>
+          </widget>
+         </item>
          <item row="0" column="1">
-          <widget class="QDoubleSpinBox" name="CAxisLengthSpinBox">
+          <widget class="qMRMLSpinBox" name="CAxisLengthSpinBox">
+           <property name="decimalsOption">
+            <set>ctkDoubleSpinBox::DecimalsByKey|ctkDoubleSpinBox::DecimalsByShortcuts|ctkDoubleSpinBox::DecimalsByValue|ctkDoubleSpinBox::InsertDecimals</set>
+           </property>
            <property name="maximum">
             <double>1000.000000000000000</double>
            </property>
            <property name="value">
             <double>20.000000000000000</double>
            </property>
-          </widget>
-         </item>
-         <item row="2" column="0" colspan="3">
-          <widget class="QPushButton" name="CreateCoordinateButton">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
+           <property name="quantity">
+            <string>length</string>
            </property>
-           <property name="text">
-            <string>Create coordinate system</string>
+           <property name="unitAwareProperties">
+            <set>qMRMLSpinBox::Precision|qMRMLSpinBox::Prefix|qMRMLSpinBox::Suffix</set>
            </property>
           </widget>
          </item>
@@ -236,12 +234,21 @@
         </property>
         <layout class="QGridLayout" name="gridLayout_3">
          <item row="1" column="1">
-          <widget class="QDoubleSpinBox" name="CubeALength">
+          <widget class="qMRMLSpinBox" name="CubeALength">
+           <property name="decimalsOption">
+            <set>ctkDoubleSpinBox::DecimalsByKey|ctkDoubleSpinBox::DecimalsByShortcuts|ctkDoubleSpinBox::DecimalsByValue|ctkDoubleSpinBox::InsertDecimals</set>
+           </property>
            <property name="maximum">
             <double>1000.000000000000000</double>
            </property>
            <property name="value">
             <double>10.000000000000000</double>
+           </property>
+           <property name="quantity">
+            <string>length</string>
+           </property>
+           <property name="unitAwareProperties">
+            <set>qMRMLSpinBox::Precision|qMRMLSpinBox::Prefix|qMRMLSpinBox::Suffix</set>
            </property>
           </widget>
          </item>
@@ -252,62 +259,7 @@
            </property>
           </widget>
          </item>
-         <item row="0" column="1">
-          <widget class="QDoubleSpinBox" name="CubeRLength">
-           <property name="maximum">
-            <double>1000.000000000000000</double>
-           </property>
-           <property name="value">
-            <double>10.000000000000000</double>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="1">
-          <widget class="QDoubleSpinBox" name="CubeSLength">
-           <property name="maximum">
-            <double>1000.000000000000000</double>
-           </property>
-           <property name="value">
-            <double>10.000000000000000</double>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="2">
-          <widget class="QLabel" name="label_10">
-           <property name="text">
-            <string>mm</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="2">
-          <widget class="QLabel" name="label_8">
-           <property name="text">
-            <string>mm</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="0">
-          <widget class="QLabel" name="label_7">
-           <property name="text">
-            <string>A-P length: </string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="2">
-          <widget class="QLabel" name="label_6">
-           <property name="text">
-            <string>mm</string>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="0">
-          <widget class="QLabel" name="label_9">
-           <property name="text">
-            <string>S-I length: </string>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="0" colspan="3">
+         <item row="3" column="0" colspan="2">
           <widget class="QPushButton" name="CreateCubeButton">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
@@ -320,6 +272,58 @@
            </property>
           </widget>
          </item>
+         <item row="2" column="0">
+          <widget class="QLabel" name="label_9">
+           <property name="text">
+            <string>S-I length: </string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QLabel" name="label_7">
+           <property name="text">
+            <string>A-P length: </string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="qMRMLSpinBox" name="CubeRLength">
+           <property name="decimalsOption">
+            <set>ctkDoubleSpinBox::DecimalsByKey|ctkDoubleSpinBox::DecimalsByShortcuts|ctkDoubleSpinBox::DecimalsByValue|ctkDoubleSpinBox::InsertDecimals</set>
+           </property>
+           <property name="maximum">
+            <double>1000.000000000000000</double>
+           </property>
+           <property name="value">
+            <double>10.000000000000000</double>
+           </property>
+           <property name="quantity">
+            <string>length</string>
+           </property>
+           <property name="unitAwareProperties">
+            <set>qMRMLSpinBox::Precision|qMRMLSpinBox::Prefix|qMRMLSpinBox::Suffix</set>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="1">
+          <widget class="qMRMLSpinBox" name="CubeSLength">
+           <property name="decimalsOption">
+            <set>ctkDoubleSpinBox::DecimalsByKey|ctkDoubleSpinBox::DecimalsByShortcuts|ctkDoubleSpinBox::DecimalsByValue|ctkDoubleSpinBox::InsertDecimals</set>
+           </property>
+           <property name="maximum">
+            <double>1000.000000000000000</double>
+           </property>
+           <property name="value">
+            <double>10.000000000000000</double>
+           </property>
+           <property name="quantity">
+            <string>length</string>
+           </property>
+           <property name="unitAwareProperties">
+            <set>qMRMLSpinBox::Precision|qMRMLSpinBox::Prefix|qMRMLSpinBox::Suffix</set>
+           </property>
+          </widget>
+         </item>
         </layout>
        </widget>
       </item>
@@ -329,55 +333,26 @@
          <string>Cylinder model</string>
         </property>
         <layout class="QGridLayout" name="gridLayout_4">
-         <item row="0" column="2">
-          <widget class="QLabel" name="label_12">
-           <property name="text">
-            <string>mm</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="0">
-          <widget class="QLabel" name="label_13">
-           <property name="text">
-            <string>Radius: </string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="0">
-          <widget class="QLabel" name="label_11">
-           <property name="text">
-            <string>Height: </string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="2">
-          <widget class="QLabel" name="label_14">
-           <property name="text">
-            <string>mm</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="1">
-          <widget class="QDoubleSpinBox" name="CylinderRadius">
-           <property name="maximum">
-            <double>1000.000000000000000</double>
-           </property>
-           <property name="value">
-            <double>10.000000000000000</double>
-           </property>
-          </widget>
-         </item>
          <item row="0" column="1">
-          <widget class="QDoubleSpinBox" name="CylinderHeight">
+          <widget class="qMRMLSpinBox" name="CylinderHeight">
+           <property name="decimalsOption">
+            <set>ctkDoubleSpinBox::DecimalsByKey|ctkDoubleSpinBox::DecimalsByShortcuts|ctkDoubleSpinBox::DecimalsByValue|ctkDoubleSpinBox::InsertDecimals</set>
+           </property>
            <property name="maximum">
             <double>1000.000000000000000</double>
            </property>
            <property name="value">
             <double>40.000000000000000</double>
            </property>
+           <property name="quantity">
+            <string>length</string>
+           </property>
+           <property name="unitAwareProperties">
+            <set>qMRMLSpinBox::Precision|qMRMLSpinBox::Prefix|qMRMLSpinBox::Suffix</set>
+           </property>
           </widget>
          </item>
-         <item row="2" column="0" colspan="3">
+         <item row="2" column="0" colspan="2">
           <widget class="QPushButton" name="CreateCylinderButton">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
@@ -390,6 +365,39 @@
            </property>
           </widget>
          </item>
+         <item row="0" column="0">
+          <widget class="QLabel" name="label_11">
+           <property name="text">
+            <string>Height: </string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="qMRMLSpinBox" name="CylinderRadius">
+           <property name="decimalsOption">
+            <set>ctkDoubleSpinBox::DecimalsByKey|ctkDoubleSpinBox::DecimalsByShortcuts|ctkDoubleSpinBox::DecimalsByValue|ctkDoubleSpinBox::InsertDecimals</set>
+           </property>
+           <property name="maximum">
+            <double>1000.000000000000000</double>
+           </property>
+           <property name="value">
+            <double>10.000000000000000</double>
+           </property>
+           <property name="quantity">
+            <string>length</string>
+           </property>
+           <property name="unitAwareProperties">
+            <set>qMRMLSpinBox::Precision|qMRMLSpinBox::Prefix|qMRMLSpinBox::Suffix</set>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QLabel" name="label_13">
+           <property name="text">
+            <string>Radius: </string>
+           </property>
+          </widget>
+         </item>
         </layout>
        </widget>
       </item>
@@ -399,40 +407,7 @@
          <string>Sphere model</string>
         </property>
         <layout class="QGridLayout" name="gridLayout_5">
-         <item row="0" column="2">
-          <widget class="QLabel" name="label_15">
-           <property name="text">
-            <string>mm</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="1">
-          <widget class="QDoubleSpinBox" name="SphereRadius">
-           <property name="decimals">
-            <number>1</number>
-           </property>
-           <property name="minimum">
-            <double>0.000000000000000</double>
-           </property>
-           <property name="maximum">
-            <double>1000.000000000000000</double>
-           </property>
-           <property name="singleStep">
-            <double>0.500000000000000</double>
-           </property>
-           <property name="value">
-            <double>10.000000000000000</double>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="0">
-          <widget class="QLabel" name="label_16">
-           <property name="text">
-            <string>Radius:</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="0" colspan="3">
+         <item row="1" column="0" colspan="2">
           <widget class="QPushButton" name="CreateSphereButton">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
@@ -445,6 +420,35 @@
            </property>
           </widget>
          </item>
+         <item row="0" column="1">
+          <widget class="qMRMLSpinBox" name="SphereRadius">
+           <property name="decimalsOption">
+            <set>ctkDoubleSpinBox::DecimalsByKey|ctkDoubleSpinBox::DecimalsByShortcuts|ctkDoubleSpinBox::DecimalsByValue|ctkDoubleSpinBox::InsertDecimals</set>
+           </property>
+           <property name="maximum">
+            <double>1000.000000000000000</double>
+           </property>
+           <property name="singleStep">
+            <double>1.000000000000000</double>
+           </property>
+           <property name="value">
+            <double>10.000000000000000</double>
+           </property>
+           <property name="quantity">
+            <string>length</string>
+           </property>
+           <property name="unitAwareProperties">
+            <set>qMRMLSpinBox::Precision|qMRMLSpinBox::Prefix|qMRMLSpinBox::Suffix</set>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="0">
+          <widget class="QLabel" name="label_16">
+           <property name="text">
+            <string>Radius:</string>
+           </property>
+          </widget>
+         </item>
         </layout>
        </widget>
       </item>
@@ -454,6 +458,11 @@
   </layout>
  </widget>
  <customwidgets>
+  <customwidget>
+   <class>qMRMLSpinBox</class>
+   <extends>ctkDoubleSpinBox</extends>
+   <header>qMRMLSpinBox.h</header>
+  </customwidget>
   <customwidget>
    <class>qSlicerWidget</class>
    <extends>QWidget</extends>
@@ -472,32 +481,203 @@
    <header>ctkCollapsibleGroupBox.h</header>
    <container>1</container>
   </customwidget>
+  <customwidget>
+   <class>ctkDoubleSpinBox</class>
+   <extends>QWidget</extends>
+   <header>ctkDoubleSpinBox.h</header>
+  </customwidget>
  </customwidgets>
  <tabstops>
   <tabstop>CollapsibleButton</tabstop>
   <tabstop>CollapsibleGroupBox</tabstop>
-  <tabstop>NeedleLength</tabstop>
   <tabstop>markersCheckBox</tabstop>
-  <tabstop>NeedleRadius</tabstop>
-  <tabstop>NeedleTipRadius</tabstop>
   <tabstop>CreateNeedleButton</tabstop>
   <tabstop>CollapsibleGroupBox_2</tabstop>
-  <tabstop>CAxisLengthSpinBox</tabstop>
-  <tabstop>CAxisThicknessSpinBox</tabstop>
   <tabstop>CreateCoordinateButton</tabstop>
   <tabstop>CollapsibleGroupBox_3</tabstop>
-  <tabstop>CubeRLength</tabstop>
-  <tabstop>CubeALength</tabstop>
-  <tabstop>CubeSLength</tabstop>
   <tabstop>CreateCubeButton</tabstop>
   <tabstop>CollapsibleGroupBox_4</tabstop>
-  <tabstop>CylinderHeight</tabstop>
-  <tabstop>CylinderRadius</tabstop>
   <tabstop>CreateCylinderButton</tabstop>
   <tabstop>CollapsibleGroupBox_5</tabstop>
-  <tabstop>SphereRadius</tabstop>
   <tabstop>CreateSphereButton</tabstop>
  </tabstops>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>qSlicerCreateModelsModule</sender>
+   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+   <receiver>NeedleLength</receiver>
+   <slot>setMRMLScene(vtkMRMLScene*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>54</x>
+     <y>7</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>263</x>
+     <y>79</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>qSlicerCreateModelsModule</sender>
+   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+   <receiver>NeedleRadius</receiver>
+   <slot>setMRMLScene(vtkMRMLScene*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>409</x>
+     <y>37</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>353</x>
+     <y>114</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>qSlicerCreateModelsModule</sender>
+   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+   <receiver>NeedleTipRadius</receiver>
+   <slot>setMRMLScene(vtkMRMLScene*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>380</x>
+     <y>8</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>273</x>
+     <y>149</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>qSlicerCreateModelsModule</sender>
+   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+   <receiver>CAxisLengthSpinBox</receiver>
+   <slot>setMRMLScene(vtkMRMLScene*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>407</x>
+     <y>230</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>381</x>
+     <y>232</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>qSlicerCreateModelsModule</sender>
+   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+   <receiver>CAxisThicknessSpinBox</receiver>
+   <slot>setMRMLScene(vtkMRMLScene*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>408</x>
+     <y>253</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>386</x>
+     <y>253</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>qSlicerCreateModelsModule</sender>
+   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+   <receiver>CubeRLength</receiver>
+   <slot>setMRMLScene(vtkMRMLScene*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>409</x>
+     <y>346</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>382</x>
+     <y>344</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>qSlicerCreateModelsModule</sender>
+   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+   <receiver>CubeALength</receiver>
+   <slot>setMRMLScene(vtkMRMLScene*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>409</x>
+     <y>369</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>382</x>
+     <y>369</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>qSlicerCreateModelsModule</sender>
+   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+   <receiver>CubeSLength</receiver>
+   <slot>setMRMLScene(vtkMRMLScene*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>406</x>
+     <y>391</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>382</x>
+     <y>392</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>qSlicerCreateModelsModule</sender>
+   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+   <receiver>CylinderHeight</receiver>
+   <slot>setMRMLScene(vtkMRMLScene*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>407</x>
+     <y>479</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>379</x>
+     <y>479</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>qSlicerCreateModelsModule</sender>
+   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+   <receiver>CylinderRadius</receiver>
+   <slot>setMRMLScene(vtkMRMLScene*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>411</x>
+     <y>509</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>381</x>
+     <y>503</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>qSlicerCreateModelsModule</sender>
+   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+   <receiver>SphereRadius</receiver>
+   <slot>setMRMLScene(vtkMRMLScene*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>408</x>
+     <y>592</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>380</x>
+     <y>592</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>
