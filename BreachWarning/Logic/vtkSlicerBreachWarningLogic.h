@@ -43,7 +43,7 @@
 
 // For referencing own MRML node
 class vtkMRMLBreachWarningNode;
-
+class vtkMRMLMarkupsDisplayNode;
 class vtkMRMLModelNode;
 class vtkMRMLTransformNode;
 
@@ -63,7 +63,7 @@ public:
   /// Changes the watched model node, making sure the original color of the previously selected model node is restored
   void SetWatchedModelNode( vtkMRMLModelNode* newModel, vtkMRMLBreachWarningNode* moduleNode );
 
-  /// Show a line from the tooltip to the closest point on the model. Creates/deletes a ruler node.
+  /// Show a line from the tooltip to the closest point on the model. Creates/deletes a line node.
   void SetLineToClosestPointVisibility(bool visible, vtkMRMLBreachWarningNode* moduleNode);
   bool GetLineToClosestPointVisibility(vtkMRMLBreachWarningNode* moduleNode);
 
@@ -100,12 +100,14 @@ protected:
   void UpdateToolState( vtkMRMLBreachWarningNode* bwNode );
   void UpdateModelColor( vtkMRMLBreachWarningNode* bwNode );
   void UpdateLineToClosestPoint(vtkMRMLBreachWarningNode* bwNode, double* toolTipPosition_Ras, double* closestPointOnModel_Ras, double closestPointDistance);
+
+  vtkMRMLMarkupsDisplayNode* GetLineDisplayNode(vtkMRMLBreachWarningNode* moduleNode);
   
 private:
   vtkSlicerBreachWarningLogic(const vtkSlicerBreachWarningLogic&); // Not implemented
   void operator=(const vtkSlicerBreachWarningLogic&);               // Not implemented
 
-  void UpdateRuler(vtkMRMLBreachWarningNode* bwNode, double* toolTipPosition);
+  void UpdateLine(vtkMRMLBreachWarningNode* bwNode, double* toolTipPosition);
 
   std::deque< vtkWeakPointer< vtkMRMLBreachWarningNode > > WarningSoundPlayingNodes;
   bool WarningSoundPlaying;

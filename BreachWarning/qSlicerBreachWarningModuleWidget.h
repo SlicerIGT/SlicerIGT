@@ -54,7 +54,7 @@ protected slots:
   void displayWarningColor(bool displayWarningColor);
   void updateWarningColor( QColor newColor );
   void updateWidgetFromMRML();
-  void lineToClosestPointVisibilityChanged(bool displayRuler);
+  void lineToClosestPointVisibilityChanged(bool displayLine);
   void lineToClosestPointColorChanged( QColor newColor );  
   void lineToClosestPointTextSizeChanged(double size);
   void lineToClosestPointThicknessChanged(double thickness);

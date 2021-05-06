@@ -30,7 +30,7 @@
 // BreachWarning includes
 #include "vtkSlicerBreachWarningModuleMRMLExport.h"
 
-class vtkMRMLAnnotationRulerNode;
+class vtkMRMLMarkupsLineNode;
 class vtkMRMLTransformNode;
 class vtkMRMLModelNode;
 
@@ -121,7 +121,7 @@ public:
   void SetAndObserveToolTransformNodeId( const char* nodeId );
 
   /// Node that displays the line from the tooltip to the closest point on the watched model
-  vtkMRMLAnnotationRulerNode* GetLineToClosestPointNode();
+  vtkMRMLMarkupsLineNode* GetLineToClosestPointNode();
   const char* GetLineToClosestPointNodeID();
   void SetLineToClosestPointNodeID( const char* lineToClosestPointNodeId );
   

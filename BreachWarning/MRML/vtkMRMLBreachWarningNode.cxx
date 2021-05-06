@@ -3,7 +3,7 @@
 #include "vtkMRMLBreachWarningNode.h"
 
 // Other MRML includes
-#include "vtkMRMLAnnotationRulerNode.h"
+#include "vtkMRMLMarkupsLineNode.h"
 #include "vtkMRMLDisplayNode.h"
 #include "vtkMRMLModelNode.h"
 #include "vtkMRMLNode.h"
@@ -165,9 +165,9 @@ void vtkMRMLBreachWarningNode::SetAndObserveWatchedModelNodeID( const char* mode
 }
 
 //------------------------------------------------------------------------------
-vtkMRMLAnnotationRulerNode* vtkMRMLBreachWarningNode::GetLineToClosestPointNode()
+vtkMRMLMarkupsLineNode* vtkMRMLBreachWarningNode::GetLineToClosestPointNode()
 {
-  vtkMRMLAnnotationRulerNode* lineToClosestPointNode = vtkMRMLAnnotationRulerNode::SafeDownCast( this->GetNodeReference( LINE_TO_CLOSEST_POINT_ROLE ) );
+  vtkMRMLMarkupsLineNode* lineToClosestPointNode = vtkMRMLMarkupsLineNode::SafeDownCast( this->GetNodeReference( LINE_TO_CLOSEST_POINT_ROLE ) );
   return lineToClosestPointNode;
 }
 
