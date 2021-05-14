@@ -169,6 +169,9 @@ class FiducialsToModelRegistrationWidget(ScriptedLoadableModuleWidget):
     # Add vertical spacer
     self.layout.addStretch(1)
 
+    # Instantiate the logic class
+    self.logic = FiducialsToModelRegistrationLogic()
+
 
   def cleanup(self):
     pass
@@ -179,15 +182,15 @@ class FiducialsToModelRegistrationWidget(ScriptedLoadableModuleWidget):
                                and self.inputFiducialSelector.currentNode()
 
   def onApplyButton(self):
-    logic = FiducialsToModelRegistrationLogic()
 
     inputFiducials = self.inputFiducialSelector.currentNode()
     inputModel = self.inputModelSelector.currentNode()
     outputTransform = self.outputSelector.currentNode()
 
-    logic.run(inputFiducials, inputModel, outputTransform, self.typeSelector.currentIndex, self.iterationSpin.value )
+    self.logic.run(inputFiducials, inputModel, outputTransform,
+                   self.typeSelector.currentIndex, self.iterationSpin.value)
 
-    self.outputLine.setText( logic.ComputeMeanDistance(inputFiducials, inputModel, outputTransform) )
+    self.outputLine.setText(self.logic.ComputeMeanDistance(inputFiducials, inputModel, outputTransform))
 
 #
 # FiducialsToModelRegistrationLogic
