@@ -283,31 +283,53 @@ class FiducialsToModelRegistrationLogic(ScriptedLoadableModuleLogic):
 
 
 class FiducialsToModelRegistrationTest(ScriptedLoadableModuleTest):
-  """
-  This is the test case for your scripted module.
-  """
+  """This is the test case for Fiducials-To-Model Registration Module."""
 
   def setUp(self):
-    """ Do whatever is needed to reset the state - typically a scene clear will be enough.
-    """
+    """Clear the scene."""
+    slicer.mrmlScene.Clear(0)
+
+  def tearDown(self):
+    """Clean up after the tests."""
     slicer.mrmlScene.Clear(0)
 
   def runTest(self):
-    """Run as few or as many tests as needed here.
-    """
+    """Run test scenarios."""
     self.setUp()
     self.test_FiducialsToModelRegistration1()
+    self.setUp()
 
   def test_FiducialsToModelRegistration1(self):
-    """ Ideally you should have several levels of tests.  At the lowest level
-    tests sould exercise the functionality of the logic with different inputs
-    (both valid and invalid).  At higher levels your tests should emulate the
-    way the user would interact with your code and confirm that it still works
-    the way you intended.
-    One of the most important features of the tests is that it should alert other
-    developers when their changes will have an impact on the behavior of your
-    module.  For example, if a developer removes a feature that you depend on,
-    your test should break so they know that the feature is needed.
     """
+    Test FiducialsToModelRegistrationLogic.
 
-    self.delayDisplay('Tests are not implemented for FiducialsToModelRegistration')
+    This test scenario:
+    - Creates and adds a cylinder model to the scene
+    - Creates 3 markup fiducials (points)
+    - Runs module processing logic to register points against the cylinder
+    """
+    # Create and add cylinder to the scene.
+    s = vtk.vtkCylinderSource()
+    s.SetHeight(100)
+    s.SetRadius(50)
+    s.SetResolution(50)
+    s.Update()
+    inputModel = slicer.modules.models.logic().AddModel(s.GetOutput())
+
+    # Create and add markup fiducials to the scene.
+    slicer.modules.markups.logic().AddFiducial(40, -20, 33)
+    slicer.modules.markups.logic().AddFiducial(40, -25, 37)
+    slicer.modules.markups.logic().AddFiducial(52, -28, 42)
+
+    # Create output transform node
+    transformNode = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLTransformNode")
+
+    # Run module logic with default settings
+    logic = slicer.modules.fiducialstomodelregistration.widgetRepresentation().self().logic
+
+    inputFiducials = slicer.util.getNode("F")
+    success = logic.run(inputFiducials, inputModel, transformNode)
+
+    self.assertEqual(success, True)
+
+    self.delayDisplay('Test passed\n')
