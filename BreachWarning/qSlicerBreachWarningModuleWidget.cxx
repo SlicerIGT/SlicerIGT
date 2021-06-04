@@ -357,8 +357,17 @@ void qSlicerBreachWarningModuleWidget::updateWidgetFromMRML()
   d->LineToClosestPointTextSizeSlider->setEnabled( true );
   d->LineToClosestPointThicknessSlider->setEnabled( true );
 
-  d->ToolComboBox->setCurrentNode( bwNode->GetToolTransformNode() );
-  d->ModelNodeComboBox->setCurrentNode( bwNode->GetWatchedModelNode() );
+  // Only set the node if it is different from current selection because otherwise
+  // the node selector would keep jumping back to the currently referenced node in MRML
+  // while the parent transforms are being modified.
+  if (d->ToolComboBox->currentNode() != bwNode->GetToolTransformNode())
+  {
+    d->ToolComboBox->setCurrentNode(bwNode->GetToolTransformNode());
+  }
+  if (d->ModelNodeComboBox->currentNode() != bwNode->GetWatchedModelNode())
+  {
+    d->ModelNodeComboBox->setCurrentNode(bwNode->GetWatchedModelNode());
+  }
   
   double* warningColor = bwNode->GetWarningColor();
   QColor warningColorQt;
