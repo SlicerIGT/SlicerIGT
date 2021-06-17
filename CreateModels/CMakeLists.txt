@@ -1,7 +1,7 @@
 
 #-----------------------------------------------------------------------------
 set(MODULE_NAME "CreateModels")
-set(MODULE_TITLE ${MODULE_NAME})
+set(MODULE_TITLE "Create Models")
 
 string(TOUPPER ${MODULE_NAME} MODULE_NAME_UPPER)
 
