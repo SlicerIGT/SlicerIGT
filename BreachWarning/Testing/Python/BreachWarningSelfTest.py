@@ -79,16 +79,16 @@ class BreachWarningSelfTestTest(ScriptedLoadableModuleTest):
     your test should break so they know that the feature is needed.
     """
 
-    self.delayDisplay("Starting the test")
+    slicer.util.delayDisplay("Starting the test")
 
-    self.delayDisplay("Create models")
+    slicer.util.delayDisplay("Create models")
     modelNodes = []
     createModelsLogic = slicer.modules.createmodels.logic()
     sphereRadius = 10.0
     sphereModel = createModelsLogic.CreateSphere(sphereRadius) # watched model
     toolModel = createModelsLogic.CreateNeedle(50.0, 1.5, 0.0, False)
 
-    self.delayDisplay("Set up module GUI")
+    slicer.util.delayDisplay("Set up module GUI")
     mainWindow = slicer.util.mainWindow()
     mainWindow.moduleSelector().selectModule('BreachWarning')
     bwWidget = slicer.modules.breachwarning.widgetRepresentation()
@@ -146,19 +146,19 @@ class BreachWarningSelfTestTest(ScriptedLoadableModuleTest):
 
     # Start breach warning checks
 
-    self.delayDisplay('Tool is outside the sphere')
+    slicer.util.delayDisplay('Tool is outside the sphere')
     toolToWorldTransform.SetMatrixTransformToParent(transformMatrixOutside)
     sphereColor = sphereModel.GetDisplayNode().GetColor()
     self.assertNotEqual(sphereColor, warningColor)
 
-    self.delayDisplay('Tool is inside the sphere')
+    slicer.util.delayDisplay('Tool is inside the sphere')
     toolToWorldTransform.SetMatrixTransformToParent(transformMatrixInside)
     sphereColor = sphereModel.GetDisplayNode().GetColor()
     self.assertEqual(sphereColor, warningColor)
 
-    self.delayDisplay('Tool is outside the sphere')
+    slicer.util.delayDisplay('Tool is outside the sphere')
     toolToWorldTransform.SetMatrixTransformToParent(transformMatrixOutside)
     sphereColor = sphereModel.GetDisplayNode().GetColor()
     self.assertNotEqual(sphereColor, warningColor)
 
-    self.delayDisplay('Test passed!')
+    slicer.util.delayDisplay('Test passed!')

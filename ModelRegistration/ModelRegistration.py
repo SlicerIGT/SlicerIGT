@@ -1,3 +1,4 @@
+import logging
 import os
 import unittest
 import math
@@ -182,7 +183,7 @@ class ModelRegistrationLogic(ScriptedLoadableModuleLogic):
 
   def run(self, inputSourceModel, inputTargetModel, outputSourceToTargetTransform, transformType=0, numIterations=100 ):
 
-    self.delayDisplay('Running iterative closest point registration')
+    logging.info('Running iterative closest point registration')
 
     icpTransform = vtk.vtkIterativeClosestPointTransform()
     icpTransform.SetSource( inputSourceModel.GetPolyData() )
@@ -264,4 +265,4 @@ class ModelRegistrationTest(ScriptedLoadableModuleTest):
     your test should break so they know that the feature is needed.
     """
 
-    self.delayDisplay('Test is not implemented for ModelRegistration')
+    self.util.delayDisplay('Test is not implemented for ModelRegistration')

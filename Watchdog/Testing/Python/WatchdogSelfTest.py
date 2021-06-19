@@ -95,7 +95,7 @@ class WatchdogSelfTestTest(ScriptedLoadableModuleTest):
     your test should break so they know that the feature is needed.
     """
 
-    self.delayDisplay("Test Watchdog widget buttons",self.delayMs)
+    slicer.util.delayDisplay("Test Watchdog widget buttons",self.delayMs)
 
     slicer.util.selectModule('Watchdog')
     watchdogModuleWidget = slicer.modules.watchdog.widgetRepresentation()
@@ -113,7 +113,7 @@ class WatchdogSelfTestTest(ScriptedLoadableModuleTest):
     self.assertTrue( watchdogNode is not None )    
     
     # Check node add
-    self.delayDisplay("Test add watched nodes",self.delayMs)
+    slicer.util.delayDisplay("Test add watched nodes",self.delayMs)
 
     toolComboBox.setCurrentNodeID(self.transformNode1.GetID())
     addToolButton.click()
@@ -128,7 +128,7 @@ class WatchdogSelfTestTest(ScriptedLoadableModuleTest):
     self.assertEqual( watchdogNode.GetNumberOfWatchedNodes(), 3 )
 
     # Check node remove
-    self.delayDisplay("Test remove watched nodes",self.delayMs)
+    slicer.util.delayDisplay("Test remove watched nodes",self.delayMs)
     # Using GUI
     toolsTableWidget.selectRow(0) # transformNode1
     deleteToolButton.click()
@@ -144,12 +144,12 @@ class WatchdogSelfTestTest(ScriptedLoadableModuleTest):
     
     # Check table contents
     # Watched node order should be: transformNode3, transformNode1, transformNode2
-    self.delayDisplay("Test watched node table contents",self.delayMs)
+    slicer.util.delayDisplay("Test watched node table contents",self.delayMs)
     watchedNodeIndex=1
     # Node name column
     self.assertEqual(toolsTableWidget.item(watchedNodeIndex,0).text(), 'Transform 1')
     watchdogNode.GetWatchedNode(watchedNodeIndex).SetName('Transform 1x')
-    self.delayDisplay("Wait for the node name to update",1000.0)
+    slicer.util.delayDisplay("Wait for the node name to update",1000.0)
     self.assertEqual(toolsTableWidget.item(watchedNodeIndex,0).text(), 'Transform 1x')
     # Warning text column
     self.assertEqual(toolsTableWidget.item(watchedNodeIndex,1).text(), 'Transform 1 is not up-to-date')
@@ -162,23 +162,23 @@ class WatchdogSelfTestTest(ScriptedLoadableModuleTest):
     self.assertEqual(soundCheckBox.checked, True)
     # Status column
     statusCheckBox = slicer.util.findChildren(widget=toolsTableWidget.cellWidget(watchedNodeIndex,3),name='StatusIcon')[0]
-    self.delayDisplay("Wait for the node to become outdated",1000.0)
+    slicer.util.delayDisplay("Wait for the node to become outdated",1000.0)
     self.assertEqual(statusCheckBox.toolTip, "<p>invalid</p>")
     isValid = False
     for i in range(10):
       # In theory, the tooltip should be updated immediately, and this is what happens in Slicer
       # however, in the test environment, the field isn't changed until a bit later, so we check multiple times
       # It's not perfect, but otherwise this test fails when the mechanism is actually working
-      self.delayDisplay("Wait for the transform name to update", 100.0)
+      slicer.util.delayDisplay("Wait for the transform name to update", 100.0)
       if statusCheckBox.toolTip == "<p>valid</p>":
         isValid = True
         break
     self.assertEqual(isValid, True)
-    self.delayDisplay("Wait for the node to become outdated",1000.0)
+    slicer.util.delayDisplay("Wait for the node to become outdated",1000.0)
     self.assertEqual(statusCheckBox.toolTip, "<p>invalid</p>")
 
     #remove module node
     slicer.mrmlScene.RemoveNode(watchdogNode)
     self.assertEqual(toolsTableWidget.rowCount, 0)
     
-    self.delayDisplay('Test passed!')
+    slicer.util.delayDisplay('Test passed!')

@@ -246,7 +246,7 @@ class TextureModelTest(ScriptedLoadableModuleTest):
     your test should break so they know that the feature is needed.
     """
 
-    self.delayDisplay("Starting the test")
+    self.util.delayDisplay("Starting the test")
 
     # Download
     import urllib
@@ -256,10 +256,10 @@ class TextureModelTest(ScriptedLoadableModuleTest):
     if not os.path.exists(zipFilePath) or os.stat(zipFilePath).st_size == 0:
       logging.info('Requesting download from %s...\n' % url)
       urllib.urlretrieve(url, zipFilePath)
-      self.delayDisplay('Finished with download\n')
+      self.util.delayDisplay('Finished with download\n')
 
     # Unzip
-    self.delayDisplay("Unzipping to %s" % (extractPath))
+    slicer.util.delayDisplay("Unzipping to %s" % (extractPath))
     qt.QDir().mkpath(extractPath)
     applicationLogic = slicer.app.applicationLogic()
     applicationLogic.Unzip(zipFilePath, extractPath)
@@ -268,11 +268,11 @@ class TextureModelTest(ScriptedLoadableModuleTest):
     slicer.util.loadModel(extractPath+"/head_obj.obj")
     slicer.util.loadVolume(extractPath+"/head_obj_0.png")
 
-    self.delayDisplay('Finished with download and loading')
+    slicer.util.delayDisplay('Finished with download and loading')
 
     # Test
     modelNode = slicer.util.getNode("head_obj")
     textureNode = slicer.util.getNode("head_obj_0")
     logic = TextureModelLogic()
     logic.applyTexture(modelNode, textureNode)
-    self.delayDisplay('Test passed!')
+    slicer.util.delayDisplay('Test passed!')

@@ -1,3 +1,4 @@
+import logging
 import os
 import unittest
 import math
@@ -207,7 +208,7 @@ class FiducialsToModelRegistrationLogic(ScriptedLoadableModuleLogic):
 
   def run(self, inputFiducials, inputModel, outputTransform, transformType=0, numIterations=100):
     """Run iterative closest point registration."""
-    self.delayDisplay('Running iterative closest point registration')
+    logging.info('Running iterative closest point registration')
 
     fiducialsPolyData = vtk.vtkPolyData()
     self.FiducialsToPolyData(inputFiducials, fiducialsPolyData)
@@ -332,4 +333,4 @@ class FiducialsToModelRegistrationTest(ScriptedLoadableModuleTest):
 
     self.assertEqual(success, True)
 
-    self.delayDisplay('Test passed\n')
+    slicer.util.delayDisplay('Test passed')
