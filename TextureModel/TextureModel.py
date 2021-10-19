@@ -81,10 +81,13 @@ class TextureModelWidget(ScriptedLoadableModuleWidget):
 
     self.addColorAsPointAttributeComboBox = qt.QComboBox()
     self.addColorAsPointAttributeComboBox.addItem("disabled")
-    self.addColorAsPointAttributeComboBox.addItem("separate scalars")
-    self.addColorAsPointAttributeComboBox.addItem("single vector")
+    self.addColorAsPointAttributeComboBox.addItem("RGB vector", "uchar-vector")
+    self.addColorAsPointAttributeComboBox.addItem("RGB float vector", "float-vector")
+    self.addColorAsPointAttributeComboBox.addItem("RGB float components", "float-components")
     self.addColorAsPointAttributeComboBox.setCurrentIndex(0)
-    self.addColorAsPointAttributeComboBox.setToolTip("It is useful if further color-based filtering will be performed on the model.")
+    self.addColorAsPointAttributeComboBox.setToolTip('Save color in point data.'
+      ' "RGB vector" is recommended for compatibility with most software.'
+      ' The point data may be used for thresholding or color-based processing.')
     parametersFormLayout.addRow("Save color information as point data: ", self.addColorAsPointAttributeComboBox)
 
     #
@@ -113,11 +116,17 @@ class TextureModelWidget(ScriptedLoadableModuleWidget):
     self.applyButton.enabled = self.inputTextureSelector.currentNode() and self.inputModelSelector.currentNode()
 
   def onApplyButton(self):
-    qt.QApplication.setOverrideCursor(qt.Qt.WaitCursor)
-    logic = TextureModelLogic()
-    logic.applyTexture(self.inputModelSelector.currentNode(), self.inputTextureSelector.currentNode(),
-      self.addColorAsPointAttributeComboBox.currentIndex > 0, self.addColorAsPointAttributeComboBox.currentIndex > 1)
-    qt.QApplication.restoreOverrideCursor()
+    try:
+      qt.QApplication.setOverrideCursor(qt.Qt.WaitCursor)
+      logic = TextureModelLogic()
+      logic.applyTexture(self.inputModelSelector.currentNode(), self.inputTextureSelector.currentNode(),
+        self.addColorAsPointAttributeComboBox.currentData)
+      qt.QApplication.restoreOverrideCursor()
+    except Exception as e:
+      qt.QApplication.restoreOverrideCursor()
+      slicer.util.errorDisplay("Failed to compute results: "+str(e))
+      import traceback
+      traceback.print_exc() 
 
 #
 # TextureModelLogic
@@ -128,13 +137,15 @@ class TextureModelLogic(ScriptedLoadableModuleLogic):
   https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
   """
 
-  def applyTexture(self, modelNode, textureImageNode, addColorAsPointAttribute = False, colorAsVector = False):
+  def applyTexture(self, modelNode, textureImageNode, saveAsPointData=None):
     """
     Apply texture to model node
+    :param saveAsPointData: None (not saved), `vector`, `float-vector`, `float-components`
     """
     self.showTextureOnModel(modelNode, textureImageNode)
-    if addColorAsPointAttribute:
-      self.convertTextureToPointAttribute(modelNode, textureImageNode, colorAsVector)
+    if saveAsPointData:
+      print(f"saveAsPointData: {saveAsPointData}")
+      self.convertTextureToPointAttribute(modelNode, textureImageNode, saveAsPointData)
 
   # Show texture
   def showTextureOnModel(self, modelNode, textureImageNode):
@@ -146,7 +157,10 @@ class TextureModelLogic(ScriptedLoadableModuleLogic):
     modelDisplayNode.SetTextureImageDataConnection(textureImageFlipVert.GetOutputPort())
 
   # Add texture data to scalars
-  def convertTextureToPointAttribute(self, modelNode, textureImageNode, colorAsVector):
+  def convertTextureToPointAttribute(self, modelNode, textureImageNode, saveAsPointData):
+    """
+    :param saveAsPointData: None (not saved), `vector`, `float-vector`, `float-components`
+    """
     polyData = modelNode.GetPolyData()
     textureImageFlipVert = vtk.vtkImageFlip()
     textureImageFlipVert.SetFilteredAxis(1)
@@ -181,7 +195,17 @@ class TextureModelLogic(ScriptedLoadableModuleLogic):
     probeFilter.Update()
     rgbPoints = probeFilter.GetOutput().GetPointData().GetArray('ImageScalars')
 
-    if colorAsVector:
+    if saveAsPointData=='uchar-vector':
+      colorArray = vtk.vtkUnsignedCharArray()
+      colorArray.SetName('RGB')
+      colorArray.SetNumberOfComponents(3)
+      colorArray.SetNumberOfTuples(numOfPoints)
+      for pointIndex in range(numOfPoints):
+        rgb = rgbPoints.GetTuple3(pointIndex)
+        colorArray.SetTuple3(pointIndex, rgb[0], rgb[1], rgb[2])
+      colorArray.Modified()
+      pointData.AddArray(colorArray)
+    elif saveAsPointData=='float-vector':
       colorArray = vtk.vtkDoubleArray()
       colorArray.SetName('Color')
       colorArray.SetNumberOfComponents(3)
@@ -191,7 +215,7 @@ class TextureModelLogic(ScriptedLoadableModuleLogic):
         colorArray.SetTuple3(pointIndex, rgb[0]/255., rgb[1]/255., rgb[2]/255.)
       colorArray.Modified()
       pointData.AddArray(colorArray)
-    else:
+    elif saveAsPointData=='float-components':
       colorArrayRed = vtk.vtkDoubleArray()
       colorArrayRed.SetName('ColorRed')
       colorArrayRed.SetNumberOfTuples(numOfPoints)
@@ -212,6 +236,8 @@ class TextureModelLogic(ScriptedLoadableModuleLogic):
       pointData.AddArray(colorArrayRed)
       pointData.AddArray(colorArrayGreen)
       pointData.AddArray(colorArrayBlue)
+    else:
+      raise ValueError(f"Invalid saveAsPointData: {saveAsPointData}")
 
     pointData.Modified()
     polyData.Modified()
