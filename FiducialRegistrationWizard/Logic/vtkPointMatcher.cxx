@@ -43,6 +43,16 @@ vtkPointMatcher::vtkPointMatcher()
 //------------------------------------------------------------------------------
 vtkPointMatcher::~vtkPointMatcher()
 {
+  if (this->InputSourcePoints)
+    {
+    this->InputSourcePoints->Delete();
+    this->InputSourcePoints = nullptr;
+    }
+  if (this->InputTargetPoints)
+    {
+    this->InputTargetPoints->Delete();
+    this->InputTargetPoints = nullptr;
+    }
 }
 
 //------------------------------------------------------------------------------
