@@ -96,6 +96,7 @@ void vtkMRMLWatchdogNode::WriteXML( ostream& of, int nIndent )
   of << indent << " watchedNodeWarningMessage=\"" << warningMessagesAttribute.str() << "\"";
   of << indent << " watchedNodePlaySound=\"" << playSoundAttribute.str() << "\"";
   of << indent << " watchedNodeUpdateTimeToleranceSec=\"" << updateTimeToleranceSecAttribute.str() << "\"";
+  of << indent << " watchTransformModifiedEvents=\"" << (this->WatchTransformModifiedEvents ? "true" : "false") << "\"";
 }
 
 //----------------------------------------------------------------------------
@@ -149,6 +150,11 @@ void vtkMRMLWatchdogNode::ReadXMLAttributes( const char** atts )
         watchedNodeIndex++;
       }
     }
+    else if (!strcmp(attName, "watchTransformModifiedEvents"))
+    {
+      std::string attribute = attValue;
+      this->WatchTransformModifiedEvents = (attribute == "true");
+    }
   }
   this->Modified();
 }
@@ -164,6 +170,7 @@ void vtkMRMLWatchdogNode::Copy( vtkMRMLNode *anode )
   }
   Superclass::Copy( anode ); // This will take care of referenced nodes
   this->Internal->WatchedNodes = srcNode->Internal->WatchedNodes;
+  this->WatchTransformModifiedEvents = srcNode->WatchTransformModifiedEvents;
   this->Modified();
 }
 
@@ -184,6 +191,7 @@ void vtkMRMLWatchdogNode::PrintSelf( ostream& os, vtkIndent indent )
     os << indent << " UpdateTimeToleranceSec: " << it->updateTimeToleranceSec << std::endl;
     os << indent << " LastStateUpToDate: " << it->lastStateUpToDate << std::endl;
   }
+  os << indent << "WatchTransformModifiedEvents: " << (this->WatchTransformModifiedEvents ? "true" : "false");
 }
 
 //----------------------------------------------------------------------------
@@ -410,6 +418,11 @@ void vtkMRMLWatchdogNode::ProcessMRMLEvents ( vtkObject *caller, unsigned long e
       {
         continue;
       }
+      if (!this->WatchTransformModifiedEvents && event == vtkMRMLTransformableNode::TransformModifiedEvent)
+      {
+        continue;
+      }
+
       if(watchedNodeIndex>=this->Internal->WatchedNodes.size())
       {
         vtkErrorMacro("vtkMRMLWatchdogNode::ProcessMRMLEvents failed: no watched node found for node reference "<<watchedNodeIndex);

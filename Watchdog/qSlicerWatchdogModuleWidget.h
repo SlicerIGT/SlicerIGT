@@ -42,6 +42,7 @@ public:
   double opacity()const;
   QColor backgroundColor()const;
   QColor textColor()const;
+  bool watchTransformModifiedEvents()const;
 
 public slots:
 
@@ -55,6 +56,7 @@ public slots:
   void setOpacity(double);
   void setBackgroundColor(QColor);
   void setTextColor(QColor);
+  void setWatchTransformModifiedEvents(bool);
 
   void updateMRMLDisplayNodeViewsFromWidget();
 
@@ -63,7 +65,7 @@ protected slots:
   /// Starts/stops playing sound based on the status of all current tools
   //void onUpdateSound();
 
-  /// Refresh the gui from the currently active watchdog node 
+  /// Refresh the gui from the currently active watchdog node
   void updateFromMRMLNode();
   /// Update the selection node from the combobox
   void onWatchdogNodeSelectionChanged();
