@@ -302,6 +302,32 @@
     </widget>
    </item>
    <item>
+    <widget class="ctkCollapsibleButton" name="EventsCollapsibleButton">
+     <property name="text">
+      <string>Events</string>
+     </property>
+     <property name="collapsed">
+      <bool>true</bool>
+     </property>
+     <layout class="QFormLayout" name="formLayout">
+      <item row="0" column="0">
+       <widget class="QLabel" name="WatchTransformModifiedEventsLabel">
+        <property name="text">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Watch transform modified event:&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QCheckBox" name="WatchTransformModifiedEventsCheckBox">
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
     <spacer name="verticalSpacer">
      <property name="orientation">
       <enum>Qt::Vertical</enum>
@@ -321,11 +347,13 @@
    <class>qMRMLCheckableNodeComboBox</class>
    <extends>qMRMLNodeComboBox</extends>
    <header>qMRMLCheckableNodeComboBox.h</header>
+   <container>1</container>
   </customwidget>
   <customwidget>
    <class>qMRMLDisplayNodeViewComboBox</class>
    <extends>qMRMLCheckableNodeComboBox</extends>
    <header>qMRMLDisplayNodeViewComboBox.h</header>
+   <container>1</container>
   </customwidget>
   <customwidget>
    <class>qMRMLNodeComboBox</class>

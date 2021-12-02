@@ -53,7 +53,7 @@ public:
 
   /// Copy the node's attributes to this object
   virtual void Copy(vtkMRMLNode *node);
-  
+
   /// Create and observe default vtkMRMLWatchdogDisplayNode display node
   virtual void CreateDefaultDisplayNodes();
 
@@ -111,6 +111,10 @@ public:
   /// A watched node's status is valid if the last update of the node happened not longer time than the update time tolerance.
   void UpdateWatchedNodesStatus(bool &watchedNodeBecomeUpToDateSound, bool &watchedNodeBecomeOutdatedSound);
 
+  vtkSetMacro(WatchTransformModifiedEvents, bool);
+  vtkGetMacro(WatchTransformModifiedEvents, bool);
+  vtkBooleanMacro(WatchTransformModifiedEvents, bool);
+
 protected:
 
   ///
@@ -122,6 +126,8 @@ protected:
   virtual ~vtkMRMLWatchdogNode();
   vtkMRMLWatchdogNode ( const vtkMRMLWatchdogNode& );
   void operator=( const vtkMRMLWatchdogNode& );
+
+  bool WatchTransformModifiedEvents{ true };
 
 private:
   class vtkInternal;

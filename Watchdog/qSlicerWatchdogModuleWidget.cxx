@@ -40,7 +40,7 @@ int TOOL_COLUMNS = 4;
 /// \ingroup Slicer_QtModules_Watchdog
 class qSlicerWatchdogModuleWidgetPrivate: public Ui_qSlicerWatchdogModuleWidget
 {
-  Q_DECLARE_PUBLIC( qSlicerWatchdogModuleWidget ); 
+  Q_DECLARE_PUBLIC( qSlicerWatchdogModuleWidget );
 
 protected:
   qSlicerWatchdogModuleWidget* const q_ptr;
@@ -80,7 +80,7 @@ vtkMRMLWatchdogDisplayNode* qSlicerWatchdogModuleWidgetPrivate::displayNode() co
   return displayNode;
 }
 
- 
+
 
 //-----------------------------------------------------------------------------
 // qSlicerWatchdogModuleWidget methods
@@ -146,6 +146,8 @@ void qSlicerWatchdogModuleWidget::setup()
   QObject::connect(d->DisplayNodeViewComboBox, SIGNAL(checkedNodesChanged()), this, SLOT(updateMRMLDisplayNodeViewsFromWidget()));
   QObject::connect(d->DisplayNodeViewComboBox, SIGNAL(nodeAdded(vtkMRMLNode*)), this, SLOT(updateMRMLDisplayNodeViewsFromWidget()));
   QObject::connect(d->DisplayNodeViewComboBox, SIGNAL(nodeAboutToBeRemoved(vtkMRMLNode*)), this, SLOT(updateMRMLDisplayNodeViewsFromWidget()));
+
+  QObject::connect(d->WatchTransformModifiedEventsCheckBox, SIGNAL(toggled(bool)), this, SLOT(setWatchTransformModifiedEvents(bool)));
 
   this->updateFromMRMLNode();
 }
@@ -342,6 +344,7 @@ void qSlicerWatchdogModuleWidget::updateWidget()
     d->ToolComboBox->setEnabled( false );
     d->ToolsTableWidget->clearContents();
     d->ToolsTableWidget->setRowCount( 0 );
+    d->WatchTransformModifiedEventsCheckBox->setEnabled(false);
     return;
   }
 
@@ -422,7 +425,7 @@ void qSlicerWatchdogModuleWidget::updateWidget()
       pCheckBox->setStyleSheet("margin-left:2px; margin-right:2px;margin-top:2px; margin-bottom:2px;");
       pSoundWidget->setLayout(pSoundLayout);
       d->ToolsTableWidget->setCellWidget( rowIndex, TOOL_SOUND_COLUMN, pSoundWidget);
-      
+
       connect(pCheckBox, SIGNAL(stateChanged(int)), this, SLOT(onSoundCheckBoxStateChanged(int)));
     }
   }
@@ -440,7 +443,7 @@ void qSlicerWatchdogModuleWidget::updateWidget()
       qWarning("Invalid watched node found, cannot update watched node table row");
       continue;
     }
-    
+
     d->ToolsTableWidget->item(watchedNodeIndex, TOOL_NAME_COLUMN)->setText(watchedNode->GetName());
     d->ToolsTableWidget->item(watchedNodeIndex, TOOL_MESSAGE_COLUMN)->setText(d->WatchdogNode->GetWatchedNodeWarningMessage(watchedNodeIndex));
 
@@ -469,6 +472,11 @@ void qSlicerWatchdogModuleWidget::updateWidget()
   d->ToolsTableWidget->resizeRowsToContents();
 
   d->ToolsTableWidget->blockSignals( false );
+
+  bool wasBlocking = d->WatchTransformModifiedEventsCheckBox->blockSignals(true);
+  d->WatchTransformModifiedEventsCheckBox->setEnabled(true);
+  d->WatchTransformModifiedEventsCheckBox->setChecked(d->WatchdogNode->GetWatchTransformModifiedEvents());
+  d->WatchTransformModifiedEventsCheckBox->blockSignals(wasBlocking);
 }
 
 //-----------------------------------------------------------------------------
@@ -591,6 +599,30 @@ QColor qSlicerWatchdogModuleWidget::textColor()const
 {
   Q_D(const qSlicerWatchdogModuleWidget);
   return d->TextColorPickerButton->color();
+}
+
+//------------------------------------------------------------------------------
+void qSlicerWatchdogModuleWidget::setWatchTransformModifiedEvents(bool watchTransformModifiedEvents)
+{
+  Q_D(qSlicerWatchdogModuleWidget);
+  if (!d->WatchdogNode)
+  {
+    qWarning("qSlicerWatchdogModuleWidget::setWatchTransformModifiedEvents failed: no Watchdog node is available");
+    return;
+  }
+  d->WatchdogNode->SetWatchTransformModifiedEvents(watchTransformModifiedEvents);
+}
+
+//------------------------------------------------------------------------------
+bool qSlicerWatchdogModuleWidget::watchTransformModifiedEvents() const
+{
+  Q_D(const qSlicerWatchdogModuleWidget);
+  if (!d->WatchdogNode)
+  {
+    qWarning("qSlicerWatchdogModuleWidget::watchTransformModifiedEvents failed: no Watchdog node is available");
+    return false;
+  }
+  return d->WatchdogNode->GetWatchTransformModifiedEvents();
 }
 
 // --------------------------------------------------------------------------
