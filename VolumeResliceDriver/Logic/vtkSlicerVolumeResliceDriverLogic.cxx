@@ -20,6 +20,8 @@
 
 // MRML includes
 #include "vtkMRMLLinearTransformNode.h"
+#include "vtkMRMLMarkupsLineNode.h"
+#include "vtkMRMLMarkupsPlaneNode.h"
 #include "vtkMRMLScalarVolumeNode.h"
 #include "vtkMRMLSliceNode.h"
 #include "vtkMRMLAnnotationRulerNode.h"
@@ -148,6 +150,10 @@ void vtkSlicerVolumeResliceDriverLogic
 void vtkSlicerVolumeResliceDriverLogic
 ::AddObservedNode( vtkMRMLTransformableNode* node )
 {
+  if (!node)
+  {
+    return;
+  }
   for ( unsigned int i = 0; i < this->ObservedNodes.size(); ++ i )
     {
     if ( node == this->ObservedNodes[ i ] )
@@ -156,20 +162,35 @@ void vtkSlicerVolumeResliceDriverLogic
       }
     }
 
+  // Collect event IDs that we need to observe to detect changes in the driving node
+  vtkNew<vtkIntArray> modifiedEventsToObserve;
+
+  // Default events
+  modifiedEventsToObserve->InsertNextValue(vtkCommand::ModifiedEvent);
+  modifiedEventsToObserve->InsertNextValue(vtkMRMLTransformableNode::TransformModifiedEvent);
+
+  // Custom modified events
+  vtkIntArray* customContentModifiedEvents = node->GetContentModifiedEvents();
+  if (customContentModifiedEvents)
+  {
+    for (vtkIdType i = 0; i < customContentModifiedEvents->GetNumberOfValues(); i++)
+    {
+      int eventId = customContentModifiedEvents->GetValue(i);
+      if (modifiedEventsToObserve->LookupValue(eventId) >= 0)
+      {
+        // already included
+        continue;
+      }
+      modifiedEventsToObserve->InsertNextValue(eventId);
+    }
+  }
+
   int wasModifying = this->StartModify();
-
   vtkMRMLTransformableNode* newNode = NULL;
-
-  vtkSmartPointer< vtkIntArray > events = vtkSmartPointer< vtkIntArray >::New();
-  events->InsertNextValue( vtkMRMLTransformableNode::TransformModifiedEvent );
-  events->InsertNextValue( vtkCommand::ModifiedEvent );
-  events->InsertNextValue( vtkMRMLVolumeNode::ImageDataModifiedEvent );
-  vtkSetAndObserveMRMLNodeEventsMacro( newNode, node, events );
+  vtkSetAndObserveMRMLNodeEventsMacro(newNode, node, modifiedEventsToObserve);
   this->ObservedNodes.push_back( newNode );
-
   this->EndModify( wasModifying );
 }
-
 
 
 void vtkSlicerVolumeResliceDriverLogic
@@ -336,6 +357,12 @@ void vtkSlicerVolumeResliceDriverLogic
     this->UpdateSliceByImageNode( imageNode, sliceNode );
     }
 
+  vtkMRMLMarkupsNode* markupsNode = vtkMRMLMarkupsNode::SafeDownCast(tnode);
+  if (markupsNode != NULL)
+    {
+    this->UpdateSliceByMarkupsNode(markupsNode, sliceNode);
+    }
+
   vtkMRMLAnnotationRulerNode* rulerNode = vtkMRMLAnnotationRulerNode::SafeDownCast( tnode );
   if ( rulerNode != NULL )
     {
@@ -461,6 +488,30 @@ void vtkSlicerVolumeResliceDriverLogic
 
 }
 
+void vtkSlicerVolumeResliceDriverLogic
+::UpdateSliceByMarkupsNode(vtkMRMLMarkupsNode* markupsNode, vtkMRMLSliceNode* sliceNode)
+{
+  vtkMRMLMarkupsPlaneNode* planeNode = vtkMRMLMarkupsPlaneNode::SafeDownCast(markupsNode);
+  if (planeNode)
+  {
+    vtkNew<vtkMatrix4x4> planeToRasMatrix;
+    planeNode->GetObjectToWorldMatrix(planeToRasMatrix);
+    this->UpdateSlice(planeToRasMatrix, sliceNode);
+    return;
+  }
+
+  vtkMRMLMarkupsLineNode* lineNode = vtkMRMLMarkupsLineNode::SafeDownCast(markupsNode);
+  if (lineNode)
+  {
+    double position1[3];
+    double position2[3];
+    lineNode->GetNthControlPointPositionWorld(0, position1);
+    lineNode->GetNthControlPointPositionWorld(1, position2);
+    this->UpdateSliceByLine(position1, position2, sliceNode);
+    return;
+  }
+}
+
 /*
 void Cross(double *a, double *b, double *c)
 {
@@ -473,53 +524,56 @@ void Cross(double *a, double *b, double *c)
 void vtkSlicerVolumeResliceDriverLogic
 ::UpdateSliceByRulerNode( vtkMRMLAnnotationRulerNode* rnode, vtkMRMLSliceNode* sliceNode )
 {
-
-  vtkSmartPointer<vtkMatrix4x4> rulerTransform = vtkSmartPointer<vtkMatrix4x4>::New();
   double position1[4];
   double position2[4];
+  rnode->GetPositionWorldCoordinates1(position1);
+  rnode->GetPositionWorldCoordinates2(position2);
+  this->UpdateSliceByLine(position1, position2, sliceNode);
+}
+
+void vtkSlicerVolumeResliceDriverLogic
+::UpdateSliceByLine(double position1[3], double position2[3], vtkMRMLSliceNode* sliceNode)
+{
   double t[3];
   double s[3];
   double n[3];
   double nlen;
 
-  rnode->GetPositionWorldCoordinates1(position1);
-  rnode->GetPositionWorldCoordinates2(position2);
-
   // Calculate <n> and normalize it.
-  n[0] = position2[0]-position1[0];
-  n[1] = position2[1]-position1[1];
-  n[2] = position2[2]-position1[2];
-  nlen = sqrt(n[0]*n[0] + n[1]*n[1] + n[2]*n[2]);
+  n[0] = position2[0] - position1[0];
+  n[1] = position2[1] - position1[1];
+  n[2] = position2[2] - position1[2];
+  nlen = sqrt(n[0] * n[0] + n[1] * n[1] + n[2] * n[2]);
   if (nlen > 0)
-    {
+  {
     n[0] /= nlen;
     n[1] /= nlen;
     n[2] /= nlen;
-    }
+  }
   else
-    {
+  {
     n[0] = 0.0;
     n[1] = 0.0;
     n[2] = 1.0;
-    }
+  }
 
   // Check if <n> is not parallel to <s>=(0.0, 1.0, 0.0)
   if (n[1] < 1.0)
-    {
+  {
     s[0] = 0.0;
     s[1] = 1.0;
     s[2] = 0.0;
     vtkMath::Cross(s, n, t);
     vtkMath::Cross(n, t, s);
-    }
+  }
   else
-    {
+  {
     t[0] = 1.0;
     t[1] = 0.0;
     t[2] = 0.0;
     vtkMath::Cross(n, t, s);
     vtkMath::Cross(s, n, t);
-    }
+  }
 
   // normal vectors
   double ntx = t[0];
@@ -535,21 +589,21 @@ void vtkSlicerVolumeResliceDriverLogic
   double py = position2[1];
   double pz = position2[2];
 
-  rulerTransform->SetElement(0, 0, ntx);
-  rulerTransform->SetElement(1, 0, nty);
-  rulerTransform->SetElement(2, 0, ntz);
-  rulerTransform->SetElement(0, 1, nsx);
-  rulerTransform->SetElement(1, 1, nsy);
-  rulerTransform->SetElement(2, 1, nsz);
-  rulerTransform->SetElement(0, 2, nnx);
-  rulerTransform->SetElement(1, 2, nny);
-  rulerTransform->SetElement(2, 2, nnz);
-  rulerTransform->SetElement(0, 3, px);
-  rulerTransform->SetElement(1, 3, py);
-  rulerTransform->SetElement(2, 3, pz);
+  vtkNew<vtkMatrix4x4> lineTransform;
+  lineTransform->SetElement(0, 0, ntx);
+  lineTransform->SetElement(1, 0, nty);
+  lineTransform->SetElement(2, 0, ntz);
+  lineTransform->SetElement(0, 1, nsx);
+  lineTransform->SetElement(1, 1, nsy);
+  lineTransform->SetElement(2, 1, nsz);
+  lineTransform->SetElement(0, 2, nnx);
+  lineTransform->SetElement(1, 2, nny);
+  lineTransform->SetElement(2, 2, nnz);
+  lineTransform->SetElement(0, 3, px);
+  lineTransform->SetElement(1, 3, py);
+  lineTransform->SetElement(2, 3, pz);
 
-  this->UpdateSlice( rulerTransform, sliceNode );
-
+  this->UpdateSlice(lineTransform, sliceNode);
 }
 
 

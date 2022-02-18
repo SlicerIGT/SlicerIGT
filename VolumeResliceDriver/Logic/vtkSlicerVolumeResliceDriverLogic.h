@@ -21,6 +21,7 @@
 class vtkMRMLLinearTransformNode;
 class vtkMRMLScalarVolumeNode;
 class vtkMRMLAnnotationRulerNode;
+class vtkMRMLMarkupsNode;
 class vtkMRMLSliceNode;
 
 #define VOLUMERESLICEDRIVER_DRIVER_ATTRIBUTE "VolumeResliceDriver.Driver"
@@ -79,8 +80,10 @@ protected:
   void UpdateSliceByTransformableNode( vtkMRMLTransformableNode* tnode, vtkMRMLSliceNode* sliceNode );
   void UpdateSliceByTransformNode( vtkMRMLLinearTransformNode* tnode, vtkMRMLSliceNode* sliceNode );
   void UpdateSliceByImageNode( vtkMRMLScalarVolumeNode* inode, vtkMRMLSliceNode* sliceNode );
+  void UpdateSliceByMarkupsNode(vtkMRMLMarkupsNode* markupsNode, vtkMRMLSliceNode* sliceNode);
   void UpdateSliceByRulerNode( vtkMRMLAnnotationRulerNode* rnode, vtkMRMLSliceNode* sliceNode );
   void UpdateSlice( vtkMatrix4x4* driverToRASMatrix, vtkMRMLSliceNode* sliceNode );
+  void UpdateSliceByLine(double position1[3], double position2[3], vtkMRMLSliceNode* sliceNode);
   void UpdateSliceIfObserved( vtkMRMLSliceNode* sliceNode );
   
   std::vector< vtkMRMLTransformableNode* > ObservedNodes;

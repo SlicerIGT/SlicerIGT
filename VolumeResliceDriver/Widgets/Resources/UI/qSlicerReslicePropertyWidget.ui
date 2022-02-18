@@ -58,6 +58,8 @@
           <stringlist>
            <string>vtkMRMLLinearTransformNode</string>
            <string>vtkMRMLScalarVolumeNode</string>
+           <string>vtkMRMLMarkupsPlaneNode</string>
+           <string>vtkMRMLMarkupsLineNode</string>
            <string>vtkMRMLAnnotationRulerNode</string>
           </stringlist>
          </property>

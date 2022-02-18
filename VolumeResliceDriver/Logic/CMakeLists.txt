@@ -22,6 +22,7 @@ set(${KIT}_SRCS
   # Additional Target libraries
 set(${KIT}_TARGET_LIBRARIES
   vtkSlicerAnnotationsModuleMRML
+  vtkSlicerMarkupsModuleMRML
   ${ITK_LIBRARIES}
   )
 
