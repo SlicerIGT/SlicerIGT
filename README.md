@@ -80,7 +80,7 @@ Control 3D view camera using tracked tools and objects. It can either simulate a
 
 ### Volume reslice driver
 
-Show intersections of an image driven by position and orientation of a tracked tool (or any linear transform).
+Move slice view (e.g., to show slice of an image) driven by position and orientation of a tracked tool (or any linear transform), or ROI or line markup.
 
 ### Watchdog
 
