@@ -277,8 +277,8 @@ void qSlicerPathExplorerModuleWidget::onTrajectoryNodeActivated(vtkMRMLNode* nod
         this->mrmlScene()->GetUniqueNameByString("Target")));
     }
     // Store nodes
-    trajectoryNode->SetAndObserveEntryPointsNodeId(entryPoints->GetID());
-    trajectoryNode->SetAndObserveTargetPointsNodeId(targetPoints->GetID());
+    trajectoryNode->SetAndObserveEntryPointsNodeId(entryPoints ? entryPoints->GetID() : nullptr);
+    trajectoryNode->SetAndObserveTargetPointsNodeId(targetPoints ? targetPoints->GetID() : nullptr);
   }
   this->updateGUIFromMRML();
 }
