@@ -272,7 +272,7 @@ class TextureModelTest(ScriptedLoadableModuleTest):
     your test should break so they know that the feature is needed.
     """
 
-    self.util.delayDisplay("Starting the test")
+    slicer.util.delayDisplay("Starting the test")
 
     # Download
     import urllib
@@ -281,8 +281,8 @@ class TextureModelTest(ScriptedLoadableModuleTest):
     extractPath = slicer.app.temporaryPath + '/' + 'FemurHeadSurfaceScan'
     if not os.path.exists(zipFilePath) or os.stat(zipFilePath).st_size == 0:
       logging.info('Requesting download from %s...\n' % url)
-      urllib.urlretrieve(url, zipFilePath)
-      self.util.delayDisplay('Finished with download\n')
+      urllib.request.urlretrieve(url, zipFilePath)
+      slicer.util.delayDisplay('Finished with download\n')
 
     # Unzip
     slicer.util.delayDisplay("Unzipping to %s" % (extractPath))
