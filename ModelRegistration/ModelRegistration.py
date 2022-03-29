@@ -265,4 +265,4 @@ class ModelRegistrationTest(ScriptedLoadableModuleTest):
     your test should break so they know that the feature is needed.
     """
 
-    self.util.delayDisplay('Test is not implemented for ModelRegistration')
+    slicer.util.delayDisplay('Test is not implemented for ModelRegistration')
