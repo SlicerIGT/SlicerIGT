@@ -58,13 +58,13 @@ public:
   // Standard MRML node methods
   static vtkMRMLCollectPointsNode *New();  
 
-  virtual vtkMRMLNode* CreateNodeInstance();
-  virtual const char* GetNodeTagName() { return "CollectPoints"; };
-  void PrintSelf( ostream& os, vtkIndent indent );
-  virtual void ReadXMLAttributes( const char** atts );
-  virtual void WriteXML( ostream& of, int indent );
-  virtual void Copy( vtkMRMLNode *node );
-  
+  virtual vtkMRMLNode* CreateNodeInstance() override;
+  virtual const char* GetNodeTagName() override { return "CollectPoints"; };
+  void PrintSelf( ostream& os, vtkIndent indent ) override;
+  virtual void ReadXMLAttributes( const char** atts ) override;
+  virtual void WriteXML( ostream& of, int indent ) override;
+  virtual void Copy( vtkMRMLNode *node ) override;
+
 protected:
 
   vtkMRMLCollectPointsNode();
@@ -100,7 +100,7 @@ public:
   vtkGetMacro( MinimumDistance, double );
   vtkSetMacro( MinimumDistance, double );
 
-  void ProcessMRMLEvents( vtkObject *caller, unsigned long event, void *callData );
+  void ProcessMRMLEvents( vtkObject *caller, unsigned long event, void *callData ) override;
 
   static int GetCollectModeFromString( const char* name );
   static const char* GetCollectModeAsString( int id );

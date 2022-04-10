@@ -52,7 +52,7 @@ public:
 
   static vtkSlicerPivotCalibrationLogic *New();
   vtkTypeMacro(vtkSlicerPivotCalibrationLogic, vtkSlicerModuleLogic);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   // Clears all previously acquired tool transforms.
   // Call this before start adding transforms.
@@ -95,7 +95,7 @@ protected:
   vtkSlicerPivotCalibrationLogic();
   virtual ~vtkSlicerPivotCalibrationLogic();
   
-  void ProcessMRMLNodesEvents( vtkObject* caller, unsigned long event, void* callData );
+  void ProcessMRMLNodesEvents( vtkObject* caller, unsigned long event, void* callData ) override;
 
   // Returns the orientation difference in degrees between two 4x4 homogeneous transformation matrix, in degrees.
   double GetOrientationDifferenceDeg(vtkMatrix4x4* aMatrix, vtkMatrix4x4* bMatrix);

@@ -82,12 +82,12 @@ public:
   // Standard MRML node methods
   static vtkMRMLFiducialRegistrationWizardNode *New();
 
-  virtual vtkMRMLNode* CreateNodeInstance();
-  virtual const char* GetNodeTagName() { return "FiducialRegistrationWizard"; };
-  void PrintSelf( ostream& os, vtkIndent indent );
-  virtual void ReadXMLAttributes( const char** atts );
-  virtual void WriteXML( ostream& of, int indent );
-  virtual void Copy( vtkMRMLNode *node );
+  virtual vtkMRMLNode* CreateNodeInstance() override;
+  virtual const char* GetNodeTagName() override { return "FiducialRegistrationWizard"; };
+  void PrintSelf( ostream& os, vtkIndent indent ) override;
+  virtual void ReadXMLAttributes( const char** atts ) override;
+  virtual void WriteXML( ostream& of, int indent ) override;
+  virtual void Copy( vtkMRMLNode *node ) override;
 
 protected:
 
@@ -156,7 +156,7 @@ public:
   vtkGetMacro(WarpingTransformFromParent, bool);
   vtkBooleanMacro(WarpingTransformFromParent, bool);
 
-  void ProcessMRMLEvents( vtkObject *caller, unsigned long event, void *callData );
+  void ProcessMRMLEvents( vtkObject *caller, unsigned long event, void *callData ) override;
 
 private:
   // Three modes:

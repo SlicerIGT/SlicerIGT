@@ -51,24 +51,24 @@ public:
   
   static vtkSlicerCollectPointsLogic *New();
   vtkTypeMacro(vtkSlicerCollectPointsLogic,vtkSlicerModuleLogic);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
   
   void AddPoint( vtkMRMLCollectPointsNode* collectPointsNode );
   void RemoveLastPoint( vtkMRMLCollectPointsNode* collectPointsNode );
   void RemoveAllPoints( vtkMRMLCollectPointsNode* collectPointsNode );
   
-  void ProcessMRMLNodesEvents( vtkObject* caller, unsigned long event, void* callData );
+  void ProcessMRMLNodesEvents( vtkObject* caller, unsigned long event, void* callData ) override;
 
 protected:
   vtkSlicerCollectPointsLogic();
   virtual ~vtkSlicerCollectPointsLogic();
 
-  virtual void SetMRMLSceneInternal(vtkMRMLScene * newScene);
+  virtual void SetMRMLSceneInternal(vtkMRMLScene * newScene) override;
   /// Register MRML Node classes to Scene. Gets called automatically when the MRMLScene is attached to this logic class.
-  virtual void RegisterNodes();
-  virtual void UpdateFromMRMLScene();
-  virtual void OnMRMLSceneNodeAdded(vtkMRMLNode* node);
-  virtual void OnMRMLSceneNodeRemoved(vtkMRMLNode* node);
+  virtual void RegisterNodes() override;
+  virtual void UpdateFromMRMLScene() override;
+  virtual void OnMRMLSceneNodeAdded(vtkMRMLNode* node) override;
+  virtual void OnMRMLSceneNodeRemoved(vtkMRMLNode* node) override;
 private:
 
   // Computes the sampling coordinates in the anchor coordinate system

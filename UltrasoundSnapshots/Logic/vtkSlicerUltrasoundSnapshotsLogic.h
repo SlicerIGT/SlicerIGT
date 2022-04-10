@@ -44,7 +44,7 @@ public:
 
   static vtkSlicerUltrasoundSnapshotsLogic *New();
   vtkTypeMacro(vtkSlicerUltrasoundSnapshotsLogic, vtkSlicerModuleLogic);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
   
   void SetInputVolumeNode( vtkMRMLScalarVolumeNode* InputNode );
   vtkMRMLScalarVolumeNode* GetInputVolumeNode();
@@ -58,14 +58,14 @@ protected:
   
   int snapshotCounter; // This is only used to ensure unique MRML node names.
 
-  virtual void SetMRMLSceneInternal(vtkMRMLScene* newScene);
+  virtual void SetMRMLSceneInternal(vtkMRMLScene* newScene) override;
   /// Register MRML Node classes to Scene. Gets called automatically when the MRMLScene is attached to this logic class.
-  virtual void RegisterNodes();
-  virtual void UpdateFromMRMLScene();
-  virtual void OnMRMLSceneEndImport();
-  virtual void OnMRMLSceneStartClose();
-  virtual void OnMRMLSceneNodeAdded(vtkMRMLNode* node);
-  virtual void OnMRMLSceneNodeRemoved(vtkMRMLNode* node);
+  virtual void RegisterNodes() override;
+  virtual void UpdateFromMRMLScene() override;
+  virtual void OnMRMLSceneEndImport() override;
+  virtual void OnMRMLSceneStartClose() override;
+  virtual void OnMRMLSceneNodeAdded(vtkMRMLNode* node) override;
+  virtual void OnMRMLSceneNodeRemoved(vtkMRMLNode* node) override;
 private:
 
   vtkSlicerUltrasoundSnapshotsLogic(const vtkSlicerUltrasoundSnapshotsLogic&); // Not implemented
