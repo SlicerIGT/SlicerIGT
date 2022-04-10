@@ -55,20 +55,20 @@ public:
   // MRMLNode methods
   //--------------------------------------------------------------------------
 
-  virtual vtkMRMLNode* CreateNodeInstance();
+  virtual vtkMRMLNode* CreateNodeInstance() override;
   // Description:
   // Get node XML tag name (like Volume, Model)
-  virtual const char* GetNodeTagName() {return "PathPlannerTrajectory";};
+  virtual const char* GetNodeTagName() override {return "PathPlannerTrajectory";};
 
   virtual const char* GetIcon() {return ":/Icons/PathPlannerTrajectory.png";};
 
   // Description:
   // Read node attributes from XML file
-  virtual void ReadXMLAttributes( const char** atts);
+  virtual void ReadXMLAttributes( const char** atts) override;
   
   // Description:
   // Write this node's information to a MRML file in XML format.
-  virtual void WriteXML(ostream& of, int indent);
+  virtual void WriteXML(ostream& of, int indent) override;
 
   /// Copy node content (excludes basic data, such as name and node references).
   /// \sa vtkMRMLNode::CopyContent
@@ -80,7 +80,7 @@ public:
   // alternative method to propagate events generated in Display nodes
   virtual void ProcessMRMLEvents ( vtkObject * /*caller*/, 
                                    unsigned long /*event*/, 
-                                   void * /*callData*/ );
+                                   void * /*callData*/ ) override;
 
   /// Get/Set entry points markups node
   vtkMRMLMarkupsNode* GetEntryPointsNode();

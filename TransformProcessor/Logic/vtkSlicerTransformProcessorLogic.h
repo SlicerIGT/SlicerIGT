@@ -60,7 +60,7 @@ public:
   
   static vtkSlicerTransformProcessorLogic *New();
   vtkTypeMacro( vtkSlicerTransformProcessorLogic, vtkSlicerModuleLogic );
-  void PrintSelf( ostream& os, vtkIndent indent );
+  void PrintSelf( ostream& os, vtkIndent indent ) override;
   
 public:
   // Update all output transforms that are to be updated continuously.
@@ -87,11 +87,11 @@ protected:
   vtkSlicerTransformProcessorLogic();
   ~vtkSlicerTransformProcessorLogic();
 
-  virtual void RegisterNodes();
-  virtual void SetMRMLSceneInternal( vtkMRMLScene * newScene );
-  virtual void OnMRMLSceneNodeAdded( vtkMRMLNode* node );
-  virtual void OnMRMLSceneNodeRemoved( vtkMRMLNode* node );
-  void ProcessMRMLNodesEvents( vtkObject* caller, unsigned long event, void* callData );;
+  virtual void RegisterNodes() override;
+  virtual void SetMRMLSceneInternal( vtkMRMLScene * newScene ) override;
+  virtual void OnMRMLSceneNodeAdded( vtkMRMLNode* node ) override;
+  virtual void OnMRMLSceneNodeRemoved( vtkMRMLNode* node ) override;
+  void ProcessMRMLNodesEvents( vtkObject* caller, unsigned long event, void* callData ) override;
   
 private:
   vtkSlicerTransformProcessorLogic( const vtkSlicerTransformProcessorLogic& );// Not implemented

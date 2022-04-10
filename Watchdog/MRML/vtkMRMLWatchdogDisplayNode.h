@@ -37,7 +37,7 @@ class VTK_SLICER_WATCHDOG_MODULE_MRML_EXPORT vtkMRMLWatchdogDisplayNode : public
  public:
   static vtkMRMLWatchdogDisplayNode *New (  );
   vtkTypeMacro ( vtkMRMLWatchdogDisplayNode,vtkMRMLDisplayNode );
-  void PrintSelf ( ostream& os, vtkIndent indent );
+  void PrintSelf ( ostream& os, vtkIndent indent ) override;
 
   enum Position
     {
@@ -52,23 +52,23 @@ class VTK_SLICER_WATCHDOG_MODULE_MRML_EXPORT vtkMRMLWatchdogDisplayNode : public
   /// MRMLNode methods
   //--------------------------------------------------------------------------
 
-  virtual vtkMRMLNode* CreateNodeInstance (  );
+  virtual vtkMRMLNode* CreateNodeInstance() override;
 
   ///
   /// Read node attributes from XML (MRML) file
-  virtual void ReadXMLAttributes ( const char** atts );
+  virtual void ReadXMLAttributes ( const char** atts ) override;
 
   ///
   /// Write this node's information to a MRML file in XML format.
-  virtual void WriteXML ( ostream& of, int indent );
+  virtual void WriteXML ( ostream& of, int indent ) override;
 
   ///
   /// Copy the node's attributes to this object
-  virtual void Copy ( vtkMRMLNode *node );
+  virtual void Copy ( vtkMRMLNode *node ) override;
 
   ///
   /// Get node XML tag name (like Volume, UnstructuredGrid)
-  virtual const char* GetNodeTagName ( ) {return "WatchdogDisplayNode";};
+  virtual const char* GetNodeTagName() override {return "WatchdogDisplayNode";};
 
   //--------------------------------------------------------------------------
   /// Display options

@@ -39,28 +39,28 @@ public:
 
   static vtkMRMLWatchdogDisplayableManager* New();
   vtkTypeMacro(vtkMRMLWatchdogDisplayableManager,vtkMRMLAbstractDisplayableManager);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
 protected:
 
   vtkMRMLWatchdogDisplayableManager();
   virtual ~vtkMRMLWatchdogDisplayableManager();
 
-  virtual void UnobserveMRMLScene();
-  virtual void OnMRMLSceneNodeAdded(vtkMRMLNode* node);
-  virtual void OnMRMLSceneNodeRemoved(vtkMRMLNode* node);
-  virtual void ProcessMRMLNodesEvents(vtkObject* caller, unsigned long event, void* callData);
+  virtual void UnobserveMRMLScene() override;
+  virtual void OnMRMLSceneNodeAdded(vtkMRMLNode* node) override;
+  virtual void OnMRMLSceneNodeRemoved(vtkMRMLNode* node) override;
+  virtual void ProcessMRMLNodesEvents(vtkObject* caller, unsigned long event, void* callData) override;
 
   /// Update Actors based on watchdog in the scene
-  virtual void UpdateFromMRML();
+  virtual void UpdateFromMRML() override;
 
-  virtual void OnMRMLSceneStartClose();
-  virtual void OnMRMLSceneEndClose();
+  virtual void OnMRMLSceneStartClose() override;
+  virtual void OnMRMLSceneEndClose() override;
 
-  virtual void OnMRMLSceneEndBatchProcess();
+  virtual void OnMRMLSceneEndBatchProcess() override;
 
   /// Initialize the displayable manager
-  virtual void Create();
+  virtual void Create() override;
 
 private:
 

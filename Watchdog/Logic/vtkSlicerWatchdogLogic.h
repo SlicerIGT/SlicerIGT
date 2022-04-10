@@ -45,7 +45,7 @@ class VTK_SLICER_WATCHDOG_MODULE_LOGIC_EXPORT vtkSlicerWatchdogLogic :
 public:
   static vtkSlicerWatchdogLogic *New();
   vtkTypeMacro(vtkSlicerWatchdogLogic, vtkSlicerModuleLogic);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   ///Every time the timer is reached this method updates the tools status and the elapsed time
   void UpdateAllWatchdogNodes(bool &watchedNodeBecomeUpToDateSound, bool &watchedNodeBecomeOutdatedSound);
@@ -66,11 +66,11 @@ protected:
   virtual ~vtkSlicerWatchdogLogic();
 
   /// Register MRML Node classes to Scene. Gets called automatically when the MRMLScene is attached to this logic class.
-  virtual void RegisterNodes();
+  virtual void RegisterNodes() override;
 
   /// Initialize listening to MRML events
-  virtual void SetMRMLSceneInternal(vtkMRMLScene * newScene);
-  virtual void OnMRMLSceneNodeAdded(vtkMRMLNode* node);
+  virtual void SetMRMLSceneInternal(vtkMRMLScene * newScene) override;
+  virtual void OnMRMLSceneNodeAdded(vtkMRMLNode* node) override;
 
 private:
   vtkSlicerWatchdogLogic(const vtkSlicerWatchdogLogic&); // Not implemented

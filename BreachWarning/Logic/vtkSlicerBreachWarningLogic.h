@@ -58,7 +58,7 @@ class VTK_SLICER_BREACHWARNING_MODULE_LOGIC_EXPORT vtkSlicerBreachWarningLogic :
 public:
   static vtkSlicerBreachWarningLogic *New();
   vtkTypeMacro(vtkSlicerBreachWarningLogic,vtkSlicerModuleLogic);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /// Changes the watched model node, making sure the original color of the previously selected model node is restored
   void SetWatchedModelNode( vtkMRMLModelNode* newModel, vtkMRMLBreachWarningNode* moduleNode );
@@ -80,7 +80,7 @@ public:
   double GetLineToClosestPointThickness(vtkMRMLBreachWarningNode* moduleNode);
   void SetLineToClosestPointThickness(double thickness, vtkMRMLBreachWarningNode* moduleNode);
 
-  void ProcessMRMLNodesEvents( vtkObject* caller, unsigned long event, void* callData );
+  void ProcessMRMLNodesEvents( vtkObject* caller, unsigned long event, void* callData ) override;
 
   /// Returns true if a warning sound has to be played
   vtkGetMacro(WarningSoundPlaying, bool);
@@ -90,12 +90,12 @@ protected:
   vtkSlicerBreachWarningLogic();
   virtual ~vtkSlicerBreachWarningLogic();
 
-  virtual void SetMRMLSceneInternal(vtkMRMLScene * newScene);
+  virtual void SetMRMLSceneInternal(vtkMRMLScene * newScene) override;
   /// Register MRML Node classes to Scene. Gets called automatically when the MRMLScene is attached to this logic class.
-  virtual void RegisterNodes();
+  virtual void RegisterNodes() override;
   
-  virtual void OnMRMLSceneNodeAdded(vtkMRMLNode* node);
-  virtual void OnMRMLSceneNodeRemoved(vtkMRMLNode* node);
+  virtual void OnMRMLSceneNodeAdded(vtkMRMLNode* node) override;
+  virtual void OnMRMLSceneNodeRemoved(vtkMRMLNode* node) override;
 
   void UpdateToolState( vtkMRMLBreachWarningNode* bwNode );
   void UpdateModelColor( vtkMRMLBreachWarningNode* bwNode );

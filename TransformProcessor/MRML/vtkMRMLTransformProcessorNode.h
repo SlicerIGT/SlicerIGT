@@ -91,13 +91,13 @@ public:
 
   static vtkMRMLTransformProcessorNode *New();
   vtkTypeMacro( vtkMRMLTransformProcessorNode, vtkMRMLNode );
-  void PrintSelf( ostream& os, vtkIndent indent );
+  void PrintSelf( ostream& os, vtkIndent indent ) override;
 
-  virtual vtkMRMLNode* CreateNodeInstance();
-  virtual void ReadXMLAttributes( const char** atts );
-  virtual void WriteXML( ostream& of, int indent );
-  virtual void Copy( vtkMRMLNode *node );
-  virtual const char* GetNodeTagName() { return "TransformProcessorParameters"; };
+  virtual vtkMRMLNode* CreateNodeInstance() override;
+  virtual void ReadXMLAttributes( const char** atts ) override;
+  virtual void WriteXML( ostream& of, int indent ) override;
+  virtual void Copy( vtkMRMLNode *node ) override;
+  virtual const char* GetNodeTagName() override { return "TransformProcessorParameters"; };
 
   // begin accessors and mutators
   vtkMRMLLinearTransformNode* GetNthInputCombineTransformNode( int n );
@@ -129,7 +129,7 @@ public:
   vtkMRMLLinearTransformNode* GetOutputTransformNode();
   void SetAndObserveOutputTransformNode( vtkMRMLLinearTransformNode* node );
   
-  void ProcessMRMLEvents( vtkObject* caller, unsigned long event, void* callData );
+  void ProcessMRMLEvents( vtkObject* caller, unsigned long event, void* callData ) override;
 
   vtkGetMacro( ProcessingMode, int );
   void SetProcessingMode( int );

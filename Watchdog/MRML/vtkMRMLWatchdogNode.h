@@ -34,28 +34,28 @@ class VTK_SLICER_WATCHDOG_MODULE_MRML_EXPORT vtkMRMLWatchdogNode : public vtkMRM
 public:
   static vtkMRMLWatchdogNode* New();
   vtkTypeMacro(vtkMRMLWatchdogNode, vtkMRMLDisplayableNode);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //--------------------------------------------------------------------------
   /// MRMLNode methods
   //--------------------------------------------------------------------------
 
-  virtual vtkMRMLNode* CreateNodeInstance();
+  virtual vtkMRMLNode* CreateNodeInstance() override;
 
   /// Get node XML tag name
-  virtual const char* GetNodeTagName() { return "Watchdog"; };
+  virtual const char* GetNodeTagName() override { return "Watchdog"; };
 
   /// Read node attributes from XML file
-  virtual void ReadXMLAttributes( const char** atts);
+  virtual void ReadXMLAttributes( const char** atts) override;
 
   /// Write this node's information to a MRML file in XML format.
-  virtual void WriteXML(ostream& of, int indent);
+  virtual void WriteXML(ostream& of, int indent) override;
 
   /// Copy the node's attributes to this object
-  virtual void Copy(vtkMRMLNode *node);
+  virtual void Copy(vtkMRMLNode *node) override;
 
   /// Create and observe default vtkMRMLWatchdogDisplayNode display node
-  virtual void CreateDefaultDisplayNodes();
+  virtual void CreateDefaultDisplayNodes() override;
 
   //--------------------------------------------------------------------------
   /// Watchdog-specific methods
@@ -104,7 +104,7 @@ public:
   vtkMRMLNode* GetWatchedNode(int watchedNodeIndex);
 
   /// Get notification about updates of watched nodes
-  virtual void ProcessMRMLEvents ( vtkObject * caller, unsigned long event, void * callData );
+  virtual void ProcessMRMLEvents ( vtkObject * caller, unsigned long event, void * callData ) override;
 
   /// Updates the up-to-date status of all watched nodes.
   /// If any of the statuses change then a Modified event is invoked.
@@ -119,7 +119,7 @@ protected:
 
   ///
   /// Called after a node reference ID is removed (list size decreased).
-  virtual void OnNodeReferenceRemoved(vtkMRMLNodeReference *reference);
+  virtual void OnNodeReferenceRemoved(vtkMRMLNodeReference *reference) override;
 
   // Constructor/destructor methods
   vtkMRMLWatchdogNode();

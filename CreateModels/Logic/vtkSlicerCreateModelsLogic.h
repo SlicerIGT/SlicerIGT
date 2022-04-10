@@ -40,7 +40,7 @@ public:
 
   static vtkSlicerCreateModelsLogic *New();
   vtkTypeMacro(vtkSlicerCreateModelsLogic, vtkSlicerModuleLogic);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   // If modelNodeToUpdate is specified then instead of creating a new node, the existing node will be updated
   vtkMRMLModelNode* CreateNeedle( double length, double radius, double tipRadius, bool markers, vtkMRMLModelNode* modelNodeToUpdate = NULL );

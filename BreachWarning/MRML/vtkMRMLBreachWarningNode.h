@@ -54,12 +54,12 @@ public:
 
   static vtkMRMLBreachWarningNode *New();
 
-  virtual vtkMRMLNode* CreateNodeInstance();
-  virtual const char* GetNodeTagName() { return "BreachWarning"; };
-  void PrintSelf( ostream& os, vtkIndent indent );
-  virtual void ReadXMLAttributes( const char** atts );
-  virtual void WriteXML( ostream& of, int indent );
-  virtual void Copy( vtkMRMLNode *node );
+  virtual vtkMRMLNode* CreateNodeInstance() override;
+  virtual const char* GetNodeTagName() override { return "BreachWarning"; };
+  void PrintSelf( ostream& os, vtkIndent indent ) override;
+  virtual void ReadXMLAttributes( const char** atts ) override;
+  virtual void WriteXML( ostream& of, int indent ) override;
+  virtual void Copy( vtkMRMLNode *node ) override;
   
 protected:
 
@@ -125,7 +125,7 @@ public:
   const char* GetLineToClosestPointNodeID();
   void SetLineToClosestPointNodeID( const char* lineToClosestPointNodeId );
   
-  void ProcessMRMLEvents( vtkObject *caller, unsigned long event, void *callData );
+  void ProcessMRMLEvents( vtkObject *caller, unsigned long event, void *callData ) override;
 
 private:
 
