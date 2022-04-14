@@ -114,13 +114,11 @@ void qSlicerPivotCalibrationModuleWidget::initializeObserver(vtkMRMLNode* node)
   d->logic()->SetAndObserveTransformNode( transformNode );
 }
 
-
 //-----------------------------------------------------------------------------
 void qSlicerPivotCalibrationModuleWidget::setup()
 {
   Q_D(qSlicerPivotCalibrationModuleWidget);
   d->setupUi(this);
-
 
   this->Superclass::setup();
 
@@ -200,11 +198,9 @@ void qSlicerPivotCalibrationModuleWidget::onPivotSamplingTimeout()
 {
   Q_D(qSlicerPivotCalibrationModuleWidget);
 
-  std::stringstream ss;
-
-  //std::cout<<this->samplingCount<<std::endl;
-
   --this->pivotSamplingRemainingTimerPeriodCount;
+
+  std::stringstream ss;
   ss << "Sampling time left: " << this->pivotSamplingRemainingTimerPeriodCount;
   d->CountdownLabel->setText(ss.str().c_str());
 
@@ -247,11 +243,9 @@ void qSlicerPivotCalibrationModuleWidget::onSpinSamplingTimeout()
 {
   Q_D(qSlicerPivotCalibrationModuleWidget);
 
-  std::stringstream ss;
-
-  //std::cout<<this->samplingCount<<std::endl;
-
   --this->spinSamplingRemainingTimerPeriodCount;
+
+  std::stringstream ss;
   ss << "Sampling time left: " << this->spinSamplingRemainingTimerPeriodCount;
   d->CountdownLabel->setText(ss.str().c_str());
 
@@ -320,15 +314,24 @@ void qSlicerPivotCalibrationModuleWidget::onSpinStop()
   d->logic()->SetToolTipToToolMatrix( outputMatrix ); // Sync logic's matrix with the scene's matrix
 
   d->logic()->SetRecordingState(false);
-  d->logic()->ComputeSpinCalibration( d->snapCheckBox->checkState() == Qt::Checked );
 
-  d->logic()->GetToolTipToToolMatrix( outputMatrix );
-  outputTransform->SetMatrixTransformToParent(outputMatrix);
+  if (d->logic()->ComputeSpinCalibration(d->snapCheckBox->checkState() == Qt::Checked))
+  {
+    d->logic()->GetToolTipToToolMatrix(outputMatrix);
+    outputTransform->SetMatrixTransformToParent(outputMatrix);
 
-  // Set the rmse label for the circle fitting rms error
-  std::stringstream ss;
-  ss << d->logic()->GetSpinRMSE();
-  d->rmseLabel->setText(ss.str().c_str());
+    // Set the rmse label for the circle fitting rms error
+    std::stringstream ss;
+    ss << d->logic()->GetSpinRMSE();
+    d->rmseLabel->setText(ss.str().c_str());
+  }
+  else
+  {
+    qWarning() << "qSlicerPivotCalibrationModuleWidget::onSpinStop failed: ComputeSpinCalibration returned with error: " << d->logic()->GetErrorText().c_str();
+    std::string fullMessage = std::string("Spin calibration failed: ") + d->logic()->GetErrorText();
+    d->CountdownLabel->setText(fullMessage.c_str());
+    d->rmseLabel->setText("N/A");
+  }
 
   d->logic()->ClearToolToReferenceMatrices();
 }
