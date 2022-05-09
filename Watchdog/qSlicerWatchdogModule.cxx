@@ -42,7 +42,7 @@
 static const double UPDATE_WATCHDOG_NODES_PERIOD_SEC = 0.2;
 
 // DisplayableManager initialization
-#if Slicer_VERSION_MAJOR == 4 && Slicer_VERSION_MINOR >= 9
+#if Slicer_VERSION_MAJOR >= 5 || (Slicer_VERSION_MAJOR == 4 && Slicer_VERSION_MINOR >= 9)
 #include <vtkAutoInit.h>
 VTK_MODULE_INIT(vtkSlicerWatchdogModuleMRMLDisplayableManager)
 #endif
