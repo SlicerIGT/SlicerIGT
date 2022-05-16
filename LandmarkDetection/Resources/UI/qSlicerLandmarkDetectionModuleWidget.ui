@@ -1,0 +1,400 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>qSlicerLandmarkDetectionModuleWidget</class>
+ <widget class="qSlicerWidget" name="qSlicerLandmarkDetectionModuleWidget">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>325</width>
+    <height>428</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <layout class="QFormLayout" name="formLayout_3">
+     <item row="0" column="0">
+      <widget class="QLabel" name="label_11">
+       <property name="text">
+        <string>Parameter node:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <widget class="qMRMLNodeComboBox" name="parameterNodeSelector">
+       <property name="nodeTypes">
+        <stringlist>
+         <string>vtkMRMLLandmarkDetectionNode</string>
+        </stringlist>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <widget class="ctkCollapsibleButton" name="CollapsibleButton">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="text">
+      <string>IO</string>
+     </property>
+     <layout class="QFormLayout" name="formLayout_2">
+      <item row="0" column="0">
+       <widget class="QLabel" name="label">
+        <property name="text">
+         <string>Stylus tip transform:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="qMRMLNodeComboBox" name="stylusTipNodeSelector">
+        <property name="nodeTypes">
+         <stringlist>
+          <string>vtkMRMLTransformNode</string>
+         </stringlist>
+        </property>
+        <property name="noneEnabled">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="qMRMLNodeComboBox" name="landmarksNodeSelector">
+        <property name="nodeTypes">
+         <stringlist>
+          <string>vtkMRMLMarkupsFiducialNode</string>
+         </stringlist>
+        </property>
+        <property name="noneEnabled">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1">
+       <widget class="qMRMLNodeComboBox" name="referenceNodeSelector">
+        <property name="nodeTypes">
+         <stringlist>
+          <string>vtkMRMLTransformNode</string>
+         </stringlist>
+        </property>
+        <property name="noneEnabled">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0">
+       <widget class="QLabel" name="label_3">
+        <property name="text">
+         <string>Output coordinate transform:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="label_4">
+        <property name="text">
+         <string>Use markups output coordinates:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="label_2">
+        <property name="text">
+         <string>Output landmarks (optional):</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QCheckBox" name="useMarkupsReferenceCheckBox">
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="ctkCollapsibleButton" name="CollapsibleButton_2">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="text">
+      <string>Parameters</string>
+     </property>
+     <layout class="QFormLayout" name="formLayout">
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_5">
+        <property name="text">
+         <string>Acquisition Rate (Hz):</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="label_6">
+        <property name="text">
+         <string>Filter window time (s):</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="label_7">
+        <property name="text">
+         <string>Detection time(s):</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0">
+       <widget class="QLabel" name="label_8">
+        <property name="text">
+         <string>Stylus shaft minimum displacement (mm):</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="0">
+       <widget class="QLabel" name="label_9">
+        <property name="text">
+         <string>Stylus tip maximum displacement (mm):</string>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="0">
+       <widget class="QLabel" name="label_10">
+        <property name="text">
+         <string>Minimum landmark distance (mm):</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="ctkDoubleSpinBox" name="acquisitionRateDoubleSpinBox">
+        <property name="decimals">
+         <number>1</number>
+        </property>
+        <property name="maximum">
+         <double>999.990000000000009</double>
+        </property>
+        <property name="value">
+         <double>20.000000000000000</double>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="ctkDoubleSpinBox" name="filterWindowDoubleSpinBox">
+        <property name="decimals">
+         <number>1</number>
+        </property>
+        <property name="maximum">
+         <double>999.990000000000009</double>
+        </property>
+        <property name="singleStep">
+         <double>0.100000000000000</double>
+        </property>
+        <property name="value">
+         <double>0.200000000000000</double>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="ctkDoubleSpinBox" name="detectionTimeDoubleSpinBox">
+        <property name="decimals">
+         <number>1</number>
+        </property>
+        <property name="maximum">
+         <double>999.990000000000009</double>
+        </property>
+        <property name="singleStep">
+         <double>0.100000000000000</double>
+        </property>
+        <property name="value">
+         <double>1.000000000000000</double>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1">
+       <widget class="ctkDoubleSpinBox" name="shaftMinimumDisplacementDoubleSpinBox">
+        <property name="decimals">
+         <number>1</number>
+        </property>
+        <property name="maximum">
+         <double>999.990000000000009</double>
+        </property>
+        <property name="value">
+         <double>30.000000000000000</double>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="1">
+       <widget class="ctkDoubleSpinBox" name="tipMaximumDisplacementDoubleSpinBox">
+        <property name="decimals">
+         <number>1</number>
+        </property>
+        <property name="maximum">
+         <double>999.990000000000009</double>
+        </property>
+        <property name="singleStep">
+         <double>0.100000000000000</double>
+        </property>
+        <property name="value">
+         <double>1.500000000000000</double>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="1">
+       <widget class="ctkDoubleSpinBox" name="minimumLandmarkDistanceDoubleSpinBox">
+        <property name="decimals">
+         <number>1</number>
+        </property>
+        <property name="maximum">
+         <double>999.000000000000000</double>
+        </property>
+        <property name="value">
+         <double>15.000000000000000</double>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QPushButton" name="startStopButton">
+     <property name="text">
+      <string>Start</string>
+     </property>
+     <property name="checkable">
+      <bool>false</bool>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <spacer name="verticalSpacer">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>40</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>qMRMLNodeComboBox</class>
+   <extends>QWidget</extends>
+   <header>qMRMLNodeComboBox.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>qSlicerWidget</class>
+   <extends>QWidget</extends>
+   <header>qSlicerWidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>ctkCollapsibleButton</class>
+   <extends>QWidget</extends>
+   <header>ctkCollapsibleButton.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>ctkDoubleSpinBox</class>
+   <extends>QWidget</extends>
+   <header>ctkDoubleSpinBox.h</header>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>qSlicerLandmarkDetectionModuleWidget</sender>
+   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+   <receiver>stylusTipNodeSelector</receiver>
+   <slot>setMRMLScene(vtkMRMLScene*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>160</x>
+     <y>213</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>257</x>
+     <y>50</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>qSlicerLandmarkDetectionModuleWidget</sender>
+   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+   <receiver>landmarksNodeSelector</receiver>
+   <slot>setMRMLScene(vtkMRMLScene*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>160</x>
+     <y>213</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>257</x>
+     <y>76</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>qSlicerLandmarkDetectionModuleWidget</sender>
+   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+   <receiver>referenceNodeSelector</receiver>
+   <slot>setMRMLScene(vtkMRMLScene*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>160</x>
+     <y>213</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>257</x>
+     <y>121</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>useMarkupsReferenceCheckBox</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>referenceNodeSelector</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>257</x>
+     <y>99</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>257</x>
+     <y>121</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>qSlicerLandmarkDetectionModuleWidget</sender>
+   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+   <receiver>parameterNodeSelector</receiver>
+   <slot>setMRMLScene(vtkMRMLScene*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>160</x>
+     <y>213</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>203</x>
+     <y>19</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>
