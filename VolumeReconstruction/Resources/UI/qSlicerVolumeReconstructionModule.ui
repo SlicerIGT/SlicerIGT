@@ -1,0 +1,723 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>qSlicerVolumeReconstructionModule</class>
+ <widget class="qSlicerWidget" name="qSlicerVolumeReconstructionModule">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>410</width>
+    <height>688</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <layout class="QVBoxLayout" name="LayoutWindow">
+   <item>
+    <widget class="ctkCollapsibleButton" name="CollapsibleButton">
+     <property name="text">
+      <string>Volume reconstruction</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_4">
+      <item>
+       <layout class="QFormLayout" name="formLayout">
+        <item row="0" column="0">
+         <widget class="QLabel" name="label_4">
+          <property name="text">
+           <string>Volume reconstruction node:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="qMRMLNodeComboBox" name="VolumeReconstructionSelector">
+          <property name="nodeTypes">
+           <stringlist>
+            <string>vtkMRMLVolumeReconstructionNode</string>
+           </stringlist>
+          </property>
+          <property name="noneEnabled">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QWidget" name="ParameterWidget" native="true">
+     <layout class="QVBoxLayout" name="verticalLayout_3">
+      <property name="leftMargin">
+       <number>0</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="rightMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
+      <item>
+       <layout class="QFormLayout" name="LayoutParameters">
+        <property name="fieldGrowthPolicy">
+         <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+        </property>
+        <property name="labelAlignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
+        <property name="formAlignment">
+         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+        </property>
+        <item row="1" column="0">
+         <widget class="QLabel" name="LabelInput">
+          <property name="toolTip">
+           <string>Input sequence browser containing the images and transforms used for volume reconstruction</string>
+          </property>
+          <property name="text">
+           <string>Input sequence browser:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="0">
+         <widget class="QLabel" name="LabelOutputVolume">
+          <property name="toolTip">
+           <string>Output reconstructed volume node</string>
+          </property>
+          <property name="text">
+           <string>Output volume node:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="1">
+         <widget class="qMRMLNodeComboBox" name="OutputVolumeSelector">
+          <property name="toolTip">
+           <string>Output reconstructed volume node</string>
+          </property>
+          <property name="nodeTypes">
+           <stringlist>
+            <string>vtkMRMLScalarVolumeNode</string>
+           </stringlist>
+          </property>
+          <property name="noneEnabled">
+           <bool>true</bool>
+          </property>
+          <property name="renameEnabled">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="5" column="0">
+         <widget class="QLabel" name="LabelROINode">
+          <property name="toolTip">
+           <string>Region of interest in which the volume should be reconstructed.</string>
+          </property>
+          <property name="text">
+           <string>ROI node:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="5" column="1">
+         <layout class="QHBoxLayout" name="ROILayout">
+          <item>
+           <widget class="qMRMLNodeComboBox" name="InputROISelector">
+            <property name="toolTip">
+             <string>Region of interest in which the volume should be reconstructed.</string>
+            </property>
+            <property name="nodeTypes">
+             <stringlist>
+              <string>vtkMRMLAnnotationROINode</string>
+              <string>vtkMRMLMarkupsROINode</string>
+             </stringlist>
+            </property>
+            <property name="noneEnabled">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="ROIVisibilityButton">
+            <property name="toolTip">
+             <string>ROI node visibility</string>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="icon">
+             <iconset resource="../qSlicerVolumeReconstructionModule.qrc">
+              <normaloff>:/Icons/VisibleOff.png</normaloff>
+              <normalon>:/Icons/VisibleOn.png</normalon>:/Icons/VisibleOff.png</iconset>
+            </property>
+            <property name="checkable">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item row="6" column="0">
+         <widget class="QLabel" name="LabelOutputSpacing">
+          <property name="toolTip">
+           <string>Output image spacing for each dimension of the reconstructed volume.</string>
+          </property>
+          <property name="text">
+           <string>Output spacing:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="6" column="1">
+         <layout class="QHBoxLayout" name="LayoutOutputSpacing">
+          <item>
+           <widget class="QDoubleSpinBox" name="XSpacingSpinbox">
+            <property name="toolTip">
+             <string>Output image spacing for &quot;I&quot; dimension of the reconstructed volume</string>
+            </property>
+            <property name="minimum">
+             <double>0.000000000000000</double>
+            </property>
+            <property name="maximum">
+             <double>1000000.000000000000000</double>
+            </property>
+            <property name="value">
+             <double>1.000000000000000</double>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QDoubleSpinBox" name="YSpacingSpinbox">
+            <property name="toolTip">
+             <string>Output image spacing for &quot;J&quot; dimension of the reconstructed volume</string>
+            </property>
+            <property name="minimum">
+             <double>0.000000000000000</double>
+            </property>
+            <property name="maximum">
+             <double>1000000.000000000000000</double>
+            </property>
+            <property name="value">
+             <double>1.000000000000000</double>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QDoubleSpinBox" name="ZSpacingSpinbox">
+            <property name="toolTip">
+             <string>Output image spacing for &quot;K&quot; dimension of the reconstructed volume</string>
+            </property>
+            <property name="minimum">
+             <double>0.000000000000000</double>
+            </property>
+            <property name="maximum">
+             <double>1000000.000000000000000</double>
+            </property>
+            <property name="value">
+             <double>1.000000000000000</double>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item row="7" column="0">
+         <widget class="QLabel" name="LabelInterpolationMode">
+          <property name="toolTip">
+           <string>Interpolation mode used for performing the volume reconstruction</string>
+          </property>
+          <property name="text">
+           <string>Interpolation mode:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="7" column="1">
+         <widget class="QComboBox" name="InterpolationModeComboBox">
+          <property name="toolTip">
+           <string>Interpolation mode used for performing the volume reconstruction</string>
+          </property>
+         </widget>
+        </item>
+        <item row="8" column="0">
+         <widget class="QLabel" name="LabelOptimizationMode">
+          <property name="toolTip">
+           <string>Optimization mode (turn off optimization only if it is not stable on your architecture).</string>
+          </property>
+          <property name="text">
+           <string>Optimization mode:</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item row="8" column="1">
+         <widget class="QComboBox" name="OptimizationModeComboBox">
+          <property name="toolTip">
+           <string>Optimization mode (turn off optimization only if it is not stable on your architecture)</string>
+          </property>
+         </widget>
+        </item>
+        <item row="9" column="0">
+         <widget class="QLabel" name="LabelCompoundingMode">
+          <property name="toolTip">
+           <string>Method for compounding overlapping input pixels</string>
+          </property>
+          <property name="text">
+           <string>Compounding mode:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="9" column="1">
+         <widget class="QComboBox" name="CompoundingModeComboBox">
+          <property name="toolTip">
+           <string>Method for compounding overlapping input pixels</string>
+          </property>
+         </widget>
+        </item>
+        <item row="10" column="0">
+         <widget class="QLabel" name="LabelFillHoles">
+          <property name="toolTip">
+           <string>Indicates if hole filling should be applied on reconstructed volume</string>
+          </property>
+          <property name="text">
+           <string>Fill holes:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="10" column="1">
+         <widget class="QCheckBox" name="FillHolesCheckBox">
+          <property name="toolTip">
+           <string>Indicates if hole filling should be applied on reconstructed volume</string>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+        <item row="11" column="0">
+         <widget class="QLabel" name="LabelNumberOfThreads">
+          <property name="toolTip">
+           <string>Number of threads used for processing the data (Choose 0 for maximum speed). The reconstruction result is slightly different if more than one thread is used because due to interpolation and rounding errors is influenced by the order the pixels are processed.</string>
+          </property>
+          <property name="text">
+           <string>Number of threads:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="11" column="1">
+         <widget class="QSpinBox" name="NumberOfThreadsSpinBox">
+          <property name="toolTip">
+           <string>Number of threads used for processing the data (Choose 0 for maximum speed). The reconstruction result is slightly different if more than one thread is used because due to interpolation and rounding errors is influenced by the order the pixels are processed.</string>
+          </property>
+          <property name="value">
+           <number>0</number>
+          </property>
+         </widget>
+        </item>
+        <item row="12" column="0">
+         <widget class="QLabel" name="LabelSkipInterval">
+          <property name="toolTip">
+           <string>Only every N images from the input will be used in the reconstruction</string>
+          </property>
+          <property name="text">
+           <string>Skip interval:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="12" column="1">
+         <widget class="QSpinBox" name="SkipIntervalSpinbox">
+          <property name="toolTip">
+           <string>Only every N images from the input will be used in the reconstruction</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="0">
+         <widget class="QLabel" name="label_2">
+          <property name="text">
+           <string>Live update interval:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="1">
+         <widget class="ctkDoubleSpinBox" name="LiveUpdateIntervalSpinBox">
+          <property name="prefix">
+           <string/>
+          </property>
+          <property name="suffix">
+           <string>s</string>
+          </property>
+          <property name="maximum">
+           <double>99999999.000000000000000</double>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QLabel" name="label_3">
+          <property name="text">
+           <string>Input volume node:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="1">
+         <widget class="qMRMLNodeComboBox" name="InputVolumeSelector">
+          <property name="nodeTypes">
+           <stringlist>
+            <string>vtkMRMLVolumeNode</string>
+           </stringlist>
+          </property>
+          <property name="addEnabled">
+           <bool>false</bool>
+          </property>
+          <property name="removeEnabled">
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="qMRMLNodeComboBox" name="InputSequenceBrowserSelector">
+          <property name="toolTip">
+           <string>Input sequence browser containing the images and transforms used for volume reconstruction</string>
+          </property>
+          <property name="nodeTypes">
+           <stringlist>
+            <string>vtkMRMLSequenceBrowserNode</string>
+           </stringlist>
+          </property>
+          <property name="addEnabled">
+           <bool>false</bool>
+          </property>
+          <property name="removeEnabled">
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="0">
+         <widget class="QLabel" name="label">
+          <property name="text">
+           <string>Input method:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <layout class="QVBoxLayout" name="verticalLayout_2">
+          <item>
+           <widget class="QRadioButton" name="RecordedReconstructionRadioButton">
+            <property name="text">
+             <string>Recorded sequence reconstruction</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="LiveReconstructionRadioButton">
+            <property name="text">
+             <string>Live volume reconstruction</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <widget class="ctkCollapsibleButton" name="CollapsibleButtonClipping">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="text">
+         <string>Clipping</string>
+        </property>
+        <property name="collapsed">
+         <bool>false</bool>
+        </property>
+        <layout class="QFormLayout" name="formLayout_2">
+         <item row="0" column="0">
+          <widget class="QLabel" name="LabelClipRectangleOrigin">
+           <property name="toolTip">
+            <string> Crop rectangle origin (in pixels).</string>
+           </property>
+           <property name="text">
+            <string>Clip rectangle origin:</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <layout class="QHBoxLayout" name="LayoutClipRectangleOrigin">
+           <item>
+            <widget class="QSpinBox" name="XClipRectangleOriginSpinBox">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+             <property name="toolTip">
+              <string> Crop rectangle origin X component (in pixels).</string>
+             </property>
+             <property name="minimum">
+              <number>-999999999</number>
+             </property>
+             <property name="maximum">
+              <number>1000000000</number>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QSpinBox" name="YClipRectangleOriginSpinBox">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+             <property name="toolTip">
+              <string> Crop rectangle origin Y component(in pixels).</string>
+             </property>
+             <property name="minimum">
+              <number>-999999999</number>
+             </property>
+             <property name="maximum">
+              <number>1000000000</number>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item row="1" column="0">
+          <widget class="QLabel" name="LabelClipRectangleSize">
+           <property name="toolTip">
+            <string>Crop rectangle size (in pixels).</string>
+           </property>
+           <property name="text">
+            <string>Clip rectangle size:</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <layout class="QHBoxLayout" name="LayoutClipRectangleSize">
+           <item>
+            <widget class="QSpinBox" name="XClipRectangleSizeSpinBox">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+             <property name="toolTip">
+              <string>Crop rectangle size X component (in pixels).</string>
+             </property>
+             <property name="maximum">
+              <number>1000000000</number>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QSpinBox" name="YClipRectangleSizeSpinBox">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+             <property name="toolTip">
+              <string>Crop rectangle size Y component (in pixels).</string>
+             </property>
+             <property name="maximum">
+              <number>1000000000</number>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="ctkCollapsibleButton" name="CollapsibleButtonFanAngles">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="text">
+         <string>Fan angles</string>
+        </property>
+        <layout class="QFormLayout" name="formLayout_4">
+         <item row="1" column="0">
+          <widget class="QLabel" name="LabelFanAngle">
+           <property name="toolTip">
+            <string>Only the region within  the two fan angles will be reconstructed</string>
+           </property>
+           <property name="text">
+            <string>Fan angle:</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <layout class="QHBoxLayout" name="LayoutFanAngles">
+           <item>
+            <widget class="QSpinBox" name="MinFanAngleSpinbox">
+             <property name="toolTip">
+              <string>First fan angle used for clipping. Only the region within  the two fan angles will be reconstructed</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QSpinBox" name="MaxFanAngleSpinbox">
+             <property name="toolTip">
+              <string>Second fan angle used for clipping. Only the region within  the two fan angles will be reconstructed</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+        </layout>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <layout class="QVBoxLayout" name="ButtonLayout">
+     <property name="sizeConstraint">
+      <enum>QLayout::SetFixedSize</enum>
+     </property>
+     <item>
+      <widget class="QPushButton" name="ResetButton">
+       <property name="text">
+        <string>Reset</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="ApplyButton">
+       <property name="text">
+        <string>Apply</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <spacer name="verticalSpacer">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>40</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>qMRMLNodeComboBox</class>
+   <extends>QWidget</extends>
+   <header>qMRMLNodeComboBox.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>qSlicerWidget</class>
+   <extends>QWidget</extends>
+   <header>qSlicerWidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>ctkCollapsibleButton</class>
+   <extends>QWidget</extends>
+   <header>ctkCollapsibleButton.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>ctkDoubleSpinBox</class>
+   <extends>QWidget</extends>
+   <header>ctkDoubleSpinBox.h</header>
+  </customwidget>
+ </customwidgets>
+ <resources>
+  <include location="../qSlicerVolumeReconstructionModule.qrc"/>
+ </resources>
+ <connections>
+  <connection>
+   <sender>qSlicerVolumeReconstructionModule</sender>
+   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+   <receiver>VolumeReconstructionSelector</receiver>
+   <slot>setMRMLScene(vtkMRMLScene*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>204</x>
+     <y>313</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>231</x>
+     <y>19</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>qSlicerVolumeReconstructionModule</sender>
+   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+   <receiver>InputSequenceBrowserSelector</receiver>
+   <slot>setMRMLScene(vtkMRMLScene*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>204</x>
+     <y>313</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>268</x>
+     <y>96</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>qSlicerVolumeReconstructionModule</sender>
+   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+   <receiver>InputVolumeSelector</receiver>
+   <slot>setMRMLScene(vtkMRMLScene*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>204</x>
+     <y>313</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>268</x>
+     <y>122</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>qSlicerVolumeReconstructionModule</sender>
+   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+   <receiver>OutputVolumeSelector</receiver>
+   <slot>setMRMLScene(vtkMRMLScene*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>204</x>
+     <y>313</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>268</x>
+     <y>174</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>qSlicerVolumeReconstructionModule</sender>
+   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+   <receiver>InputROISelector</receiver>
+   <slot>setMRMLScene(vtkMRMLScene*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>204</x>
+     <y>313</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>251</x>
+     <y>203</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>

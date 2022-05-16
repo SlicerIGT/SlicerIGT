@@ -1,0 +1,7 @@
+<!DOCTYPE RCC><RCC version="1.0">
+  <qresource>
+    <file>Icons/VolumeReconstruction.png</file>
+    <file>Icons/VisibleOn.png</file>
+    <file>Icons/VisibleOff.png</file>
+  </qresource>
+</RCC>

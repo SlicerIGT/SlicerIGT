@@ -38,6 +38,7 @@ add_subdirectory(TextureModel)
 add_subdirectory(TransformProcessor)
 add_subdirectory(UltrasoundSnapshots)
 add_subdirectory(VolumeResliceDriver)
+add_subdirectory(VolumeReconstruction)
 add_subdirectory(Viewpoint)
 add_subdirectory(Watchdog)
 ## NEXT_MODULE
