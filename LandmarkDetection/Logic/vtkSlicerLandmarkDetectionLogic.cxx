@@ -40,7 +40,7 @@
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSlicerLandmarkDetectionLogic);
 
-typedef std::map<vtkSmartPointer<vtkMRMLLandmarkDetectionNode>, vtkSmartPointer<vtkIGSIOLandmarkDetectionAlgo>> LandmarkDetectionMap;
+typedef std::map<vtkSmartPointer<vtkMRMLLandmarkDetectionNode>, vtkSmartPointer<vtkIGSIOLandmarkDetectionAlgo>> LandmarkDetectionAlgoMap;
 
 //----------------------------------------------------------------------------
 class vtkSlicerLandmarkDetectionLogic::vtkInternal
@@ -52,7 +52,7 @@ public:
   vtkSlicerLandmarkDetectionLogic* External;
   vtkIGSIOLandmarkDetectionAlgo* GetLandmarkDetectionAlgoFromNode(vtkMRMLLandmarkDetectionNode* landmarkDetectionNode);
 
-  LandmarkDetectionMap LandmarkDetectionMap;
+  LandmarkDetectionAlgoMap LandmarkDetectionMap;
 };
 
 //----------------------------------------------------------------------------
