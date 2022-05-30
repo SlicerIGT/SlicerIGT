@@ -1,13 +1,13 @@
-cmake_minimum_required(VERSION 2.8)
-
-if (DEFINED Slicer_EXTENSION_SOURCE_DIRS) # Custom build
-  find_package(vtkAddon REQUIRED)
-endif()
-
+#-----------------------------------------------------------------------------
 set(MODULE_NAME "VolumeReconstruction")
 set(MODULE_TITLE "Volume Reconstruction")
 
 string(TOUPPER ${MODULE_NAME} MODULE_NAME_UPPER)
+
+#-----------------------------------------------------------------------------
+if (DEFINED Slicer_EXTENSION_SOURCE_DIRS) # Custom build
+  find_package(vtkAddon REQUIRED)
+endif()
 
 #-----------------------------------------------------------------------------
 add_subdirectory(MRML)
