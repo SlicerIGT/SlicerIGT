@@ -8,7 +8,6 @@ set(${KIT}_INCLUDE_DIRECTORIES
   ${vtkSlicerSequencesModuleMRML_INCLUDE_DIRS}
   ${vtkSlicerAnnotationModuleMRML_INCLUDE_DIRS}
   ${VTKVOLUMERECONSTRUCTION_INCLUDE_DIRS}
-  ${SlicerIGSIOCommon_INCLUDE_DIRS}
   )
 
 set(${KIT}_SRCS
@@ -20,7 +19,6 @@ set(${KIT}_TARGET_LIBRARIES
   ${VTK_LIBRARIES}
   vtkSlicer${MODULE_NAME}ModuleMRML
   vtkSlicerMarkupsModuleMRML
-  vtkSlicerIGSIOCommon
   vtkVolumeReconstruction
   )
 

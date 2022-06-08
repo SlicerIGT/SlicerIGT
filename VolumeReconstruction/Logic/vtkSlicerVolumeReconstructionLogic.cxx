@@ -38,9 +38,6 @@ Care Ontario.
 #include <vtkIGSIOVolumeReconstructor.h>
 #include <vtkIGSIOFillHolesInVolume.h>
 
-// SlicerIGSIOCommon includes
-//#include "vtkSlicerIGSIOCommon.h"
-
 // vtkAddon includes
 #include <vtkStreamingVolumeCodecFactory.h>
 
