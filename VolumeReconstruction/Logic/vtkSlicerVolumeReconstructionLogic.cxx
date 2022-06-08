@@ -37,6 +37,7 @@ Care Ontario.
 // IGSIO VolumeReconstructor includes
 #include <vtkIGSIOVolumeReconstructor.h>
 #include <vtkIGSIOFillHolesInVolume.h>
+#include <vtkIGSIOPasteSliceIntoVolume.h>
 
 // vtkAddon includes
 #include <vtkStreamingVolumeCodecFactory.h>
@@ -59,8 +60,8 @@ vtkStandardNewMacro(vtkSlicerVolumeReconstructionLogic);
 
 struct ReconstructionInfo
 {
-  vtkSmartPointer<vtkIGSIOVolumeReconstructor> Reconstructor;
-  double LastUpdateTimeSeconds;
+  vtkSmartPointer<vtkIGSIOVolumeReconstructor> Reconstructor{nullptr};
+  double LastUpdateTimeSeconds{0.0};
 };
 
 typedef std::map<vtkMRMLVolumeReconstructionNode*, ReconstructionInfo> VolumeReconstuctorMap;
@@ -97,9 +98,7 @@ vtkSlicerVolumeReconstructionLogic::vtkInternal::~vtkInternal()
 
 //---------------------------------------------------------------------------
 vtkSlicerVolumeReconstructionLogic::vtkSlicerVolumeReconstructionLogic()
-  : NumberOfVolumeNodesForReconstructionInInput(0)
-  , VolumeNodesAddedToReconstruction(0)
-  , Internal(new vtkInternal(this))
+  : Internal(new vtkInternal(this))
 {
 }
 
@@ -743,6 +742,12 @@ vtkMRMLVolumeNode* vtkSlicerVolumeReconstructionLogic::GetOrAddOutputVolumeNode(
   volumeReconstructionNode->SetAndObserveOutputVolumeNode(outputVolumeNode);
   return outputVolumeNode;
 }
+
+//---------------------------------------------------------------------------
+bool vtkSlicerVolumeReconstructionLogic::IsGpuAccelerationSupported()
+{
+  return vtkIGSIOPasteSliceIntoVolume::IsGpuAccelerationSupported();
+};
 
 //---------------------------------------------------------------------------
 void vtkSlicerVolumeReconstructionLogic::PrintSelf(ostream& os, vtkIndent indent)
