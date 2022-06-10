@@ -90,7 +90,7 @@ qSlicerVolumeReconstructionModule::~qSlicerVolumeReconstructionModule()
 //-----------------------------------------------------------------------------
 QString qSlicerVolumeReconstructionModule::helpText()const
 {
-  return "This is a module for reconstructing image volumes from sequences. If you have questions, or encounter an problem, submit an issue on the <a href=\"https://github.com/IGSIO/SlicerIGSIO\">GitHub page</a>.";
+  return "This is a module for reconstructing image volumes from sequences. If you have questions, or encounter an problem, submit an issue on the <a href=\"https://github.com/SlicerIGT/SlicerIGT\">GitHub page</a>.";
 }
 
 //-----------------------------------------------------------------------------
