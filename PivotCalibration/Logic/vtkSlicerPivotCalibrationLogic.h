@@ -25,17 +25,11 @@
 
 // VTK includes
 #include <vtkMatrix4x4.h>
-#include <vtkMath.h>
 
 // MRML includes
 #include "vtkMRMLLinearTransformNode.h"
 
-// STD includes
-#include <cstdlib>
-
-// VNL includes
-#include "vnl/vnl_matrix.h"
-
+// Pivot calibration includes
 #include "vtkSlicerPivotCalibrationModuleLogicExport.h"
 
 
@@ -132,11 +126,24 @@ public:
   /// Flag that specifies if calibration should be automatically performed one the required number of poses has been reached.
   /// If enough poses have been gathered and the error is below the threshold, then PivotCalibrationCompleteEvent or SpinCalibrationCompleteEvent will be invoked.
   vtkGetMacro(PivotAutoCalibrationEnabled, bool);
-  vtkSetMacro(PivotAutoCalibrationEnabled, bool);
+  void SetPivotAutoCalibrationEnabled(bool);
   vtkBooleanMacro(PivotAutoCalibrationEnabled, bool);
   vtkGetMacro(SpinAutoCalibrationEnabled, bool);
-  vtkSetMacro(SpinAutoCalibrationEnabled, bool);
+  void SetSpinAutoCalibrationEnabled(bool);
   vtkBooleanMacro(SpinAutoCalibrationEnabled, bool);
+  //@}
+
+  //@{
+  /// Flag that specifies if calibration is enabled for the specified type.
+  /// If on, poses will be added to the calibration algorithm as the transform is modified.
+  /// If off, poses will not be added to the calibration algorithm.
+  /// Option is on by default.
+  vtkGetMacro(PivotCalibrationEnabled, bool);
+  vtkSetMacro(PivotCalibrationEnabled, bool);
+  vtkBooleanMacro(PivotCalibrationEnabled, bool);
+  vtkGetMacro(SpinCalibrationEnabled, bool);
+  vtkSetMacro(SpinCalibrationEnabled, bool);
+  vtkBooleanMacro(SpinCalibrationEnabled, bool);
   //@}
 
   //@{
@@ -161,9 +168,9 @@ public:
   //@{
   /// The desired target error threshold for automatic calibration.
   vtkGetMacro(PivotAutoCalibrationTargetError, double);
-  vtkSetMacro(PivotAutoCalibrationTargetError, double);
+  void SetPivotAutoCalibrationTargetError(double);
   vtkGetMacro(SpinAutoCalibrationTargetError, double);
-  vtkSetMacro(SpinAutoCalibrationTargetError, double);
+  void SetSpinAutoCalibrationTargetError(double);
   //@}
 
   //@{
@@ -226,9 +233,7 @@ protected:
   vtkSlicerPivotCalibrationLogic();
   virtual ~vtkSlicerPivotCalibrationLogic();
 
-  void ProcessMRMLNodesEvents( vtkObject* caller, unsigned long event, void* callData ) override;
-
-  static void ProcessPivotCalibrationAlgorithmEvents(vtkObject* caller, unsigned long event, void* clientData, void* callData);
+  void ProcessMRMLNodesEvents(vtkObject* caller, unsigned long event, void* callData) override;
 
   vtkSetMacro(PivotRMSE, double);
   vtkSetMacro(SpinRMSE, double);
@@ -242,24 +247,30 @@ private:
   void operator=(const vtkSlicerPivotCalibrationLogic&);               // Not implemented
 
   // Calibration inputs
-  vtkMRMLLinearTransformNode* ObservedTransformNode{nullptr};
-  bool RecordingState{false};
+  vtkMRMLLinearTransformNode* ObservedTransformNode{ nullptr };
+  bool RecordingState{ false };
 
   // Calibration results
   vtkMatrix4x4* ToolTipToToolMatrix;
-  double PivotRMSE;
-  double SpinRMSE;
+  double PivotRMSE{ -1.0 };
+  double SpinRMSE{ -1.0 };
   std::string ErrorText;
 
-  double PivotAutoCalibrationTargetError{ 3.0 };
-  int    PivotAutoCalibrationTargetNumberOfPoints{ 50 };
-  bool   PivotAutoCalibrationStopWhenComplete{ false };
-  bool   PivotAutoCalibrationEnabled{ false };
+  // Pivot/spin enabled flags
+  bool   PivotCalibrationEnabled{ true };
+  bool   SpinCalibrationEnabled{ true };
 
-  double SpinAutoCalibrationTargetError{ 3.0 };
-  int    SpinAutoCalibrationTargetNumberOfPoints{ 50 };
-  bool   SpinAutoCalibrationStopWhenComplete{ false };
+  // Pivot auto-calibration settings
+  bool   PivotAutoCalibrationEnabled{ false };
+  double PivotAutoCalibrationTargetError{ 3.0 };
+  int    PivotAutoCalibrationTargetNumberOfPoints{ 100 };
+  bool   PivotAutoCalibrationStopWhenComplete{ false };
+
+  // Spin auto-calibration settings
   bool   SpinAutoCalibrationEnabled{ false };
+  double SpinAutoCalibrationTargetError{ 0.01 };
+  int    SpinAutoCalibrationTargetNumberOfPoints{ 100 };
+  bool   SpinAutoCalibrationStopWhenComplete{ false };
 };
 
 #endif

@@ -39,9 +39,9 @@ class Q_SLICER_QTMODULES_PIVOTCALIBRATION_EXPORT qSlicerPivotCalibrationModuleWi
 
 public:
   typedef qSlicerAbstractModuleWidget Superclass;
-  qSlicerPivotCalibrationModuleWidget(QWidget *parent=0);
+  qSlicerPivotCalibrationModuleWidget(QWidget* parent = 0);
   virtual ~qSlicerPivotCalibrationModuleWidget();
-  
+
   virtual void enter();
 
 protected slots:
@@ -52,35 +52,43 @@ protected slots:
   void onSpinStop();
 
   void onFlipButtonClicked();
-  
+
   void setStartupDurationSec(double);
   void setSamplingDurationSec(double);
-  
+
   void onPivotStartupTimeout();
   void onPivotSamplingTimeout();
   void onSpinStartupTimeout();
   void onSpinSamplingTimeout();
-  
+
+  void updateLogicFromWidget();
+  void updateWidgetFromLogic();
+
+  void onPivotResetButtonClicked();
+  void onSpinResetButtonClicked();
+
+  void onPivotAutoCalibrationComplete();
+  void onSpinAutoCalibrationComplete();
+
 protected:
   QScopedPointer<qSlicerPivotCalibrationModuleWidgetPrivate> d_ptr;
 
   virtual void setup();
-  
-  int startupDurationSec;
-  int samplingDurationSec;
-  
+
+  int startupDurationSec{ 5 };
+  int samplingDurationSec{ 5 };
+
   QTimer* pivotStartupTimer;
-  int pivotStartupRemainingTimerPeriodCount;
-  
+  int pivotStartupRemainingTimerPeriodCount{ 0 };
+
   QTimer* pivotSamplingTimer;
-  int pivotSamplingRemainingTimerPeriodCount;
+  int pivotSamplingRemainingTimerPeriodCount{ 0 };
 
   QTimer* spinStartupTimer;
-  int spinStartupRemainingTimerPeriodCount;
-  
-  QTimer* spinSamplingTimer;
-  int spinSamplingRemainingTimerPeriodCount;
+  int spinStartupRemainingTimerPeriodCount{ 0 };
 
+  QTimer* spinSamplingTimer;
+  int spinSamplingRemainingTimerPeriodCount{ 0 };
 
 private:
   Q_DECLARE_PRIVATE(qSlicerPivotCalibrationModuleWidget);
