@@ -31,12 +31,6 @@
 #include <vtkSmartPointer.h>
 #include <vtkCommand.h>
 #include <vtkMatrix4x4.h>
-#include <vtkObjectFactory.h>
-#include <vtkTransform.h>
-
-// STD includes
-#include <cassert>
-#include <cmath>
 
 //----------------------------------------------------------------------------
 class vtkSlicerPivotCalibrationLogic::vtkInternal
@@ -56,11 +50,36 @@ public:
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSlicerPivotCalibrationLogic);
 
+const int DEFAULT_NUMBER_OF_POSE_BUCKETS = 10;
+const int DEFAULT_POSE_BUCKET_SIZE = 10;
+
+const double DEFAULT_PIVOT_POSE_BUCKET_ERROR_MM = 3.0;
+const double DEFAULT_PIVOT_INPUT_ORIENTATION_THRESHOLD_DEGREES = 5.0;
+const double DEFAULT_PIVOT_INPUT_POSITION_THRESHOLD_MM = 3.0;
+
+const double DEFAULT_SPIN_POSE_BUCKET_ERROR_MM = 0.05;
+const double DEFAULT_SPIN_INPUT_ORIENTATION_THRESHOLD_DEGREES = 5.0;
+const double DEFAULT_SPIN_INPUT_POSITION_THRESHOLD_MM = 0.0; // No default position threshold for spin. Origin may be on stylus shaft.
+
 //----------------------------------------------------------------------------
 vtkSlicerPivotCalibrationLogic::vtkSlicerPivotCalibrationLogic()
 {
   this->Internal = new vtkInternal(this);
   this->ToolTipToToolMatrix = vtkMatrix4x4::New();
+
+  this->Internal->PivotCalibrationAlgo->SetMaximumNumberOfPoseBuckets(DEFAULT_NUMBER_OF_POSE_BUCKETS);
+  this->Internal->PivotCalibrationAlgo->SetPoseBucketSize(DEFAULT_POSE_BUCKET_SIZE);
+  this->Internal->PivotCalibrationAlgo->SetMaximumPoseBucketError(DEFAULT_PIVOT_POSE_BUCKET_ERROR_MM);
+  this->Internal->PivotCalibrationAlgo->SetMaximumCalibrationErrorMm(this->PivotAutoCalibrationTargetError);
+  this->Internal->PivotCalibrationAlgo->SetOrientationDifferenceThresholdDegrees(DEFAULT_PIVOT_INPUT_ORIENTATION_THRESHOLD_DEGREES);
+  this->Internal->PivotCalibrationAlgo->SetPositionDifferenceThresholdMm(DEFAULT_PIVOT_INPUT_POSITION_THRESHOLD_MM);
+
+  this->Internal->SpinCalibrationAlgo->SetMaximumNumberOfPoseBuckets(DEFAULT_NUMBER_OF_POSE_BUCKETS);
+  this->Internal->SpinCalibrationAlgo->SetPoseBucketSize(DEFAULT_POSE_BUCKET_SIZE);
+  this->Internal->SpinCalibrationAlgo->SetMaximumPoseBucketError(DEFAULT_SPIN_POSE_BUCKET_ERROR_MM);
+  this->Internal->SpinCalibrationAlgo->SetMaximumCalibrationErrorMm(this->SpinAutoCalibrationTargetError);
+  this->Internal->SpinCalibrationAlgo->SetOrientationDifferenceThresholdDegrees(DEFAULT_SPIN_INPUT_ORIENTATION_THRESHOLD_DEGREES);
+  this->Internal->SpinCalibrationAlgo->SetPositionDifferenceThresholdMm(DEFAULT_SPIN_INPUT_POSITION_THRESHOLD_MM);
 }
 
 //----------------------------------------------------------------------------
@@ -109,35 +128,58 @@ void vtkSlicerPivotCalibrationLogic::AddToolToReferenceMatrix(vtkMatrix4x4* tran
     return;
   }
 
-  this->Internal->PivotCalibrationAlgo->InsertNextCalibrationPoint(transformMatrix);
-  this->InvokeEvent(PivotInputTransformAdded);
-  if (this->PivotAutoCalibrationEnabled && this->GetPivotNumberOfPoses() >= this->PivotAutoCalibrationTargetNumberOfPoints)
+  if (this->PivotCalibrationEnabled)
   {
-    if (this->ComputePivotCalibration() && this->PivotRMSE <= this->PivotAutoCalibrationTargetError)
+    this->Internal->PivotCalibrationAlgo->InsertNextCalibrationPoint(transformMatrix);
+    this->InvokeEvent(PivotInputTransformAdded);
+    if (this->PivotAutoCalibrationEnabled && this->GetPivotNumberOfPoses() >= this->PivotAutoCalibrationTargetNumberOfPoints)
     {
-      this->InvokeEvent(vtkSlicerPivotCalibrationLogic::PivotCalibrationCompleteEvent);
-      if (this->PivotAutoCalibrationStopWhenComplete)
+      if (this->ComputePivotCalibration() && this->PivotRMSE <= this->PivotAutoCalibrationTargetError)
       {
-        this->SetPivotAutoCalibrationEnabled(false);
+        if (this->PivotAutoCalibrationStopWhenComplete)
+        {
+          // Calibration is complete. Disable pivot calibration.
+          this->SetPivotCalibrationEnabled(false);
+          if (!this->SpinCalibrationEnabled)
+          {
+            // If spin calibration is not running, disable recording entirely.
+            this->SetRecordingState(false);
+          }
+        }
+
+        // Calibration completed succesfully.
+        this->InvokeEvent(vtkSlicerPivotCalibrationLogic::PivotCalibrationCompleteEvent);
       }
     }
   }
 
-  this->Internal->SpinCalibrationAlgo->InsertNextCalibrationPoint(transformMatrix);
-  this->InvokeEvent(SpinInputTransformAdded);
-  if (this->SpinAutoCalibrationEnabled && this->GetSpinNumberOfPoses() >= this->SpinAutoCalibrationTargetNumberOfPoints)
+  if (this->SpinCalibrationEnabled)
   {
-    if (this->ComputeSpinCalibration() && this->SpinRMSE <= this->SpinAutoCalibrationTargetError)
+    this->Internal->SpinCalibrationAlgo->InsertNextCalibrationPoint(transformMatrix);
+    this->InvokeEvent(vtkSlicerPivotCalibrationLogic::SpinInputTransformAdded);
+    if (this->SpinAutoCalibrationEnabled && this->GetSpinNumberOfPoses() >= this->SpinAutoCalibrationTargetNumberOfPoints)
     {
-      this->InvokeEvent(vtkSlicerPivotCalibrationLogic::SpinCalibrationCompleteEvent);
-    }
-    if (this->SpinAutoCalibrationStopWhenComplete)
-    {
-      this->SetSpinAutoCalibrationEnabled(false);
+      if (this->ComputeSpinCalibration() && this->SpinRMSE <= this->SpinAutoCalibrationTargetError)
+      {
+        if (this->SpinAutoCalibrationStopWhenComplete)
+        {
+          // Calibration is complete. Disable spin calibration.
+          this->SetSpinCalibrationEnabled(false);
+          // Calibration is complete. Disable pivot calibration.
+          if (!this->PivotCalibrationEnabled)
+          {
+            // If pivot calibration is not running, disable recording entirely.
+            this->SetRecordingState(false);
+          }
+        }
+
+        // Calibration completed succesfully.
+        this->InvokeEvent(vtkSlicerPivotCalibrationLogic::SpinCalibrationCompleteEvent);
+      }
     }
   }
 
-  this->InvokeEvent(InputTransformAdded);
+  this->InvokeEvent(vtkSlicerPivotCalibrationLogic::InputTransformAdded);
 }
 
 //---------------------------------------------------------------------------
@@ -294,6 +336,32 @@ void vtkSlicerPivotCalibrationLogic::FlipShaftDirection()
 }
 
 //---------------------------------------------------------------------------
+void vtkSlicerPivotCalibrationLogic::SetPivotAutoCalibrationEnabled(bool enabled)
+{
+  if (this->PivotAutoCalibrationEnabled == enabled)
+  {
+    return;
+  }
+  this->PivotAutoCalibrationEnabled = enabled;
+  this->Internal->PivotCalibrationAlgo->SetValidateInputBufferEnabled(enabled);
+  this->Modified();
+  return;
+}
+
+//---------------------------------------------------------------------------
+void vtkSlicerPivotCalibrationLogic::SetSpinAutoCalibrationEnabled(bool enabled)
+{
+  if (this->SpinAutoCalibrationEnabled == enabled)
+  {
+    return;
+  }
+  this->SpinAutoCalibrationEnabled = enabled;
+  this->Internal->SpinCalibrationAlgo->SetValidateInputBufferEnabled(enabled);
+  this->Modified();
+  return;
+}
+
+//---------------------------------------------------------------------------
 int vtkSlicerPivotCalibrationLogic::GetPivotNumberOfPoses()
 {
   return this->Internal->PivotCalibrationAlgo->GetNumberOfCalibrationPoints();
@@ -309,6 +377,30 @@ double vtkSlicerPivotCalibrationLogic::GetPivotMinimumOrientationDifferenceDegre
 void vtkSlicerPivotCalibrationLogic::SetPivotMinimumOrientationDifferenceDegrees(double minimumOrientationDifferenceDegrees)
 {
   this->Internal->PivotCalibrationAlgo->SetMinimumOrientationDifferenceDegrees(minimumOrientationDifferenceDegrees);
+}
+
+//---------------------------------------------------------------------------
+void vtkSlicerPivotCalibrationLogic::SetSpinAutoCalibrationTargetError(double spinTargetError)
+{
+  if (this->SpinAutoCalibrationTargetError == spinTargetError)
+  {
+    return;
+  }
+  this->SpinAutoCalibrationTargetError = spinTargetError;
+  this->Internal->SpinCalibrationAlgo->SetMaximumCalibrationErrorMm(spinTargetError);
+  this->Modified();
+}
+
+//---------------------------------------------------------------------------
+void vtkSlicerPivotCalibrationLogic::SetPivotAutoCalibrationTargetError(double pivotTargetError)
+{
+  if (this->PivotAutoCalibrationTargetError == pivotTargetError)
+  {
+    return;
+  }
+  this->PivotAutoCalibrationTargetError = pivotTargetError;
+  this->Internal->PivotCalibrationAlgo->SetMaximumCalibrationErrorMm(pivotTargetError);
+  this->Modified();
 }
 
 //---------------------------------------------------------------------------
