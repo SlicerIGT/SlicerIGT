@@ -246,11 +246,11 @@ class FiducialsToModelRegistrationLogic(ScriptedLoadableModuleLogic):
     locator.BuildLocator()
     totalDistance = 0.0
 
-    n = inputFiducials.GetNumberOfFiducials()
+    n = inputFiducials.GetNumberOfControlPoints()
     m = vtk.vtkMath()
     for fiducialIndex in range(0, n):
       originalPoint = [0, 0, 0]
-      inputFiducials.GetNthFiducialPosition(fiducialIndex, originalPoint)
+      inputFiducials.GetNthControlPointPosition(fiducialIndex, originalPoint)
       transformedPoint = [0, 0, 0, 1]
       #transform.GetTransformToParent().TransformVector(originalPoint, transformedPoint)
       originalPoint.append(1)
@@ -267,10 +267,10 @@ class FiducialsToModelRegistrationLogic(ScriptedLoadableModuleLogic):
   def FiducialsToPolyData(self, fiducials, polyData):
 
     points = vtk.vtkPoints()
-    n = fiducials.GetNumberOfFiducials()
+    n = fiducials.GetNumberOfControlPoints()
     for fiducialIndex in range(0, n):
       p = [0, 0, 0]
-      fiducials.GetNthFiducialPosition(fiducialIndex, p)
+      fiducials.GetNthControlPointPosition(fiducialIndex, p)
       points.InsertNextPoint(p)
 
     tempPolyData = vtk.vtkPolyData()

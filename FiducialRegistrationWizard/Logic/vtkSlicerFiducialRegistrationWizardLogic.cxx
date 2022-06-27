@@ -54,10 +54,10 @@ double EIGENVALUE_THRESHOLD = 1e-4;
 void MarkupsFiducialNodeToVTKPoints(vtkMRMLMarkupsFiducialNode* markupsFiducialNode, vtkPoints* points)
 {
   points->Reset();
-  for (int i = 0; i < markupsFiducialNode->GetNumberOfFiducials(); i++)
+  for (int i = 0; i < markupsFiducialNode->GetNumberOfControlPoints(); i++)
   {
     double currentFiducial[3] = { 0, 0, 0 };
-    markupsFiducialNode->GetNthFiducialPosition(i, currentFiducial);
+    markupsFiducialNode->GetNthControlPointPosition(i, currentFiducial);
     points->InsertNextPoint(currentFiducial);
   }
 }
@@ -237,12 +237,12 @@ bool vtkSlicerFiducialRegistrationWizardLogic::UpdateCalibration(vtkMRMLNode* no
     return false;
   }
 
-  if (fromMarkupsFiducialNode->GetNumberOfFiducials() < 3)
+  if (fromMarkupsFiducialNode->GetNumberOfControlPoints() < 3)
   {
     fiducialRegistrationWizardNode->SetCalibrationStatusMessage("'From' fiducial list has too few fiducials (minimum 3 required).");
     return false;
   }
-  if (toMarkupsFiducialNode->GetNumberOfFiducials() < 3)
+  if (toMarkupsFiducialNode->GetNumberOfControlPoints() < 3)
   {
     fiducialRegistrationWizardNode->SetCalibrationStatusMessage("'To' fiducial list has too few fiducials (minimum 3 required).");
     return false;
@@ -263,12 +263,12 @@ bool vtkSlicerFiducialRegistrationWizardLogic::UpdateCalibration(vtkMRMLNode* no
   int pointMatching = fiducialRegistrationWizardNode->GetPointMatching();
   if (pointMatching == vtkMRMLFiducialRegistrationWizardNode::POINT_MATCHING_MANUAL)
   {
-    if (fromMarkupsFiducialNode->GetNumberOfFiducials() != toMarkupsFiducialNode->GetNumberOfFiducials())
+    if (fromMarkupsFiducialNode->GetNumberOfControlPoints() != toMarkupsFiducialNode->GetNumberOfControlPoints())
     {
       std::stringstream msg;
       msg << "Fiducial lists have unequal number of fiducials (" << std::endl
-        << "'From' has " << fromMarkupsFiducialNode->GetNumberOfFiducials() << ", "
-        << "'To' has " << toMarkupsFiducialNode->GetNumberOfFiducials() << ")." << std::endl
+        << "'From' has " << fromMarkupsFiducialNode->GetNumberOfControlPoints() << ", "
+        << "'To' has " << toMarkupsFiducialNode->GetNumberOfControlPoints() << ")." << std::endl
         << "Either adjust the lists, or use automatic point matching." << std::endl
         << "Aborting registration.";
       fiducialRegistrationWizardNode->SetCalibrationStatusMessage(msg.str());
