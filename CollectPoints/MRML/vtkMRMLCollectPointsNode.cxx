@@ -218,7 +218,7 @@ int vtkMRMLCollectPointsNode::GetNumberOfPointsInOutput()
   vtkMRMLModelNode* outputModelNode = vtkMRMLModelNode::SafeDownCast( outputNode );
   if ( outputMarkupsNode != NULL )
   {
-    return outputMarkupsNode->GetNumberOfFiducials();
+    return outputMarkupsNode->GetNumberOfControlPoints();
   }
   else if ( outputModelNode != NULL )
   {

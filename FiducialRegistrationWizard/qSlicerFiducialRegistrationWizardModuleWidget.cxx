@@ -160,23 +160,23 @@ std::string qSlicerFiducialRegistrationWizardModuleWidget::GetCorrespondingFiduc
     // Adding to "From" list
     if ( strcmp( activeMarkupsNode->GetID(), fromMarkupsNode->GetID() ) == 0 )
     {
-      if ( fromMarkupsNode->GetNumberOfFiducials() < toMarkupsNode->GetNumberOfFiducials() )
+      if ( fromMarkupsNode->GetNumberOfControlPoints() < toMarkupsNode->GetNumberOfControlPoints() )
       {
         correspondingFiducialString << "corresponding to ";
-        correspondingFiducialString << toMarkupsNode->GetNthFiducialLabel( fromMarkupsNode->GetNumberOfFiducials() );
+        correspondingFiducialString << toMarkupsNode->GetNthFiducialLabel( fromMarkupsNode->GetNumberOfControlPoints() );
       }
-      d->ToMarkupsWidget->highlightNthFiducial( fromMarkupsNode->GetNumberOfFiducials() );
+      d->ToMarkupsWidget->highlightNthFiducial( fromMarkupsNode->GetNumberOfControlPoints() );
     }
 
     // Adding to "To" list
     if ( strcmp( activeMarkupsNode->GetID(), toMarkupsNode->GetID() ) == 0 )
     {
-      if ( toMarkupsNode->GetNumberOfFiducials() < fromMarkupsNode->GetNumberOfFiducials() )
+      if ( toMarkupsNode->GetNumberOfControlPoints() < fromMarkupsNode->GetNumberOfControlPoints() )
       {
         correspondingFiducialString << "corresponding to ";
-        correspondingFiducialString << fromMarkupsNode->GetNthFiducialLabel( toMarkupsNode->GetNumberOfFiducials() );
+        correspondingFiducialString << fromMarkupsNode->GetNthFiducialLabel( toMarkupsNode->GetNumberOfControlPoints() );
       }
-      d->FromMarkupsWidget->highlightNthFiducial( toMarkupsNode->GetNumberOfFiducials() );
+      d->FromMarkupsWidget->highlightNthFiducial( toMarkupsNode->GetNumberOfControlPoints() );
     }
 
   }
@@ -462,9 +462,9 @@ void qSlicerFiducialRegistrationWizardModuleWidget::PostProcessFromMarkupsWidget
   Q_D( qSlicerFiducialRegistrationWizardModuleWidget );
   // Node is added or removed from the markups list, make sure the last item is visible
   vtkMRMLMarkupsFiducialNode* markupsNode = vtkMRMLMarkupsFiducialNode::SafeDownCast( d->FromMarkupsWidget->currentNode() );
-  if ( markupsNode != NULL && markupsNode->GetNumberOfFiducials()>0 )
+  if ( markupsNode != NULL && markupsNode->GetNumberOfControlPoints()>0 )
   {
-    d->FromMarkupsWidget->highlightNthFiducial( markupsNode->GetNumberOfFiducials()-1 );
+    d->FromMarkupsWidget->highlightNthFiducial( markupsNode->GetNumberOfControlPoints()-1 );
   }
 }
 
@@ -474,9 +474,9 @@ void qSlicerFiducialRegistrationWizardModuleWidget::PostProcessToMarkupsWidget()
   Q_D( qSlicerFiducialRegistrationWizardModuleWidget );
   // Node is added or removed from the markups list, make sure the last item is visible
   vtkMRMLMarkupsFiducialNode* markupsNode = vtkMRMLMarkupsFiducialNode::SafeDownCast( d->ToMarkupsWidget->currentNode() );
-  if ( markupsNode != NULL && markupsNode->GetNumberOfFiducials()>0 )
+  if ( markupsNode != NULL && markupsNode->GetNumberOfControlPoints()>0 )
   {
-    d->ToMarkupsWidget->highlightNthFiducial( markupsNode->GetNumberOfFiducials()-1 );
+    d->ToMarkupsWidget->highlightNthFiducial( markupsNode->GetNumberOfControlPoints()-1 );
   }
 }
 
