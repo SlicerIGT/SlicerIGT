@@ -386,8 +386,8 @@ void vtkSlicerBreachWarningLogic::UpdateLineToClosestPoint(vtkMRMLBreachWarningN
   }
   else
   {
-    line->SetNthControlPointPositionWorldFromArray(0, toolTipPosition_Ras);
-    line->SetNthControlPointPositionWorldFromArray(1, closestPointOnModel_Ras);
+    line->SetNthControlPointPositionWorld(0, toolTipPosition_Ras);
+    line->SetNthControlPointPositionWorld(1, closestPointOnModel_Ras);
   }
   
   if (closestPointDistance<0)

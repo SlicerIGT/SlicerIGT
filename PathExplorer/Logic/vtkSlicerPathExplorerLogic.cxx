@@ -122,7 +122,7 @@ void vtkSlicerPathExplorerLogic::UpdateTrajectory(vtkMRMLPathPlannerTrajectoryNo
     }
     else
     {
-      pathLineNode->SetNthControlPointPositionWorldFromArray(0, entryPointPositionWorld);
+      pathLineNode->SetNthControlPointPositionWorld(0, entryPointPositionWorld);
     }
     if (pathLineNode->GetNumberOfControlPoints() < 2)
     {
@@ -130,7 +130,7 @@ void vtkSlicerPathExplorerLogic::UpdateTrajectory(vtkMRMLPathPlannerTrajectoryNo
     }
     else
     {
-      pathLineNode->SetNthControlPointPositionWorldFromArray(1, targetPointPositionWorld);
+      pathLineNode->SetNthControlPointPositionWorld(1, targetPointPositionWorld);
     }
     // Update name from point names
     std::string lineName = std::string(entryPoints->GetNthControlPointLabel(entryPointIndex))
