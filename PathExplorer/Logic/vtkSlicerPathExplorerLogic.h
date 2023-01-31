@@ -36,6 +36,8 @@
 #include "vtkSlicerPathExplorerModuleLogicExport.h"
 
 class vtkMRMLPathPlannerTrajectoryNode;
+class vtkMRMLMarkupsLineNode;
+class vtkMRMLSliceNode;
 
 /// \ingroup Slicer_QtModules_ExtensionTemplate
 class VTK_SLICER_PATHEXPLORER_MODULE_LOGIC_EXPORT vtkSlicerPathExplorerLogic :
@@ -50,6 +52,8 @@ public:
   void UpdateTrajectory(vtkMRMLPathPlannerTrajectoryNode* trajectoryNode);
 
   void ProcessMRMLNodesEvents(vtkObject* caller, unsigned long event, void* callData) override;
+
+  static void ResliceWithRuler(vtkMRMLMarkupsLineNode* ruler, vtkMRMLSliceNode* viewer, bool perpendicular, double resliceValue);
 
 protected:
   vtkSlicerPathExplorerLogic();

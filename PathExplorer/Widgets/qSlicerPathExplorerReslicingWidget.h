@@ -60,10 +60,6 @@ class Q_SLICER_MODULE_PATHEXPLORER_WIDGETS_EXPORT qSlicerPathExplorerReslicingWi
   void onPerpendicularToggled(bool status);
   void onResliceValueChanged(int resliceValue);
   void onRulerModified();
-  void resliceWithRuler(vtkMRMLMarkupsLineNode* ruler,
-                        vtkMRMLSliceNode* viewer,
-                        bool perpendicular,
-                        double resliceValue);
 
  protected:
   QScopedPointer<qSlicerPathExplorerReslicingWidgetPrivate> d_ptr;
