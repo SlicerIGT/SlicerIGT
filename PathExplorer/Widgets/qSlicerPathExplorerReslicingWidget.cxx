@@ -35,6 +35,9 @@
 #include "vtkNew.h"
 #include "vtkSmartPointer.h"
 
+// Logic includes
+#include <vtkSlicerPathExplorerLogic.h>
+
 class qSlicerPathExplorerReslicingWidget;
 
 //-----------------------------------------------------------------------------
@@ -255,7 +258,7 @@ qSlicerPathExplorerReslicingWidget
           this, SLOT(onPerpendicularToggled(bool)));
 
   connect(this, SIGNAL(mrmlSceneChanged(vtkMRMLScene*)),
-	  this, SLOT(onMRMLSceneChanged(vtkMRMLScene*)));
+      this, SLOT(onMRMLSceneChanged(vtkMRMLScene*)));
 }
 
 //-----------------------------------------------------------------------------
@@ -303,8 +306,8 @@ void qSlicerPathExplorerReslicingWidget
     }
 
   this->qvtkReconnect(this->mrmlScene(),
-		      newScene, vtkMRMLScene::NodeAboutToBeRemovedEvent,
-		      this, SLOT(onMRMLNodeRemoved(vtkObject*, void*)));
+              newScene, vtkMRMLScene::NodeAboutToBeRemovedEvent,
+              this, SLOT(onMRMLNodeRemoved(vtkObject*, void*)));
 }
 
 //-----------------------------------------------------------------------------
@@ -335,10 +338,10 @@ void qSlicerPathExplorerReslicingWidget
     return;
     }
 
-  this->resliceWithRuler(d->ReslicingLineNode,
-			 d->SliceNode,
-			 d->ReslicePerpendicular,
-			 d->ReslicePerpendicular ? d->ReslicePosition : d->ResliceAngle);
+  vtkSlicerPathExplorerLogic::ResliceWithRuler(d->ReslicingLineNode,
+             d->SliceNode,
+             d->ReslicePerpendicular,
+             d->ReslicePerpendicular ? d->ReslicePosition : d->ResliceAngle);
 }
 
 //-----------------------------------------------------------------------------
@@ -365,13 +368,13 @@ void qSlicerPathExplorerReslicingWidget
     d->SliceNode->SetAttribute("PathExplorer.DrivingPathName",d->ReslicingLineNode->GetName());
     d->updateWidget();
 
-    this->resliceWithRuler(d->ReslicingLineNode,
+    vtkSlicerPathExplorerLogic::ResliceWithRuler(d->ReslicingLineNode,
                            d->SliceNode,
                            d->ReslicePerpendicular,
                            d->ReslicePerpendicular ? d->ReslicePosition : d->ResliceAngle);
 
     this->qvtkConnect(d->ReslicingLineNode, vtkCommand::ModifiedEvent,
-		      this, SLOT(onRulerModified()));
+              this, SLOT(onRulerModified()));
     }
   else
     {
@@ -381,7 +384,7 @@ void qSlicerPathExplorerReslicingWidget
     d->ResliceInPlaneRadioButton->setEnabled(0);
 
     this->qvtkDisconnect(d->ReslicingLineNode, vtkCommand::ModifiedEvent,
-			 this, SLOT(onRulerModified()));
+             this, SLOT(onRulerModified()));
     }
 }
 
@@ -399,7 +402,7 @@ void qSlicerPathExplorerReslicingWidget
   d->ReslicePerpendicular = status;
   d->updateWidget();
 
-  this->resliceWithRuler(d->ReslicingLineNode,
+  vtkSlicerPathExplorerLogic::ResliceWithRuler(d->ReslicingLineNode,
                          d->SliceNode,
                          d->ReslicePerpendicular,
                          d->ReslicePerpendicular ? d->ReslicePosition : d->ResliceAngle);
@@ -432,91 +435,12 @@ void qSlicerPathExplorerReslicingWidget
 
   if (d->ResliceButton->isChecked())
     {
-    this->resliceWithRuler(d->ReslicingLineNode,
+    vtkSlicerPathExplorerLogic::ResliceWithRuler(d->ReslicingLineNode,
                            d->SliceNode,
                            d->ReslicePerpendicular,
                            d->ReslicePerpendicular ? d->ReslicePosition : d->ResliceAngle);
     }
 }
-
-//-----------------------------------------------------------------------------
-void qSlicerPathExplorerReslicingWidget
-::resliceWithRuler(vtkMRMLMarkupsLineNode* ruler,
-                   vtkMRMLSliceNode* viewer,
-                   bool perpendicular,
-                   double resliceValue)
-{
-  if (!ruler || !viewer)
-    {
-    return;
-    }
-
-  // Get ruler points
-  double point1[4] = {0,0,0,0};
-  double point2[4] = {0,0,0,0};
-  ruler->GetNthControlPointPositionWorld(0, point1);
-  ruler->GetNthControlPointPositionWorld(1, point2);
-
-  // Compute vectors
-  double t[3];
-  double n[3];
-  double pos[3];
-  if (perpendicular)
-    {
-    // Ruler vector is normal vector
-    n[0] = point2[0] - point1[0];
-    n[1] = point2[1] - point1[1];
-    n[2] = point2[2] - point1[2];
-
-    // Reslice at chosen position
-    pos[0] = point1[0] + n[0] * resliceValue / 100;
-    pos[1] = point1[1] + n[1] * resliceValue / 100;
-    pos[2] = point1[2] + n[2] * resliceValue / 100;
-
-    // Normalize
-    double nlen = vtkMath::Normalize(n);
-    n[0] /= nlen;
-    n[1] /= nlen;
-    n[2] /= nlen;
-
-    // angle in radian
-    vtkMath::Perpendiculars(n, t, NULL, 0);
-    }
-  else
-    {
-    // Ruler vector is transverse vector
-    t[0] = point2[0] - point1[0];
-    t[1] = point2[1] - point1[1];
-    t[2] = point2[2] - point1[2];
-
-    // Reslice at target position
-    pos[0] = point2[0];
-    pos[1] = point2[1];
-    pos[2] = point2[2];
-
-    // Normalize
-    double tlen = vtkMath::Normalize(t);
-    t[0] /= tlen;
-    t[1] /= tlen;
-    t[2] /= tlen;
-
-    // angle in radian
-    vtkMath::Perpendiculars(t, n, NULL, resliceValue*vtkMath::Pi()/180);
-    }
-
-  double nx = n[0];
-  double ny = n[1];
-  double nz = n[2];
-  double tx = t[0];
-  double ty = t[1];
-  double tz = t[2];
-  double px = pos[0];
-  double py = pos[1];
-  double pz = pos[2];
-
-  viewer->SetSliceToRASByNTP(nx, ny, nz, tx, ty, tz, px, py, pz, 0);
-}
-
 
 //-----------------------------------------------------------------------------
 void qSlicerPathExplorerReslicingWidget::setSliceNode(vtkMRMLSliceNode* sliceNode)
@@ -525,7 +449,7 @@ void qSlicerPathExplorerReslicingWidget::setSliceNode(vtkMRMLSliceNode* sliceNod
 
   this->setEnabled(sliceNode!=nullptr);
   d->SliceNode = sliceNode;
-  
+
   std::string name;
   double color[3] = { 0.5, 0.5, 0.5 };
   if (sliceNode)
@@ -533,10 +457,10 @@ void qSlicerPathExplorerReslicingWidget::setSliceNode(vtkMRMLSliceNode* sliceNod
     name = sliceNode->GetName();
     sliceNode->GetLayoutColor(color);
   }
-  
+
   d->ResliceButton->setText(QString::fromStdString(name));
-  
-  // Set color  
+
+  // Set color
   std::stringstream buttonBgColor;
   buttonBgColor << "QPushButton { background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 rgba("
     << color[0] * 255 << ","

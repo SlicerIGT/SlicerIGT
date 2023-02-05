@@ -45,6 +45,7 @@ vtkMRMLPathPlannerTrajectoryNode::vtkMRMLPathPlannerTrajectoryNode()
   vtkNew<vtkIntArray> events;
   events->InsertNextValue(vtkMRMLMarkupsNode::PointModifiedEvent);
   events->InsertNextValue(vtkMRMLTransformableNode::TransformModifiedEvent);
+  events->InsertNextValue(vtkMRMLMarkupsNode::PointPositionUndefinedEvent);
   this->AddNodeReferenceRole(ENTRY_POINTS_ROLE, NULL, events);
   this->AddNodeReferenceRole(TARGET_POINTS_ROLE, NULL, events);
 }
@@ -103,7 +104,7 @@ void vtkMRMLPathPlannerTrajectoryNode::ProcessMRMLEvents(vtkObject* caller,
   unsigned long event,
   void* callData)
 {
-  if (event == vtkMRMLMarkupsNode::PointModifiedEvent)
+  if (event == vtkMRMLMarkupsNode::PointModifiedEvent || event == vtkMRMLMarkupsNode::PointPositionUndefinedEvent)
   {
     this->InvokeCustomModifiedEvent(vtkMRMLPathPlannerTrajectoryNode::InputDataModifiedEvent);
   }
