@@ -87,8 +87,8 @@ void vtkSlicerPathExplorerLogic::UpdateTrajectory(vtkMRMLPathPlannerTrajectoryNo
     int entryPointIndex = (entryPoints ? trajectoryNode->GetNthEntryPointIndex(pathIndex) : -1);
     vtkMRMLMarkupsNode* targetPoints = trajectoryNode->GetTargetPointsNode();
     int targetPointIndex = (targetPoints ? trajectoryNode->GetNthTargetPointIndex(pathIndex) : -1);
-    int entryStatus = entryPoints->GetNthControlPointPositionStatus(entryPointIndex);
-    int targetStatus = targetPoints->GetNthControlPointPositionStatus(entryPointIndex);
+    int entryStatus = (entryPoints ? entryPoints->GetNthControlPointPositionStatus(entryPointIndex) : vtkMRMLMarkupsNode::PositionUndefined);
+    int targetStatus = (targetPoints ? targetPoints->GetNthControlPointPositionStatus(entryPointIndex) : vtkMRMLMarkupsNode::PositionUndefined);
 
     if (entryPointIndex < 0 || targetPointIndex < 0
       || (targetStatus != vtkMRMLMarkupsNode::PositionPreview && targetStatus != vtkMRMLMarkupsNode::PositionDefined)
