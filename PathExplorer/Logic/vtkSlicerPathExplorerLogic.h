@@ -53,7 +53,18 @@ public:
 
   void ProcessMRMLNodesEvents(vtkObject* caller, unsigned long event, void* callData) override;
 
-  static void ResliceWithRuler(vtkMRMLMarkupsLineNode* ruler, vtkMRMLSliceNode* viewer, bool perpendicular, double resliceValue);
+  //@{
+  /**
+   * Reslice the slice node so that it aligns with the input line node.
+   * \param ruler: Input line node that will be used to align the slice.
+   * \param viewer: Slice node that will be resliced.
+   * \param perpendicular: Flag that sets if the slice view should be perpendicular to the line vector.
+   * \param resliceValue: Adjusts the rotation of the views around the slice.
+   * \param rotationDegrees: Adjusts the rotation of the views around the slice normal.
+                             By default the line aligns with the Slice x-axis. Rotation of -90/90 will align with the Slice y-axis
+   */
+  static void ResliceWithRuler(vtkMRMLMarkupsLineNode* ruler, vtkMRMLSliceNode* viewer, bool perpendicular, double resliceValue=0, double rotationDegrees=0);
+  //@}
 
 protected:
   vtkSlicerPathExplorerLogic();

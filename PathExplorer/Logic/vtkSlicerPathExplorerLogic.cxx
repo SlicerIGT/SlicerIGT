@@ -27,6 +27,7 @@
 // VTK includes
 #include <vtkNew.h>
 #include <vtkObjectFactory.h>
+#include <vtkTransform.h>
 
 // STD includes
 #include <cassert>
@@ -210,7 +211,7 @@ void vtkSlicerPathExplorerLogic::ProcessMRMLNodesEvents(vtkObject* caller, unsig
 }
 
 //-----------------------------------------------------------------------------
-void vtkSlicerPathExplorerLogic::ResliceWithRuler(vtkMRMLMarkupsLineNode* ruler, vtkMRMLSliceNode* viewer, bool perpendicular, double resliceValue)
+void vtkSlicerPathExplorerLogic::ResliceWithRuler(vtkMRMLMarkupsLineNode* ruler, vtkMRMLSliceNode* viewer, bool perpendicular, double resliceValue, double rotationDegrees)
 {
   if (!ruler || !viewer)
   {
@@ -269,6 +270,10 @@ void vtkSlicerPathExplorerLogic::ResliceWithRuler(vtkMRMLMarkupsLineNode* ruler,
     // angle in radian
     vtkMath::Perpendiculars(t, n, NULL, resliceValue * vtkMath::Pi() / 180);
   }
+
+  vtkNew<vtkTransform> rotateRightVector;
+  rotateRightVector->RotateWXYZ(rotationDegrees, n);
+  rotateRightVector->TransformVector(t, t);
 
   double nx = n[0];
   double ny = n[1];
