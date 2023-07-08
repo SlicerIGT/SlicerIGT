@@ -18,6 +18,7 @@
 // Qt includes
 #include <QDebug>
 #include <QShortcut>
+#include <QTableWidget>
 
 // SlicerQt includes
 #include "qSlicerPathExplorerModuleWidget.h"
