@@ -676,11 +676,13 @@ void vtkSlicerVolumeReconstructionLogic::CalculateROIFromVolumeSequenceInternal(
   }
   inputSequenceBrowser->SetSelectedItemNumber(selectedItemNumber);
 
-  double radius[3] = { 0 };
-  double center[3] = { 0 };
+  double radius[3] = { 0.0, 0.0, 0.0 };
+  double size[3] = { 0.0, 0.0, 0.0 };
+  double center[3] = { 0.0, 0.0, 0.0 };
   for (int i = 0; i < 3; ++i)
   {
-    radius[i] = 0.5 * (roiBounds[2 * i + 1] - roiBounds[2 * i]);
+    size[i] = roiBounds[2 * i + 1] - roiBounds[2 * i];
+    radius[i] = 0.5 * size[i];
     center[i] = (roiBounds[2 * i + 1] + roiBounds[2 * i]) / 2.0;
   }
 
@@ -695,7 +697,7 @@ void vtkSlicerVolumeReconstructionLogic::CalculateROIFromVolumeSequenceInternal(
   if (outputMarkupsROINode)
   {
     outputMarkupsROINode->SetCenter(center);
-    outputMarkupsROINode->SetSize(radius);
+    outputMarkupsROINode->SetSize(size);
   }
 }
 
