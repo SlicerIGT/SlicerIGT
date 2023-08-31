@@ -511,11 +511,11 @@ void vtkSlicerVolumeReconstructionLogic::ReconstructVolumeFromSequence(vtkMRMLVo
   {
     if (this->GetMRMLScene())
     {
-      inputROINode = vtkSmartPointer<vtkMRMLAnnotationROINode>::Take(vtkMRMLAnnotationROINode::SafeDownCast(this->GetMRMLScene()->CreateNodeByClass("vtkMRMLAnnotationROINode")));
+      inputROINode = vtkSmartPointer<vtkMRMLMarkupsROINode>::Take(vtkMRMLMarkupsROINode::SafeDownCast(this->GetMRMLScene()->CreateNodeByClass("vtkMRMLMarkupsROINode")));
     }
     if (!inputROINode)
     {
-      inputROINode = vtkSmartPointer<vtkMRMLAnnotationROINode>::New();
+      inputROINode = vtkSmartPointer<vtkMRMLMarkupsROINode>::New();
     }
 
     if (inputVolumeNode->GetName())
