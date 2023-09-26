@@ -193,7 +193,7 @@ void vtkSlicerVolumeReconstructionLogic::UpdateLiveVolumeReconstruction()
       continue;
     }
 
-    this->GetReconstructedVolume(volumeReconstructionNode);
+    this->GetReconstructedVolume(volumeReconstructionNode, false);
     info->LastUpdateTimeSeconds = currentTime;
   }
 }
@@ -315,7 +315,7 @@ void vtkSlicerVolumeReconstructionLogic::StopLiveVolumeReconstruction(vtkMRMLVol
   }
   volumeReconstructionNode->LiveVolumeReconstructionInProgressOff();
   vtkUnObserveMRMLNodeMacro(volumeReconstructionNode);
-  this->GetReconstructedVolume(volumeReconstructionNode);
+  this->GetReconstructedVolume(volumeReconstructionNode, true);
 }
 
 //---------------------------------------------------------------------------
@@ -407,7 +407,7 @@ bool vtkSlicerVolumeReconstructionLogic::AddVolumeNodeToReconstructedVolume(vtkM
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerVolumeReconstructionLogic::GetReconstructedVolume(vtkMRMLVolumeReconstructionNode* volumeReconstructionNode)
+void vtkSlicerVolumeReconstructionLogic::GetReconstructedVolume(vtkMRMLVolumeReconstructionNode* volumeReconstructionNode, bool deepCopy/*=true*/)
 {
   vtkIGSIOVolumeReconstructor* reconstructor = this->Internal->Reconstructors[volumeReconstructionNode].Reconstructor;
   if (!reconstructor)
@@ -430,7 +430,7 @@ void vtkSlicerVolumeReconstructionLogic::GetReconstructedVolume(vtkMRMLVolumeRec
     outputVolumeNode->SetAndObserveImageData(imageData);
   }
 
-  if (reconstructor->GetReconstructedVolume(outputVolumeNode->GetImageData()) != IGSIO_SUCCESS)
+  if (reconstructor->GetReconstructedVolume(outputVolumeNode->GetImageData(), deepCopy) != IGSIO_SUCCESS)
   {
     vtkErrorMacro("Could not retrieve reconstructed image");
   }
@@ -560,7 +560,7 @@ void vtkSlicerVolumeReconstructionLogic::ReconstructVolumeFromSequence(vtkMRMLVo
     this->AddVolumeNodeToReconstructedVolume(volumeReconstructionNode, i == 0, i == numberOfFrames - 1);
   }
 
-  this->GetReconstructedVolume(volumeReconstructionNode);
+  this->GetReconstructedVolume(volumeReconstructionNode, true);
   inputSequenceBrowser->SetSelectedItemNumber(selectedItemNumber);
   this->GetApplicationLogic()->ResumeRender();
 }

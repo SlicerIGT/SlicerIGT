@@ -62,7 +62,7 @@ public:
   void ResumeLiveVolumeReconstruction(vtkMRMLVolumeReconstructionNode* volumeReconstructionNode);
   void StopLiveVolumeReconstruction(vtkMRMLVolumeReconstructionNode* volumeReconstructionNode);
   bool AddVolumeNodeToReconstructedVolume(vtkMRMLVolumeReconstructionNode* volumeReconstructionNode, bool isFirst, bool isLast);
-  void GetReconstructedVolume(vtkMRMLVolumeReconstructionNode* volumeReconstructionNode);
+  void GetReconstructedVolume(vtkMRMLVolumeReconstructionNode* volumeReconstructionNode, bool deepCopy=true);
 
   void ReconstructVolumeFromSequence(vtkMRMLVolumeReconstructionNode* volumeReconstructionNode);
 
