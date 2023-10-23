@@ -114,6 +114,10 @@ void vtkSlicerPivotCalibrationLogic::ProcessMRMLNodesEvents(vtkObject* caller, u
 //---------------------------------------------------------------------------
 void vtkSlicerPivotCalibrationLogic::SetAndObserveTransformNode(vtkMRMLLinearTransformNode* transformNode)
 {
+  if (this->ObservedTransformNode == transformNode)
+  {
+    return;
+  }
   vtkNew<vtkIntArray> events;
   events->InsertNextValue(vtkMRMLLinearTransformNode::TransformModifiedEvent);
   vtkSetAndObserveMRMLNodeEventsMacro(this->ObservedTransformNode, transformNode, events.GetPointer());
