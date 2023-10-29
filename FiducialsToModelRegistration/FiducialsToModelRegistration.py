@@ -4,7 +4,8 @@ import unittest
 import math
 from __main__ import vtk, qt, ctk, slicer
 from slicer.ScriptedLoadableModule import *
-
+from slicer.i18n import tr as _
+from slicer.i18n import translate
 #
 # FiducialsToModelRegistration
 #
@@ -13,17 +14,17 @@ class FiducialsToModelRegistration(ScriptedLoadableModule):
   def __init__(self, parent):
     ScriptedLoadableModule.__init__(self, parent)
     self.parent.title = "Fiducials-Model Registration"
-    self.parent.categories = ["IGT"]
+    self.parent.categories = [translate("qSlicerAbstractCoreModule","IGT")]
     self.parent.dependencies = []
     self.parent.contributors = ["Tamas Ungi (Queen's University"]
-    self.parent.helpText = """
+    self.parent.helpText = _("""
 This module registers fiducial list to a model surface using iterative closest points (ICP) method.
 For help on how to use this module visit: <a href='https://www.slicerigt.org'>SlicerIGT website</a>.
-    """
-    self.parent.acknowledgementText = """
+    """)
+    self.parent.acknowledgementText = _("""
 This file was originally developed by Jean-Christophe Fillion-Robin, Kitware Inc.
 and Steve Pieper, Isomics, Inc. and was partially funded by NIH grant 3P41RR013218-12S1.
-"""
+""")
 
 #
 # FiducialsToModelRegistrationWidget
@@ -48,7 +49,7 @@ class FiducialsToModelRegistrationWidget(ScriptedLoadableModuleWidget):
     #
     # input fiducial list selector
     #
-    fiducialWarningLabel = qt.QLabel("Note: Parent transforms of fiducials are not used. Fiducials should be defined in the coordinate system that is being registered.")
+    fiducialWarningLabel = qt.QLabel(_("Note: Parent transforms of fiducials are not used. Fiducials should be defined in the coordinate system that is being registered."))
     fiducialWarningLabel.setWordWrap(True)
     parametersFormLayout.addRow(fiducialWarningLabel)
 
@@ -61,8 +62,8 @@ class FiducialsToModelRegistrationWidget(ScriptedLoadableModuleWidget):
     self.inputFiducialSelector.showHidden = False
     self.inputFiducialSelector.showChildNodeTypes = False
     self.inputFiducialSelector.setMRMLScene(slicer.mrmlScene)
-    self.inputFiducialSelector.setToolTip("Pick the input fiducial list for the algorithm.")
-    parametersFormLayout.addRow("Input fiducials: ", self.inputFiducialSelector)
+    self.inputFiducialSelector.setToolTip(_("Pick the input fiducial list for the algorithm."))
+    parametersFormLayout.addRow(_("Input fiducials: ", self.inputFiducialSelector))
 
     #
     # input model selector
@@ -76,8 +77,8 @@ class FiducialsToModelRegistrationWidget(ScriptedLoadableModuleWidget):
     self.inputModelSelector.showHidden = False
     self.inputModelSelector.showChildNodeTypes = False
     self.inputModelSelector.setMRMLScene(slicer.mrmlScene)
-    self.inputModelSelector.setToolTip("Pick the input model for the algorithm.")
-    parametersFormLayout.addRow("Input model: ", self.inputModelSelector)
+    self.inputModelSelector.setToolTip(_("Pick the input model for the algorithm."))
+    parametersFormLayout.addRow(_("Input model: "), self.inputModelSelector))
 
     #
     # output transform selector
@@ -92,15 +93,15 @@ class FiducialsToModelRegistrationWidget(ScriptedLoadableModuleWidget):
     self.outputSelector.showChildNodeTypes = False
     self.outputSelector.renameEnabled = True
     self.outputSelector.setMRMLScene(slicer.mrmlScene)
-    self.outputSelector.setToolTip("Pick the output to the algorithm.")
-    parametersFormLayout.addRow("Output transform: ", self.outputSelector)
+    self.outputSelector.setToolTip(_("Pick the output to the algorithm."))
+    parametersFormLayout.addRow(_("Output transform: "), self.outputSelector)
 
     #
     # check box to trigger taking screen shots for later use in tutorials
     #
     self.enableScreenshotsFlagCheckBox = qt.QCheckBox()
     self.enableScreenshotsFlagCheckBox.checked = 0
-    self.enableScreenshotsFlagCheckBox.setToolTip("If checked, take screen shots for tutorials. Use Save Data to write them to disk.")
+    self.enableScreenshotsFlagCheckBox.setToolTip(_("If checked, take screen shots for tutorials. Use Save Data to write them to disk."))
     # parametersFormLayout.addRow("Enable Screenshots", self.enableScreenshotsFlagCheckBox)
 
     #
@@ -111,13 +112,13 @@ class FiducialsToModelRegistrationWidget(ScriptedLoadableModuleWidget):
     self.screenshotScaleFactorSliderWidget.minimum = 1.0
     self.screenshotScaleFactorSliderWidget.maximum = 50.0
     self.screenshotScaleFactorSliderWidget.value = 1.0
-    self.screenshotScaleFactorSliderWidget.setToolTip("Set scale factor for the screen shots.")
+    self.screenshotScaleFactorSliderWidget.setToolTip(_("Set scale factor for the screen shots."))
 
     #
     # Apply Button
     #
     self.applyButton = qt.QPushButton("Apply")
-    self.applyButton.toolTip = "Run the algorithm."
+    self.applyButton.toolTip = _("Run the algorithm.")
     self.applyButton.enabled = False
     parametersFormLayout.addRow(self.applyButton)
 
@@ -125,19 +126,19 @@ class FiducialsToModelRegistrationWidget(ScriptedLoadableModuleWidget):
     # Output panel
     #
     outputCollapsibleButton = ctk.ctkCollapsibleButton()
-    outputCollapsibleButton.text = "Output"
+    outputCollapsibleButton.text = _("Output")
     self.layout.addWidget(outputCollapsibleButton)
     outputFormLayout = qt.QFormLayout(outputCollapsibleButton)
 
     self.outputLine = qt.QLineEdit()
     self.outputLine.setReadOnly(True)
-    outputFormLayout.addRow("Mean distance after registration:", self.outputLine)
+    outputFormLayout.addRow(_("Mean distance after registration: "), self.outputLine)
 
     #
     # Advanced parameters
     #
     advancedCollapsibleButton = ctk.ctkCollapsibleButton()
-    advancedCollapsibleButton.text = "Advanced"
+    advancedCollapsibleButton.text = _("Advanced")
     self.layout.addWidget(advancedCollapsibleButton)
 
     # Layout
@@ -151,7 +152,7 @@ class FiducialsToModelRegistrationWidget(ScriptedLoadableModuleWidget):
     self.typeSelector.insertItem(0, "Rigid")
     self.typeSelector.insertItem(1, "Similarity")
     self.typeSelector.insertItem(2, "Affine")
-    advancedFormLayout.addRow("Transform type: ", self.typeSelector)
+    advancedFormLayout.addRow(_("Transform type: "), self.typeSelector)
 
     #
     # Iteration selector
@@ -159,7 +160,7 @@ class FiducialsToModelRegistrationWidget(ScriptedLoadableModuleWidget):
     self.iterationSpin = qt.QSpinBox()
     self.iterationSpin.setMaximum(1000)
     self.iterationSpin.setValue(100)
-    advancedFormLayout.addRow("Number of iterations:", self.iterationSpin)
+    advancedFormLayout.addRow(_("Number of iterations:"), self.iterationSpin))
 
     # connections
     self.applyButton.connect('clicked(bool)', self.onApplyButton)

@@ -65,23 +65,24 @@ qSlicerPivotCalibrationModule::~qSlicerPivotCalibrationModule()
 //-----------------------------------------------------------------------------
 QString qSlicerPivotCalibrationModule::helpText()const
 {
-  return "Perform pivot calibration to determine the tool tip's position, by pivoting the tip of the tool about some fixed point. "
+  return tr("Perform pivot calibration to determine the tool tip's position, by pivoting the tip of the tool about some fixed point. "
     "Perform spin calibration to determine the tool's orientation, by spinning the tool about its axis. "
     "The pivot and spin calibrations can be performed in any order. "
-    "For help on how to use this module visit: <a href='https://www.slicerigt.org'>SlicerIGT website</a>.";
+    "For help on how to use this module visit: <a href='https://www.slicerigt.org'>SlicerIGT website</a>.");
 }
 
 //-----------------------------------------------------------------------------
 QString qSlicerPivotCalibrationModule::acknowledgementText()const
 {
-  return "This work was was funded by Cancer Care Ontario and the Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO)";
+  return tr("This work was was funded by Cancer Care Ontario and the Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO)");
 }
 
 //-----------------------------------------------------------------------------
 QStringList qSlicerPivotCalibrationModule::contributors()const
 {
   QStringList moduleContributors;
-  moduleContributors << QString( "Franklin King (Queen's University), Tamas Ungi (Queen's University)" );
+  moduleContributors << tr("Franklin King (Queen's University)")
+    << tr("Tamas Ungi (Queen's University)");
   return moduleContributors;
 }
 
@@ -94,7 +95,7 @@ QIcon qSlicerPivotCalibrationModule::icon()const
 //-----------------------------------------------------------------------------
 QStringList qSlicerPivotCalibrationModule::categories() const
 {
-  return QStringList() << "IGT";
+  return QStringList() << qSlicerAbstractCoreModule::tr("IGT");
 }
 
 //-----------------------------------------------------------------------------

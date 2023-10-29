@@ -141,7 +141,7 @@ double qSlicerSubjectHierarchyPathExplorerPlugin::canOwnSubjectHierarchyItem(vtk
 //---------------------------------------------------------------------------
 const QString qSlicerSubjectHierarchyPathExplorerPlugin::roleForPlugin()const
 {
-  return "Path Explorer trajectories";
+  return tr("Path Explorer trajectories");
 }
 
 //---------------------------------------------------------------------------

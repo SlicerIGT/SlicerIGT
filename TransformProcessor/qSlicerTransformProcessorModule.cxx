@@ -78,7 +78,7 @@ qSlicerTransformProcessorModule::qSlicerTransformProcessorModule(QObject* _paren
 //-----------------------------------------------------------------------------
 QStringList qSlicerTransformProcessorModule::categories()const
 {
-  return QStringList() << "IGT";
+  return QStringList() << qSlicerAbstractCoreModule::tr("IGT");
 }
 
 //-----------------------------------------------------------------------------
@@ -89,15 +89,15 @@ qSlicerTransformProcessorModule::~qSlicerTransformProcessorModule()
 //-----------------------------------------------------------------------------
 QString qSlicerTransformProcessorModule::helpText()const
 {
-  return "This module allows combining, inverting, stabilizing, termporal smoothing of transforms in real-time."
-    " For more information, visit <a href='https://github.com/SlicerIGT/SlicerIGT/#user-documentation'>SlicerIGT project website</a>.";
+  return tr("This module allows combining, inverting, stabilizing, termporal smoothing of transforms in real-time."
+    " For more information, visit <a href='https://github.com/SlicerIGT/SlicerIGT/#user-documentation'>SlicerIGT project website</a>.");
 }
 
 //-----------------------------------------------------------------------------
 QString qSlicerTransformProcessorModule::acknowledgementText()const
 {
-  return "This work was partially funded by Cancer Care Ontario and the Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO),"
-    " and by National Institute of Health (grants 5P01CA067165, 5R01CA124377, 5R01CA138586, 2R44DE019322, 7R01CA124377, 5R42CA137886, 8P41EB015898).";
+  return tr("This work was partially funded by Cancer Care Ontario and the Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO),"
+    " and by National Institute of Health (grants 5P01CA067165, 5R01CA124377, 5R01CA138586, 2R44DE019322, 7R01CA124377, 5R42CA137886, 8P41EB015898).");
 }
 
 //-----------------------------------------------------------------------------

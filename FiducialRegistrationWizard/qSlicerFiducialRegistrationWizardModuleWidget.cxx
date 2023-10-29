@@ -36,96 +36,94 @@
 
 //-----------------------------------------------------------------------------
 /// \ingroup Slicer_QtModules_FiducialRegistrationWizard
-class qSlicerFiducialRegistrationWizardModuleWidgetPrivate: public Ui_qSlicerFiducialRegistrationWizardModule
+class qSlicerFiducialRegistrationWizardModuleWidgetPrivate : public Ui_qSlicerFiducialRegistrationWizardModule
 {
-  Q_DECLARE_PUBLIC( qSlicerFiducialRegistrationWizardModuleWidget );
+  Q_DECLARE_PUBLIC(qSlicerFiducialRegistrationWizardModuleWidget);
 
 protected:
-  qSlicerFiducialRegistrationWizardModuleWidget* const q_ptr;
+  qSlicerFiducialRegistrationWizardModuleWidget *const q_ptr;
+
 public:
-  qSlicerFiducialRegistrationWizardModuleWidgetPrivate( qSlicerFiducialRegistrationWizardModuleWidget& object );
-  vtkSlicerFiducialRegistrationWizardLogic* logic() const;
+  qSlicerFiducialRegistrationWizardModuleWidgetPrivate(qSlicerFiducialRegistrationWizardModuleWidget &object);
+  vtkSlicerFiducialRegistrationWizardLogic *logic() const;
 
   vtkWeakPointer<vtkMRMLFiducialRegistrationWizardNode> FiducialRegistrationWizardNode;
 
   // Embedded widgets (in addition to widgets in the .ui file)
-  qSlicerTransformPreviewWidget* TransformPreviewWidget;
+  qSlicerTransformPreviewWidget *TransformPreviewWidget;
 };
 
 //-----------------------------------------------------------------------------
 // qSlicerFiducialRegistrationWizardModuleWidgetPrivate methods
 
 //------------------------------------------------------------------------------
-qSlicerFiducialRegistrationWizardModuleWidgetPrivate::qSlicerFiducialRegistrationWizardModuleWidgetPrivate( qSlicerFiducialRegistrationWizardModuleWidget& object ) : q_ptr( &object )
+qSlicerFiducialRegistrationWizardModuleWidgetPrivate::qSlicerFiducialRegistrationWizardModuleWidgetPrivate(qSlicerFiducialRegistrationWizardModuleWidget &object) : q_ptr(&object)
 {
 }
 
 //------------------------------------------------------------------------------
-vtkSlicerFiducialRegistrationWizardLogic* qSlicerFiducialRegistrationWizardModuleWidgetPrivate::logic() const
+vtkSlicerFiducialRegistrationWizardLogic *qSlicerFiducialRegistrationWizardModuleWidgetPrivate::logic() const
 {
-  Q_Q( const qSlicerFiducialRegistrationWizardModuleWidget );
-  return vtkSlicerFiducialRegistrationWizardLogic::SafeDownCast( q->logic() );
+  Q_Q(const qSlicerFiducialRegistrationWizardModuleWidget);
+  return vtkSlicerFiducialRegistrationWizardLogic::SafeDownCast(q->logic());
 }
 
 //-----------------------------------------------------------------------------
 // qSlicerFiducialRegistrationWizardModuleWidget methods
 
 //------------------------------------------------------------------------------
-qSlicerFiducialRegistrationWizardModuleWidget
-::qSlicerFiducialRegistrationWizardModuleWidget( QWidget* _parent )
-  : Superclass( _parent )
-  , d_ptr( new qSlicerFiducialRegistrationWizardModuleWidgetPrivate( *this ) )
+qSlicerFiducialRegistrationWizardModuleWidget ::qSlicerFiducialRegistrationWizardModuleWidget(QWidget *_parent)
+    : Superclass(_parent), d_ptr(new qSlicerFiducialRegistrationWizardModuleWidgetPrivate(*this))
 {
 }
 
 //------------------------------------------------------------------------------
-qSlicerFiducialRegistrationWizardModuleWidget
-::~qSlicerFiducialRegistrationWizardModuleWidget()
+qSlicerFiducialRegistrationWizardModuleWidget ::~qSlicerFiducialRegistrationWizardModuleWidget()
 {
 }
 
 //------------------------------------------------------------------------------
 void qSlicerFiducialRegistrationWizardModuleWidget::onRecordFromButtonClicked()
 {
-  Q_D( qSlicerFiducialRegistrationWizardModuleWidget );
-  vtkMRMLLinearTransformNode* probeFromTransformNode = vtkMRMLLinearTransformNode::SafeDownCast( d->ProbeTransformFromComboBox->currentNode() );
-  vtkMRMLMarkupsFiducialNode* fromMarkupsNode = vtkMRMLMarkupsFiducialNode::SafeDownCast( d->FromMarkupsWidget->currentNode() );
-  d->logic()->AddFiducial( probeFromTransformNode, fromMarkupsNode);
+  Q_D(qSlicerFiducialRegistrationWizardModuleWidget);
+  vtkMRMLLinearTransformNode *probeFromTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(d->ProbeTransformFromComboBox->currentNode());
+  vtkMRMLMarkupsFiducialNode *fromMarkupsNode = vtkMRMLMarkupsFiducialNode::SafeDownCast(d->FromMarkupsWidget->currentNode());
+  d->logic()->AddFiducial(probeFromTransformNode, fromMarkupsNode);
 }
 
 //------------------------------------------------------------------------------
 void qSlicerFiducialRegistrationWizardModuleWidget::onRecordToButtonClicked()
 {
-  Q_D( qSlicerFiducialRegistrationWizardModuleWidget );
-  vtkMRMLLinearTransformNode* probeToTransformNode = vtkMRMLLinearTransformNode::SafeDownCast( d->ProbeTransformToComboBox->currentNode() );
-  vtkMRMLMarkupsFiducialNode* toMarkupsNode = vtkMRMLMarkupsFiducialNode::SafeDownCast( d->ToMarkupsWidget->currentNode() );
-  d->logic()->AddFiducial( probeToTransformNode, toMarkupsNode);
+  Q_D(qSlicerFiducialRegistrationWizardModuleWidget);
+  vtkMRMLLinearTransformNode *probeToTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(d->ProbeTransformToComboBox->currentNode());
+  vtkMRMLMarkupsFiducialNode *toMarkupsNode = vtkMRMLMarkupsFiducialNode::SafeDownCast(d->ToMarkupsWidget->currentNode());
+  d->logic()->AddFiducial(probeToTransformNode, toMarkupsNode);
 }
 
 //------------------------------------------------------------------------------
 void qSlicerFiducialRegistrationWizardModuleWidget::onUpdateButtonClicked()
 {
-  Q_D( qSlicerFiducialRegistrationWizardModuleWidget );
+  Q_D(qSlicerFiducialRegistrationWizardModuleWidget);
   if (d->UpdateButton->checkState() == Qt::Checked)
   {
     // If update button is untoggled then make it unchecked, too
     d->UpdateButton->setCheckState(Qt::Unchecked);
   }
-  vtkMRMLFiducialRegistrationWizardNode* fiducialRegistrationWizardNode = vtkMRMLFiducialRegistrationWizardNode::SafeDownCast( d->ModuleNodeComboBox->currentNode() );
-  d->logic()->UpdateCalibration( fiducialRegistrationWizardNode );
+  vtkMRMLFiducialRegistrationWizardNode *fiducialRegistrationWizardNode = vtkMRMLFiducialRegistrationWizardNode::SafeDownCast(d->ModuleNodeComboBox->currentNode());
+  d->logic()->UpdateCalibration(fiducialRegistrationWizardNode);
 }
 
 //------------------------------------------------------------------------------
 void qSlicerFiducialRegistrationWizardModuleWidget::onUpdateButtonCheckboxToggled(bool checked)
 {
-  Q_D( qSlicerFiducialRegistrationWizardModuleWidget );
-  vtkMRMLFiducialRegistrationWizardNode* fiducialRegistrationWizardNode = vtkMRMLFiducialRegistrationWizardNode::SafeDownCast(d->ModuleNodeComboBox->currentNode());
-  if ( fiducialRegistrationWizardNode == NULL )
+  Q_D(qSlicerFiducialRegistrationWizardModuleWidget);
+  vtkMRMLFiducialRegistrationWizardNode *fiducialRegistrationWizardNode = vtkMRMLFiducialRegistrationWizardNode::SafeDownCast(d->ModuleNodeComboBox->currentNode());
+  if (fiducialRegistrationWizardNode == NULL)
   {
     return;
   }
 
-  if ( checked )
+  if (checked)
   {
     fiducialRegistrationWizardNode->SetUpdateModeToAuto();
   }
@@ -138,51 +136,48 @@ void qSlicerFiducialRegistrationWizardModuleWidget::onUpdateButtonCheckboxToggle
 //------------------------------------------------------------------------------
 std::string qSlicerFiducialRegistrationWizardModuleWidget::GetCorrespondingFiducialString()
 {
-  Q_D( qSlicerFiducialRegistrationWizardModuleWidget );
+  Q_D(qSlicerFiducialRegistrationWizardModuleWidget);
 
-  vtkSlicerMarkupsLogic* markupsLogic = d->logic()->GetMarkupsLogic();
-  if (markupsLogic==NULL)
+  vtkSlicerMarkupsLogic *markupsLogic = d->logic()->GetMarkupsLogic();
+  if (markupsLogic == NULL)
   {
     qCritical("qSlicerFiducialRegistrationWizardModuleWidget::GetCorrespondingFiducialString failed: markups logic is invalid");
     return "";
   }
 
-  std::stringstream correspondingFiducialString;
-  correspondingFiducialString << "Place fiducial (";
+  QString correspondingFiducialString;
 
-  vtkMRMLMarkupsNode* activeMarkupsNode = vtkMRMLMarkupsNode::SafeDownCast( this->mrmlScene()->GetNodeByID( markupsLogic->GetActiveListID() ) );
+  vtkMRMLMarkupsNode *activeMarkupsNode = vtkMRMLMarkupsNode::SafeDownCast(this->mrmlScene()->GetNodeByID(markupsLogic->GetActiveListID()));
 
-  vtkMRMLMarkupsFiducialNode* fromMarkupsNode = vtkMRMLMarkupsFiducialNode::SafeDownCast( d->FromMarkupsWidget->currentNode() );
-  vtkMRMLMarkupsFiducialNode* toMarkupsNode = vtkMRMLMarkupsFiducialNode::SafeDownCast( d->ToMarkupsWidget->currentNode() );
+  vtkMRMLMarkupsFiducialNode *fromMarkupsNode = vtkMRMLMarkupsFiducialNode::SafeDownCast(d->FromMarkupsWidget->currentNode());
+  vtkMRMLMarkupsFiducialNode *toMarkupsNode = vtkMRMLMarkupsFiducialNode::SafeDownCast(d->ToMarkupsWidget->currentNode());
 
-  if ( fromMarkupsNode != NULL && toMarkupsNode != NULL )
+  if (fromMarkupsNode != NULL && toMarkupsNode != NULL)
   {
     // Adding to "From" list
-    if ( strcmp( activeMarkupsNode->GetID(), fromMarkupsNode->GetID() ) == 0 )
+    if (strcmp(activeMarkupsNode->GetID(), fromMarkupsNode->GetID()) == 0)
     {
-      if ( fromMarkupsNode->GetNumberOfControlPoints() < toMarkupsNode->GetNumberOfControlPoints() )
+      if (fromMarkupsNode->GetNumberOfControlPoints() < toMarkupsNode->GetNumberOfControlPoints())
       {
-        correspondingFiducialString << "corresponding to ";
-        correspondingFiducialString << toMarkupsNode->GetNthFiducialLabel( fromMarkupsNode->GetNumberOfControlPoints() );
+        correspondingFiducialString = tr("Place fiducial corresponding to %1").arg(
+          QString::fromStdString(toMarkupsNode->GetNthFiducialLabel(fromMarkupsNode->GetNumberOfControlPoints())));
       }
-      d->ToMarkupsWidget->highlightNthFiducial( fromMarkupsNode->GetNumberOfControlPoints() );
+      d->ToMarkupsWidget->highlightNthFiducial(fromMarkupsNode->GetNumberOfControlPoints());
     }
 
     // Adding to "To" list
-    if ( strcmp( activeMarkupsNode->GetID(), toMarkupsNode->GetID() ) == 0 )
+    if (strcmp(activeMarkupsNode->GetID(), toMarkupsNode->GetID()) == 0)
     {
-      if ( toMarkupsNode->GetNumberOfControlPoints() < fromMarkupsNode->GetNumberOfControlPoints() )
+      if (toMarkupsNode->GetNumberOfControlPoints() < fromMarkupsNode->GetNumberOfControlPoints())
       {
-        correspondingFiducialString << "corresponding to ";
-        correspondingFiducialString << fromMarkupsNode->GetNthFiducialLabel( toMarkupsNode->GetNumberOfControlPoints() );
+        correspondingFiducialString = tr("Place fiducial corresponding to %1").arg(
+          QString::fromStdString(fromMarkupsNode->GetNthFiducialLabel(toMarkupsNode->GetNumberOfControlPoints())));
       }
-      d->FromMarkupsWidget->highlightNthFiducial( toMarkupsNode->GetNumberOfControlPoints() );
+      d->FromMarkupsWidget->highlightNthFiducial(toMarkupsNode->GetNumberOfControlPoints());
     }
-
   }
 
-  correspondingFiducialString << ")";
-  return correspondingFiducialString.str();
+  return correspondingFiducialString.toStdString();
 }
 
 //------------------------------------------------------------------------------
@@ -194,27 +189,29 @@ void qSlicerFiducialRegistrationWizardModuleWidget::setup()
   this->Superclass::setup();
 
   // Embed widgets here
-  d->FromMarkupsWidget->setNodeBaseName( "From" );
+  d->FromMarkupsWidget->setNodeBaseName("From");
   QColor fromMarkupsDefaultColor;
   fromMarkupsDefaultColor.setRgbF(1, 0, 0);
-  d->FromMarkupsWidget->setDefaultNodeColor( fromMarkupsDefaultColor );
+  d->FromMarkupsWidget->setDefaultNodeColor(fromMarkupsDefaultColor);
 
-  d->ToMarkupsWidget->setNodeBaseName( "To" );
+  d->ToMarkupsWidget->setNodeBaseName("To");
   QColor toMarkupsDefaultColor;
   toMarkupsDefaultColor.setRgbF(0, 0, 1);
   d->ToMarkupsWidget->setDefaultNodeColor(toMarkupsDefaultColor);
 
   d->TransformPreviewWidget = new qSlicerTransformPreviewWidget;
-  d->PreviewGroupBox->layout()->addWidget( d->TransformPreviewWidget );
+  d->PreviewGroupBox->layout()->addWidget(d->TransformPreviewWidget);
 
   // Setup PointMatching ComboBox options
-  d->PointMatchingComboBox->addItem( tr( vtkMRMLFiducialRegistrationWizardNode::PointMatchingAsString( vtkMRMLFiducialRegistrationWizardNode::POINT_MATCHING_MANUAL ).c_str() ) );
-  d->PointMatchingComboBox->setItemData( 0, tr( "Point indices in the \"From\" list match those in the \"To\" list." ), Qt::ToolTipRole );
-  d->PointMatchingComboBox->addItem( tr( vtkMRMLFiducialRegistrationWizardNode::PointMatchingAsString( vtkMRMLFiducialRegistrationWizardNode::POINT_MATCHING_AUTOMATIC ).c_str() ) );
-  d->PointMatchingComboBox->setItemData( 1, tr( "EXPERIMENTAL. Point pairing between the two lists will be computed automatically. This feature is intended only for rigid and similarity transforms." ), Qt::ToolTipRole );
+  d->PointMatchingComboBox->addItem(vtkMRMLFiducialRegistrationWizardNode::PointMatchingAsDisplayableString(vtkMRMLFiducialRegistrationWizardNode::POINT_MATCHING_MANUAL).c_str());
+  d->PointMatchingComboBox->setItemData(0, vtkMRMLFiducialRegistrationWizardNode::PointMatchingAsString(vtkMRMLFiducialRegistrationWizardNode::POINT_MATCHING_MANUAL).c_str());
+  d->PointMatchingComboBox->setItemData(0, tr("Point indices in the \"From\" list match those in the \"To\" list."), Qt::ToolTipRole);
+  d->PointMatchingComboBox->addItem(vtkMRMLFiducialRegistrationWizardNode::PointMatchingAsDisplayableString(vtkMRMLFiducialRegistrationWizardNode::POINT_MATCHING_AUTOMATIC).c_str());
+  d->PointMatchingComboBox->setItemData(1, vtkMRMLFiducialRegistrationWizardNode::PointMatchingAsString(vtkMRMLFiducialRegistrationWizardNode::POINT_MATCHING_AUTOMATIC).c_str());
+  d->PointMatchingComboBox->setItemData(1, tr("EXPERIMENTAL. Point pairing between the two lists will be computed automatically. This feature is intended only for rigid and similarity transforms."), Qt::ToolTipRole);
 
   // Setup Update button menu
-  QMenu* updateMenu = new QMenu(tr("Update options"), this);
+  QMenu *updateMenu = new QMenu(tr("Update options"), this);
   // Install event filter to override menu position to show it on the right side of the button.
   // This is necessary because the update button is very wide and the
   // menu arrow is on the right side. With the default QMenu the menu would appear
@@ -222,38 +219,38 @@ void qSlicerFiducialRegistrationWizardModuleWidget::setup()
   // to be moved a lot to click the manual/auto option.
   updateMenu->installEventFilter(this);
   updateMenu->setObjectName("UpdateOptions");
-  connect( d->ModuleNodeComboBox, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(onParameterNodeSelected()) );
+  connect(d->ModuleNodeComboBox, SIGNAL(currentNodeChanged(vtkMRMLNode *)), this, SLOT(onParameterNodeSelected()));
 
-  connect( this, SIGNAL(mrmlSceneChanged(vtkMRMLScene*)), d->FromMarkupsWidget, SLOT(setMRMLScene(vtkMRMLScene*)) );
-  connect( this, SIGNAL(mrmlSceneChanged(vtkMRMLScene*)), d->ToMarkupsWidget, SLOT(setMRMLScene(vtkMRMLScene*)) );
-  connect( this, SIGNAL(mrmlSceneChanged(vtkMRMLScene*)), d->TransformPreviewWidget, SLOT(setMRMLScene(vtkMRMLScene*)) );
+  connect(this, SIGNAL(mrmlSceneChanged(vtkMRMLScene *)), d->FromMarkupsWidget, SLOT(setMRMLScene(vtkMRMLScene *)));
+  connect(this, SIGNAL(mrmlSceneChanged(vtkMRMLScene *)), d->ToMarkupsWidget, SLOT(setMRMLScene(vtkMRMLScene *)));
+  connect(this, SIGNAL(mrmlSceneChanged(vtkMRMLScene *)), d->TransformPreviewWidget, SLOT(setMRMLScene(vtkMRMLScene *)));
 
   // from/to markups widgets need to have scene set before this module widget,
   // otherwise they will run into errors
-  d->FromMarkupsWidget->setMRMLScene( d->logic()->GetMRMLScene() );
-  d->ToMarkupsWidget->setMRMLScene( d->logic()->GetMRMLScene() );
+  d->FromMarkupsWidget->setMRMLScene(d->logic()->GetMRMLScene());
+  d->ToMarkupsWidget->setMRMLScene(d->logic()->GetMRMLScene());
 
-  this->setMRMLScene( d->logic()->GetMRMLScene() );
+  this->setMRMLScene(d->logic()->GetMRMLScene());
 
   // Make connections to update the mrml from the widget
-  connect( d->PointMatchingComboBox, SIGNAL( currentIndexChanged(int)), this, SLOT(updateMRMLFromGUI()) );
-  connect( d->ProbeTransformFromComboBox, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(updateMRMLFromGUI()) );
-  connect( d->ProbeTransformToComboBox, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(updateMRMLFromGUI()) );
-  connect( d->OutputTransformComboBox, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(updateMRMLFromGUI()) );
-  connect( d->RigidRadioButton, SIGNAL(toggled(bool)), this, SLOT(updateMRMLFromGUI()) );
-  connect( d->SimilarityRadioButton, SIGNAL(toggled(bool)), this, SLOT(updateMRMLFromGUI()) );
-  connect( d->WarpingRadioButton, SIGNAL(toggled(bool)), this, SLOT(updateMRMLFromGUI()) );
+  connect(d->PointMatchingComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(updateMRMLFromGUI()));
+  connect(d->ProbeTransformFromComboBox, SIGNAL(currentNodeChanged(vtkMRMLNode *)), this, SLOT(updateMRMLFromGUI()));
+  connect(d->ProbeTransformToComboBox, SIGNAL(currentNodeChanged(vtkMRMLNode *)), this, SLOT(updateMRMLFromGUI()));
+  connect(d->OutputTransformComboBox, SIGNAL(currentNodeChanged(vtkMRMLNode *)), this, SLOT(updateMRMLFromGUI()));
+  connect(d->RigidRadioButton, SIGNAL(toggled(bool)), this, SLOT(updateMRMLFromGUI()));
+  connect(d->SimilarityRadioButton, SIGNAL(toggled(bool)), this, SLOT(updateMRMLFromGUI()));
+  connect(d->WarpingRadioButton, SIGNAL(toggled(bool)), this, SLOT(updateMRMLFromGUI()));
 
-  connect( d->FromMarkupsWidget, SIGNAL(markupsFiducialNodeChanged()), this, SLOT(updateMRMLFromGUI()) );
-  connect( d->FromMarkupsWidget, SIGNAL(updateFinished()), this, SLOT(PostProcessFromMarkupsWidget()) );
-  connect( d->ToMarkupsWidget, SIGNAL(markupsFiducialNodeChanged()), this, SLOT(updateMRMLFromGUI()) );
-  connect( d->ToMarkupsWidget, SIGNAL(updateFinished()), this, SLOT(PostProcessToMarkupsWidget()) );
+  connect(d->FromMarkupsWidget, SIGNAL(markupsFiducialNodeChanged()), this, SLOT(updateMRMLFromGUI()));
+  connect(d->FromMarkupsWidget, SIGNAL(updateFinished()), this, SLOT(PostProcessFromMarkupsWidget()));
+  connect(d->ToMarkupsWidget, SIGNAL(markupsFiducialNodeChanged()), this, SLOT(updateMRMLFromGUI()));
+  connect(d->ToMarkupsWidget, SIGNAL(updateFinished()), this, SLOT(PostProcessToMarkupsWidget()));
 
   // These connections will do work (after being updated from the node)
-  connect( d->RecordFromButton, SIGNAL(clicked()), this, SLOT(onRecordFromButtonClicked()) );
-  connect( d->RecordToButton, SIGNAL(clicked()), this, SLOT(onRecordToButtonClicked()) );
-  connect( d->UpdateButton, SIGNAL(clicked()), this, SLOT(onUpdateButtonClicked()) );
-  connect( d->UpdateButton, SIGNAL(checkBoxToggled(bool)), this, SLOT(onUpdateButtonCheckboxToggled(bool)));
+  connect(d->RecordFromButton, SIGNAL(clicked()), this, SLOT(onRecordFromButtonClicked()));
+  connect(d->RecordToButton, SIGNAL(clicked()), this, SLOT(onRecordToButtonClicked()));
+  connect(d->UpdateButton, SIGNAL(clicked()), this, SLOT(onUpdateButtonClicked()));
+  connect(d->UpdateButton, SIGNAL(checkBoxToggled(bool)), this, SLOT(onUpdateButtonCheckboxToggled(bool)));
 }
 
 //------------------------------------------------------------------------------
@@ -262,32 +259,31 @@ void qSlicerFiducialRegistrationWizardModuleWidget::enter()
   Q_D(qSlicerFiducialRegistrationWizardModuleWidget);
   this->Superclass::enter();
 
-  if ( this->mrmlScene() == NULL )
+  if (this->mrmlScene() == NULL)
   {
     qCritical() << "Invalid scene!";
     return;
   }
 
-
   // Create a module MRML node if there is none in the scene.
   // For convenience, select a default module.
-  if ( d->ModuleNodeComboBox->currentNode() == NULL )
+  if (d->ModuleNodeComboBox->currentNode() == NULL)
   {
-    vtkMRMLNode* node = this->mrmlScene()->GetNthNodeByClass(0, "vtkMRMLFiducialRegistrationWizardNode");
+    vtkMRMLNode *node = this->mrmlScene()->GetNthNodeByClass(0, "vtkMRMLFiducialRegistrationWizardNode");
     if (node == NULL)
     {
       node = this->mrmlScene()->AddNewNodeByClass("vtkMRMLFiducialRegistrationWizardNode");
     }
 
-    if ( node == NULL )
+    if (node == NULL)
     {
-      qCritical( "Failed to create module node vtkMRMLFiducialRegistrationWizardNode" );
+      qCritical("Failed to create module node vtkMRMLFiducialRegistrationWizardNode");
       return;
     }
 
-    d->ModuleNodeComboBox->setCurrentNode( node );
+    d->ModuleNodeComboBox->setCurrentNode(node);
   }
- 
+
   // Need to update the GUI so that it observes whichever parameter node is selected
   this->onParameterNodeSelected();
 }
@@ -295,25 +291,25 @@ void qSlicerFiducialRegistrationWizardModuleWidget::enter()
 //------------------------------------------------------------------------------
 void qSlicerFiducialRegistrationWizardModuleWidget::updateMRMLFromGUI()
 {
-  Q_D( qSlicerFiducialRegistrationWizardModuleWidget );
+  Q_D(qSlicerFiducialRegistrationWizardModuleWidget);
 
-  vtkMRMLFiducialRegistrationWizardNode* fiducialRegistrationWizardNode = vtkMRMLFiducialRegistrationWizardNode::SafeDownCast( d->ModuleNodeComboBox->currentNode() );
-  if ( fiducialRegistrationWizardNode == NULL )
+  vtkMRMLFiducialRegistrationWizardNode *fiducialRegistrationWizardNode = vtkMRMLFiducialRegistrationWizardNode::SafeDownCast(d->ModuleNodeComboBox->currentNode());
+  if (fiducialRegistrationWizardNode == NULL)
   {
     return;
   }
 
-  bool allWasBlocked = this->qvtkBlockAll( true );
+  bool allWasBlocked = this->qvtkBlockAll(true);
 
-  std::string pointMatchingAsString = d->PointMatchingComboBox->currentText().toStdString();
-  int pointMatchingAsEnum = vtkMRMLFiducialRegistrationWizardNode::PointMatchingFromString( pointMatchingAsString );
-  fiducialRegistrationWizardNode->SetPointMatching( pointMatchingAsEnum );
+  std::string pointMatchingAsString = d->PointMatchingComboBox->currentData().toString().toStdString();
+  int pointMatchingAsEnum = vtkMRMLFiducialRegistrationWizardNode::PointMatchingFromString(pointMatchingAsString);
+  fiducialRegistrationWizardNode->SetPointMatching(pointMatchingAsEnum);
 
-  fiducialRegistrationWizardNode->SetProbeTransformFromNodeId(d->ProbeTransformFromComboBox->currentNode()?d->ProbeTransformFromComboBox->currentNode()->GetID():NULL);
-  fiducialRegistrationWizardNode->SetProbeTransformToNodeId(d->ProbeTransformToComboBox->currentNode()?d->ProbeTransformToComboBox->currentNode()->GetID():NULL);
-  fiducialRegistrationWizardNode->SetOutputTransformNodeId(d->OutputTransformComboBox->currentNode()?d->OutputTransformComboBox->currentNode()->GetID():NULL);
-  fiducialRegistrationWizardNode->SetAndObserveFromFiducialListNodeId(d->FromMarkupsWidget->currentNode()?d->FromMarkupsWidget->currentNode()->GetID():NULL);
-  fiducialRegistrationWizardNode->SetAndObserveToFiducialListNodeId(d->ToMarkupsWidget->currentNode()?d->ToMarkupsWidget->currentNode()->GetID():NULL);
+  fiducialRegistrationWizardNode->SetProbeTransformFromNodeId(d->ProbeTransformFromComboBox->currentNode() ? d->ProbeTransformFromComboBox->currentNode()->GetID() : NULL);
+  fiducialRegistrationWizardNode->SetProbeTransformToNodeId(d->ProbeTransformToComboBox->currentNode() ? d->ProbeTransformToComboBox->currentNode()->GetID() : NULL);
+  fiducialRegistrationWizardNode->SetOutputTransformNodeId(d->OutputTransformComboBox->currentNode() ? d->OutputTransformComboBox->currentNode()->GetID() : NULL);
+  fiducialRegistrationWizardNode->SetAndObserveFromFiducialListNodeId(d->FromMarkupsWidget->currentNode() ? d->FromMarkupsWidget->currentNode()->GetID() : NULL);
+  fiducialRegistrationWizardNode->SetAndObserveToFiducialListNodeId(d->ToMarkupsWidget->currentNode() ? d->ToMarkupsWidget->currentNode()->GetID() : NULL);
 
   if (d->RigidRadioButton->isChecked())
   {
@@ -342,11 +338,11 @@ void qSlicerFiducialRegistrationWizardModuleWidget::updateMRMLFromGUI()
 //------------------------------------------------------------------------------
 void qSlicerFiducialRegistrationWizardModuleWidget::updateGUIFromMRML()
 {
-  Q_D( qSlicerFiducialRegistrationWizardModuleWidget );
+  Q_D(qSlicerFiducialRegistrationWizardModuleWidget);
 
-  vtkMRMLFiducialRegistrationWizardNode* fiducialRegistrationWizardNode = vtkMRMLFiducialRegistrationWizardNode::SafeDownCast( d->ModuleNodeComboBox->currentNode() );
+  vtkMRMLFiducialRegistrationWizardNode *fiducialRegistrationWizardNode = vtkMRMLFiducialRegistrationWizardNode::SafeDownCast(d->ModuleNodeComboBox->currentNode());
 
-  if ( fiducialRegistrationWizardNode == NULL )
+  if (fiducialRegistrationWizardNode == NULL)
   {
     d->PointMatchingComboBox->setEnabled(false);
     d->ProbeTransformFromComboBox->setEnabled(false);
@@ -360,7 +356,7 @@ void qSlicerFiducialRegistrationWizardModuleWidget::updateGUIFromMRML()
     d->FromMarkupsWidget->setEnabled(false);
     d->ToMarkupsWidget->setEnabled(false);
     d->UpdateButton->setEnabled(false);
-    d->StatusLabel->setText( "No Fiducial Registration Wizard module node selected." );
+    d->StatusLabel->setText(tr("No Fiducial Registration Wizard module node selected."));
     return;
   }
 
@@ -375,35 +371,35 @@ void qSlicerFiducialRegistrationWizardModuleWidget::updateGUIFromMRML()
   bool wasFromMarkupsWidgetBlocked = d->FromMarkupsWidget->blockSignals(true);
   bool wasToMarkupsWidgetBlocked = d->ToMarkupsWidget->blockSignals(true);
 
-  int pointMatchingIndex = d->PointMatchingComboBox->findText( QString( vtkMRMLFiducialRegistrationWizardNode::PointMatchingAsString( fiducialRegistrationWizardNode->GetPointMatching() ).c_str() ) );
-  if ( pointMatchingIndex < 0 )
+  int pointMatchingIndex = d->PointMatchingComboBox->findData(QString(vtkMRMLFiducialRegistrationWizardNode::PointMatchingAsString(fiducialRegistrationWizardNode->GetPointMatching()).c_str()));
+  if (pointMatchingIndex < 0)
   {
     pointMatchingIndex = 0;
   }
-  d->PointMatchingComboBox->setCurrentIndex( pointMatchingIndex );
+  d->PointMatchingComboBox->setCurrentIndex(pointMatchingIndex);
 
-  d->ProbeTransformFromComboBox->setCurrentNode( fiducialRegistrationWizardNode->GetProbeTransformFromNode() );
-  d->ProbeTransformToComboBox->setCurrentNode( fiducialRegistrationWizardNode->GetProbeTransformToNode() );
-  d->OutputTransformComboBox->setCurrentNode( fiducialRegistrationWizardNode->GetOutputTransformNode() );
-  d->TransformPreviewWidget->setCurrentNode( fiducialRegistrationWizardNode->GetOutputTransformNode() );
+  d->ProbeTransformFromComboBox->setCurrentNode(fiducialRegistrationWizardNode->GetProbeTransformFromNode());
+  d->ProbeTransformToComboBox->setCurrentNode(fiducialRegistrationWizardNode->GetProbeTransformToNode());
+  d->OutputTransformComboBox->setCurrentNode(fiducialRegistrationWizardNode->GetOutputTransformNode());
+  d->TransformPreviewWidget->setCurrentNode(fiducialRegistrationWizardNode->GetOutputTransformNode());
 
-  d->FromMarkupsWidget->setCurrentNode( fiducialRegistrationWizardNode->GetFromFiducialListNode() );
-  d->ToMarkupsWidget->setCurrentNode( fiducialRegistrationWizardNode->GetToFiducialListNode() );
+  d->FromMarkupsWidget->setCurrentNode(fiducialRegistrationWizardNode->GetFromFiducialListNode());
+  d->ToMarkupsWidget->setCurrentNode(fiducialRegistrationWizardNode->GetToFiducialListNode());
 
-  if ( fiducialRegistrationWizardNode->GetRegistrationMode() == vtkMRMLFiducialRegistrationWizardNode::REGISTRATION_MODE_RIGID )
+  if (fiducialRegistrationWizardNode->GetRegistrationMode() == vtkMRMLFiducialRegistrationWizardNode::REGISTRATION_MODE_RIGID)
   {
-    d->RigidRadioButton->setChecked( true );
+    d->RigidRadioButton->setChecked(true);
   }
-  else if ( fiducialRegistrationWizardNode->GetRegistrationMode() == vtkMRMLFiducialRegistrationWizardNode::REGISTRATION_MODE_SIMILARITY )
+  else if (fiducialRegistrationWizardNode->GetRegistrationMode() == vtkMRMLFiducialRegistrationWizardNode::REGISTRATION_MODE_SIMILARITY)
   {
-    d->SimilarityRadioButton->setChecked( true );
+    d->SimilarityRadioButton->setChecked(true);
   }
-  else if ( fiducialRegistrationWizardNode->GetRegistrationMode() == vtkMRMLFiducialRegistrationWizardNode::REGISTRATION_MODE_WARPING )
+  else if (fiducialRegistrationWizardNode->GetRegistrationMode() == vtkMRMLFiducialRegistrationWizardNode::REGISTRATION_MODE_WARPING)
   {
-    d->WarpingRadioButton->setChecked( true );
+    d->WarpingRadioButton->setChecked(true);
   }
 
-  if ( fiducialRegistrationWizardNode->GetUpdateMode() == vtkMRMLFiducialRegistrationWizardNode::UPDATE_MODE_AUTOMATIC )
+  if (fiducialRegistrationWizardNode->GetUpdateMode() == vtkMRMLFiducialRegistrationWizardNode::UPDATE_MODE_AUTOMATIC)
   {
     bool wasBlocked = d->UpdateButton->blockSignals(true);
     d->UpdateButton->setText(tr("Auto-update"));
@@ -439,8 +435,8 @@ void qSlicerFiducialRegistrationWizardModuleWidget::updateGUIFromMRML()
   // Probe transform section
   d->ProbeTransformFromComboBox->setEnabled(true);
   d->ProbeTransformToComboBox->setEnabled(true);
-  d->RecordFromButton->setEnabled(d->ProbeTransformFromComboBox->currentNode()!=NULL);
-  d->RecordToButton->setEnabled(d->ProbeTransformToComboBox->currentNode()!=NULL);
+  d->RecordFromButton->setEnabled(d->ProbeTransformFromComboBox->currentNode() != NULL);
+  d->RecordToButton->setEnabled(d->ProbeTransformToComboBox->currentNode() != NULL);
 
   // Results section
   d->PointMatchingComboBox->setEnabled(true);
@@ -450,41 +446,38 @@ void qSlicerFiducialRegistrationWizardModuleWidget::updateGUIFromMRML()
   d->WarpingRadioButton->setEnabled(true);
   d->UpdateButton->setEnabled(true);
 
-  std::stringstream statusString;
-  statusString << "Status: ";
-  statusString << d->logic()->GetOutputMessage( d->ModuleNodeComboBox->currentNode()->GetID() );
-  d->StatusLabel->setText( QString::fromStdString( statusString.str() ) );
+  d->StatusLabel->setText(tr("Status: %1").arg(QString::fromStdString(d->logic()->GetOutputMessage(d->ModuleNodeComboBox->currentNode()->GetID()))));
 }
 
 //------------------------------------------------------------------------------
 void qSlicerFiducialRegistrationWizardModuleWidget::PostProcessFromMarkupsWidget()
 {
-  Q_D( qSlicerFiducialRegistrationWizardModuleWidget );
+  Q_D(qSlicerFiducialRegistrationWizardModuleWidget);
   // Node is added or removed from the markups list, make sure the last item is visible
-  vtkMRMLMarkupsFiducialNode* markupsNode = vtkMRMLMarkupsFiducialNode::SafeDownCast( d->FromMarkupsWidget->currentNode() );
-  if ( markupsNode != NULL && markupsNode->GetNumberOfControlPoints()>0 )
+  vtkMRMLMarkupsFiducialNode *markupsNode = vtkMRMLMarkupsFiducialNode::SafeDownCast(d->FromMarkupsWidget->currentNode());
+  if (markupsNode != NULL && markupsNode->GetNumberOfControlPoints() > 0)
   {
-    d->FromMarkupsWidget->highlightNthFiducial( markupsNode->GetNumberOfControlPoints()-1 );
+    d->FromMarkupsWidget->highlightNthFiducial(markupsNode->GetNumberOfControlPoints() - 1);
   }
 }
 
 //------------------------------------------------------------------------------
 void qSlicerFiducialRegistrationWizardModuleWidget::PostProcessToMarkupsWidget()
 {
-  Q_D( qSlicerFiducialRegistrationWizardModuleWidget );
+  Q_D(qSlicerFiducialRegistrationWizardModuleWidget);
   // Node is added or removed from the markups list, make sure the last item is visible
-  vtkMRMLMarkupsFiducialNode* markupsNode = vtkMRMLMarkupsFiducialNode::SafeDownCast( d->ToMarkupsWidget->currentNode() );
-  if ( markupsNode != NULL && markupsNode->GetNumberOfControlPoints()>0 )
+  vtkMRMLMarkupsFiducialNode *markupsNode = vtkMRMLMarkupsFiducialNode::SafeDownCast(d->ToMarkupsWidget->currentNode());
+  if (markupsNode != NULL && markupsNode->GetNumberOfControlPoints() > 0)
   {
-    d->ToMarkupsWidget->highlightNthFiducial( markupsNode->GetNumberOfControlPoints()-1 );
+    d->ToMarkupsWidget->highlightNthFiducial(markupsNode->GetNumberOfControlPoints() - 1);
   }
 }
 
 //-----------------------------------------------------------------------------
 void qSlicerFiducialRegistrationWizardModuleWidget::onParameterNodeSelected()
 {
-  Q_D( qSlicerFiducialRegistrationWizardModuleWidget );
-  vtkMRMLFiducialRegistrationWizardNode* pNode = vtkMRMLFiducialRegistrationWizardNode::SafeDownCast( d->ModuleNodeComboBox->currentNode() );
+  Q_D(qSlicerFiducialRegistrationWizardModuleWidget);
+  vtkMRMLFiducialRegistrationWizardNode *pNode = vtkMRMLFiducialRegistrationWizardNode::SafeDownCast(d->ModuleNodeComboBox->currentNode());
   qvtkReconnect(d->FiducialRegistrationWizardNode, pNode, vtkCommand::ModifiedEvent, this, SLOT(updateGUIFromMRML()));
   d->FiducialRegistrationWizardNode = pNode;
   this->updateGUIFromMRML();

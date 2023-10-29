@@ -51,16 +51,15 @@ qSlicerCollectPointsModulePrivate::qSlicerCollectPointsModulePrivate()
 // qSlicerCollectPointsModule methods
 
 //-----------------------------------------------------------------------------
-qSlicerCollectPointsModule::qSlicerCollectPointsModule(QObject* _parent)
-  : Superclass(_parent)
-  , d_ptr(new qSlicerCollectPointsModulePrivate)
+qSlicerCollectPointsModule::qSlicerCollectPointsModule(QObject *_parent)
+    : Superclass(_parent), d_ptr(new qSlicerCollectPointsModulePrivate)
 {
 }
 
 //-----------------------------------------------------------------------------
-QStringList qSlicerCollectPointsModule::categories()const
+QStringList qSlicerCollectPointsModule::categories() const
 {
-  return QStringList() << "IGT";
+  return QStringList() << qSlicerAbstractCoreModule::tr("IGT");
 }
 
 //-----------------------------------------------------------------------------
@@ -71,18 +70,18 @@ qSlicerCollectPointsModule::~qSlicerCollectPointsModule()
 //-----------------------------------------------------------------------------
 QString qSlicerCollectPointsModule::helpText()const
 {
-  return "Record motion trajectory of a tracked tool into markups fiducial list, markups curve, or model node."
-    " For more information, visit <a href='https://github.com/SlicerIGT/SlicerIGT/#user-documentation'>SlicerIGT project website</a>.";
+  return tr("Record motion trajectory of a tracked tool into markups fiducial list, markups curve, or model node."
+    " For more information, visit <a href=\"https://github.com/SlicerIGT/SlicerIGT/#user-documentation\">SlicerIGT project website</a>.");
 }
 
 //-----------------------------------------------------------------------------
 QString qSlicerCollectPointsModule::acknowledgementText()const
 {
-  return "This work was was funded by Cancer Care Ontario and the Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO)";
+  return tr("This work was was funded by Cancer Care Ontario and the Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO)");
 }
 
 //-----------------------------------------------------------------------------
-QStringList qSlicerCollectPointsModule::contributors()const
+QStringList qSlicerCollectPointsModule::contributors() const
 {
   QStringList moduleContributors;
   moduleContributors << QString("Thomas Vaughan (Queen's University)");
@@ -94,7 +93,7 @@ QStringList qSlicerCollectPointsModule::contributors()const
 }
 
 //-----------------------------------------------------------------------------
-QIcon qSlicerCollectPointsModule::icon()const
+QIcon qSlicerCollectPointsModule::icon() const
 {
   return QIcon(":/Icons/CollectPoints.png");
 }
@@ -106,13 +105,13 @@ void qSlicerCollectPointsModule::setup()
 }
 
 //-----------------------------------------------------------------------------
-qSlicerAbstractModuleRepresentation * qSlicerCollectPointsModule::createWidgetRepresentation()
+qSlicerAbstractModuleRepresentation *qSlicerCollectPointsModule::createWidgetRepresentation()
 {
   return new qSlicerCollectPointsModuleWidget;
 }
 
 //-----------------------------------------------------------------------------
-vtkMRMLAbstractLogic* qSlicerCollectPointsModule::createLogic()
+vtkMRMLAbstractLogic *qSlicerCollectPointsModule::createLogic()
 {
   return vtkSlicerCollectPointsLogic::New();
 }

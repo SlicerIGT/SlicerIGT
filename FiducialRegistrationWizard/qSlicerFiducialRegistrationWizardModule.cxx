@@ -63,13 +63,13 @@ qSlicerFiducialRegistrationWizardModule::qSlicerFiducialRegistrationWizardModule
 //-----------------------------------------------------------------------------
 QStringList qSlicerFiducialRegistrationWizardModule::categories()const
 {
-  return QStringList() << "IGT";
+  return QStringList() << qSlicerAbstractCoreModule::tr("IGT");
 }
 
 //-----------------------------------------------------------------------------
 QStringList qSlicerFiducialRegistrationWizardModule::dependencies() const
 {
-  return QStringList() << "Markups";
+  return QStringList() << /*no tr*/ "Markups";
 }
 
 //-----------------------------------------------------------------------------
@@ -80,15 +80,15 @@ qSlicerFiducialRegistrationWizardModule::~qSlicerFiducialRegistrationWizardModul
 //-----------------------------------------------------------------------------
 QString qSlicerFiducialRegistrationWizardModule::helpText()const
 {
-  return "Register images, models, or any other nodes to each other using manually placed landmark points."
+  return tr("Register images, models, or any other nodes to each other using manually placed landmark points."
     " Rigid, affine, and warping transforms are supported."
-    " For help on how to use this module visit: <a href='https://www.slicerigt.org'>SlicerIGT website</a>.";
+    " For help on how to use this module visit: <a href='https://www.slicerigt.org'>SlicerIGT website</a>.");
 }
 
 //-----------------------------------------------------------------------------
 QString qSlicerFiducialRegistrationWizardModule::acknowledgementText()const
 {
-  return "This work was was funded by Cancer Care Ontario and the Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO)";
+  return tr("This work was was funded by Cancer Care Ontario and the Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO)");
 }
 
 //-----------------------------------------------------------------------------

@@ -59,13 +59,13 @@ qSlicerLandmarkDetectionModule::~qSlicerLandmarkDetectionModule()
 //-----------------------------------------------------------------------------
 QString qSlicerLandmarkDetectionModule::helpText() const
 {
-  return "This is a module for detecting landmarks by pivoting a tracked stylus. If you have questions, or encounter an problem, submit an issue on the <a href=\"https://github.com/SlicerIGT/SlicerIGT\">GitHub page</a>.";
+  return tr("This is a module for detecting landmarks by pivoting a tracked stylus. If you have questions, or encounter an problem, submit an issue on the <a href=\"https://github.com/SlicerIGT/SlicerIGT\">GitHub page</a>.");
 }
 
 //-----------------------------------------------------------------------------
 QString qSlicerLandmarkDetectionModule::acknowledgementText() const
 {
-  return "This module was developed through support from CANARIE's Research Software Program, Cancer Care Ontario, OpenAnatomy, and Brigham and Women's Hospital through NIH grant R01MH112748.";
+  return tr("This module was developed through support from CANARIE's Research Software Program, Cancer Care Ontario, OpenAnatomy, and Brigham and Women's Hospital through NIH grant R01MH112748.");
 }
 
 //-----------------------------------------------------------------------------
@@ -85,7 +85,7 @@ QIcon qSlicerLandmarkDetectionModule::icon() const
 //-----------------------------------------------------------------------------
 QStringList qSlicerLandmarkDetectionModule::categories() const
 {
-  return QStringList() << "IGT";
+  return QStringList() << qSlicerAbstractCoreModule::tr("IGT");
 }
 
 //-----------------------------------------------------------------------------

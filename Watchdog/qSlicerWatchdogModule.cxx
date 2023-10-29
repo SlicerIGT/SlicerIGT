@@ -115,15 +115,15 @@ qSlicerWatchdogModule::~qSlicerWatchdogModule()
 //-----------------------------------------------------------------------------
 QString qSlicerWatchdogModule::helpText() const
 {
-  return "Displays warning if selected transforms are not continuously updated."
+  return tr("Displays warning if selected transforms are not continuously updated."
     " It is useful for detecting tracking errors, such as occluded marker or network connection error."
-    " For help on how to use this module visit: <a href='http://www.slicerigt.org/'>SlicerIGT website</a>.";
+    " For help on how to use this module visit: <a href='http://www.slicerigt.org/'>SlicerIGT website</a>.");
 }
 
 //-----------------------------------------------------------------------------
 QString qSlicerWatchdogModule::acknowledgementText() const
 {
-  return "This work was was funded by Cancer Care Ontario and the Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO)";
+  return tr("This work was was funded by Cancer Care Ontario and the Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO)");
 }
 
 //-----------------------------------------------------------------------------
@@ -145,7 +145,7 @@ QIcon qSlicerWatchdogModule::icon() const
 //-----------------------------------------------------------------------------
 QStringList qSlicerWatchdogModule::categories() const
 {
-  return QStringList() << "IGT";
+  return QStringList() << qSlicerAbstractCoreModule::tr("IGT");
 }
 
 //-----------------------------------------------------------------------------

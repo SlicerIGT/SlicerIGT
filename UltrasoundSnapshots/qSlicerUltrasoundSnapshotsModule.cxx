@@ -65,14 +65,14 @@ qSlicerUltrasoundSnapshotsModule::~qSlicerUltrasoundSnapshotsModule()
 //-----------------------------------------------------------------------------
 QString qSlicerUltrasoundSnapshotsModule::helpText()const
 {
-  return "Module for taking a snapshot of a position tracked ultrasound image and display it as a model node."
-    " For help on how to use this module visit: <a href='https://www.slicerigt.org'>SlicerIGT website</a>.";
+  return tr("Module for taking a snapshot of a position tracked ultrasound image and display it as a model node."
+    " For help on how to use this module visit: <a href='https://www.slicerigt.org'>SlicerIGT website</a>.");
 }
 
 //-----------------------------------------------------------------------------
 QString qSlicerUltrasoundSnapshotsModule::acknowledgementText()const
 {
-  return "This work was was funded by Cancer Care Ontario and the Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO)";
+  return tr("This work was was funded by Cancer Care Ontario and the Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO)");
 }
 
 //-----------------------------------------------------------------------------
@@ -92,7 +92,7 @@ QIcon qSlicerUltrasoundSnapshotsModule::icon()const
 //-----------------------------------------------------------------------------
 QStringList qSlicerUltrasoundSnapshotsModule::categories() const
 {
-  return QStringList() << "IGT";
+  return QStringList() << qSlicerAbstractCoreModule::tr("IGT");
 }
 
 //-----------------------------------------------------------------------------

@@ -2,6 +2,7 @@ import os
 from __main__ import vtk, qt, ctk, slicer
 import logging
 import time
+from slicer.i18n import tr as _
 
 # fix unicode error by aliasing str as unicode in Python 3
 if slicer.app.majorVersion >= 5 or (slicer.app.majorVersion >= 4 and slicer.app.minorVersion >= 11):
@@ -160,7 +161,7 @@ class Guidelet(object):
     logging.debug('setupAdvancedPanel')
 
     self.advancedCollapsibleButton.setProperty('collapsedHeight', 20)
-    self.advancedCollapsibleButton.text = "Settings"
+    self.advancedCollapsibleButton.text = _("Settings")
     self.sliceletPanelLayout.addWidget(self.advancedCollapsibleButton)
 
     self.advancedLayout = qt.QFormLayout(self.advancedCollapsibleButton)
@@ -185,19 +186,19 @@ class Guidelet(object):
     self.linkInputSelector.showHidden = False
     self.linkInputSelector.showChildNodeTypes = False
     self.linkInputSelector.setMRMLScene( slicer.mrmlScene )
-    self.linkInputSelector.setToolTip( "Select connector node" )
-    self.advancedLayout.addRow("OpenIGTLink connector: ", self.linkInputSelector)
+    self.linkInputSelector.setToolTip(_( "Select connector node" ))
+    self.advancedLayout.addRow(_("OpenIGTLink connector: "), self.linkInputSelector)
 
     self.showFullSlicerInterfaceButton = qt.QPushButton()
-    self.showFullSlicerInterfaceButton.setText("Show 3D Slicer user interface")
+    self.showFullSlicerInterfaceButton.setText(_("Show 3D Slicer user interface"))
     self.advancedLayout.addRow(self.showFullSlicerInterfaceButton)
 
     self.showGuideletFullscreenButton = qt.QPushButton()
-    self.showGuideletFullscreenButton.setText("Show Guidelet in full screen")
+    self.showGuideletFullscreenButton.setText(_("Show Guidelet in full screen"))
     self.advancedLayout.addRow(self.showGuideletFullscreenButton)
 
     self.saveSceneButton = qt.QPushButton()
-    self.saveSceneButton.setText("Save Guidelet scene")
+    self.saveSceneButton.setText(_("Save Guidelet scene"))
     self.advancedLayout.addRow(self.saveSceneButton)
 
     self.saveDirectoryLineEdit = ctk.ctkPathLineEdit()
@@ -212,14 +213,14 @@ class Guidelet(object):
     self.saveDirectoryLineEdit.setMaximumWidth(500)
 
     saveLabel = qt.QLabel()
-    saveLabel.setText("Save scene directory:")
+    saveLabel.setText(_("Save scene directory:"))
     hbox = qt.QHBoxLayout()
     hbox.addWidget(saveLabel)
     hbox.addWidget(self.saveDirectoryLineEdit)
     self.advancedLayout.addRow(hbox)
 
     self.exitButton = qt.QPushButton()
-    self.exitButton.setText("Exit")
+    self.exitButton.setText(_("Exit"))
     self.advancedLayout.addRow(self.exitButton)
 
   def setupAdditionalPanel(self):

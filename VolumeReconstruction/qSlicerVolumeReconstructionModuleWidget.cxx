@@ -126,21 +126,21 @@ void qSlicerVolumeReconstructionModuleWidget::setup()
   d->CollapsibleButtonFanAngles->setEnabled(false);
   d->CollapsibleButtonFanAngles->setVisible(false);
 
-  d->InterpolationModeComboBox->addItem("Nearest neighbor", vtkIGSIOPasteSliceIntoVolume::InterpolationType::NEAREST_NEIGHBOR_INTERPOLATION);
-  d->InterpolationModeComboBox->addItem("Linear", vtkIGSIOPasteSliceIntoVolume::InterpolationType::LINEAR_INTERPOLATION);
+  d->InterpolationModeComboBox->addItem(tr("Nearest neighbor"), vtkIGSIOPasteSliceIntoVolume::InterpolationType::NEAREST_NEIGHBOR_INTERPOLATION);
+  d->InterpolationModeComboBox->addItem(tr("Linear"), vtkIGSIOPasteSliceIntoVolume::InterpolationType::LINEAR_INTERPOLATION);
 
-  d->OptimizationModeComboBox->addItem("Full optimization", vtkIGSIOPasteSliceIntoVolume::OptimizationType::FULL_OPTIMIZATION);
-  d->OptimizationModeComboBox->addItem("Partial optimization", vtkIGSIOPasteSliceIntoVolume::OptimizationType::PARTIAL_OPTIMIZATION);
-  d->OptimizationModeComboBox->addItem("No optimization", vtkIGSIOPasteSliceIntoVolume::OptimizationType::NO_OPTIMIZATION);
+  d->OptimizationModeComboBox->addItem(tr("Full optimization"), vtkIGSIOPasteSliceIntoVolume::OptimizationType::FULL_OPTIMIZATION);
+  d->OptimizationModeComboBox->addItem(tr("Partial optimization"), vtkIGSIOPasteSliceIntoVolume::OptimizationType::PARTIAL_OPTIMIZATION);
+  d->OptimizationModeComboBox->addItem(tr("No optimization"), vtkIGSIOPasteSliceIntoVolume::OptimizationType::NO_OPTIMIZATION);
   if (vtkIGSIOPasteSliceIntoVolume::IsGpuAccelerationSupported())
   {
-    d->OptimizationModeComboBox->addItem("GPU acceleration (OpenCL)", vtkIGSIOPasteSliceIntoVolume::OptimizationType::GPU_ACCELERATION_OPENCL);
+    d->OptimizationModeComboBox->addItem(tr("GPU acceleration (OpenCL)"), vtkIGSIOPasteSliceIntoVolume::OptimizationType::GPU_ACCELERATION_OPENCL);
   }
 
-  d->CompoundingModeComboBox->addItem("Latest", vtkIGSIOPasteSliceIntoVolume::CompoundingType::LATEST_COMPOUNDING_MODE);
-  d->CompoundingModeComboBox->addItem("Maximum", vtkIGSIOPasteSliceIntoVolume::CompoundingType::MAXIMUM_COMPOUNDING_MODE);
-  d->CompoundingModeComboBox->addItem("Mean", vtkIGSIOPasteSliceIntoVolume::CompoundingType::MEAN_COMPOUNDING_MODE);
-  d->CompoundingModeComboBox->addItem("Importance mask", vtkIGSIOPasteSliceIntoVolume::CompoundingType::IMPORTANCE_MASK_COMPOUNDING_MODE);
+  d->CompoundingModeComboBox->addItem(tr("Latest"), vtkIGSIOPasteSliceIntoVolume::CompoundingType::LATEST_COMPOUNDING_MODE);
+  d->CompoundingModeComboBox->addItem(tr("Maximum"), vtkIGSIOPasteSliceIntoVolume::CompoundingType::MAXIMUM_COMPOUNDING_MODE);
+  d->CompoundingModeComboBox->addItem(tr("Mean"), vtkIGSIOPasteSliceIntoVolume::CompoundingType::MEAN_COMPOUNDING_MODE);
+  d->CompoundingModeComboBox->addItem(tr("Importance mask"), vtkIGSIOPasteSliceIntoVolume::CompoundingType::IMPORTANCE_MASK_COMPOUNDING_MODE);
 
   connect(d->VolumeReconstructionSelector, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(onVolumeReconstructionNodeChanged(vtkMRMLNode*)));
 
@@ -210,9 +210,9 @@ void qSlicerVolumeReconstructionModuleWidget::startProgressDialog()
     d->ReconstructionProgressDialog = nullptr;
   }
 
-  d->ReconstructionProgressDialog = new QProgressDialog("Volume reconstruction", "",
+  d->ReconstructionProgressDialog = new QProgressDialog(tr("Volume reconstruction"), "",
     0, 100, this);
-  d->ReconstructionProgressDialog->setWindowTitle(QString("Reconstructing volume..."));
+  d->ReconstructionProgressDialog->setWindowTitle(QString(tr("Reconstructing volume...")));
   d->ReconstructionProgressDialog->setCancelButton(nullptr);
   d->ReconstructionProgressDialog->setWindowFlags(d->ReconstructionProgressDialog->windowFlags()
     & ~Qt::WindowCloseButtonHint & ~Qt::WindowContextHelpButtonHint);
@@ -313,12 +313,12 @@ void qSlicerVolumeReconstructionModuleWidget::updateWidgetFromMRML()
     d->ApplyButton->setCheckable(true);
     if (!d->VolumeReconstructionNode->GetLiveVolumeReconstructionInProgress())
     {
-      d->ApplyButton->setText("Start");
+      d->ApplyButton->setText(tr("Start"));
       d->ApplyButton->setChecked(false);
     }
     else
     {
-      d->ApplyButton->setText("Stop");
+      d->ApplyButton->setText(tr("Stop"));
       d->ApplyButton->setChecked(false);
     }
   }
@@ -327,7 +327,7 @@ void qSlicerVolumeReconstructionModuleWidget::updateWidgetFromMRML()
     d->InputSequenceBrowserSelector->setEnabled(true);
     d->ResetButton->setEnabled(false);
     d->ApplyButton->setCheckable(false);
-    d->ApplyButton->setText("Apply");
+    d->ApplyButton->setText(tr("Apply"));
   }
 
   if (liveReconstruction && d->VolumeReconstructionNode->GetLiveVolumeReconstructionInProgress())
