@@ -1,27 +1,28 @@
 from __main__ import vtk, qt, ctk, slicer
 import logging
 import time
-
+from slicer.i18n import translate
+from slicer.i18n import tr as _
 #
 # Viewpoint
 #
 class Viewpoint:
 
   def __init__(self, parent):
-    parent.title = "Viewpoint"
-    parent.categories = ["IGT"]
+    parent.title = _("Viewpoint")
+    parent.categories = [translate("qSlicerAbstractCoreModule","IGT")]
     parent.dependencies = []
     parent.contributors = ["Thomas Vaughan (Queen's)",
                            "Andras Lasso (Queen's)",
                            "Tamas Ungi (Queen's)",
                            "Gabor Fichtinger (Queen's)"]
-    parent.helpText = """This module adjusts camera viewpoint of a 3D viewer.
+    parent.helpText = _("""This module adjusts camera viewpoint of a 3D viewer.
 Bullseye View: position/orient the camera using a tracked tool.
 For help on how to use this module visit: <a href='https://www.slicerigt.org'>SlicerIGT website</a>.
-"""
-    parent.acknowledgementText = """
+""")
+    parent.acknowledgementText = (_("""
     This work is part of the Breast NaviKnife project within the Laboratory for Percutaneous Surgery, Queen's University, Kingston, Ontario. Thomas Vaughan is funded by an NSERC Postgraduate award. Gabor Fichtinger is funded as a Cancer Care Ontario (CCO) Chair.
-    """ # replace with organization, grant and thanks.
+    """ ))# replace with organization, grant and thanks.
     self.parent = parent
 
 #
@@ -60,8 +61,8 @@ class ViewpointWidget:
     self.checkStateUNCHECKED = 0
     self.checkStateCHECKED = 2
 
-    self.toggleBullseyeButtonTextState0 = "Enable Bullseye View Mode"
-    self.toggleBullseyeButtonTextState1 = "Disable Bullseye View Mode"
+    self.toggleBullseyeButtonTextState0 = _("Enable Bullseye View Mode")
+    self.toggleBullseyeButtonTextState1 = _("Disable Bullseye View Mode")
 
     # AUTO-CENTER
     self.sliderMultiplier = 100.0
@@ -89,8 +90,8 @@ class ViewpointWidget:
     self.timeRestToSafeMaxSeconds = 5
     self.timeRestToSafeDefaultSeconds = 1
 
-    self.toggleAutoCenterButtonTextState0 = "Enable Auto-Center Mode"
-    self.toggleAutoCenterButtonTextState1 = "Disable Auto-Center Mode"
+    self.toggleAutoCenterButtonTextState0 = _("Enable Auto-Center Mode")
+    self.toggleAutoCenterButtonTextState1 = _("Disable Auto-Center Mode")
 
   def setup(self):
     # TODO: The following line is strictly for debug purposes, should be removed when this module is done
@@ -98,26 +99,26 @@ class ViewpointWidget:
 
     # Collapsible buttons
     self.viewCollapsibleButton = ctk.ctkCollapsibleButton()
-    self.viewCollapsibleButton.text = "View Selection"
+    self.viewCollapsibleButton.text = _("View Selection")
     self.layout.addWidget(self.viewCollapsibleButton)
 
     # Layout within the collapsible button
     self.viewFormLayout = qt.QFormLayout(self.viewCollapsibleButton)
 
     self.viewLabel = qt.QLabel()
-    self.viewLabel.setText("Scene Camera: ")
+    self.viewLabel.setText(_("Scene Camera: "))
     self.viewSelector = slicer.qMRMLNodeComboBox()
     self.viewSelector.nodeTypes = ( ("vtkMRMLViewNode"), "" )
     self.viewSelector.noneEnabled = True
     self.viewSelector.addEnabled = False
     self.viewSelector.removeEnabled = False
     self.viewSelector.setMRMLScene( slicer.mrmlScene )
-    self.viewSelector.setToolTip("Pick the view which should be adjusted, e.g. 'View1'")
+    self.viewSelector.setToolTip(_("Pick the view which should be adjusted, e.g. 'View1'"))
     self.viewFormLayout.addRow(self.viewLabel, self.viewSelector)
 
     # Collapsible buttons
     self.bullseyeParametersCollapsibleButton = ctk.ctkCollapsibleButton()
-    self.bullseyeParametersCollapsibleButton.text = "Parameters for Bullseye View"
+    self.bullseyeParametersCollapsibleButton.text = _("Parameters for Bullseye View")
     self.layout.addWidget(self.bullseyeParametersCollapsibleButton)
 
     # Layout within the collapsible button
@@ -125,19 +126,19 @@ class ViewpointWidget:
 
     # Transform combobox
     self.transformLabel = qt.QLabel()
-    self.transformLabel.setText("Camera positioning transform: ")
+    self.transformLabel.setText(_("Camera positioning transform: "))
     self.transformSelector = slicer.qMRMLNodeComboBox()
     self.transformSelector.nodeTypes = [ "vtkMRMLLinearTransformNode" ]
     self.transformSelector.noneEnabled = False
     self.transformSelector.addEnabled = False
     self.transformSelector.removeEnabled = False
     self.transformSelector.setMRMLScene( slicer.mrmlScene )
-    self.transformSelector.setToolTip("Pick the transform that the camera should follow, e.g. 'cauteryCameraToCauteryTransform'")
+    self.transformSelector.setToolTip(_("Pick the transform that the camera should follow, e.g. 'cauteryCameraToCauteryTransform'"))
     self.bullseyeParametersFormLayout.addRow(self.transformLabel, self.transformSelector)
 
     # "Camera Control" Collapsible
     self.cameraControlCollapsibleButton = ctk.ctkCollapsibleButton()
-    self.cameraControlCollapsibleButton.text = "Camera Control"
+    self.cameraControlCollapsibleButton.text = _("Camera Control")
     self.bullseyeParametersFormLayout.addRow(self.cameraControlCollapsibleButton)
 
     # Layout within the collapsible button
@@ -145,7 +146,7 @@ class ViewpointWidget:
 
     # "Degrees of Freedom" Collapsible button
     self.degreesOfFreedomCollapsibleButton = ctk.ctkCollapsibleGroupBox()
-    self.degreesOfFreedomCollapsibleButton.title = "Degrees of Freedom"
+    self.degreesOfFreedomCollapsibleButton.title = _("Degrees of Freedom")
     self.cameraControlFormLayout.addRow(self.degreesOfFreedomCollapsibleButton)
 
     # Layout within the collapsible button
@@ -155,25 +156,25 @@ class ViewpointWidget:
     self.degreesOfFreedom3Label = qt.QLabel(qt.Qt.Horizontal,None)
     self.degreesOfFreedom3Label.setText("3DOF: ")
     self.degreesOfFreedom3RadioButton = qt.QRadioButton()
-    self.degreesOfFreedom3RadioButton.setToolTip("The camera will always look at the target model (or if unselected will act like 5DOF)")
+    self.degreesOfFreedom3RadioButton.setToolTip(_("The camera will always look at the target model (or if unselected will act like 5DOF)"))
     self.degreesOfFreedomFormLayout.addRow(self.degreesOfFreedom3Label,self.degreesOfFreedom3RadioButton)
 
     self.degreesOfFreedom5Label = qt.QLabel(qt.Qt.Horizontal,None)
-    self.degreesOfFreedom5Label.setText("5DOF: ")
+    self.degreesOfFreedom5Label.setText(_("5DOF: "))
     self.degreesOfFreedom5RadioButton = qt.QRadioButton()
-    self.degreesOfFreedom5RadioButton.setToolTip("The camera will always be oriented with the selected 'up direction'")
+    self.degreesOfFreedom5RadioButton.setToolTip(_("The camera will always be oriented with the selected 'up direction'"))
     self.degreesOfFreedomFormLayout.addRow(self.degreesOfFreedom5Label,self.degreesOfFreedom5RadioButton)
 
     self.degreesOfFreedom6Label = qt.QLabel(qt.Qt.Horizontal,None)
-    self.degreesOfFreedom6Label.setText("6DOF: ")
+    self.degreesOfFreedom6Label.setText(_("6DOF: "))
     self.degreesOfFreedom6RadioButton = qt.QRadioButton()
-    self.degreesOfFreedom6RadioButton.setToolTip("The camera will be virtually attached to the tool, and rotate together with it")
+    self.degreesOfFreedom6RadioButton.setToolTip(_("The camera will be virtually attached to the tool, and rotate together with it"))
     self.degreesOfFreedom6RadioButton.setChecked(self.checkStateCHECKED)
     self.degreesOfFreedomFormLayout.addRow(self.degreesOfFreedom6Label,self.degreesOfFreedom6RadioButton)
 
     # "Up Direction" Collapsible button
     self.upDirectionCollapsibleButton = ctk.ctkCollapsibleGroupBox()
-    self.upDirectionCollapsibleButton.title = "Up Direction"
+    self.upDirectionCollapsibleButton.title = _("Up Direction")
     self.upDirectionCollapsibleButton.setVisible(False)
     self.cameraControlFormLayout.addRow(self.upDirectionCollapsibleButton)
 
@@ -182,39 +183,39 @@ class ViewpointWidget:
 
     # Radio buttons for each of the anatomical directions
     self.upDirectionAnteriorLabel = qt.QLabel(qt.Qt.Horizontal,None)
-    self.upDirectionAnteriorLabel.setText("Anterior: ")
+    self.upDirectionAnteriorLabel.setText(_("Anterior: "))
     self.upDirectionAnteriorRadioButton = qt.QRadioButton()
     self.upDirectionAnteriorRadioButton.setChecked(self.checkStateCHECKED)
     self.upDirectionFormLayout.addRow(self.upDirectionAnteriorLabel,self.upDirectionAnteriorRadioButton)
 
     self.upDirectionPosteriorLabel = qt.QLabel(qt.Qt.Horizontal,None)
-    self.upDirectionPosteriorLabel.setText("Posterior: ")
+    self.upDirectionPosteriorLabel.setText(_("Posterior: "))
     self.upDirectionPosteriorRadioButton = qt.QRadioButton()
     self.upDirectionFormLayout.addRow(self.upDirectionPosteriorLabel,self.upDirectionPosteriorRadioButton)
 
     self.upDirectionRightLabel = qt.QLabel(qt.Qt.Horizontal,None)
-    self.upDirectionRightLabel.setText("Right: ")
+    self.upDirectionRightLabel.setText(_("Right: "))
     self.upDirectionRightRadioButton = qt.QRadioButton()
     self.upDirectionFormLayout.addRow(self.upDirectionRightLabel,self.upDirectionRightRadioButton)
 
     self.upDirectionLeftLabel = qt.QLabel(qt.Qt.Horizontal,None)
-    self.upDirectionLeftLabel.setText("Left: ")
+    self.upDirectionLeftLabel.setText(_("Left: "))
     self.upDirectionLeftRadioButton = qt.QRadioButton()
     self.upDirectionFormLayout.addRow(self.upDirectionLeftLabel,self.upDirectionLeftRadioButton)
 
     self.upDirectionSuperiorLabel = qt.QLabel(qt.Qt.Horizontal,None)
-    self.upDirectionSuperiorLabel.setText("Superior: ")
+    self.upDirectionSuperiorLabel.setText(_("Superior: "))
     self.upDirectionSuperiorRadioButton = qt.QRadioButton()
     self.upDirectionFormLayout.addRow(self.upDirectionSuperiorLabel,self.upDirectionSuperiorRadioButton)
 
     self.upDirectionInferiorLabel = qt.QLabel(qt.Qt.Horizontal,None)
-    self.upDirectionInferiorLabel.setText("Inferior: ")
+    self.upDirectionInferiorLabel.setText(_("Inferior: "))
     self.upDirectionInferiorRadioButton = qt.QRadioButton()
     self.upDirectionFormLayout.addRow(self.upDirectionInferiorLabel,self.upDirectionInferiorRadioButton)
 
     # "Target Model" Collapsible button
     self.targetModelCollapsibleButton = ctk.ctkCollapsibleGroupBox()
-    self.targetModelCollapsibleButton.title = "Target Model"
+    self.targetModelCollapsibleButton.title = _("Target Model")
     self.targetModelCollapsibleButton.setVisible(False)
     self.cameraControlFormLayout.addRow(self.targetModelCollapsibleButton)
 
@@ -223,19 +224,19 @@ class ViewpointWidget:
 
     # Selection of the target model
     self.targetModelLabel = qt.QLabel(qt.Qt.Horizontal,None)
-    self.targetModelLabel.text = "Target model: "
+    self.targetModelLabel.text = _("Target model: ")
     self.targetModelSelector = slicer.qMRMLNodeComboBox()
     self.targetModelSelector.nodeTypes = ( ("vtkMRMLModelNode"), "" )
     self.targetModelSelector.noneEnabled = False
     self.targetModelSelector.addEnabled = False
     self.targetModelSelector.removeEnabled = False
     self.targetModelSelector.setMRMLScene( slicer.mrmlScene )
-    self.targetModelSelector.setToolTip("This model be the center of rotation using 3DOF Viewpoint (e.g. tumour)")
+    self.targetModelSelector.setToolTip(_("This model be the center of rotation using 3DOF Viewpoint (e.g. tumour)"))
     self.targetModelFormLayout.addRow(self.targetModelLabel,self.targetModelSelector)
 
     # "Zoom" Collapsible button
     self.zoomCollapsibleButton = ctk.ctkCollapsibleGroupBox()
-    self.zoomCollapsibleButton.title = "Zoom"
+    self.zoomCollapsibleButton.title = _("Zoom")
     self.cameraControlFormLayout.addRow(self.zoomCollapsibleButton)
 
     # Layout within the collapsible button
@@ -243,19 +244,19 @@ class ViewpointWidget:
 
     # Camera viewing angle (perspective projection only)
     self.cameraViewAngleLabel = qt.QLabel(qt.Qt.Horizontal,None)
-    self.cameraViewAngleLabel.setText("View angle (degrees): ")
+    self.cameraViewAngleLabel.setText(_("View angle (degrees): "))
     self.cameraViewAngleSlider = slicer.qMRMLSliderWidget()
     self.cameraViewAngleSlider.minimum = self.cameraViewAngleMinDeg
     self.cameraViewAngleSlider.maximum = self.cameraViewAngleMaxDeg
     self.cameraViewAngleSlider.value = self.sliderViewAngleDefaultDeg
     self.cameraViewAngleSlider.singleStep = self.sliderSingleStepValue
     self.cameraViewAngleSlider.pageStep = self.sliderPageStepValue
-    self.cameraViewAngleSlider.setToolTip("Make the current viewing target look larger/smaller.")
+    self.cameraViewAngleSlider.setToolTip(_("Make the current viewing target look larger/smaller."))
     self.zoomFormLayout.addRow(self.cameraViewAngleLabel,self.cameraViewAngleSlider)
 
     # Camera parallel scale (parallel projection only)
     self.cameraParallelScaleLabel = qt.QLabel(qt.Qt.Horizontal,None)
-    self.cameraParallelScaleLabel.setText("View scale: ")
+    self.cameraParallelScaleLabel.setText(_("View scale: "))
     self.cameraParallelScaleLabel.setVisible(False)
     self.cameraParallelScaleSlider = slicer.qMRMLSliderWidget()
     self.cameraParallelScaleSlider.minimum = self.cameraParallelScaleMinDeg
@@ -263,20 +264,20 @@ class ViewpointWidget:
     self.cameraParallelScaleSlider.value = self.sliderParallelScaleDefaultDeg
     self.cameraParallelScaleSlider.singleStep = self.sliderSingleStepValue
     self.cameraParallelScaleSlider.pageStep = self.sliderPageStepValue
-    self.cameraParallelScaleSlider.setToolTip("Make the current viewing target look larger/smaller.")
+    self.cameraParallelScaleSlider.setToolTip(_("Make the current viewing target look larger/smaller."))
     self.cameraParallelScaleSlider.setVisible(False)
     self.zoomFormLayout.addRow(self.cameraParallelScaleLabel,self.cameraParallelScaleSlider)
 
     # "Translation" Collapsible
     self.translationCollapsibleButton = ctk.ctkCollapsibleGroupBox()
-    self.translationCollapsibleButton.title = "Translation"
+    self.translationCollapsibleButton.title = _("Translation")
     self.cameraControlFormLayout.addRow(self.translationCollapsibleButton)
 
     # Layout within the collapsible button
     self.translationFormLayout = qt.QFormLayout(self.translationCollapsibleButton)
 
     self.cameraXPosLabel = qt.QLabel(qt.Qt.Horizontal,None)
-    self.cameraXPosLabel.text = "Left/Right (mm): "
+    self.cameraXPosLabel.text = _("Left/Right (mm): ")
     self.cameraXPosSlider = slicer.qMRMLSliderWidget()
     self.cameraXPosSlider.minimum = self.sliderTranslationMinMm
     self.cameraXPosSlider.maximum = self.sliderTranslationMaxMm
@@ -286,7 +287,7 @@ class ViewpointWidget:
     self.translationFormLayout.addRow(self.cameraXPosLabel,self.cameraXPosSlider)
 
     self.cameraYPosLabel = qt.QLabel(qt.Qt.Horizontal,None)
-    self.cameraYPosLabel.setText("Down/Up (mm): ")
+    self.cameraYPosLabel.setText(_("Down/Up (mm): "))
     self.cameraYPosSlider = slicer.qMRMLSliderWidget()
     self.cameraYPosSlider.minimum = self.sliderTranslationMinMm
     self.cameraYPosSlider.maximum = self.sliderTranslationMaxMm
@@ -296,7 +297,7 @@ class ViewpointWidget:
     self.translationFormLayout.addRow(self.cameraYPosLabel,self.cameraYPosSlider)
 
     self.cameraZPosLabel = qt.QLabel(qt.Qt.Horizontal,None)
-    self.cameraZPosLabel.setText("Front/Back (mm): ")
+    self.cameraZPosLabel.setText(_("Front/Back (mm): "))
     self.cameraZPosSlider = slicer.qMRMLSliderWidget()
     self.cameraZPosSlider.minimum = self.sliderTranslationMinMm
     self.cameraZPosSlider.maximum = self.sliderTranslationMaxMm
@@ -307,15 +308,15 @@ class ViewpointWidget:
 
     # Camera parallel projection checkbox
     self.cameraParallelProjectionLabel = qt.QLabel()
-    self.cameraParallelProjectionLabel.setText("Parallel Projection")
+    self.cameraParallelProjectionLabel.setText(_("Parallel Projection"))
     self.cameraParallelProjectionCheckbox = qt.QCheckBox()
     self.cameraParallelProjectionCheckbox.setCheckState(self.checkStateUNCHECKED)
-    self.cameraParallelProjectionCheckbox.setToolTip("If checked, render with parallel projection (box-shaped view). Otherwise render with perspective projection (cone-shaped view).")
+    self.cameraParallelProjectionCheckbox.setToolTip(_("If checked, render with parallel projection (box-shaped view). Otherwise render with perspective projection (cone-shaped view)."))
     self.cameraControlFormLayout.addRow(self.cameraParallelProjectionLabel,self.cameraParallelProjectionCheckbox)
 
     # "Toggle Tool Point of View" button
     self.toggleBullseyeButton = qt.QPushButton()
-    self.toggleBullseyeButton.setToolTip("The camera will continuously update its position so that it follows the tool.")
+    self.toggleBullseyeButton.setToolTip(_("The camera will continuously update its position so that it follows the tool."))
     self.toggleBullseyeButton.setText(self.toggleBullseyeButtonTextState0)
     self.layout.addWidget(self.toggleBullseyeButton)
 
@@ -323,7 +324,7 @@ class ViewpointWidget:
 
     # Collapsible buttons
     self.autoCenterParametersCollapsibleButton = ctk.ctkCollapsibleButton()
-    self.autoCenterParametersCollapsibleButton.text = "Parameters for Auto-Center"
+    self.autoCenterParametersCollapsibleButton.text = _("Parameters for Auto-Center")
     self.layout.addWidget(self.autoCenterParametersCollapsibleButton)
 
     # Layout within the collapsible button
@@ -331,18 +332,18 @@ class ViewpointWidget:
 
     # Transform combobox
     self.modelLabel = qt.QLabel()
-    self.modelLabel.setText("Followed model: ")
+    self.modelLabel.setText(_("Followed model: "))
     self.modelSelector = slicer.qMRMLNodeComboBox()
     self.modelSelector.nodeTypes = ( ("vtkMRMLModelNode"), "" )
     self.modelSelector.noneEnabled = False
     self.modelSelector.addEnabled = False
     self.modelSelector.removeEnabled = False
     self.modelSelector.setMRMLScene( slicer.mrmlScene )
-    self.modelSelector.setToolTip("Pick the model that the camera should follow, e.g. 'tumorModel'")
+    self.modelSelector.setToolTip(_("Pick the model that the camera should follow, e.g. 'tumorModel'"))
     self.autoCenterParametersFormLayout.addRow(self.modelLabel, self.modelSelector)
 
     self.safeZoneXRangeLabel = qt.QLabel(qt.Qt.Horizontal,None)
-    self.safeZoneXRangeLabel.text = "Safe Zone (Viewport X percentage): "
+    self.safeZoneXRangeLabel.text = _("Safe Zone (Viewport X percentage): ")
     self.safeZoneXRangeSlider = slicer.qMRMLRangeWidget()
     self.safeZoneXRangeSlider.maximum = self.rangeSliderMaximum
     self.safeZoneXRangeSlider.minimum = self.rangeSliderMinimum
@@ -351,7 +352,7 @@ class ViewpointWidget:
     self.autoCenterParametersFormLayout.addRow(self.safeZoneXRangeLabel,self.safeZoneXRangeSlider)
 
     self.safeZoneYRangeLabel = qt.QLabel(qt.Qt.Horizontal,None)
-    self.safeZoneYRangeLabel.setText("Safe Zone (Viewport Y percentage): ")
+    self.safeZoneYRangeLabel.setText(_("Safe Zone (Viewport Y percentage): "))
     self.safeZoneYRangeSlider = slicer.qMRMLRangeWidget()
     self.safeZoneYRangeSlider.maximum = self.rangeSliderMaximum
     self.safeZoneYRangeSlider.minimum = self.rangeSliderMinimum
@@ -360,7 +361,7 @@ class ViewpointWidget:
     self.autoCenterParametersFormLayout.addRow(self.safeZoneYRangeLabel,self.safeZoneYRangeSlider)
 
     self.safeZoneZRangeLabel = qt.QLabel(qt.Qt.Horizontal,None)
-    self.safeZoneZRangeLabel.setText("Safe Zone (Viewport Z percentage): ")
+    self.safeZoneZRangeLabel.setText(_("Safe Zone (Viewport Z percentage): "))
     self.safeZoneZRangeSlider = slicer.qMRMLRangeWidget()
     self.safeZoneZRangeSlider.maximum = self.rangeSliderMaximum
     self.safeZoneZRangeSlider.minimum = self.rangeSliderMinimum
@@ -369,72 +370,72 @@ class ViewpointWidget:
     self.autoCenterParametersFormLayout.addRow(self.safeZoneZRangeLabel,self.safeZoneZRangeSlider)
 
     self.adjustXLabel = qt.QLabel(qt.Qt.Horizontal,None)
-    self.adjustXLabel.setText("Adjust Along Camera X")
+    self.adjustXLabel.setText(_("Adjust Along Camera X"))
     self.adjustXCheckbox = qt.QCheckBox()
     self.adjustXCheckbox.setCheckState(self.checkStateCHECKED)
-    self.adjustXCheckbox.setToolTip("If checked, adjust the camera so that it aligns with the target model along the x axis.")
+    self.adjustXCheckbox.setToolTip(_("If checked, adjust the camera so that it aligns with the target model along the x axis."))
     self.autoCenterParametersFormLayout.addRow(self.adjustXLabel,self.adjustXCheckbox)
 
     self.adjustYLabel = qt.QLabel(qt.Qt.Horizontal,None)
-    self.adjustYLabel.setText("Adjust Along Camera Y")
+    self.adjustYLabel.setText(_("Adjust Along Camera Y"))
     self.adjustYCheckbox = qt.QCheckBox()
     self.adjustYCheckbox.setCheckState(self.checkStateCHECKED)
-    self.adjustXCheckbox.setToolTip("If checked, adjust the camera so that it aligns with the target model along the y axis.")
+    self.adjustXCheckbox.setToolTip(_("If checked, adjust the camera so that it aligns with the target model along the y axis."))
     self.autoCenterParametersFormLayout.addRow(self.adjustYLabel,self.adjustYCheckbox)
 
     self.adjustZLabel = qt.QLabel(qt.Qt.Horizontal,None)
-    self.adjustZLabel.setText("Adjust Along Camera Z")
+    self.adjustZLabel.setText(_("Adjust Along Camera Z"))
     self.adjustZCheckbox = qt.QCheckBox()
     self.adjustZCheckbox.setCheckState(self.checkStateUNCHECKED)
-    self.adjustXCheckbox.setToolTip("If checked, adjust the camera so that it aligns with the target model along the z axis.")
+    self.adjustXCheckbox.setToolTip(_("If checked, adjust the camera so that it aligns with the target model along the z axis."))
     self.autoCenterParametersFormLayout.addRow(self.adjustZLabel,self.adjustZCheckbox)
 
     self.updateRateLabel = qt.QLabel(qt.Qt.Horizontal,None)
-    self.updateRateLabel.setText("Update rate (seconds): ")
+    self.updateRateLabel.setText(_("Update rate (seconds): "))
     self.updateRateSlider = slicer.qMRMLSliderWidget()
     self.updateRateSlider.minimum = self.updateRateMinSeconds
     self.updateRateSlider.maximum = self.updateRateMaxSeconds
     self.updateRateSlider.value = self.updateRateDefaultSeconds
     self.updateRateSlider.singleStep = self.sliderSingleStepValue
     self.updateRateSlider.pageStep = self.sliderPageStepValue
-    self.updateRateSlider.setToolTip("The rate at which the view will be checked and updated.")
+    self.updateRateSlider.setToolTip(_("The rate at which the view will be checked and updated."))
     self.autoCenterParametersFormLayout.addRow(self.updateRateLabel,self.updateRateSlider)
 
     self.timeUnsafeToAdjustLabel = qt.QLabel(qt.Qt.Horizontal,None)
-    self.timeUnsafeToAdjustLabel.setText("Time Unsafe to Adjust (seconds): ")
+    self.timeUnsafeToAdjustLabel.setText(_("Time Unsafe to Adjust (seconds): "))
     self.timeUnsafeToAdjustSlider = slicer.qMRMLSliderWidget()
     self.timeUnsafeToAdjustSlider.minimum = self.timeUnsafeToAdjustMinSeconds
     self.timeUnsafeToAdjustSlider.maximum = self.timeUnsafeToAdjustMaxSeconds
     self.timeUnsafeToAdjustSlider.value = self.timeUnsafeToAdjustDefaultSeconds
     self.timeUnsafeToAdjustSlider.singleStep = self.sliderSingleStepValue
     self.timeUnsafeToAdjustSlider.pageStep = self.sliderPageStepValue
-    self.timeUnsafeToAdjustSlider.setToolTip("The length of time in which the model must be in the unsafe zone before the camera is adjusted.")
+    self.timeUnsafeToAdjustSlider.setToolTip(_("The length of time in which the model must be in the unsafe zone before the camera is adjusted."))
     self.autoCenterParametersFormLayout.addRow(self.timeUnsafeToAdjustLabel,self.timeUnsafeToAdjustSlider)
 
     self.timeAdjustToRestLabel = qt.QLabel(qt.Qt.Horizontal,None)
-    self.timeAdjustToRestLabel.setText("Time Adjust to Rest (seconds): ")
+    self.timeAdjustToRestLabel.setText(_("Time Adjust to Rest (seconds): "))
     self.timeAdjustToRestSlider = slicer.qMRMLSliderWidget()
     self.timeAdjustToRestSlider.minimum = self.timeAdjustToRestMinSeconds
     self.timeAdjustToRestSlider.maximum = self.timeAdjustToRestMaxSeconds
     self.timeAdjustToRestSlider.value = self.timeAdjustToRestDefaultSeconds
     self.timeAdjustToRestSlider.singleStep = self.sliderSingleStepValue
     self.timeAdjustToRestSlider.pageStep = self.sliderPageStepValue
-    self.timeAdjustToRestSlider.setToolTip("The length of time an adjustment takes.")
+    self.timeAdjustToRestSlider.setToolTip(_("The length of time an adjustment takes."))
     self.autoCenterParametersFormLayout.addRow(self.timeAdjustToRestLabel,self.timeAdjustToRestSlider)
 
     self.timeRestToSafeLabel = qt.QLabel(qt.Qt.Horizontal,None)
-    self.timeRestToSafeLabel.setText("Time Rest to Safe (seconds): ")
+    self.timeRestToSafeLabel.setText(_("Time Rest to Safe (seconds): "))
     self.timeRestToSafeSlider = slicer.qMRMLSliderWidget()
     self.timeRestToSafeSlider.minimum = self.timeRestToSafeMinSeconds
     self.timeRestToSafeSlider.maximum = self.timeRestToSafeMaxSeconds
     self.timeRestToSafeSlider.value = self.timeRestToSafeDefaultSeconds
     self.timeRestToSafeSlider.singleStep = self.sliderSingleStepValue
     self.timeRestToSafeSlider.pageStep = self.sliderPageStepValue
-    self.timeRestToSafeSlider.setToolTip("The length of time after an adjustment that the camera remains motionless.")
+    self.timeRestToSafeSlider.setToolTip(_("The length of time after an adjustment that the camera remains motionless."))
     self.autoCenterParametersFormLayout.addRow(self.timeRestToSafeLabel,self.timeRestToSafeSlider)
 
     self.toggleAutoCenterButton = qt.QPushButton()
-    self.toggleAutoCenterButton.setToolTip("The camera will continuously update its position so that it follows the model.")
+    self.toggleAutoCenterButton.setToolTip(_("The camera will continuously update its position so that it follows the model."))
     self.toggleAutoCenterButton.setText(self.toggleAutoCenterButtonTextState0)
     self.layout.addWidget(self.toggleAutoCenterButton)
 

@@ -28,7 +28,7 @@ qSlicerVolumeResliceDriverModuleWidgetsAbstractPlugin::qSlicerVolumeResliceDrive
 //-----------------------------------------------------------------------------
 QString qSlicerVolumeResliceDriverModuleWidgetsAbstractPlugin::group() const
 {
-  return "Slicer [Volume Reslice Driver Widgets]";
+  return tr("Slicer [Volume Reslice Driver Widgets]");
 }
 
 //-----------------------------------------------------------------------------

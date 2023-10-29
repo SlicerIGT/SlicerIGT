@@ -189,7 +189,7 @@ void qSlicerPivotCalibrationModuleWidget::onStartPivotPart()
   this->pivotSamplingRemainingTimerPeriodCount = this->samplingDurationSec;
 
   std::stringstream ss;
-  ss << this->pivotStartupRemainingTimerPeriodCount << " seconds until start";
+  ss << this->pivotStartupRemainingTimerPeriodCount << tr(" seconds until start");
   d->CountdownLabel->setText(ss.str().c_str());
 
   this->pivotStartupTimer->start();
@@ -206,7 +206,7 @@ void qSlicerPivotCalibrationModuleWidget::onStartSpinPart()
   this->spinSamplingRemainingTimerPeriodCount = this->samplingDurationSec;
 
   std::stringstream ss;
-  ss << this->spinStartupRemainingTimerPeriodCount << " seconds until start";
+  ss << this->spinStartupRemainingTimerPeriodCount << tr(" seconds until start");
   d->CountdownLabel->setText(ss.str().c_str());
 
   this->spinStartupTimer->start();
@@ -222,14 +222,14 @@ void qSlicerPivotCalibrationModuleWidget::onPivotStartupTimeout()
   std::stringstream ss1;
 
   --this->pivotStartupRemainingTimerPeriodCount;
-  ss1 << this->pivotStartupRemainingTimerPeriodCount << " seconds until start";
+  ss1 << this->pivotStartupRemainingTimerPeriodCount << tr(" seconds until start");
   d->CountdownLabel->setText(ss1.str().c_str());
 
   if (this->pivotStartupRemainingTimerPeriodCount <= 0)
   {
     std::stringstream ss2;
     this->pivotSamplingRemainingTimerPeriodCount = this->samplingDurationSec;
-    ss2 << "Sampling time left: " << this->pivotSamplingRemainingTimerPeriodCount;
+    ss2 << tr("Sampling time left: ") << this->pivotSamplingRemainingTimerPeriodCount;
     d->CountdownLabel->setText(ss2.str().c_str());
 
     this->pivotStartupTimer->stop();
@@ -249,12 +249,12 @@ void qSlicerPivotCalibrationModuleWidget::onPivotSamplingTimeout()
   --this->pivotSamplingRemainingTimerPeriodCount;
 
   std::stringstream ss;
-  ss << "Sampling time left: " << this->pivotSamplingRemainingTimerPeriodCount;
+  ss << tr("Sampling time left: ") << this->pivotSamplingRemainingTimerPeriodCount;
   d->CountdownLabel->setText(ss.str().c_str());
 
   if (this->pivotSamplingRemainingTimerPeriodCount <= 0)
   {
-    d->CountdownLabel->setText("Sampling complete");
+    d->CountdownLabel->setText(tr("Sampling complete"));
 
     this->pivotSamplingTimer->stop();
     this->onPivotStop();
@@ -270,14 +270,14 @@ void qSlicerPivotCalibrationModuleWidget::onSpinStartupTimeout()
   std::stringstream ss1;
 
   --this->spinStartupRemainingTimerPeriodCount;
-  ss1 << this->spinStartupRemainingTimerPeriodCount << " seconds until start";
+  ss1 << this->spinStartupRemainingTimerPeriodCount << tr(" seconds until start");
   d->CountdownLabel->setText(ss1.str().c_str());
 
   if (this->spinStartupRemainingTimerPeriodCount <= 0)
   {
     std::stringstream ss2;
     this->spinSamplingRemainingTimerPeriodCount = this->samplingDurationSec;
-    ss2 << "Sampling time left: " << this->spinSamplingRemainingTimerPeriodCount;
+    ss2 << tr("Sampling time left: ") << this->spinSamplingRemainingTimerPeriodCount;
     d->CountdownLabel->setText(ss2.str().c_str());
 
     this->spinStartupTimer->stop();
@@ -297,12 +297,12 @@ void qSlicerPivotCalibrationModuleWidget::onSpinSamplingTimeout()
   --this->spinSamplingRemainingTimerPeriodCount;
 
   std::stringstream ss;
-  ss << "Sampling time left: " << this->spinSamplingRemainingTimerPeriodCount;
+  ss << tr("Sampling time left: ") << this->spinSamplingRemainingTimerPeriodCount;
   d->CountdownLabel->setText(ss.str().c_str());
 
   if (this->spinSamplingRemainingTimerPeriodCount <= 0)
   {
-    d->CountdownLabel->setText("Sampling complete");
+    d->CountdownLabel->setText(tr("Sampling complete"));
 
     this->spinSamplingTimer->stop();
     this->onSpinStop();
@@ -419,7 +419,7 @@ void qSlicerPivotCalibrationModuleWidget::onFlipButtonClicked()
   outputTransform->SetMatrixTransformToParent(outputMatrix);
 
   // Set the rmse label for the circle fitting rms error
-  d->rmseLabel->setText("Flipped.");
+  d->rmseLabel->setText(tr("Flipped."));
 }
 
 //-----------------------------------------------------------------------------

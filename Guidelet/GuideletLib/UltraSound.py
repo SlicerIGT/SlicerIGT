@@ -43,7 +43,7 @@ class UltraSound(object):
     collapsibleButton = ctk.ctkCollapsibleButton()
 
     collapsibleButton.setProperty('collapsedHeight', 20)
-    collapsibleButton.text = "Ultrasound"
+    collapsibleButton.text = _("Ultrasound")
     parentWidget.addWidget(collapsibleButton)
 
     procedureLayout = qt.QVBoxLayout(collapsibleButton)
@@ -54,12 +54,12 @@ class UltraSound(object):
     ultrasoundLayout.setContentsMargins(12,4,4,4)
     ultrasoundLayout.setSpacing(4)
 
-    self.startStopRecordingButton = qt.QPushButton("Start Recording")
+    self.startStopRecordingButton = qt.QPushButton(_("Start Recording"))
     self.startStopRecordingButton.setCheckable(True)
     self.startStopRecordingButton.setIcon(self.recordIcon)
-    self.startStopRecordingButton.setToolTip("If clicked, start recording")
+    self.startStopRecordingButton.setToolTip(_("If clicked, start recording"))
 
-    self.freezeUltrasoundButton = qt.QPushButton('Freeze')
+    self.freezeUltrasoundButton = qt.QPushButton(_('Freeze'))
 
     hbox = qt.QHBoxLayout()
     hbox.addWidget(self.startStopRecordingButton)
@@ -69,7 +69,7 @@ class UltraSound(object):
     self.usFrozen=False
 
     self.brightnessSliderLabel = qt.QLabel()
-    self.brightnessSliderLabel.text = 'Brightness '
+    self.brightnessSliderLabel.text = _('Brightness ')
 
     self.brightnessSliderWidget = ctk.ctkDoubleRangeSlider()
     self.brightnessSliderWidget.orientation = 'Horizontal'
@@ -80,15 +80,15 @@ class UltraSound(object):
     self.brightnessSliderWidget.maximumValue = 255
 
     self.brigthnessContrastButtonNormal = qt.QPushButton()
-    self.brigthnessContrastButtonNormal.text = "Normal"
+    self.brigthnessContrastButtonNormal.text = _("Normal")
     self.brigthnessContrastButtonNormal.setEnabled(True)
 
     self.brigthnessContrastButtonBright = qt.QPushButton()
-    self.brigthnessContrastButtonBright.text = "Bright"
+    self.brigthnessContrastButtonBright.text = _("Bright")
     self.brigthnessContrastButtonBright.setEnabled(True)
 
     self.brigthnessContrastButtonBrighter = qt.QPushButton()
-    self.brigthnessContrastButtonBrighter.text = "Brighter"
+    self.brigthnessContrastButtonBrighter.text = _("Brighter")
     self.brigthnessContrastButtonBrighter.setEnabled(True)
 
     ultrasoundButtonsPresent = False
@@ -241,9 +241,9 @@ class UltraSound(object):
 
   def onStartStopRecordingClicked(self):
     if self.startStopRecordingButton.isChecked():
-      self.startStopRecordingButton.setText("  Stop Recording")
+      self.startStopRecordingButton.setText(_("  Stop Recording"))
       self.startStopRecordingButton.setIcon(self.stopIcon)
-      self.startStopRecordingButton.setToolTip("Recording is being started...")
+      self.startStopRecordingButton.setToolTip(_("Recording is being started..."))
       if self.captureDeviceName  != '':
         # Important to save as .mhd because that does not require lengthy finalization (merging into a single file)
         recordPrefix = self.guideletParent.parameterNode.GetParameter('RecordingFilenamePrefix')
@@ -257,9 +257,9 @@ class UltraSound(object):
         self.plusRemoteLogic.StartRecording(self.plusRemoteNode)
 
     else:
-      self.startStopRecordingButton.setText("  Start Recording")
+      self.startStopRecordingButton.setText(_("  Start Recording"))
       self.startStopRecordingButton.setIcon(self.recordIcon)
-      self.startStopRecordingButton.setToolTip( "Recording is being stopped..." )
+      self.startStopRecordingButton.setToolTip(_( "Recording is being stopped..." ))
       if self.captureDeviceName  != '':
         logging.info("Stopping recording")
         self.plusRemoteNode.SetCurrentCaptureID(self.captureDeviceName)

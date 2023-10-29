@@ -148,7 +148,7 @@ std::string qSlicerFiducialRegistrationWizardModuleWidget::GetCorrespondingFiduc
   }
 
   std::stringstream correspondingFiducialString;
-  correspondingFiducialString << "Place fiducial (";
+  correspondingFiducialString << qSlicerFiducialRegistrationWizardModuleWidget::tr("Place fiducial ");
 
   vtkMRMLMarkupsNode* activeMarkupsNode = vtkMRMLMarkupsNode::SafeDownCast( this->mrmlScene()->GetNodeByID( markupsLogic->GetActiveListID() ) );
 
@@ -162,7 +162,7 @@ std::string qSlicerFiducialRegistrationWizardModuleWidget::GetCorrespondingFiduc
     {
       if ( fromMarkupsNode->GetNumberOfControlPoints() < toMarkupsNode->GetNumberOfControlPoints() )
       {
-        correspondingFiducialString << "corresponding to ";
+        correspondingFiducialString << qSlicerFiducialRegistrationWizardModuleWidget::tr("corresponding to ");
         correspondingFiducialString << toMarkupsNode->GetNthFiducialLabel( fromMarkupsNode->GetNumberOfControlPoints() );
       }
       d->ToMarkupsWidget->highlightNthFiducial( fromMarkupsNode->GetNumberOfControlPoints() );
@@ -173,7 +173,7 @@ std::string qSlicerFiducialRegistrationWizardModuleWidget::GetCorrespondingFiduc
     {
       if ( toMarkupsNode->GetNumberOfControlPoints() < fromMarkupsNode->GetNumberOfControlPoints() )
       {
-        correspondingFiducialString << "corresponding to ";
+        correspondingFiducialString << qSlicerFiducialRegistrationWizardModuleWidget::tr("corresponding to ");
         correspondingFiducialString << fromMarkupsNode->GetNthFiducialLabel( toMarkupsNode->GetNumberOfControlPoints() );
       }
       d->FromMarkupsWidget->highlightNthFiducial( toMarkupsNode->GetNumberOfControlPoints() );
@@ -209,9 +209,9 @@ void qSlicerFiducialRegistrationWizardModuleWidget::setup()
 
   // Setup PointMatching ComboBox options
   d->PointMatchingComboBox->addItem( tr( vtkMRMLFiducialRegistrationWizardNode::PointMatchingAsString( vtkMRMLFiducialRegistrationWizardNode::POINT_MATCHING_MANUAL ).c_str() ) );
-  d->PointMatchingComboBox->setItemData( 0, tr( "Point indices in the \"From\" list match those in the \"To\" list." ), Qt::ToolTipRole );
-  d->PointMatchingComboBox->addItem( tr( vtkMRMLFiducialRegistrationWizardNode::PointMatchingAsString( vtkMRMLFiducialRegistrationWizardNode::POINT_MATCHING_AUTOMATIC ).c_str() ) );
-  d->PointMatchingComboBox->setItemData( 1, tr( "EXPERIMENTAL. Point pairing between the two lists will be computed automatically. This feature is intended only for rigid and similarity transforms." ), Qt::ToolTipRole );
+  d->PointMatchingComboBox->setItemData( 0, "Point indices in the \"From\" list match those in the \"To\" list.", Qt::ToolTipRole );
+  d->PointMatchingComboBox->addItem( vtkMRMLFiducialRegistrationWizardNode::PointMatchingAsString( vtkMRMLFiducialRegistrationWizardNode::POINT_MATCHING_AUTOMATIC ).c_str() );
+  d->PointMatchingComboBox->setItemData( 1, tr("EXPERIMENTAL. Point pairing between the two lists will be computed automatically. This feature is intended only for rigid and similarity transforms."), Qt::ToolTipRole );
 
   // Setup Update button menu
   QMenu* updateMenu = new QMenu(tr("Update options"), this);
@@ -360,7 +360,7 @@ void qSlicerFiducialRegistrationWizardModuleWidget::updateGUIFromMRML()
     d->FromMarkupsWidget->setEnabled(false);
     d->ToMarkupsWidget->setEnabled(false);
     d->UpdateButton->setEnabled(false);
-    d->StatusLabel->setText( "No Fiducial Registration Wizard module node selected." );
+    d->StatusLabel->setText( tr("No Fiducial Registration Wizard module node selected.") );
     return;
   }
 
@@ -451,7 +451,7 @@ void qSlicerFiducialRegistrationWizardModuleWidget::updateGUIFromMRML()
   d->UpdateButton->setEnabled(true);
 
   std::stringstream statusString;
-  statusString << "Status: ";
+  statusString << tr("Status: ");
   statusString << d->logic()->GetOutputMessage( d->ModuleNodeComboBox->currentNode()->GetID() );
   d->StatusLabel->setText( QString::fromStdString( statusString.str() ) );
 }

@@ -60,7 +60,7 @@ qSlicerCollectPointsModule::qSlicerCollectPointsModule(QObject* _parent)
 //-----------------------------------------------------------------------------
 QStringList qSlicerCollectPointsModule::categories()const
 {
-  return QStringList() << "IGT";
+  return QStringList() << (translate("qSlicerAbstractCoreModule","IGT"));
 }
 
 //-----------------------------------------------------------------------------
@@ -71,14 +71,14 @@ qSlicerCollectPointsModule::~qSlicerCollectPointsModule()
 //-----------------------------------------------------------------------------
 QString qSlicerCollectPointsModule::helpText()const
 {
-  return "Record motion trajectory of a tracked tool into markups fiducial list, markups curve, or model node."
-    " For more information, visit <a href='https://github.com/SlicerIGT/SlicerIGT/#user-documentation'>SlicerIGT project website</a>.";
+  return tr("Record motion trajectory of a tracked tool into markups fiducial list, markups curve, or model node."
+    " For more information, visit <a href='https://github.com/SlicerIGT/SlicerIGT/#user-documentation'>SlicerIGT project website</a>.");
 }
 
 //-----------------------------------------------------------------------------
 QString qSlicerCollectPointsModule::acknowledgementText()const
 {
-  return "This work was was funded by Cancer Care Ontario and the Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO)";
+  return tr("This work was was funded by Cancer Care Ontario and the Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO)tr(");
 }
 
 //-----------------------------------------------------------------------------
