@@ -92,20 +92,21 @@ void qSlicerTransformProcessorModuleWidget::setup()
   this->Superclass::setup();
 
   // processing modes
+  // TODO: use GetProcessingModeAsDisplayableString
   d->processingModeComboBox->addItem( vtkMRMLTransformProcessorNode::GetProcessingModeAsString( vtkMRMLTransformProcessorNode::PROCESSING_MODE_QUATERNION_AVERAGE ));
-  d->processingModeComboBox->setItemData( 0, "Compute the quaternion average of all Source transforms provided.", Qt::ToolTipRole );
+  d->processingModeComboBox->setItemData( 0, tr("Compute the quaternion average of all Source transforms provided."), Qt::ToolTipRole );
   d->processingModeComboBox->addItem( vtkMRMLTransformProcessorNode::GetProcessingModeAsString( vtkMRMLTransformProcessorNode::PROCESSING_MODE_COMPUTE_ROTATION ));
-  d->processingModeComboBox->setItemData( 1, "Compute a copy of the rotation from the Source to the Reference.", Qt::ToolTipRole );
+  d->processingModeComboBox->setItemData( 1, tr("Compute a copy of the rotation from the Source to the Reference."), Qt::ToolTipRole );
   d->processingModeComboBox->addItem( vtkMRMLTransformProcessorNode::GetProcessingModeAsString( vtkMRMLTransformProcessorNode::PROCESSING_MODE_COMPUTE_TRANSLATION ));
-  d->processingModeComboBox->setItemData( 2, "Compute a copy of the translation from the Source to the Reference.", Qt::ToolTipRole );
+  d->processingModeComboBox->setItemData( 2, tr("Compute a copy of the translation from the Source to the Reference."), Qt::ToolTipRole );
   d->processingModeComboBox->addItem( vtkMRMLTransformProcessorNode::GetProcessingModeAsString( vtkMRMLTransformProcessorNode::PROCESSING_MODE_COMPUTE_FULL_TRANSFORM ));
-  d->processingModeComboBox->setItemData( 3, "Compute a copy of the full transform from the Source to the Reference.", Qt::ToolTipRole );
+  d->processingModeComboBox->setItemData( 3, tr("Compute a copy of the full transform from the Source to the Reference."), Qt::ToolTipRole );
   d->processingModeComboBox->addItem( vtkMRMLTransformProcessorNode::GetProcessingModeAsString( vtkMRMLTransformProcessorNode::PROCESSING_MODE_COMPUTE_INVERSE ));
-  d->processingModeComboBox->setItemData( 4, "Compute the inverse of transform to parent, and store it in another node.", Qt::ToolTipRole );
+  d->processingModeComboBox->setItemData( 4, tr("Compute the inverse of transform to parent, and store it in another node."), Qt::ToolTipRole );
   d->processingModeComboBox->addItem( vtkMRMLTransformProcessorNode::GetProcessingModeAsString( vtkMRMLTransformProcessorNode::PROCESSING_MODE_COMPUTE_SHAFT_PIVOT ));
-  d->processingModeComboBox->setItemData( 5, "Compute a constrained version of an Source transform, the translation and z direction are preserved but the other axes resemble the Target coordinate system.", Qt::ToolTipRole );
+  d->processingModeComboBox->setItemData( 5, tr("Compute a constrained version of an Source transform, the translation and z direction are preserved but the other axes resemble the Target coordinate system."), Qt::ToolTipRole );
   d->processingModeComboBox->addItem(vtkMRMLTransformProcessorNode::GetProcessingModeAsString(vtkMRMLTransformProcessorNode::PROCESSING_MODE_STABILIZE));
-  d->processingModeComboBox->setItemData( 6, "Compute a stabilized transform by low-pass filtering.", Qt::ToolTipRole);
+  d->processingModeComboBox->setItemData( 6, tr("Compute a stabilized transform by low-pass filtering."), Qt::ToolTipRole);
 
   d->advancedRotationModeComboBox->addItem( vtkMRMLTransformProcessorNode::GetRotationModeAsString( vtkMRMLTransformProcessorNode::ROTATION_MODE_COPY_ALL_AXES ));
   d->advancedRotationModeComboBox->addItem( vtkMRMLTransformProcessorNode::GetRotationModeAsString( vtkMRMLTransformProcessorNode::ROTATION_MODE_COPY_SINGLE_AXIS ));
@@ -394,7 +395,7 @@ void qSlicerTransformProcessorModuleWidget::updateGUIFromMRML()
     bool wasBlocked = d->updateButton->blockSignals( true );
     d->updateButton->setCheckable( false );
     d->updateButton->setChecked( false );
-    d->updateButton->setText( tr( "Update" ) );
+    d->updateButton->setText( tr("Update") );
     d->updateButton->blockSignals( wasBlocked );
   }
   else if ( pNode->GetUpdateMode() == vtkMRMLTransformProcessorNode::UPDATE_MODE_AUTO )
@@ -402,7 +403,7 @@ void qSlicerTransformProcessorModuleWidget::updateGUIFromMRML()
     bool wasBlocked = d->updateButton->blockSignals( true );
     d->updateButton->setCheckable( true );
     d->updateButton->setChecked( true );
-    d->updateButton->setText( tr( "Auto-update" ) );
+    d->updateButton->setText( tr("Auto-update") );
     d->updateButton->blockSignals( wasBlocked );
   }
   else
@@ -411,7 +412,7 @@ void qSlicerTransformProcessorModuleWidget::updateGUIFromMRML()
     bool wasBlocked = d->updateButton->blockSignals( true );
     d->updateButton->setCheckable( false );
     d->updateButton->setChecked( false );
-    d->updateButton->setText( tr( "Update" ) );
+    d->updateButton->setText( tr("Update") );
     d->updateButton->blockSignals( wasBlocked );
   }
 

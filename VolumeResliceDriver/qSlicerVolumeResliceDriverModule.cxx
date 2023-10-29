@@ -60,7 +60,7 @@ qSlicerVolumeResliceDriverModule::qSlicerVolumeResliceDriverModule(QObject* _par
 //-----------------------------------------------------------------------------
 QStringList qSlicerVolumeResliceDriverModule::categories()const
 {
-  return QStringList() << "IGT";
+  return QStringList() << qSlicerAbstractCoreModule::tr("IGT");
 }
 
 //-----------------------------------------------------------------------------
@@ -72,17 +72,17 @@ qSlicerVolumeResliceDriverModule::~qSlicerVolumeResliceDriverModule()
 QString qSlicerVolumeResliceDriverModule::helpText()const
 {
   QString help = 
-    "This module allows to set reslicing planes by using linear transforms nodes"
+    tr("This module allows to set reslicing planes by using linear transforms nodes"
     " or positions/orientations in image nodes."
-    " For help on how to use this module visit: <a href='https://www.slicerigt.org'>SlicerIGT website</a>.";
+    " For help on how to use this module visit: <a href='https://www.slicerigt.org'>SlicerIGT website</a>.");
   return help;
 }
 
 //-----------------------------------------------------------------------------
 QString qSlicerVolumeResliceDriverModule::acknowledgementText()const
 {
-  return "This work was supported by NIH National Center for Image Guided Therapy, and "
-    "National Alliance for Medical Image Computing.";
+  return tr("This work was supported by NIH National Center for Image Guided Therapy, and "
+    "National Alliance for Medical Image Computing.");
 }
 
 //-----------------------------------------------------------------------------

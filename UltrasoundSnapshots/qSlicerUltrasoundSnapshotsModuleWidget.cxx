@@ -119,8 +119,8 @@ qSlicerUltrasoundSnapshotsModuleWidget
   Q_D(qSlicerUltrasoundSnapshotsModuleWidget);
   
   QMessageBox *confirmBox =  new QMessageBox();
-  confirmBox->setText("This action will delete all snapshots.");
-  confirmBox->setInformativeText("Continue with this action?");
+  confirmBox->setText(tr("This action will delete all snapshots."));
+  confirmBox->setInformativeText(tr("Continue with this action?"));
   confirmBox->setStandardButtons(QMessageBox::Yes | QMessageBox::No);
   int confirmChoice = confirmBox->exec();
   

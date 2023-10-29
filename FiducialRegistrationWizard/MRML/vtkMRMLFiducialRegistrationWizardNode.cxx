@@ -25,6 +25,7 @@
 
 // slicer includes
 #include "vtkMRMLMarkupsFiducialNode.h"
+#include "vtkMRMLI18N.h"
 #include "vtkMRMLTransformNode.h"
 
 // vtk includes
@@ -379,6 +380,19 @@ std::string vtkMRMLFiducialRegistrationWizardNode::PointMatchingAsString( int me
       return "Unknown";
     }
   }
+}
+
+//------------------------------------------------------------------------------
+std::string vtkMRMLFiducialRegistrationWizardNode::PointMatchingAsDisplayableString(int method)
+{
+  switch (method)
+  {
+  case POINT_MATCHING_MANUAL: return vtkMRMLTr("vtkMRMLFiducialRegistrationWizardNode", "Manual");
+  case POINT_MATCHING_AUTOMATIC: return vtkMRMLTr("vtkMRMLFiducialRegistrationWizardNode", "Automatic");
+  default:
+    break;
+  }
+  return vtkMRMLTr("vtkMRMLFiducialRegistrationWizardNode", "Unknown");
 }
 
 //------------------------------------------------------------------------------

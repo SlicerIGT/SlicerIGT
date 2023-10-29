@@ -65,14 +65,14 @@ qSlicerCreateModelsModule::~qSlicerCreateModelsModule()
 //-----------------------------------------------------------------------------
 QString qSlicerCreateModelsModule::helpText()const
 {
-  return "Module for creating simple shapes, such as sphere, cylinder, prism, needle, and coordinate system axes."
-    "For help on how to use this module visit: <a href='http://www.slicerigt.org'>SlicerIGT website</a>.";
+  return tr("Module for creating simple shapes, such as sphere, cylinder, prism, needle, and coordinate system axes."
+    "For help on how to use this module visit: <a href='http://www.slicerigt.org'>SlicerIGT website</a>.");
 }
 
 //-----------------------------------------------------------------------------
 QString qSlicerCreateModelsModule::acknowledgementText()const
 {
-  return "This work was was funded by Cancer Care Ontario and the Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO)";
+  return tr("This work was was funded by Cancer Care Ontario and the Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO)");
 }
 
 //-----------------------------------------------------------------------------
@@ -92,7 +92,7 @@ QIcon qSlicerCreateModelsModule::icon()const
 //-----------------------------------------------------------------------------
 QStringList qSlicerCreateModelsModule::categories() const
 {
-  return QStringList() << "IGT";
+  return QStringList() << qSlicerAbstractCoreModule::tr("IGT");
 }
 
 //-----------------------------------------------------------------------------

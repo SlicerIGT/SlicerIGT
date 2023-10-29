@@ -94,7 +94,7 @@ void qSlicerCollectPointsModuleWidget::setup()
   connect( d->OutputNodeComboBox, SIGNAL( nodeAddedByUser( vtkMRMLNode* ) ), this, SLOT( onOutputNodeAdded( vtkMRMLNode* ) ) );
   connect( d->OutputColorButton, SIGNAL( colorChanged( QColor ) ), this, SLOT( onColorButtonChanged( QColor ) ) );
   connect( d->OutputDeleteButton, SIGNAL( clicked() ), this, SLOT( onDeleteButtonClicked() ) );
-  d->OutputDeleteMenu = new QMenu(tr( "Delete options" ), d->OutputDeleteButton );
+  d->OutputDeleteMenu = new QMenu(tr("Delete options"), d->OutputDeleteButton );
   d->OutputDeleteMenu->setObjectName( "DeleteMenu" );
   d->OutputDeleteMenu->addAction( d->ActionDeleteAll );
   QObject::connect( d->ActionDeleteAll, SIGNAL( triggered() ), this, SLOT( onDeleteAllClicked() ) );
@@ -518,13 +518,13 @@ void qSlicerCollectPointsModuleWidget::updateGUIFromMRML()
   d->CollectButton->setEnabled( readyToCollect );
   if ( collectPointsNode->GetCollectMode() == vtkMRMLCollectPointsNode::Automatic )
   {
-    d->CollectButton->setText( tr( "Auto-Collect" ) );
+    d->CollectButton->setText( tr("Auto-Collect") );
     d->CollectButton->setCheckable( true );
     d->CollectButton->setChecked( true );
   }
   else
   {
-    d->CollectButton->setText( tr( "Collect" ) );
+    d->CollectButton->setText(tr("Collect"));
     d->CollectButton->setCheckable( false );
   }
 

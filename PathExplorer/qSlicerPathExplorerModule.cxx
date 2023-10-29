@@ -69,14 +69,14 @@ qSlicerPathExplorerModule::~qSlicerPathExplorerModule()
 //-----------------------------------------------------------------------------
 QString qSlicerPathExplorerModule::helpText()const
 {
-  return QString("Path Explorer is a module designed to facilitate the creation of trajectory, and visualization of volumes along these trajectories"
+  return tr("Path Explorer is a module designed to facilitate the creation of trajectory, and visualization of volumes along these trajectories"
     " For help on how to use this module visit: <a href='https://www.slicerigt.org'>SlicerIGT website</a>.");
 }
 
 //-----------------------------------------------------------------------------
 QString qSlicerPathExplorerModule::acknowledgementText()const
 {
-  return QString("It is supported by grants 5P01CA067165, 5R01CA124377, 5R01CA138586, 2R44DE019322, 7R01CA124377,"
+  return tr("It is supported by grants 5P01CA067165, 5R01CA124377, 5R01CA138586, 2R44DE019322, 7R01CA124377,"
                  "5R42CA137886, 8P41EB015898");
 }
 
@@ -97,7 +97,7 @@ QIcon qSlicerPathExplorerModule::icon()const
 //-----------------------------------------------------------------------------
 QStringList qSlicerPathExplorerModule::categories() const
 {
-  return QStringList() << "IGT";
+  return QStringList() << qSlicerAbstractCoreModule::tr("IGT");
 }
 
 //-----------------------------------------------------------------------------

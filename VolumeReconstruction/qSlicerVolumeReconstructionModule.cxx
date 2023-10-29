@@ -90,7 +90,7 @@ qSlicerVolumeReconstructionModule::~qSlicerVolumeReconstructionModule()
 //-----------------------------------------------------------------------------
 QString qSlicerVolumeReconstructionModule::helpText()const
 {
-  return "This is a module for reconstructing image volumes from sequences. If you have questions, or encounter an problem, submit an issue on the <a href=\"https://github.com/SlicerIGT/SlicerIGT\">GitHub page</a>.";
+  return tr("This is a module for reconstructing image volumes from sequences. If you have questions, or encounter an problem, submit an issue on the <a href=\"https://github.com/SlicerIGT/SlicerIGT\">GitHub page</a>.");
 }
 
 //-----------------------------------------------------------------------------
@@ -106,7 +106,7 @@ QStringList qSlicerVolumeReconstructionModule::contributors()const
 //-----------------------------------------------------------------------------
 QString qSlicerVolumeReconstructionModule::acknowledgementText()const
 {
-  return "This module was developed through support from CANARIE's Research Software Program, and Cancer Care Ontario.";
+  return tr("This module was developed through support from CANARIE's Research Software Program, and Cancer Care Ontario.");
 }
 
 //-----------------------------------------------------------------------------
@@ -119,13 +119,13 @@ QIcon qSlicerVolumeReconstructionModule::icon()const
 //-----------------------------------------------------------------------------
 QStringList qSlicerVolumeReconstructionModule::categories() const
 {
-  return QStringList() << "IGT";
+  return QStringList() << qSlicerAbstractCoreModule::tr("IGT");
 }
 
 //-----------------------------------------------------------------------------
 QStringList qSlicerVolumeReconstructionModule::dependencies() const
 {
-  return QStringList() << "Sequences";
+  return QStringList() << tr("Sequences");
 }
 
 //-----------------------------------------------------------------------------

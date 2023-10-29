@@ -137,6 +137,7 @@ public:
   void SetPointMatchingToInputOrder() { this->SetPointMatching( POINT_MATCHING_MANUAL ); }
   void SetPointMatchingToComputed() { this->SetPointMatching( POINT_MATCHING_AUTOMATIC ); }
   static std::string PointMatchingAsString( int );
+  static std::string PointMatchingAsDisplayableString(int);
   static int PointMatchingFromString( std::string );
 
   vtkSetMacro( CalibrationStatusMessage, std::string );

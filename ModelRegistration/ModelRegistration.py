@@ -4,6 +4,8 @@ import unittest
 import math
 from __main__ import vtk, qt, ctk, slicer
 from slicer.ScriptedLoadableModule import *
+from slicer.i18n import translate
+from slicer.i18n import tr as _
 
 #
 # ModelRegistration
@@ -12,17 +14,17 @@ from slicer.ScriptedLoadableModule import *
 class ModelRegistration(ScriptedLoadableModule):
   def __init__(self, parent):
     ScriptedLoadableModule.__init__(self, parent)
-    self.parent.title = "Model Registration"
-    self.parent.categories = ["IGT"]
+    self.parent.title = _("Model Registration")
+    self.parent.categories = [translate("qSlicerAbstractCoreModule","IGT")]
     self.parent.dependencies = []
     self.parent.contributors = ["Andras Lasso, Tamas Ungi (PerkLab, Queen's University"]
-    self.parent.helpText = """
+    self.parent.helpText = _("""
 This module applies Iterative Closest Points registration between two surface models.
 For help on how to use this module visit: <a href='https://www.slicerigt.org'>SlicerIGT website</a>.
-"""
-    self.parent.acknowledgementText = """
+""")
+    self.parent.acknowledgementText = _("""
 This work is part of SparKit project, funded by Cancer Care Ontario (CCO)'s ACRU program and Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO).
-"""
+""")
 
 #
 # ModelRegistrationWidget
@@ -38,13 +40,13 @@ class ModelRegistrationWidget(ScriptedLoadableModuleWidget):
     # Parameters Area
     #
     parametersCollapsibleButton = ctk.ctkCollapsibleButton()
-    parametersCollapsibleButton.text = "Parameters"
+    parametersCollapsibleButton.text = _("Parameters")
     self.layout.addWidget(parametersCollapsibleButton)
 
     # Layout within the dummy collapsible button
     parametersFormLayout = qt.QFormLayout(parametersCollapsibleButton)
 
-    transformWarningLabel = qt.QLabel( "Note: Parent transforms of models are not used. Models should be defined in the coordinate system that is being registered." )
+    transformWarningLabel = qt.QLabel(_( "Note: Parent transforms of models are not used. Models should be defined in the coordinate system that is being registered." ))
     transformWarningLabel.setWordWrap( True )
     parametersFormLayout.addRow(transformWarningLabel)
 
@@ -60,7 +62,7 @@ class ModelRegistrationWidget(ScriptedLoadableModuleWidget):
     self.inputTargetModelSelector.showHidden = False
     self.inputTargetModelSelector.showChildNodeTypes = False
     self.inputTargetModelSelector.setMRMLScene( slicer.mrmlScene )
-    self.inputTargetModelSelector.setToolTip( "Select the model the other will be transformed to. This model required to contain a dense set of points." )
+    self.inputTargetModelSelector.setToolTip(_( "Select the model the other will be transformed to. This model required to contain a dense set of points." ))
     parametersFormLayout.addRow("Input fixed (dense) model: ", self.inputTargetModelSelector)
 
     #
@@ -75,8 +77,8 @@ class ModelRegistrationWidget(ScriptedLoadableModuleWidget):
     self.inputSourceModelSelector.showHidden = False
     self.inputSourceModelSelector.showChildNodeTypes = False
     self.inputSourceModelSelector.setMRMLScene( slicer.mrmlScene )
-    self.inputSourceModelSelector.setToolTip( "Select the model that will be transformed. This model may require a sparse set of points." )
-    parametersFormLayout.addRow("Input moving (sparse) model: ", self.inputSourceModelSelector)
+    self.inputSourceModelSelector.setToolTip(_( "Select the model that will be transformed. This model may require a sparse set of points." ))
+    parametersFormLayout.addRow(_("Input moving (sparse) model: ", self.inputSourceModelSelector))
 
     #
     # output transform selector
@@ -91,14 +93,14 @@ class ModelRegistrationWidget(ScriptedLoadableModuleWidget):
     self.outputSourceToTargetTransformSelector.showChildNodeTypes = False
     self.outputSourceToTargetTransformSelector.renameEnabled = True
     self.outputSourceToTargetTransformSelector.setMRMLScene( slicer.mrmlScene )
-    self.outputSourceToTargetTransformSelector.setToolTip( "Pick the moving to fixed transform computed by the algorithm." )
-    parametersFormLayout.addRow("Output transform: ", self.outputSourceToTargetTransformSelector)
+    self.outputSourceToTargetTransformSelector.setToolTip(_( "Pick the moving to fixed transform computed by the algorithm." ))
+    parametersFormLayout.addRow(_("Output transform: "), self.outputSourceToTargetTransformSelector)
 
     #
     # Apply Button
     #
-    self.applyButton = qt.QPushButton("Apply")
-    self.applyButton.toolTip = "Run the algorithm."
+    self.applyButton = qt.QPushButton(_("Apply"))
+    self.applyButton.toolTip = _("Run the algorithm.")
     self.applyButton.enabled = False
     parametersFormLayout.addRow(self.applyButton)
 
@@ -106,19 +108,19 @@ class ModelRegistrationWidget(ScriptedLoadableModuleWidget):
     # Output panel
     #
     outputCollapsibleButton = ctk.ctkCollapsibleButton()
-    outputCollapsibleButton.text = "Output"
+    outputCollapsibleButton.text = _("Output")
     self.layout.addWidget( outputCollapsibleButton )
     outputFormLayout = qt.QFormLayout( outputCollapsibleButton )
 
     self.outputLine = qt.QLineEdit()
     self.outputLine.setReadOnly( True )
-    outputFormLayout.addRow( "Mean distance after registration:", self.outputLine )
+    outputFormLayout.addRow(_( "Mean distance after registration:"), self.outputLine ))
 
     #
     # Advanced parameters
     #
     advancedCollapsibleButton = ctk.ctkCollapsibleButton()
-    advancedCollapsibleButton.text = "Advanced"
+    advancedCollapsibleButton.text = _("Advanced")
     self.layout.addWidget(advancedCollapsibleButton)
 
     # Layout
@@ -140,7 +142,7 @@ class ModelRegistrationWidget(ScriptedLoadableModuleWidget):
     self.iterationSpin = qt.QSpinBox()
     self.iterationSpin.setMaximum( 1000 )
     self.iterationSpin.setValue( 100 )
-    advancedFormLayout.addRow("Number of iterations:", self.iterationSpin)
+    advancedFormLayout.addRow(_("Number of iterations:"), self.iterationSpin)
 
     # connections
     self.applyButton.connect('clicked(bool)', self.onApplyButton)
@@ -265,4 +267,4 @@ class ModelRegistrationTest(ScriptedLoadableModuleTest):
     your test should break so they know that the feature is needed.
     """
 
-    slicer.util.delayDisplay('Test is not implemented for ModelRegistration')
+    slicer.util.delayDisplay(_('Test is not implemented for ModelRegistration'))

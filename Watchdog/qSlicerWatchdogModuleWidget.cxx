@@ -116,7 +116,7 @@ void qSlicerWatchdogModuleWidget::setup()
   d->DeleteToolButton->setIcon( QIcon( ":/Icons/MarkupsDelete.png" ) );
 
   QStringList MarkupsTableHeaders;
-  MarkupsTableHeaders << "Name" << "Message" << "Sound" << "Status";
+  MarkupsTableHeaders << tr("Name") << tr("Message") << tr("Sound") << tr("Status");
   d->ToolsTableWidget->setColumnCount( TOOL_COLUMNS );
   d->ToolsTableWidget->setHorizontalHeaderLabels( MarkupsTableHeaders );
 #if (QT_VERSION < QT_VERSION_CHECK(5, 0, 0))
@@ -299,8 +299,8 @@ void qSlicerWatchdogModuleWidget::onToolsTableContextMenu(const QPoint& position
   QPoint globalPosition = d->ToolsTableWidget->viewport()->mapToGlobal( position );
 
   QMenu* transformsMenu = new QMenu( d->ToolsTableWidget );
-  QAction* activateAction = new QAction( "Make list active", transformsMenu );
-  QAction* deleteAction = new QAction( "Delete highlighted row", transformsMenu );
+  QAction* activateAction = new QAction( tr("Make list active"), transformsMenu );
+  QAction* deleteAction = new QAction( tr("Delete highlighted row"), transformsMenu );
 
   transformsMenu->addAction( activateAction );
   transformsMenu->addAction( deleteAction );
@@ -460,12 +460,12 @@ void qSlicerWatchdogModuleWidget::updateWidget()
       if(d->WatchdogNode->GetWatchedNodeUpToDate(watchedNodeIndex))
       {
         statusIcon->setPixmap(QPixmap(":/Icons/NodeValid.png"));
-        statusIcon->setToolTip("valid");
+        statusIcon->setToolTip(tr("valid"));
       }
       else
       {
         statusIcon->setPixmap(QPixmap(":/Icons/NodeInvalid.png"));
-        statusIcon->setToolTip("invalid");
+        statusIcon->setToolTip(tr("invalid"));
       }
     }
   }
