@@ -544,7 +544,7 @@ void qSlicerVolumeReconstructionModuleWidget::onReset()
     return;
   }
 
-  d->VolumeReconstructionNode->SetNumberOfVolumesAddedToReconstruction(0);
+  d->logic()->ResetVolumeReconstruction(d->VolumeReconstructionNode);
 }
 
 //-----------------------------------------------------------------------------

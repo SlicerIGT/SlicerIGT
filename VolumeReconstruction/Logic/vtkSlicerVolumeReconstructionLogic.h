@@ -75,6 +75,8 @@ public:
 
   vtkMRMLVolumeNode* GetOrAddOutputVolumeNode(vtkMRMLVolumeReconstructionNode* volumeReconstructionNode);
 
+  void ResetVolumeReconstruction(vtkMRMLVolumeReconstructionNode* volumeReconstructionNode);
+
   static bool IsGpuAccelerationSupported();
 
 

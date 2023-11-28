@@ -276,7 +276,8 @@ void vtkSlicerVolumeReconstructionLogic::StartVolumeReconstruction(vtkMRMLVolume
   reconstructor->SetReferenceCoordinateFrame("ROI");
   reconstructor->SetClipRectangleOrigin(volumeReconstructionNode->GetClipRectangleOrigin());
   reconstructor->SetClipRectangleSize(volumeReconstructionNode->GetClipRectangleSize());
-  reconstructor->Reset();
+
+  this->ResetVolumeReconstruction(volumeReconstructionNode);
 
   volumeReconstructionNode->SetNumberOfVolumesAddedToReconstruction(0);
   volumeReconstructionNode->InvokeEvent(vtkMRMLVolumeReconstructionNode::VolumeReconstructionStarted);
@@ -291,6 +292,7 @@ void vtkSlicerVolumeReconstructionLogic::StartLiveVolumeReconstruction(vtkMRMLVo
   }
   this->StartVolumeReconstruction(volumeReconstructionNode);
   this->ResumeLiveVolumeReconstruction(volumeReconstructionNode);
+  this->GetReconstructedVolume(volumeReconstructionNode, true);
 }
 
 //---------------------------------------------------------------------------
@@ -743,6 +745,22 @@ vtkMRMLVolumeNode* vtkSlicerVolumeReconstructionLogic::GetOrAddOutputVolumeNode(
   }
   volumeReconstructionNode->SetAndObserveOutputVolumeNode(outputVolumeNode);
   return outputVolumeNode;
+}
+
+//---------------------------------------------------------------------------
+void vtkSlicerVolumeReconstructionLogic::ResetVolumeReconstruction(vtkMRMLVolumeReconstructionNode* volumeReconstructionNode)
+{
+  vtkIGSIOVolumeReconstructor* reconstructor = this->Internal->Reconstructors[volumeReconstructionNode].Reconstructor;
+  this->Internal->Reconstructors[volumeReconstructionNode].Reconstructor;
+  if (!reconstructor)
+  {
+    vtkErrorMacro("ResetVolumeReconstruction::Invalid volume reconstructor");
+    return;
+  }
+
+  reconstructor->Reset();
+  this->GetReconstructedVolume(volumeReconstructionNode);
+  volumeReconstructionNode->SetNumberOfVolumesAddedToReconstruction(0);
 }
 
 //---------------------------------------------------------------------------
