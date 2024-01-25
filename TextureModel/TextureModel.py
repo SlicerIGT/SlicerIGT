@@ -4,7 +4,8 @@ import unittest
 from __main__ import vtk, qt, ctk, slicer
 from slicer.ScriptedLoadableModule import *
 import logging
-
+from slicer.i18n import translate
+from slicer.i18n import tr as _
 #
 # TextureModel
 #
@@ -16,15 +17,15 @@ class TextureModel(ScriptedLoadableModule):
 
   def __init__(self, parent):
     ScriptedLoadableModule.__init__(self, parent)
-    self.parent.title = "Texture Model"
-    self.parent.categories = ["Surface Models"]
+    self.parent.title = _("Texture Model")
+    self.parent.categories = [translate("qSlicerAbstractCoreModule","Surface Models")]
     self.parent.dependencies = []
     self.parent.contributors = ["Andras Lasso (PerkLab, Queen's)", "Amani Ibrahim (PerkLab, Queen's)" ]
-    self.parent.helpText = """This module applies a texture (stored in a volume node) to a model node.
+    self.parent.helpText = _("""This module applies a texture (stored in a volume node) to a model node.
 It is typically used to display colored surfaces, provided by surface scanners, exported in OBJ format.
 The model must contain texture coordinates. Only a single texture file per model is supported.
 For more information, visit <a href='https://github.com/SlicerIGT/SlicerIGT/#user-documentation'>SlicerIGT project website</a>.
-"""
+""")
     self.parent.acknowledgementText = """ """ # replace with organization, grant and thanks.
 
 #
@@ -45,7 +46,7 @@ class TextureModelWidget(ScriptedLoadableModuleWidget):
     # Parameters Area
     #
     parametersCollapsibleButton = ctk.ctkCollapsibleButton()
-    parametersCollapsibleButton.text = "Parameters"
+    parametersCollapsibleButton.text = _("Parameters")
     self.layout.addWidget(parametersCollapsibleButton)
 
     # Layout within the dummy collapsible button
@@ -63,8 +64,8 @@ class TextureModelWidget(ScriptedLoadableModuleWidget):
     self.inputModelSelector.showHidden = False
     self.inputModelSelector.showChildNodeTypes = False
     self.inputModelSelector.setMRMLScene( slicer.mrmlScene )
-    self.inputModelSelector.setToolTip( "Model node containing geometry and texture coordinates." )
-    parametersFormLayout.addRow("Model: ", self.inputModelSelector)
+    self.inputModelSelector.setToolTip(_( "Model node containing geometry and texture coordinates." ))
+    parametersFormLayout.addRow(_("Model: ", self.inputModelSelector))
 
     #input texture selector
     self.inputTextureSelector = slicer.qMRMLNodeComboBox()
@@ -76,25 +77,25 @@ class TextureModelWidget(ScriptedLoadableModuleWidget):
     self.inputTextureSelector.showHidden = False
     self.inputTextureSelector.showChildNodeTypes = False
     self.inputTextureSelector.setMRMLScene( slicer.mrmlScene )
-    self.inputTextureSelector.setToolTip( "Color image containing texture image." )
-    parametersFormLayout.addRow("Texture: ", self.inputTextureSelector)
+    self.inputTextureSelector.setToolTip(_( "Color image containing texture image." ))
+    parametersFormLayout.addRow(_("Texture: ", self.inputTextureSelector))
 
     self.addColorAsPointAttributeComboBox = qt.QComboBox()
-    self.addColorAsPointAttributeComboBox.addItem("disabled")
-    self.addColorAsPointAttributeComboBox.addItem("RGB vector", "uchar-vector")
-    self.addColorAsPointAttributeComboBox.addItem("RGB float vector", "float-vector")
-    self.addColorAsPointAttributeComboBox.addItem("RGB float components", "float-components")
+    self.addColorAsPointAttributeComboBox.addItem(_("disabled"))
+    self.addColorAsPointAttributeComboBox.addItem(_("RGB vector", "uchar-vector"))
+    self.addColorAsPointAttributeComboBox.addItem(_("RGB float vector", "float-vector"))
+    self.addColorAsPointAttributeComboBox.addItem(_("RGB float components", "float-components"))
     self.addColorAsPointAttributeComboBox.setCurrentIndex(0)
-    self.addColorAsPointAttributeComboBox.setToolTip('Save color in point data.'
+    self.addColorAsPointAttributeComboBox.setToolTip(_('Save color in point data.'
       ' "RGB vector" is recommended for compatibility with most software.'
-      ' The point data may be used for thresholding or color-based processing.')
-    parametersFormLayout.addRow("Save color information as point data: ", self.addColorAsPointAttributeComboBox)
+      ' The point data may be used for thresholding or color-based processing.'))
+    parametersFormLayout.addRow(_("Save color information as point data: ", self.addColorAsPointAttributeComboBox))
 
     #
     # Apply Button
     #
-    self.applyButton = qt.QPushButton("Apply")
-    self.applyButton.toolTip = "Apply texture to selected model."
+    self.applyButton = qt.QPushButton(_("Apply"))
+    self.applyButton.toolTip = _("Apply texture to selected model.")
     self.applyButton.enabled = False
     parametersFormLayout.addRow(self.applyButton)
 
@@ -294,11 +295,11 @@ class TextureModelTest(ScriptedLoadableModuleTest):
     slicer.util.loadModel(extractPath+"/head_obj.obj")
     slicer.util.loadVolume(extractPath+"/head_obj_0.png")
 
-    slicer.util.delayDisplay('Finished with download and loading')
+    slicer.util.delayDisplay(_('Finished with download and loading'))
 
     # Test
     modelNode = slicer.util.getNode("head_obj")
     textureNode = slicer.util.getNode("head_obj_0")
     logic = TextureModelLogic()
     logic.applyTexture(modelNode, textureNode)
-    slicer.util.delayDisplay('Test passed!')
+    slicer.util.delayDisplay(_('Test passed!'))

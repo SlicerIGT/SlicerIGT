@@ -202,11 +202,11 @@ void qSlicerLandmarkDetectionModuleWidget::updateWidgetFromMRML()
   bool landmarkDetectionInProgress = d->LandmarkDetectionNode->GetLandmarkDetectionInProgress();
   if (landmarkDetectionInProgress)
   {
-    d->startStopButton->setText("Stop");
+    d->startStopButton->setText(tr("Stop"));
   }
   else
   {
-    d->startStopButton->setText("Start");
+    d->startStopButton->setText(tr("Start"));
   }
 
   d->stylusTipNodeSelector->setEnabled(!landmarkDetectionInProgress);

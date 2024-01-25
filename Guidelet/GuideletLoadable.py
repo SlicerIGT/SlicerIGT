@@ -2,7 +2,8 @@ import os
 from __main__ import vtk, qt, ctk, slicer
 from slicer.ScriptedLoadableModule import *
 import logging
-
+from slicer.i18n import translate
+from slicer.i18n import tr as _
 #
 # GuideletLoadable
 #
@@ -13,8 +14,8 @@ class GuideletLoadable(ScriptedLoadableModule):
 
   def __init__(self, parent):
     ScriptedLoadableModule.__init__(self, parent)
-    self.parent.title = "Guidelet"
-    self.parent.categories = ["Guidelet"]
+    self.parent.title = _("Guidelet")
+    self.parent.categories = [translate("qSlicerAbstractCoreModule","Guidelet")]
     self.parent.dependencies = []
     self.parent.contributors = [""]
 
@@ -40,7 +41,7 @@ class GuideletWidget(ScriptedLoadableModuleWidget):
 
     # Launcher panel
     launcherCollapsibleButton = ctk.ctkCollapsibleButton()
-    launcherCollapsibleButton.text = "Guidelet launcher"
+    launcherCollapsibleButton.text = _("Guidelet launcher")
     self.layout.addWidget(launcherCollapsibleButton)
     self.launcherFormLayout = qt.QFormLayout(launcherCollapsibleButton)
 
@@ -70,7 +71,7 @@ class GuideletWidget(ScriptedLoadableModuleWidget):
 
     self.plusServerHostNamePortLineEdit = qt.QLineEdit()
     leLabel = qt.QLabel()
-    leLabel.setText("Set the Plus Server Host and Name Port:")
+    leLabel.setText(_("Set the Plus Server Host and Name Port:"))
     hbox = qt.QHBoxLayout()
     hbox.addWidget(leLabel)
     hbox.addWidget(self.plusServerHostNamePortLineEdit)
@@ -92,7 +93,7 @@ class GuideletWidget(ScriptedLoadableModuleWidget):
   # Adds a list box populated with the available configurations in the Slicer.ini file
   def addConfigurationsSelector(self):
     self.configurationsComboBox = qt.QComboBox()
-    configurationsLabel = qt.QLabel("Select Configuration: ")
+    configurationsLabel = qt.QLabel(_("Select Configuration: "))
     hBox = qt.QHBoxLayout()
     hBox.addWidget(configurationsLabel)
     hBox.addWidget(self.configurationsComboBox)

@@ -75,8 +75,8 @@ void qSlicerPathExplorerModuleWidget::setup()
   d->setupUi(this);
   this->Superclass::setup();
 
-  d->EntryWidget->markupsSelectorComboBox()->setBaseName("Entry");
-  d->TargetWidget->markupsSelectorComboBox()->setBaseName("Target");
+  d->EntryWidget->markupsSelectorComboBox()->setBaseName(tr("Entry"));
+  d->TargetWidget->markupsSelectorComboBox()->setBaseName(tr("Target"));
 
   d->TrajectoryTreeView->setColumnHidden(d->TrajectoryTreeView->model()->idColumn(), true);
   d->TrajectoryTreeView->setColumnHidden(d->TrajectoryTreeView->model()->transformColumn(), true);
