@@ -627,9 +627,6 @@ void vtkSlicerVolumeReconstructionLogic::CalculateROIFromVolumeSequenceInternal(
       imageToROITransform->Concatenate(parentToWorldMatrix);
     }
 
-
-
-
     vtkMRMLTransformNode* roiParentTransformNode = vtkMRMLTransformableNode::SafeDownCast(outputROINodeRAS)->GetParentTransformNode();
     if (roiParentTransformNode)
     {
@@ -698,6 +695,11 @@ void vtkSlicerVolumeReconstructionLogic::CalculateROIFromVolumeSequenceInternal(
   vtkMRMLMarkupsROINode* outputMarkupsROINode = vtkMRMLMarkupsROINode::SafeDownCast(outputROINodeRAS);
   if (outputMarkupsROINode)
   {
+    // Center is currently computed in object coordinates. Need to convert to node coordinates.
+    vtkNew<vtkTransform> objectToNodeTransform;
+    objectToNodeTransform->SetMatrix(outputMarkupsROINode->GetObjectToNodeMatrix());
+    objectToNodeTransform->TransformPoint(center, center);
+
     outputMarkupsROINode->SetCenter(center);
     outputMarkupsROINode->SetSize(size);
   }
