@@ -238,6 +238,12 @@ protected:
   vtkSetMacro(PivotRMSE, double);
   vtkSetMacro(SpinRMSE, double);
 
+  //@{
+  /// Updates the maximum calibration error for both spin and pivot calibrations.
+  /// Maximum error is disabled if auto-calibration is disabled.
+  void UpdateMaximumCalibrationError();
+  //@}
+
   class vtkInternal;
   vtkInternal* Internal;
 

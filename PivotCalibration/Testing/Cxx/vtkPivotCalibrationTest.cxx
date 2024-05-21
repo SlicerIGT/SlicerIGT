@@ -26,16 +26,18 @@ Care Ontario.
 #include <vtkMRMLScene.h>
 
 // VTK includes
+#include <vtkMinimalStandardRandomSequence.h>
 #include <vtkTransform.h>
 
 int NUMBER_OF_POINTS = 100;
 double epsilon = 1.0e-6;
 
-
 //----------------------------------------------------------------------------
-bool TestPivotCalibration(vtkSlicerPivotCalibrationLogic* logic, vtkMRMLLinearTransformNode* markerToReferenceTransform)
+bool TestPivotCalibration(vtkSlicerPivotCalibrationLogic* logic, vtkMRMLLinearTransformNode* markerToReferenceTransform, double positionErrorMm=0.0)
 {
+  std::cout << "=================================================================" << std::endl;
   std::cout << "Starting pivot calibration test..." << std::endl;
+  std::cout << "Position error: " << positionErrorMm << " mm" << std::endl;
 
   logic->ClearToolToReferenceMatrices();
 
@@ -45,16 +47,27 @@ bool TestPivotCalibration(vtkSlicerPivotCalibrationLogic* logic, vtkMRMLLinearTr
   startTransform->Translate(-expectedToolTipPosition_Marker[0], -expectedToolTipPosition_Marker[1], -expectedToolTipPosition_Marker[2]);
   markerToReferenceTransform->SetAndObserveTransformToParent(startTransform);
 
+  vtkNew<vtkMinimalStandardRandomSequence> randomSequence;
+  randomSequence->SetSeed(12345);
+
   logic->SetRecordingState(true);
   for (int i = 0; i < NUMBER_OF_POINTS; ++i)
   {
+    double errorOffset[3] = { 0.0, 0.0, 0.0 };
+    if (positionErrorMm > 0.0)
+    {
+      errorOffset[0] = (2.0 * randomSequence->GetNextValue() - 1.0) * positionErrorMm;
+      errorOffset[1] = (2.0 * randomSequence->GetNextValue() - 1.0) * positionErrorMm;
+      errorOffset[2] = (2.0 * randomSequence->GetNextValue() - 1.0) * positionErrorMm;
+    }
+
     vtkNew<vtkTransform> transform;
-    transform->DeepCopy(markerToReferenceTransform->GetTransformToParent());
+    transform->DeepCopy(startTransform);
     transform->Translate(expectedToolTipPosition_Marker);
     transform->RotateX(double(i) / NUMBER_OF_POINTS * 90.0);
     transform->RotateY(double(i) / NUMBER_OF_POINTS * 90.0);
     transform->RotateZ(double(i) / NUMBER_OF_POINTS * 90.0);
-    transform->Translate(-expectedToolTipPosition_Marker[0], -expectedToolTipPosition_Marker[1], -expectedToolTipPosition_Marker[2]);
+    transform->Translate(errorOffset[0] - expectedToolTipPosition_Marker[0], errorOffset[1] - expectedToolTipPosition_Marker[1], errorOffset[2] - expectedToolTipPosition_Marker[2]);
     markerToReferenceTransform->SetAndObserveTransformToParent(transform);
   }
   logic->SetRecordingState(false);
@@ -65,7 +78,7 @@ bool TestPivotCalibration(vtkSlicerPivotCalibrationLogic* logic, vtkMRMLLinearTr
     return false;
   }
 
-  if (logic->GetPivotRMSE() >= epsilon)
+  if (logic->GetPivotRMSE() >= epsilon && positionErrorMm == 0.0)
   {
     std::cerr << "Pivot calibration error is too large: " << logic->GetPivotRMSE() << std::endl;
     return false;
@@ -78,11 +91,16 @@ bool TestPivotCalibration(vtkSlicerPivotCalibrationLogic* logic, vtkMRMLLinearTr
   toolTipToToolTransform->Concatenate(toolTipToToolMatrix);
 
   double* actualToolTipPosition_Marker = toolTipToToolTransform->TransformPoint(0.0, 0.0, 0.0);
-  if (vtkMath::Distance2BetweenPoints(actualToolTipPosition_Marker, expectedToolTipPosition_Marker) >= epsilon)
+  double distanceBetweenActualAndExpectedToolTipPosition =
+    std::sqrt(vtkMath::Distance2BetweenPoints(actualToolTipPosition_Marker, expectedToolTipPosition_Marker));
+
+  std::cerr << "Expected: { " << expectedToolTipPosition_Marker[0] << ", " << expectedToolTipPosition_Marker[1] << ", " << expectedToolTipPosition_Marker[1] << " }" << std::endl;
+  std::cerr << "Actual: { " << actualToolTipPosition_Marker[0] << ", " << actualToolTipPosition_Marker[1] << ", " << actualToolTipPosition_Marker[1] << " }" << std::endl;
+  std::cout << "Position error: " << distanceBetweenActualAndExpectedToolTipPosition << " mm" << std::endl;
+
+  if (distanceBetweenActualAndExpectedToolTipPosition >= epsilon && positionErrorMm == 0.0)
   {
-    std::cerr << "Tool tip position different than expected" << std::endl;
-    std::cerr << "Expected: { " << expectedToolTipPosition_Marker[0] << ", " << expectedToolTipPosition_Marker[1] << ", " << expectedToolTipPosition_Marker[1] << " }" << std::endl;
-    std::cerr << "Actual: { " << actualToolTipPosition_Marker[0] << ", " << actualToolTipPosition_Marker[1] << ", " << actualToolTipPosition_Marker[1] << " }" << std::endl;
+    std::cerr << "Tool tip position error is larger than expected" << std::endl;
     return false;
   }
 
@@ -93,6 +111,7 @@ bool TestPivotCalibration(vtkSlicerPivotCalibrationLogic* logic, vtkMRMLLinearTr
 //----------------------------------------------------------------------------
 bool TestSpinCalibration(vtkSlicerPivotCalibrationLogic* logic, vtkMRMLLinearTransformNode* markerToReferenceTransform)
 {
+  std::cout << "=================================================================" << std::endl;
   std::cout << "Starting spin calibration test..." << std::endl;
 
   logic->ClearToolToReferenceMatrices();
@@ -137,11 +156,22 @@ bool TestSpinCalibration(vtkSlicerPivotCalibrationLogic* logic, vtkMRMLLinearTra
   toolTipToToolTransform->Concatenate(toolTipToToolMatrix);
 
   double* actualToolShaftDirection_Marker = toolTipToToolTransform->TransformVector(0.0, 0.0, 1.0);
-  if (vtkMath::AngleBetweenVectors(actualToolShaftDirection_Marker, expectedToolShaftDirection_Marker) >= epsilon)
+  if (vtkMath::Dot(actualToolShaftDirection_Marker, expectedToolShaftDirection_Marker) < -1.0 + epsilon)
+  {
+    // Flip tool shaft.
+    vtkMath::MultiplyScalar(actualToolShaftDirection_Marker, -1.0);
+  }
+
+  double angleBetweenActualAndExpectedToolShaftDirection_Marker =
+    vtkMath::AngleBetweenVectors(actualToolShaftDirection_Marker, expectedToolShaftDirection_Marker);
+
+  std::cerr << "Expected: { " << expectedToolShaftDirection_Marker[0] << ", " << expectedToolShaftDirection_Marker[1] << ", " << expectedToolShaftDirection_Marker[1] << " }" << std::endl;
+  std::cerr << "Actual: { " << actualToolShaftDirection_Marker[0] << ", " << actualToolShaftDirection_Marker[1] << ", " << actualToolShaftDirection_Marker[1] << " }" << std::endl;
+  std::cout << "Angle error: " << angleBetweenActualAndExpectedToolShaftDirection_Marker << " degrees" << std::endl;
+
+  if (angleBetweenActualAndExpectedToolShaftDirection_Marker >= epsilon)
   {
     std::cerr << "Tool tool shaft direction different than expected" << std::endl;
-    std::cerr << "Expected: { " << expectedToolShaftDirection_Marker[0] << ", " << expectedToolShaftDirection_Marker[1] << ", " << expectedToolShaftDirection_Marker[1] << " }" << std::endl;
-    std::cerr << "Actual: { " << actualToolShaftDirection_Marker[0] << ", " << actualToolShaftDirection_Marker[1] << ", " << actualToolShaftDirection_Marker[1] << " }" << std::endl;
     return false;
   }
 
@@ -161,9 +191,13 @@ int vtkPivotCalibrationTest(int vtkNotUsed(argc), char* vtkNotUsed(argv)[])
   logic->SetMRMLScene(scene);
   logic->SetAndObserveTransformNode(markerToReferenceTransform);
 
-  if (!TestPivotCalibration(logic, markerToReferenceTransform))
+  double pivotErrorsMm[4] = { 0.0, 0.1, 1.0, 10.0 };
+  for (double pivotErrorMm : pivotErrorsMm)
   {
-    return EXIT_FAILURE;
+    if (!TestPivotCalibration(logic, markerToReferenceTransform, pivotErrorMm))
+    {
+      return EXIT_FAILURE;
+    }
   }
 
   if (!TestSpinCalibration(logic, markerToReferenceTransform))

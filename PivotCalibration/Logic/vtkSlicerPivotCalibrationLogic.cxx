@@ -70,16 +70,18 @@ vtkSlicerPivotCalibrationLogic::vtkSlicerPivotCalibrationLogic()
   this->Internal->PivotCalibrationAlgo->SetMaximumNumberOfPoseBuckets(DEFAULT_NUMBER_OF_POSE_BUCKETS);
   this->Internal->PivotCalibrationAlgo->SetPoseBucketSize(DEFAULT_POSE_BUCKET_SIZE);
   this->Internal->PivotCalibrationAlgo->SetMaximumPoseBucketError(DEFAULT_PIVOT_POSE_BUCKET_ERROR_MM);
-  this->Internal->PivotCalibrationAlgo->SetMaximumCalibrationErrorMm(this->PivotAutoCalibrationTargetError);
+  this->Internal->PivotCalibrationAlgo->SetMaximumCalibrationErrorMm(-1.0);
   this->Internal->PivotCalibrationAlgo->SetOrientationDifferenceThresholdDegrees(DEFAULT_PIVOT_INPUT_ORIENTATION_THRESHOLD_DEGREES);
   this->Internal->PivotCalibrationAlgo->SetPositionDifferenceThresholdMm(DEFAULT_PIVOT_INPUT_POSITION_THRESHOLD_MM);
 
   this->Internal->SpinCalibrationAlgo->SetMaximumNumberOfPoseBuckets(DEFAULT_NUMBER_OF_POSE_BUCKETS);
   this->Internal->SpinCalibrationAlgo->SetPoseBucketSize(DEFAULT_POSE_BUCKET_SIZE);
   this->Internal->SpinCalibrationAlgo->SetMaximumPoseBucketError(DEFAULT_SPIN_POSE_BUCKET_ERROR_MM);
-  this->Internal->SpinCalibrationAlgo->SetMaximumCalibrationErrorMm(this->SpinAutoCalibrationTargetError);
+  this->Internal->SpinCalibrationAlgo->SetMaximumCalibrationErrorMm(-1.0);
   this->Internal->SpinCalibrationAlgo->SetOrientationDifferenceThresholdDegrees(DEFAULT_SPIN_INPUT_ORIENTATION_THRESHOLD_DEGREES);
   this->Internal->SpinCalibrationAlgo->SetPositionDifferenceThresholdMm(DEFAULT_SPIN_INPUT_POSITION_THRESHOLD_MM);
+
+  this->UpdateMaximumCalibrationError();
 }
 
 //----------------------------------------------------------------------------
@@ -348,6 +350,7 @@ void vtkSlicerPivotCalibrationLogic::SetPivotAutoCalibrationEnabled(bool enabled
   }
   this->PivotAutoCalibrationEnabled = enabled;
   this->Internal->PivotCalibrationAlgo->SetValidateInputBufferEnabled(enabled);
+  this->UpdateMaximumCalibrationError();
   this->Modified();
   return;
 }
@@ -361,6 +364,7 @@ void vtkSlicerPivotCalibrationLogic::SetSpinAutoCalibrationEnabled(bool enabled)
   }
   this->SpinAutoCalibrationEnabled = enabled;
   this->Internal->SpinCalibrationAlgo->SetValidateInputBufferEnabled(enabled);
+  this->UpdateMaximumCalibrationError();
   this->Modified();
   return;
 }
@@ -391,7 +395,7 @@ void vtkSlicerPivotCalibrationLogic::SetSpinAutoCalibrationTargetError(double sp
     return;
   }
   this->SpinAutoCalibrationTargetError = spinTargetError;
-  this->Internal->SpinCalibrationAlgo->SetMaximumCalibrationErrorMm(spinTargetError);
+  this->UpdateMaximumCalibrationError();
   this->Modified();
 }
 
@@ -403,8 +407,15 @@ void vtkSlicerPivotCalibrationLogic::SetPivotAutoCalibrationTargetError(double p
     return;
   }
   this->PivotAutoCalibrationTargetError = pivotTargetError;
-  this->Internal->PivotCalibrationAlgo->SetMaximumCalibrationErrorMm(pivotTargetError);
+  this->UpdateMaximumCalibrationError();
   this->Modified();
+}
+
+//---------------------------------------------------------------------------
+void vtkSlicerPivotCalibrationLogic::UpdateMaximumCalibrationError()
+{
+  this->Internal->PivotCalibrationAlgo->SetMaximumCalibrationErrorMm(this->PivotAutoCalibrationEnabled ? this->PivotAutoCalibrationTargetError : -1.0);
+  this->Internal->SpinCalibrationAlgo->SetMaximumCalibrationErrorMm(this->SpinAutoCalibrationEnabled ? this->SpinAutoCalibrationTargetError : -1.0);
 }
 
 //---------------------------------------------------------------------------
