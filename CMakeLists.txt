@@ -47,6 +47,7 @@ add_subdirectory(VolumeResliceDriver)
 add_subdirectory(VolumeReconstruction)
 add_subdirectory(Viewpoint)
 add_subdirectory(Watchdog)
+add_subdirectory(SequenceReplay)
 ## NEXT_MODULE
 if(SLICERIGT_ENABLE_EXPERIMENTAL_MODULES)
   add_subdirectory(Experimental)
