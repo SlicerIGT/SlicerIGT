@@ -306,7 +306,6 @@ class SequenceReplayWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         # Remove all buttons from the layout
         for i in reversed(range(sequenceBrowsersLayout.count())):
             widget = sequenceBrowsersLayout.itemAt(i).widget()
-            self.buttonMapper.removeMappings(widget)
             widget.setParent(None)
             widget.deleteLater()
             
