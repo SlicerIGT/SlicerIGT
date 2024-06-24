@@ -54,7 +54,7 @@ class FiducialsToModelRegistrationWidget(ScriptedLoadableModuleWidget):
     parametersFormLayout.addRow(fiducialWarningLabel)
 
     self.inputFiducialSelector = slicer.qMRMLNodeComboBox()
-    self.inputFiducialSelector.nodeTypes = (("vtkMRMLMarkupsFiducialNode"), "")
+    self.inputFiducialSelector.nodeTypes = ["vtkMRMLMarkupsFiducialNode"]
     self.inputFiducialSelector.selectNodeUponCreation = True
     self.inputFiducialSelector.addEnabled = False
     self.inputFiducialSelector.removeEnabled = False
@@ -69,7 +69,7 @@ class FiducialsToModelRegistrationWidget(ScriptedLoadableModuleWidget):
     # input model selector
     #
     self.inputModelSelector = slicer.qMRMLNodeComboBox()
-    self.inputModelSelector.nodeTypes = (("vtkMRMLModelNode"), "")
+    self.inputModelSelector.nodeTypes = ["vtkMRMLModelNode"]
     self.inputModelSelector.selectNodeUponCreation = True
     self.inputModelSelector.addEnabled = False
     self.inputModelSelector.removeEnabled = False
@@ -78,13 +78,13 @@ class FiducialsToModelRegistrationWidget(ScriptedLoadableModuleWidget):
     self.inputModelSelector.showChildNodeTypes = False
     self.inputModelSelector.setMRMLScene(slicer.mrmlScene)
     self.inputModelSelector.setToolTip(_("Pick the input model for the algorithm."))
-    parametersFormLayout.addRow(_("Input model: "), self.inputModelSelector))
+    parametersFormLayout.addRow(_("Input model: "), self.inputModelSelector)
 
     #
     # output transform selector
     #
     self.outputSelector = slicer.qMRMLNodeComboBox()
-    self.outputSelector.nodeTypes = (("vtkMRMLLinearTransformNode"), "")
+    self.outputSelector.nodeTypes = ["vtkMRMLLinearTransformNode"]
     self.outputSelector.selectNodeUponCreation = True
     self.outputSelector.addEnabled = True
     self.outputSelector.removeEnabled = True
