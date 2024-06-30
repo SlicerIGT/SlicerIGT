@@ -78,7 +78,7 @@ class ModelRegistrationWidget(ScriptedLoadableModuleWidget):
     self.inputSourceModelSelector.showChildNodeTypes = False
     self.inputSourceModelSelector.setMRMLScene( slicer.mrmlScene )
     self.inputSourceModelSelector.setToolTip(_( "Select the model that will be transformed. This model may require a sparse set of points." ))
-    parametersFormLayout.addRow(_("Input moving (sparse) model: ", self.inputSourceModelSelector))
+    parametersFormLayout.addRow(_("Input moving (sparse) model: "), self.inputSourceModelSelector)
 
     #
     # output transform selector
@@ -114,7 +114,7 @@ class ModelRegistrationWidget(ScriptedLoadableModuleWidget):
 
     self.outputLine = qt.QLineEdit()
     self.outputLine.setReadOnly( True )
-    outputFormLayout.addRow(_( "Mean distance after registration:"), self.outputLine ))
+    outputFormLayout.addRow(_( "Mean distance after registration:"), self.outputLine )
 
     #
     # Advanced parameters
