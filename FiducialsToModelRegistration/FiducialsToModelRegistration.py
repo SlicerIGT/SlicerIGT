@@ -63,7 +63,7 @@ class FiducialsToModelRegistrationWidget(ScriptedLoadableModuleWidget):
     self.inputFiducialSelector.showChildNodeTypes = False
     self.inputFiducialSelector.setMRMLScene(slicer.mrmlScene)
     self.inputFiducialSelector.setToolTip(_("Pick the input fiducial list for the algorithm."))
-    parametersFormLayout.addRow(_("Input fiducials: ", self.inputFiducialSelector))
+    parametersFormLayout.addRow(_("Input fiducials: "), self.inputFiducialSelector)
 
     #
     # input model selector
@@ -160,7 +160,7 @@ class FiducialsToModelRegistrationWidget(ScriptedLoadableModuleWidget):
     self.iterationSpin = qt.QSpinBox()
     self.iterationSpin.setMaximum(1000)
     self.iterationSpin.setValue(100)
-    advancedFormLayout.addRow(_("Number of iterations:"), self.iterationSpin))
+    advancedFormLayout.addRow(_("Number of iterations:"), self.iterationSpin)
 
     # connections
     self.applyButton.connect('clicked(bool)', self.onApplyButton)
