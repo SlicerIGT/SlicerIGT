@@ -94,7 +94,7 @@ Basic information for developers is available [here](http://www.slicerigt.org/wp
 
 SlicerIGT packages are generated automatically every night from latest code version on master branch and a branch matching the name of the latest Slicer stable branch (e.g., master-48). Exact content can be determined from git hash included in the relase package name and content of [SlicerIGT repository](https://github.com/SlicerIGT/SlicerIGT).
 
-Nightly test results are available on Slicer dashboard: [stable](http://slicer.cdash.org/index.php?project=Slicer4), [nightly](http://slicer.cdash.org/index.php?project=SlicerPreview)
+Nightly test results are available on Slicer dashboard: [stable](https://slicer.cdash.org/index.php?project=SlicerStable&filtercount=1&showfilters=1&field1=buildname&compare1=63&value1=SlicerIGT), [nightly](https://slicer.cdash.org/index.php?project=SlicerPreview&filtercount=1&showfilters=1&field1=buildname&compare1=63&value1=SlicerIGT).
 
 # Acknowledgements
 
