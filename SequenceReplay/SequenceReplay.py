@@ -105,7 +105,6 @@ def registerSampleData():
 # SequenceReplayParameterNode
 #
 
-
 @parameterNodeWrapper
 class SequenceReplayParameterNode:
     """
@@ -134,15 +133,18 @@ class SequenceReplayWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         self.logic = None
         self._parameterNode = None
         self._parameterNodeGuiTag = None
-        
+
         self._addingNodes = False
         self._importingScene = False
         self.currentTransformableNodeIds = []  # List of transformable node IDs that currently have a checkbox on the GUI
+        # Dictionary to keep track of the playback state of each sequence browser node
+        self.playbackState = {}  # Dictionary to keep track of the playback state of each sequence browser node
+        self.buttonState = {}  # Dictionary to keep track of buttons associated with each sequence browser node
 
     def setup(self) -> None:
         """Called when the user opens the module the first time and the widget is initialized."""
         ScriptedLoadableModuleWidget.setup(self)
-        
+
         # Load widget from .ui file (created by Qt Designer).
         # Additional widgets can be instantiated manually and added to self.layout.
         uiWidget = slicer.util.loadUI(self.resourcePath("UI/SequenceReplay.ui"))
@@ -159,14 +161,14 @@ class SequenceReplayWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         self.logic = SequenceReplayLogic()
 
         # Connections
-        
+
         # These connections ensure that we update parameter node when scene is closed
         self.addObserver(slicer.mrmlScene, slicer.mrmlScene.StartCloseEvent, self.onSceneStartClose)
         self.addObserver(slicer.mrmlScene, slicer.mrmlScene.EndCloseEvent, self.onSceneEndClose)
-        
+
         self.addObserver(slicer.mrmlScene, slicer.mrmlScene.NodeAddedEvent, self._updateGui)
         self.addObserver(slicer.mrmlScene, slicer.mrmlScene.NodeRemovedEvent, self._updateGui)
-        
+
         # Observe scene load events to be able to update the GUI after a scene is loaded
         self.addObserver(slicer.mrmlScene, slicer.mrmlScene.StartImportEvent, self.onStartImport)
         self.addObserver(slicer.mrmlScene, slicer.mrmlScene.EndImportEvent, self.onEndImport)
@@ -185,11 +187,11 @@ class SequenceReplayWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         """Called each time the user opens this module."""
         # Make sure parameter node exists and observed
         self.initializeParameterNode()
-        
+
         # Collapse dataprobe collapsible button
         dataProbeCollapsibleWidget = slicer.util.findChildren(name='DataProbeCollapsibleWidget')[0]
         dataProbeCollapsibleWidget.collapsed = True
-        
+
         self._updateGui()
 
     def exit(self) -> None:
@@ -199,23 +201,23 @@ class SequenceReplayWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
             self._parameterNode.disconnectGui(self._parameterNodeGuiTag)
             self._parameterNodeGuiTag = None
             self.removeObserver(self._parameterNode, vtk.vtkCommand.ModifiedEvent, self._updateGui)
-    
+
     def onStartImport(self, caller, event) -> None:
         """Called just before a scene is imported."""
         # Pause rendering to make scene import faster
         slicer.app.pauseRender()
         self._importingScene = True
-        
+
     def onEndImport(self, caller, event) -> None:
         """Called just after a scene is imported."""
         # Resume rendering
         self._importingScene = False
         slicer.app.resumeRender()
-        
+
         # If this module is shown while the scene is imported then recreate a new parameter node immediately
         if self.parent.isEntered:
             self.initializeParameterNode()
-        
+
     def onSceneStartClose(self, caller, event) -> None:
         """Called just before the scene is closed."""
         # Parameter node will be reset, do not use it anymore
@@ -233,7 +235,6 @@ class SequenceReplayWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         # so that when the scene is saved and reloaded, these settings are restored.
 
         self.setParameterNode(self.logic.getParameterNode())
-
 
     def setParameterNode(self, inputParameterNode: Optional[SequenceReplayParameterNode]) -> None:
         """
@@ -255,95 +256,101 @@ class SequenceReplayWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     def onAddButton(self) -> None:
         """Add a new sequence browser to the scene using the selected nodes as proxy nodes."""
         self._addingNodes = True
-        
+
         # Create a sequence browser node
         sequenceBrowserNode = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLSequenceBrowserNode")
         sequenceBrowserNode.SetPlaybackRateFps(30)
         sequencesLogic = slicer.modules.sequences.logic()
-        
+
         # Iterate through all selected nodes with their node IDs and add them to the sequence browser
         for i in range(self.ui.nodesCollapsibleButton.layout().count()):
             checkBox = self.ui.nodesCollapsibleButton.layout().itemAt(i).widget()
             if checkBox.isChecked():
                 node = slicer.mrmlScene.GetNodeByID(self.currentTransformableNodeIds[i])
-                sequenceNode = sequencesLogic.AddSynchronizedNode(None, node, sequenceBrowserNode)
-                sequenceBrowserNode.SetRecording(sequenceNode, True)
-                sequenceBrowserNode.SetPlayback(sequenceNode, True)                
-        
-        # Make sure the last added sequence browser is selected in Slicer's seqeuence browser module
+                if node:  # Ensure node is valid
+                    sequenceNode = sequencesLogic.AddSynchronizedNode(None, node, sequenceBrowserNode)
+                    sequenceBrowserNode.SetRecording(sequenceNode, True)
+                    sequenceBrowserNode.SetPlayback(sequenceNode, True)
+
+        # Make sure the last added sequence browser is selected in Slicer's sequence browser module
         slicer.modules.sequences.toolBar().setActiveBrowserNode(sequenceBrowserNode)
         self.addObserver(sequenceBrowserNode, vtk.vtkCommand.ModifiedEvent, self._updateGui)
-        
+
         self._addingNodes = False
         self._updateGui()
-    
+
     def onSequenceBrowserButtonClicked(self, sequenceBrowserNodeId: str) -> None:
-        # Make sure the clicked sequence browser is selected in Slicer's seqeuence browser module
         sequenceBrowserNode = slicer.mrmlScene.GetNodeByID(sequenceBrowserNodeId)
+        if not sequenceBrowserNode:
+            return
+
+        # Set the active browser node
         slicer.modules.sequences.toolBar().setActiveBrowserNode(sequenceBrowserNode)
-        
-        # Iterate through all sequence browser nodes. Stop replay in all except the clicked one. Start play in the clicked one.
-        for node in slicer.util.getNodesByClass("vtkMRMLSequenceBrowserNode"):
-            if node.GetID() == sequenceBrowserNodeId:
-                node.SetPlaybackActive(True)
-            else:
-                node.SetPlaybackActive(False)
-        
-    def _updateGui(self, caller=None, event=None) -> None:
-        """Update GUI based on parameter node and mrml scene state."""
-        if self._addingNodes:
-            return
-        
-        if self._importingScene:
-            return
-        
-        # Find all sequence browser nodes and create a button for each of them
-        
+
+        # Toggle playback state and stop all other sequences
         sequenceBrowserNodes = slicer.util.getNodesByClass("vtkMRMLSequenceBrowserNode")
-        
-        sequenceBrowsersLayout = self.ui.sequenceBrowsersCollapsibleButton.layout()
-        
-        # Remove all buttons from the layout
-        for i in reversed(range(sequenceBrowsersLayout.count())):
-            widget = sequenceBrowsersLayout.itemAt(i).widget()
-            widget.setParent(None)
-            widget.deleteLater()
-            
-        # Create a button for each node
         for node in sequenceBrowserNodes:
-            button = qt.QPushButton(node.GetName())
+            if node.GetID() == sequenceBrowserNodeId:
+                # Toggle the clicked node's playback state
+                node.SetPlaybackActive(not node.GetPlaybackActive())
+            else:
+                # Ensure all other sequences are stopped
+                node.SetPlaybackActive(False)
+
+        # Update the GUI to reflect the new state
+        self._updateGui()
+
+    def _updateGui(self, caller=None, event=None) -> None:
+        if self._addingNodes or self._importingScene:
+            return
+
+        self._updateSequenceBrowserButtons()
+        self._updateTransformableNodeCheckboxes()
+
+    def _updateSequenceBrowserButtons(self):
+        sequenceBrowsersLayout = self.ui.sequenceBrowsersCollapsibleButton.layout()
+        self._clearLayout(sequenceBrowsersLayout)
+
+        sequenceBrowserNodes = slicer.util.getNodesByClass("vtkMRMLSequenceBrowserNode")
+
+        for node in sequenceBrowserNodes:
+            button = qt.QPushButton()
             button.setCheckable(False)
-            button.clicked.connect(lambda checked, buttonId=node.GetID(): self.onSequenceBrowserButtonClicked(buttonId))
+            # Update button text based on playback state
+            if node.GetPlaybackActive():
+                button.setText(_("Stop {name}").format(name=node.GetName()))
+            else:
+                button.setText(_("Play {name}").format(name=node.GetName()))
+            button.clicked.connect(lambda checked, nodeId=node.GetID(): self.onSequenceBrowserButtonClicked(nodeId))
             sequenceBrowsersLayout.addWidget(button)
-        
-        # Find all transformable nodes in the scene and create a checkbox for each of them
-        
+            self.buttonState[node.GetID()] = button  # Store button in dictionary
+
+    def _updateTransformableNodeCheckboxes(self):
         nodeTypes = ["vtkMRMLTransformNode", "vtkMRMLVolumeNode", "vtkMRMLMarkupsNode"]
-        
-        transformableNodeIds = []
-        
-        for nodeType in nodeTypes:
-            nodeList = slicer.util.getNodesByClass(nodeType)
-            for node in nodeList:
-                if not node.GetHideFromEditors():
-                    transformableNodeIds.append(node.GetID())
-                    
-        # Check if transformableNodeIds is different from currentTransformableNodeIds
+        transformableNodeIds = [
+            node.GetID() for nodeType in nodeTypes for node in slicer.util.getNodesByClass(nodeType) if
+            not node.GetHideFromEditors()
+        ]
+
         if transformableNodeIds != self.currentTransformableNodeIds:
             self.currentTransformableNodeIds = transformableNodeIds
-            
             checkboxesLayout = self.ui.nodesCollapsibleButton.layout()
-            
-            # Remove all checkboxes from the layout
-            for i in reversed(range(checkboxesLayout.count())): 
-                checkboxesLayout.itemAt(i).widget().setParent(None)
-                checkboxesLayout.itemAt(i).widget().deleteLater()
-            
-            # Create a checkbox for each node
+            self._clearLayout(checkboxesLayout)
+
             for nodeId in transformableNodeIds:
                 node = slicer.mrmlScene.GetNodeByID(nodeId)
-                checkBox = qt.QCheckBox(node.GetName())
-                checkboxesLayout.addWidget(checkBox)
+                if node:
+                    checkBox = qt.QCheckBox(node.GetName())
+                    checkboxesLayout.addWidget(checkBox)
+
+    @staticmethod
+    def _clearLayout(layout: qt.QLayout) -> None:
+        while layout.count():
+            item = layout.takeAt(0)
+            widget = item.widget()
+            if widget:
+                widget.setParent(None)
+                widget.deleteLater()
 
 
 #
@@ -367,6 +374,7 @@ class SequenceReplayLogic(ScriptedLoadableModuleLogic):
 
     def getParameterNode(self):
         return SequenceReplayParameterNode(super().getParameterNode())
+
 
 #
 # SequenceReplayTest
@@ -421,6 +429,5 @@ class SequenceReplayTest(ScriptedLoadableModuleTest):
         # Test the module logic
 
         logic = SequenceReplayLogic()
-
 
         self.delayDisplay("Test passed")
