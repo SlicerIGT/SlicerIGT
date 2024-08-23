@@ -19,7 +19,7 @@
 #include "vtkSlicerPivotCalibrationLogic.h"
 
 // MRML includes
-#include <vtkMRMLLinearTransformNode.h>
+#include <vtkMRMLTransformNode.h>
 #include "vtkMRMLScene.h"
 
 // vtkIGSIOCalibration includes
@@ -60,6 +60,8 @@ const double DEFAULT_PIVOT_INPUT_POSITION_THRESHOLD_MM = 3.0;
 const double DEFAULT_SPIN_POSE_BUCKET_ERROR_MM = 0.05;
 const double DEFAULT_SPIN_INPUT_ORIENTATION_THRESHOLD_DEGREES = 5.0;
 const double DEFAULT_SPIN_INPUT_POSITION_THRESHOLD_MM = 0.0; // No default position threshold for spin. Origin may be on stylus shaft.
+
+const char* TOOL_VALID_ATTRIBUTE_NAME = "OpenIGTLink.TransformValid";
 
 //----------------------------------------------------------------------------
 vtkSlicerPivotCalibrationLogic::vtkSlicerPivotCalibrationLogic()
@@ -103,9 +105,17 @@ void vtkSlicerPivotCalibrationLogic::ProcessMRMLNodesEvents(vtkObject* caller, u
 {
   if (caller != NULL)
   {
-    vtkMRMLLinearTransformNode* transformNode = vtkMRMLLinearTransformNode::SafeDownCast(caller);
-    if (event == vtkMRMLLinearTransformNode::TransformModifiedEvent && this->RecordingState == true && strcmp(transformNode->GetID(), this->ObservedTransformNode->GetID()) == 0)
+    vtkMRMLTransformNode* transformNode = vtkMRMLTransformNode::SafeDownCast(caller);
+    if (event == vtkMRMLTransformNode::TransformModifiedEvent && this->RecordingState == true && strcmp(transformNode->GetID(), this->ObservedTransformNode->GetID()) == 0)
     {
+      const char* toolValidValue = transformNode->GetAttribute(TOOL_VALID_ATTRIBUTE_NAME);
+      // If the attribute is not present, assume the tool is valid.
+      if (toolValidValue && strcmp(toolValidValue, "1") != 0)
+      {
+        // Tool is not valid, do not use it for calibration
+        return;
+      }
+
       vtkNew<vtkMatrix4x4> toolToReferenceMatrix;
       transformNode->GetMatrixTransformToParent(toolToReferenceMatrix);
       this->AddToolToReferenceMatrix(toolToReferenceMatrix);
@@ -114,14 +124,14 @@ void vtkSlicerPivotCalibrationLogic::ProcessMRMLNodesEvents(vtkObject* caller, u
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerPivotCalibrationLogic::SetAndObserveTransformNode(vtkMRMLLinearTransformNode* transformNode)
+void vtkSlicerPivotCalibrationLogic::SetAndObserveTransformNode(vtkMRMLTransformNode* transformNode)
 {
   if (this->ObservedTransformNode == transformNode)
   {
     return;
   }
   vtkNew<vtkIntArray> events;
-  events->InsertNextValue(vtkMRMLLinearTransformNode::TransformModifiedEvent);
+  events->InsertNextValue(vtkMRMLTransformNode::TransformModifiedEvent);
   vtkSetAndObserveMRMLNodeEventsMacro(this->ObservedTransformNode, transformNode, events.GetPointer());
 }
 

@@ -33,7 +33,7 @@ int NUMBER_OF_POINTS = 100;
 double epsilon = 1.0e-6;
 
 //----------------------------------------------------------------------------
-bool TestPivotCalibration(vtkSlicerPivotCalibrationLogic* logic, vtkMRMLLinearTransformNode* markerToReferenceTransform, double positionErrorMm=0.0)
+bool TestPivotCalibration(vtkSlicerPivotCalibrationLogic* logic, vtkMRMLTransformNode* markerToReferenceTransform, double positionErrorMm=0.0)
 {
   std::cout << "=================================================================" << std::endl;
   std::cout << "Starting pivot calibration test..." << std::endl;
@@ -109,7 +109,7 @@ bool TestPivotCalibration(vtkSlicerPivotCalibrationLogic* logic, vtkMRMLLinearTr
 }
 
 //----------------------------------------------------------------------------
-bool TestSpinCalibration(vtkSlicerPivotCalibrationLogic* logic, vtkMRMLLinearTransformNode* markerToReferenceTransform)
+bool TestSpinCalibration(vtkSlicerPivotCalibrationLogic* logic, vtkMRMLTransformNode* markerToReferenceTransform)
 {
   std::cout << "=================================================================" << std::endl;
   std::cout << "Starting spin calibration test..." << std::endl;
@@ -184,7 +184,7 @@ int vtkPivotCalibrationTest(int vtkNotUsed(argc), char* vtkNotUsed(argv)[])
 {
   vtkNew<vtkMRMLScene> scene;
 
-  vtkNew<vtkMRMLLinearTransformNode> markerToReferenceTransform;
+  vtkNew<vtkMRMLTransformNode> markerToReferenceTransform;
   scene->AddNode(markerToReferenceTransform);
 
   vtkNew<vtkSlicerPivotCalibrationLogic> logic;

@@ -27,7 +27,7 @@
 #include <vtkMatrix4x4.h>
 
 // MRML includes
-#include "vtkMRMLLinearTransformNode.h"
+#include "vtkMRMLTransformNode.h"
 
 // Pivot calibration includes
 #include "vtkSlicerPivotCalibrationModuleLogicExport.h"
@@ -76,7 +76,7 @@ public:
   // Add a tool transforms automatically by observing transform changes
   vtkGetMacro(RecordingState, bool);
   vtkSetMacro(RecordingState, bool);
-  void SetAndObserveTransformNode(vtkMRMLLinearTransformNode*);
+  void SetAndObserveTransformNode(vtkMRMLTransformNode*);
 
   // Add a single tool transform manually
   void AddToolToReferenceMatrix(vtkMatrix4x4*);
@@ -253,7 +253,7 @@ private:
   void operator=(const vtkSlicerPivotCalibrationLogic&);               // Not implemented
 
   // Calibration inputs
-  vtkMRMLLinearTransformNode* ObservedTransformNode{ nullptr };
+  vtkMRMLTransformNode* ObservedTransformNode{ nullptr };
   bool RecordingState{ false };
 
   // Calibration results
