@@ -35,6 +35,7 @@
 #include <cassert>
 #include <sstream>
 
+const char* TOOL_VALID_ATTRIBUTE_NAME = "OpenIGTLink.TransformValid";
 
 vtkStandardNewMacro(vtkSlicerCollectPointsLogic);
 
@@ -241,7 +242,7 @@ void vtkSlicerCollectPointsLogic::OnMRMLSceneNodeRemoved( vtkMRMLNode* node )
     vtkWarningMacro("OnMRMLSceneNodeRemoved: Invalid MRML scene or node");
     return;
   }
-  
+
   if ( node->IsA( "vtkMRMLCollectPointsNode" ) )
   {
     vtkDebugMacro( "OnMRMLSceneNodeRemoved" );
@@ -258,7 +259,7 @@ void vtkSlicerCollectPointsLogic::ProcessMRMLNodesEvents( vtkObject* caller, uns
     vtkErrorMacro( "No parameter node set. Aborting." );
     return;
   }
-  
+
   if ( event == vtkMRMLCollectPointsNode::InputDataModifiedEvent )
   {
     if ( collectPointsNode->GetCollectMode() == vtkMRMLCollectPointsNode::Automatic )
@@ -268,6 +269,21 @@ void vtkSlicerCollectPointsLogic::ProcessMRMLNodesEvents( vtkObject* caller, uns
         vtkWarningMacro( "Collect points node is not fully set up, there needs to be an output node." );
         return;
       }
+
+      vtkMRMLTransformableNode* samplingTransformNode = collectPointsNode->GetSamplingTransformNode();
+      if (!samplingTransformNode)
+      {
+        vtkErrorMacro("Collect points node is not fully set up, there needs to be a sampling transform node.");
+        return;
+      }
+
+      const char* toolValidValue = samplingTransformNode->GetAttribute(TOOL_VALID_ATTRIBUTE_NAME);
+      if (toolValidValue && strcmp(toolValidValue, "1") != 0)
+      {
+        // tool is not valid, do not add point
+        return;
+      }
+
       this->AddPoint( collectPointsNode ); // Will create modified event to update widget
     }
   }
@@ -327,7 +343,7 @@ void vtkSlicerCollectPointsLogic::RemoveLastPointFromModel( vtkMRMLModelNode* mo
     vtkErrorMacro( "Output node is null. No points removed." );
     return;
   }
-  
+
   vtkSmartPointer< vtkPolyData > polyData = modelNode->GetPolyData();
   if ( polyData == NULL )
   {
