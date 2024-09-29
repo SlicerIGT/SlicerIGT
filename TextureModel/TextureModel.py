@@ -158,90 +158,70 @@ class TextureModelLogic(ScriptedLoadableModuleLogic):
     modelDisplayNode.SetTextureImageDataConnection(textureImageFlipVert.GetOutputPort())
 
   # Add texture data to scalars
+
+
   def convertTextureToPointAttribute(self, modelNode, textureImageNode, saveAsPointData):
     """
-    :param saveAsPointData: None (not saved), `vector`, `float-vector`, `float-components`
+    Map texture image colors to vertex points of a mesh.
+
+    :param modelNode: VTK model node containing the mesh.
+    :param textureImageNode: VTK image node containing the texture.
+    :param saveAsPointData: How to save the point data ('uchar-vector', 'float-vector', 'float-components').
     """
+    import vtk.util.numpy_support as vtk_np
+    import numpy as np
+
+    # Retrieve polydata from the model node
     polyData = modelNode.GetPolyData()
+    
+    # Retrieve texture coordinates from the polydata
+    tcoords_vtk = polyData.GetPointData().GetTCoords()
+    tcoords_np = vtk_np.vtk_to_numpy(tcoords_vtk)
+
+    # Flip texture image vertically
     textureImageFlipVert = vtk.vtkImageFlip()
     textureImageFlipVert.SetFilteredAxis(1)
     textureImageFlipVert.SetInputConnection(textureImageNode.GetImageDataConnection())
     textureImageFlipVert.Update()
     textureImageData = textureImageFlipVert.GetOutput()
-    pointData = polyData.GetPointData()
-    tcoords = pointData.GetTCoords()
-    numOfPoints = pointData.GetNumberOfTuples()
-    assert numOfPoints == tcoords.GetNumberOfTuples(), "Number of texture coordinates does not equal number of points"
-    textureSamplingPointsUv = vtk.vtkPoints()
-    textureSamplingPointsUv.SetNumberOfPoints(numOfPoints)
-    for pointIndex in range(numOfPoints):
-      uv = tcoords.GetTuple2(pointIndex)
-      textureSamplingPointsUv.SetPoint(pointIndex, uv[0], uv[1], 0)
+    
+    # Convert texture image to NumPy array
+    textureImage_np = vtk_np.vtk_to_numpy(textureImageData.GetPointData().GetScalars()).reshape(
+        textureImageData.GetDimensions()[1], textureImageData.GetDimensions()[0], -1)
 
-    textureSamplingPointDataUv = vtk.vtkPolyData()
-    uvToXyz = vtk.vtkTransform()
-    textureImageDataSpacingSpacing = textureImageData.GetSpacing()
-    textureImageDataSpacingOrigin = textureImageData.GetOrigin()
-    textureImageDataSpacingDimensions = textureImageData.GetDimensions()
-    uvToXyz.Scale(textureImageDataSpacingDimensions[0] / textureImageDataSpacingSpacing[0],
-                  textureImageDataSpacingDimensions[1] / textureImageDataSpacingSpacing[1], 1)
-    uvToXyz.Translate(textureImageDataSpacingOrigin)
-    textureSamplingPointDataUv.SetPoints(textureSamplingPointsUv)
-    transformPolyDataToXyz = vtk.vtkTransformPolyDataFilter()
-    transformPolyDataToXyz.SetInputData(textureSamplingPointDataUv)
-    transformPolyDataToXyz.SetTransform(uvToXyz)
-    probeFilter = vtk.vtkProbeFilter()
-    probeFilter.SetInputConnection(transformPolyDataToXyz.GetOutputPort())
-    probeFilter.SetSourceData(textureImageData)
-    probeFilter.Update()
-    rgbPoints = probeFilter.GetOutput().GetPointData().GetArray('ImageScalars')
+    # Normalize and scale texture coordinates
+    print("Original Texture Coordinates: ", tcoords_np)
 
-    if saveAsPointData=='uchar-vector':
-      colorArray = vtk.vtkUnsignedCharArray()
-      colorArray.SetName('RGB')
-      colorArray.SetNumberOfComponents(3)
-      colorArray.SetNumberOfTuples(numOfPoints)
-      for pointIndex in range(numOfPoints):
-        rgb = rgbPoints.GetTuple3(pointIndex)
-        colorArray.SetTuple3(pointIndex, rgb[0], rgb[1], rgb[2])
-      colorArray.Modified()
-      pointData.AddArray(colorArray)
-    elif saveAsPointData=='float-vector':
-      colorArray = vtk.vtkDoubleArray()
-      colorArray.SetName('Color')
-      colorArray.SetNumberOfComponents(3)
-      colorArray.SetNumberOfTuples(numOfPoints)
-      for pointIndex in range(numOfPoints):
-        rgb = rgbPoints.GetTuple3(pointIndex)
-        colorArray.SetTuple3(pointIndex, rgb[0]/255., rgb[1]/255., rgb[2]/255.)
-      colorArray.Modified()
-      pointData.AddArray(colorArray)
-    elif saveAsPointData=='float-components':
-      colorArrayRed = vtk.vtkDoubleArray()
-      colorArrayRed.SetName('ColorRed')
-      colorArrayRed.SetNumberOfTuples(numOfPoints)
-      colorArrayGreen = vtk.vtkDoubleArray()
-      colorArrayGreen.SetName('ColorGreen')
-      colorArrayGreen.SetNumberOfTuples(numOfPoints)
-      colorArrayBlue = vtk.vtkDoubleArray()
-      colorArrayBlue.SetName('ColorBlue')
-      colorArrayBlue.SetNumberOfTuples(numOfPoints)
-      for pointIndex in range(numOfPoints):
-        rgb = rgbPoints.GetTuple3(pointIndex)
-        colorArrayRed.SetValue(pointIndex, rgb[0])
-        colorArrayGreen.SetValue(pointIndex, rgb[1])
-        colorArrayBlue.SetValue(pointIndex, rgb[2])
-      colorArrayRed.Modified()
-      colorArrayGreen.Modified()
-      colorArrayBlue.Modified()
-      pointData.AddArray(colorArrayRed)
-      pointData.AddArray(colorArrayGreen)
-      pointData.AddArray(colorArrayBlue)
+    # Scale the texture coordinates
+    # Ensure that you're using the correct image dimensions
+    width, height = textureImage_np.shape[1], textureImage_np.shape[0]
+    uv_scaled = np.clip(tcoords_np, 0, 1) * [width - 1, height - 1]
+
+    print("Scaled UV Coordinates: ", uv_scaled)
+
+    # Map texture coordinates to texture colors (vectorized operation)
+    colors = textureImage_np[uv_scaled[:, 1].astype(int), uv_scaled[:, 0].astype(int)]
+
+    # Convert results back to VTK and save as point data
+    if saveAsPointData == 'uchar-vector':
+        colorArray_vtk = vtk_np.numpy_to_vtk(colors, deep=True, array_type=vtk.VTK_UNSIGNED_CHAR)
+        colorArray_vtk.SetName('RGB')
+        polyData.GetPointData().SetScalars(colorArray_vtk)
+    elif saveAsPointData == 'float-vector':
+        colorArray_vtk = vtk_np.numpy_to_vtk(colors.astype(float) / 255.0, deep=True, array_type=vtk.VTK_FLOAT)
+        colorArray_vtk.SetName('Color')
+        polyData.GetPointData().SetScalars(colorArray_vtk)
+    elif saveAsPointData == 'float-components':
+        for i, name in enumerate(['ColorRed', 'ColorGreen', 'ColorBlue']):
+            componentArray_vtk = vtk_np.numpy_to_vtk(colors[:, i].astype(float), deep=True, array_type=vtk.VTK_FLOAT)
+            componentArray_vtk.SetName(name)
+            polyData.GetPointData().AddArray(componentArray_vtk)
     else:
-      raise ValueError(f"Invalid saveAsPointData: {saveAsPointData}")
+        raise ValueError(f"Invalid saveAsPointData: {saveAsPointData}")
 
-    pointData.Modified()
+    # Mark the polydata as modified
     polyData.Modified()
+
 
 class TextureModelTest(ScriptedLoadableModuleTest):
   """
