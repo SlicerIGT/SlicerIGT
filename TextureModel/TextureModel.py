@@ -65,7 +65,7 @@ class TextureModelWidget(ScriptedLoadableModuleWidget):
     self.inputModelSelector.showChildNodeTypes = False
     self.inputModelSelector.setMRMLScene( slicer.mrmlScene )
     self.inputModelSelector.setToolTip(_( "Model node containing geometry and texture coordinates." ))
-    parametersFormLayout.addRow(_("Model: ", self.inputModelSelector))
+    parametersFormLayout.addRow(_("Model:"), self.inputModelSelector)
 
     #input texture selector
     self.inputTextureSelector = slicer.qMRMLNodeComboBox()
@@ -78,18 +78,18 @@ class TextureModelWidget(ScriptedLoadableModuleWidget):
     self.inputTextureSelector.showChildNodeTypes = False
     self.inputTextureSelector.setMRMLScene( slicer.mrmlScene )
     self.inputTextureSelector.setToolTip(_( "Color image containing texture image." ))
-    parametersFormLayout.addRow(_("Texture: ", self.inputTextureSelector))
+    parametersFormLayout.addRow(_("Texture:"), self.inputTextureSelector)
 
     self.addColorAsPointAttributeComboBox = qt.QComboBox()
     self.addColorAsPointAttributeComboBox.addItem(_("disabled"))
-    self.addColorAsPointAttributeComboBox.addItem(_("RGB vector", "uchar-vector"))
-    self.addColorAsPointAttributeComboBox.addItem(_("RGB float vector", "float-vector"))
-    self.addColorAsPointAttributeComboBox.addItem(_("RGB float components", "float-components"))
+    self.addColorAsPointAttributeComboBox.addItem(_("RGB vector"), "uchar-vector")
+    self.addColorAsPointAttributeComboBox.addItem(_("RGB float vector"), "float-vector")
+    self.addColorAsPointAttributeComboBox.addItem(_("RGB float components"), "float-components")
     self.addColorAsPointAttributeComboBox.setCurrentIndex(0)
     self.addColorAsPointAttributeComboBox.setToolTip(_('Save color in point data.'
       ' "RGB vector" is recommended for compatibility with most software.'
       ' The point data may be used for thresholding or color-based processing.'))
-    parametersFormLayout.addRow(_("Save color information as point data: ", self.addColorAsPointAttributeComboBox))
+    parametersFormLayout.addRow(_("Save color information as point data:"), self.addColorAsPointAttributeComboBox)
 
     #
     # Apply Button
@@ -295,11 +295,11 @@ class TextureModelTest(ScriptedLoadableModuleTest):
     slicer.util.loadModel(extractPath+"/head_obj.obj")
     slicer.util.loadVolume(extractPath+"/head_obj_0.png")
 
-    slicer.util.delayDisplay(_('Finished with download and loading'))
+    slicer.util.delayDisplay('Finished with download and loading')
 
     # Test
     modelNode = slicer.util.getNode("head_obj")
     textureNode = slicer.util.getNode("head_obj_0")
     logic = TextureModelLogic()
     logic.applyTexture(modelNode, textureNode)
-    slicer.util.delayDisplay(_('Test passed!'))
+    slicer.util.delayDisplay('Test passed!')
