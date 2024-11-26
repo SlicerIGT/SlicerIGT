@@ -2,6 +2,7 @@ import os
 from __main__ import vtk, qt, ctk, slicer
 import logging
 import time
+from slicer.i18n import tr as _
 
 class UltraSound(object):
   DEFAULT_IMAGE_SIZE = [800, 600, 1]
