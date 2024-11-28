@@ -41,7 +41,7 @@ public:
   explicit qSlicerPivotCalibrationModule(QObject *parent=0);
   virtual ~qSlicerPivotCalibrationModule();
 
-  qSlicerGetTitleMacro(QTMODULE_TITLE);
+  qSlicerGetTitleMacro(tr("Pivot Calibration"));
 
   virtual QString helpText() const override;
   virtual QString acknowledgementText() const override;

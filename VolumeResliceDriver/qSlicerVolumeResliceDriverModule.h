@@ -41,7 +41,7 @@ public:
   explicit qSlicerVolumeResliceDriverModule(QObject *parent=0);
   virtual ~qSlicerVolumeResliceDriverModule();
 
-  qSlicerGetTitleMacro(QTMODULE_TITLE);
+  qSlicerGetTitleMacro(tr("Volume Reslice Driver"));
   
   /// Help to use the module
   virtual QString helpText() const override;

@@ -41,7 +41,7 @@ public:
   explicit qSlicerCreateModelsModule(QObject *parent=0);
   virtual ~qSlicerCreateModelsModule();
 
-  qSlicerGetTitleMacro(QTMODULE_TITLE);
+  qSlicerGetTitleMacro(tr("Create Models"));
 
   virtual QString helpText() const override;
   virtual QString acknowledgementText() const override;

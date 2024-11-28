@@ -46,7 +46,7 @@ public:
   explicit qSlicerVolumeReconstructionModule(QObject* parent = 0);
   virtual ~qSlicerVolumeReconstructionModule();
 
-  qSlicerGetTitleMacro(QTMODULE_TITLE);
+  qSlicerGetTitleMacro(tr("Volume Reconstruction"));
 
   /// Help to use the module
   virtual QString helpText()const;

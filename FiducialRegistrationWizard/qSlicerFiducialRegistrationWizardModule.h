@@ -46,7 +46,7 @@ public:
   explicit qSlicerFiducialRegistrationWizardModule(QObject *parent=0);
   virtual ~qSlicerFiducialRegistrationWizardModule();
 
-  qSlicerGetTitleMacro(QTMODULE_TITLE);
+  qSlicerGetTitleMacro(tr("Fiducial Registration Wizard"));
   
   /// Help to use the module
   virtual QString helpText( )const override;

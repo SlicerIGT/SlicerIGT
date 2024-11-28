@@ -41,7 +41,7 @@ public:
   explicit qSlicerUltrasoundSnapshotsModule(QObject *parent=0);
   virtual ~qSlicerUltrasoundSnapshotsModule();
 
-  qSlicerGetTitleMacro(QTMODULE_TITLE);
+  qSlicerGetTitleMacro(tr("Ultrasound Snapshots"));
 
   virtual QString helpText() const override;
   virtual QString acknowledgementText() const override;

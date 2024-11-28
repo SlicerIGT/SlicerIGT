@@ -42,7 +42,7 @@ public:
   explicit qSlicerPathExplorerModule(QObject *parent=0);
   virtual ~qSlicerPathExplorerModule();
 
-  qSlicerGetTitleMacro(QTMODULE_TITLE);
+  qSlicerGetTitleMacro(tr("Path Explorer"));
 
   virtual QString helpText() const override;
   virtual QString acknowledgementText() const override;

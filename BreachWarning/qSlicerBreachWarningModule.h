@@ -47,7 +47,7 @@ public:
   explicit qSlicerBreachWarningModule(QObject *parent=0);
   virtual ~qSlicerBreachWarningModule();
 
-  qSlicerGetTitleMacro(QTMODULE_TITLE);
+  qSlicerGetTitleMacro(tr("Breach Warning"));
   
   /// Help to use the module
   virtual QString helpText() const override;

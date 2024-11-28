@@ -25,6 +25,7 @@
 #include "vtkPointMatcher.h"
 
 // MRML includes
+#include "vtkMRMLI18N.h"
 #include "vtkMRMLLinearTransformNode.h"
 #include "vtkMRMLMarkupsFiducialNode.h"
 #include "vtkMRMLScene.h"
@@ -219,32 +220,32 @@ bool vtkSlicerFiducialRegistrationWizardLogic::UpdateCalibration(vtkMRMLNode* no
   vtkMRMLMarkupsFiducialNode* fromMarkupsFiducialNode = fiducialRegistrationWizardNode->GetFromFiducialListNode();
   if (fromMarkupsFiducialNode == NULL)
   {
-    fiducialRegistrationWizardNode->SetCalibrationStatusMessage("'From' fiducial list is not defined.");
+    fiducialRegistrationWizardNode->SetCalibrationStatusMessage(vtkMRMLTr("vtkSlicerFiducialRegistrationWizardLogic", "'From' fiducial list is not defined."));
     return false;
   }
 
   vtkMRMLMarkupsFiducialNode* toMarkupsFiducialNode = fiducialRegistrationWizardNode->GetToFiducialListNode();
   if (toMarkupsFiducialNode == NULL)
   {
-    fiducialRegistrationWizardNode->SetCalibrationStatusMessage("'To' fiducial list is not defined.");
+    fiducialRegistrationWizardNode->SetCalibrationStatusMessage(vtkMRMLTr("vtkSlicerFiducialRegistrationWizardLogic", "'To' fiducial list is not defined."));
     return false;
   }
 
   vtkMRMLTransformNode* outputTransformNode = fiducialRegistrationWizardNode->GetOutputTransformNode();
   if (outputTransformNode == NULL)
   {
-    fiducialRegistrationWizardNode->SetCalibrationStatusMessage("Output transform is not defined.");
+    fiducialRegistrationWizardNode->SetCalibrationStatusMessage(vtkMRMLTr("vtkSlicerFiducialRegistrationWizardLogic", "Output transform is not defined."));
     return false;
   }
 
   if (fromMarkupsFiducialNode->GetNumberOfControlPoints() < 3)
   {
-    fiducialRegistrationWizardNode->SetCalibrationStatusMessage("'From' fiducial list has too few fiducials (minimum 3 required).");
+    fiducialRegistrationWizardNode->SetCalibrationStatusMessage(vtkMRMLTr("vtkSlicerFiducialRegistrationWizardLogic", "'From' fiducial list has too few fiducials (minimum 3 required)."));
     return false;
   }
   if (toMarkupsFiducialNode->GetNumberOfControlPoints() < 3)
   {
-    fiducialRegistrationWizardNode->SetCalibrationStatusMessage("'To' fiducial list has too few fiducials (minimum 3 required).");
+    fiducialRegistrationWizardNode->SetCalibrationStatusMessage(vtkMRMLTr("vtkSlicerFiducialRegistrationWizardLogic", "'To' fiducial list has too few fiducials (minimum 3 required)."));
     return false;
   }
 
@@ -265,13 +266,12 @@ bool vtkSlicerFiducialRegistrationWizardLogic::UpdateCalibration(vtkMRMLNode* no
   {
     if (fromMarkupsFiducialNode->GetNumberOfControlPoints() != toMarkupsFiducialNode->GetNumberOfControlPoints())
     {
-      std::stringstream msg;
-      msg << "Fiducial lists have unequal number of fiducials (" << std::endl
-        << "'From' has " << fromMarkupsFiducialNode->GetNumberOfControlPoints() << ", "
-        << "'To' has " << toMarkupsFiducialNode->GetNumberOfControlPoints() << ")." << std::endl
-        << "Either adjust the lists, or use automatic point matching." << std::endl
-        << "Aborting registration.";
-      fiducialRegistrationWizardNode->SetCalibrationStatusMessage(msg.str());
+      std::string msg = vtkMRMLI18N::Format(vtkMRMLTr("vtkSlicerFiducialRegistrationWizardLogic",
+        "Fiducial lists have unequal number of fiducials ('From' has %1, 'To' has %2)."
+        " Either adjust the lists, or use automatic point matching. Aborting registration."),
+        std::to_string(fromMarkupsFiducialNode->GetNumberOfControlPoints()).c_str(),
+        std::to_string(toMarkupsFiducialNode->GetNumberOfControlPoints()).c_str());
+      fiducialRegistrationWizardNode->SetCalibrationStatusMessage(msg);
       return false;
     }
     fromPointsOrdered = fromPointsUnordered;
@@ -283,11 +283,11 @@ bool vtkSlicerFiducialRegistrationWizardLogic::UpdateCalibration(vtkMRMLNode* no
     if (registrationMode == vtkMRMLFiducialRegistrationWizardNode::REGISTRATION_MODE_SIMILARITY ||
       registrationMode == vtkMRMLFiducialRegistrationWizardNode::REGISTRATION_MODE_WARPING)
     {
-      std::stringstream msg;
-      msg << "Automatic point matching is currently supported only for rigid registration." << std::endl
-        << "Currently " << fiducialRegistrationWizardNode->RegistrationModeAsString(registrationMode)
-        << " registration is being used." << std::endl << "Unexpected results may occur.";
-      fiducialRegistrationWizardNode->AddToCalibrationStatusMessage(msg.str());
+      std::string msg = vtkMRMLI18N::Format(vtkMRMLTr("vtkSlicerFiducialRegistrationWizardLogic",
+        "Automatic point matching is currently supported only for rigid registration."
+        " Currently %1 registration is being used. Unexpected results may occur."),
+        fiducialRegistrationWizardNode->RegistrationModeAsString(registrationMode).c_str());
+      fiducialRegistrationWizardNode->SetCalibrationStatusMessage(msg);
     }
     const int MAX_NUMBER_OF_POINTS_FOR_POINT_MATCHING_AUTOMATIC = 30; // more than this and it tends to take a long time. Algorithm is at least N!
     int fromNumberOfPoints = fromPointsUnordered->GetNumberOfPoints();
@@ -295,11 +295,13 @@ bool vtkSlicerFiducialRegistrationWizardLogic::UpdateCalibration(vtkMRMLNode* no
     int numberOfPointsToMatch = std::max(fromNumberOfPoints, toNumberOfPoints);
     if (numberOfPointsToMatch > MAX_NUMBER_OF_POINTS_FOR_POINT_MATCHING_AUTOMATIC)
     {
-      std::stringstream msg;
-      msg << "Too many points to compute point pairing " << numberOfPointsToMatch << "." << std::endl
-        << "To avoid long computation time, there should be at most " << MAX_NUMBER_OF_POINTS_FOR_POINT_MATCHING_AUTOMATIC << " points." << std::endl
-        << "Aborting registration.";
-      fiducialRegistrationWizardNode->AddToCalibrationStatusMessage(msg.str());
+      std::string msg = vtkMRMLI18N::Format(vtkMRMLTr("vtkSlicerFiducialRegistrationWizardLogic",
+        "Too many points to compute point pairing %1."
+        " To avoid long computation time, there should be at most %2 points."
+        " Aborting registration."),
+        std::to_string(numberOfPointsToMatch).c_str(),
+        std::to_string(MAX_NUMBER_OF_POINTS_FOR_POINT_MATCHING_AUTOMATIC).c_str());
+      fiducialRegistrationWizardNode->AddToCalibrationStatusMessage(msg);
       return false;
     }
     vtkSmartPointer< vtkPointMatcher > pointMatcher = vtkSmartPointer< vtkPointMatcher >::New();
@@ -311,43 +313,46 @@ bool vtkSlicerFiducialRegistrationWizardLogic::UpdateCalibration(vtkMRMLNode* no
     pointMatcher->Update();
     if (!pointMatcher->IsMatchingWithinTolerance())
     {
-      std::stringstream msg;
-      msg << "Could not find a good mapping." << std::endl
-        << "Mean squared distance error was " << pointMatcher->GetComputedDistanceError()
-        << ", but tolerance is " << pointMatcher->GetTolerableDistanceError() << "." << std::endl
-        << "Results are not expected to be accurate.";
-      fiducialRegistrationWizardNode->AddToCalibrationStatusMessage(msg.str());
+      std::string msg = vtkMRMLI18N::Format(vtkMRMLTr("vtkSlicerFiducialRegistrationWizardLogic",
+        "Could not find a good mapping."
+        " Mean squared distance error was %1, but tolerance is %2."
+        " Results are not expected to be accurate."),
+        std::to_string(pointMatcher->GetComputedDistanceError()).c_str(),
+        std::to_string(pointMatcher->GetTolerableDistanceError()).c_str());
+      fiducialRegistrationWizardNode->AddToCalibrationStatusMessage(msg);
     }
     if (pointMatcher->IsMatchingAmbiguous())
     {
-      std::stringstream msg;
-      msg << "The 'best' point matching is reported as ambiguous and may be incorrect." << std::endl
-        << "This could happen because the point geometry is symmetric." << std::endl
-        << "Results are not necessarily expected to be accurate.";
-      fiducialRegistrationWizardNode->AddToCalibrationStatusMessage(msg.str());
+      std::string msg = vtkMRMLTr("vtkSlicerFiducialRegistrationWizardLogic",
+        "The 'best' point matching is reported as ambiguous and may be incorrect."
+        " This could happen because the point geometry is symmetric."
+        " Results are not necessarily expected to be accurate.");
+      fiducialRegistrationWizardNode->AddToCalibrationStatusMessage(msg);
     }
     fromPointsOrdered = pointMatcher->GetOutputSourcePoints();
     toPointsOrdered = pointMatcher->GetOutputTargetPoints();
   }
   else
   {
-    std::stringstream msg;
-    msg << "Unrecognized point matching method: " << vtkMRMLFiducialRegistrationWizardNode::PointMatchingAsString(pointMatching) << "." << std::endl
-      << "Aborting registration.";
-    fiducialRegistrationWizardNode->SetCalibrationStatusMessage(msg.str());
+    std::string msg = vtkMRMLI18N::Format(vtkMRMLTr("vtkSlicerFiducialRegistrationWizardLogic",
+      "Unrecognized point matching method: %1. Aborting registration."),
+      vtkMRMLFiducialRegistrationWizardNode::PointMatchingAsString(pointMatching).c_str());
+    fiducialRegistrationWizardNode->AddToCalibrationStatusMessage(msg);
     return false;
   }
 
   // error checking
   if (this->CheckCollinear(fromPointsOrdered))
   {
-    fiducialRegistrationWizardNode->SetCalibrationStatusMessage("'From' fiducial list has strictly collinear or singular points.");
+    fiducialRegistrationWizardNode->SetCalibrationStatusMessage(vtkMRMLTr("vtkSlicerFiducialRegistrationWizardLogic",
+      "'From' fiducial list has strictly collinear or singular points."));
     return false;
   }
 
   if (this->CheckCollinear(toPointsOrdered))
   {
-    fiducialRegistrationWizardNode->SetCalibrationStatusMessage("'To' fiducial list has strictly collinear or singular points.");
+    fiducialRegistrationWizardNode->SetCalibrationStatusMessage(vtkMRMLTr("vtkSlicerFiducialRegistrationWizardLogic",
+      "'To' fiducial list has strictly collinear or singular points."));
     return false;
   }
 
@@ -392,7 +397,8 @@ bool vtkSlicerFiducialRegistrationWizardLogic::UpdateCalibration(vtkMRMLNode* no
     if (strcmp(outputTransformNode->GetClassName(), "vtkMRMLTransformNode") != 0)
     {
       vtkErrorMacro("vtkSlicerFiducialRegistrationWizardLogic::UpdateCalibration failed to save vtkThinPlateSplineTransform into transform node type " << outputTransformNode->GetClassName());
-      fiducialRegistrationWizardNode->SetCalibrationStatusMessage("Warping transform cannot be stored\nin linear transform node");
+      fiducialRegistrationWizardNode->SetCalibrationStatusMessage(vtkMRMLTr("vtkSlicerFiducialRegistrationWizardLogic",
+        "Warping transform cannot be stored\nin linear transform node"));
       return false;
     }
 
@@ -443,7 +449,7 @@ bool vtkSlicerFiducialRegistrationWizardLogic::UpdateCalibration(vtkMRMLNode* no
   {
     vtkErrorMacro("vtkSlicerFiducialRegistrationWizardLogic::UpdateCalibration failed to set transform type: " <<
       "invalid registration mode: " << vtkMRMLFiducialRegistrationWizardNode::RegistrationModeAsString(registrationMode));
-    fiducialRegistrationWizardNode->SetCalibrationStatusMessage("Invalid transform type.");
+    fiducialRegistrationWizardNode->SetCalibrationStatusMessage(vtkMRMLTr("vtkSlicerFiducialRegistrationWizardLogic","Invalid transform type."));
     return false;
   }
 
@@ -451,14 +457,16 @@ bool vtkSlicerFiducialRegistrationWizardLogic::UpdateCalibration(vtkMRMLNode* no
   if (outputTransform == NULL)
   {
     vtkErrorMacro("Failed to retreive transform from node. RMS Error could not be evaluated");
-    fiducialRegistrationWizardNode->SetCalibrationStatusMessage("Failed to retreive transform from node. RMS Error could not be evaluated.");
+    fiducialRegistrationWizardNode->SetCalibrationStatusMessage(vtkMRMLTr("vtkSlicerFiducialRegistrationWizardLogic",
+      "Failed to retreive transform from node. RMS Error could not be evaluated."));
     return false;
   }
 
-  std::stringstream completeMessage;
   double rmsError = this->CalculateRegistrationError(fromPointsOrdered, toPointsOrdered, outputTransform);
-  completeMessage << "Registration Complete. RMS Error: " << rmsError;
-  fiducialRegistrationWizardNode->AddToCalibrationStatusMessage(completeMessage.str());
+  std::string completeMessage = vtkMRMLI18N::Format(vtkMRMLTr("vtkSlicerFiducialRegistrationWizardLogic", "Registration Complete. RMS Error: %1."),
+    std::to_string(rmsError).c_str());
+
+  fiducialRegistrationWizardNode->AddToCalibrationStatusMessage(completeMessage);
   fiducialRegistrationWizardNode->SetCalibrationError( rmsError );
 #if Slicer_VERSION_MAJOR >= 5 || (Slicer_VERSION_MAJOR >= 4 && Slicer_VERSION_MINOR >= 11)
   outputTransformNode->SetNodeReferenceID(vtkMRMLTransformNode::GetMovingNodeReferenceRole(), fromMarkupsFiducialNode->GetID());

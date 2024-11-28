@@ -41,7 +41,7 @@ public:
   explicit qSlicerCollectPointsModule(QObject *parent=0);
   virtual ~qSlicerCollectPointsModule();
 
-  qSlicerGetTitleMacro(QTMODULE_TITLE);
+  qSlicerGetTitleMacro(tr("Collect Points"));
   
   /// Help to use the module
   virtual QString helpText() const override;

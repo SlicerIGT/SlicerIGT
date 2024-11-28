@@ -45,7 +45,7 @@ public:
   explicit qSlicerWatchdogModule(QObject *parent=0);
   virtual ~qSlicerWatchdogModule();
 
-  qSlicerGetTitleMacro(QTMODULE_TITLE);
+  qSlicerGetTitleMacro(tr("Watchdog"));
 
   virtual QString helpText() const override;
   virtual QString acknowledgementText() const override;

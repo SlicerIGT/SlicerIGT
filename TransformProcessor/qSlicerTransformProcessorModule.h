@@ -45,7 +45,7 @@ public:
   explicit qSlicerTransformProcessorModule(QObject *parent=0);
   virtual ~qSlicerTransformProcessorModule();
 
-  qSlicerGetTitleMacro(QTMODULE_TITLE);
+  qSlicerGetTitleMacro(tr("Transform Processor"));
   
   /// Help to use the module
   virtual QString helpText() const override;

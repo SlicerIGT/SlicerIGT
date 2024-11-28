@@ -43,7 +43,7 @@ public:
   explicit qSlicerLandmarkDetectionModule(QObject *parent=nullptr);
   ~qSlicerLandmarkDetectionModule() override;
 
-  qSlicerGetTitleMacro(QTMODULE_TITLE);
+  qSlicerGetTitleMacro(tr("Landmark Detection"));
 
   QString helpText()const override;
   QString acknowledgementText()const override;
