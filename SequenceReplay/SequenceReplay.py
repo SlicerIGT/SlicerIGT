@@ -61,7 +61,11 @@ def registerSampleData():
     # It is always recommended to provide sample data for users to make it easy to try the module,
     # but if no sample data is available then this method (and associated startupCompeted signal connection) can be removed.
 
-    import SampleData
+    # Skip sampleData registration if associated module is not available
+    try:
+        import SampleData
+    except ImportError:
+        return
 
     iconsPath = os.path.join(os.path.dirname(__file__), "Resources/Icons")
 
