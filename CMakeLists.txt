@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.20.6...3.22.6 FATAL_ERROR)
 
 project(SlicerIGT)
 
@@ -22,10 +22,10 @@ find_package(Slicer REQUIRED)
 include(${Slicer_USE_FILE})
 
 if (NOT DEFINED Slicer_EXTENSION_SOURCE_DIRS)
-  find_package(SlicerIGSIO REQUIRED) 
+  find_package(SlicerIGSIO REQUIRED)
 else()
   # Allow usage if dependent extension is bundled
-  find_package(IGSIO REQUIRED) 
+  find_package(IGSIO REQUIRED)
 endif()
 
 #-----------------------------------------------------------------------------
