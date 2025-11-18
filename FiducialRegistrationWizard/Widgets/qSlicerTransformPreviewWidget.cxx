@@ -20,8 +20,12 @@
 
 // Widgets includes
 #include "qSlicerTransformPreviewWidget.h"
+#include "ui_qSlicerTransformPreviewWidget.h"
+
+//Slicer Includes
 #include "qSlicerApplication.h"
 
+//Qt Includes
 #include <QtGui>
 
 //-----------------------------------------------------------------------------
