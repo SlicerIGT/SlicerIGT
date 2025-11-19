@@ -22,10 +22,10 @@
 #include "qSlicerTransformPreviewWidget.h"
 #include "ui_qSlicerTransformPreviewWidget.h"
 
-//Slicer Includes
+// Slicer includes
 #include "qSlicerApplication.h"
 
-//Qt Includes
+// Qt includes
 #include <QtGui>
 
 //-----------------------------------------------------------------------------
