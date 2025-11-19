@@ -26,7 +26,6 @@
 
 // FooBar Widgets includes
 #include "qSlicerFiducialRegistrationWizardModuleWidgetsExport.h"
-#include "ui_qSlicerTransformPreviewWidget.h"
 
 #include "vtkSmartPointer.h"
 #include "vtkGeneralTransform.h"
