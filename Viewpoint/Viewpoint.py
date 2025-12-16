@@ -128,7 +128,7 @@ class ViewpointWidget:
     self.transformLabel = qt.QLabel()
     self.transformLabel.setText(_("Camera positioning transform: "))
     self.transformSelector = slicer.qMRMLNodeComboBox()
-    self.transformSelector.nodeTypes = [ "vtkMRMLLinearTransformNode" ]
+    self.transformSelector.nodeTypes = [ "vtkMRMLTransformNode" ]
     self.transformSelector.noneEnabled = False
     self.transformSelector.addEnabled = False
     self.transformSelector.removeEnabled = False

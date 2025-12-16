@@ -36,7 +36,7 @@
 
 // MRML includes
 #include <vtkMRMLScene.h>
-#include "vtkMRMLLinearTransformNode.h"
+#include "vtkMRMLTransformNode.h"
 
 //-----------------------------------------------------------------------------
 /// \ingroup Slicer_QtModules_TransformProcessor
@@ -571,8 +571,8 @@ void qSlicerTransformProcessorModuleWidget::onAddInputCombineTransform()
     return;
   }
 
-  vtkMRMLLinearTransformNode* sourceTransform = vtkMRMLLinearTransformNode::SafeDownCast( d->addInputCombineTransformComboBox->currentNode() );
-  if ( sourceTransform == NULL )
+  vtkMRMLTransformNode* sourceTransform = vtkMRMLTransformNode::SafeDownCast( d->addInputCombineTransformComboBox->currentNode() );
+  if (!sourceTransform)
   {
     qCritical( "Error: Failed to add transform to input list, input transform node is not a linear transform node." );
     return;
@@ -606,63 +606,59 @@ void qSlicerTransformProcessorModuleWidget::SetTransformAccordingToRole( vtkMRML
 {
   Q_D( qSlicerTransformProcessorModuleWidget );
   vtkMRMLTransformProcessorNode* pNode = vtkMRMLTransformProcessorNode::SafeDownCast( d->parameterNodeComboBox->currentNode() );
-  if ( pNode == NULL || this->mrmlScene() == NULL )
+  if (!pNode || !this->mrmlScene())
   {
     qCritical( "Error: No parameter node/scene found. Cannot set transform to paramter node." );
     return;
   }
 
-  vtkMRMLLinearTransformNode* linearTransformNode = NULL;
-  if ( node )
+  vtkMRMLTransformNode* transformNode = vtkMRMLTransformNode::SafeDownCast(node);
+  if (!transformNode)
   {
-    linearTransformNode = vtkMRMLLinearTransformNode::SafeDownCast( node );
-    if ( linearTransformNode == NULL )
-    {
-      qCritical( "Error: MRML node is not a linear transform. Cannot set transform to paramter node." );
-      return;
-    }
+    qCritical( "Error: MRML node is not a linear transform. Cannot set transform to paramter node." );
+    return;
   }
 
   switch ( role )
   {
     case TRANSFORM_ROLE_INPUT_FROM:
     {
-      pNode->SetAndObserveInputFromTransformNode( linearTransformNode );
+      pNode->SetAndObserveInputFromTransformNode(transformNode);
       break;
     }
     case TRANSFORM_ROLE_INPUT_TO:
     {
-      pNode->SetAndObserveInputToTransformNode( linearTransformNode );
+      pNode->SetAndObserveInputToTransformNode(transformNode);
       break;
     }
     case TRANSFORM_ROLE_INPUT_INITIAL:
     {
-      pNode->SetAndObserveInputInitialTransformNode( linearTransformNode );
+      pNode->SetAndObserveInputInitialTransformNode(transformNode);
       break;
     }
     case TRANSFORM_ROLE_INPUT_CHANGED:
     {
-      pNode->SetAndObserveInputChangedTransformNode( linearTransformNode );
+      pNode->SetAndObserveInputChangedTransformNode(transformNode);
       break;
     }
     case TRANSFORM_ROLE_INPUT_ANCHOR:
     {
-      pNode->SetAndObserveInputAnchorTransformNode( linearTransformNode );
+      pNode->SetAndObserveInputAnchorTransformNode(transformNode);
       break;
     }
     case TRANSFORM_ROLE_INPUT_FORWARD:
     {
-      pNode->SetAndObserveInputForwardTransformNode( linearTransformNode );
+      pNode->SetAndObserveInputForwardTransformNode(transformNode);
       break;
     }
     case TRANSFORM_ROLE_INPUT_UNSTABILIZED:
     {
-      pNode->SetAndObserveInputUnstabilizedTransformNode(linearTransformNode);
+      pNode->SetAndObserveInputUnstabilizedTransformNode(transformNode);
       break;
     }
     case TRANSFORM_ROLE_OUTPUT:
     {
-      pNode->SetAndObserveOutputTransformNode( linearTransformNode );
+      pNode->SetAndObserveOutputTransformNode(transformNode);
       break;
     }
     default:

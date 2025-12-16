@@ -65,8 +65,8 @@ Position tracking systems are useful for tracking surgical tools, robots, patien
 TrackerStabilizer module provides temporal low-pass filtering for any situations requiring stable position/orientation where time delays are tolerable. User can adjust cut-off frequency (i.e., smoothing parameter): the lower the value, the smoother the motion is but it is important to note that the delay is also increased.
 
 The GUI of the TrackerStabilizer module contains 4 elements:
-- Input Transform: This is the raw data, usually raw tracker data, represented by a vtkMRMLLinearTransformNode
-- Output Transform: This is the filtered transform represented also by a vtkMRMLLinearTransformNode. This node can be created directly from the list
+- Input Transform: This is the raw data, usually raw tracker data, represented by a vtkMRMLTransformNode
+- Output Transform: This is the filtered transform represented also by a vtkMRMLTransformNode. This node can be created directly from the list
 - Filter checkbox: This checkbox turn on/off the filtering
 - Smoothing slider: This slider control the smoothing parameter. In the left, smoother, with relatively important delay. In the right, faster (almost no delay), but noisier.
 

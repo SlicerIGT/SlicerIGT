@@ -18,7 +18,7 @@
 
 #include "vtkSlicerVolumeResliceDriverModuleLogicExport.h"
 
-class vtkMRMLLinearTransformNode;
+class vtkMRMLTransformNode;
 class vtkMRMLScalarVolumeNode;
 class vtkMRMLAnnotationRulerNode;
 class vtkMRMLMarkupsNode;
@@ -78,7 +78,7 @@ protected:
   virtual void ProcessMRMLNodesEvents(vtkObject* caller, unsigned long event, void * callData) override;
   
   void UpdateSliceByTransformableNode( vtkMRMLTransformableNode* tnode, vtkMRMLSliceNode* sliceNode );
-  void UpdateSliceByTransformNode( vtkMRMLLinearTransformNode* tnode, vtkMRMLSliceNode* sliceNode );
+  void UpdateSliceByTransformNode( vtkMRMLTransformNode* tnode, vtkMRMLSliceNode* sliceNode );
   void UpdateSliceByImageNode( vtkMRMLScalarVolumeNode* inode, vtkMRMLSliceNode* sliceNode );
   void UpdateSliceByMarkupsNode(vtkMRMLMarkupsNode* markupsNode, vtkMRMLSliceNode* sliceNode);
   void UpdateSliceByRulerNode( vtkMRMLAnnotationRulerNode* rnode, vtkMRMLSliceNode* sliceNode );

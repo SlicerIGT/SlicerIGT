@@ -24,6 +24,7 @@
 
 // Slicer includes
 #include "qSlicerApplication.h"
+#include "vtkMRMLTransformNode.h"
 
 // Qt includes
 #include <QtGui>

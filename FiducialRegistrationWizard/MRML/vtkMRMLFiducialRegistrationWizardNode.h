@@ -163,7 +163,7 @@ private:
   // Three modes:
   // - Rigid (translation, orientation)
   // - Similarity (translation, orientation, scale)
-  // - Warping (non-uniform, cannot be stored in a vtkMRMLLinearTransformNode)
+  // - Warping (deformable)
   int RegistrationMode;
 
   // There are two modes:

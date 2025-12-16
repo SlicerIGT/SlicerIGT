@@ -30,7 +30,7 @@
 #include <vtkNew.h>
 #include <vtkCommand.h>
 
-#include <vtkMRMLLinearTransformNode.h>
+#include <vtkMRMLTransformNode.h>
 
 //-----------------------------------------------------------------------------
 /// \ingroup Slicer_QtModules_ExtensionTemplate
@@ -104,7 +104,7 @@ void qSlicerPivotCalibrationModuleWidget::initializeObserver(vtkMRMLNode* node)
 {
   Q_D(qSlicerPivotCalibrationModuleWidget);
 
-  vtkMRMLLinearTransformNode* transformNode = vtkMRMLLinearTransformNode::SafeDownCast(node);
+  vtkMRMLTransformNode* transformNode = vtkMRMLTransformNode::SafeDownCast(node);
   d->logic()->SetAndObserveTransformNode(transformNode);
 }
 
@@ -299,7 +299,7 @@ void qSlicerPivotCalibrationModuleWidget::onPivotStop()
 
   d->logic()->SetRecordingState(false);
 
-  vtkMRMLLinearTransformNode* outputTransform = vtkMRMLLinearTransformNode::SafeDownCast(d->OutputComboBox->currentNode());
+  vtkMRMLTransformNode* outputTransform = vtkMRMLTransformNode::SafeDownCast(d->OutputComboBox->currentNode());
   if (outputTransform == NULL)
   {
     qCritical("qSlicerPivotCalibrationModuleWidget::onPivotStop failed: cannot save output transform");
@@ -336,7 +336,7 @@ void qSlicerPivotCalibrationModuleWidget::onSpinStop()
 
   d->logic()->SetRecordingState(false);
 
-  vtkMRMLLinearTransformNode* outputTransform = vtkMRMLLinearTransformNode::SafeDownCast(d->OutputComboBox->currentNode());
+  vtkMRMLTransformNode* outputTransform = vtkMRMLTransformNode::SafeDownCast(d->OutputComboBox->currentNode());
   if (!outputTransform)
   {
     qCritical("qSlicerPivotCalibrationModuleWidget::onSpinStop failed: cannot save output transform");
@@ -385,7 +385,7 @@ void qSlicerPivotCalibrationModuleWidget::onFlipButtonClicked()
 {
   Q_D(qSlicerPivotCalibrationModuleWidget);
 
-  vtkMRMLLinearTransformNode* outputTransform = vtkMRMLLinearTransformNode::SafeDownCast(d->OutputComboBox->currentNode());
+  vtkMRMLTransformNode* outputTransform = vtkMRMLTransformNode::SafeDownCast(d->OutputComboBox->currentNode());
   if (!outputTransform)
   {
     qCritical("qSlicerPivotCalibrationModuleWidget::onSpinStop failed: cannot save output transform");
@@ -563,7 +563,7 @@ void qSlicerPivotCalibrationModuleWidget::onPivotAutoCalibrationComplete()
 {
   Q_D(qSlicerPivotCalibrationModuleWidget);
 
-  vtkMRMLLinearTransformNode* outputTransform = vtkMRMLLinearTransformNode::SafeDownCast(d->OutputComboBox->currentNode());
+  vtkMRMLTransformNode* outputTransform = vtkMRMLTransformNode::SafeDownCast(d->OutputComboBox->currentNode());
   if (!outputTransform)
   {
     return;
@@ -595,7 +595,7 @@ void qSlicerPivotCalibrationModuleWidget::onSpinAutoCalibrationComplete()
 {
   Q_D(qSlicerPivotCalibrationModuleWidget);
 
-  vtkMRMLLinearTransformNode* outputTransform = vtkMRMLLinearTransformNode::SafeDownCast(d->OutputComboBox->currentNode());
+  vtkMRMLTransformNode* outputTransform = vtkMRMLTransformNode::SafeDownCast(d->OutputComboBox->currentNode());
   if (!outputTransform)
   {
     qCritical("qSlicerPivotCalibrationModuleWidget::onSpinStop failed: cannot save output transform");

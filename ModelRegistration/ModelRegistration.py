@@ -84,7 +84,7 @@ class ModelRegistrationWidget(ScriptedLoadableModuleWidget):
     # output transform selector
     #
     self.outputSourceToTargetTransformSelector = slicer.qMRMLNodeComboBox()
-    self.outputSourceToTargetTransformSelector.nodeTypes = ( ("vtkMRMLLinearTransformNode"), "" )
+    self.outputSourceToTargetTransformSelector.nodeTypes = ["vtkMRMLTransformNode"]
     self.outputSourceToTargetTransformSelector.selectNodeUponCreation = True
     self.outputSourceToTargetTransformSelector.addEnabled = True
     self.outputSourceToTargetTransformSelector.removeEnabled = True

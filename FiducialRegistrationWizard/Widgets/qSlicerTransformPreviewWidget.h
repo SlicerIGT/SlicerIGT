@@ -33,7 +33,6 @@
 
 #include "vtkMRMLScene.h"
 
-#include "vtkMRMLLinearTransformNode.h"
 #include "vtkMRMLDisplayableNode.h"
 #include "vtkMRMLDisplayNode.h"
 

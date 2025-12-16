@@ -19,7 +19,7 @@
 #include "vtkSlicerVolumeResliceDriverLogic.h"
 
 // MRML includes
-#include "vtkMRMLLinearTransformNode.h"
+#include "vtkMRMLTransformNode.h"
 #include "vtkMRMLMarkupsLineNode.h"
 #include "vtkMRMLMarkupsPlaneNode.h"
 #include "vtkMRMLScalarVolumeNode.h"
@@ -345,7 +345,7 @@ void vtkSlicerVolumeResliceDriverLogic
 void vtkSlicerVolumeResliceDriverLogic
 ::UpdateSliceByTransformableNode( vtkMRMLTransformableNode* tnode, vtkMRMLSliceNode* sliceNode )
 {
-  vtkMRMLLinearTransformNode* transformNode = vtkMRMLLinearTransformNode::SafeDownCast( tnode );
+  vtkMRMLTransformNode* transformNode = vtkMRMLTransformNode::SafeDownCast( tnode );
   if ( transformNode != NULL )
     {
     this->UpdateSliceByTransformNode( transformNode, sliceNode );
@@ -373,7 +373,7 @@ void vtkSlicerVolumeResliceDriverLogic
 
 
 void vtkSlicerVolumeResliceDriverLogic
-::UpdateSliceByTransformNode( vtkMRMLLinearTransformNode* tnode, vtkMRMLSliceNode* sliceNode )
+::UpdateSliceByTransformNode( vtkMRMLTransformNode* tnode, vtkMRMLSliceNode* sliceNode )
 {
   if ( ! tnode)
     {
@@ -468,8 +468,8 @@ void vtkSlicerVolumeResliceDriverLogic
   rtimgTransform->SetElement(1, 3, py + cy);
   rtimgTransform->SetElement(2, 3, pz + cz);
 
-  vtkMRMLLinearTransformNode* parentNode =
-    vtkMRMLLinearTransformNode::SafeDownCast(volumeNode->GetParentTransformNode());
+  vtkMRMLTransformNode* parentNode =
+    vtkMRMLTransformNode::SafeDownCast(volumeNode->GetParentTransformNode());
   if (parentNode)
     {
     vtkSmartPointer<vtkMatrix4x4> parentTransform = vtkSmartPointer<vtkMatrix4x4>::New();

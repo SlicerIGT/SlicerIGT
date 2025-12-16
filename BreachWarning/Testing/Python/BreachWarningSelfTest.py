@@ -103,7 +103,7 @@ class BreachWarningSelfTestTest(ScriptedLoadableModuleTest):
     bwColorPickerButton.setColor(color)
 
     # Transform the sphere somewhere
-    sphereTransform = slicer.vtkMRMLLinearTransformNode()
+    sphereTransform = slicer.vtkMRMLTransformNode()
     sphereTransformMatrix = vtk.vtkMatrix4x4()
     sphereTransformMatrix.SetElement(0, 3, 80)
     sphereTransformMatrix.SetElement(1, 3, 40)
@@ -116,7 +116,7 @@ class BreachWarningSelfTestTest(ScriptedLoadableModuleTest):
     transforms=[]
     numberOfTransforms = 3
     for i in range(numberOfTransforms):
-        transforms.append(slicer.vtkMRMLLinearTransformNode())
+        transforms.append(slicer.vtkMRMLTransformNode())
         transformName = "Tool_"+str(i)
         transforms[i].SetName(slicer.mrmlScene.GenerateUniqueName(transformName))
         slicer.mrmlScene.AddNode(transforms[i])

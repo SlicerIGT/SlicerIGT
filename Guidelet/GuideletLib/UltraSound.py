@@ -135,7 +135,7 @@ class UltraSound(object):
     if self.referenceToRas is None or (self.referenceToRas and slicer.mrmlScene.GetNodeByID(self.referenceToRas.GetID()) is None):
       self.referenceToRas = slicer.mrmlScene.GetFirstNodeByName('ReferenceToRas')
       if self.referenceToRas is None:
-        self.referenceToRas = slicer.vtkMRMLLinearTransformNode()
+        self.referenceToRas = slicer.vtkMRMLTransformNode()
         self.referenceToRas.SetName("ReferenceToRas")
         m = self.guideletParent.logic.readTransformFromSettings('ReferenceToRas', self.guideletParent.configurationName)
         if m is None:

@@ -31,7 +31,7 @@
 
 #include "vtkSlicerFiducialRegistrationWizardLogic.h"
 
-#include "vtkMRMLLinearTransformNode.h"
+#include "vtkMRMLTransformNode.h"
 #include "vtkMRMLMarkupsFiducialNode.h"
 
 //-----------------------------------------------------------------------------
@@ -86,7 +86,7 @@ qSlicerFiducialRegistrationWizardModuleWidget ::~qSlicerFiducialRegistrationWiza
 void qSlicerFiducialRegistrationWizardModuleWidget::onRecordFromButtonClicked()
 {
   Q_D(qSlicerFiducialRegistrationWizardModuleWidget);
-  vtkMRMLLinearTransformNode *probeFromTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(d->ProbeTransformFromComboBox->currentNode());
+  vtkMRMLTransformNode *probeFromTransformNode = vtkMRMLTransformNode::SafeDownCast(d->ProbeTransformFromComboBox->currentNode());
   vtkMRMLMarkupsFiducialNode *fromMarkupsNode = vtkMRMLMarkupsFiducialNode::SafeDownCast(d->FromMarkupsWidget->currentNode());
   d->logic()->AddFiducial(probeFromTransformNode, fromMarkupsNode);
 }
@@ -95,7 +95,7 @@ void qSlicerFiducialRegistrationWizardModuleWidget::onRecordFromButtonClicked()
 void qSlicerFiducialRegistrationWizardModuleWidget::onRecordToButtonClicked()
 {
   Q_D(qSlicerFiducialRegistrationWizardModuleWidget);
-  vtkMRMLLinearTransformNode *probeToTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(d->ProbeTransformToComboBox->currentNode());
+  vtkMRMLTransformNode *probeToTransformNode = vtkMRMLTransformNode::SafeDownCast(d->ProbeTransformToComboBox->currentNode());
   vtkMRMLMarkupsFiducialNode *toMarkupsNode = vtkMRMLMarkupsFiducialNode::SafeDownCast(d->ToMarkupsWidget->currentNode());
   d->logic()->AddFiducial(probeToTransformNode, toMarkupsNode);
 }

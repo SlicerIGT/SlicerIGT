@@ -38,7 +38,7 @@
 #include "vtkMRMLScene.h"
 
 class vtkMRMLTransformProcessorNode;
-class vtkMRMLLinearTransformNode;
+class vtkMRMLTransformNode;
 
 
 // STD includes

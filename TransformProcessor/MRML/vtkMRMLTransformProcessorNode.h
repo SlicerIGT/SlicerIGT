@@ -27,7 +27,7 @@
 
 #include <vtkMRML.h>
 #include <vtkMRMLNode.h>
-#include <vtkMRMLLinearTransformNode.h>
+#include <vtkMRMLTransformNode.h>
 
 #include "vtkSlicerTransformProcessorModuleMRMLExport.h"
 
@@ -100,34 +100,34 @@ public:
   virtual const char* GetNodeTagName() override { return "TransformProcessorParameters"; };
 
   // begin accessors and mutators
-  vtkMRMLLinearTransformNode* GetNthInputCombineTransformNode( int n );
-  void AddAndObserveInputCombineTransformNode( vtkMRMLLinearTransformNode* node );
+  vtkMRMLTransformNode* GetNthInputCombineTransformNode( int n );
+  void AddAndObserveInputCombineTransformNode( vtkMRMLTransformNode* node );
   void RemoveNthInputCombineTransformNode( int n );
   int GetNumberOfInputCombineTransformNodes();
 
-  vtkMRMLLinearTransformNode* GetInputFromTransformNode();
-  void SetAndObserveInputFromTransformNode( vtkMRMLLinearTransformNode* node );
+  vtkMRMLTransformNode* GetInputFromTransformNode();
+  void SetAndObserveInputFromTransformNode( vtkMRMLTransformNode* node );
 
-  vtkMRMLLinearTransformNode* GetInputToTransformNode();
-  void SetAndObserveInputToTransformNode( vtkMRMLLinearTransformNode* node );
+  vtkMRMLTransformNode* GetInputToTransformNode();
+  void SetAndObserveInputToTransformNode( vtkMRMLTransformNode* node );
 
-  vtkMRMLLinearTransformNode* GetInputInitialTransformNode();
-  void SetAndObserveInputInitialTransformNode( vtkMRMLLinearTransformNode* node );
+  vtkMRMLTransformNode* GetInputInitialTransformNode();
+  void SetAndObserveInputInitialTransformNode( vtkMRMLTransformNode* node );
 
-  vtkMRMLLinearTransformNode* GetInputChangedTransformNode();
-  void SetAndObserveInputChangedTransformNode( vtkMRMLLinearTransformNode* node );
+  vtkMRMLTransformNode* GetInputChangedTransformNode();
+  void SetAndObserveInputChangedTransformNode( vtkMRMLTransformNode* node );
 
-  vtkMRMLLinearTransformNode* GetInputAnchorTransformNode();
-  void SetAndObserveInputAnchorTransformNode( vtkMRMLLinearTransformNode* node );
+  vtkMRMLTransformNode* GetInputAnchorTransformNode();
+  void SetAndObserveInputAnchorTransformNode( vtkMRMLTransformNode* node );
 
-  vtkMRMLLinearTransformNode* GetInputForwardTransformNode();
-  void SetAndObserveInputForwardTransformNode( vtkMRMLLinearTransformNode* node );
+  vtkMRMLTransformNode* GetInputForwardTransformNode();
+  void SetAndObserveInputForwardTransformNode( vtkMRMLTransformNode* node );
 
-  vtkMRMLLinearTransformNode* GetInputUnstabilizedTransformNode();
-  void SetAndObserveInputUnstabilizedTransformNode(vtkMRMLLinearTransformNode* node);
+  vtkMRMLTransformNode* GetInputUnstabilizedTransformNode();
+  void SetAndObserveInputUnstabilizedTransformNode(vtkMRMLTransformNode* node);
 
-  vtkMRMLLinearTransformNode* GetOutputTransformNode();
-  void SetAndObserveOutputTransformNode( vtkMRMLLinearTransformNode* node );
+  vtkMRMLTransformNode* GetOutputTransformNode();
+  void SetAndObserveOutputTransformNode( vtkMRMLTransformNode* node );
   
   void ProcessMRMLEvents( vtkObject* caller, unsigned long event, void* callData ) override;
 
@@ -194,13 +194,13 @@ public:
 private:
   // common functions internal to the class.
   // convenience functions GetInputXXXTransformNode(), etc... call these
-  vtkMRMLLinearTransformNode* GetNthTransformNodeInRole( const char* role, int n );
-  void AddAndObserveTransformNodeInRole( const char* role, vtkMRMLLinearTransformNode* node );
+  vtkMRMLTransformNode* GetNthTransformNodeInRole( const char* role, int n );
+  void AddAndObserveTransformNodeInRole( const char* role, vtkMRMLTransformNode* node );
   void RemoveNthTransformNodeInRole( const char* role, int n );
   int GetNumberOfTransformNodesInRole( const char* role );
 
-  vtkMRMLLinearTransformNode* GetTransformNodeInRole( const char* role );
-  void SetAndObserveTransformNodeInRole( const char* role, vtkMRMLLinearTransformNode* node );
+  vtkMRMLTransformNode* GetTransformNodeInRole( const char* role );
+  void SetAndObserveTransformNodeInRole( const char* role, vtkMRMLTransformNode* node );
 
 protected:
   vtkMRMLTransformProcessorNode();

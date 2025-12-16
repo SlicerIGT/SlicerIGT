@@ -37,10 +37,9 @@
        </property>
        <property name="nodeTypes">
         <stringlist>
-         <string>vtkMRMLLinearTransformNode</string>
+         <string>vtkMRMLTransformNode</string>
          <string>vtkMRMLBSplineTransformNode</string>
          <string>vtkMRMLGridTransformNode</string>
-         <string>vtkMRMLTransformNode</string>
         </stringlist>
        </property>
        <property name="noneEnabled">
@@ -205,10 +204,9 @@
         </property>
         <property name="nodeTypes">
          <stringlist>
-          <string>vtkMRMLLinearTransformNode</string>
+          <string>vtkMRMLTransformNode</string>
           <string>vtkMRMLBSplineTransformNode</string>
           <string>vtkMRMLGridTransformNode</string>
-          <string>vtkMRMLTransformNode</string>
          </stringlist>
         </property>
         <property name="noneEnabled">

@@ -26,7 +26,7 @@
 
 // MRML includes
 #include "vtkMRMLI18N.h"
-#include "vtkMRMLLinearTransformNode.h"
+#include "vtkMRMLTransformNode.h"
 #include "vtkMRMLMarkupsFiducialNode.h"
 #include "vtkMRMLScene.h"
 
@@ -166,7 +166,7 @@ std::string vtkSlicerFiducialRegistrationWizardLogic::GetOutputMessage(std::stri
 }
 
 //------------------------------------------------------------------------------
-void vtkSlicerFiducialRegistrationWizardLogic::AddFiducial(vtkMRMLLinearTransformNode* probeTransformNode)
+void vtkSlicerFiducialRegistrationWizardLogic::AddFiducial(vtkMRMLTransformNode* probeTransformNode)
 {
   if (probeTransformNode == NULL)
   {
@@ -185,7 +185,7 @@ void vtkSlicerFiducialRegistrationWizardLogic::AddFiducial(vtkMRMLLinearTransfor
 }
 
 //------------------------------------------------------------------------------
-void vtkSlicerFiducialRegistrationWizardLogic::AddFiducial(vtkMRMLLinearTransformNode* probeTransformNode, vtkMRMLMarkupsFiducialNode* fiducialNode)
+void vtkSlicerFiducialRegistrationWizardLogic::AddFiducial(vtkMRMLTransformNode* probeTransformNode, vtkMRMLMarkupsFiducialNode* fiducialNode)
 {
   if (probeTransformNode == NULL)
   {

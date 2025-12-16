@@ -23,7 +23,7 @@
 
 // Slicer MRML includes
 #include <vtkMRMLCoreTestingMacros.h>
-#include <vtkMRMLLinearTransformNode.h>
+#include <vtkMRMLTransformNode.h>
 #include <vtkMRMLScene.h>
 
 #include <vtkMRMLLandmarkDetectionNode.h>
@@ -37,7 +37,7 @@ double epsilon = 1.0e-6;
 
 
 //----------------------------------------------------------------------------
-int TestLandmarkDetection(vtkMRMLLandmarkDetectionNode* landmarkDetectionNode, vtkMRMLLinearTransformNode* markerToReferenceTransform, double landmarkPosition_RAS[3])
+int TestLandmarkDetection(vtkMRMLLandmarkDetectionNode* landmarkDetectionNode, vtkMRMLTransformNode* markerToReferenceTransform, double landmarkPosition_RAS[3])
 {
   for (int i = 0; i < NUMBER_OF_POINTS; ++i)
   {
@@ -74,7 +74,7 @@ int vtkLandmarkDetectionTest(int vtkNotUsed(argc), char* vtkNotUsed(argv)[])
   logic->SetMRMLScene(scene);
 
   {
-    vtkMRMLLinearTransformNode* markerToReferenceTransform = vtkMRMLLinearTransformNode::SafeDownCast(scene->AddNewNodeByClass("vtkMRMLLinearTransformNode"));
+    vtkMRMLTransformNode* markerToReferenceTransform = vtkMRMLTransformNode::SafeDownCast(scene->AddNewNodeByClass("vtkMRMLTransformNode"));
     vtkMRMLMarkupsFiducialNode* landmarkNode = vtkMRMLMarkupsFiducialNode::SafeDownCast(scene->AddNewNodeByClass("vtkMRMLMarkupsFiducialNode"));
     vtkMRMLLandmarkDetectionNode* landmarkDetectionNode = vtkMRMLLandmarkDetectionNode::SafeDownCast(scene->AddNewNodeByClass("vtkMRMLLandmarkDetectionNode"));
     landmarkDetectionNode->SetAndObserveInputTransformNode(markerToReferenceTransform);
@@ -108,7 +108,7 @@ int vtkLandmarkDetectionTest(int vtkNotUsed(argc), char* vtkNotUsed(argv)[])
   }
 
   {
-    vtkMRMLLinearTransformNode* markerToReferenceTransform = vtkMRMLLinearTransformNode::SafeDownCast(scene->AddNewNodeByClass("vtkMRMLLinearTransformNode"));
+    vtkMRMLTransformNode* markerToReferenceTransform = vtkMRMLTransformNode::SafeDownCast(scene->AddNewNodeByClass("vtkMRMLTransformNode"));
     vtkMRMLMarkupsFiducialNode* landmarkNode = vtkMRMLMarkupsFiducialNode::SafeDownCast(scene->AddNewNodeByClass("vtkMRMLMarkupsFiducialNode"));
     vtkMRMLLandmarkDetectionNode* landmarkDetectionNode = vtkMRMLLandmarkDetectionNode::SafeDownCast(scene->AddNewNodeByClass("vtkMRMLLandmarkDetectionNode"));
     landmarkDetectionNode->SetAndObserveInputTransformNode(markerToReferenceTransform);

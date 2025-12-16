@@ -20,7 +20,7 @@ Care Ontario.
 
 // MRML includes
 #include <vtkMRMLAnnotationROINode.h>
-#include <vtkMRMLLinearTransformNode.h>
+#include <vtkMRMLTransformNode.h>
 #include <vtkMRMLMarkupsROINode.h>
 #include <vtkMRMLScalarVolumeNode.h>
 #include <vtkMRMLScene.h>

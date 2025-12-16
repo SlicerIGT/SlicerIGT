@@ -46,7 +46,7 @@
        <widget class="qMRMLNodeComboBox" name="InputComboBox">
         <property name="nodeTypes">
          <stringlist>
-          <string>vtkMRMLLinearTransformNode</string>
+          <string>vtkMRMLTransformNode</string>
          </stringlist>
         </property>
        </widget>
@@ -62,7 +62,7 @@
        <widget class="qMRMLNodeComboBox" name="OutputComboBox">
         <property name="nodeTypes">
          <stringlist>
-          <string>vtkMRMLLinearTransformNode</string>
+          <string>vtkMRMLTransformNode</string>
          </stringlist>
         </property>
         <property name="renameEnabled">

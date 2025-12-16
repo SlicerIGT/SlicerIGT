@@ -39,7 +39,7 @@
 #include "vtkMRMLFiducialRegistrationWizardNode.h"
 
 class vtkMRMLMarkupsFiducialNode;
-class vtkMRMLLinearTransformNode;
+class vtkMRMLTransformNode;
 
 
 // STD includes
@@ -60,8 +60,8 @@ public:
   vtkTypeMacro(vtkSlicerFiducialRegistrationWizardLogic,vtkSlicerModuleLogic);
   void PrintSelf(ostream& os, vtkIndent indent) override;
   
-  void AddFiducial( vtkMRMLLinearTransformNode* probeTransformNode );
-  void AddFiducial( vtkMRMLLinearTransformNode* probeTransformNode, vtkMRMLMarkupsFiducialNode* fiducialNode );
+  void AddFiducial( vtkMRMLTransformNode* probeTransformNode );
+  void AddFiducial( vtkMRMLTransformNode* probeTransformNode, vtkMRMLMarkupsFiducialNode* fiducialNode );
 
   void ProcessMRMLNodesEvents( vtkObject* caller, unsigned long event, void* callData ) override;
 

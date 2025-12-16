@@ -28,7 +28,7 @@
 
 // MRML includes
 #include <vtkMRMLScene.h>
-#include <vtkMRMLLinearTransformNode.h>
+#include <vtkMRMLTransformNode.h>
 
 #include <sstream>
 
@@ -428,7 +428,7 @@ void vtkMRMLTransformProcessorNode::CheckAndCorrectForDuplicateAxes()
 }
 
 //----------------------------------------------------------------------------
-vtkMRMLLinearTransformNode* vtkMRMLTransformProcessorNode::GetNthTransformNodeInRole( const char* role, int n )
+vtkMRMLTransformNode* vtkMRMLTransformProcessorNode::GetNthTransformNodeInRole( const char* role, int n )
 {
   vtkMRMLNode* node = this->GetNthNodeReference( role, n );
   if ( node == NULL )
@@ -438,17 +438,17 @@ vtkMRMLLinearTransformNode* vtkMRMLTransformProcessorNode::GetNthTransformNodeIn
     return NULL;
   }
 
-  vtkMRMLLinearTransformNode* linearTransformNode = vtkMRMLLinearTransformNode::SafeDownCast( node );
-  if ( linearTransformNode == NULL )
+  vtkMRMLTransformNode* transformNode = vtkMRMLTransformNode::SafeDownCast( node );
+  if ( transformNode == NULL )
   {
-    vtkWarningMacro( "Failed to downcast vtkMRMLNode to vtkLinearTransformNode in the role " << role << " at index " << n << ". Returning NULL." );
+    vtkWarningMacro( "Failed to downcast vtkMRMLNode to vtkMRMLTransformNode in the role " << role << " at index " << n << ". Returning NULL." );
   }
 
-  return linearTransformNode;
+  return transformNode;
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLTransformProcessorNode::SetAndObserveTransformNodeInRole( const char* role, vtkMRMLLinearTransformNode* node )
+void vtkMRMLTransformProcessorNode::SetAndObserveTransformNodeInRole( const char* role, vtkMRMLTransformNode* node )
 {
   if ( node == this->GetTransformNodeInRole( role ) )
   {
@@ -471,7 +471,7 @@ void vtkMRMLTransformProcessorNode::SetAndObserveTransformNodeInRole( const char
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLTransformProcessorNode::AddAndObserveTransformNodeInRole( const char* role, vtkMRMLLinearTransformNode* node )
+void vtkMRMLTransformProcessorNode::AddAndObserveTransformNodeInRole( const char* role, vtkMRMLTransformNode* node )
 {
   // adding null does nothing, so just return in this case
   if ( node == NULL )
@@ -507,19 +507,19 @@ int vtkMRMLTransformProcessorNode::GetNumberOfTransformNodesInRole( const char* 
 }
 
 //----------------------------------------------------------------------------
-vtkMRMLLinearTransformNode* vtkMRMLTransformProcessorNode::GetTransformNodeInRole( const char* role )
+vtkMRMLTransformNode* vtkMRMLTransformProcessorNode::GetTransformNodeInRole( const char* role )
 {
   return this->GetNthTransformNodeInRole( role, 0 );
 }
 
 //----------------------------------------------------------------------------
-vtkMRMLLinearTransformNode* vtkMRMLTransformProcessorNode::GetNthInputCombineTransformNode( int n )
+vtkMRMLTransformNode* vtkMRMLTransformProcessorNode::GetNthInputCombineTransformNode( int n )
 {
   return this->GetNthTransformNodeInRole( ROLE_INPUT_COMBINE_TRANSFORM, n );
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLTransformProcessorNode::AddAndObserveInputCombineTransformNode( vtkMRMLLinearTransformNode* node )
+void vtkMRMLTransformProcessorNode::AddAndObserveInputCombineTransformNode( vtkMRMLTransformNode* node )
 {
   this->AddAndObserveTransformNodeInRole( ROLE_INPUT_COMBINE_TRANSFORM, node );
 }
@@ -537,97 +537,97 @@ int vtkMRMLTransformProcessorNode::GetNumberOfInputCombineTransformNodes()
 }
 
 //----------------------------------------------------------------------------
-vtkMRMLLinearTransformNode* vtkMRMLTransformProcessorNode::GetInputFromTransformNode()
+vtkMRMLTransformNode* vtkMRMLTransformProcessorNode::GetInputFromTransformNode()
 {
   return this->GetTransformNodeInRole( ROLE_INPUT_FROM_TRANSFORM );
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLTransformProcessorNode::SetAndObserveInputFromTransformNode( vtkMRMLLinearTransformNode* node )
+void vtkMRMLTransformProcessorNode::SetAndObserveInputFromTransformNode( vtkMRMLTransformNode* node )
 {
   this->SetAndObserveTransformNodeInRole( ROLE_INPUT_FROM_TRANSFORM, node );
 }
 
 //----------------------------------------------------------------------------
-vtkMRMLLinearTransformNode* vtkMRMLTransformProcessorNode::GetInputToTransformNode()
+vtkMRMLTransformNode* vtkMRMLTransformProcessorNode::GetInputToTransformNode()
 {
   return GetTransformNodeInRole( ROLE_INPUT_TO_TRANSFORM );
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLTransformProcessorNode::SetAndObserveInputToTransformNode( vtkMRMLLinearTransformNode* node )
+void vtkMRMLTransformProcessorNode::SetAndObserveInputToTransformNode( vtkMRMLTransformNode* node )
 {
   this->SetAndObserveTransformNodeInRole( ROLE_INPUT_TO_TRANSFORM, node );
 }
 
 //----------------------------------------------------------------------------
-vtkMRMLLinearTransformNode* vtkMRMLTransformProcessorNode::GetInputInitialTransformNode()
+vtkMRMLTransformNode* vtkMRMLTransformProcessorNode::GetInputInitialTransformNode()
 {
   return GetTransformNodeInRole( ROLE_INPUT_INITIAL_TRANSFORM );
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLTransformProcessorNode::SetAndObserveInputInitialTransformNode( vtkMRMLLinearTransformNode* node )
+void vtkMRMLTransformProcessorNode::SetAndObserveInputInitialTransformNode( vtkMRMLTransformNode* node )
 {
   this->SetAndObserveTransformNodeInRole( ROLE_INPUT_INITIAL_TRANSFORM, node );
 }
 
 //----------------------------------------------------------------------------
-vtkMRMLLinearTransformNode* vtkMRMLTransformProcessorNode::GetInputChangedTransformNode()
+vtkMRMLTransformNode* vtkMRMLTransformProcessorNode::GetInputChangedTransformNode()
 {
   return GetTransformNodeInRole( ROLE_INPUT_CHANGED_TRANSFORM );
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLTransformProcessorNode::SetAndObserveInputChangedTransformNode( vtkMRMLLinearTransformNode* node )
+void vtkMRMLTransformProcessorNode::SetAndObserveInputChangedTransformNode( vtkMRMLTransformNode* node )
 {
   this->SetAndObserveTransformNodeInRole( ROLE_INPUT_CHANGED_TRANSFORM, node );
 }
 
 //----------------------------------------------------------------------------
-vtkMRMLLinearTransformNode* vtkMRMLTransformProcessorNode::GetInputAnchorTransformNode()
+vtkMRMLTransformNode* vtkMRMLTransformProcessorNode::GetInputAnchorTransformNode()
 {
   return GetTransformNodeInRole( ROLE_INPUT_ANCHOR_TRANSFORM );
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLTransformProcessorNode::SetAndObserveInputAnchorTransformNode( vtkMRMLLinearTransformNode* node )
+void vtkMRMLTransformProcessorNode::SetAndObserveInputAnchorTransformNode( vtkMRMLTransformNode* node )
 {
   this->SetAndObserveTransformNodeInRole( ROLE_INPUT_ANCHOR_TRANSFORM, node );
 }
 
 //----------------------------------------------------------------------------
-vtkMRMLLinearTransformNode* vtkMRMLTransformProcessorNode::GetInputForwardTransformNode()
+vtkMRMLTransformNode* vtkMRMLTransformProcessorNode::GetInputForwardTransformNode()
 {
   return GetTransformNodeInRole( ROLE_INPUT_FORWARD_TRANSFORM );
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLTransformProcessorNode::SetAndObserveInputForwardTransformNode( vtkMRMLLinearTransformNode* node )
+void vtkMRMLTransformProcessorNode::SetAndObserveInputForwardTransformNode( vtkMRMLTransformNode* node )
 {
   this->SetAndObserveTransformNodeInRole( ROLE_INPUT_FORWARD_TRANSFORM, node );
 }
 
 //----------------------------------------------------------------------------
-vtkMRMLLinearTransformNode* vtkMRMLTransformProcessorNode::GetInputUnstabilizedTransformNode()
+vtkMRMLTransformNode* vtkMRMLTransformProcessorNode::GetInputUnstabilizedTransformNode()
 {
   return this->GetTransformNodeInRole(ROLE_INPUT_UNSTABILIZED_TRANSFORM);
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLTransformProcessorNode::SetAndObserveInputUnstabilizedTransformNode(vtkMRMLLinearTransformNode* node)
+void vtkMRMLTransformProcessorNode::SetAndObserveInputUnstabilizedTransformNode(vtkMRMLTransformNode* node)
 {
   this->SetAndObserveTransformNodeInRole(ROLE_INPUT_UNSTABILIZED_TRANSFORM, node);
 }
 
 //----------------------------------------------------------------------------
-vtkMRMLLinearTransformNode* vtkMRMLTransformProcessorNode::GetOutputTransformNode()
+vtkMRMLTransformNode* vtkMRMLTransformProcessorNode::GetOutputTransformNode()
 {
   return GetTransformNodeInRole( ROLE_OUTPUT_TRANSFORM );
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLTransformProcessorNode::SetAndObserveOutputTransformNode( vtkMRMLLinearTransformNode* node )
+void vtkMRMLTransformProcessorNode::SetAndObserveOutputTransformNode( vtkMRMLTransformNode* node )
 {
   this->SetAndObserveTransformNodeInRole( ROLE_OUTPUT_TRANSFORM, node );
 }

@@ -84,7 +84,7 @@ class FiducialsToModelRegistrationWidget(ScriptedLoadableModuleWidget):
     # output transform selector
     #
     self.outputSelector = slicer.qMRMLNodeComboBox()
-    self.outputSelector.nodeTypes = ["vtkMRMLLinearTransformNode"]
+    self.outputSelector.nodeTypes = ["vtkMRMLTransformNode"]
     self.outputSelector.selectNodeUponCreation = True
     self.outputSelector.addEnabled = True
     self.outputSelector.removeEnabled = True
