@@ -32,7 +32,7 @@
         <bool>true</bool>
        </property>
        <property name="nodeTypes">
-        <stringlist>
+        <stringlist notr="true">
          <string>vtkMRMLBreachWarningNode</string>
         </stringlist>
        </property>
@@ -81,7 +81,7 @@
              <bool>true</bool>
             </property>
             <property name="nodeTypes">
-             <stringlist>
+             <stringlist notr="true">
               <string>vtkMRMLModelNode</string>
              </stringlist>
             </property>
@@ -109,7 +109,7 @@
              <bool>true</bool>
             </property>
             <property name="nodeTypes">
-             <stringlist>
+             <stringlist notr="true">
               <string>vtkMRMLTransformNode</string>
              </stringlist>
             </property>

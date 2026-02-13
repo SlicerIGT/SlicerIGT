@@ -29,7 +29,7 @@
      <item>
       <widget class="qMRMLNodeComboBox" name="TrajectoryListSelector">
        <property name="nodeTypes">
-        <stringlist>
+        <stringlist notr="true">
          <string>vtkMRMLPathPlannerTrajectoryNode</string>
         </stringlist>
        </property>

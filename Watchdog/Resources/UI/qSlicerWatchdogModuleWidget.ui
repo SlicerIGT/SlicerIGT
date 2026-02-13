@@ -44,7 +44,7 @@
         <bool>true</bool>
        </property>
        <property name="nodeTypes">
-        <stringlist>
+        <stringlist notr="true">
          <string>vtkMRMLWatchdogNode</string>
         </stringlist>
        </property>
@@ -78,7 +78,7 @@
            </sizepolicy>
           </property>
           <property name="nodeTypes">
-           <stringlist>
+           <stringlist notr="true">
             <string>vtkMRMLTransformNode</string>
             <string>vtkMRMLVolumeNode</string>
            </stringlist>

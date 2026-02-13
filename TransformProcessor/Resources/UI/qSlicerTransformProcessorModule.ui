@@ -46,7 +46,7 @@
          <string>Select which transform you want to add below.</string>
         </property>
         <property name="nodeTypes">
-         <stringlist>
+         <stringlist notr="true">
           <string>vtkMRMLTransformNode</string>
          </stringlist>
         </property>
@@ -97,7 +97,7 @@
       <string>The node in which to store the result.</string>
      </property>
      <property name="nodeTypes">
-      <stringlist>
+      <stringlist notr="true">
        <string>vtkMRMLTransformNode</string>
       </stringlist>
      </property>
@@ -115,7 +115,7 @@
       <string>The changed state of the input</string>
      </property>
      <property name="nodeTypes">
-      <stringlist>
+      <stringlist notr="true">
        <string>vtkMRMLTransformNode</string>
       </stringlist>
      </property>
@@ -140,7 +140,7 @@
       <string>The transform node *from* which the output is based (e.g. Source in SourceToTarget)</string>
      </property>
      <property name="nodeTypes">
-      <stringlist>
+      <stringlist notr="true">
        <string>vtkMRMLTransformNode</string>
       </stringlist>
      </property>
@@ -165,7 +165,7 @@
       <string>The forward transform; what should be inverted.</string>
      </property>
      <property name="nodeTypes">
-      <stringlist>
+      <stringlist notr="true">
        <string>vtkMRMLTransformNode</string>
       </stringlist>
      </property>
@@ -186,7 +186,7 @@
       <string>This stores all parameters for transform processing.</string>
      </property>
      <property name="nodeTypes">
-      <stringlist>
+      <stringlist notr="true">
        <string>vtkMRMLTransformProcessorNode</string>
       </stringlist>
      </property>
@@ -303,7 +303,7 @@
       <string>The transform node *to* which the output is based (e.g. Target in SourceToTarget)</string>
      </property>
      <property name="nodeTypes">
-      <stringlist>
+      <stringlist notr="true">
        <string>vtkMRMLTransformNode</string>
       </stringlist>
      </property>
@@ -424,7 +424,7 @@
       <string>The output will be expressed relative to this anchor</string>
      </property>
      <property name="nodeTypes">
-      <stringlist>
+      <stringlist notr="true">
        <string>vtkMRMLTransformNode</string>
       </stringlist>
      </property>
@@ -449,7 +449,7 @@
       <string>The initial state for the transform</string>
      </property>
      <property name="nodeTypes">
-      <stringlist>
+      <stringlist notr="true">
        <string>vtkMRMLTransformNode</string>
       </stringlist>
      </property>
@@ -560,7 +560,7 @@
       <string>The forward transform; what should be inverted.</string>
      </property>
      <property name="nodeTypes">
-      <stringlist>
+      <stringlist notr="true">
        <string>vtkMRMLTransformNode</string>
       </stringlist>
      </property>

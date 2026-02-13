@@ -48,7 +48,7 @@
       <string>Select nodes to preview transform</string>
      </property>
      <property name="nodeTypes">
-      <stringlist>
+      <stringlist notr="true">
        <string>vtkMRMLTransformableNode</string>
       </stringlist>
      </property>

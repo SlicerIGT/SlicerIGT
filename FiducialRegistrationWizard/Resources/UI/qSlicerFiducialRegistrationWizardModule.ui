@@ -38,7 +38,7 @@
          </sizepolicy>
         </property>
         <property name="nodeTypes">
-         <stringlist>
+         <stringlist notr="true">
           <string>vtkMRMLFiducialRegistrationWizardNode</string>
          </stringlist>
         </property>
@@ -92,7 +92,7 @@
             </sizepolicy>
            </property>
            <property name="nodeTypes">
-            <stringlist>
+            <stringlist notr="true">
              <string>vtkMRMLTransformNode</string>
             </stringlist>
            </property>
@@ -110,7 +110,7 @@
          <item row="1" column="0">
           <widget class="qMRMLNodeComboBox" name="ProbeTransformToComboBox">
            <property name="nodeTypes">
-            <stringlist>
+            <stringlist notr="true">
              <string>vtkMRMLTransformNode</string>
             </stringlist>
            </property>
@@ -181,7 +181,7 @@
             </sizepolicy>
            </property>
            <property name="nodeTypes">
-            <stringlist>
+            <stringlist notr="true">
              <string>vtkMRMLTransformNode</string>
             </stringlist>
            </property>

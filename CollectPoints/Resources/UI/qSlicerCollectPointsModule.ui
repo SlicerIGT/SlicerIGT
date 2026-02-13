@@ -36,7 +36,7 @@
         <string>Points will be collected according to the origin of this coordinate system.</string>
        </property>
        <property name="nodeTypes">
-        <stringlist>
+        <stringlist notr="true">
          <string>vtkMRMLTransformNode</string>
          <string>vtkMRMLBSplineTransformNode</string>
          <string>vtkMRMLGridTransformNode</string>
@@ -53,7 +53,7 @@
      <item row="0" column="1">
       <widget class="qMRMLNodeComboBox" name="ParameterNodeComboBox">
        <property name="nodeTypes">
-        <stringlist>
+        <stringlist notr="true">
          <string>vtkMRMLCollectPointsNode</string>
         </stringlist>
        </property>
@@ -95,7 +95,7 @@
           <string>Store points in either a markups or a model node</string>
          </property>
          <property name="nodeTypes">
-          <stringlist>
+          <stringlist notr="true">
            <string>vtkMRMLMarkupsFiducialNode</string>
            <string>vtkMRMLModelNode</string>
            <string>vtkMRMLMarkupsCurveNode</string>
@@ -203,7 +203,7 @@
          <string>Points will be collected relative to the anchor coordinate system.</string>
         </property>
         <property name="nodeTypes">
-         <stringlist>
+         <stringlist notr="true">
           <string>vtkMRMLTransformNode</string>
           <string>vtkMRMLBSplineTransformNode</string>
           <string>vtkMRMLGridTransformNode</string>

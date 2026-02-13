@@ -55,7 +55,7 @@
        <item>
         <widget class="qMRMLNodeComboBox" name="driverNodeSelector">
          <property name="nodeTypes">
-          <stringlist>
+          <stringlist notr="true">
            <string>vtkMRMLTransformNode</string>
            <string>vtkMRMLScalarVolumeNode</string>
            <string>vtkMRMLMarkupsPlaneNode</string>
