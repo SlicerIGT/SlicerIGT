@@ -392,7 +392,6 @@ bool vtkSlicerVolumeReconstructionLogic::AddVolumeNodeToReconstructedVolume(vtkM
     reconstructor->SetOutputScalarType(inputImageData->GetScalarType());
   }
 
-  std::string errorDetail;
   igsioTrackedFrame trackedFrame;
   trackedFrame.GetImageData()->DeepCopyFrom(inputImageData);
 
