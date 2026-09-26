@@ -276,7 +276,7 @@ class TextureModelTest(ScriptedLoadableModuleTest):
     slicer.util.delayDisplay("Starting the test")
 
     # Download
-    import urllib
+    import urllib.request
     url = 'https://github.com/Slicer/SlicerTestingData/releases/download/SHA256/752ce9afe8b708fcd4f8448612170f8e730670d845f65177860edc0e08004ecf'
     zipFilePath = slicer.app.temporaryPath + '/' + 'FemurHeadSurfaceScan.zip'
     extractPath = slicer.app.temporaryPath + '/' + 'FemurHeadSurfaceScan'
