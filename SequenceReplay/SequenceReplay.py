@@ -191,8 +191,10 @@ class SequenceReplayWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         self.initializeParameterNode()
         
         # Collapse dataprobe collapsible button
-        dataProbeCollapsibleWidget = slicer.util.findChildren(name='DataProbeCollapsibleWidget')[0]
-        dataProbeCollapsibleWidget.collapsed = True
+        # (there is none without a main window, e.g. with --no-main-window, or in a web browser)
+        dataProbeCollapsibleWidgets = slicer.util.findChildren(name='DataProbeCollapsibleWidget')
+        if dataProbeCollapsibleWidgets:
+            dataProbeCollapsibleWidgets[0].collapsed = True
         
         self._updateGui()
 
